@@ -38,6 +38,7 @@ export class Preview {
     return true;
   }
   update(settings,original=false){this.settings={...settings};this.original=original;this.version++;this.request();}
+  setSource(source){this.source=source;this.dirtySource=true;this.version++;this.request();}
   request(){if(!this.closed&&!this.frame&&!this.busy&&this.settings)this.frame=requestAnimationFrame(()=>this.draw());}
   async draw(){
     this.frame=0;if(this.closed||this.busy)return;

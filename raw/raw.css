@@ -1,6 +1,7 @@
 .raw-developer{position:fixed;inset:0;z-index:2000;display:grid;grid-template-rows:52px minmax(0,1fr);background:#121417;color:#e9edf4;font:13px/1.35 var(--sans,system-ui,sans-serif)}
 .raw-slider-row{display:grid;grid-template-columns:32px minmax(0,1fr) 32px;gap:8px;align-items:center}
 .raw-slider-row input{min-width:0;margin:0;touch-action:none}
+.raw-toggle>span,.raw-text>span{display:flex;justify-content:space-between;align-items:center;gap:10px}.raw-toggle input{width:18px;height:18px;accent-color:#7fa6ff}.raw-text input{width:100%;height:32px;box-sizing:border-box;background:#252a31;border:1px solid #414852;border-radius:4px;color:#e9edf4;padding:0 8px}.raw-text b,.raw-toggle b{margin-left:auto;white-space:nowrap}
 .raw-step{width:32px;height:32px;padding:0;border:1px solid #454e5d;border-radius:6px;background:#252c36;color:#dce6f8;font:20px/1 system-ui;cursor:pointer;touch-action:manipulation}
 .raw-step:hover{background:#35455e}.raw-step:active{background:#476391}.raw-step:focus-visible{outline:2px solid #9cbcff;outline-offset:2px}.raw-step:disabled{opacity:.4;cursor:default}
 @media(max-width:900px){.raw-slider-row{grid-template-columns:44px minmax(0,1fr) 44px;gap:12px}.raw-step{width:44px;height:44px;font-size:24px}}

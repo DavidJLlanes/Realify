@@ -18,6 +18,7 @@ const metaLine = metadata => {
 
 export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null }) {
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
+  let workingSource=source, engineTimer=0, engineVersion=0;
   state.autoWb=autoWhiteBalance(source);
   let activeGroup="luz", activeKey="exposure", showingOriginal=false, zoom=1, closed=false, accepting=false, histogramTimer=0, finalWorker=null;
   const root=document.createElement("section"); root.id="rawDeveloper"; root.className="raw-developer";
@@ -61,6 +62,14 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   };
   const renderer=new Preview(preview,source,{onDraw:drawHist,onError:error=>toast(error.message,"err")});
   const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(zoom*100)} %`;};
+  const engineChange=async(next,item)=>{
+    if(!item.engine||!onSettingChange||closed)return;
+    const version=++engineVersion;clearTimeout(engineTimer);
+    engineTimer=setTimeout(async()=>{
+      try{const result=await onSettingChange(next,item);if(result&&version===engineVersion&&!closed){workingSource=result;renderer.setSource(result);schedule();}}
+      catch(error){if(!closed)toast(error?.message||"No se pudo actualizar el motor RAW","err");}
+    },120);
+  };
   const remember=()=>{ history.push(structuredClone(state)); if(history.length>50)history.shift(); future.length=0; };
   const setValue=(item,value,{track=false}={})=>{
     if(accepting||closed)return;
@@ -77,9 +86,9 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   };
   const wireFields=host=>host.querySelectorAll('[data-key]').forEach(input=>{
     const item=control(input.dataset.key);
-    if(item.type==='choice'){input.addEventListener('change',()=>{setValue(item,input.value,{track:true});onSettingChange?.(structuredClone(state),item);});return;}
-    if(item.type==='toggle'){input.addEventListener('change',()=>{remember();state[item.key]=input.checked;sync(false);schedule();onSettingChange?.(structuredClone(state),item);});return;}
-    if(item.type==='text'){input.addEventListener('change',()=>{remember();state[item.key]=input.value.trim();sync(false);schedule();onSettingChange?.(structuredClone(state),item);});return;}
+    if(item.type==='choice'){input.addEventListener('change',()=>{setValue(item,input.value,{track:true});engineChange(structuredClone(state),item);});return;}
+    if(item.type==='toggle'){input.addEventListener('change',()=>{remember();state[item.key]=input.checked;sync(false);schedule();engineChange(structuredClone(state),item);});return;}
+    if(item.type==='text'){input.addEventListener('change',()=>{remember();state[item.key]=input.value.trim();sync(false);schedule();engineChange(structuredClone(state),item);});return;}
     let started=false,tap=null,down=null,suppressTap=false;
     const reset=()=>{setValue(item,0,{track:true});started=false;};
     input.addEventListener('input',()=>{
@@ -87,9 +96,9 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
       if(suppressTap){input.value='0';reset();return;}
       if(!started&&+input.value!==state[item.key]){remember();started=true;}
       setValue(item,input.value);
-      onSettingChange?.(structuredClone(state),item);
+      engineChange(structuredClone(state),item);
     });
-    input.addEventListener('change',()=>{if(suppressTap){input.value='0';reset();return;}setValue(item,input.value,{track:!started});started=false;onSettingChange?.(structuredClone(state),item);});
+    input.addEventListener('change',()=>{if(suppressTap){input.value='0';reset();return;}setValue(item,input.value,{track:!started});started=false;engineChange(structuredClone(state),item);});
     input.addEventListener('dblclick',event=>{event.preventDefault();reset();});
     input.addEventListener('pointerdown',event=>{
       started=false;
@@ -130,7 +139,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     root.querySelectorAll("input,select,.raw-step,.raw-groups button,[data-action=undo],[data-action=redo]").forEach(input=>input.disabled=true);
     let bitmap;
     try{
-      finalWorker=new RenderWorker();await finalWorker.setSource(source);
+      finalWorker=new RenderWorker();await finalWorker.setSource(workingSource);
       bitmap=await finalWorker.render(settings);
       if(closed)return;
       await onAccept(canvasCopy(bitmap),settings);close();
@@ -143,7 +152,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   root.querySelector(".raw-preview").addEventListener("pointerup",()=>{showingOriginal=false;schedule();});
   root.querySelector(".raw-preview").addEventListener("pointercancel",()=>{showingOriginal=false;schedule();});
   const onKey=event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();root.querySelector(event.shiftKey?"[data-action=redo]":"[data-action=undo]").click();}if(event.key==="Escape")close();if(event.key==="0")root.querySelector(".raw-fit").click();};
-  const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
+  const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);clearTimeout(engineTimer);renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
   document.addEventListener("keydown",onKey,true); sync(); schedule();
   return { close, state, initialState };
 }
