@@ -25,7 +25,7 @@ export async function openRawFile(file) {
       let thumb;try{thumb=await decoder.thumbnail();}catch{throw new Error("Este RAW no contiene una previsualización JPEG utilizable; elige «Revelar RAW».");}
       newDoc(thumb.width,thumb.height,{image:thumb,name:file.name.replace(/\.[^.]+$/,""),source:{w:thumb.width,h:thumb.height,type:"image/jpeg",size:file.size,name:file.name,file,rawPreview:true}});clearHistory();clearSnapshots();emit("doc:change");toast("Previsualización JPEG abierta");return true;
     }
-    openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial:defaults(),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
+    openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial:defaults(),onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
       newDoc(result.width,result.height,{image:result,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata:decoder.metadata}});clearHistory();clearSnapshots();emit("doc:change");toast("RAW revelado y abierto en Reality","ok");
     }});
     return true;

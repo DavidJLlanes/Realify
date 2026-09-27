@@ -239,7 +239,7 @@
   .cp-actions button:active{background:var(--s-500)}
 
   #mobilebar{
-    grid-area:mobilebar;display:grid;grid-template-columns:repeat(6,1fr);
+    grid-area:mobilebar;display:grid;grid-template-columns:repeat(7,1fr);
     background:var(--s-700);border-top:1px solid var(--line-strong);
     /* Barra compacta hasta el borde físico: 48px de blanco táctil y
        sólo 5px de aire arriba y abajo. */
@@ -252,6 +252,7 @@
     align-items:center;justify-content:center;gap:1px;
   }
   #mobilebar button:active{background:var(--ac-ghost);color:var(--ac)}
+  #mobilebar button.on{background:var(--ac-ghost);color:var(--ac);box-shadow:inset 0 2px 0 var(--ac)}
   #mobilebar button>span{font-size:20px;line-height:20px;font-weight:400}
   #mobilebar button>b{font-size:10px;line-height:13px;font-weight:600}
 

@@ -23,17 +23,51 @@ const drawData = image => {
   return canvas;
 };
 
+const listNumbers=value=>{
+  if(Array.isArray(value))return value.map(Number);
+  if(typeof value!=='string'||!value.trim())return null;
+  const values=value.split(/[;,\s]+/).map(Number);
+  return values.every(Number.isFinite)?values:null;
+};
+const optionalText=value=>typeof value==='string'&&value.trim()?value.trim():null;
 const rawOptions = settings => ({
+  bright: settings.bright,
+  threshold: settings.threshold,
+  autoBrightThr: settings.autoBrightThr,
+  adjustMaximumThr: settings.adjustMaximumThr,
+  expShift: settings.expShift,
+  expPreser: settings.expPreser,
+  halfSize: settings.halfSize,
+  fourColorRgb: settings.fourColorRgb,
   useCameraWb: settings.wb === "camera",
   useAutoWb: settings.wb === "auto",
-  useCameraMatrix: 1,
-  outputColor: 1,
-  outputBps: 16,
-  gamm: [1,1],
-  noAutoBright: true,
-  highlight: 5,
-  expCorrec: false,
-  userQual: 3
+  useCameraMatrix: settings.useCameraMatrix,
+  outputColor: settings.outputColor,
+  outputBps: settings.outputBps,
+  outputTiff: settings.outputTiff,
+  outputFlags: settings.outputFlags,
+  userFlip: settings.userFlip,
+  userQual: settings.userQual,
+  userBlack: settings.userBlack,
+  userCblack: listNumbers(settings.userCblack),
+  userSat: settings.userSat,
+  medPasses: settings.medPasses,
+  useFujiRotate: settings.useFujiRotate,
+  greenMatching: settings.greenMatching,
+  dcbIterations: settings.dcbIterations,
+  dcbEnhanceFl: settings.dcbEnhanceFl,
+  fbddNoiserd: settings.fbddNoiserd,
+  expCorrec: settings.expCorrec,
+  noAutoScale: settings.noAutoScale,
+  noInterpolation: settings.noInterpolation,
+  greybox: listNumbers(settings.greybox), cropbox:listNumbers(settings.cropbox),
+  aber:listNumbers(settings.aber), gamm:listNumbers(settings.gamm), userMul:listNumbers(settings.userMul),
+  outputProfile: optionalText(settings.outputProfile),
+  cameraProfile: optionalText(settings.cameraProfile),
+  badPixels: optionalText(settings.badPixels),
+  darkFrame: optionalText(settings.darkFrame),
+  noAutoBright: settings.noAutoBright ?? true,
+  highlight: settings.highlight
 });
 
 export class RawDecoder {

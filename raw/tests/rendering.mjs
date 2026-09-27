@@ -150,15 +150,16 @@ try{
   await page.evaluate(()=>{window.accepted=null;window.closedCount=0;window.ui=window.openDeveloper({source:window.testSource,onAccept:(canvas,settings)=>{window.accepted={w:canvas.width,h:canvas.height,exposure:settings.exposure};},onClose:()=>window.closedCount++});});
   const definitions=await page.evaluate(async()=>{const {CONTROLS}=await import('/raw/state.js');return CONTROLS.filter(item=>item.type!=='choice');});
   for(const item of definitions){
+    if(item.type!=='range') continue;
     await page.locator(`.raw-groups [data-group="${item.group}"]`).click();
-    const slider=page.locator(`.raw-control-list input[data-key="${item.key}"]`),value=item.key==='exposure'?1:10;
+    const slider=page.locator(`.raw-control-list input[data-key="${item.key}"]`),value=item.key==='exposure'?1:Math.min(item.max-item.step,Math.max(item.min,item.min+item.step*2));
     await slider.fill(String(value));
     await page.locator('.raw-control-list').getByRole('button',{name:`Aumentar ${item.label}`,exact:true}).click();
     assert.ok(Math.abs(Number(await slider.inputValue())-(value+(item.step||1)))<1e-6);
     await page.locator('.raw-control-list').getByRole('button',{name:`Disminuir ${item.label}`,exact:true}).click();
     assert.equal(Number(await slider.inputValue()),value);
     const box=await slider.boundingBox();await slider.dblclick({position:{x:box.width*.75,y:box.height*.5}});
-    assert.equal(Number(await slider.inputValue()),0,`Reset ${item.key}`);
+    assert.equal(Number(await slider.inputValue()),Math.max(item.min,Math.min(item.max,0)),`Reset ${item.key}`);
   }
   await page.locator('.raw-groups [data-group="luz"]').click();
   await page.locator('.raw-control-list input[data-key=exposure]').fill('1.5');
