@@ -49,7 +49,20 @@ export const MENUS = [
     { cmd:"snapshot.add", label:"Nueva instantánea…",
       help:"Guarda una copia completa y con nombre del documento —«antes del retoque»—, en el panel Historial, para volver a ella sin deshacer paso a paso." },
     { cmd:"historyBrush.start", label:"Pincel de historial (Ctrl+Mayús+H)",
-      help:"Pinta píxeles de la instantánea marcada como origen (círculo, en el panel Historial) sobre la capa activa." }
+      help:"Pinta píxeles de la instantánea marcada como origen (círculo, en el panel Historial) sobre la capa activa." },
+    { sep:true },
+    { label:"Pinceles especiales", submenu:[
+      { cmd:"brush.symmetric", label:"Pincel simétrico",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18" stroke-dasharray="2 2"/><path d="M8 7c-2 1-3 3-3 5s1 4 3 5"/><path d="M16 7c2 1 3 3 3 5s-1 4-3 5"/></svg>',
+        help:"Pinta a la vez a los dos lados de un eje vertical, horizontal o diagonal, en cuatro cuadrantes o en radial (caleidoscopio)." },
+      { cmd:"brush.textured", label:"Pincel con textura",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c4 0 5-3 7-6l6-8"/><circle cx="6" cy="9" r=".6" fill="currentColor"/><circle cx="9" cy="5" r=".6" fill="currentColor"/><circle cx="4" cy="14" r=".6" fill="currentColor"/><circle cx="14" cy="17" r=".6" fill="currentColor"/><circle cx="18" cy="13" r=".6" fill="currentColor"/></svg>',
+        help:"Texturas procedurales dentro del trazo: grano, papel, lienzo, cristales, rayones, esponja o ruido fino." },
+      { cmd:"brush.gradient", label:"Pincel de degradado",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18c3-8 6-10 16-12"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="6" r="2" fill="currentColor"/></svg>',
+        help:"Dibuja degradados a mano alzada: el color va del frontal al de fondo (o recorre el arcoíris) a lo largo del trazo." },
+      { cmd:"brush.settings", label:"Ajustes de pincel…" }
+    ]}
   ]},
   { label:"Imagen", items:[
     { cmd:"image.resize",  label:"Tamaño de imagen…" },
@@ -64,6 +77,13 @@ export const MENUS = [
     { sep:true },
     { cmd:"image.flipH",   label:"Voltear en horizontal" },
     { cmd:"image.flipV",   label:"Voltear en vertical" },
+    { sep:true },
+    { cmd:"image.slice", label:"Dividir en trozos…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18" stroke-dasharray="3 2"/></svg>',
+      help:"Corta la imagen en filas y columnas, en trozos de tamaño fijo, en un carrusel panorámico o en la cuadrícula del perfil de Instagram, y los guarda en un ZIP, sueltos o como capas." },
+    { cmd:"image.shapeCrop", label:"Recortar en forma…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+      help:"Deja la imagen dentro de un círculo, un polígono, una estrella, un corazón… con transparencia fuera, y ajusta el lienzo a la forma." },
     { sep:true },
     { cmd:"image.removeBackground", label:"Eliminar fondo…" },
     { cmd:"sky.replace", label:"Reemplazar cielo…",
@@ -180,7 +200,10 @@ export const MENUS = [
     { cmd:"adj.brightness", label:"Brillo y contraste…" },
     { cmd:"adj.exposure",   label:"Exposición…" },
     { cmd:"adj.levels",     label:"Niveles…" },
-    { cmd:"adj.curves",     label:"Curvas…" },
+    { cmd:"adj.curves",     label:"Curvas…",
+      help:"RGB, rojo, verde, azul y luminosidad, todas visibles a la vez; vista R · G · B simultánea, curva de luminosidad y de color vinculables y 25 estilos (S clásica, cine, mate…)." },
+    { cmd:"adj.toneBand",   label:"Tonos del histograma…",
+      help:"Ajusta sólo una franja de tonos (negros, sombras, medios, luces o blancos) eligiéndola en el histograma." },
     { cmd:"adj.shadowsHighlights", label:"Sombras / Iluminaciones…" },
     { cmd:"adj.whiteBalance", label:"Balance de blancos…" },
     { cmd:"adj.tone",       label:"Tonos (blancos/luces/sombras/negros)…" },
@@ -244,6 +267,7 @@ export const MENUS = [
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 15.5h4.5M16.5 13v5" opacity=".9"/><path d="M4 20 20 4"/></svg>',
       help:"Elimina la marca visible del generador, perturba las marcas invisibles de los píxeles y limpia la procedencia del archivo (C2PA, XMP, EXIF). Panel por secciones con vista previa." },
     { cmd:"filter.looks",   label:"Estilos…",
+      help:"160 acabados de un clic en 16 categorías —retrato, paisaje, cine, películas, urbano, comida, moda, redes sociales, blanco y negro, noche, pastel, duotonos, vintage…— con buscador e intensidad.",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c-4.7 0-8.5 3.4-8.5 7.6 0 3.9 3.2 6.2 5.3 6.2 1.4 0 1.6-.9 1.6-1.6 0-.9-.6-1.4-.6-2.3 0-1.1.9-1.9 2.1-1.9h1.8c3.1 0 5.3-2 5.3-4.6 0-2.1-3-3.4-7-3.4z"/><circle cx="7.8" cy="10.2" r="1" fill="currentColor" stroke="none"/><circle cx="10.8" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="14.8" cy="7.2" r="1" fill="currentColor" stroke="none"/></svg>' },
     { cmd:"filter.lens",    label:"Adaptive Photo Lens…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21"/><path d="M5.6 5.6l2.5 2.5M15.9 15.9l2.5 2.5"/></svg>',
@@ -274,6 +298,8 @@ export const MENUS = [
         help:"Separa color/luz y textura en dos capas —«Baja» y «Alta», en Luz lineal— para retocar tono de piel sin perder detalle, o corregir una marca sin manchar el color." },
       { cmd:"dodgeburn.start", label:"Dodge & Burn, gris 50 % (Ctrl+Mayús+D)",
         help:"Pinta blanco o negro sobre una capa gris en modo Superponer: aclara u oscurece por zona sin tocar ni un píxel de la foto original." },
+      { cmd:"dodgeburn.viewGray", label:"Dodge & Burn: ver la capa gris",
+        help:"Muestra en tiempo real la capa gris al 50 % tal cual, para ver dónde se ha aclarado y oscurecido." },
       { cmd:"filter.clarity", label:"Detalle y estructura…" },
       { cmd:"filter.vignette", label:"Viñeteado…" }
     ]},
@@ -323,6 +349,10 @@ export const MENUS = [
     { cmd:"an.metrics",   label:"Plausibilidad…" },
     { cmd:"an.forensics", label:"Segunda opinión…" },
     { cmd:"an.spectrum",  label:"Espectro de frecuencia…" },
+    { cmd:"view.histogram", label:"Histograma interactivo",
+      help:"Panel con el histograma RGB en vivo: toca una zona para ajustar sólo esos tonos." },
+    { cmd:"view.smartGrid", label:"Composición: cuadrícula inteligente…",
+      help:"Analiza sujeto, horizonte y rostros y dibuja tercios, proporción áurea, espiral y diagonales adaptadas; propone recorte y enderezado." },
     { sep:true },
     { cmd:"an.exif",      label:"Metadatos EXIF…", help:"Permite revisar o escribir datos de cámara en exportaciones JPEG." },
     { cmd:"an.strip",     label:"Limpiar metadatos de un archivo…" }
@@ -344,7 +374,11 @@ export const MENUS = [
     { sep:true },
     { cmd:"view.grid",        label:"Mostrar cuadrícula" },
     { cmd:"view.gridSnap",    label:"Ajustar a la cuadrícula" },
-    { cmd:"view.gridConfig",  label:"Configurar cuadrícula…" }
+    { cmd:"view.gridConfig",  label:"Configurar cuadrícula…" },
+    { cmd:"view.smartGrid",   label:"Cuadrícula inteligente…" },
+    { cmd:"view.smartGridToggle", label:"Mostrar u ocultar la cuadrícula inteligente" },
+    { sep:true },
+    { cmd:"view.histogram",   label:"Histograma" }
   ]},
   { label:"Ayuda", items:[
     { cmd:"help.guide",   label:"Guía…" },

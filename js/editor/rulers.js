@@ -244,9 +244,15 @@ export function guideAt(p, tolPx = 8){
    imagen (traslación + zoom de la vista), igual que cualquier otra
    superposición: las líneas se trazan de un borde al otro del
    documento en unidades de imagen, sin volver a convertir nada. */
+/* Guías de composición de la cuadrícula inteligente (smartgrid.js):
+   se registran desde allí para no cargar ese módulo si no se usa. */
+let compositionFn = null;
+export function setCompositionOverlay(fn){ compositionFn = fn; scheduleOverlay(); }
+
 function drawGuideLines(ctx){
   if(!doc.open) return;
   drawGridLines(ctx);   // debajo de las guías: si coinciden, la guía gana
+  if(compositionFn){ ctx.save(); try{ compositionFn(ctx); }finally{ ctx.restore(); } }
   if(!showGuides) return;
   const px = 1 / Math.max(view.zoom, 1e-6);
   ctx.strokeStyle = "rgba(94,196,255,.85)";

@@ -164,6 +164,9 @@ registerAll({
   "image.rotL":   { run: rotateLeft,  enabled: needsDoc },
   "image.rotR":   { run: rotateRight, enabled: needsDoc },
   "image.rot180": { run: rotate180,   enabled: needsDoc },
+  /* Imagen › Dividir en trozos y Recortar en forma (editor/imagetools.js) */
+  "image.slice":     { run: async () => (await import("./editor/imagetools.js")).sliceImage(), enabled: needsDoc },
+  "image.shapeCrop": { run: async () => (await import("./editor/imagetools.js")).shapeCrop(), enabled: needsDoc },
   "image.flipH":  { run: flipH,       enabled: needsDoc },
   "image.flipV":  { run: flipV,       enabled: needsDoc },
   "image.removeBackground": { run: photoTool("removeBackground"), enabled: needsDoc },
@@ -271,6 +274,10 @@ registerAll({
   "view.guidesClear": { run: clearGuides, enabled: needsDoc },
   "view.grid":       () => setGridVisible(!gridVisible()),
   "view.gridSnap":   () => setSnapToGrid(!snapToGridEnabled()),
+  /* Cuadrícula inteligente (editor/smartgrid.js): guías calculadas a
+     partir del contenido (sujeto, horizonte, rostros) */
+  "view.smartGrid":  { run: async () => (await import("./editor/smartgrid.js")).openSmartGrid(), enabled: needsDoc },
+  "view.smartGridToggle": { run: async () => (await import("./editor/smartgrid.js")).toggleSmartGrid(), enabled: needsDoc },
   "view.gridConfig": { run: async () => {
       const cfg = gridConfig();
       const wrap = document.createElement("div");
@@ -552,6 +559,34 @@ registerAll({
   "dodgeburn.start":    { run: () => setTool("dodgeburn"), enabled: needsDoc },
   "brush.settings":     { run: async () => (await import("./editor/brushes.js")).openBrushPanel(), enabled: needsDoc },
   "dodgeburn.newLayer": { run: () => { addDodgeBurnLayer(); setTool("dodgeburn"); }, enabled: needsDoc },
+  /* Dodge & Burn con la capa gris a la vista, en tiempo real */
+  "dodgeburn.viewGray": { run: async () => {
+      setTool("dodgeburn");
+      const t = await import("./editor/tools.js");
+      t.state.dbShowGray = !t.state.dbShowGray;
+      emit("tool:options"); emit("tool:paramchange", "dbShowGray");
+      toast(t.state.dbShowGray ? "Viendo la capa gris al 50 % en tiempo real" : "Vista normal");
+    }, enabled: needsDoc },
+  /* Pinceles especiales: activan el Pincel con el modo ya puesto (los
+     ajustes siguen en su barra de opciones y en «Pinceles…"). */
+  "brush.symmetric": { run: async () => {
+      setTool("brush");
+      const t = await import("./editor/tools.js");
+      if(t.state.brushSymmetry === "none") t.setBrushMode("brushSymmetry", "horizontal");
+      emit("tool:options"); toast("Pincel simétrico: elige el eje en la barra de opciones");
+    }, enabled: needsDoc },
+  "brush.textured": { run: async () => {
+      setTool("brush");
+      const t = await import("./editor/tools.js");
+      if(t.state.brushTexture === "none") t.setBrushMode("brushTexture", "grain");
+      emit("tool:options"); toast("Pincel con textura: grano, papel, lienzo, cristales, rayones…");
+    }, enabled: needsDoc },
+  "brush.gradient": { run: async () => {
+      setTool("brush");
+      const t = await import("./editor/tools.js");
+      if(t.state.brushColorMode === "solid") t.setBrushMode("brushColorMode", "gradient");
+      emit("tool:options"); toast("Pincel de degradado: del color frontal al de fondo a lo largo del trazo");
+    }, enabled: needsDoc },
   "snapshot.add": { run: async () => {
       const name = await promptDlg("Nueva instantánea", "Nombre", "");
       if(name !== null) takeSnapshot(name);
@@ -640,6 +675,11 @@ registerAll({
   "adj.photoFilter": { run: async () => (await import("./editor/advanced-color.js")).photoFilter(), enabled: needsDoc },
   "adj.dehaze": { run: async () => (await import("./editor/advanced-color.js")).dehaze(), enabled: needsDoc },
   "adj.labCurves": { run: async () => (await import("./editor/advanced-color.js")).labCurves(), enabled: needsDoc },
+  /* Tonos del histograma: sólo una franja de luminancia. Desde el panel
+     Histograma llega con la zona pulsada ({ center, width }). */
+  "adj.toneBand": { run: async arg => (await import("./editor/toneband.js")).toneBand(
+      arg && typeof arg === "object" && Number.isFinite(arg.center) ? { init: arg } : {}), enabled: needsDoc },
+  "view.histogram": { run: async () => (await import("./ui/histogrampanel.js")).showHistogramPanel() },
   "adj.rangeHsl": { run: async () => (await import("./editor/advanced-color.js")).rangeHsl(), enabled: needsDoc },
   "adj.replaceColor": { run: async () => (await import("./editor/advanced-color.js")).replaceColor(), enabled: needsDoc },
   "adj.matchColor": { run: async () => (await import("./editor/advanced-color.js")).matchColor(), enabled: needsDoc },
@@ -1151,6 +1191,8 @@ document.getElementById("zoomCell").addEventListener("click", () => run("view.fi
 initPWA();
 initMenu();
 initPanels();
+try{ if(JSON.parse(localStorage.getItem("realify.smartGrid") || "{}").on) import("./editor/smartgrid.js"); }catch{}
+import("./ui/histogrampanel.js").then(m => m.initHistogramPanel());
 initOpen();
 initDocbar();
 initProjects();

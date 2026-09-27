@@ -45,12 +45,16 @@ El documento de partida no se modifica.
   - De 2 a 16 fotos: columnas, filas, grande + pequeñas, mosaico y molinete
   - Diagonales y triángulos
   - Fotos esparcidas y giradas
-- **Formas para las fotos**: en lugar del rectángulo del diseño, cada foto puede ir
-  dentro de un círculo, una elipse, un triángulo o un polígono regular de 5, 6, 7, 8, 9
-  o 10 lados. La forma elegida vale para todas las fotos, y además cada hueco puede
-  tener la suya propia («Forma de esta foto»). Los polígonos conservan su forma
-  regular y se encajan centrados en el hueco; la elipse lo llena entero. El marco, las
-  esquinas redondeadas y la sombra siguen la forma.
+- **Diseño «Libre»**: sin huecos fijos. Cada foto es una pieza que se arrastra a
+  cualquier sitio, se escala y gira con el tirador de la esquina (o con dos dedos), se
+  duplica, se trae delante o se manda detrás. Al pasar a «Libre» desde otro diseño, las
+  fotos se quedan donde estaban. Con Alt o Mayús, arrastrar encuadra la foto dentro de
+  su pieza.
+- **Formas para las fotos** (biblioteca común `js/core/shapes.js`): círculo, elipse,
+  cápsula, rombo, arco, polígonos de 3 a 10 lados, estrellas de 4 a 10 puntas, corazón,
+  flor, gota, escudo, cruz, luna, sello festoneado, nube y bocadillo. La forma elegida
+  vale para todas las fotos y cada hueco puede tener la suya. El marco, las esquinas
+  redondeadas y la sombra siguen la forma.
 - **Composición**: espaciado, margen, esquinas redondeadas, marco de cada foto y
   sombra.
 - **Fondo**: color, degradado, la propia foto difuminada (con oscurecido) o

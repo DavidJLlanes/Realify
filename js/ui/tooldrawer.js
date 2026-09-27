@@ -50,6 +50,7 @@ const ITEMS = [
   { cmd:"adj.exposure",          label:"Exposición",           ic:"aperture",              cat:"mejorar" },
   { cmd:"adj.levels",            label:"Niveles",              ic:"chart-no-axes-column",  cat:"mejorar" },
   { cmd:"adj.curves",            label:"Curvas",               ic:"spline",                cat:"mejorar color" },
+  { cmd:"adj.toneBand",          label:"Tonos del histograma", ic:"chart-area",            cat:"mejorar" },
   { cmd:"adj.shadowsHighlights", label:"Sombras y luces",      ic:"sun-moon",              cat:"mejorar" },
   { cmd:"adj.whiteBalance",      label:"Balance de blancos",   ic:"thermometer",           cat:"mejorar color corregir" },
   { cmd:"adj.tone",              label:"Tonos",                ic:"sliders-horizontal",    cat:"mejorar" },
@@ -113,6 +114,7 @@ const ITEMS = [
   { cmd:"filter.portrait",       label:"Retrato",          ic:"scan-face",      cat:"retoque" },
   { cmd:"filter.freqsep",        label:"Separar frecuencias", ic:"split",       cat:"retoque" },
   { cmd:"dodgeburn.start",       label:"Dodge & Burn",     tool:"dodgeburn",    cat:"retoque" },
+  { cmd:"dodgeburn.viewGray",    label:"D&B: ver gris",    ic:"eclipse",        cat:"retoque" },
   { cmd:"filter.clarity",        label:"Detalle",          ic:"gem",            cat:"mejorar" },
   { cmd:"filter.vignette",       label:"Viñeteado",        ic:"circle-dot-dashed", cat:"estilo" },
   { cmd:"filter.denoise",        label:"Reducir ruido",    ic:"audio-waveform", cat:"corregir mejorar" },
@@ -148,6 +150,8 @@ const ITEMS = [
   { cmd:"image.resize", label:"Tamaño de imagen",     ic:"scaling",           cat:"corregir" },
   { cmd:"image.canvasSize", label:"Tamaño de lienzo", ic:"maximize-2",        cat:"corregir" },
   { cmd:"image.contentAwareScale", label:"Escala por contenido", ic:"shrink",  cat:"corregir" },
+  { cmd:"image.slice",     label:"Dividir en trozos",   ic:"layout-grid",       cat:"corregir" },
+  { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"heart",             cat:"corregir estilo" },
   { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia retoque" },
   { cmd:"sky.replace",  label:"Reemplazar cielo",     ic:"cloud-sun",         cat:"ia estilo" },
 
@@ -178,6 +182,9 @@ const ITEMS = [
   { cmd:"sel.rangeMask", label:"Máscaras de luz",    ic:"sun-snow",          cat:"seleccion" },
 
   { tool:"brush",        label:"Pincel",       cat:"pintar" },
+  { cmd:"brush.symmetric", label:"Pincel simétrico",   ic:"flip-horizontal-2", cat:"pintar" },
+  { cmd:"brush.textured",  label:"Pincel con textura", ic:"spray-can",         cat:"pintar" },
+  { cmd:"brush.gradient",  label:"Pincel degradado",   ic:"rainbow",           cat:"pintar" },
   { tool:"eraser",       label:"Borrador",     cat:"pintar" },
   { tool:"fill",         label:"Bote de pintura", cat:"pintar" },
   { tool:"gradient",     label:"Degradado",    cat:"pintar" },
@@ -197,6 +204,8 @@ const ITEMS = [
   { cmd:"an.metrics",    label:"Plausibilidad",    ic:"gauge",        cat:"analizar" },
   { cmd:"an.forensics",  label:"Segunda opinión",  ic:"microscope",   cat:"analizar" },
   { cmd:"an.spectrum",   label:"Espectro",         ic:"radar",        cat:"analizar" },
+  { cmd:"view.histogram", label:"Histograma",       ic:"chart-column", cat:"analizar mejorar" },
+  { cmd:"view.smartGrid", label:"Cuadrícula inteligente", ic:"grid-3x3", cat:"analizar corregir" },
   { cmd:"an.exif",       label:"Metadatos EXIF",   ic:"tags",         cat:"analizar" },
   { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"analizar ia" }
 ];

@@ -26,6 +26,7 @@ export const CONTROLS = [
   C("virado", "platinum",  "Platino y paladio",        "Grises cálidos, suaves y sin negros duros."),
 
   C("color", "ortho",      "B/N ortocromático",        "Insensible al rojo: labios y pieles rojizas casi negros."),
+  C("color", "panchro",    "B/N pancromático",         "Blanco y negro de película moderna, sensible a todos los colores."),
   C("color", "agedDesat",  "Desaturación envejecida",  "Colores apagados; cian y verde se pierden primero."),
   C("color", "castYellow", "Dominante amarilla",       "Tintes inestables que amarillean con los años."),
   C("color", "castGreen",  "Dominante verdosa",        "Virado verdoso de copias mal conservadas."),

@@ -208,6 +208,12 @@ void main(){
     m = mix(m, m * m * (3. - 2. * m), .3);
     c = mix(c, vec3(m), ORTHO / 100.);
   }
+  // Pancromático DESPUÉS del ortocromático: juntos, el gris conserva
+  // el carácter ortocromático que se haya pedido.
+  if(PANCHRO > 0.){
+    float m = dot(clamp(c, 0., 1.), vec3(.30, .59, .11));
+    c = mix(c, vec3(m), PANCHRO / 100.);
+  }
   // Virados: mapa de degradado sobre la luminosidad
   if(SEPIA + CYANOTYPE + SELENIUM + PLATINUM > 0.){
     float m = clamp(luma(c), 0., 1.);

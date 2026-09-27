@@ -160,6 +160,8 @@ export const FILTERS = {
                      scale: (p, t) => ({ ...p, density: (p.density ?? 25) * t }) },
   "dehaze": { load: mod("./advanced-color.js"), fn: "dehaze",
                scale: (p, t) => toward(p, t, zeros("amount")) },
+  "tone-band": { load: mod("./toneband.js"), fn: "toneBand",
+                  scale: (p, t) => toward(p, t, zeros("brightness", "contrast", "saturation", "warmth")) },
   "lab-curves": { load: mod("./advanced-color.js"), fn: "labCurves",
                    scale: (p, t) => ({ ...p, points: Object.fromEntries(
                      Object.entries(p.points || {}).map(([k, pts]) =>
@@ -262,7 +264,7 @@ const LIVE_CAPABLE = new Set([
   , "pixelate-suite", "stylize-effects", "render-effects", "texture-effects",
   "custom-convolution", "offset-morphology"
   , "color-grading", "split-toning", "photo-filter", "dehaze", "lab-curves",
-  "range-hsl", "replace-color", "match-color", "threshold", "posterize", "equalize",
+  "range-hsl", "tone-band", "replace-color", "match-color", "threshold", "posterize", "equalize",
   "desaturate", "auto-tone-color", "hdr-tone", "tonal-contrast", "graduated-filter"
 ]);
 export const filterLiveCapable = id => LIVE_CAPABLE.has(id);

@@ -32,6 +32,9 @@ const grid = (cols, rows) => {
 
 /* [id, nombre, huecos] */
 const LIST = [
+  /* «Libre»: sin huecos fijos. Cada foto es una pieza suelta que se
+     coloca, escala y gira a mano (ver `freeCell` en render.js). */
+  ["free", "Libre (colócalas donde quieras)", []],
   ["one", "Una foto", [R(0, 0, 1, 1)]],
   ["frame-tb", "Foto con espacio arriba y abajo", [R(0, .2, 1, .6)]],
   ["polaroid", "Polaroid (texto abajo)", [R(0, 0, 1, .8)]],
@@ -136,6 +139,11 @@ function bbox(pts){
 /* Miniatura SVG del diseño para los botones (proporción del lienzo). */
 export function layoutSvg(layout, w, h){
   const k = 36 / Math.max(w, h), W = Math.max(8, w * k), H = Math.max(8, h * k);
+  if(layout.id === "free"){
+    const r = (x, y, a, s) => `<rect x="${(x * W - s / 2).toFixed(1)}" y="${(y * H - s * .38).toFixed(1)}" width="${s.toFixed(1)}" height="${(s * .76).toFixed(1)}" transform="rotate(${a} ${(x * W).toFixed(1)} ${(y * H).toFixed(1)})" class="f"/>`;
+    const s = Math.min(W, H) * .5;
+    return `<svg viewBox="0 0 ${W.toFixed(1)} ${H.toFixed(1)}" width="${W.toFixed(1)}" height="${H.toFixed(1)}" aria-hidden="true"><rect class="bg" width="${W.toFixed(1)}" height="${H.toFixed(1)}" rx="1.5"/>${r(.35, .32, -12, s)}${r(.66, .5, 9, s)}${r(.4, .72, -4, s)}</svg>`;
+  }
   const cells = cellsFor(layout, W, H, 2, 1.5);
   const shapes = cells.map(c => c.ellipse
     ? `<ellipse cx="${(c.box.x + c.box.w / 2).toFixed(1)}" cy="${(c.box.y + c.box.h / 2).toFixed(1)}" rx="${(c.box.w / 2).toFixed(1)}" ry="${(c.box.h / 2).toFixed(1)}"/>`

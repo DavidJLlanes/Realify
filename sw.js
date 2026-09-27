@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v106-collage-formas";
+const VERSION = "realify-v109-guia";
 const SHELL = [
   "./",
   "./index.html",

@@ -17,7 +17,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { GROUPS, CONTROLS, control, controlsFor, normalize, valueText } from "./state.js";
-import { PRESETS, preset } from "./presets.js";
+import { PRESETS, PRESET_CATS, preset } from "./presets.js";
 import { VintageGL } from "./engine.js";
 import { toast } from "../js/ui/toast.js";
 
@@ -72,8 +72,11 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
   const firstOn = CONTROLS.find(c => state[c.key] > 0);
   if(firstOn){ activeGroup = firstOn.group; activeKey = firstOn.key; }
 
+  /* Agrupados por categoría (más de cien estilos en una lista plana no
+     hay quien los recorra). */
   const presetOptions = () => `<option value="">Personalizado</option>` +
-    PRESETS.map(p => `<option value="${p.id}">${p.label}</option>`).join("");
+    PRESETS.filter(p => !p.cat).map(p => `<option value="${p.id}">${p.label}</option>`).join("") +
+    PRESET_CATS.map(c => `<optgroup label="${c}">${PRESETS.filter(p => p.cat === c).map(p => `<option value="${p.id}">${p.label}</option>`).join("")}</optgroup>`).join("");
 
   const root = document.createElement("section");
   root.className = "vf-editor";

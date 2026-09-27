@@ -7,7 +7,7 @@
 import { doc, activeLayer } from "../core/doc.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
          drawHistogram, slider, histogram, pickerGroup } from "./adjust.js";
-import { curveEditor, curveLut } from "./curves.js";
+import { curveEditor, curveLut, curveThumb, CHANNEL_COLORS } from "./curves.js";
 import { BW_RECIPES, applyBWRecipe } from "./bwrecipes.js";
 
 const clamp255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
@@ -217,14 +217,70 @@ export function buildLevels(p){
 }
 
 /* ── curvas ───────────────────────────────────────────────────── */
+/* ── Curvas ─────────────────────────────────────────────────────
+   Cinco curvas: RGB (maestra), Rojo, Verde, Azul y Luminosidad. El
+   orden de aplicación es el de Photoshop más una etapa final:
+   canal → maestra RGB → luminosidad.
+
+   · La curva de LUMINOSIDAD cambia sólo el brillo: suma a los tres
+     canales la diferencia de luminancia, así que el tono y la
+     saturación no se mueven (una curva en S en RGB satura; en
+     luminosidad, no).
+   · «Vincular luminosidad y color»: las dos curvas pasan a ser la
+     misma —se edite la que se edite, la otra la sigue— y un control
+     reparte su efecto entre aplicarla como color (RGB) o como
+     luminosidad, en vez de aplicarla dos veces.
+   · Todas las curvas se ven a la vez (las demás en tenue), y la vista
+     «R · G · B» enseña los tres canales en tres paneles simultáneos.
+   · Estilos: una galería con miniatura de las curvas más usadas
+     (S clásica, cine, mate, película cruzada…) y los estilos propios
+     guardados en el navegador. */
+const ID = () => [[0,0],[255,255]];
+export const CURVE_PRESETS = [
+  ["linear",    "Lineal",                 { rgb: ID() }],
+  ["s-soft",    "Curva en S suave",       { rgb: [[0,0],[64,56],[192,200],[255,255]] }],
+  ["s-classic", "Curva en S clásica",     { rgb: [[0,0],[64,48],[192,208],[255,255]] }],
+  ["s-strong",  "Curva en S fuerte",      { rgb: [[0,0],[60,34],[128,128],[196,222],[255,255]] }],
+  ["contrast-l","Contraste en luminosidad", { lum: [[0,0],[64,46],[192,210],[255,255]] }],
+  ["inverse-s", "S invertida (suavizar)", { rgb: [[0,0],[64,78],[192,178],[255,255]] }],
+  ["fade",      "Desvanecido",            { rgb: [[0,28],[255,236]] }],
+  ["matte",     "Mate de película",       { rgb: [[0,34],[48,48],[128,130],[210,214],[255,238]] }],
+  ["cine",      "Cine (turquesa y naranja)", { rgb: [[0,10],[64,54],[192,204],[255,248]], r: [[0,0],[70,62],[190,204],[255,255]], g: [[0,4],[128,128],[255,250]], b: [[0,26],[80,92],[190,178],[255,232]] }],
+  ["blockbuster","Cine de acción",        { rgb: [[0,0],[50,38],[200,214],[255,255]], r: [[0,0],[128,136],[255,255]], b: [[0,20],[128,120],[255,236]] }],
+  ["cross",     "Proceso cruzado",        { r: [[0,0],[64,50],[192,218],[255,255]], g: [[0,0],[64,58],[192,208],[255,255]], b: [[0,40],[128,120],[255,210]] }],
+  ["vintage",   "Vintage cálido",         { rgb: [[0,30],[128,132],[255,232]], r: [[0,20],[128,140],[255,255]], b: [[0,40],[128,118],[255,200]] }],
+  ["cold",      "Frío nórdico",           { rgb: [[0,12],[128,126],[255,246]], r: [[0,0],[128,118],[255,240]], b: [[0,14],[128,140],[255,255]] }],
+  ["warm",      "Cálido suave",           { r: [[0,0],[128,140],[255,255]], b: [[0,0],[128,116],[255,240]] }],
+  ["portra",    "Retrato (piel suave)",   { rgb: [[0,18],[64,66],[192,196],[255,246]], r: [[0,6],[128,134],[255,255]], g: [[0,4],[128,130],[255,252]] }],
+  ["bleach",    "Blanqueo parcial",       { rgb: [[0,0],[64,40],[128,132],[192,220],[255,255]], lum: [[0,0],[96,84],[255,255]] }],
+  ["lift-shadows","Abrir sombras",        { rgb: [[0,0],[48,70],[128,142],[255,255]] }],
+  ["tame-lights","Recuperar luces",       { rgb: [[0,0],[128,124],[210,196],[255,236]] }],
+  ["brighten",  "Aclarar",                { rgb: [[0,0],[128,160],[255,255]] }],
+  ["darken",    "Oscurecer",              { rgb: [[0,0],[128,100],[255,255]] }],
+  ["highkey",   "Clave alta",             { rgb: [[0,40],[96,150],[255,255]] }],
+  ["lowkey",    "Clave baja",             { rgb: [[0,0],[160,96],[255,220]] }],
+  ["solarize",  "Solarizar",              { rgb: [[0,0],[128,255],[255,0]] }],
+  ["negative",  "Negativo",               { rgb: [[0,255],[255,0]] }],
+  ["posterlike","Tonos separados",        { rgb: [[0,0],[60,20],[70,120],[180,140],[190,235],[255,255]] }]
+];
+const USER_CURVES_KEY = "realify.curves.presets";
+const userCurvePresets = () => { try{ return JSON.parse(localStorage.getItem(USER_CURVES_KEY) || "[]"); }catch{ return []; } };
+
 export function curves(opts = {}){
+  const CH = ["rgb", "r", "g", "b", "lum"];
   const state = {
     channel: "rgb",
-    points: { rgb:[[0,0],[255,255]], r:[[0,0],[255,255]],
-              g:[[0,0],[255,255]], b:[[0,0],[255,255]] }
+    points: { rgb: ID(), r: ID(), g: ID(), b: ID(), lum: ID() },
+    link: false,      // luminosidad y color vinculadas
+    mix: 50,          // reparto con vínculo: 0 = sólo color, 100 = sólo luminosidad
+    view: "one"       // "one" (un editor) o "rgb3" (tres paneles R · G · B)
   };
-  if(opts.init?.points) for(const k of ["rgb","r","g","b"])
+  if(opts.init?.points) for(const k of CH)
     if(Array.isArray(opts.init.points[k])) state.points[k] = opts.init.points[k].map(pt => [pt[0], pt[1]]);
+  if(opts.init){
+    if(typeof opts.init.link === "boolean") state.link = opts.init.link;
+    if(Number.isFinite(opts.init.mix)) state.mix = opts.init.mix;
+  }
 
   return runAdjust({
     title: "Curvas",
@@ -235,62 +291,160 @@ export function curves(opts = {}){
       const lr = curveLut(state.points.r);
       const lg = curveLut(state.points.g);
       const lb = curveLut(state.points.b);
-      // El maestro se aplica encima del canal, que es el orden de
-      // Photoshop y el que espera quien ya sabe usar curvas.
-      const r = new Uint8ClampedArray(256), g = new Uint8ClampedArray(256),
-            b = new Uint8ClampedArray(256);
+      const lum = curveLut(state.link ? state.points.rgb : state.points.lum);
+      // Con el vínculo, la maestra y la de luminosidad son la misma
+      // curva y se reparte su efecto: `wc` lo que se aplica en color,
+      // `wl` lo que se aplica en luminosidad.
+      const wl = state.link ? state.mix / 100 : 1, wc = state.link ? 1 - wl : 1;
+      const r = new Uint8ClampedArray(256), g = new Uint8ClampedArray(256), b = new Uint8ClampedArray(256);
       for(let i = 0; i < 256; i++){
-        r[i] = master[lr[i]]; g[i] = master[lg[i]]; b[i] = master[lb[i]];
+        r[i] = lr[i] + (master[lr[i]] - lr[i]) * wc;
+        g[i] = lg[i] + (master[lg[i]] - lg[i]) * wc;
+        b[i] = lb[i] + (master[lb[i]] - lb[i]) * wc;
       }
       applyLut(data, { r, g, b });
+      let lumOn = false;
+      for(let i = 0; i < 256; i++) if(lum[i] !== i){ lumOn = true; break; }
+      if(!lumOn || wl <= 0) return;
+      for(let i = 0; i < data.length; i += 4){
+        const y = data[i] * .2126 + data[i + 1] * .7152 + data[i + 2] * .0722;
+        const yi = y | 0, ny = lum[yi] + (lum[Math.min(255, yi + 1)] - lum[yi]) * (y - yi);
+        const d = (ny - y) * wl;
+        data[i] += d; data[i + 1] += d; data[i + 2] += d;
+      }
     },
     buildBody({ hist, preview }){
       const box = document.createElement("div");
+      box.className = "curves-panel";
       box.innerHTML = `
         <div class="field"><label>Canal</label>
           <select class="grow" id="cvCh">
-            <option value="rgb">RGB</option>
+            <option value="rgb">RGB (color)</option>
             <option value="r">Rojo</option>
             <option value="g">Verde</option>
             <option value="b">Azul</option>
-          </select></div>`;
-      const ed = curveEditor({
-        getPoints: () => state.points[state.channel],
-        setPoints: pts => { state.points[state.channel] = pts; preview(); },
-        hist,
-        channel: () => state.channel
+            <option value="lum">Luminosidad</option>
+          </select></div>
+        <div class="seg cv-view" style="margin:6px 0">
+          <button type="button" data-view="one">Un panel</button>
+          <button type="button" data-view="rgb3">R · G · B a la vez</button>
+        </div>
+        <div class="cv-host"></div>
+        <label class="chk cv-link"><input type="checkbox"> Vincular luminosidad y color</label>
+        <div class="cv-mix"></div>
+        <div class="section-label" style="margin-top:10px">Estilos</div>
+        <div class="cv-presets"></div>
+        <div class="seg" style="margin-top:8px">
+          <button type="button" data-p="reset">Restablecer canal</button>
+          <button type="button" data-p="resetAll">Restablecer todo</button>
+          <button type="button" data-p="save">Guardar estilo…</button>
+        </div>
+        <p class="hint" style="margin-top:10px">Clic para añadir un punto, arrastrar para moverlo, clic derecho o doble clic para quitarlo. Las demás curvas se ven en tenue.</p>`;
+      const host = box.querySelector(".cv-host");
+      const others = ch => CH.filter(k => k !== ch && !(state.link && (k === "lum" || k === "rgb") && (ch === "lum" || ch === "rgb")))
+        .filter(k => !(state.points[k].length === 2 && state.points[k][0][0] === 0 && state.points[k][0][1] === 0 && state.points[k][1][0] === 255 && state.points[k][1][1] === 255))
+        .map(k => ({ points: state.points[k], color: CHANNEL_COLORS[k] }));
+      let editors = [];
+      const setPts = (ch, pts) => {
+        state.points[ch] = pts;
+        // Vinculadas: la otra sigue a la que se edita
+        if(state.link && (ch === "rgb" || ch === "lum")) state.points[ch === "rgb" ? "lum" : "rgb"] = pts.map(p => [p[0], p[1]]);
+        preview();
+      };
+      const renderEditors = () => {
+        host.innerHTML = "";
+        editors = [];
+        box.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
+        if(state.view === "rgb3"){
+          const grid = document.createElement("div");
+          grid.style.cssText = "display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px";
+          for(const ch of ["r", "g", "b"]){
+            const cell = document.createElement("div");
+            cell.innerHTML = `<div class="section-label" style="color:${CHANNEL_COLORS[ch]};text-align:center">${ch === "r" ? "Rojo" : ch === "g" ? "Verde" : "Azul"}</div>`;
+            const ed = curveEditor({ getPoints: () => state.points[ch], setPoints: pts => { setPts(ch, pts); }, hist, channel: () => ch,
+              overlays: () => others(ch), maxWidth: 220, onEnd: refreshAll });
+            cell.appendChild(ed.el); grid.appendChild(cell); editors.push(ed);
+          }
+          host.appendChild(grid);
+        } else {
+          const ed = curveEditor({ getPoints: () => state.points[state.channel], setPoints: pts => setPts(state.channel, pts),
+            hist, channel: () => state.channel, overlays: () => others(state.channel),
+            histMode: () => state.channel === "rgb" ? "rgb" : "one", onEnd: refreshAll });
+          host.appendChild(ed.el); editors.push(ed);
+        }
+      };
+      const refreshAll = () => { editors.forEach(e => e.refresh()); renderPresets(); };
+      const mixHost = box.querySelector(".cv-mix");
+      const renderMix = () => {
+        mixHost.innerHTML = "";
+        if(!state.link) return;
+        mixHost.appendChild(slider("Reparto color ↔ luminosidad", 0, 100, state.mix, v => { state.mix = v; preview(); }, "%"));
+      };
+      const link = box.querySelector(".cv-link input");
+      link.checked = state.link;
+      link.addEventListener("change", () => {
+        state.link = link.checked;
+        if(state.link){
+          // Al vincular, manda la curva que se está viendo
+          const src = state.channel === "lum" ? "lum" : "rgb";
+          state.points[src === "rgb" ? "lum" : "rgb"] = state.points[src].map(p => [p[0], p[1]]);
+        }
+        renderMix(); refreshAll(); preview();
       });
-      box.appendChild(ed.el);
 
-      const row = document.createElement("div");
-      row.className = "seg";
-      row.style.marginTop = "8px";
-      row.innerHTML = `<button data-p="reset">Restablecer</button>
-                       <button data-p="scurve">Curva en S</button>
-                       <button data-p="fade">Desvanecido</button>`;
-      row.addEventListener("click", e => {
+      /* Galería de estilos con miniatura */
+      const presetsEl = box.querySelector(".cv-presets");
+      presetsEl.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px";
+      const applyPreset = set => {
+        for(const k of CH) state.points[k] = set[k] ? set[k].map(p => [p[0], p[1]]) : ID();
+        if(state.link){ const src = set.lum && !set.rgb ? "lum" : "rgb"; state.points[src === "rgb" ? "lum" : "rgb"] = state.points[src].map(p => [p[0], p[1]]); }
+        refreshAll(); preview();
+      };
+      const renderPresets = () => {
+        presetsEl.innerHTML = "";
+        const all = [...CURVE_PRESETS, ...userCurvePresets().map(u => [u.id, u.name, u.points, true])];
+        for(const [id, name, set, mine] of all){
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "cv-preset"; b.title = name;
+          b.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;padding:4px;min-width:0;height:auto;min-height:88px;font-size:10.5px;line-height:1.15;white-space:normal;overflow-wrap:anywhere;text-align:center";
+          const t = curveThumb(set, 52); t.style.cssText = "width:52px;height:52px;border-radius:4px";
+          const n = document.createElement("span"); n.textContent = name;
+          b.append(t, n);
+          b.addEventListener("click", () => applyPreset(set));
+          if(mine) b.addEventListener("contextmenu", e => {
+            e.preventDefault();
+            try{ localStorage.setItem(USER_CURVES_KEY, JSON.stringify(userCurvePresets().filter(u => u.id !== id))); }catch{}
+            renderPresets();
+          });
+          presetsEl.appendChild(b);
+        }
+      };
+
+      box.addEventListener("click", async e => {
+        const v = e.target.closest("[data-view]");
+        if(v){ state.view = v.dataset.view; renderEditors(); return; }
         const b = e.target.closest("[data-p]");
         if(!b) return;
         const k = b.dataset.p;
-        state.points[state.channel] =
-          k === "scurve" ? [[0,0],[64,48],[192,208],[255,255]]
-        : k === "fade"   ? [[0,24],[255,235]]
-        :                  [[0,0],[255,255]];
-        ed.refresh(); preview();
+        if(k === "reset"){ setPts(state.channel, ID()); refreshAll(); }
+        else if(k === "resetAll"){ for(const c of CH) state.points[c] = ID(); refreshAll(); preview(); }
+        else if(k === "save"){
+          const { promptDlg } = await import("../ui/dialog.js");
+          const name = await promptDlg("Guardar estilo de curvas", "Nombre del estilo", "Mi curva");
+          if(!name) return;
+          const list = userCurvePresets();
+          list.push({ id: "u" + Date.now(), name: name.trim().slice(0, 40), points: JSON.parse(JSON.stringify(state.points)) });
+          try{ localStorage.setItem(USER_CURVES_KEY, JSON.stringify(list.slice(-40))); }catch{}
+          renderPresets();
+        }
       });
-      box.appendChild(row);
-
-      const note = document.createElement("p");
-      note.className = "hint";
-      note.style.marginTop = "10px";
-      note.textContent = "Clic para añadir un punto, arrastrar para moverlo, " +
-        "clic derecho o doble clic para quitarlo.";
-      box.appendChild(note);
-
+      box.querySelector("#cvCh").value = state.channel;
       box.querySelector("#cvCh").addEventListener("change", e => {
         state.channel = e.target.value;
-        ed.refresh();
+        if(state.view !== "one"){ state.view = "one"; }
+        renderEditors();
       });
+      renderEditors(); renderMix(); renderPresets();
       return box;
     }
   }, opts);

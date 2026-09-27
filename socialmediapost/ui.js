@@ -26,6 +26,7 @@ import { PROPS as TEXT_PROPS, PROP_GROUPS, prop as textProp, TEXT_PRESETS, newTe
 import { renderText, drawText } from "../memes/text.js";
 import { loadFont } from "../memes/fonts.js";
 import { toast } from "../js/ui/toast.js";
+import { shapeSvg } from "../js/core/shapes.js";
 
 const MOBILE = "(max-width:900px)";
 const MAX_SIDE = 5000, PROXY_SIDE = 1600;
@@ -79,16 +80,19 @@ const CELL_PROPS = [
   R("fx", "Encuadre horizontal", 0, 100, " %"),
   R("fy", "Encuadre vertical", 0, 100, " %")
 ];
+/* Pieza del diseño «Libre»: tamaño (lado mayor, en % del lado menor
+   del lienzo) y giro. */
+const FREE_PROPS = [R("fsize", "Tamaño", 5, 200, " %"), R("frot", "Giro", -180, 180, "°")];
 const newSlot = (photo = null, shape = "") => ({ photo, zoom: 100, fx: 50, fy: 50, rot: 0, flip: false, shape });
 /* Miniatura SVG de una forma (para los botones de «Forma»). */
 function shapeIcon(id){
   const box = { pts: [[2, 2], [22, 2], [22, 22], [2, 22]], box: { x: 2, y: 2, w: 20, h: 20 } };
   if(!id) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" class="ln"/></svg>`;
-  const c = id === "ellipse" ? shapeOf({ ...box, box: { x: 2, y: 5, w: 20, h: 14 } }, "ellipse") : shapeOf(box, id);
-  return `<svg viewBox="0 0 24 24" aria-hidden="true">${c.ellipse
-    ? `<ellipse cx="${c.box.x + c.box.w / 2}" cy="${c.box.y + c.box.h / 2}" rx="${c.box.w / 2}" ry="${c.box.h / 2}"/>`
-    : `<polygon points="${c.pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}"/>`}</svg>`;
+  if(id === "rect") return `<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="${box.pts.map(p => p.join(",")).join(" ")}"/></svg>`;
+  return shapeSvg(id);
 }
+/* Número de lados o de puntas, en pequeño sobre el botón */
+const shapeBadge = id => { const m = /^(?:poly|star)(\d+)$/.exec(id); return id === "triangle" ? "3" : m ? m[1] : ""; };
 
 export function openPostEditor({ photo = null, onAccept, onClose = null }){
   /* Fotos: lienzo a tamaño de trabajo + copia ligera para la vista.
@@ -108,7 +112,8 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     layout: photo ? "one" : "4grid",
     gap: 12, margin: 12, radius: 0, shape: "rect", border: 0, borderColor: "#ffffff", shadow: 0,
     bg: "color", bgColor: "#ffffff", bgColor2: "#8ec5ff", bgAngle: 135, bgBlur: 70, bgDim: 15,
-    photos: [], slots: [], texts: []
+    photos: [], slots: [], texts: [],
+    free: []          // piezas del diseño «Libre»: { cx, cy, w, h, rot } (fracciones del lienzo)
   };
   if(photo){ const id = addPhoto(photo); S.photos.push(id); }
   let sel = null;               // { type: "cell", i } | { type: "text", uid }
@@ -132,6 +137,10 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(W0 && H0 && (W0 !== W || H0 !== H)){
       const f = (Math.min(W0, H0) / W0) / (Math.min(W, H) / W);
       if(Math.abs(f - 1) > 1e-6) for(const t of S.texts){ t.size = clamp(t.size * f, 10, 300); t.w = clamp(t.w * f, 10, 100); }
+      /* Las piezas libres conservan su forma en píxeles (la foto no se
+         deforma) y su tamaño respecto al lado menor. */
+      const g = Math.min(W, H) / Math.min(W0, H0);
+      for(const it of S.free || []){ it.w = it.w * W0 * g / W; it.h = it.h * H0 * g / H; }
     }
     cells = cellsOf(S, W, H);
     while(S.slots.length < cells.length) S.slots.push(newSlot());
@@ -142,8 +151,29 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   const autofill = () => {
     const used = new Set(S.slots.map(s => s.photo).filter(Boolean));
     const free = S.photos.filter(id => !used.has(id));
+    if(isFree()){ for(const id of free) addFreeItem(id); return; }
     for(const s of S.slots){ if(!free.length) break; if(!s.photo) s.photo = free.shift(); }
   };
+  const isFree = () => S.layout === "free";
+  /* Nueva pieza suelta con la proporción de su foto (la foto entera se
+     ve), a la mitad del lado menor del lienzo y escalonada para que
+     no queden todas encima unas de otras. `at` (opcional) = centro en
+     fracciones del lienzo. */
+  function addFreeItem(id, at = null){
+    const p = photos.get(id), a = p ? p.full.width / p.full.height : 1;
+    const s = Math.min(W, H) * .5, wpx = a >= 1 ? s : s * a, hpx = a >= 1 ? s / a : s;
+    const n = S.free.length;
+    const it = { cx: at ? at.x : clamp(.5 + ((n % 5) - 2) * .07, .15, .85), cy: at ? at.y : clamp(.5 + (((n / 5) | 0) % 3 - 1) * .08 + ((n % 5) - 2) * .03, .15, .85),
+                 w: wpx / W, h: hpx / H, rot: n ? ((n * 37) % 15) - 7 : 0 };
+    S.free.push(it); S.slots.push(newSlot(id));
+    cells = cellsOf(S, W, H);
+    return S.free.length - 1;
+  }
+  /* Ajusta la pieza a la proporción de una foto nueva (mismo ancho). */
+  function fitFreeTo(i, id){
+    const p = photos.get(id), it = S.free[i]; if(!p || !it) return;
+    it.h = it.w * W / (p.full.width / p.full.height) / H;
+  }
   const selText = () => sel?.type === "text" ? S.texts.find(t => t.uid === sel.uid) || null : null;
   const selCell = () => sel?.type === "cell" ? S.slots[sel.i] || null : null;
 
@@ -185,7 +215,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     </main>
     <footer class="sp-mobile">
       <div class="sp-row"><select class="sp-format-select" aria-label="Formato">${formatOptions()}</select><button type="button" class="sp-orient-btn" aria-label="Cambiar orientación">⇆</button></div>
-      <div class="sp-row"><select class="sp-layout-select" aria-label="Diseño">${opt(LAYOUTS.map(l => [l.id, `${l.label} · ${l.cells.length}`]), S.layout)}</select><button type="button" class="sp-add primary" data-p="open">＋ Fotos</button></div>
+      <div class="sp-row"><select class="sp-layout-select" aria-label="Diseño">${opt(LAYOUTS.map(l => [l.id, l.id === "free" ? l.label : `${l.label} · ${l.cells.length}`]), S.layout)}</select><button type="button" class="sp-add primary" data-p="open">＋ Fotos</button></div>
       <select class="sp-prop-select" aria-label="Ajuste"></select>
       <div class="sp-mobile-control"></div>
       <div class="sp-tray sp-tray-m"></div>
@@ -264,6 +294,13 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       ctx.save(); ctx.lineWidth = 2.5 * d; ctx.strokeStyle = color; ctx.shadowColor = "#000a"; ctx.shadowBlur = 3 * d; ctx.stroke(); ctx.restore();
     };
     if(sel?.type === "cell") mark(sel.i, "#6794ff");
+    const fh = freeHandle();
+    if(fh){
+      ctx.save(); ctx.fillStyle = "#6794ff"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5 * d; ctx.shadowColor = "#000a"; ctx.shadowBlur = 3 * d;
+      ctx.beginPath(); ctx.arc(fh[0], fh[1], HANDLE * d * .75, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#fff"; ctx.shadowBlur = 0; ctx.font = `${12 * d}px system-ui`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("⤡", fh[0], fh[1] + .5);
+      ctx.restore();
+    }
     if(dropTarget >= 0) mark(dropTarget, "#7fe0a3");
     const t = selText(), r = t && rendered(t);
     if(r){
@@ -357,7 +394,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
         const s = wrap.querySelector("select");
         s.addEventListener("change", () => onChange(s.value, true));
       } else {
-        wrap.innerHTML = `${label}<div class="sp-shapes">${p.options.map(([v, l]) => `<button type="button" data-shape="${esc(v)}" title="${esc(l)}" aria-label="${esc(l)}" class="${v === value ? "on" : ""}">${shapeIcon(v)}${/^(triangle|poly\d+)$/.test(v) ? `<span>${v === "triangle" ? 3 : v.slice(4)}</span>` : ""}</button>`).join("")}</div>`;
+        wrap.innerHTML = `${label}<div class="sp-shapes">${p.options.map(([v, l]) => `<button type="button" data-shape="${esc(v)}" title="${esc(l)}" aria-label="${esc(l)}" class="${v === value ? "on" : ""}">${shapeIcon(v)}${shapeBadge(v) ? `<span>${shapeBadge(v)}</span>` : ""}</button>`).join("")}</div>`;
         wrap.querySelectorAll("[data-shape]").forEach(b => b.addEventListener("click", () => {
           wrap.querySelectorAll("[data-shape]").forEach(x => x.classList.toggle("on", x === b));
           onChange(b.dataset.shape, true);
@@ -393,6 +430,17 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(["scale", "customW", "customH", "gap", "margin"].includes(key)){ relayout(); if(key !== "gap" && key !== "margin") fit(); }
     if(key === "bg" || key === "scale") syncPanels();
     request();
+  };
+  const freeValue = key => {
+    const it = S.free[sel?.i]; if(!it) return 0;
+    return key === "frot" ? Math.round(it.rot || 0) : Math.round(Math.max(it.w * W, it.h * H) / Math.min(W, H) * 100);
+  };
+  const setFreeProp = (key, value, final, started) => {
+    const it = S.free[sel?.i]; if(!it || accepting) return;
+    if(!started) remember();
+    if(key === "frot") it.rot = value;
+    else { const f = value / Math.max(1, freeValue("fsize")); it.w *= f; it.h *= f; }
+    cells = cellsOf(S, W, H); request();
   };
   const setCellProp = (key, value, final, started) => {
     const s = selCell(); if(!s || accepting || s[key] === value) return;
@@ -432,7 +480,22 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     remember();
     // Las fotos colocadas se conservan por orden en el diseño nuevo.
     const placed = S.slots.filter(s => s.photo);
-    S.layout = id; S.slots = [];
+    if(id === "free"){
+      /* A «Libre»: cada foto sigue donde estaba, ahora como pieza
+         suelta que se puede mover; los huecos vacíos desaparecen. */
+      S.free = []; const slots = [];
+      cells.forEach((c, i) => {
+        const sl = S.slots[i]; if(!sl?.photo) return;
+        S.free.push(c.float ? { cx: c.cx / W, cy: c.cy / H, w: c.w / W, h: c.h / H, rot: c.rot || 0 }
+                            : { cx: (c.box.x + c.box.w / 2) / W, cy: (c.box.y + c.box.h / 2) / H, w: c.box.w / W, h: c.box.h / H, rot: 0 });
+        slots.push({ ...sl });
+      });
+      S.layout = id; S.slots = slots; sel = null;
+      relayout(); autofill(); syncPanels(); request();
+      toast("Diseño libre: arrastra cada foto, usa la esquina para escalar y girar");
+      return;
+    }
+    S.layout = id; S.slots = []; S.free = []; sel = null;
     relayout();
     placed.slice(0, S.slots.length).forEach((s, i) => { S.slots[i] = { ...s }; });
     autofill(); syncPanels(); request();
@@ -465,7 +528,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(f.group === "phone") lz.insertAdjacentHTML("beforeend", `<p class="sp-note">Resolución nativa de la pantalla: sirve para fondos de pantalla e historias a medida de ese móvil.</p>`);
     // Diseños (miniaturas con la forma del lienzo)
     const lay = $(".sp-layouts");
-    lay.innerHTML = LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" title="${esc(l.label)} · ${l.cells.length} ${l.cells.length === 1 ? "foto" : "fotos"}" class="${l.id === S.layout ? "on" : ""}">${layoutSvg(l, W, H)}<span>${l.cells.length}</span></button>`).join("");
+    lay.innerHTML = LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" title="${esc(l.label)}${l.id === "free" ? "" : ` · ${l.cells.length} ${l.cells.length === 1 ? "foto" : "fotos"}`}" class="${l.id === S.layout ? "on" : ""}">${layoutSvg(l, W, H)}<span>${l.id === "free" ? "∞" : l.cells.length}</span></button>`).join("");
     lay.querySelectorAll("[data-layout]").forEach(b => b.addEventListener("click", () => chooseLayout(b.dataset.layout)));
     // Móvil
     $(".sp-format-select").value = S.format;
@@ -506,7 +569,9 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   };
   const cellButtons = () => {
     const acts = document.createElement("div"); acts.className = "sp-buttons";
-    acts.innerHTML = `<button type="button" data-do="replace">📂 Cambiar foto</button><button type="button" data-do="swap">⇄ Intercambiar</button><button type="button" data-do="rotate">↻ Girar</button><button type="button" data-do="flip">⇋ Voltear</button><button type="button" data-do="center">⌖ Centrar</button><button type="button" data-do="clear" class="danger">✕ Vaciar hueco</button>`;
+    acts.innerHTML = isFree()
+      ? `<button type="button" data-do="replace">📂 Cambiar foto</button><button type="button" data-do="dupfree">⧉ Duplicar</button><button type="button" data-do="front">▲ Delante</button><button type="button" data-do="back">▼ Detrás</button><button type="button" data-do="rotate">↻ Girar foto</button><button type="button" data-do="flip">⇋ Voltear</button><button type="button" data-do="center">⌖ Centrar encuadre</button><button type="button" data-do="removefree" class="danger">✕ Quitar del lienzo</button>`
+      : `<button type="button" data-do="replace">📂 Cambiar foto</button><button type="button" data-do="swap">⇄ Intercambiar</button><button type="button" data-do="rotate">↻ Girar</button><button type="button" data-do="flip">⇋ Voltear</button><button type="button" data-do="center">⌖ Centrar</button><button type="button" data-do="clear" class="danger">✕ Vaciar hueco</button>`;
     acts.querySelectorAll("[data-do]").forEach(b => b.addEventListener("click", () => act(b.dataset.do)));
     return acts;
   };
@@ -514,8 +579,9 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     const host = $(".sp-props"); host.innerHTML = "";
     const t = selText(), s = selCell();
     if(s){
-      host.appendChild(section("cell", `Foto del hueco ${sel.i + 1}`, s.photo
-        ? [...CELL_PROPS.map(p => control(p, s[p.key], (v, f, st) => setCellProp(p.key, v, f, st))), cellButtons()]
+      host.appendChild(section("cell", isFree() ? `Foto ${sel.i + 1}` : `Foto del hueco ${sel.i + 1}`, s.photo
+        ? [...(isFree() ? FREE_PROPS.map(p => control(p, freeValue(p.key), (v, f, st) => setFreeProp(p.key, v, f, st))) : []),
+           ...CELL_PROPS.map(p => control(p, s[p.key], (v, f, st) => setCellProp(p.key, v, f, st))), cellButtons()]
         : [Object.assign(document.createElement("p"), { className: "sp-note", textContent: "Hueco vacío: arrastra una foto de la bandeja, tócala, o ábrela desde aquí." }),
            ...CELL_PROPS.filter(p => p.empty).map(p => control(p, s[p.key], (v, f, st) => setCellProp(p.key, v, f, st))), cellButtons()]));
     } else if(t){
@@ -542,16 +608,18 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       ["Composición", COMP_PROPS],
       ["Fondo", BG_PROPS.filter(p => !p.when || p.when(S))]
     ];
-    if(s) groups.unshift(["Foto elegida", CELL_PROPS.filter(p => s.photo || p.empty).map(p => ({ ...p, cell: true }))]);
+    if(s) groups.unshift(["Foto elegida", [...(isFree() && s.photo ? FREE_PROPS.map(p => ({ ...p, freeProp: true })) : []), ...CELL_PROPS.filter(p => s.photo || p.empty).map(p => ({ ...p, cell: true }))]]);
     const ps = $(".sp-prop-select");
-    ps.innerHTML = groups.map(([label, ps]) => `<optgroup label="${esc(label)}">${ps.map(p => `<option value="${p.cell ? "c:" : "s:"}${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>`).join("") +
+    ps.innerHTML = groups.map(([label, ps]) => `<optgroup label="${esc(label)}">${ps.map(p => `<option value="${p.freeProp ? "f:" : p.cell ? "c:" : "s:"}${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>`).join("") +
       (t ? PROP_GROUPS.map(([g, label]) => `<optgroup label="Texto · ${esc(label)}">${TEXT_PROPS.filter(p => p.group === g).map(p => `<option value="t:${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>`).join("") : "");
     const valid = [...ps.options].map(o => o.value);
     if(!valid.includes(activeProp)) activeProp = t ? "t:text" : s && s.photo ? "c:zoom" : "s:gap";
     ps.value = activeProp;
     mobileControl();
     const acts = $(".sp-acts");
-    acts.innerHTML = `<button type="button" data-do="addtext">＋ Texto</button>` + (s
+    acts.innerHTML = `<button type="button" data-do="addtext">＋ Texto</button>` + (s && isFree()
+      ? `<button type="button" data-do="front">▲ Delante</button><button type="button" data-do="dupfree">⧉ Duplicar</button><button type="button" data-do="removefree" class="danger">✕ Quitar</button>`
+      : s
       ? `<button type="button" data-do="replace">📂 Cambiar</button><button type="button" data-do="rotate">↻ Girar</button><button type="button" data-do="clear" class="danger">✕ Vaciar</button>`
       : t ? `<button type="button" data-do="dup">⧉ Duplicar</button><button type="button" data-do="front">▲ Delante</button><button type="button" data-do="del" class="danger">✕ Eliminar</button>`
       : `<button type="button" data-p="paste">📋 Pegar foto</button>`);
@@ -566,6 +634,9 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       const p = [...LIENZO_PROPS, ...COMP_PROPS, ...BG_PROPS].find(p => p.key === key);
       const v = key === "customW" ? S.custom.w : key === "customH" ? S.custom.h : S[key];
       if(p) host.appendChild(control(p, v, (val, f, st) => { setProp(key, val, f, st); if(key === "bg") syncProps(true); }, true));
+    } else if(kind === "f"){
+      const p = FREE_PROPS.find(p => p.key === key);
+      if(selCell() && p) host.appendChild(control(p, freeValue(key), (v, f, st) => setFreeProp(key, v, f, st), true));
     } else if(kind === "c"){
       const s = selCell(), p = CELL_PROPS.find(p => p.key === key);
       if(s && p) host.appendChild(control(p, s[key], (v, f, st) => setCellProp(key, v, f, st), true));
@@ -593,7 +664,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     const ids = decoded.map(addPhoto);
     S.photos.push(...ids);
     // Soltada sobre un hueco: la primera va ahí; el resto, a los vacíos
-    if(target >= 0 && S.slots[target]){ S.slots[target] = newSlot(ids[0], S.slots[target].shape); }
+    if(target >= 0 && S.slots[target]){ S.slots[target] = newSlot(ids[0], S.slots[target].shape); if(isFree()) fitFreeTo(target, ids[0]); }
     else if(sel?.type === "cell" && S.slots[sel.i] && !S.slots[sel.i].photo){ S.slots[sel.i] = newSlot(ids[0], S.slots[sel.i].shape); }
     autofill();
     syncPanels(); request();
@@ -640,13 +711,17 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(accepting) return;
     remember();
     S.photos = S.photos.filter(p => p !== id);
-    S.slots.forEach(s => { if(s.photo === id) Object.assign(s, newSlot(null, s.shape)); });
+    if(isFree()){
+      for(let i = S.slots.length - 1; i >= 0; i--) if(S.slots[i].photo === id){ S.slots.splice(i, 1); S.free.splice(i, 1); }
+      sel = null; cells = cellsOf(S, W, H);
+    } else S.slots.forEach(s => { if(s.photo === id) Object.assign(s, newSlot(null, s.shape)); });
     syncPanels(); request();
   }
   const assign = (i, id) => {
     if(accepting || !S.slots[i]) return;
     remember();
     S.slots[i] = newSlot(id, S.slots[i].shape);
+    if(isFree()) fitFreeTo(i, id);
     sel = { type: "cell", i };
     syncPanels(); request();
   };
@@ -656,7 +731,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     el.addEventListener("pointerdown", e => {
       if(e.target.closest("[data-remove]") || accepting) return;
       const x0 = e.clientX, y0 = e.clientY;
-      let ghost = null;
+      let ghost = null, lastInside = null;
       try{ el.setPointerCapture(e.pointerId); }catch{}
       const move = ev => {
         if(!ghost && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 8){
@@ -667,11 +742,19 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
         const r = canvas.getBoundingClientRect();
         const inside = ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
         const i = inside ? cellAt(...toLocal(ev.clientX, ev.clientY)) : -1;
+        lastInside = inside ? toLocal(ev.clientX, ev.clientY) : null;
         if(i !== dropTarget){ dropTarget = i; request(); }
       };
       const up = () => {
         el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", cancel);
-        if(ghost){ ghost.remove(); const i = dropTarget; dropTarget = -1; if(i >= 0) assign(i, id); else request(); return; }
+        if(ghost){
+          ghost.remove(); const i = dropTarget; dropTarget = -1;
+          if(i >= 0) assign(i, id);
+          else if(isFree() && lastInside){ remember(); const j = addFreeItem(id, { x: clamp(lastInside[0] / (W * view.k), 0, 1), y: clamp(lastInside[1] / (H * view.k), 0, 1) }); sel = { type: "cell", i: j }; syncPanels(); request(); }
+          else request();
+          return;
+        }
+        if(isFree()){ remember(); const j = addFreeItem(id); sel = { type: "cell", i: j }; syncPanels(); request(); return; }
         let i = sel?.type === "cell" ? sel.i : S.slots.findIndex(s => !s.photo);
         if(i < 0){ toast("Elige primero el hueco donde ponerla"); return; }
         assign(i, id);
@@ -704,6 +787,16 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(s){
       const i = sel.i;
       if(what === "replace"){ openPhotos(i); return; }
+      if(isFree() && ["front", "back", "dupfree", "removefree", "dup", "del"].includes(what)){
+        remember();
+        const move = (from, to) => { const [f] = S.free.splice(from, 1), [sl] = S.slots.splice(from, 1); S.free.splice(to, 0, f); S.slots.splice(to, 0, sl); };
+        if(what === "front"){ move(i, S.free.length - 1); sel = { type: "cell", i: S.free.length - 1 }; }
+        else if(what === "back"){ move(i, 0); sel = { type: "cell", i: 0 }; }
+        else if(what === "dupfree" || what === "dup"){ S.free.push({ ...S.free[i], cx: clamp(S.free[i].cx + .04, 0, 1), cy: clamp(S.free[i].cy + .04, 0, 1) }); S.slots.push({ ...S.slots[i] }); sel = { type: "cell", i: S.free.length - 1 }; }
+        else { S.free.splice(i, 1); S.slots.splice(i, 1); sel = null; }
+        cells = cellsOf(S, W, H);
+        syncPanels(); request(); return;
+      }
       if(what === "swap"){
         const j = (i + 1) % S.slots.length; if(j === i) return;
         remember(); [S.slots[i], S.slots[j]] = [S.slots[j], S.slots[i]]; sel = { type: "cell", i: j };
@@ -763,6 +856,13 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(r.bw - r.w < -.5) slot.fx = clamp(s0.fx + lx / (r.bw - r.w) * 100, 0, 100);
     if(r.bh - r.h < -.5) slot.fy = clamp(s0.fy + ly / (r.bh - r.h) * 100, 0, 100);
   };
+  /* Tirador (esquina inferior derecha) de la pieza libre elegida, en
+     píxeles de la vista. */
+  function freeHandle(){
+    if(!isFree() || sel?.type !== "cell" || !cells[sel.i]) return null;
+    const [x, y] = cells[sel.i].pts[2];
+    return [view.ox + x * view.k, view.oy + y * view.k];
+  }
   const pointers = new Map();
   let gesture = null, lastTap = { t: 0, uid: null };
   canvas.addEventListener("pointerdown", e => {
@@ -775,10 +875,17 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       const [a, b] = [...pointers.values()];
       const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
       if(t) gesture = { type: "pinch", d, ang: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, size: t.size, w: t.w, rot: t.rot, tx: t.x, ty: t.y, saved: gesture?.saved || snapshot() };
+      else if(s && isFree()){ const it = S.free[sel.i]; gesture = { type: "freepinch", i: sel.i, d, ang: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, it0: { ...it }, saved: gesture?.saved || snapshot() }; }
       else if(s && s.photo) gesture = { type: "cellpinch", d, zoom: s.zoom, saved: gesture?.saved || snapshot() };
       return;
     }
     if(pointers.size > 1) return;
+    const fh = freeHandle();
+    if(fh && Math.hypot(x + view.ox - fh[0], y + view.oy - fh[1]) <= HANDLE * view.dpr * 1.6){
+      const c = cells[sel.i], cx = c.cx * view.k, cy = c.cy * view.k;
+      gesture = { type: "freehandle", i: sel.i, saved: snapshot(), cx, cy, d0: Math.hypot(x - cx, y - cy) || 1, a0: Math.atan2(y - cy, x - cx), it0: { ...S.free[sel.i] } };
+      return;
+    }
     if(onHandle(x, y)){
       const r = rendered(t);
       gesture = { type: "handle", saved: snapshot(), d0: Math.hypot(x - r.cx, y - r.cy) || 1, a0: Math.atan2(y - r.cy, x - r.cx), size: t.size, w: t.w, rot: t.rot, cx: r.cx, cy: r.cy };
@@ -797,7 +904,11 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(i >= 0){
       if(!(sel?.type === "cell" && sel.i === i)){ sel = { type: "cell", i }; syncPanels(); }
       const slot = S.slots[i];
-      gesture = { type: "cell", i, saved: snapshot(), x0: x, y0: y, s0: { fx: slot.fx, fy: slot.fy } };
+      /* En «Libre», arrastrar mueve la pieza; con Alt (o Mayús) se
+         encuadra la foto dentro de ella, como en los demás diseños. */
+      gesture = isFree() && !e.altKey && !e.shiftKey
+        ? { type: "freemove", i, saved: snapshot(), x0: x, y0: y, it0: { ...S.free[i] } }
+        : { type: "cell", i, saved: snapshot(), x0: x, y0: y, s0: { fx: slot.fx, fy: slot.fy } };
     } else if(sel){ sel = null; syncPanels(); gesture = null; }
     request();
   });
@@ -805,11 +916,32 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(!pointers.has(e.pointerId) || !gesture) return;
     const [x, y] = toLocal(e.clientX, e.clientY);
     pointers.set(e.pointerId, { x, y });
+    if(gesture.type === "freemove" && pointers.size === 1){
+      const it = S.free[gesture.i]; if(!it) return;
+      it.cx = clamp(gesture.it0.cx + (x - gesture.x0) / (W * view.k), -.2, 1.2);
+      it.cy = clamp(gesture.it0.cy + (y - gesture.y0) / (H * view.k), -.2, 1.2);
+      gesture.moved = true; cells = cellsOf(S, W, H); request(); return;
+    }
+    if(gesture.type === "freehandle"){
+      const it = S.free[gesture.i]; if(!it) return;
+      const f = clamp(Math.hypot(x - gesture.cx, y - gesture.cy) / gesture.d0, .05, 20);
+      it.w = clamp(gesture.it0.w * f, .02, 3); it.h = clamp(gesture.it0.h * f, .02, 3);
+      it.rot = Math.round(((gesture.it0.rot + (Math.atan2(y - gesture.cy, x - gesture.cx) - gesture.a0) * 180 / Math.PI + 540) % 360) - 180);
+      gesture.moved = true; cells = cellsOf(S, W, H); request(); return;
+    }
+    if(gesture.type === "freepinch" && pointers.size === 2){
+      const it = S.free[gesture.i]; if(!it) return;
+      const [a, b] = [...pointers.values()], f = (Math.hypot(a.x - b.x, a.y - b.y) || 1) / gesture.d;
+      it.w = clamp(gesture.it0.w * f, .02, 3); it.h = clamp(gesture.it0.h * f, .02, 3);
+      it.rot = Math.round(((gesture.it0.rot + (Math.atan2(b.y - a.y, b.x - a.x) - gesture.ang) * 180 / Math.PI + 540) % 360) - 180);
+      it.cx = gesture.it0.cx + ((a.x + b.x) / 2 - gesture.mx) / (W * view.k); it.cy = gesture.it0.cy + ((a.y + b.y) / 2 - gesture.my) / (H * view.k);
+      gesture.moved = true; cells = cellsOf(S, W, H); request(); return;
+    }
     if(gesture.type === "cell" && pointers.size === 1){
       if(!S.slots[gesture.i].photo) return;
       pan(gesture.i, gesture.s0, x - gesture.x0, y - gesture.y0); gesture.moved = true;
       // Sobre otro hueco: soltar ahí intercambia las fotos
-      const over = cellAt(x, y);
+      const over = isFree() ? -1 : cellAt(x, y);
       dropTarget = over >= 0 && over !== gesture.i ? over : -1;
       request(); return;
     }
@@ -852,6 +984,9 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     } else if(gesture.type === "pinch"){
       const [p] = [...pointers.values()], t = selText();
       gesture = t ? { type: "move", saved: gesture.saved, moved: gesture.moved, x0: p.x, y0: p.y, tx: t.x, ty: t.y } : null;
+    } else if(gesture.type === "freepinch"){
+      const [p] = [...pointers.values()], it = S.free[gesture.i];
+      gesture = it ? { type: "freemove", i: gesture.i, saved: gesture.saved, moved: gesture.moved, x0: p.x, y0: p.y, it0: { ...it } } : null;
     } else if(gesture.type === "cellpinch"){
       const [p] = [...pointers.values()], s = selCell();
       gesture = s ? { type: "cell", i: sel.i, saved: gesture.saved, moved: gesture.moved, x0: p.x, y0: p.y, s0: { fx: s.fx, fy: s.fy } } : null;
@@ -910,7 +1045,14 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(typing) return;
     if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z"){ e.preventDefault(); $(e.shiftKey ? "[data-action=redo]" : "[data-action=undo]").click(); return; }
     if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d"){ e.preventDefault(); act("dup"); return; }
-    if(e.key === "Delete" || e.key === "Backspace"){ if(selText()){ e.preventDefault(); act("del"); } else if(selCell()){ e.preventDefault(); act("clear"); } return; }
+    if(e.key === "Delete" || e.key === "Backspace"){ if(selText()){ e.preventDefault(); act("del"); } else if(selCell()){ e.preventDefault(); act(isFree() ? "removefree" : "clear"); } return; }
+    if(isFree() && selCell() && e.key.startsWith("Arrow")){
+      e.preventDefault(); remember();
+      const it = S.free[sel.i], st = (e.shiftKey ? 10 : 1) / Math.min(W, H);
+      if(e.key === "ArrowLeft") it.cx -= st * Math.min(W, H) / W; if(e.key === "ArrowRight") it.cx += st * Math.min(W, H) / W;
+      if(e.key === "ArrowUp") it.cy -= st * Math.min(W, H) / H; if(e.key === "ArrowDown") it.cy += st * Math.min(W, H) / H;
+      cells = cellsOf(S, W, H); request(); return;
+    }
     const t = selText();
     if(t && e.key.startsWith("Arrow")){
       e.preventDefault(); remember();

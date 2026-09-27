@@ -38,6 +38,8 @@
 .sp-layouts svg .bg{fill:#3a414c}
 .sp-layouts svg polygon,.sp-layouts svg ellipse{fill:#a9bde6}
 .sp-layouts svg .f{stroke:#20252b;stroke-width:.8}
+.sp-layouts svg rect.f{fill:#a9bde6}
+.sp-layouts button.on svg rect.f{fill:#d5e1ff}
 .sp-layouts button.on svg polygon,.sp-layouts button.on svg ellipse{fill:#d5e1ff}
 .sp-layouts span{position:absolute;right:4px;bottom:2px;font-size:10px;color:#8e97a5}
 

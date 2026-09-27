@@ -59,14 +59,46 @@ export function curveLut(points){
 const SIZE = 256;
 const PAD = 10;
 
-export function curveEditor({ getPoints, setPoints, hist, channel }){
+/* Colores de cada canal: los mismos en el editor, en las miniaturas de
+   los estilos y en la vista de varios paneles. */
+export const CHANNEL_COLORS = { rgb: "#e8a33d", r: "#e0685c", g: "#5fbf74", b: "#5f8fe0", lum: "#e6e6e6" };
+
+/** Miniatura de un conjunto de curvas por canal ({rgb, r, g, b, lum}). */
+export function curveThumb(set, size = 56){
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const x = c.getContext("2d");
+  x.fillStyle = "#16181b"; x.fillRect(0, 0, size, size);
+  x.strokeStyle = "rgba(255,255,255,.12)"; x.setLineDash([2, 2]);
+  x.beginPath(); x.moveTo(3, size - 3); x.lineTo(size - 3, 3); x.stroke(); x.setLineDash([]);
+  for(const k of ["r", "g", "b", "lum", "rgb"]){
+    const pts = set[k];
+    if(!pts) continue;
+    const lut = curveLut(pts);
+    x.strokeStyle = CHANNEL_COLORS[k]; x.lineWidth = k === "rgb" || k === "lum" ? 1.8 : 1.3;
+    x.beginPath();
+    for(let i = 0; i < 256; i += 3){
+      const px = 3 + i / 255 * (size - 6), py = size - 3 - lut[i] / 255 * (size - 6);
+      i ? x.lineTo(px, py) : x.moveTo(px, py);
+    }
+    x.stroke();
+  }
+  return c;
+}
+
+/* `overlays()` (opcional): otras curvas a dibujar debajo, en tenue,
+   como [{ points, color }] — así se ven todos los canales a la vez.
+   `histMode()` (opcional): "rgb" dibuja los tres histogramas
+   superpuestos en su color; si no, el del canal. `size` en píxeles CSS
+   del editor (por defecto hasta 320). */
+export function curveEditor({ getPoints, setPoints, hist, channel, overlays = null, histMode = null, maxWidth = 320, onEnd = null }){
   const el = document.createElement("div");
   el.style.cssText = "position:relative;margin:6px 0";
   const cv = document.createElement("canvas");
   cv.width = SIZE + PAD * 2;
   cv.height = SIZE + PAD * 2;
   cv.style.cssText =
-    "width:100%;max-width:320px;display:block;margin:0 auto;cursor:crosshair;" +
+    `width:100%;max-width:${maxWidth}px;display:block;margin:0 auto;cursor:crosshair;` +
     "border:1px solid var(--line);border-radius:var(--r);background:var(--s-900);" +
     "touch-action:none";
   el.appendChild(cv);
@@ -104,15 +136,22 @@ export function curveEditor({ getPoints, setPoints, hist, channel }){
     const ch = channel();
     cx.clearRect(0, 0, cv.width, cv.height);
 
-    // Histograma de fondo
-    const arr = ch === "rgb" ? hist.l : hist[ch];
-    let peak = 1;
-    for(let i = 1; i < 255; i++) if(arr[i] > peak) peak = arr[i];
-    cx.fillStyle = "rgba(120,130,142,.22)";
-    for(let i = 0; i < 256; i++){
-      const h = Math.min(1, arr[i] / peak) * SIZE;
-      cx.fillRect(PAD + i / 255 * SIZE, PAD + SIZE - h, SIZE / 256 + 0.6, h);
-    }
+    // Histograma de fondo: el del canal, o los tres superpuestos
+    const bars = (arr, color) => {
+      if(!arr) return;
+      let peak = 1;
+      for(let i = 1; i < 255; i++) if(arr[i] > peak) peak = arr[i];
+      cx.fillStyle = color;
+      for(let i = 0; i < 256; i++){
+        const h = Math.min(1, arr[i] / peak) * SIZE;
+        cx.fillRect(PAD + i / 255 * SIZE, PAD + SIZE - h, SIZE / 256 + 0.6, h);
+      }
+    };
+    if(histMode && histMode() === "rgb" && hist.r){
+      cx.globalCompositeOperation = "lighter";
+      bars(hist.r, "rgba(170,60,50,.30)"); bars(hist.g, "rgba(50,140,60,.30)"); bars(hist.b, "rgba(50,80,170,.34)");
+      cx.globalCompositeOperation = "source-over";
+    } else bars(ch === "rgb" || ch === "lum" ? hist.l : hist[ch], "rgba(120,130,142,.22)");
 
     // Rejilla en cuartos
     cx.strokeStyle = "rgba(255,255,255,.07)";
@@ -135,11 +174,22 @@ export function curveEditor({ getPoints, setPoints, hist, channel }){
     cx.stroke();
     cx.setLineDash([]);
 
+    // Las demás curvas, en tenue, para verlas todas a la vez
+    for(const o of (overlays ? overlays() : [])){
+      const l2 = curveLut(o.points);
+      cx.strokeStyle = o.color; cx.globalAlpha = .55; cx.lineWidth = 1.2;
+      cx.beginPath();
+      for(let i = 0; i < 256; i++){
+        const x = PAD + i / 255 * SIZE, y = PAD + SIZE - l2[i] / 255 * SIZE;
+        i ? cx.lineTo(x, y) : cx.moveTo(x, y);
+      }
+      cx.stroke(); cx.globalAlpha = 1;
+    }
+
     // La curva, dibujada desde la misma tabla que se va a aplicar:
     // así lo que se ve es exactamente lo que hará.
     const lut = curveLut(pts);
-    cx.strokeStyle = ch === "r" ? "#d4685c" : ch === "g" ? "#5fa96e"
-                   : ch === "b" ? "#5f86c9" : "#e8a33d";
+    cx.strokeStyle = CHANNEL_COLORS[ch] || CHANNEL_COLORS.rgb;
     cx.lineWidth = 1.8;
     cx.beginPath();
     for(let i = 0; i < 256; i++){
@@ -204,7 +254,7 @@ export function curveEditor({ getPoints, setPoints, hist, channel }){
     draw();
   });
 
-  const end = () => { dragging = -1; };
+  const end = () => { if(dragging >= 0 && onEnd) onEnd(); dragging = -1; };
   cv.addEventListener("pointerup", end);
   cv.addEventListener("pointercancel", end);
   cv.addEventListener("contextmenu", e => e.preventDefault());

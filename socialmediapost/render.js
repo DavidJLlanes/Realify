@@ -10,11 +10,24 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { layoutById, cellsFor } from "./layouts.js";
+import { SHAPE_LIST, fitShape } from "../js/core/shapes.js";
 
 export const rel = (v, W, H) => v / 1000 * Math.min(W, H);
 
+/** Pieza suelta del modo «Libre» ({ cx, cy, w, h } en fracciones del
+    lienzo y `rot` en grados) como hueco girado en píxeles. */
+export function freeCell(it, W, H){
+  const cx = it.cx * W, cy = it.cy * H, w = Math.max(4, it.w * W), h = Math.max(4, it.h * H), rot = it.rot || 0;
+  const a = rot * Math.PI / 180, co = Math.cos(a), si = Math.sin(a);
+  const pts = [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]].map(([x, y]) => [cx + x * co - y * si, cy + x * si + y * co]);
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys);
+  return { float: true, free: true, cx, cy, w, h, rot, pts, box: { x: x0, y: y0, w: Math.max(...xs) - x0, h: Math.max(...ys) - y0 }, ellipse: false };
+}
+
 /** Huecos del diseño actual en píxeles del lienzo. */
-export const cellsOf = (S, W, H) => cellsFor(layoutById(S.layout), W, H, rel(S.gap, W, H), rel(S.margin, W, H));
+export const cellsOf = (S, W, H) => S.layout === "free"
+  ? (S.free || []).map(it => freeCell(it, W, H))
+  : cellsFor(layoutById(S.layout), W, H, rel(S.gap, W, H), rel(S.margin, W, H));
 
 /* Camino de un hueco con las esquinas redondeadas (o elipse). */
 export function cellPath(ctx, c, radius){
@@ -102,16 +115,11 @@ export function drawBackground(ctx, S, W, H, k, bgPhoto){
 
 /* ── Formas geométricas para las fotos ─────────────────────────
    En lugar del hueco rectangular (o diagonal) del diseño, la foto
-   puede ir dentro de un círculo, una elipse, un triángulo o un
-   polígono regular de 5 a 10 lados, encajado y centrado en el hueco.
-   Los polígonos conservan su forma regular (no se estiran); la elipse
-   es la que llena el hueco entero. */
-export const SHAPES = [
-  ["rect", "Según el diseño"], ["circle", "Círculo"], ["ellipse", "Elipse"], ["triangle", "Triángulo"],
-  ["poly5", "Pentágono"], ["poly6", "Hexágono"], ["poly7", "Heptágono"], ["poly8", "Octógono"],
-  ["poly9", "Eneágono"], ["poly10", "Decágono"]
-];
-const SIDES = { triangle: 3, poly5: 5, poly6: 6, poly7: 7, poly8: 8, poly9: 9, poly10: 10 };
+   puede ir dentro de cualquier forma de la biblioteca común
+   (js/core/shapes.js): círculo, elipse, polígonos de 3 a 10 lados,
+   estrellas de 4 a 10 puntas, corazón, flor, gota, escudo, cruz, luna,
+   sello, nube, bocadillo… encajada y centrada en el hueco. */
+export const SHAPES = [["rect", "Según el diseño"], ...SHAPE_LIST.map(([id, name]) => [id, name])];
 
 /* Hueco suelto (girado) en sus coordenadas propias, centrado en 0. */
 export const localCell = c => c.float
@@ -121,19 +129,8 @@ export const localCell = c => c.float
 /** Forma `id` encajada en la caja del hueco `c`. */
 export function shapeOf(c, id){
   if(!id || id === "rect") return c;
-  const b = c.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-  if(id === "circle"){ const d = Math.min(b.w, b.h); return { ...c, ellipse: true, box: { x: cx - d / 2, y: cy - d / 2, w: d, h: d } }; }
-  if(id === "ellipse") return { ...c, ellipse: true, box: { ...b } };
-  const n = SIDES[id];
-  if(!n) return c;
-  // Impares, con un vértice arriba; pares, con un lado plano arriba.
-  const a0 = -Math.PI / 2 + (n % 2 ? 0 : Math.PI / n);
-  const unit = Array.from({ length: n }, (_, i) => [Math.cos(a0 + i * 2 * Math.PI / n), Math.sin(a0 + i * 2 * Math.PI / n)]);
-  const xs = unit.map(p => p[0]), ys = unit.map(p => p[1]);
-  const ux = Math.min(...xs), uy = Math.min(...ys), uw = Math.max(...xs) - ux, uh = Math.max(...ys) - uy;
-  const k = Math.min(b.w / uw, b.h / uh), ox = cx - (ux + uw / 2) * k, oy = cy - (uy + uh / 2) * k;
-  const pts = unit.map(([x, y]) => [ox + x * k, oy + y * k]);
-  return { ...c, ellipse: false, pts, box: { x: ox + ux * k, y: oy + uy * k, w: uw * k, h: uh * k } };
+  const s = fitShape(id, c.box);
+  return s ? { ...c, ...s } : c;
 }
 /* Forma que toca a un hueco: la suya propia o, si no tiene, la general. */
 export const shapeIdOf = (S, slot) => slot?.shape || S.shape;
@@ -172,6 +169,13 @@ export function drawCell(ctx, S, c, img, slot, W, H, k, { empty = false } = {}){
 /* Hueco reducido `d` píxeles hacia dentro (para el marco). */
 function shrink(c, d){
   if(c.ellipse) return { ...c, box: { x: c.box.x + d, y: c.box.y + d, w: Math.max(1, c.box.w - d * 2), h: Math.max(1, c.box.h - d * 2) } };
+  /* Curvas y formas cóncavas (corazón, estrellas…): desplazar lados
+     no sirve con tantos vértices o con picos hacia dentro; se escala la
+     forma hacia su centro lo justo para dejar `d` en la caja. */
+  if(c.smooth || c.concave){
+    const b = c.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2, kx = Math.max(.05, (b.w - d * 2) / b.w), ky = Math.max(.05, (b.h - d * 2) / b.h);
+    return { ...c, pts: c.pts.map(([x, y]) => [cx + (x - cx) * kx, cy + (y - cy) * ky]), box: { x: cx - b.w * kx / 2, y: cy - b.h * ky / 2, w: b.w * kx, h: b.h * ky } };
+  }
   const cx = c.pts.reduce((s, p) => s + p[0], 0) / c.pts.length, cy = c.pts.reduce((s, p) => s + p[1], 0) / c.pts.length;
   // Desplazar cada lado hacia el centro: para un convexo, aproximación
   // exacta en rectángulos y muy buena en diagonales.

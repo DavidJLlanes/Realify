@@ -383,6 +383,12 @@
 }
 .panel.grow{flex:1 1 auto}
 .panel.closed>.panel-body{display:none}
+/* Rejilla de formas (Imagen › Recortar en forma) */
+.shape-grid button.on{background:var(--acc-soft,rgba(232,163,61,.18));border-color:var(--acc,#e8a33d);color:var(--acc,#e8a33d)}
+/* Panel Histograma (js/ui/histogrampanel.js) */
+.hist-canvas{display:block;width:100%;height:96px;border:1px solid var(--line);border-radius:var(--r);background:var(--s-900);cursor:pointer;touch-action:manipulation}
+.hist-zones{display:grid;grid-template-columns:13.7% 22.7% 27% 22.5% 14.1%;margin-top:3px;font-size:10px;color:var(--tx-dim);text-align:center}
+.hist-zones span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .panel.closed{flex:none}
 /* Señal de «es aquí»: la deja el botón «fx» de una capa al llevar el
    foco a Propiedades, donde viven los mandos de ese efecto. Hace falta
@@ -1105,6 +1111,16 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer) 
   0%,100%{background:transparent}
   25%,60%{background:var(--ac-ghost)}
 }
+.guide-search{width:100%;box-sizing:border-box;margin:0 0 12px;height:36px;padding:0 12px;
+  background:var(--s-600);border:1px solid var(--line-strong);border-radius:var(--r);color:var(--tx);font:inherit}
+.guide-search:focus{outline:none;border-color:var(--ac)}
+.guide-results:empty{display:none}
+.guide-results{margin-bottom:10px}
+.guide-row small{font-weight:400;color:var(--tx-dim)}
+.guide-empty{color:var(--tx-dim)}
+.guide a[data-go]{color:var(--ac);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.guide-news li{margin-bottom:7px}
+.guide p.guide-hit,
 .guide li.guide-hit{
   animation:guide-hit 1.5s ease-out;
   border-radius:var(--r);

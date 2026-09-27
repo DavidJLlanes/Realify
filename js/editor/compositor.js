@@ -89,6 +89,11 @@ export function beginScratch(layer, { alpha = 1, blend = "source-over", sparse =
 
 export function scratchCtx(){ return sctx; }
 
+/* El trazo provisional tal cual (lienzo, posición y opacidad), sólo
+   para dibujarlo en una superposición —la vista «gris 50 %» de
+   Dodge & Burn—. null si no hay trazo en curso. */
+export function scratchView(){ return scratchOn ? { canvas: scratch, x: scratchX, y: scratchY, alpha: scratchAlpha } : null; }
+
 /* Agranda el parche temporal sólo cuando el trazo sale de él. Así una
    pincelada de 200 px sobre una foto de 100 MP no reserva otros
    400 MB sólo para el trazo provisional. */

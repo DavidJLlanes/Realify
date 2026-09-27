@@ -11,7 +11,7 @@ import { doc, activeLayer, cropDoc, addLayer } from "../core/doc.js";
 import { flatten } from "./layertree.js";
 import { beginPixels, expandPendingPixels, commitPixels, cancelPixels, abortPixels, record, recordLayers } from "../core/history.js";
 import { view, toImage, zoomAt, zoomToRect, fit } from "./view.js";
-import { beginScratch, ensureScratchRect, endScratch, discardScratch, scratchCtx,
+import { beginScratch, ensureScratchRect, endScratch, discardScratch, scratchCtx, scratchView,
          setOverlay, scheduleCompose, scheduleOverlay, pickColor,
          compose, canvasEl } from "./compositor.js";
 import { toast } from "../ui/toast.js";
@@ -47,7 +47,8 @@ import { COARSE } from "../core/device.js";
 import { contentBounds, otherLayersEdgeCandidates } from "./align.js";
 import { isFillLayer, isShapeLayer, addShapeLayer, renderShapeLayer,
          setShapeParams, previewShapeParams } from "./layercontent.js";
-import { paintProfessionalSegment, professionalSegmentBounds, smoothBrushPoint } from "./brushes.js";
+import { paintProfessionalSegment, professionalSegmentBounds, smoothBrushPoint,
+         brushConfig, setBrushOption, symmetryAxes, SYMMETRY_MODES, TEXTURES, COLOR_MODES } from "./brushes.js";
 
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 
@@ -204,8 +205,29 @@ export const state = {
      como frontal por defecto mantiene el comportamiento de siempre
      del Pincel; el negro de fondo, el del Borrador sobre una máscara. */
   fg: "#ffffff",
-  bg: "#000000"
+  bg: "#000000",
+  /* Pincel: simetría, textura procedural y color a lo largo del trazo.
+     Viven en brushes.js (brushConfig, que se guarda en el navegador);
+     aquí sólo una copia para la barra de opciones, que se sincroniza
+     en on("tool:paramchange"). */
+  brushSymmetry: brushConfig.symmetry,
+  brushSymmetryCount: brushConfig.symmetryCount,
+  brushTexture: brushConfig.texture,
+  brushTextureDepth: brushConfig.textureDepth,
+  brushTextureScale: brushConfig.textureScale,
+  brushColorMode: brushConfig.colorMode,
+  brushGradientLength: brushConfig.gradientLength,
+  /* Dodge & Burn: ver la capa gris al 50 % tal cual, en vivo */
+  dbShowGray: false
 };
+const BRUSH_KEYS = { brushSymmetry: "symmetry", brushSymmetryCount: "symmetryCount", brushTexture: "texture",
+  brushTextureDepth: "textureDepth", brushTextureScale: "textureScale", brushColorMode: "colorMode",
+  brushGradientLength: "gradientLength" };
+/** Pone un ajuste del pincel desde un comando (menú, cajón móvil). */
+export function setBrushMode(key, value){
+  state[key] = value;
+  if(BRUSH_KEYS[key]) setBrushOption(BRUSH_KEYS[key], value);
+}
 
 /* «state.color» no guarda nada por sí mismo: es una ventana al color
    activo (frontal o fondo) según qué botón del ratón esté pintando
@@ -535,6 +557,18 @@ export const TOOLS = [
       {type:"range", key:"size", label:"Tamaño", min:1, max:400, unit:"px"},
       {type:"range", key:"hardness", label:"Dureza", min:0, max:100, unit:"%"},
       {type:"range", key:"opacity", label:"Opacidad", min:1, max:100, unit:"%"},
+      {type:"select", key:"brushSymmetry", label:"Simetría", items: SYMMETRY_MODES, rerender:true,
+       title:"Pinta a la vez en los dos lados de un eje (o en N radios)"},
+      {type:"range", key:"brushSymmetryCount", label:"Radios", min:2, max:16, unit:"",
+       showIf: () => state.brushSymmetry === "radial"},
+      {type:"select", key:"brushTexture", label:"Textura", items: TEXTURES, rerender:true},
+      {type:"range", key:"brushTextureDepth", label:"Relieve", min:0, max:100, unit:"%",
+       showIf: () => state.brushTexture !== "none"},
+      {type:"range", key:"brushTextureScale", label:"Escala", min:25, max:400, unit:"%",
+       showIf: () => state.brushTexture !== "none"},
+      {type:"select", key:"brushColorMode", label:"Color", items: COLOR_MODES, rerender:true},
+      {type:"range", key:"brushGradientLength", label:"Longitud", min:20, max:4000, unit:"px",
+       showIf: () => state.brushColorMode !== "solid"},
       {type:"button", label:"Pinceles…", cmd:"brush.settings", title:"Puntas, dinámica, flujo, dispersión y simetría"}
     ],
     activate(){ setOverlay(drawBrushCursor); },
@@ -555,7 +589,7 @@ export const TOOLS = [
       const dirty=professionalSegmentBounds(p,p,state.size,doc);
       beginPixels("Pincel", l, false, {sparse:true,rect:dirty});
       const c = beginScratch(l, { alpha: 1, sparse:true, rect:dirty });
-      this._carry=paintProfessionalSegment(c,p,p,{event:e,color:state.color,size:state.size,hardness:state.hardness,opacity:state.opacity,velocity:0,carry:0,doc,seed:this._seed});
+      this._carry=paintProfessionalSegment(c,p,p,{event:e,color:state.color,color2:brushColor2(),size:state.size,hardness:state.hardness,opacity:state.opacity,velocity:0,carry:0,doc,seed:this._seed});
       scheduleCompose({rect:dirty,transient:true});
     },
     move(p, e){
@@ -574,7 +608,7 @@ export const TOOLS = [
         return;
       }
       expandPendingPixels(dirty);
-      this._carry=paintProfessionalSegment(ensureScratchRect(dirty),this._last,smooth,{event:e,color:state.color,size:state.size,hardness:state.hardness,opacity:state.opacity,velocity,carry:this._carry,doc,seed:this._seed++});
+      this._carry=paintProfessionalSegment(ensureScratchRect(dirty),this._last,smooth,{event:e,color:state.color,color2:brushColor2(),size:state.size,hardness:state.hardness,opacity:state.opacity,velocity,carry:this._carry,doc,seed:this._seed++});
       this._last=smooth;
       scheduleCompose({rect:dirty,transient:true});
     },
@@ -1349,6 +1383,8 @@ export const TOOLS = [
       {type:"range", key:"size", label:"Tamaño", min:1, max:400, unit:"px"},
       {type:"range", key:"hardness", label:"Dureza", min:0, max:100, unit:"%"},
       {type:"range", key:"strength", label:"Exposición", min:1, max:100, unit:"%"},
+      {type:"toggle", key:"dbShowGray", label:"Ver gris 50 %",
+       title:"Muestra la capa gris tal cual, en tiempo real, para ver dónde has aclarado y oscurecido"},
       {type:"button", label:"Nueva capa gris", cmd:"dodgeburn.newLayer"}
     ],
     activate(){ setOverlay(drawBrushCursor); },
@@ -1366,6 +1402,7 @@ export const TOOLS = [
       dbDab(scratchCtx(), this._last, p, state.dbMode === "dodge" ? "#ffffff" : "#000000", pressureScale(e));
       this._last = p;
       scheduleCompose();
+      if(state.dbShowGray) scheduleOverlay();
     },
     up(){
       if(!this._last) return;
@@ -2330,7 +2367,42 @@ let cursorPos = null;
 export function setCursorPos(p){ cursorPos = p; scheduleOverlay(); }
 export const getCursorPos = () => cursorPos;
 
+/* Segundo color del pincel de degradado: el «otro» de la pareja
+   frontal/fondo respecto al que se está usando. */
+function brushColor2(){ return state.color === state.fg ? state.bg : state.fg; }
+
+/* Ejes de simetría del Pincel, a trazos, mientras está activa. */
+function drawSymmetryAxes(ctx){
+  if(current?.id !== "brush" || brushConfig.symmetry === "none" || !doc.open) return;
+  const px = 1 / view.zoom;
+  ctx.save();
+  ctx.lineWidth = px * 1.2;
+  ctx.setLineDash([6 * px, 5 * px]);
+  for(const [x0, y0, x1, y1] of symmetryAxes(doc)){
+    ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.beginPath(); ctx.moveTo(x0 + px, y0 + px); ctx.lineTo(x1 + px, y1 + px); ctx.stroke();
+    ctx.strokeStyle = "rgba(103,148,255,.95)"; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* Dodge & Burn: con «Ver gris 50 %» la capa gris se dibuja encima tal
+   cual (en modo Normal), para ver en tiempo real dónde se ha aclarado
+   y oscurecido; se refresca con cada toque. */
+function drawDodgeBurnGray(ctx){
+  if(current?.id !== "dodgeburn" || !state.dbShowGray) return;
+  const l = activeLayer();
+  if(!l || !l.dodgeBurn) return;
+  ctx.save();
+  ctx.globalAlpha = 1;
+  ctx.drawImage(l.canvas, 0, 0);
+  const s = scratchView();
+  if(s){ ctx.globalAlpha = s.alpha; ctx.drawImage(s.canvas, s.x, s.y); }
+  ctx.restore();
+}
+
 function drawBrushCursor(ctx){
+  drawDodgeBurnGray(ctx);
+  drawSymmetryAxes(ctx);
   if(!cursorPos) return;
   const r = state.size / 2;
   ctx.strokeStyle = "rgba(255,255,255,.85)";
@@ -3356,6 +3428,11 @@ function flushStyleBurst(){
    se aplica a esa capa al momento. Es lo que hace cualquier editor y
    evita el paso extra de «aplicar». */
 on("tool:paramchange", key => {
+  if(BRUSH_KEYS[key]){
+    setBrushOption(BRUSH_KEYS[key], state[key]);
+    scheduleOverlay();
+  }
+  if(key === "dbShowGray") scheduleOverlay();
   if(current.id === "crop" &&
      (key === "cropRatio" || key === "cropW" || key === "cropH")){
     reflowCrop();

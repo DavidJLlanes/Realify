@@ -38,8 +38,40 @@ const INTRO = `
   </div>`;
 
 const TOPICS = [
+  { id:"novedades", title:"Novedades",
+    desc:"Lo último que se ha añadido, con enlace directo a su explicación.",
+    html:`
+      <h3>Novedades</h3>
+      <ul class="guide-news">
+        <li><a data-go="especiales#sp-collage">Collage / History / Post</a>: collages,
+          publicaciones e historias con 41 diseños (incluido «Libre»), formatos de todas las
+          redes y de los móviles más conocidos, y fotos dentro de 28 formas.</li>
+        <li><a data-go="imagen#img-slice">Dividir en trozos</a> y <a data-go="imagen#img-shapecrop">Recortar en
+          forma</a>, en el menú Imagen.</li>
+        <li><a data-go="vistas#view-histogram">Histograma interactivo</a> y <a data-go="ajustes#adj-toneband">Tonos
+          del histograma</a>: toca una zona y ajusta sólo esos tonos.</li>
+        <li><a data-go="ajustes#adj-curves">Curvas</a> con luminosidad, las curvas de todos los
+          canales a la vez, vista R · G · B y 25 estilos.</li>
+        <li><a data-go="vistas#view-smartgrid">Cuadrícula inteligente</a>: sujeto, horizonte y rostros
+          detectados, tercios, proporción áurea, espiral… y recorte propuesto.</li>
+        <li><a data-go="pintura#tool-brush-special">Pinceles especiales</a>: simétrico (también en
+          diagonal), con textura procedural y de degradado a mano alzada.</li>
+        <li><a data-go="pintura#tool-dodgeburn">Dodge &amp; Burn</a> con vista de la capa gris en
+          tiempo real.</li>
+        <li><a data-go="especiales#sp-looks">Estilos</a>: 160 acabados en 16 categorías, con buscador.</li>
+        <li><a data-go="especiales#sp-vintage">Filtro Vintage</a>: 102 estilos por categorías y blanco
+          y negro pancromático.</li>
+        <li><a data-go="ajustes#adj-rangehsl">Color por rangos</a> rehecho como mezclador HSL de
+          ocho rangos, y Curvas Lab y Desplazamiento / mínimo / máximo corregidos.</li>
+        <li><a data-go="otras#tool-text">Texto</a> con Google Fonts y alineación que no mueve el bloque.</li>
+        <li><a data-go="especiales#sp-meme">Creador de memes</a>, <a data-go="capas">stickers</a>
+          y <a data-go="especiales#sp-realify">Realify</a> a pantalla completa.</li>
+        <li><a data-go="movil">Móvil</a>: cajón de herramientas con buscador y editores pensados para
+          el pulgar.</li>
+      </ul>` },
+
   { id:"pintura", title:"Pintura y retoque",
-    desc:"Pincel, clonar, eliminar manchas, Exponer, Dodge &amp; Burn, licuar, pincel de historial.",
+    desc:"Pincel (simétrico, con textura, de degradado), clonar, manchas, Exponer, Dodge &amp; Burn, licuar…",
     html:`
       <h3>Herramientas de pintura y retoque</h3>
       <ul>
@@ -48,6 +80,23 @@ const TOPICS = [
           espaciado, dispersión, ángulo, suavizado, simetría y las dinámicas por presión,
           velocidad o dirección. Si la capa activa tiene una máscara seleccionada como
           destino, pinta en la máscara en vez de en el color.</li>
+        <li id="tool-brush-special"><b>Pinceles especiales</b> (barra de opciones del Pincel, o menú
+          Editar › Pinceles especiales). Tres modos que se combinan entre sí:
+          <ul>
+            <li><b>Simetría.</b> Pinta a la vez al otro lado de un eje: vertical (izquierda ↔
+              derecha), horizontal (arriba ↕ abajo), ambos ejes (cuatro cuadrantes), cualquiera
+              de las dos diagonales —la diagonal real del documento, de esquina a esquina—,
+              las dos a la vez o radial (caleidoscopio, de 2 a 16 radios). Los ejes se ven
+              como líneas azules discontinuas mientras el Pincel está activo.</li>
+            <li><b>Textura.</b> El trazo lleva dentro una textura procedural —grano, papel,
+              lienzo, cristales, rayones, esponja o ruido fino— fija al documento, como la de
+              un papel de verdad: no «viaja» con cada toque. «Relieve» decide cuánto se nota
+              y «Escala», su tamaño.</li>
+            <li><b>Color: degradado o arcoíris.</b> Dibuja degradados a mano alzada: el color
+              va del frontal al de fondo según la distancia pintada (o recorre el arcoíris).
+              «Longitud» es cuántos píxeles de trazo tarda en completarse; en «Pinceles…» se
+              elige si va y vuelve, se repite o se queda en el último color.</li>
+          </ul></li>
         <li id="tool-eraser"><b>Borrador (E).</b> Igual que el Pincel pero deja transparencia en vez de
           color; sobre una máscara, la oscurece.</li>
         <li id="tool-clone"><b>Clonar (S).</b> Copia píxeles de un punto a otro. Mantén <kbd>Alt</kbd> y
@@ -72,7 +121,10 @@ const TOPICS = [
           pinta, no lo elige la paleta; Tamaño y Dureza son los mismos que el resto de
           pinceles (funcionan con <kbd>[</kbd> <kbd>]</kbd>), Exposición es la fuerza de
           cada pincelada. «Nueva capa gris» empieza una capa aparte para una segunda pasada
-          sin mezclarla con la primera.</li>
+          sin mezclarla con la primera. <b>«Ver gris 50 %»</b> (también en Filtro › Fotografía
+          y detalle) enseña la capa gris tal cual, en tiempo real mientras pintas, para ver
+          exactamente dónde se ha aclarado y oscurecido; vuelve a pulsarlo para la vista
+          normal.</li>
         <li id="tool-smudge"><b>Emborronar (R).</b> Arrastra y mezcla el color existente, como pasar un
           dedo sobre pintura fresca. Para suavizar transiciones, no para limpiar manchas.</li>
         <li id="tool-liquify"><b>Licuar (Q).</b> Empuja, frunce, hincha o remolinea una zona con un
@@ -263,19 +315,49 @@ const TOPICS = [
       </ul>` },
 
   { id:"imagen", title:"Imagen (menú Imagen)",
-    desc:"Tamaño de lienzo, eliminar fondo, reemplazar cielo.",
+    desc:"Tamaño, lienzo, escala según contenido, girar, dividir en trozos, recortar en forma, fondo, cielo.",
     html:`
       <h3>Imagen (menú Imagen)</h3>
       <ul>
         <li><b>Tamaño de imagen…</b> (<kbd>Ctrl</kbd>+<kbd>R</kbd>). Cambia las
-          dimensiones del lienzo, en píxeles o en porcentaje, con remuestreo de
-          calidad; distinto de Recortar, que quita parte de la imagen en vez de
-          reescalarla entera.</li>
-        <li><b>Eliminar fondo…</b> Detecta el color conectado a los bordes de la
-          capa y lo convierte en una máscara editable —no borra píxeles de forma
-          irreversible—, con «Tolerancia» (cuánto puede variar el color y seguir
-          contando como fondo) y «Suavizar borde». Funciona mejor con fondos
-          razonablemente uniformes; pide una capa sin máscara ya puesta.</li>
+          dimensiones en píxeles o en porcentaje. Elige el <b>remuestreo</b>: Lanczos 3
+          (máxima nitidez, el recomendado para reducir), Mitchell (equilibrado),
+          Catmull-Rom (nítido), bilineal (suave) o el del navegador (rápido). Los de calidad
+          se calculan en segundo plano, sin bloquear la página. Las máscaras de capa se
+          reescalan con la imagen.</li>
+        <li><b>Tamaño de lienzo…</b> Amplía o recorta el lienzo sin reescalar el contenido,
+          eligiendo hacia dónde crece.</li>
+        <li><b>Escala según contenido…</b> Cambia la proporción de la foto quitando o
+          añadiendo píxeles de las zonas con menos detalle, para que el sujeto no se
+          deforme.</li>
+        <li><b>Recortar y Corregir perspectiva.</b> Ver «Mover, recortar y
+          transformar».</li>
+        <li><b>Girar 90° / 180° y Voltear.</b> Afectan a todo el documento, máscaras
+          incluidas.</li>
+        <li id="img-slice"><b>Dividir en trozos…</b> Corta la imagen (todas las capas combinadas)
+          en piezas, con vista previa de los cortes numerados:
+          <ul>
+            <li><b>Filas × columnas</b> o <b>tamaño fijo</b> de trozo en píxeles.</li>
+            <li><b>Carrusel</b>: de 2 a 10 publicaciones seguidas con la proporción elegida
+              (1:1, 4:5, 3:4, 9:16…) que al deslizar forman una sola imagen panorámica.</li>
+            <li><b>Perfil de Instagram</b>: tres columnas y las filas que quieras, en 1:1 o
+              3:4, <b>numeradas en el orden de subida</b> (se sube primero la 1; al final la
+              imagen completa aparece en la cuadrícula del perfil).</li>
+          </ul>
+          Los trozos se guardan en un ZIP, como archivos sueltos o como capas del propio
+          documento, en PNG, JPEG o WebP.</li>
+        <li id="img-shapecrop"><b>Recortar en forma…</b> Deja la imagen dentro de una forma
+          —círculo, elipse, polígonos de 3 a 10 lados, estrellas de 4 a 10 puntas, corazón,
+          flor, gota, escudo, cruz, luna, nube, bocadillo…— con <b>transparencia</b> fuera.
+          Arrastra en la vista previa para colocarla, la rueda cambia su tamaño; también
+          se puede estirar, girar, suavizar el borde y añadir un contorno de color. Con
+          «Ajustar el lienzo a la forma», el documento queda del tamaño justo. Para
+          conservar la transparencia, exporta en PNG o WebP.</li>
+        <li><b>Eliminar fondo…</b> Cuatro métodos: tres modelos de IA que funcionan en tu
+          propio equipo —rápido (U²-Net), retratos (MODNet) y máxima calidad (ISNet)— y
+          «Color de los bordes», el de siempre para fondos lisos. El resultado es una
+          máscara editable, no un borrado irreversible. Los modelos se descargan una vez y
+          quedan guardados en el navegador.</li>
         <li><b>Reemplazar cielo…</b> Detecta el cielo con IA (el mismo modelo que
           «Seleccionar cielo») y deja el reemplazo —color liso, degradado o una foto
           propia, con «Desvanecer borde» para que el corte no se note— en una capa
@@ -305,7 +387,12 @@ const TOPICS = [
           falta pintar encima a mano—.</li>
         <li id="tool-text"><b>Texto (T).</b> Coloca una capa de texto editable; «Rasterizar texto»
           (menú Capa) la convierte en píxeles normales cuando ya no hace falta
-          seguir editándola. Además del cuerpo, la fuente, el color, la sombra, el
+          seguir editándola. Al cambiar la alineación, el bloque se queda en su sitio y
+          sólo se realinean las líneas entre sí. Además de las fuentes del sistema, la
+          lista trae <b>Google Fonts</b> (más de setenta, y «Otra fuente de Google Fonts…»
+          para cualquier otra por su nombre): sólo se descargan si das permiso la primera
+          vez —se puede retirar en la Política de privacidad— y, sin él, se dibujan con
+          una parecida del sistema. Además del cuerpo, la fuente, el color, la sombra, el
           contorno, el círculo y el fondo de siempre, la barra de opciones trae:
           <ul>
             <li><b>Justificado</b>, cuarta opción junto a Izquierda/Centrado/Derecha
@@ -355,7 +442,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"ajustes", title:"Ajustes (menú Ajustes)",
-    desc:"Brillo/contraste, niveles, curvas, balance de blancos, color avanzado, B/N.",
+    desc:"Niveles, curvas (con estilos y luminosidad), tonos del histograma, color por rangos, Lab, HDR, B/N…",
     html:`
       <h3>Ajustes (menú Ajustes)</h3>
       <ul>
@@ -370,8 +457,30 @@ const TOPICS = [
           (RGB, Rojo, Verde, Azul) guarda sus propios valores por separado —cambiar de
           canal en el desplegable no pierde lo ya ajustado en el anterior—, y el
           maestro RGB se aplica encima de los tres, igual que en Curvas.</li>
-        <li><b>Curvas.</b> Como Niveles pero con control punto a punto de toda la
-          gama tonal, para correcciones que un simple negro/blanco/gris no resuelve.</li>
+        <li id="adj-curves"><b>Curvas</b> (<kbd>Ctrl</kbd>+<kbd>M</kbd>). Control punto a punto de toda
+          la gama tonal. Clic añade un punto, arrastrar lo mueve, clic derecho o doble clic
+          lo quita.
+          <ul>
+            <li><b>Cinco curvas:</b> RGB (color), Rojo, Verde, Azul y <b>Luminosidad</b>. La
+              de luminosidad cambia sólo el brillo, sin tocar tono ni saturación: una curva
+              en S en RGB satura; en Luminosidad, no.</li>
+            <li><b>Todas a la vez.</b> Mientras editas una, las demás se ven en tenue en su
+              color, y con RGB los tres histogramas se superponen. «R · G · B a la vez»
+              muestra los tres canales en tres paneles simultáneos.</li>
+            <li><b>Vincular luminosidad y color.</b> Las dos curvas pasan a ser una sola
+              —edites la que edites, la otra la sigue— y «Reparto color ↔ luminosidad»
+              decide cuánto se aplica como color y cuánto como luminosidad.</li>
+            <li><b>Estilos.</b> 25 curvas listas con miniatura: S suave, clásica y fuerte,
+              desvanecido, mate de película, cine turquesa y naranja, proceso cruzado,
+              vintage, clave alta y baja, solarizar, negativo… «Guardar estilo…» guarda la
+              tuya en el navegador (clic derecho sobre uno propio para borrarlo).</li>
+          </ul></li>
+        <li id="adj-toneband"><b>Tonos del histograma…</b> Ajusta SÓLO una franja de tonos: toca
+          el histograma del diálogo (o una de las zonas Negros, Sombras, Medios, Luces,
+          Blancos) para elegirla, arrastra para moverla y usa la rueda para ensancharla.
+          Brillo, contraste, saturación y calidez afectan sólo a esa franja, con bordes
+          suaves. «Ver zona afectada» enseña en gris qué píxeles entran (desmárcalo antes
+          de aplicar). Se abre también tocando una zona del panel Histograma.</li>
         <li><b>Sombras / Iluminaciones.</b> Distinto de Tonos: aquí cada píxel se
           corrige según el brillo MEDIO de su alrededor, no el suyo propio, así que un
           contraluz se abre sin aplanar el resto de la foto y un ojo oscuro en una cara
@@ -389,6 +498,24 @@ const TOPICS = [
           saturación llana de Tono y saturación.</li>
         <li><b>Color avanzado (submenú).</b>
           <ul>
+            <li><b>Gradación de color.</b> Tres ruedas —sombras, medios y luces— con mezcla
+              y equilibrio, como en un revelador de cine.</li>
+            <li><b>Virado dividido.</b> Un tono para las sombras y otro para las luces, con
+              su saturación y el equilibrio entre ambos.</li>
+            <li><b>Filtro fotográfico.</b> Cálido, frío, sepia, verde o un color libre, con
+              densidad y «Conservar luminosidad».</li>
+            <li id="adj-rangehsl"><b>Tono y saturación por rangos</b> («Color por rangos» en el
+              móvil). Un mezclador HSL de ocho rangos —rojos, naranjas, amarillos, verdes,
+              aguamarinas, azules, púrpuras y magentas— con tono, saturación y luminancia
+              propios. Los grises, blancos y negros no pertenecen a ningún rango, así que
+              no cambian. Con el <b>cuentagotas</b>, toca un color de la miniatura y se elige
+              su rango; «Ampliar» y «Estrechar» ajustan su anchura desde la foto.</li>
+            <li><b>Reemplazar color.</b> Elige un tono en la miniatura y cámbialo por otro,
+              con tolerancia, saturación y luminosidad.</li>
+            <li><b>Igualar color.</b> Copia el color y la luz de otra capa o de otra imagen
+              (estadística en Lab), con intensidad regulable.</li>
+            <li><b>Curvas Lab / luminosidad.</b> Curvas sobre L (luminosidad), a
+              (verde/magenta) y b (azul/amarillo), independientes del color RGB.</li>
             <li><b>Color por canales.</b> El HSL de un revelador serio: rojos,
               amarillos, verdes, cianes, azules y magentas, cada uno con su propio
               matiz, saturación y luminosidad, más un maestro para toda la foto.</li>
@@ -406,6 +533,15 @@ const TOPICS = [
               cualquier viraje de color.</li>
           </ul>
         </li>
+        <li><b>Tono y luz avanzados (submenú).</b> <i>Quitar neblina</i> (recupera contraste y
+          color en fotos veladas, o añade niebla en negativo), <i>Tono HDR</i> (comprime el
+          rango y realza el detalle local), <i>Contraste tonal</i> (micro, medio y
+          macrocontraste por separado), <i>Densidad neutra graduada / radial</i> (exposición,
+          contraste y temperatura sólo en una parte de la foto) y <i>Tono / Color
+          automático</i>.</li>
+        <li><b>Umbral, Posterizar, Ecualizar, Desaturar.</b> Blanco y negro puro por un
+          corte, reducir a pocos niveles, repartir el histograma y quitar color en
+          parte o del todo.</li>
         <li><b>Blanco y negro.</b> Modo manual (mezcla de canales a mano) o
           automático, con dieciocho estilos con nombre propio y miniatura, cada uno
           inspirado en una manera distinta de revelar en blanco y negro —de un
@@ -421,35 +557,26 @@ const TOPICS = [
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",
-    desc:"Realify, PurePixel, Unmark, estilos, LUT, desenfoque, retoque, viñeteado…",
+    desc:"Desenfoques, enfoque, ruido con IA, retoque de retrato, frecuencias, texturas, distorsión…",
     html:`
       <h3>Filtros (menú Filtro)</h3>
       <ul>
-        <li><b>Realify.</b> La simulación de cámara completa: ver el tema «Realify ·
-          simulación de captura», en el índice.</li>
-        <li><b>PurePixel.</b> Suaviza residuos finos de luminancia y color y añade
-          textura controlada; experimental, no garantiza nada frente a un detector.</li>
-        <li><b>Unmark.</b> Tres secciones en un panel: <i>marcas visibles</i> (detecta el
-          logotipo o rótulo del generador —o usa la zona conocida de cada servicio, una
-          región manual o la selección— y lo rellena con estructura + textura de
-          alrededor), <i>marcas invisibles</i> (rompe los soportes donde se esconden:
-          transformación geométrica subpíxel, remuestreo, ondículas DWT-DCT, coeficientes
-          DCT, suavizado y reenfoque, ruido, bits bajos, limpieza espectral y
-          recompresión JPEG; y, si configuras tu propio servidor, regeneración por
-          difusión) y <i>procedencia</i> (lee lo que declara el archivo —C2PA, XMP con
-          «trainedAlgorithmicMedia», EXIF, prompts— y decide qué metadatos salen al
-          exportar). Con dosis, presets, semilla, «Ajuste recomendado» y vista previa
-          con las zonas marcadas. Ninguna etapa garantiza nada frente a un detector
-          concreto: mídelo.</li>
-        <li><b>Estilos.</b> Treinta acabados de un clic (vintage, película, look de
-          laboratorio…), con miniatura para comparar antes de aplicar.</li>
-        <li><b>Tabla de color (LUT).</b> Carga un archivo <code>.cube</code> de
-          etalonaje —el mismo formato que usan cine y revelado— y lo aplica en una capa
-          nueva.</li>
+        <li><b>Especiales.</b> Realify, Revelado fotográfico, Collage, memes, Filtro Vintage,
+          PurePixel, Unmark, Estilos, Adaptive Photo Lens y Tabla de color: ver el tema
+          «Filtros especiales», en el índice.</li>
+        <li><b>Todo filtro deja su resultado en una capa nueva</b> reeditable (insignia «fx»);
+          ver «Capas de filtro» en el tema Capas.</li>
         <li><b>Desenfoque gaussiano / Enfocar / Enfoque selectivo.</b> Suavizar,
           endurecer o endurecer sólo el detalle fino sin tocar las zonas planas.</li>
+        <li><b>Desenfoques (submenú).</b> Gaussiano, galería de desenfoque (campo, iris,
+          inclinación), caja/forma/promedio/inteligente, movimiento, lente (con forma del
+          diafragma), radial/zoom y de superficie (suaviza sin cruzar bordes).</li>
         <li><b>Reducción de ruido.</b> Aplana el grano conservando los bordes, para
-          fotos con ISO alto o muy comprimidas.</li>
+          fotos con ISO alto o muy comprimidas. Con IA (en el propio equipo):
+          <i>Reducción de ruido con IA</i> (SCUNet, quita ruido real de cámara conservando
+          el detalle; sólo en escritorio) y <i>Quitar artefactos JPEG con IA</i> (FBCNN,
+          elimina bloques y halos de compresión). La primera vez descargan su modelo y lo
+          guardan en el navegador.</li>
         <li><b>Corrección de lente.</b> Distorsión, aberración cromática y viñeteo,
           en tiempo real mientras mueves los deslizadores.</li>
         <li><b>Retoque de retrato.</b> Suaviza la piel respetando poros y bordes, con
@@ -474,6 +601,14 @@ const TOPICS = [
           un círculo perfecto; bajarla lo va ajustando a la proporción del lienzo,
           hasta tocar el borde medio en vez de sólo las esquinas —útil en panorámicas
           y en retratos muy verticales, donde un círculo puro sale descentrado—.</li>
+        <li><b>Textura › Desplazamiento / mínimo / máximo…</b> Desplaza la imagen con
+          envoltura sin costuras (para crear mosaicos que se repiten), o contrae
+          (<i>Mínimo</i>) o expande (<i>Máximo</i>) las zonas claras con el radio elegido.</li>
+        <li><b>Pixelizar, Estilizar, Artísticos, Interpretar, Textura, Distorsión.</b>
+          Mosaico, cristalizar, semitono; relieve y bordes; resplandor, solarizar, viento,
+          óleo; galería artística; nubes, fibras, destellos e iluminación; texturizador,
+          grano, azulejos y craquelado; esferizar, coordenadas polares, gran angular
+          adaptable, deformación libre y licuar.</li>
         <li><b>Pincel corrector / Parche / Licuar.</b> Los mismos «Eliminar manchas»,
           «Clonar» y «Licuar» de la barra de herramientas, accesibles también desde
           este menú.</li>
@@ -613,8 +748,11 @@ const TOPICS = [
           que pintarlas con el Degradado a mano.</li>
         <li><b>Nueva capa de texto, Editar texto, Rasterizar texto.</b> Ver «Texto»,
           en «Otras herramientas».</li>
-        <li><b>Crear meme…</b> Añade el texto superior e inferior en mayúsculas con
-          borde negro, al estilo clásico de meme.</li>
+        <li><b>Añadir stickers…</b> Más de 1.500 emojis en 3D, color, plano o alto contraste
+          (y seis tonos de piel), con buscador y categorías, a pantalla completa: colócalos,
+          escálalos y gíralos sobre la foto. Cada sticker queda en su propia capa y todo
+          funciona sin conexión.</li>
+        <li><b>Crear meme…</b> Ver «Filtros especiales».</li>
         <li><b>Añadir marca de agua…</b> Coloca un texto o logo semitransparente
           repetido o en una esquina, en una capa aparte.</li>
       </ul>` },
@@ -627,8 +765,12 @@ const TOPICS = [
         <li><b>Abrir imagen / Abrir proyecto / Guardar proyecto.</b> Un proyecto
           guarda todas las capas, máscaras e historial tal cual, para seguir editando
           otro día; una imagen abierta directamente empieza como una sola capa.</li>
+        <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
+          composición para redes creada en su propia pestaña (ver su tema).</li>
         <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato,
-          calidad y metadatos EXIF; el segundo entrega un PNG sin preguntar nada.</li>
+          calidad y metadatos EXIF, y <b>«Tramado a 8 bits»</b>: añade un ruido
+          imperceptible que evita las bandas en cielos y degradados suaves. El segundo
+          entrega un PNG sin preguntar nada.</li>
         <li><b>Prueba para redes sociales…</b> Muestra cómo queda la imagen tras la
           recompresión que aplican Instagram, WhatsApp, Facebook o X, antes de
           publicarla de verdad.</li>
@@ -953,6 +1095,155 @@ const TOPICS = [
             ZIP se construye en memoria.</p>` }
     ] },
 
+  { id:"especiales", title:"Filtros especiales",
+    desc:"Realify, revelado, Collage / History / Post, memes, Filtro Vintage, Estilos, Unmark, LUT…",
+    html:`
+      <h3>Filtros especiales (Filtro › Especiales)</h3>
+      <p>Los más grandes se abren a <b>pantalla completa</b> con la misma estructura:
+        Cancelar, deshacer y rehacer propios y Aplicar arriba; en escritorio, columnas a los
+        lados de la vista previa; en el móvil, la imagen ocupa la pantalla y los mandos son
+        un desplegable y un deslizador con botones − y + abajo.</p>
+      <ul>
+        <li id="sp-realify"><b>Realify…</b> La simulación de cámara completa (31 etapas, de la óptica al
+          archivo), con zoom real hasta 1:1, comparación, histograma y espectro. Detalle en
+          el tema «Realify · simulación de captura».</li>
+        <li><b>Revelado fotográfico…</b> El revelador no destructivo de la capa activa;
+          parámetros, porcentaje, máscara y opacidad se guardan aparte.</li>
+        <li id="sp-collage"><b>Collage / History / Post…</b> Ver su propio tema en el índice.</li>
+        <li id="sp-meme"><b>Crear meme…</b> 26 diseños —clásico, barras negras o blancas arriba y abajo,
+          comparación, expectativa vs. realidad, periódico, chat, «Se busca», cómic,
+          historias 9:16…—. Los diseños de dos imágenes admiten una <b>segunda foto</b>:
+          ábrela desde el panel o pégala con <kbd>Ctrl</kbd>+<kbd>V</kbd>. Textos con 29
+          tipografías, 26 estilos rápidos, contornos, sombras, neón, relieve 3D,
+          bocadillos y curvatura; toca un texto para elegirlo, arrástralo, usa su esquina
+          para escalar y girar y doble clic para escribir. Si el diseño lo necesita, el
+          lienzo se amplía; cada elemento queda en su capa.</li>
+        <li id="sp-vintage"><b>Filtro Vintage…</b> 41 modificadores en siete grupos (virados, color,
+          tono, luz y película, daños, bordes, óptica) y <b>102 estilos</b> agrupados por
+          décadas, películas en color, blanco y negro, procesos antiguos, cámaras y ópticas,
+          creativos y estaciones. El dado da una variación nueva del polvo, los arañazos o
+          las fugas de luz. Queda como capa reeditable.</li>
+        <li><b>PurePixel…</b> Suaviza residuos finos de luminancia y color y añade textura
+          controlada; experimental, no garantiza nada frente a un detector.</li>
+        <li><b>Unmark…</b> Tres secciones en un panel: <i>marcas visibles</i> (detecta el
+          logotipo o rótulo del generador —o usa la zona conocida de cada servicio, una
+          región manual o la selección— y lo rellena con estructura + textura de
+          alrededor), <i>marcas invisibles</i> (rompe los soportes donde se esconden:
+          transformación geométrica subpíxel, remuestreo, ondículas DWT-DCT, coeficientes
+          DCT, suavizado y reenfoque, ruido, bits bajos, limpieza espectral y
+          recompresión JPEG; y, si configuras tu propio servidor, regeneración por
+          difusión) y <i>procedencia</i> (lee lo que declara el archivo —C2PA, XMP con
+          «trainedAlgorithmicMedia», EXIF, prompts— y decide qué metadatos salen al
+          exportar). Ninguna etapa garantiza nada frente a un detector concreto: mídelo.</li>
+        <li id="sp-looks"><b>Estilos…</b> 160 acabados de un clic en 16 categorías: básicos, retrato,
+          paisaje, cine, películas, urbano, comida, moda y editorial, redes sociales, blanco
+          y negro, noche, estaciones, suaves y pastel, dramáticos, duotonos y creativos y
+          vintage. Filtra por categoría o escribe en el buscador; cada miniatura muestra tu
+          propia foto con ese estilo, y la intensidad se regula después.</li>
+        <li><b>Adaptive Photo Lens…</b> Reconoce el tipo de foto con un modelo local
+          (retrato, paisaje, comida…) y aplica el revelado que le va.</li>
+        <li><b>Tabla de color (LUT)…</b> Carga un archivo <code>.cube</code> de etalonaje
+          —el formato de cine y revelado— y lo aplica en una capa nueva.</li>
+      </ul>` },
+
+  { id:"collage", title:"Collage / History / Post",
+    desc:"Collages, publicaciones e historias: formatos de redes y móviles, 41 diseños, formas, textos.",
+    html:`
+      <h3>Collage / History / Post</h3>
+      <p>En <b>Archivo</b> o en <b>Filtro › Especiales</b> (y en el cajón del móvil). Funciona
+        también sin documento abierto; si hay uno, su imagen entra como primera foto. Al
+        pulsar <b>Aplicar</b>, la composición se crea como <b>documento nuevo en otra
+        pestaña</b>, con una capa «Fondo», una por foto y una por texto: el documento de
+        partida no se toca.</p>
+      <ul>
+        <li><b>Formato.</b> Redes sociales (29 medidas: Instagram, TikTok, Facebook, X,
+          Threads, LinkedIn, YouTube, Pinterest, WhatsApp, Snapchat, Telegram, Twitch,
+          Bluesky, Reddit), 15 proporciones (de 1:1 a 4:1), la pantalla de 27 móviles
+          conocidos o medidas a mano. Todo en vertical u horizontal con un botón, y con
+          resolución del 50 al 200 %.</li>
+        <li><b>Zonas seguras.</b> En historias se marca lo que tapa la interfaz de la app;
+          en los móviles, la barra de estado, las esquinas y la cámara frontal. Sólo se
+          ven en el editor.</li>
+        <li><b>Diseños.</b> 40 composiciones de 1 a 16 fotos (cuadrículas, grande +
+          pequeñas, mosaico, molinete, diagonales, triángulos, esparcidas…) y
+          <b>«Libre»</b>: cada foto es una pieza que se arrastra donde quieras, se escala y
+          gira con el tirador de su esquina (o con dos dedos) y se trae delante, se manda
+          detrás o se duplica. Con <kbd>Alt</kbd> o <kbd>Mayús</kbd>, arrastrar encuadra la
+          foto dentro de su pieza.</li>
+        <li><b>Fotos.</b> Añádelas con «Abrir fotos», pegándolas (<kbd>Ctrl</kbd>+<kbd>V</kbd>)
+          o soltando archivos. Arrastra una miniatura de la bandeja a un hueco, o toca un
+          hueco y luego la foto. En cada hueco: arrastrar encuadra, la rueda o dos dedos
+          hacen zoom, y soltar una foto sobre otro hueco las intercambia; girar, voltear
+          y centrar están en el panel.</li>
+        <li><b>Formas.</b> Las fotos pueden ir dentro de 28 formas —círculo, elipse,
+          polígonos de 3 a 10 lados, estrellas de 4 a 10 puntas, corazón, flor, gota,
+          escudo, cruz, luna, sello, nube, bocadillo…—, para todas a la vez o cada una la
+          suya.</li>
+        <li><b>Composición y fondo.</b> Espaciado, margen, esquinas redondeadas, marco y
+          sombra de las fotos; fondo de color, degradado, la propia foto difuminada o
+          transparente.</li>
+        <li><b>Textos.</b> El mismo motor del creador de memes: tipografías, estilos
+          rápidos, contornos, sombras, neón, relieve…</li>
+      </ul>` },
+
+  { id:"vistas", title:"Ver y análisis visual",
+    desc:"Histograma interactivo, cuadrícula inteligente, reglas, guías, cuadrícula, comparar.",
+    html:`
+      <h3>Ver y análisis visual</h3>
+      <ul>
+        <li id="view-histogram"><b>Histograma</b> (Ver o Análisis › Histograma interactivo; panel
+          lateral). El histograma RGB de la composición, al día con cada cambio y dividido
+          en cinco zonas: Negros, Sombras, Medios, Luces y Blancos. Al pasar por encima
+          dice cuánta imagen cae en cada zona y cuánto hay de negro y blanco puro; al
+          <b>tocar una zona</b> se abre «Tonos del histograma» con esa franja elegida para
+          ajustar sólo esos tonos.</li>
+        <li id="view-smartgrid"><b>Cuadrícula inteligente…</b> Guías de composición calculadas a
+          partir del contenido:
+          <ul>
+            <li><b>Sujeto principal</b> (la zona que más destaca, o la cara si la hay), con su
+              caja y una flecha al punto fuerte de los tercios más cercano.</li>
+            <li><b>Horizonte</b> detectado, cuánto está inclinado y «Enderezar horizonte»,
+              que gira la foto lo justo y la amplía para no dejar esquinas vacías.</li>
+            <li><b>Rostros</b> y la línea de los ojos (que conviene en el tercio superior).
+              Si el navegador no trae detección de caras, se estiman por el tono de piel y
+              se marcan como «estimado».</li>
+            <li>Guías clásicas: tercios, proporción áurea, <b>espiral áurea orientada hacia
+              el sujeto</b>, diagonales y triángulos áureos, centro y simetría.</li>
+          </ul>
+          El diálogo resume el análisis en palabras y ofrece «Recortar para encuadrar», que
+          abre Recortar con el marco ya puesto donde lleva el sujeto a su punto fuerte.
+          «Mostrar u ocultar la cuadrícula inteligente» la enciende y apaga sin diálogo.</li>
+        <li><b>Reglas, guías y cuadrícula.</b> Arrastra desde una regla para sacar una guía;
+          la cuadrícula se configura en tamaño y subdivisiones, y «Ajustar a la cuadrícula»
+          hace que lo que mueves se enganche a ella.</li>
+        <li><b>Comparar antes/después</b> (también al 100 %) y <b>Mostrar u ocultar
+          paneles</b> (<kbd>Tab</kbd>).</li>
+      </ul>` },
+
+  { id:"movil", title:"Uso en el móvil",
+    desc:"El cajón de herramientas con buscador, la hoja de paneles y los editores a pantalla completa.",
+    html:`
+      <h3>Uso en el móvil</h3>
+      <ul>
+        <li><b>Barra inferior.</b> Abrir, Capas (la hoja de paneles), Exportar, Deshacer,
+          Rehacer, Comparar y el Menú con todos los menús de escritorio en una lista.</li>
+        <li><b>Cajón de herramientas.</b> Todas las herramientas, ajustes y filtros por
+          categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA, Selección,
+          Pintar, Analizar), en orden alfabético. El <b>buscador</b> filtra en tiempo real
+          dentro de la categoría abierta, sin importar tildes ni pequeñas erratas; Intro
+          abre el primer resultado. Desliza a los lados para cambiar de categoría.</li>
+        <li><b>Hoja de paneles.</b> Capas, Histograma, Propiedades, Historial e Información
+          suben desde abajo; se cierra arrastrándola hacia abajo. En el móvil sólo hay un
+          panel abierto a la vez.</li>
+        <li><b>Editores a pantalla completa</b> (Realify, Filtro Vintage, memes, stickers,
+          collage): la imagen primero, y abajo un desplegable para elegir el ajuste y un
+          deslizador con botones − y + de tamaño cómodo para el pulgar. Dos dedos hacen
+          zoom y giran donde tiene sentido.</li>
+        <li><b>Pinceles.</b> La barra de opciones lleva el color frontal y de fondo al
+          principio; la simetría, la textura y el color del pincel están en la misma
+          barra.</li>
+      </ul>` },
+
   { id:"diagnostico", title:"Diagnóstico",
     desc:"Comprueba WebGL2, shaders y las funciones del navegador que usa la app.",
     html:`
@@ -998,6 +1289,9 @@ const TOPICS = [
           · <kbd>Ctrl</kbd>+<kbd>+</kbd>/<kbd>-</kbd> acercar/alejar</li>
         <li><kbd>Ctrl+Mayús+1</kbd> comparar antes/después al 100 % de golpe</li>
         <li><kbd>Tab</kbd> mostrar/ocultar los paneles</li>
+        <li>En los editores a pantalla completa: <kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Mayús+Z</kbd>
+          deshacen y rehacen dentro del propio editor, <kbd>Esc</kbd> cancela, <kbd>Supr</kbd>
+          borra el elemento elegido y las flechas lo mueven</li>
         <li>La rueda del ratón hace zoom aunque haya un diálogo abierto: el panel se
           puede arrastrar a un lado por su cabecera, y la rueda funciona sobre el
           lienzo que quede visible alrededor —nunca sobre la propia tarjeta, donde
@@ -1032,6 +1326,59 @@ const TOOL_LINKS = {
 
 function findTopic(id){ return TOPICS.find(t => t.id === id); }
 
+/* ── Búsqueda en toda la guía ────────────────────────────────────
+   Cada entrada (<li> o <p>) de cada tema es un resultado posible. Se
+   busca sin tildes, sin mayúsculas y con todas las palabras (en
+   cualquier orden); un resultado lleva a su tema y resalta el párrafo
+   exacto. Las entradas sin id reciben uno automático, el mismo al
+   pintar el tema y al indexarlo. */
+const fold = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+function withIds(html, prefix){
+  let n = 0;
+  return html.replace(/<(li|p)(\s[^>]*)?>/g, (m, tag, attrs = "") => /\sid=/.test(attrs) ? m : `<${tag} id="${prefix}-${++n}"${attrs}>`);
+}
+let searchIndex = null;
+function buildIndex(){
+  if(searchIndex) return searchIndex;
+  searchIndex = [];
+  const add = (path, title, html) => {
+    const d = document.createElement("div");
+    d.innerHTML = withIds(html, path.replace("/", "-"));
+    for(const el of d.querySelectorAll("li, p")){
+      // Un <li> con sublista: su propio texto sin el de los hijos repetido
+      const own = el.cloneNode(true); own.querySelectorAll("ul, li").forEach(x => x.remove());
+      const text = (own.textContent || "").replace(/\s+/g, " ").trim();
+      if(text.length < 12) continue;
+      // Se busca en todo su texto (sublistas incluidas); se enseña el suyo propio
+      const all = (el.textContent || "").replace(/\s+/g, " ").trim();
+      const head = (el.querySelector(":scope > b, :scope > a")?.textContent || text.slice(0, 60)).replace(/\s+/g, " ").replace(/[.:]\s*$/, "").trim();
+      searchIndex.push({ path, anchor: el.id, topic: title, head, text, key: fold(all) });
+    }
+  };
+  for(const t of TOPICS){
+    if(t.sub) for(const s of t.sub) add(t.id + "/" + s.id, t.title + " › " + s.title, s.html);
+    else add(t.id, t.title, t.html);
+  }
+  return searchIndex;
+}
+const escapeHtml = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function renderResults(q){
+  const words = fold(q).split(/\s+/).filter(Boolean);
+  if(!words.length) return "";
+  const hits = buildIndex().filter(e => words.every(w => e.key.includes(w)))
+    .map(e => ({ e, score: words.reduce((s, w) => s + (fold(e.head).includes(w) ? 3 : 0) + (fold(e.topic).includes(w) ? 1 : 0), 0) }))
+    .sort((a, b) => b.score - a.score).slice(0, 40);
+  if(!hits.length) return `<p class="guide-empty">Nada coincide con «${escapeHtml(q)}». Prueba con otra palabra.</p>`;
+  const snippet = (text) => {
+    const k = fold(text), i = Math.max(0, k.indexOf(words[0]) - 50);
+    let out = escapeHtml((i ? "…" : "") + text.slice(i, i + 170) + (text.length > i + 170 ? "…" : ""));
+    return out;
+  };
+  return `<div class="guide-index">${hits.map(({ e }) => `<button class="guide-row" data-go="${e.path}#${e.anchor}">
+    <span class="guide-row-title">${escapeHtml(e.head)} <small>· ${escapeHtml(e.topic)}</small></span>
+    <span class="guide-row-desc">${snippet(e.text)}</span></button>`).join("")}</div>`;
+}
+
 function indexRow(go, title, desc){
   return `<button class="guide-row" data-go="${go}">
     <span class="guide-row-title">${title}</span>
@@ -1040,9 +1387,11 @@ function indexRow(go, title, desc){
 }
 
 function renderIndex(){
-  return INTRO + `<div class="guide-index">` +
+  return `<input type="search" class="guide-search" placeholder="Buscar en la guía (p. ej. «curvas», «trozos», «simetría»)…" aria-label="Buscar en la guía">
+    <div class="guide-results"></div>
+    <div class="guide-home">` + INTRO + `<div class="guide-index">` +
     TOPICS.map(t => indexRow(t.id, t.title, t.desc)).join("") +
-    `</div>`;
+    `</div></div>`;
 }
 
 function renderTopic(t){
@@ -1051,11 +1400,11 @@ function renderTopic(t){
       <h3 style="margin-top:0">${t.title}</h3>
       <div class="guide-index">${t.sub.map(s => indexRow(t.id + "/" + s.id, s.title, s.desc)).join("")}</div>`;
   }
-  return `<button class="guide-back" data-back="index">← Índice</button>` + t.html;
+  return `<button class="guide-back" data-back="index">← Índice</button>` + withIds(t.html, t.id);
 }
 
 function renderSub(t, s){
-  return `<button class="guide-back" data-back="${t.id}">← ${t.title}</button>` + s.html;
+  return `<button class="guide-back" data-back="${t.id}">← ${t.title}</button>` + withIds(s.html, t.id + "-" + s.id);
 }
 
 /* `startPath`/`startAnchor` dejan abrir la guía YA en un tema
@@ -1094,9 +1443,29 @@ export function openGuide(startPath, startAnchor){
 
   wrap.addEventListener("click", e => {
     const go = e.target.closest("[data-go]");
-    if(go){ nav(go.dataset.go); return; }
+    if(go){
+      e.preventDefault();
+      const [path, anchor] = go.dataset.go.split("#");
+      nav(path, anchor);
+      return;
+    }
     const back = e.target.closest("[data-back]");
     if(back) nav(back.dataset.back);
+  });
+
+  // Buscador del índice: en cuanto hay texto, los resultados sustituyen
+  // a la portada; al vaciarlo, vuelve el índice de temas.
+  wrap.addEventListener("input", e => {
+    if(!e.target.matches(".guide-search")) return;
+    const q = e.target.value;
+    wrap.querySelector(".guide-results").innerHTML = renderResults(q);
+    wrap.querySelector(".guide-home").hidden = !!q.trim();
+  });
+  wrap.addEventListener("keydown", e => {
+    if(e.key === "Enter" && e.target.matches(".guide-search")){
+      const first = wrap.querySelector(".guide-results [data-go]");
+      if(first){ e.preventDefault(); first.click(); }
+    }
   });
 
   nav(startPath || "index", startAnchor);
