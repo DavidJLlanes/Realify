@@ -1,0 +1,98 @@
+/* Realify · mismo diseño y medidas que el revelador RAW, el Filtro Vintage, Stickers y el creador de memes */
+.rf-editor{position:fixed;inset:0;z-index:2000;display:grid;grid-template-rows:52px minmax(0,1fr);background:#121417;color:#e9edf4;font:13px/1.35 var(--sans,system-ui,sans-serif)}
+.rf-topbar{display:flex;align-items:center;gap:12px;padding:0 14px;background:#1a1d21;border-bottom:1px solid #30353d}
+.rf-topbar button{min-height:34px;padding:0 11px;background:#272b31;color:#e9edf4;border:1px solid #3b414b;border-radius:5px}
+.rf-topbar .primary{background:#6794ff;color:#071120;border-color:#80a7ff;font-weight:700}
+.rf-topbar button:disabled{opacity:.45}
+.rf-actions [data-action=vary]{font-size:18px;line-height:1}
+.rf-close{display:none}
+.rf-title{min-width:0;display:flex;flex-direction:column}
+.rf-title span{font-size:11px;color:#9ca5b3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rf-actions{margin-left:auto;display:flex;gap:6px}
+.rf-workspace{min-height:0;display:grid;grid-template-columns:240px minmax(0,1fr) 330px}
+.rf-left,.rf-controls{overflow:auto;background:#1a1d21}
+.rf-left{border-right:1px solid #30353d;padding:14px}
+.rf-controls{border-left:1px solid #30353d}
+
+.rf-box{margin-bottom:18px}
+.rf-box>span,.rf-preset>span{display:block;margin-bottom:7px;font-size:11px;color:#aab3c2;text-transform:uppercase;letter-spacing:.06em}
+.rf-hist{width:100%;height:76px;background:#101216;display:block}
+.rf-spec{width:100%;aspect-ratio:1;background:#101216;display:block}
+.rf-report{margin:0;font-size:12px;color:#c5ccd8}
+.rf-hint{margin:8px 0 0;font-size:12px;color:#9ca5b3}
+.rf-warn{color:#ffc36b}
+.rf-seeds{display:grid;gap:6px}
+.rf-seed{display:grid;grid-template-columns:64px minmax(0,1fr) 34px;gap:6px;align-items:center;color:#cad1dc}
+.rf-seed input{height:32px;min-width:0;background:#252a31;border:1px solid #414852;border-radius:4px;color:#e9edf4;padding:0 8px;font:12px var(--mono,monospace)}
+.rf-seed button{height:32px;background:#272b31;color:#e9edf4;border:1px solid #3b414b;border-radius:5px}
+
+.rf-preview{position:relative;overflow:hidden;touch-action:none;cursor:grab;background:#0d0f12;background-image:linear-gradient(45deg,#111419 25%,transparent 25%,transparent 75%,#111419 75%),linear-gradient(45deg,#111419 25%,#15191e 25%,#15191e 75%,#111419 75%);background-size:20px 20px;background-position:0 0,10px 10px}
+.rf-preview.is-panning{cursor:grabbing}
+.rf-preview canvas{position:absolute;inset:0;width:100%;height:100%}
+.rf-zoom{position:absolute;left:12px;bottom:10px;padding:4px 7px;border-radius:4px;background:#0008;font:11px var(--mono,monospace);pointer-events:none}
+.rf-view-buttons{position:absolute;right:12px;bottom:10px;display:flex;gap:6px}
+.rf-view-buttons button{min-width:32px;height:32px;padding:0 9px;border:1px solid #414852;border-radius:5px;background:#20252bdd;color:#e9edf4;font:inherit}
+.rf-compare{user-select:none;touch-action:none}
+
+.rf-preset{display:block;padding:12px 14px 10px;border-bottom:1px solid #30353d}
+.rf-preset select,.rf-mobile select,.rf-choice select{width:100%;height:34px;background:#252a31;border:1px solid #414852;color:#e9edf4;border-radius:4px;padding:0 8px;font:inherit}
+.rf-dose{padding:4px 14px 0}
+.rf-tools{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px 14px 12px;border-bottom:1px solid #30353d}
+.rf-tools button{min-height:32px;background:#272b31;color:#e9edf4;border:1px solid #3b414b;border-radius:5px;font:inherit}
+.rf-tools button.on{background:#293b60;border-color:#547bbd}
+.rf-stages{padding:6px 10px 24px}
+.rf-stage{border-bottom:1px solid #2b3038}
+.rf-stage-head{display:grid;grid-template-columns:24px minmax(0,1fr) 28px 38px;align-items:center;gap:6px;padding:9px 4px;cursor:pointer}
+.rf-num{font:11px var(--mono,monospace);color:#6d7686;text-align:right}
+.rf-name{color:#9ca5b3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rf-stage.on .rf-name{color:#e9edf4}
+.rf-solo{width:28px;height:26px;padding:0;background:transparent;color:#8e97a5;border:1px solid #3b414b;border-radius:5px;font:600 11px system-ui}
+.rf-solo.on{background:#ffb14a;color:#1a1100;border-color:#ffb14a}
+.rf-switch{position:relative;display:block;width:34px;height:20px;cursor:pointer}
+.rf-switch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.rf-switch i{position:absolute;inset:0;border-radius:10px;background:#3a414c;transition:background .15s}
+.rf-switch i::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#dfe5ee;transition:transform .15s}
+.rf-switch input:checked+i{background:#6794ff}
+.rf-switch input:checked+i::after{transform:translateX(14px)}
+.rf-stage-body{display:none;padding:0 4px 10px 34px}
+.rf-stage.open .rf-stage-body{display:block}
+.rf-note{margin:0 0 6px;font-size:11.5px;line-height:1.4;color:#8e97a5}
+.rf-field{display:block;padding:8px 0}
+.rf-field>span{display:flex;justify-content:space-between;margin-bottom:6px;color:#cad1dc}
+.rf-field b{font:12px var(--mono,monospace);font-weight:500;color:#91b4ff}
+.rf-slider-row{display:grid;grid-template-columns:32px minmax(0,1fr) 32px;gap:8px;align-items:center}
+.rf-slider-row input{min-width:0;margin:0;width:100%;touch-action:none;accent-color:#7fa6ff}
+.rf-step{width:32px;height:32px;padding:0;border:1px solid #454e5d;border-radius:6px;background:#252c36;color:#dce6f8;font:20px/1 system-ui;cursor:pointer;touch-action:manipulation}
+.rf-step:hover{background:#35455e}.rf-step:active{background:#476391}.rf-step:disabled{opacity:.4}
+.rf-mobile{display:none}
+
+/* Móvil: la foto a pantalla completa; debajo, dos desplegables y el control elegido */
+@media (max-width:900px){
+  .rf-editor{grid-template-rows:minmax(0,1fr) auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);background:#060709}
+  .rf-topbar{position:absolute;inset:calc(env(safe-area-inset-top) + 8px) 8px auto;background:transparent;border:0;padding:0;z-index:2}
+  .rf-title,.rf-cancel,.rf-actions [data-action=undo],.rf-actions [data-action=redo]{display:none}
+  .rf-close{display:block;width:38px;min-height:38px;padding:0;background:#0009!important;font-size:16px}
+  .rf-actions button{min-height:38px;background:#0009}
+  .rf-actions .primary{border-color:#7fa6ff;color:#e9edf4}
+  .rf-workspace{display:block;min-height:0;position:relative}
+  .rf-left,.rf-controls{display:none}
+  .rf-preview{position:absolute;inset:0;background:#050608}
+  .rf-view-buttons{right:10px;bottom:12px}
+  .rf-view-buttons button{height:38px;background:#000a}
+  .rf-zoom{bottom:12px}
+  .rf-mobile{display:grid;gap:7px;padding:9px 12px max(9px,env(safe-area-inset-bottom));background:#13161a;border-top:1px solid #343a43}
+  .rf-mobile select{height:42px;border-radius:7px;border-color:#3f4855;background:#222831;color:#eef3ff;padding:0 10px;font-size:14px}
+  .rf-mobile-report{margin:0;max-height:5.6em;overflow:auto;font-size:12px;color:#c5ccd8;background:#1c2229;border:1px solid #343a43;border-radius:7px;padding:7px 9px}
+  .rf-mobile-control .rf-field{padding:2px 0 0}
+  .rf-mobile-control .rf-field>span{margin:0 0 4px}
+  .rf-mobile-control .rf-stage{border:0}
+  .rf-mobile-control .rf-stage-head{grid-template-columns:24px minmax(0,1fr) 40px 44px;padding:4px 0;cursor:default}
+  .rf-mobile-control .rf-solo{width:40px;height:36px}
+  .rf-mobile-control .rf-choice select{height:44px;border-radius:7px}
+  .rf-mobile-control .rf-hint{margin:0 0 6px}
+  .rf-mobile-control .rf-seed{grid-template-columns:64px minmax(0,1fr) 44px}
+  .rf-mobile-control .rf-seed input,.rf-mobile-control .rf-seed button{height:40px;font-size:16px}
+  .rf-slider-row{grid-template-columns:44px minmax(0,1fr) 44px;gap:12px}
+  .rf-step{width:44px;height:44px;font-size:24px}
+  .rf-mobile-control input[type=range]{min-height:42px}
+}

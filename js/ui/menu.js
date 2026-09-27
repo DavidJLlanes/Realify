@@ -120,7 +120,8 @@ export const MENUS = [
       { cmd:"layer.text",     label:"Nueva capa de texto" },
       { cmd:"layer.editText", label:"Editar texto" },
       { cmd:"layer.rasterizeText", label:"Rasterizar texto" },
-      { cmd:"layer.meme",     label:"Crear meme…" }
+      { cmd:"layer.meme",     label:"Crear meme…",
+        help:"Creador de memes a pantalla completa: 12 diseños (clásico, moderno, desmotivador, noticiario, cómic…), 26 tipografías, 26 estilos de texto, contornos, sombras, neón, relieve 3D, bocadillos y efectos de imagen." }
     ]},
     { label:"Capa de ajuste", submenu:[
       { cmd:"layer.addAdjust",  label:"Nueva capa de ajuste…" },

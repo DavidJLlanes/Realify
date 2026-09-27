@@ -1,26 +1,25 @@
 /* ═══════════════════════════════════════════════════════════════
-   PANEL DEL FILTRO CÁMARA
-   Vista previa en vivo sobre la capa activa: se ve el resultado en
-   el lienzo mientras se mueven los mandos, y sólo al aceptar se
-   escribe en los píxeles. Cancelar deja la capa exactamente como
-   estaba.
+   FILTRO REALIFY
+   Simulación de la cadena de captura de una cámara: óptica, sensor,
+   revelado y códec, en 31 etapas (chain.js) calculadas en la GPU
+   (engine.js) más las de CPU (cpustages.js).
+
+   Aquí viven el estado persistente, la medición de la imagen para el
+   ajuste recomendado y el cálculo sin ventana que usan el registro de
+   filtros y el procesado por lotes. La ventana a pantalla completa
+   está en editor.js y su hoja de estilos en realify.css.
    ═══════════════════════════════════════════════════════════════ */
 
-import { doc, activeLayer } from "../../core/doc.js";
-import { emit } from "../../core/bus.js";
-import { isMobile } from "../../core/device.js";
+import { activeLayer } from "../../core/doc.js";
 import { dialog } from "../../ui/dialog.js";
-import { toast, status } from "../../ui/toast.js";
-import { CHAIN, CHAIN_BY_ID } from "./chain.js";
+import { toast } from "../../ui/toast.js";
 import { PRESETS } from "./presets.js";
-import { normalizeState, varyStages, presetStages } from "./state.js";
-import { wireRecommendation } from "./recommended.js";
+import { normalizeState, presetStages } from "./state.js";
 import { commitFilter, filterBase } from "../../editor/filterlayer.js";
-import { spectrum } from "../../analysis/fft.js";
 import { matchCamera } from "./exifmatch.js";
 import { exifState, saveExif } from "../../exif/ui.js";
 import { spectralStats } from "./spectralclean.js";
-import { applyCpuStages, cpuStagesActive } from "./cpustages.js";
+import { applyCpuStages } from "./cpustages.js";
 import * as engine from "./engine.js";
 
 const LS_KEY = "realify.camera";
@@ -41,103 +40,6 @@ function save(){
   })); }catch{}
 }
 
-/* ── vista previa ─────────────────────────────────────────────
-   Se trabaja sobre una copia del original de la capa. La capa real
-   se va sobrescribiendo con el resultado para que el compositor lo
-   muestre sin enterarse de nada. */
-let original = null, target = null, previewTimer = null;
-
-/* Miniatura dentro del propio panel. El filtro ya escribía el
-   resultado en la capa, pero el panel es ancho y alto y tapa el
-   lienzo entero: mirando el diálogo no se veía nada de lo que estaba
-   pasando, que es el «no hay previsualización» del que se queja el
-   usuario. Ahora el resultado se ve aquí mismo, junto a los mandos
-   que lo producen. */
-let prevCv = null, prevCx = null;
-let histCv = null, specCv = null, statsTimer = null;
-
-/* Histograma RGB y espectro de Fourier de la propia vista previa, para
-   ver de un vistazo si la rejilla espectral de la imagen cambia al aplicar el filtro. Estas gráficas
-   describen textura y color; no clasifican la procedencia de la imagen. Se recalculan un instante después de soltar el mando,
-   no en cada fotograma del arrastre: una FFT 256×256 sesenta veces por
-   segundo se notaría en la fluidez sin aportar nada que no se vea ya
-   con la vista quieta. */
-function drawHistogram(){
-  if(!histCv || !prevCv || !prevCv.width) return;
-  const hx = histCv.getContext("2d");
-  const sx = prevCv.getContext("2d", { willReadFrequently: true });
-  const d = sx.getImageData(0, 0, prevCv.width, prevCv.height).data;
-  const bins = 64;
-  const r = new Float64Array(bins), g = new Float64Array(bins), b = new Float64Array(bins);
-  for(let i = 0; i < d.length; i += 4){
-    r[Math.min(bins - 1, (d[i]   * bins / 256) | 0)]++;
-    g[Math.min(bins - 1, (d[i+1] * bins / 256) | 0)]++;
-    b[Math.min(bins - 1, (d[i+2] * bins / 256) | 0)]++;
-  }
-  const mx = Math.max(1, Math.max(...r), Math.max(...g), Math.max(...b));
-  const w = histCv.width, h = histCv.height;
-  hx.clearRect(0, 0, w, h);
-  hx.globalCompositeOperation = "lighter";
-  const plot = (arr, color) => {
-    hx.fillStyle = color;
-    const bw = w / bins;
-    hx.beginPath();
-    hx.moveTo(0, h);
-    for(let i = 0; i < bins; i++) hx.lineTo(i * bw, h - (arr[i] / mx) * h);
-    hx.lineTo(w, h);
-    hx.closePath();
-    hx.fill();
-  };
-  plot(r, "rgba(255,90,90,.6)");
-  plot(g, "rgba(90,255,120,.6)");
-  plot(b, "rgba(90,150,255,.6)");
-  hx.globalCompositeOperation = "source-over";
-}
-
-function drawSpectrum(){
-  if(!specCv || !prevCv || !prevCv.width) return;
-  spectrum(prevCv, prevCv.width, prevCv.height, specCv);
-}
-
-function scheduleStats(){
-  // En móvil no existen esos dos lienzos, así que no hay nada que
-  // calcular: ni el histograma ni —sobre todo— la FFT del espectro.
-  if(!histCv && !specCv) return;
-  if(statsTimer) clearTimeout(statsTimer);
-  statsTimer = setTimeout(() => { statsTimer = null; drawHistogram(); drawSpectrum(); }, 150);
-}
-
-function paintThumb(){
-  if(!prevCv || !target) return;
-  const src = target.canvas;
-  if(!src.width || !src.height) return;
-  if(!prevCv.width || !prevCv.height) return;
-  prevCx.clearRect(0, 0, prevCv.width, prevCv.height);
-  prevCx.imageSmoothingQuality = "high";
-  prevCx.drawImage(src, 0, 0, prevCv.width, prevCv.height);
-}
-
-/* La miniatura se dimensiona con la proporción de la imagen y un tope
-   de altura, para que un panorama no ocupe una raya y un retrato no se
-   coma el panel entero.
-
-   En móvil esta miniatura no es una miniatura: es la única vista de la
-   foto que hay, porque el panel ocupa la pantalla entera. Así que el
-   tope se calcula sobre la pantalla real y en píxeles de dispositivo
-   —el CSS la encaja después con `object-fit`—, o en una pantalla densa
-   se vería la foto reescalada desde un lienzo de 260 px de alto. */
-function sizeThumb(cv, w, h){
-  let MAXW = 620, MAXH = 260;
-  if(isMobile()){
-    const dpr = Math.min(2, devicePixelRatio || 1);
-    MAXW = Math.round(Math.min(innerWidth, 900) * dpr);
-    MAXH = Math.round(Math.min(innerHeight * 0.55, 900) * dpr);
-  }
-  const k = Math.min(MAXW / w, MAXH / h, 1);
-  cv.width  = Math.max(1, Math.round(w * k));
-  cv.height = Math.max(1, Math.round(h * k));
-}
-
 function snapshotLayer(l){
   const c = document.createElement("canvas");
   c.width = l.canvas.width; c.height = l.canvas.height;
@@ -145,75 +47,17 @@ function snapshotLayer(l){
   return c;
 }
 
-function restoreLayer(l, snap){
-  const x = l.ctx;
-  x.save();
-  x.globalCompositeOperation = "copy";
-  x.drawImage(snap, 0, 0);
-  x.restore();
-  l.thumbDirty = true;
-  emit("doc:change");
-}
-
-function renderPreview(stable=false){
-  if(!target || !original) return;
-  engine.setSeed(filterState.seed);
-  engine.setCameraSeed(filterState.camSeed);
-  const ms = engine.renderTo(target.ctx, filterState.stages, {
-    dose: filterState.dose / 100,
-    solo: filterState.solo,
-    stable
+/* La hoja de estilos de la ventana no depende de index.html. */
+function ensureStyles(){
+  const href = new URL("./realify.css", import.meta.url).href;
+  if(document.querySelector('link[href$="camera/realify.css"]') ||
+     [...document.styleSheets].some(x => x.href === href)) return Promise.resolve();
+  return new Promise(resolve => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet"; link.href = href;
+    link.onload = link.onerror = () => resolve();
+    document.head.appendChild(link);
   });
-  target.thumbDirty = true;
-  emit("doc:change");
-  paintThumb();
-  scheduleStats();
-  const n = CHAIN.filter(s => filterState.stages[s.id].on).length;
-  status(`${n} de ${CHAIN.length} etapas · ${Math.round(ms)} ms`);
-  // Cualquier pasada de CPU en vuelo trabajaba sobre píxeles que este
-  // render acaba de reemplazar: se invalida y se pide otra.
-  cpuTicket++;
-  if(!stable) scheduleCpuPreview();
-}
-
-/* ── vista previa de las etapas de CPU ──────────────────────────
-   La limpieza espectral y el JPEG son demasiado lentos para
-   recalcularse en cada movimiento de un deslizador, así que mientras
-   se arrastra la vista previa es sólo la parte de GPU. En cuanto el
-   panel lleva un instante quieto se aplican encima, sobre los mismos
-   píxeles y con la misma función que usará Aplicar: lo que se ve
-   quieto es lo que va a salir.
-
-   Se trabaja sobre una copia y se vuelca al final sólo si nadie ha
-   vuelto a renderizar entretanto. El JPEG es asíncrono y no se puede
-   cancelar; sin este cerrojo, una ida y vuelta lenta terminaba
-   después del siguiente render y lo pisaba con píxeles viejos. */
-let cpuTimer = null, cpuTicket = 0;
-
-function scheduleCpuPreview(){
-  if(cpuTimer) clearTimeout(cpuTimer);
-  cpuTimer = null;
-  if(!cpuStagesActive(filterState.stages, filterState.dose / 100)) return;
-  cpuTimer = setTimeout(runCpuPreview, 380);
-}
-
-async function runCpuPreview(){
-  cpuTimer = null;
-  if(!target || !original) return;
-  const ticket = cpuTicket;
-  const work = snapshotLayer(target);
-  await applyCpuStages(work, filterState.stages, filterState.dose / 100, status);
-  if(ticket !== cpuTicket || !target) return;
-  restoreLayer(target, work);
-  paintThumb();
-  scheduleStats();
-  const n = CHAIN.filter(s => filterState.stages[s.id].on).length;
-  status(`${n} de ${CHAIN.length} etapas · con CPU`);
-}
-
-function schedulePreview(){
-  if(previewTimer) return;
-  previewTimer = requestAnimationFrame(() => { previewTimer = null; renderPreview(); });
 }
 
 /* ── ajuste recomendado ────────────────────────────────────────
@@ -553,7 +397,7 @@ async function renderHeadless(src, params){
   return c;
 }
 
-/* ── panel ───────────────────────────────────────────────────── */
+/* ── ventana ─────────────────────────────────────────────────── */
 export async function openCamera(opts = {}){
   if(opts.render) return renderHeadless(opts.render.src, opts.init);
   const edit = opts.edit || null;
@@ -579,548 +423,40 @@ export async function openCamera(opts = {}){
     return;
   }
 
-  const before = edit ? snapshotLayer(layer) : null;
-  original = snapshotLayer(base);
-  target = layer;
+  const original = snapshotLayer(base);
   if(!engine.setSource(original)){ toast("No se pudo preparar la GPU", "err"); return; }
   engine.invalidateCache();
+  await ensureStyles();
+  const { openRealifyEditor } = await import("./editor.js");
 
-  const mb = engine.vramEstimate(original.width, original.height) / 1048576;
-
-  const body = document.createElement("div");
-  body.className = "cadena-panel";
-  body.innerHTML = buildHtml(mb);
-  wire(body);
-  renderPreview();
-
-  const res = await dialog({
-    // En escritorio, a pantalla completa (`dlg-full`): el panel
-    // necesita todo el alto para que la miniatura se vea grande Y los
-    // mandos queden a la vez en pantalla. En móvil ya no hace falta
-    // esa miniatura propia —el lienzo de verdad, mucho más grande,
-    // asoma por encima de la hoja compacta, igual que con cualquier
-    // otro filtro—, así que Realify se comporta como Brillo/Contraste:
-    // una hoja corta con un único desplegable.
-    title: isMobile() ? "Realify" : "Realify — simulación de captura",
-    body, wide: true, cls: isMobile() ? "dlg-compact" : "dlg-full",
-    buttons: [
-      { label:"Cancelar", value:null },
-      { label: edit ? "Guardar cambios" : "Aplicar", primary:true, value:"go" }
-    ]
-  });
-
-  // Vaciar el último movimiento pendiente antes de aplicar o cancelar.
-  if(previewTimer){ cancelAnimationFrame(previewTimer); previewTimer = null; }
-  if(res === "go"){
-    // «Solo» es una ayuda de inspección; Aplicar procesa la cadena completa.
-    filterState.solo = null;
-    // Se cancela la pasada de CPU de la vista previa y se rehace todo
-    // desde la GPU, en el mismo orden y con la misma función que
-    // acaba de usar la vista previa: mismo camino, mismo resultado.
-    if(cpuTimer){ clearTimeout(cpuTimer); cpuTimer = null; }
-    cpuTicket++;
-    engine.invalidateCache();
-    renderPreview(true);
-    await applyCpuStages(layer.canvas, filterState.stages, filterState.dose / 100, status);
-    // No toca un píxel: sólo deja marcado en el panel EXIF el cuerpo
-    // y objetivo cuyos rasgos físicos mejor casan con esta cadena.
-    if(filterState.stages.exifmatch.on){
-      const match = matchCamera(filterState.stages, layer.canvas.width, layer.canvas.height);
-      if(match){
-        exifState.body = match.bodyId;
-        exifState.lens = match.lensId;
-        exifState.last = null;
-        exifState.on = true;
-        saveExif();
+  openRealifyEditor({
+    source: original, state: filterState, editing: !!edit,
+    title: "Realify — simulación de captura",
+    recommend: () => computeRecommendation(original),
+    onAccept: async result => {
+      // No toca un píxel: sólo deja marcado en el panel EXIF el cuerpo
+      // y objetivo cuyos rasgos físicos mejor casan con esta cadena.
+      if(filterState.stages.exifmatch.on){
+        const match = matchCamera(filterState.stages, result.width, result.height);
+        if(match){
+          exifState.body = match.bodyId; exifState.lens = match.lensId;
+          exifState.last = null; exifState.on = true;
+          saveExif();
+        }
       }
-    }
-    /* La capa de origen se devuelve a como estaba y el resultado se
-       lleva a una capa nueva: así queda el antes debajo del después,
-       se puede dosificar con opacidad sin recalcular la cadena, y una
-       máscara sobre esa capa aplica Realify sólo donde interese
-       —manos, texto o caras suelen pedir otra dosis que el fondo—. */
-    const after = snapshotLayer(layer);
-    restoreLayer(layer, edit ? before : original);
-    commitFilter({
-      base, edit, result: after, title: "Realify", filter: "realify",
-      params: { stages: filterState.stages, seed: filterState.seed,
-                 camSeed: filterState.camSeed, dose: filterState.dose }
-    });
-    save();
-    toast(edit ? "Realify · actualizado" : "Realify · capa nueva", "ok");
-    status("");
-  } else {
-    restoreLayer(layer, edit ? before : original);
-    status("");
-  }
-  filterState.solo = null;
-  if(cpuTimer){ clearTimeout(cpuTimer); cpuTimer = null; }
-  cpuTicket++;
-  if(statsTimer){ clearTimeout(statsTimer); statsTimer = null; }
-  original = null; target = null; prevCv = null; prevCx = null;
-  histCv = null; specCv = null;
-  engine.invalidateCache();
-}
-
-/* El panel es la misma lista de mandos en los dos sitios, pero con la
-   pantalla de un móvil por delante el reparto es otro por completo.
-
-   En escritorio sigue siendo lo de siempre: miniatura propia,
-   histograma y espectro, semillas plegadas y las treinta y una etapas
-   en su acordeón con un mando por línea —sobra alto para todo eso—.
-
-   En móvil desaparece la miniatura —el lienzo de verdad, detrás de la
-   hoja, ya hace de vista previa, como en cualquier otro filtro— y las
-   treinta y una etapas con sus mandos se resuelven con UN solo
-   desplegable (`cdFlatPicker`, ver wire()): elegir una entrada ahí
-   —«Activar Remuestreo», «Remuestreo: Mezcla», «Semillas y
-   memoria»…— es lo único que hace aparecer algo, y sólo eso. Con más
-   de ciento cincuenta mandos en la cadena completa, apilarlos o
-   plegarlos por etapas seguía siendo una lista larga; con uno solo
-   visible a la vez, como Brillo y Contraste, no hay nada que
-   desplazar para llegar al que se busca. */
-function buildHtml(mb){
-  const presetNames = Object.keys(PRESETS);
-  const mob = isMobile();
-  return `
-  ${mob ? "" : `
-  <div class="cadena-prevwrap">
-    <canvas id="cdPrev"></canvas>
-    <div class="cadena-stats">
-      <div class="cadena-statbox">
-        <span class="cadena-stattitle">Histograma</span>
-        <canvas id="cdHist" width="128" height="60"></canvas>
-      </div>
-      <div class="cadena-statbox">
-        <span class="cadena-stattitle">Espectro</span>
-        <canvas id="cdSpectrum" width="256" height="256"></canvas>
-      </div>
-    </div>
-  </div>`}
-
-  <div class="cadena-dose">
-    <label for="cdDose">Dosis</label>
-    <input type="range" id="cdDose" min="0" max="100" step="1"
-           value="${filterState.dose}"
-           title="Multiplica la fuerza de las ${CHAIN.length} etapas activas a la vez; 0 % conserva el original">
-    <span class="unit mono" id="cdDoseV">${filterState.dose}%</span>
-    <button id="cdCompare" title="Mantén pulsado para ver el original">Comparar</button>
-  </div>
-
-  <div class="cadena-actions">
-    <div class="field cadena-preset-field">
-      <label>Preset</label>
-      <select id="cdPreset" class="grow" aria-label="Preset">
-        <option value="">Valores actuales</option>
-        ${presetNames.map(n => `<option>${n}</option>`).join("")}
-      </select>
-    </div>
-    <button id="cdRec" title="Mide esta imagen y propone una cadena de captura para ella">Ajuste recomendado</button>
-    ${mob ? "" : `<button id="cdOnly" title="Mostrar sólo las etapas encendidas">Sólo activas</button>`}
-    <button id="cdAll">Apagar todo</button>
-    <button id="cdVary" title="Desvía cada valor y sortea semilla">Variar</button>
-  </div>
-
-  <div class="cadena-top" id="cdRecRow" hidden>
-    <span class="hint" id="cdRecInfo" style="margin:0"></span>
-  </div>
-
-  ${mob ? flatPickerHtml() : `
-  <details class="cadena-adv" open>
-    <summary>Semillas y memoria</summary>
-    <div class="cadena-advbody">
-      ${seedsBodyHtml(mb)}
-    </div>
-  </details>
-
-  <div class="cadena-stages">
-    ${CHAIN.map((s, i) => stageHtml(s, i, false)).join("")}
-  </div>`}`;
-}
-
-function seedsBodyHtml(mb){
-  return `
-      <div class="cadena-top">
-        <div class="field" style="margin:0">
-          <label style="width:auto">Semilla</label>
-          <input type="number" id="cdSeed" style="width:82px" value="${filterState.seed}"
-                 title="El disparo concreto: cambia el grano y las variaciones aleatorias">
-          <button id="cdNewSeed" class="icon" title="Nueva semilla de disparo">⟳</button>
-        </div>
-        <div class="field" style="margin:0">
-          <label style="width:auto">Cámara</label>
-          <input type="number" id="cdCamSeed" style="width:82px" value="${filterState.camSeed}"
-                 title="Identifica el sensor simulado: su patrón fijo por píxel. Déjala igual en todas las fotos que deban parecer de la misma cámara">
-          <button id="cdNewCamSeed" class="icon" title="Otro sensor">⟳</button>
-        </div>
-      </div>
-      <p class="hint" style="margin:6px 0 0">La semilla de <b>cámara</b> fija el patrón de
-        respuesta del sensor, que en un equipo real es idéntico en todas sus fotos. Mantenla
-        sin tocar en un lote y todas compartirán esa huella; cámbiala y será como haber
-        usado otro cuerpo.</p>
-      ${mb > 700 ? `<p class="hint" style="color:var(--warn)">La cadena completa puede usar hasta
-         ${Math.round(mb)} MB de memoria de vídeo. Si va a tirones, reduce la imagen
-         antes de aplicar el filtro.</p>` : ""}`;
-}
-
-/* Un único desplegable para las treinta y una etapas: cada una es un
-   <optgroup> con su «Activar esta etapa» primero y luego un ítem por
-   mando, más uno propio para las semillas. Debajo, un solo hueco
-   (`#cdFlatResult`) enseña lo que toque según lo elegido —el mismo
-   `.cstage`/`.cparam` de siempre, sólo que sacado de la lista y
-   mostrado suelto—, así que toda la maquinaria de `wire()` que ya
-   sabía leer esos elementos (interruptores, aislar, deslizadores,
-   `syncControls`, «Ajuste recomendado»…) sigue funcionando sin tocarla:
-   sigue viendo las mismas capas de siempre, unas ocultas y una a la
-   vista. */
-function flatPickerHtml(){
-  const options = CHAIN.map((s, i) => `
-    <optgroup label="${i + 1}. ${s.name}">
-      <option value="toggle:${s.id}">Activar / desactivar</option>
-      ${s.params.map(pr => `<option value="param:${s.id}:${pr.k}">${pr.label}</option>`).join("")}
-    </optgroup>`).join("");
-  return `
-  <select id="cdFlatPicker" class="grow cparam-picker" aria-label="Elegir mando de Realify">
-    <option value="" selected>— Elige un mando —</option>
-    <option value="seeds">Semillas y memoria</option>
-    ${options}
-  </select>
-  <div id="cdFlatResult">
-    <div class="cadena-advbody" data-picker-key="seeds" hidden>
-      ${seedsBodyHtml(0)}
-    </div>
-    <div class="cadena-stages flat">
-      ${CHAIN.map((s, i) => stageHtml(s, i, true)).join("")}
-    </div>
-  </div>`;
-}
-
-function stageHtml(s, i, flat){
-  const st = filterState.stages[s.id];
-  return `
-  <section class="cstage${st.on ? " on" : ""}"${flat ? ` data-picker-key="stage:${s.id}" hidden` : ""} data-id="${s.id}">
-    <header class="chead"${flat ? ' style="cursor:default"' : ""}>
-      <span class="cnum">${i + 1}</span>
-      ${flat ? "" : `<span class="ccaret" aria-hidden="true">›</span>`}
-      <span class="cname">${s.name}</span>
-      <button class="csolo icon" title="Aislar esta etapa">S</button>
-      <input type="checkbox" class="sw" ${st.on ? "checked" : ""}
-             aria-label="Activar ${s.name}">
-    </header>
-    <div class="cbody">
-      ${flat ? "" : `<p class="hint cnote">${s.note}</p>`}
-      <div class="cparams-list">
-        ${s.params.map(pr => paramHtml(s, pr, flat)).join("")}
-      </div>
-    </div>
-  </section>`;
-}
-
-function paramHtml(s, pr, flat){
-  const st = filterState.stages[s.id];
-  // En el desplegable único, el nombre del mando ya lo dice la opción
-  // elegida: repetirlo en la etiqueta de debajo sería decirlo dos
-  // veces seguidas, así que aquí no se escribe en absoluto (no sólo se
-  // esconde por CSS, como con el resto de paneles con desplegable).
-  const hideAttr = flat ? " hidden" : "";
-  if(pr.type === "choice"){
-    const val = st.p[pr.k];
-    return `
-    <div class="cparam cparam-choice" data-stage="${s.id}" data-key="${pr.k}"${hideAttr}>
-      <div class="clabel">${flat ? "" : `<span>${pr.label}</span>`}</div>
-      <select class="grow" aria-label="${s.name}: ${pr.label}">
-        ${pr.options.map(o => `<option value="${o.v}"${o.v === val ? " selected" : ""}>${o.label}</option>`).join("")}
-      </select>
-    </div>`;
-  }
-  const min = pr.min ?? 0;
-  return `
-  <div class="cparam" data-stage="${s.id}" data-key="${pr.k}"${hideAttr}>
-    <div class="clabel">${flat ? "" : `<span>${pr.label}</span>`}<span class="cval mono">${st.p[pr.k]}</span></div>
-    <input type="range" min="${min}" max="100" step="1" value="${st.p[pr.k]}"
-           aria-label="${s.name}: ${pr.label}">
-  </div>`;
-}
-
-function wire(body){
-  const q = sel => body.querySelector(sel);
-
-  prevCv = q("#cdPrev");
-  prevCx = prevCv ? prevCv.getContext("2d", { willReadFrequently: true }) : null;
-  if(prevCv && original) sizeThumb(prevCv, original.width, original.height);
-  histCv = q("#cdHist");
-  specCv = q("#cdSpectrum");
-
-  /* Plegado de etapas. En móvil sólo una abierta a la vez: con el
-     espacio que hay, dos cuerpos desplegados dejan el segundo fuera de
-     la pantalla y obligan a desplazar a ciegas. Al abrirla se sube
-     hasta su cabecera, que si no queda debajo del borde cuando la
-     anterior era larga. */
-  const mob = isMobile();
-
-  /* La explicación de cada etapa vale su espacio en un monitor, pero en
-     un móvil son cuatro líneas de prosa por delante de los mandos que
-     se venía a tocar. Se recorta a dos y se abre entera al tocarla. */
-  if(mob){
-    body.querySelectorAll(".cnote").forEach(n => {
-      n.addEventListener("click", () => n.classList.toggle("open"));
-    });
-  }
-
-  /* El desplegable único de móvil (ver flatPickerHtml): elegir una
-     entrada enseña UN solo bloque marcado con `data-picker-key` —el
-     de las semillas, o la etapa entera que le toca a ese mando— y
-     esconde todos los demás; dentro de la etapa que queda a la vista,
-     además, sólo el `.cparam` elegido (o ninguno, si lo elegido era
-     «Activar/desactivar»). No reconstruye nada: son los mismos nodos
-     de siempre, los mismos que ya sabe leer el resto de wire() más
-     abajo —interruptores, aislar, deslizadores…—, sólo que ocultos o
-     visibles según toque. */
-  const flatPicker = q("#cdFlatPicker");
-  if(flatPicker){
-    const showOnly = key => {
-      body.querySelectorAll("[data-picker-key]").forEach(el => { el.hidden = el.dataset.pickerKey !== key; });
-    };
-    flatPicker.addEventListener("change", () => {
-      const v = flatPicker.value;
-      if(!v){ showOnly(null); return; }
-      if(v === "seeds"){ showOnly("seeds"); return; }
-      const [kind, id, key] = v.split(":");
-      showOnly("stage:" + id);
-      const stage = body.querySelector(`.cstage[data-id="${id}"]`);
-      stage.querySelectorAll(".cparam").forEach(c => {
-        c.hidden = !(kind === "param" && c.dataset.key === key);
+      /* El resultado va a una capa nueva sobre la de origen: queda el
+         antes debajo del después, se puede dosificar con opacidad sin
+         recalcular la cadena, y una máscara aplica Realify sólo donde
+         interese —manos, texto o caras suelen pedir otra dosis—. */
+      commitFilter({
+        base, edit, result, title: "Realify", filter: "realify",
+        params: { stages: filterState.stages, seed: filterState.seed,
+                   camSeed: filterState.camSeed, dose: filterState.dose }
       });
-    });
-  }
-
-  if(!mob){
-    body.querySelectorAll(".chead").forEach(h => {
-      h.addEventListener("click", e => {
-        if(e.target.closest("input,button")) return;
-        const sec = h.parentElement;
-        sec.classList.toggle("collapsed");
-      });
-    });
-  }
-
-  // Interruptores
-  body.querySelectorAll(".cstage .sw").forEach(sw => {
-    sw.addEventListener("change", () => {
-      const id = sw.closest(".cstage").dataset.id;
-      filterState.stages[id].on = sw.checked;
-      sw.closest(".cstage").classList.toggle("on", sw.checked);
-      engine.invalidateCache();
-      schedulePreview();
-    });
-  });
-
-  // Aislar
-  body.querySelectorAll(".csolo").forEach(b => {
-    b.addEventListener("click", e => {
-      e.stopPropagation();
-      const id = b.closest(".cstage").dataset.id;
-      filterState.solo = filterState.solo === id ? null : id;
-      body.querySelectorAll(".csolo").forEach(x => x.classList.remove("on"));
-      if(filterState.solo) b.classList.add("on");
-      engine.invalidateCache();
-      schedulePreview();
-    });
-  });
-
-  // Deslizadores de parámetro
-  body.querySelectorAll(".cparam input").forEach(r => {
-    const wrap = r.closest(".cparam");
-    const id = wrap.dataset.stage, key = wrap.dataset.key;
-    const val = wrap.querySelector(".cval");
-    r.addEventListener("pointerdown", () => {
-      // Congela lo anterior de la cadena para que arrastrar vaya fluido
-      const st = CHAIN_BY_ID[id];
-      if(!st.cpu) engine.buildCache(filterState.stages, filterState.dose / 100,
-                                    filterState.solo, engine.STEP_INDEX[id]);
-    });
-    const release = () => engine.invalidateCache();
-    r.addEventListener("pointerup", release);
-    r.addEventListener("blur", release);
-    r.addEventListener("input", () => {
-      filterState.stages[id].p[key] = +r.value;
-      val.textContent = valueLabel(id, key);
-      q("#cdPreset").value = "";
-      schedulePreview();
-    });
-  });
-
-  // Selectores (parámetros de tipo "choice", como el tipo de arrastre)
-  body.querySelectorAll(".cparam-choice select").forEach(sel => {
-    const wrap = sel.closest(".cparam");
-    const id = wrap.dataset.stage, key = wrap.dataset.key;
-    sel.addEventListener("change", () => {
-      filterState.stages[id].p[key] = sel.value;
-      q("#cdPreset").value = "";
-      engine.invalidateCache();
-      schedulePreview();
-    });
-  });
-
-  // Dosis
-  const dose = q("#cdDose"), doseV = q("#cdDoseV");
-  dose.addEventListener("input", () => {
-    filterState.dose = +dose.value;
-    doseV.textContent = dose.value + "%";
-    refreshValueLabels(body);
-    engine.invalidateCache();
-    schedulePreview();
-  });
-
-  // Semilla
-  const seed = q("#cdSeed");
-  seed.addEventListener("change", () => {
-    filterState.seed = Math.round(Math.max(0, Math.min(99999, +seed.value || 0)));
-    seed.value = filterState.seed;
-    engine.invalidateCache();
-    schedulePreview();
-  });
-  q("#cdNewSeed").addEventListener("click", () => {
-    filterState.seed = Math.floor(Math.random() * 99999);
-    seed.value = filterState.seed;
-    engine.invalidateCache();
-    schedulePreview();
-  });
-
-  /* Semilla de cámara. Deliberadamente aparte de la de disparo: ni
-     «Variar» ni el ⟳ de al lado la tocan, porque lo que da coherencia a
-     un lote es justamente que ésta no se mueva. */
-  const camSeed = q("#cdCamSeed");
-  const setCam = value => {
-    filterState.camSeed = Math.round(Math.max(0, Math.min(99999, value || 0)));
-    camSeed.value = filterState.camSeed;
-    engine.setCameraSeed(filterState.camSeed);
-    engine.invalidateCache();
-    schedulePreview();
-  };
-  camSeed.addEventListener("change", () => setCam(+camSeed.value));
-  q("#cdNewCamSeed").addEventListener("click", () => setCam(Math.floor(Math.random() * 99999)));
-
-  // Presets
-  q("#cdPreset").addEventListener("change", e => {
-    const pr = PRESETS[e.target.value];
-    if(!pr) return;
-    filterState.stages = presetStages(pr);
-    filterState.solo = null;
-    body.querySelectorAll(".csolo").forEach(b => b.classList.remove("on"));
-    syncControls(body);
-    engine.invalidateCache();
-    schedulePreview();
-  });
-
-  /* Filtrar la lista a las etapas encendidas. Con treinta y una en la
-     cadena, la mitad de los toques se iban en recorrer cabeceras
-     apagadas buscando la que se estaba ajustando. Sólo existe en
-     escritorio: en móvil ya no hay una lista que recorrer —el
-     desplegable único la sustituye—, así que el botón ni se genera. */
-  const onlyBtn = q("#cdOnly");
-  if(onlyBtn){
-    const stagesBox = q(".cadena-stages");
-    onlyBtn.addEventListener("click", () => {
-      const only = stagesBox.classList.toggle("only-on");
-      onlyBtn.classList.toggle("on", only);
-    });
-  }
-
-  // Apagar o encender todo
-  let memory = null;
-  const allBtn = q("#cdAll");
-  const allOff = () => !CHAIN.some(s => filterState.stages[s.id].on);
-  const syncAll = () => { allBtn.textContent = allOff() ? "Encender todo" : "Apagar todo"; };
-  allBtn.addEventListener("click", () => {
-    if(!allOff()){
-      memory = Object.fromEntries(CHAIN.map(s => [s.id, filterState.stages[s.id].on]));
-      CHAIN.forEach(s => filterState.stages[s.id].on = false);
-    } else if(memory){
-      CHAIN.forEach(s => filterState.stages[s.id].on = memory[s.id] !== false);
-    } else {
-      CHAIN.forEach(s => filterState.stages[s.id].on = true);
-    }
-    syncControls(body); syncAll();
-    engine.invalidateCache();
-    schedulePreview();
-  });
-  syncAll();
-
-  // Comparar: mantener pulsado enseña el original sin tocar el estado
-  const cmpBtn = q("#cdCompare");
-  const showOriginal = () => { target.ctx.save(); target.ctx.globalCompositeOperation = "copy";
-    target.ctx.drawImage(original, 0, 0); target.ctx.restore(); emit("doc:change");
-    paintThumb(); };
-  const showPreview = () => renderPreview();
-  cmpBtn.addEventListener("pointerdown", e => { e.preventDefault(); showOriginal(); });
-  ["pointerup","pointerleave","pointercancel"].forEach(ev => cmpBtn.addEventListener(ev, showPreview));
-
-  /* Variar: veinte exportaciones con la misma configuración comparten
-     firma de ruido. Ésta es la cura. */
-  q("#cdVary").addEventListener("click", () => {
-    varyStages(filterState.stages);
-    filterState.seed = Math.floor(Math.random() * 99999);
-    seed.value = filterState.seed;
-    q("#cdPreset").value = "";
-    syncControls(body);
-    engine.invalidateCache();
-    schedulePreview();
-  });
-
-  wireRecommendation(body, {
-    recommend:()=>computeRecommendation(original),
-    before:()=>{
-      if(previewTimer){cancelAnimationFrame(previewTimer);previewTimer=null;}
-      engine.invalidateCache();
+      save();
+      toast(edit ? "Realify · actualizado" : "Realify · capa nueva", "ok");
     },
-    accept:({state})=>{
-      Object.assign(filterState,normalizeState(state));
-      q("#cdPreset").value="";
-      q("#cdDose").value=filterState.dose;q("#cdDoseV").textContent=filterState.dose+"%";
-      q("#cdSeed").value=filterState.seed;
-      body.querySelectorAll(".csolo").forEach(b=>b.classList.remove("on"));
-      syncControls(body);
-      syncAll();
-    },
-    after:()=>{engine.invalidateCache();renderPreview();}
-  });
-}
-
-/* Etiqueta del valor de un mando. Con la dosis por debajo del 100 %
-   enseña también el valor EFECTIVO —«50 → 25»—, porque la dosis es
-   relativa a cada mando y sin verlo escrito no hay forma de saber que
-   lo es: el deslizador se queda en 50 y lo que se aplica es 25. */
-function valueLabel(id, key){
-  const raw = filterState.stages[id].p[key];
-  const dose = filterState.dose / 100;
-  if(dose >= 1) return String(raw);
-  const eff = engine.effParams(filterState.stages, id, dose)[key];
-  const shown = Math.round(eff);
-  return shown === raw ? String(raw) : `${raw} → ${shown}`;
-}
-
-function refreshValueLabels(body){
-  body.querySelectorAll(".cparam:not(.cparam-choice)").forEach(wrap => {
-    wrap.querySelector(".cval").textContent = valueLabel(wrap.dataset.stage, wrap.dataset.key);
-  });
-}
-
-function syncControls(body){
-  body.querySelectorAll(".cstage").forEach(el => {
-    const id = el.dataset.id;
-    const st = filterState.stages[id];
-    el.classList.toggle("on", st.on);
-    el.querySelector(".sw").checked = st.on;
-  });
-  body.querySelectorAll(".cparam").forEach(wrap => {
-    const v = filterState.stages[wrap.dataset.stage].p[wrap.dataset.key];
-    if(wrap.classList.contains("cparam-choice")){
-      wrap.querySelector("select").value = v;
-      return;
-    }
-    wrap.querySelector("input").value = v;
-    wrap.querySelector(".cval").textContent = valueLabel(wrap.dataset.stage, wrap.dataset.key);
+    onClose: () => { filterState.solo = null; engine.invalidateCache(); }
   });
 }
 

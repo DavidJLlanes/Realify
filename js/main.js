@@ -285,7 +285,8 @@ registerAll({
                        enabled: () => isText(activeLayer()) },
   "layer.rasterizeText": { run: () => rasterizeText(activeLayer()),
                        enabled: () => isText(activeLayer()) },
-  "layer.meme":      { run: async () => (await import("./editor/meme.js")).openMeme(),
+  /* Creador de memes a pantalla completa (memes/). */
+  "layer.meme":      { run: async () => (await import("../memes/index.js")).openMemeCreator(),
                        enabled: needsDoc },
   "layer.stickers":  { run: async () => (await import("../stickers/index.js")).openStickers(),
                        enabled: needsDoc },
