@@ -18,9 +18,9 @@ const metaLine = metadata => {
 
 export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null }) {
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
-  let workingSource=source, engineTimer=0, engineVersion=0;
+  let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;
   state.autoWb=autoWhiteBalance(source);
-  let activeGroup="luz", activeKey="exposure", showingOriginal=false, zoom=1, closed=false, accepting=false, histogramTimer=0, finalWorker=null;
+  let activeGroup="luz", activeKey="exposure", showingOriginal=false, zoom=1, previewZoom=1, closed=false, accepting=false, histogramTimer=0, finalWorker=null;
   const root=document.createElement("section"); root.id="rawDeveloper"; root.className="raw-developer";
   root.innerHTML=`
     <header class="raw-topbar">
@@ -61,14 +61,21 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     },160);
   };
   const renderer=new Preview(preview,source,{onDraw:drawHist,onError:error=>toast(error.message,"err")});
-  const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(zoom*100)} %`;};
-  const engineChange=async(next,item)=>{
+  const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
+  const engineChange=(next,item)=>{
     if(!item.engine||!onSettingChange||closed)return;
-    const version=++engineVersion;clearTimeout(engineTimer);
-    engineTimer=setTimeout(async()=>{
-      try{const result=await onSettingChange(next,item);if(result&&version===engineVersion&&!closed){workingSource=result;renderer.setSource(result);schedule();}}
-      catch(error){if(!closed)toast(error?.message||"No se pudo actualizar el motor RAW","err");}
-    },120);
+    enginePending={next,item,version:++engineVersion};
+    clearTimeout(engineTimer);
+    const launch=async()=>{
+      if(closed||engineBusy||!enginePending)return;
+      const pending=enginePending;enginePending=null;engineBusy=true;
+      try{
+        const result=await onSettingChange(pending.next,pending.item);
+        if(result&&pending.version===engineVersion&&!closed){workingSource=result;renderer.setSource(result);schedule();}
+      }catch(error){if(!closed)toast(error?.message||"No se pudo actualizar el motor RAW","err");}
+      finally{engineBusy=false;if(enginePending&&!closed){clearTimeout(engineTimer);engineTimer=setTimeout(launch,180);}}
+    };
+    engineTimer=setTimeout(launch,180);
   };
   const remember=()=>{ history.push(structuredClone(state)); if(history.length>50)history.shift(); future.length=0; };
   const setValue=(item,value,{track=false}={})=>{
@@ -146,11 +153,26 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     }catch(error){if(!closed)toast(error?.message||"No se pudo aplicar el revelado","err");}
     finally{bitmap?.close();finalWorker?.dispose();finalWorker=null;accepting=false;if(!closed){root.querySelectorAll("input,select,button").forEach(input=>input.disabled=false);button.textContent="Abrir en Reality";}}
   });
-  root.querySelector(".raw-fit").addEventListener("click",()=>{zoom=1;renderer.canvas.style.transform="";root.querySelector(".raw-zoom").textContent="100 %";});
-  root.querySelector(".raw-preview").addEventListener("dblclick",()=>{zoom=zoom===1?1.8:1;renderer.canvas.style.transform=`scale(${zoom})`;root.querySelector(".raw-zoom").textContent=`${Math.round(zoom*100)} %`;});
-  root.querySelector(".raw-preview").addEventListener("pointerdown",event=>{if(event.pointerType!=="touch")return; showingOriginal=true;schedule(); root.querySelector(".raw-preview").setPointerCapture(event.pointerId);});
-  root.querySelector(".raw-preview").addEventListener("pointerup",()=>{showingOriginal=false;schedule();});
-  root.querySelector(".raw-preview").addEventListener("pointercancel",()=>{showingOriginal=false;schedule();});
+  const rawPreview=root.querySelector(".raw-preview");
+  const previewPointers=new Map();let previewPinch=null;
+  const setPreviewZoom=(next)=>{previewZoom=Math.max(1,Math.min(4,next));renderer.canvas.style.transform=`scale(${previewZoom})`;root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
+  root.querySelector(".raw-fit").addEventListener("click",()=>{zoom=1;setPreviewZoom(1);});
+  root.querySelector(".raw-preview").addEventListener("dblclick",()=>setPreviewZoom(previewZoom===1?1.8:1));
+  rawPreview.addEventListener("wheel",event=>{event.preventDefault();setPreviewZoom(previewZoom*(event.deltaY<0?1.12:1/1.12));},{passive:false});
+  rawPreview.addEventListener("pointerdown",event=>{
+    if(event.pointerType!=="touch")return;
+    previewPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    try{rawPreview.setPointerCapture(event.pointerId);}catch{}
+    if(previewPointers.size===2){event.preventDefault();showingOriginal=false;const [a,b]=[...previewPointers.values()];previewPinch={d:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z:previewZoom};schedule();}
+    else{showingOriginal=true;schedule();}
+  });
+  rawPreview.addEventListener("pointermove",event=>{
+    if(event.pointerType!=="touch")return;
+    if(previewPointers.has(event.pointerId))previewPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    if(previewPinch&&previewPointers.size===2){const [a,b]=[...previewPointers.values()];setPreviewZoom(previewPinch.z*Math.hypot(a.x-b.x,a.y-b.y)/previewPinch.d);}
+  });
+  const endPreviewPointer=event=>{if(event.pointerType!=="touch")return;previewPointers.delete(event.pointerId);if(previewPointers.size<2)previewPinch=null;if(!previewPointers.size){showingOriginal=false;schedule();}};
+  rawPreview.addEventListener("pointerup",endPreviewPointer);rawPreview.addEventListener("pointercancel",endPreviewPointer);
   const onKey=event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();root.querySelector(event.shiftKey?"[data-action=redo]":"[data-action=undo]").click();}if(event.key==="Escape")close();if(event.key==="0")root.querySelector(".raw-fit").click();};
   const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);clearTimeout(engineTimer);renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
   document.addEventListener("keydown",onKey,true); sync(); schedule();
