@@ -11,6 +11,7 @@
 import { on, emit } from "../core/bus.js";
 import { doc } from "../core/doc.js";
 import { view } from "./view.js";
+import { COARSE } from "../core/device.js";
 import { getIsolateView } from "./masks.js";
 import { buildLayerTree, compositeTree, blendAdjustResult } from "./layertree.js";
 import { drawWithBlend, drawWithBlendAccelerated, CUSTOM_BLENDS } from "./blend.js";
@@ -199,7 +200,35 @@ export function scheduleOverlay(){
 }
 
 const liveTiles=new Map(),tileTokens=new Map();
-let tiledMode=false,composeGeneration=0;
+let tiledMode=false,composeGeneration=0,viewportMode=false;
+
+function viewportLayer(){
+  if(!COARSE||doc.layers.length!==1||getIsolateView()!==null)return null;
+  const l=doc.layers[0];
+  return l.type==='raster'&&l.visible&&!l.__editing&&l.opacity===1&&l.blend==='source-over'&&!l.clipped&&!effectiveMask(l)&&!hasEnabledStyle(l.styles)&&!isBlendIfActive(l.blendIf)?l:null;
+}
+
+function composeViewport(layer){
+  // A just-opened RAW is one raster layer. Hundreds of GPU-backed tile
+  // canvases are unnecessary on a phone: draw its visible rectangle once.
+  // The layer retains every original pixel; zoom samples that layer again.
+  viewportMode=true;switchMode(false);++composeGeneration;
+  const r=visibleDocumentRect(view,stage,doc.w,doc.h,0);
+  const scale=Math.min(1,view.zoom*Math.min(dpr(),2),Math.sqrt(2_000_000/Math.max(1,r.w*r.h)));
+  const w=Math.max(1,Math.ceil(r.w*scale)),h=Math.max(1,Math.ceil(r.h*scale));
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+  cv.style.left=r.x+'px';cv.style.top=r.y+'px';cv.style.width=r.w+'px';cv.style.height=r.h+'px';
+  cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,w,h);
+  if(r.w&&r.h){
+    cx.drawImage(layer.canvas,r.x,r.y,r.w,r.h,0,0,w,h);
+    if(scratchOn&&scratchOwner===layer.id){
+      cx.save();cx.scale(w/r.w,h/r.h);cx.globalAlpha=scratchAlpha;cx.globalCompositeOperation=scratchBlend;
+      cx.drawImage(scratch,scratchX-r.x,scratchY-r.y);cx.restore();
+    }
+  }
+  if(cpuCv){cpuCv.width=cpuCv.height=1;cpuCv=null;cpuCx=null;}
+  composeOverlay();emit('compositor:done');
+}
 
 function canUseTiledView(){
   if(doc.w*doc.h<LARGE_DOCUMENT_PIXELS||getIsolateView()!==null)return false;
@@ -268,6 +297,9 @@ function composeTiled(dirty){
 
 export function compose(dirty=null){
   if(!doc.open){ cv.width = cv.height = 0;tileHost.innerHTML="";liveTiles.clear(); return; }
+  const layer=viewportLayer();
+  if(layer){composeViewport(layer);return;}
+  if(viewportMode){viewportMode=false;cv.style.left=cv.style.top='0px';cv.style.width=cv.style.height='';}
   switchMode(canUseTiledView());
   if(tiledMode){composeTiled(dirty);return;}
   if(cv.width !== doc.w || cv.height !== doc.h){
@@ -334,7 +366,7 @@ export function compose(dirty=null){
 }
 
 export const canvasEl = () => {
-  if(!tiledMode)return cv;
+  if(!tiledMode&&!viewportMode)return cv;
   const c=document.createElement("canvas");c.width=doc.w;c.height=doc.h;
   compositeTree(buildLayerTree(doc.layers),c.getContext("2d",{colorSpace:"srgb"}),doc.w,doc.h,null);
   return c;
@@ -345,7 +377,8 @@ export function pickColor(x, y){
   x = Math.floor(x); y = Math.floor(y);
   if(x<0||y<0||x>=doc.w||y>=doc.h)return null;
   let d;
-  if(tiledMode){const key=`${Math.floor(x/TILE_SIZE)}:${Math.floor(y/TILE_SIZE)}`,c=liveTiles.get(key);if(!c)return null;const scale=+c.dataset.scale||1;d=c.getContext("2d").getImageData(Math.max(0,Math.min(c.width-1,Math.floor((x-(+c.style.left.replace("px","")))*scale))),Math.max(0,Math.min(c.height-1,Math.floor((y-(+c.style.top.replace("px","")))*scale))),1,1).data;}
+  if(viewportMode)d=doc.layers[0].ctx.getImageData(x,y,1,1).data;
+  else if(tiledMode){const key=`${Math.floor(x/TILE_SIZE)}:${Math.floor(y/TILE_SIZE)}`,c=liveTiles.get(key);if(!c)return null;const scale=+c.dataset.scale||1;d=c.getContext("2d").getImageData(Math.max(0,Math.min(c.width-1,Math.floor((x-(+c.style.left.replace("px","")))*scale))),Math.max(0,Math.min(c.height-1,Math.floor((y-(+c.style.top.replace("px","")))*scale))),1,1).data;}
   else d=cx.getImageData(x,y,1,1).data;
   return { r: d[0], g: d[1], b: d[2], a: d[3] };
 }
@@ -357,5 +390,5 @@ on("doc:resize",()=>{scratch.width=scratch.height=1;scratchX=scratchY=0;invalida
 
 /* La superposición vive en coordenadas de pantalla, así que al mover o
    ampliar la vista hay que repintarla aunque la imagen no cambie. */
-on("view:change",()=>{scheduleOverlay();if(tiledMode)composeTiled(null);});
-addEventListener("resize",()=>{scheduleOverlay();if(tiledMode)composeTiled(null);});
+on("view:change",()=>{scheduleOverlay();if(viewportMode||tiledMode)scheduleCompose({transient:true});});
+addEventListener("resize",()=>{scheduleOverlay();if(viewportMode||tiledMode)scheduleCompose({transient:true});});

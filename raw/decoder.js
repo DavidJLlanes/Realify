@@ -71,15 +71,18 @@ const rawOptions = settings => ({
 });
 
 export class RawDecoder {
-  static async open(file, settings = {}) {
+  static async open(file, settings = {}, { thumbnailOnly = false } = {}) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const raw = new LibRaw();
     try {
-      /* El worker transfiere el buffer que recibe: conservar la copia original
-         permite volver a decodificar sin tocar el archivo del usuario. */
-      await raw.open(bytes.slice(), rawOptions(settings));
-      const [metadata, pixels] = await Promise.all([raw.metadata(true), raw.imageData()]);
-      return new RawDecoder(file, bytes, raw, metadata || {}, linearSource(pixels));
+      /* Transfer directly; reread the File for subsequent engine changes.
+         Terminate WASM after decoding instead of retaining its large heap. */
+      await raw.open(bytes, rawOptions(settings));
+      const metadata = await raw.metadata(true);
+      if(thumbnailOnly) return new RawDecoder(file, null, raw, metadata || {}, null);
+      const source = linearSource(await raw.imageData());
+      raw.dispose();
+      return new RawDecoder(file, null, null, metadata || {}, source);
     } catch(error) {
       raw.dispose();
       throw new Error(`No se pudo revelar este RAW: ${error?.message || error}`);
@@ -92,8 +95,17 @@ export class RawDecoder {
   }
 
   async renderBase(settings) {
-    await this.raw.open(this.bytes.slice(), rawOptions(settings));
-    return linearSource(await this.raw.imageData());
+    if(this.closed) throw new Error('Decodificador cerrado');
+    const raw = this.raw = new LibRaw();
+    try {
+      const bytes = new Uint8Array(await this.file.arrayBuffer());
+      if(this.closed) throw new Error('Decodificador cerrado');
+      await raw.open(bytes, rawOptions(settings));
+      return linearSource(await raw.imageData());
+    } finally {
+      raw.dispose();
+      if(this.raw === raw) this.raw = null;
+    }
   }
 
   async thumbnail() {
@@ -111,5 +123,5 @@ export class RawDecoder {
     throw new Error("La previsualización incrustada no es JPEG ni bitmap");
   }
 
-  dispose() { this.raw?.dispose(); this.raw = null; this.bytes = null; this.source = null; }
+  dispose() { this.closed = true; this.raw?.dispose(); this.raw = null; this.bytes = null; this.source = null; }
 }

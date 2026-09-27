@@ -23,9 +23,9 @@ export class RenderWorker {
       catch (error) { this.pending.delete(id); reject(error); }
     });
   }
-  async setSource(source) {
+  async setSource(source, { transfer = false } = {}) {
     if(source.linear&&source.data){
-      const data=source.data.slice();
+      const data=transfer?source.data:source.data.slice();
       await this.request('source',{source:{...source,data}},[data.buffer]);return;
     }
     const bitmap = await createImageBitmap(source);
@@ -34,6 +34,23 @@ export class RenderWorker {
     catch (error) { bitmap.close(); throw error; }
   }
   render(settings) { return this.request("render", { settings }); }
+  async renderToCanvas(settings, width, height, onProgress = ()=>{}) {
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    if(!ctx)throw new Error('No se pudo crear el lienzo de salida');
+    // One bounded strip in flight. Two halo rows preserve the largest
+    // detail kernel; global coordinates preserve grain, vignette and CA.
+    const rows=Math.max(1,Math.min(128,Math.floor(262144/width)));
+    try{
+      for(let y=0;y<height;y+=rows){
+        const count=Math.min(rows,height-y),top=Math.max(0,y-2),bottom=Math.min(height,y+count+2);
+        const bitmap=await this.request('render',{settings,region:{x:0,y:top,width,height:bottom-top}});
+        try{ctx.drawImage(bitmap,0,y-top,width,count,0,y,width,count);}finally{bitmap.close();}
+        onProgress(Math.round((y+count)/height*100));
+      }
+      return canvas;
+    }catch(error){canvas.width=canvas.height=1;throw error;}
+  }
   dispose(error = new Error("Procesador cerrado")) {
     this.closed = true;
     this.worker.terminate();

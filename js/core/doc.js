@@ -33,9 +33,11 @@ export const doc = {
 };
 
 export function makeLayer(opts = {}){
-  const c = document.createElement("canvas");
-  c.width  = opts.w || doc.w || 1;
-  c.height = opts.h || doc.h || 1;
+  const c = opts.canvas || document.createElement("canvas");
+  if(!opts.canvas){
+    c.width  = opts.w || doc.w || 1;
+    c.height = opts.h || doc.h || 1;
+  }
   return {
     id: ++seq,
     name: opts.name || "Capa " + seq,
@@ -144,12 +146,16 @@ export function newDoc(w, h, opts = {}){
   doc.selection = null;
   doc.guides = { h: [], v: [] };
 
-  const base = makeLayer({ name: opts.layerName || "Fondo" });
+  /* Un RAW revelado ya llega como un canvas completo. Adoptarlo evita
+     duplicar temporalmente 100–200 MB al crear el documento móvil
+     (canvas del revelador + copia de la capa + compositor). */
+  const adoptedImage = opts.adoptImage && opts.image instanceof HTMLCanvasElement ? opts.image : null;
+  const base = makeLayer({ name: opts.layerName || "Fondo", canvas: adoptedImage });
   if(opts.fill){
     base.ctx.fillStyle = opts.fill;
     base.ctx.fillRect(0, 0, doc.w, doc.h);
   }
-  if(opts.image){
+  if(opts.image && !adoptedImage){
     base.ctx.drawImage(opts.image, 0, 0, doc.w, doc.h);
   }
   doc.layers.push(base);

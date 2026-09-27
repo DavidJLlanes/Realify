@@ -223,7 +223,12 @@ export function handlePointerDown(e){
     return true;
   }
 
-  const wantPan = spaceDown || e.button === 1 || e.pointerType === "touch" && window.__panTool;
+  /* En móvil, una vez ampliada la imagen, un dedo debe desplazarla
+     aunque esté activa una herramienta de edición. A escala de ajuste
+     se conserva el comportamiento normal de pintar/seleccionar; el
+     segundo dedo sigue iniciando el pellizco desde cualquier escala. */
+  const touchPan = e.pointerType === "touch" && view.zoom > fitScale() * 1.01;
+  const wantPan = spaceDown || e.button === 1 || e.pointerType === "touch" && (window.__panTool || touchPan);
   if(wantPan || window.__panTool){
     emit("view:gesturestart");
     panning = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, id: e.pointerId };

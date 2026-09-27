@@ -42,9 +42,11 @@ const blur = (data, width, height, radius) => {
   return out;
 };
 
-export function renderPhoto(source, settings, { preview = false } = {}) {
+export function renderPhoto(source, settings, { preview = false, region = null } = {}) {
   settings=normalize(settings);
-  const linear=isLinearSource(source),w=source.width,h=source.height;
+  const linear=isLinearSource(source),sw=source.width,sh=source.height;
+  if(region&&!linear)throw new Error('El renderizado por franjas requiere datos RAW lineales');
+  const ox=region?.x||0,oy=region?.y||0,w=region?.width||sw,h=region?.height||sh;
   const canvas=typeof document==='undefined'?new OffscreenCanvas(w,h):document.createElement('canvas');
   canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
@@ -52,19 +54,20 @@ export function renderPhoto(source, settings, { preview = false } = {}) {
   const image=linear?ctx.createImageData(w,h):ctx.getImageData(0,0,w,h),data=image.data;
   const input=linear?source.data:new Uint8ClampedArray(data),channels=linear?source.channels:4,scale=source.scale||65535;
   const lut=buildToneLUT(settings),gains=wbGains(settings),sat=1+settings.saturation/100,vibrance=settings.vibrance/100;
-  const angle=settings.hue*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle),max=Math.max(w,h),ca=settings.ca*.000015;
-  const component=(x,y,k)=>{const i=(y*w+x)*channels+(channels===1?0:k);return linear?input[i]/scale:LINEAR[input[i]];};
+  const angle=settings.hue*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle),max=Math.max(sw,sh),ca=settings.ca*.000015;
+  const component=(x,y,k)=>{const i=(y*sw+x)*channels+(channels===1?0:k);return linear?input[i]/scale:LINEAR[input[i]];};
   const sample=(x,y,k)=>{
-    x=Math.max(0,Math.min(w-1,x));y=Math.max(0,Math.min(h-1,y));
-    const x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(w-1,x0+1),y1=Math.min(h-1,y0+1),tx=x-x0,ty=y-y0;
+    x=Math.max(0,Math.min(sw-1,x));y=Math.max(0,Math.min(sh-1,y));
+    const x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(sw-1,x0+1),y1=Math.min(sh-1,y0+1),tx=x-x0,ty=y-y0;
     // Interpolate encoded RGB for raster sources, matching the GPU input texture.
     if(!linear){const value=(xx,yy)=>input[(yy*w+xx)*4+k]/255;return toLinear((value(x0,y0)*(1-tx)+value(x1,y0)*tx)*(1-ty)+(value(x0,y1)*(1-tx)+value(x1,y1)*tx)*ty);}
     return (component(x0,y0,k)*(1-tx)+component(x1,y0,k)*tx)*(1-ty)+(component(x0,y1,k)*(1-tx)+component(x1,y1,k)*tx)*ty;
   };
   for(let y=0; y<h; y++) for(let x=0; x<w; x++) {
     const i=(y*w+x)*4;
-    let r=component(x,y,0),g=component(x,y,1),b=component(x,y,2);
-    if(ca){r=sample(x+(x+.5-w/2)*ca,y+(y+.5-h/2)*ca,0);b=sample(x-(x+.5-w/2)*ca,y-(y+.5-h/2)*ca,2);}
+    const gx=x+ox,gy=y+oy;
+    let r=component(gx,gy,0),g=component(gx,gy,1),b=component(gx,gy,2);
+    if(ca){r=sample(gx+(gx+.5-sw/2)*ca,gy+(gy+.5-sh/2)*ca,0);b=sample(gx-(gx+.5-sw/2)*ca,gy-(gy+.5-sh/2)*ca,2);}
     r*=gains[0];g*=gains[1];b*=gains[2];
     const lum=.2126*r+.7152*g+.0722*b,gain=toneGain(lum,lut);
     r*=gain;g*=gain;b*=gain;
@@ -77,14 +80,19 @@ export function renderPhoto(source, settings, { preview = false } = {}) {
     const hi=Math.max(r,g,b)-l,lo=Math.min(r,g,b)-l;
     const gamut=Math.min(1,hi>0?(1-l)/hi:1,lo<0?-l/lo:1);
     r=l+(r-l)*gamut;g=l+(g-l)*gamut;b=l+(b-l)*gamut;
-    const dx=(x-w/2)/(max/2), dy=(y-h/2)/(max/2), edge=Math.min(1, dx*dx+dy*dy);
+    const dx=(gx-sw/2)/(max/2), dy=(gy-sh/2)/(max/2), edge=Math.min(1, dx*dx+dy*dy);
     const vig=2**(-(settings.vignette-settings.lensVignette)/100*edge*edge*.8);
-    const n=grainAt(x,y)*settings.grain/100*.035*(1-l*l)*255;
+    const n=grainAt(gx,gy)*settings.grain/100*.035*(1-l*l)*255;
     data[i]=clamp(linearToSrgb(Math.max(0,r*vig))+n);data[i+1]=clamp(linearToSrgb(Math.max(0,g*vig))+n);data[i+2]=clamp(linearToSrgb(Math.max(0,b*vig))+n);data[i+3]=linear?255:input[i+3];
   }
   const detail=Math.max(Math.abs(settings.clarity||0),Math.abs(settings.texture||0),settings.sharpen||0,settings.noise||0,settings.colorNoise||0);
   if(detail) {
-    const original=new Uint8ClampedArray(data),fine=blur(original,w,h,1),soft=blur(original,w,h,2);
+    // Both neighbourhoods are computed before writing. Each output pixel
+    // only reads its own original channels, so a full original copy is
+    // unnecessary. Skip neighbourhoods unused by the selected controls.
+    const original=data;
+    const fine=settings.sharpen||settings.texture?blur(original,w,h,1):original;
+    const soft=settings.noise||settings.colorNoise||settings.clarity?blur(original,w,h,2):original;
     for(let i=0;i<data.length;i+=4){
       const l=(.2126*original[i]+.7152*original[i+1]+.0722*original[i+2])/255;
       const f=(.2126*fine[i]+.7152*fine[i+1]+.0722*fine[i+2])/255;

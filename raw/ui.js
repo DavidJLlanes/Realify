@@ -26,7 +26,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     <header class="raw-topbar">
       <button class="raw-cancel" type="button">Cancelar</button>
       <div class="raw-title"><b>${title}</b><span>${metaLine(metadata)}</span></div>
-      <div class="raw-actions"><button type="button" data-action="undo" aria-label="Deshacer">↶</button><button type="button" data-action="redo" aria-label="Rehacer">↷</button><button class="primary" type="button" data-action="accept">Abrir en Reality</button></div>
+      <div class="raw-actions"><button type="button" data-action="undo" aria-label="Deshacer">↶</button><button type="button" data-action="redo" aria-label="Rehacer">↷</button><button class="primary" type="button" data-action="accept">Abrir en Realify</button></div>
     </header>
     <main class="raw-workspace">
       <aside class="raw-left">
@@ -61,6 +61,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     },160);
   };
   const renderer=new Preview(preview,source,{onDraw:drawHist,onError:error=>toast(error.message,"err")});
+  source=null; // workingSource/renderer own it; don't retain the initial RAW.
   const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
   const engineChange=(next,item)=>{
     if(!item.engine||!onSettingChange||closed)return;
@@ -146,35 +147,71 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     root.querySelectorAll("input,select,.raw-step,.raw-groups button,[data-action=undo],[data-action=redo]").forEach(input=>input.disabled=true);
     let bitmap;
     try{
-      finalWorker=new RenderWorker();await finalWorker.setSource(workingSource);
-      bitmap=await finalWorker.render(settings);
+      // Never export an obsolete source while LibRaw is decoding an
+      // engine change (or start both expensive operations together).
+      while((engineBusy||enginePending)&&!closed)await new Promise(resolve=>setTimeout(resolve,30));
       if(closed)return;
-      await onAccept(canvasCopy(bitmap),settings);close();
-    }catch(error){if(!closed)toast(error?.message||"No se pudo aplicar el revelado","err");}
-    finally{bitmap?.close();finalWorker?.dispose();finalWorker=null;accepting=false;if(!closed){root.querySelectorAll("input,select,button").forEach(input=>input.disabled=false);button.textContent="Abrir en Reality";}}
+      finalWorker=new RenderWorker();
+      let result;
+      if(workingSource.linear){
+        const {width,height}=workingSource;
+        renderer.dispose();
+        await finalWorker.setSource(workingSource,{transfer:true});
+        workingSource=null;
+        result=await finalWorker.renderToCanvas(settings,width,height,percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;});
+      }else{
+        await finalWorker.setSource(workingSource);
+        bitmap=await finalWorker.render(settings);
+        if(closed)return;
+        result=canvasCopy(bitmap);
+        bitmap.close();bitmap=null;
+      }
+      if(closed){result.width=result.height=1;return;}
+      finalWorker.dispose();finalWorker=null;
+      renderer.dispose();workingSource=null;
+      await onAccept(result,settings);close();
+    }catch(error){if(!closed){toast(error?.message||"No se pudo aplicar el revelado","err");if(renderer.closed)close();}}
+    finally{bitmap?.close();finalWorker?.dispose();finalWorker=null;accepting=false;if(!closed){root.querySelectorAll("input,select,button").forEach(input=>input.disabled=false);button.textContent="Abrir en Realify";}}
   });
   const rawPreview=root.querySelector(".raw-preview");
-  const previewPointers=new Map();let previewPinch=null;
-  const setPreviewZoom=(next)=>{previewZoom=Math.max(1,Math.min(4,next));renderer.canvas.style.transform=`scale(${previewZoom})`;root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
-  root.querySelector(".raw-fit").addEventListener("click",()=>{zoom=1;setPreviewZoom(1);});
+  const previewPointers=new Map();let previewPinch=null,previewDrag=null;
+  let previewPan={x:0,y:0};
+  const paintPreviewTransform=()=>{renderer.canvas.style.transform=`translate(${previewPan.x}px,${previewPan.y}px) scale(${previewZoom})`;root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
+  const setPreviewZoom=(next)=>{previewZoom=Math.max(1,Math.min(4,next));if(previewZoom===1)previewPan={x:0,y:0};paintPreviewTransform();};
+  root.querySelector(".raw-fit").addEventListener("click",()=>{zoom=1;previewPan={x:0,y:0};setPreviewZoom(1);});
   root.querySelector(".raw-preview").addEventListener("dblclick",()=>setPreviewZoom(previewZoom===1?1.8:1));
   rawPreview.addEventListener("wheel",event=>{event.preventDefault();setPreviewZoom(previewZoom*(event.deltaY<0?1.12:1/1.12));},{passive:false});
   rawPreview.addEventListener("pointerdown",event=>{
+    if(event.target.closest("button"))return;
+    if(event.pointerType==="mouse"){
+      if(event.button!==0||previewZoom<=1)return;
+      event.preventDefault();previewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,px:previewPan.x,py:previewPan.y};rawPreview.classList.add("is-panning");
+      try{rawPreview.setPointerCapture(event.pointerId);}catch{};
+      return;
+    }
     if(event.pointerType!=="touch")return;
     previewPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
     try{rawPreview.setPointerCapture(event.pointerId);}catch{}
-    if(previewPointers.size===2){event.preventDefault();showingOriginal=false;const [a,b]=[...previewPointers.values()];previewPinch={d:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z:previewZoom};schedule();}
+    if(previewPointers.size===2){event.preventDefault();showingOriginal=false;previewDrag=null;rawPreview.classList.add("is-panning");const [a,b]=[...previewPointers.values()];previewPinch={d:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z:previewZoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,px:previewPan.x,py:previewPan.y};schedule();}
+    else if(previewZoom>1){event.preventDefault();previewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,px:previewPan.x,py:previewPan.y};rawPreview.classList.add("is-panning");}
     else{showingOriginal=true;schedule();}
   });
   rawPreview.addEventListener("pointermove",event=>{
+    if(previewDrag?.id===event.pointerId&&previewPointers.size<2){previewPan={x:previewDrag.px+event.clientX-previewDrag.x,y:previewDrag.py+event.clientY-previewDrag.y};paintPreviewTransform();return;}
     if(event.pointerType!=="touch")return;
     if(previewPointers.has(event.pointerId))previewPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
-    if(previewPinch&&previewPointers.size===2){const [a,b]=[...previewPointers.values()];setPreviewZoom(previewPinch.z*Math.hypot(a.x-b.x,a.y-b.y)/previewPinch.d);}
+    if(previewPinch&&previewPointers.size===2){const [a,b]=[...previewPointers.values()];const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;previewPan={x:previewPinch.px+cx-previewPinch.cx,y:previewPinch.py+cy-previewPinch.cy};setPreviewZoom(previewPinch.z*Math.hypot(a.x-b.x,a.y-b.y)/previewPinch.d);}
   });
-  const endPreviewPointer=event=>{if(event.pointerType!=="touch")return;previewPointers.delete(event.pointerId);if(previewPointers.size<2)previewPinch=null;if(!previewPointers.size){showingOriginal=false;schedule();}};
+  const endPreviewPointer=event=>{
+    if(event.pointerType==="mouse"){if(previewDrag?.id===event.pointerId){previewDrag=null;rawPreview.classList.remove("is-panning");}return;}
+    if(event.pointerType!=="touch")return;
+    previewPointers.delete(event.pointerId);if(previewPointers.size<2){previewPinch=null;if(previewZoom<=1)rawPreview.classList.remove("is-panning");}
+    if(previewPointers.size<2&&previewZoom>1&&previewPointers.size===1){const [p]=[...previewPointers.entries()];previewDrag={id:p[0],x:p[1].x,y:p[1].y,px:previewPan.x,py:previewPan.y};}
+    if(!previewPointers.size){previewDrag=null;rawPreview.classList.remove("is-panning");showingOriginal=false;schedule();}
+  };
   rawPreview.addEventListener("pointerup",endPreviewPointer);rawPreview.addEventListener("pointercancel",endPreviewPointer);
   const onKey=event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();root.querySelector(event.shiftKey?"[data-action=redo]":"[data-action=undo]").click();}if(event.key==="Escape")close();if(event.key==="0")root.querySelector(".raw-fit").click();};
-  const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);clearTimeout(engineTimer);renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
+  const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);clearTimeout(engineTimer);enginePending=null;workingSource=null;renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
   document.addEventListener("keydown",onKey,true); sync(); schedule();
   return { close, state, initialState };
 }

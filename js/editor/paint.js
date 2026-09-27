@@ -285,10 +285,14 @@ export function makeSmudge(ctx, radius, hardness, strength){
    relleno armónico de antes, que será liso pero nunca importa un ojo
    de otro sitio de la cara. */
 
-const HEAL_K = 32;          // muestras angulares del contorno
-const HEAL_ANGLES = 16;     // ángulos de búsqueda del parche de origen
-const HEAL_DISTS = [1.7, 2.4, 3.1];   // distancias, en radios
-const HEAL_MAX_MISMATCH = 60;         // por encima, ningún parche vale
+const HEAL_K = 40;          // muestras angulares del contorno
+const HEAL_ANGLES = 24;     // ángulos de búsqueda del parche de origen
+/* El origen debe quedar ENTERO fuera de la mancha. Las distancias
+   antiguas empezaban en 1.7 radios: para un corrector grande, el
+   borde del parche candidato todavía caía dentro del defecto y se
+   terminaba copiando parte de la propia mancha. */
+const HEAL_DISTS = [2.6, 3.4, 4.5, 5.8]; // distancias, en radios
+const HEAL_MAX_MISMATCH = 58;           // textura demasiado distinta
 
 /* Núcleo de Poisson del disco de radio R evaluado a distancia `dist`
    del centro y ángulo `ang`, contra una muestra del contorno en `th`.
@@ -307,7 +311,12 @@ function poissonWeight(R2, R, dist, dist2, ang, th){
    del recorte de trabajo se copia tal cual estaba en `ctx`, nunca se
    sustituye por lo que hubiera en `sampleCtx` fuera de ese círculo. */
 export function healSpot(ctx, x, y, radius, sampleCtx = null){
-  const R = radius + 3;                       // contorno: justo fuera de la mancha
+  /* Se corrige dos píxeles más allá del tamaño visible del pincel. Ese
+     pequeño solape permite fundir el borde con el entorno; antes el
+     contorno se tomaba tres píxeles fuera pero el arreglo terminaba
+     dentro, dejando una franja sin adaptar que se veía como un halo. */
+  const repairRadius = radius + 2;
+  const R = repairRadius + 1;                 // contorno, justo fuera del arreglo
   const far = HEAL_DISTS[HEAL_DISTS.length - 1];
   const pad = Math.ceil(R * (far + 1)) + 2;   // sitio para el agujero y los candidatos
 
@@ -339,6 +348,32 @@ export function healSpot(ctx, x, y, radius, sampleCtx = null){
   const dstRing = sampleRing(cx, cy);
   if(!dstRing) return;
 
+  /* Para elegir un parche útil importa que tenga la misma TEXTURA que
+     el borde del defecto, no que tenga exactamente la misma exposición:
+     la corrección de Poisson compensa después las diferencias suaves de
+     luz y color. Comparar RGB absoluto hacía que en un degradado se
+     escogiera un origen plano y lejano antes que la textura vecina. */
+  const textureScore = ring => {
+    const mean = new Float64Array(3), targetMean = new Float64Array(3);
+    for(let k = 0; k < HEAL_K; k++) for(let c = 0; c < 3; c++){
+      mean[c] += ring[k*3+c]; targetMean[c] += dstRing[k*3+c];
+    }
+    for(let c = 0; c < 3; c++){ mean[c] /= HEAL_K; targetMean[c] /= HEAL_K; }
+    let detail = 0, gradient = 0;
+    for(let k = 0; k < HEAL_K; k++){
+      const prev = (k + HEAL_K - 1) % HEAL_K;
+      for(let c = 0; c < 3; c++){
+        const a = ring[k*3+c] - mean[c];
+        const b = dstRing[k*3+c] - targetMean[c];
+        detail += Math.abs(a - b);
+        const ga = ring[k*3+c] - ring[prev*3+c];
+        const gb = dstRing[k*3+c] - dstRing[prev*3+c];
+        gradient += Math.abs(ga - gb);
+      }
+    }
+    return (detail + gradient * .65) / (HEAL_K * 3);
+  };
+
   // ── buscar el parche de origen ──
   let best = null, bestScore = Infinity;
   for(const dm of HEAL_DISTS){
@@ -346,11 +381,13 @@ export function healSpot(ctx, x, y, radius, sampleCtx = null){
       const th = 2 * Math.PI * a / HEAL_ANGLES;
       const ox = cx + Math.cos(th) * R * dm;
       const oy = cy + Math.sin(th) * R * dm;
+      /* No basta con separar los centros: el disco que se copia tiene
+         tamaño. Si ambos discos se tocan, el candidato puede contener
+         píxeles de la mancha que se intenta eliminar. */
+      if(Math.hypot(ox-cx, oy-cy) < repairRadius + R + 2) continue;
       const ring = sampleRing(ox, oy);
       if(!ring) continue;
-      let diff = 0;
-      for(let i = 0; i < ring.length; i++) diff += Math.abs(ring[i] - dstRing[i]);
-      const score = diff / ring.length;
+      const score = textureScore(ring);
       if(score < bestScore){ bestScore = score; best = { ox, oy, ring }; }
     }
   }
@@ -362,7 +399,7 @@ export function healSpot(ctx, x, y, radius, sampleCtx = null){
   // del círculo del pincel no se debe tocar nada, ni siquiera con el
   // contenido «correcto» de otra capa que no es ésta.
   const out = Uint8ClampedArray.from(img.data);
-  const R2 = R * R, rad2 = radius * radius;
+  const R2 = R * R, rad2 = repairRadius * repairRadius;
   const angs = new Float64Array(HEAL_K);
   for(let k = 0; k < HEAL_K; k++) angs[k] = 2 * Math.PI * k / HEAL_K;
 
@@ -392,18 +429,21 @@ export function healSpot(ctx, x, y, radius, sampleCtx = null){
       rr /= wsum; gg /= wsum; bb /= wsum;
 
       const i = (py * w + px) * 4;
+      let sourceIndex = -1;
       if(best){
         // Textura del parche + corrección suave de color
         const sx = Math.round(best.ox + dx), sy = Math.round(best.oy + dy);
-        const j = ((sy < 0 ? 0 : sy >= h ? h-1 : sy) * w +
-                   (sx < 0 ? 0 : sx >= w ? w-1 : sx)) * 4;
-        out[i]   = d[j]   + rr;
-        out[i+1] = d[j+1] + gg;
-        out[i+2] = d[j+2] + bb;
+        sourceIndex = ((sy < 0 ? 0 : sy >= h ? h-1 : sy) * w +
+                       (sx < 0 ? 0 : sx >= w ? w-1 : sx)) * 4;
+        out[i]   = d[sourceIndex]   + rr;
+        out[i+1] = d[sourceIndex+1] + gg;
+        out[i+2] = d[sourceIndex+2] + bb;
       } else {
         out[i] = rr; out[i+1] = gg; out[i+2] = bb;
       }
-      out[i+3] = 255;
+      // Mantener transparencia en capas de retoque; forzar opacidad
+      // convertía cada toque en un disco opaco sobre una capa vacía.
+      out[i+3] = sourceIndex >= 0 ? d[sourceIndex+3] : img.data[i+3];
     }
   }
   img.data.set(out);

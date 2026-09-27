@@ -20,14 +20,24 @@ export async function openRawFile(file) {
   status(choice==="raw"?"Preparando revelado RAW…":"Extrayendo previsualización…");
   let decoder;
   try{
-    decoder=await RawDecoder.open(file,defaults());
+    decoder=await RawDecoder.open(file,defaults(),{thumbnailOnly:choice==='jpeg'});
     if(choice==="jpeg"){
       let thumb;try{thumb=await decoder.thumbnail();}catch{throw new Error("Este RAW no contiene una previsualización JPEG utilizable; elige «Revelar RAW».");}
-      newDoc(thumb.width,thumb.height,{image:thumb,name:file.name.replace(/\.[^.]+$/,""),source:{w:thumb.width,h:thumb.height,type:"image/jpeg",size:file.size,name:file.name,file,rawPreview:true}});clearHistory();clearSnapshots();emit("doc:change");toast("Previsualización JPEG abierta");return true;
+      decoder.dispose();
+      newDoc(thumb.width,thumb.height,{image:thumb,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),source:{w:thumb.width,h:thumb.height,type:"image/jpeg",size:file.size,name:file.name,file,rawPreview:true}});clearHistory();clearSnapshots();emit("doc:change");toast("Previsualización JPEG abierta");return true;
     }
     openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial:defaults(),onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
-      newDoc(result.width,result.height,{image:result,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata:decoder.metadata}});clearHistory();clearSnapshots();emit("doc:change");toast("RAW revelado y abierto en Reality","ok");
+      const rawMetadata=decoder.metadata;
+      /* Liberar el buffer lineal del decodificador antes de que el
+         compositor móvil empiece a preparar el documento. En RAW de
+         24 MP ese buffer puede superar 100 MB y mantenerlo durante el
+         primer repintado provocaba cierres por presión de memoria. */
+      decoder.dispose();
+      newDoc(result.width,result.height,{image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});clearHistory();clearSnapshots();emit("doc:change");toast("RAW revelado y abierto en Reality","ok");
     }});
+    // The developer owns the linear source now; do not retain the first
+    // decode after engine settings replace it with a new one.
+    decoder.source=null;
     return true;
   }catch(error){decoder?.dispose();toast(error?.message||"No se pudo revelar este RAW","err");return false;}finally{status("");}
 }

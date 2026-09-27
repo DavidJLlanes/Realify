@@ -11,8 +11,9 @@ self.onmessage = ({ data }) => {
       return;
     }
     if (!source) throw new Error("No hay imagen para revelar");
-    const canvas = renderPhoto(source, settings);
+    const canvas = renderPhoto(source, settings, {region:data.region});
     const bitmap = canvas.transferToImageBitmap();
+    canvas.width=canvas.height=1;
     self.postMessage({ id, bitmap }, [bitmap]);
   } catch (error) {
     self.postMessage({ id, error: error.message });

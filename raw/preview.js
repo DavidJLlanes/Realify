@@ -64,5 +64,5 @@ export class Preview {
       else this.onError(error);
     }finally{this.busy=false;if(version!==this.version||this.dirtySource)this.request();}
   }
-  dispose(){this.closed=true;cancelAnimationFrame(this.frame);this.observer.disconnect();this.canvas.removeEventListener("webglcontextlost",this.onLost);this.gpu?.dispose();this.worker?.dispose();this.proxy.width=this.proxy.height=1;}
+  dispose(){if(this.closed)return;this.closed=true;cancelAnimationFrame(this.frame);this.observer.disconnect();this.canvas.removeEventListener("webglcontextlost",this.onLost);this.gpu?.dispose();this.worker?.dispose();this.source=null;this.proxy=null;this.proxyCtx=null;this.gpu=null;this.worker=null;this.canvas.width=this.canvas.height=1;}
 }

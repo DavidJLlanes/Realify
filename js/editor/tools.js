@@ -2465,7 +2465,7 @@ on("doc:resize", () => { moveBuf = null; liqSession = null; });
    un lienzo entero de un documento que ya no existe. */
 on("doc:structure", () => {
   if(doc.open) return;
-  moveBuf = null; liqSession = null; cmpOriginal = null;
+  moveBuf = null; liqSession = null; invalidateCompareBaseline();
 });
 
 function moveBufFor(layer){
@@ -2696,11 +2696,23 @@ let cmpOriginal = null;   // <canvas> o null si aún no hay documento
 let cmpActive = false;    // aparte de qué herramienta esté activa: ver nota en deactivate()
 
 function cmpCapture(){
-  if(!doc.open){ cmpOriginal = null; return; }
-  compose();
+  invalidateCompareBaseline();
+  if(!doc.open) return;
+  // Comparison is a display preview, not an export. In tiled mode
+  // canvasEl() creates a full-size composite; copying that doubled the
+  // memory spike immediately after accepting a large RAW.
+  const scale = Math.min(1, Math.sqrt((COARSE ? 1_000_000 : 4_000_000) / (doc.w * doc.h)));
   const c = document.createElement("canvas");
-  c.width = doc.w; c.height = doc.h;
-  c.getContext("2d").drawImage(canvasEl(), 0, 0);
+  c.width = Math.max(1, Math.round(doc.w * scale));
+  c.height = Math.max(1, Math.round(doc.h * scale));
+  const layer = doc.layers.length === 1 ? doc.layers[0] : null;
+  if(layer && layer.visible && layer.opacity === 1 && layer.type === 'raster' && !layer.mask && !layer.styles){
+    c.getContext("2d").drawImage(layer.canvas, 0, 0, c.width, c.height);
+  }else{
+    const flat = flatten();
+    c.getContext("2d").drawImage(flat, 0, 0, c.width, c.height);
+    flat.width = flat.height = 1;
+  }
   cmpOriginal = c;
 }
 
@@ -2708,35 +2720,19 @@ function cmpCapture(){
    Comparar tiene que dejar de ser el de la pestaña que se acaba de
    abandonar: activarlo con `!cmpOriginal` de más abajo volverá a
    capturarlo sobre lo que se esté viendo ahora en cuanto haga falta. */
-export function invalidateCompareBaseline(){ cmpOriginal = null; }
+export function invalidateCompareBaseline(){ if(cmpOriginal)cmpOriginal.width=cmpOriginal.height=1;cmpOriginal = null; }
 on("doc:new", cmpCapture);
 
-/* Tras cada recomposición, si Comparar está activo, se sustituyen los
-   píxeles a la izquierda de la línea por los del original. Ir DESPUÉS
-   de recomponer entero (en vez de, por ejemplo, mantener un lienzo
-   aparte) es lo más simple: la mitad editada siempre está al día sin
-   duplicar la lógica de mezcla de capas, máscaras y capas de ajuste
-   que ya vive en compose(). El chequeo es `cmpActive`, no
-   `current.id === "compare"`: cuando se cambia de herramienta,
-   `deactivate()` recompone todavía con `current` apuntando a la
-   herramienta VIEJA (se reasigna justo después, en `setTool`), así
-   que si se comprobara `current.id` aquí ese último repintado
-   seguiría recortando por la mitad. */
+/* Comparison is drawn into the viewport overlay. Request its refresh
+   after composition without allocating or altering the export canvas. */
 on("compositor:done", () => {
   if(cmpActive) cmpApply();
 });
 
 function cmpApply(){
-  if(!cmpOriginal || !doc.open) return;
-  const x = Math.round(doc.w * state.cmpSplit);
-  if(x <= 0) return;
-  const c = canvasEl().getContext("2d");
-  c.save();
-  c.beginPath();
-  c.rect(0, 0, x, doc.h);
-  c.clip();
-  c.drawImage(cmpOriginal, 0, 0, cmpOriginal.width, cmpOriginal.height, 0, 0, doc.w, doc.h);
-  c.restore();
+  // The viewport-sized overlay works with both tiled and normal views.
+  // Never flatten the document on every comparison/zoom frame.
+  scheduleOverlay();
 }
 
 export function centerCompare(){
@@ -2747,6 +2743,11 @@ export function centerCompare(){
 function drawCompareOverlay(ctx){
   if(!doc.open) return;
   const x = doc.w * state.cmpSplit;
+  if(cmpOriginal && cmpActive && x > 0){
+    ctx.save();ctx.beginPath();ctx.rect(0,0,x,doc.h);ctx.clip();
+    ctx.drawImage(cmpOriginal,0,0,cmpOriginal.width,cmpOriginal.height,0,0,doc.w,doc.h);
+    ctx.restore();
+  }
   ctx.save();
   ctx.strokeStyle = "rgba(255,255,255,.95)";
   ctx.lineWidth = 2 / view.zoom;

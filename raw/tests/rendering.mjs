@@ -73,9 +73,27 @@ try{
       lumaError+=Math.abs(.2126*(cleaned[i]-noisy.data[i])+.7152*(cleaned[i+1]-noisy.data[i+1])+.0722*(cleaned[i+2]-noisy.data[i+2]));count++;
     }
     const noiseMetrics={chromaRatio:Math.sqrt(afterChroma/beforeChroma),noiseRatio:Math.sqrt(afterNoise/beforeNoise),lumaError:lumaError/count};
+    // The spot remover must never choose a source that overlaps the
+    // defect itself. This large synthetic blemish sits on a colour
+    // gradient: a valid seamless clone reconstructs the gradient at
+    // its centre, while a contaminated source leaves the red mark.
+    const {healSpot}=await import('/js/editor/paint.js');
+    const healCanvas=document.createElement('canvas');healCanvas.width=240;healCanvas.height=180;
+    const hx=healCanvas.getContext('2d',{willReadFrequently:true}),healData=hx.createImageData(240,180);
+    for(let y=0;y<180;y++)for(let x=0;x<240;x++){
+      const i=(y*240+x)*4;healData.data[i]=30+x*.65;healData.data[i+1]=35+y*.8;healData.data[i+2]=90+(x+y)*.18;healData.data[i+3]=255;
+      if(Math.hypot(x-120,y-90)<=32){healData.data[i]=255;healData.data[i+1]=8;healData.data[i+2]=12;}
+    }
+    hx.putImageData(healData,0,0);healSpot(hx,120,90,32);
+    const healedCenter=hx.getImageData(120,90,1,1).data;
+    const expectedCenter=[108,107,128];
+    const healError=expectedCenter.reduce((sum,v,i)=>sum+Math.abs(healedCenter[i]-v),0)/3;
     // Exercise the real bundled LibRaw decoder with a generated Bayer DNG.
     const {dngFixture}=await import('/raw/tests/dng-fixture.js');const {RawDecoder}=await import('/raw/decoder.js');
     const decoder=await RawDecoder.open(new File([dngFixture()],'quality-test.dng'),defaults());
+    if(decoder.raw!==null||decoder.bytes!==null)throw new Error('RAW retains WASM/compressed bytes after decoding');
+    const refreshed=await decoder.renderBase({...defaults(),bright:1.1});
+    if(!refreshed.data.length||decoder.raw!==null)throw new Error('RAW engine restart/cleanup failed');
     const rawInfo={bits:decoder.source.data.BYTES_PER_ELEMENT*8,linear:decoder.source.linear,values:new Set(decoder.source.data).size};
     const {resizeLinear}=await import('/raw/source.js');const rawProxy=resizeLinear(decoder.source,256,192);
     const rawCanvas=document.createElement('canvas'),rawGpu=new GPUPreview(rawCanvas);rawGpu.setSource(rawProxy);
@@ -97,7 +115,16 @@ try{
     const orientationData=orientationCheck.getContext('2d').getImageData(0,0,4,3).data;
     rawInfo.gpuOrientation={topLeft:[orientationData[0],orientationData[1],orientationData[2]],bottomLeft:[orientationData[32],orientationData[33],orientationData[34]]};orientationGpu.dispose();
     const rawWorker=new RenderWorker();await rawWorker.setSource(decoder.source);const rawOutput=await rawWorker.render(rawSettings);
-    rawInfo.output=[rawOutput.width,rawOutput.height];rawOutput.close();rawWorker.dispose();rawGpu.dispose();decoder.dispose();
+    rawInfo.output=[rawOutput.width,rawOutput.height];rawOutput.close();
+    const stripSource={...decoder.source,data:decoder.source.data.slice()};
+    await rawWorker.setSource(stripSource,{transfer:true});
+    if(stripSource.data.byteLength!==0)throw new Error('Final RAW source was copied instead of transferred');
+    const stripSettings={...rawSettings,grain:60,vignette:55,sharpen:65,noise:30,colorNoise:40,clarity:20,texture:25};
+    const stripCanvas=await rawWorker.renderToCanvas(stripSettings,decoder.source.width,decoder.source.height);
+    const stripData=stripCanvas.getContext('2d').getImageData(0,0,stripCanvas.width,stripCanvas.height).data;
+    const fullData=renderPhoto(decoder.source,stripSettings).getContext('2d').getImageData(0,0,stripCanvas.width,stripCanvas.height).data;
+    if(!stripData.every((v,i)=>v===fullData[i]))throw new Error('Strip rendering differs from full rendering');
+    rawWorker.dispose();rawGpu.dispose();decoder.dispose();
     // The real UI starts with a 24 MP decoded image, not a miniature fixture.
     const large=document.createElement('canvas');large.width=6000;large.height=4000;large.getContext('2d').drawImage(source,0,0,6000,4000);
     const host=document.querySelector('#host');host.replaceChildren(document.createElement('canvas'));
@@ -113,6 +140,7 @@ try{
     const initialDraws=draws;done=waitDraw();for(let i=0;i<200;i++)preview.update({...defaults(),exposure:i/200});await done;
     const coalescedDraws=draws-initialDraws;
     preview.dispose();
+    if(preview.source!==null||preview.proxy!==null||preview.gpu!==null)throw new Error('Closed preview retains image resources');
     // Force fallback and race rapid input against the worker.
     host.replaceChildren(document.createElement('canvas'));
     let fallbackDone;const fallbackPromise=new Promise(resolve=>fallbackDone=resolve);
@@ -134,7 +162,7 @@ try{
     const {openDeveloper}=await import('/raw/ui.js');
     window.testSource=source;window.testLarge=large;window.testDefaults=defaults;window.openDeveloper=openDeveloper;
     samples.sort((a,b)=>a-b);
-    return {differences,originalExact,curveMetrics,noiseMetrics,rawInfo,mode,dimensions,frameMedianMs:samples[22],frameP95Ms:samples[42],coalescedDraws,fallbackDimensions,latest,exportSize,exportMs,beats};
+    return {differences,originalExact,curveMetrics,noiseMetrics,healError,rawInfo,mode,dimensions,frameMedianMs:samples[22],frameP95Ms:samples[42],coalescedDraws,fallbackDimensions,latest,exportSize,exportMs,beats};
   });
   assert.equal(result.mode,'GPU');assert.equal(result.originalExact,true);
   for(const d of result.differences){assert.ok(d.max<=3,JSON.stringify(d));assert.ok(d.mean<.5,JSON.stringify(d));}
@@ -142,6 +170,7 @@ try{
   assert.ok(result.curveMetrics.shadow>.3&&result.curveMetrics.shadow<.45);assert.ok(result.curveMetrics.highlight<.72);assert.ok(result.curveMetrics.highlightUp>.85);
   assert.ok(Math.abs(result.curveMetrics.smallContrast-.2)<.003);
   assert.ok(result.noiseMetrics.chromaRatio<.7);assert.ok(result.noiseMetrics.noiseRatio<.7);assert.ok(result.noiseMetrics.lumaError<.6);
+  assert.ok(result.healError<8,`Spot-healing error: ${result.healError}`);
   assert.equal(result.rawInfo.bits,16);assert.equal(result.rawInfo.linear,true);assert.ok(result.rawInfo.values>256);assert.ok(result.rawInfo.maxDifference<=3,JSON.stringify(result.rawInfo));
   assert.ok(result.dimensions[0]*result.dimensions[1]<=1402000);
   assert.equal(result.coalescedDraws,1);assert.equal(result.latest,1);
