@@ -21,7 +21,7 @@
 
 import { FORMATS, GROUPS, format, sizeOf, naturalOrient, aspectText, safeZones } from "./formats.js";
 import { LAYOUTS, layoutById, layoutSvg } from "./layouts.js";
-import { cellsOf, cellPath, drawBackground, drawCell, orientedPhoto, photoRect, hitCell, rel } from "./render.js";
+import { cellsOf, cellPath, drawBackground, drawCell, orientedPhoto, photoRect, hitCell, rel, SHAPES, shapeOf, shapeIdOf, localCell } from "./render.js";
 import { PROPS as TEXT_PROPS, PROP_GROUPS, prop as textProp, TEXT_PRESETS, newText, applyPreset } from "../memes/model.js";
 import { renderText, drawText } from "../memes/text.js";
 import { loadFont } from "../memes/fonts.js";
@@ -60,7 +60,7 @@ const COMP_PROPS = [
   R("gap", "Espaciado entre fotos", 0, 100),
   R("margin", "Margen exterior", 0, 150),
   R("radius", "Esquinas redondeadas", 0, 100),
-  { key: "shape", label: "Forma de las fotos", type: "select", options: [["rect", "Según el diseño"], ["circle", "Círculo"]] },
+  { key: "shape", label: "Forma de las fotos", type: "shape", options: SHAPES },
   R("border", "Marco de cada foto", 0, 60),
   { key: "borderColor", label: "Color del marco", type: "color" },
   R("shadow", "Sombra de las fotos", 0, 100)
@@ -74,11 +74,21 @@ const BG_PROPS = [
   { ...R("bgDim", "Oscurecer", 0, 100, " %"), when: S => S.bg === "blur" }
 ];
 const CELL_PROPS = [
+  { key: "shape", label: "Forma de esta foto", type: "shape", options: [["", "Como las demás"], ...SHAPES], empty: true },
   R("zoom", "Zoom", 100, 500, " %"),
   R("fx", "Encuadre horizontal", 0, 100, " %"),
   R("fy", "Encuadre vertical", 0, 100, " %")
 ];
-const newSlot = (photo = null) => ({ photo, zoom: 100, fx: 50, fy: 50, rot: 0, flip: false });
+const newSlot = (photo = null, shape = "") => ({ photo, zoom: 100, fx: 50, fy: 50, rot: 0, flip: false, shape });
+/* Miniatura SVG de una forma (para los botones de «Forma»). */
+function shapeIcon(id){
+  const box = { pts: [[2, 2], [22, 2], [22, 22], [2, 22]], box: { x: 2, y: 2, w: 20, h: 20 } };
+  if(!id) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" class="ln"/></svg>`;
+  const c = id === "ellipse" ? shapeOf({ ...box, box: { x: 2, y: 5, w: 20, h: 14 } }, "ellipse") : shapeOf(box, id);
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${c.ellipse
+    ? `<ellipse cx="${c.box.x + c.box.w / 2}" cy="${c.box.y + c.box.h / 2}" rx="${c.box.w / 2}" ry="${c.box.h / 2}"/>`
+    : `<polygon points="${c.pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}"/>`}</svg>`;
+}
 
 export function openPostEditor({ photo = null, onAccept, onClose = null }){
   /* Fotos: lienzo a tamaño de trabajo + copia ligera para la vista.
@@ -248,7 +258,8 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     const mark = (i, color) => {
       const c = cells[i]; if(!c) return;
       ctx.save(); ctx.translate(view.ox, view.oy); ctx.scale(k, k);
-      cellPath(ctx, S.shape === "circle" && !c.ellipse ? circleOf(c) : c, rel(S.radius, W, H));
+      if(c.float){ ctx.translate(c.cx, c.cy); ctx.rotate(c.rot * Math.PI / 180); }
+      cellPath(ctx, shapeOf(localCell(c), shapeIdOf(S, S.slots[i])), rel(S.radius, W, H));
       ctx.restore();
       ctx.save(); ctx.lineWidth = 2.5 * d; ctx.strokeStyle = color; ctx.shadowColor = "#000a"; ctx.shadowBlur = 3 * d; ctx.stroke(); ctx.restore();
     };
@@ -267,7 +278,6 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     const f = fmt();
     $(".sp-size").textContent = `${f.id === "custom" ? "Personalizado" : f.label} · ${W} × ${H} · ${aspectText(W, H)}`;
   }
-  const circleOf = c => { const b = c.box, dd = Math.min(b.w, b.h); return { ...c, ellipse: true, box: { x: b.x + (b.w - dd) / 2, y: b.y + (b.h - dd) / 2, w: dd, h: dd } }; };
 
   /* Zonas seguras: lo que taparán la interfaz de la red social o el
      propio teléfono. Sólo en la vista; no salen en el resultado. */
@@ -341,6 +351,18 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       wrap.innerHTML = `${label}<select aria-label="${esc(p.label)}">${opt(list, p.type === "preset" ? "" : value)}</select>`;
       const s = wrap.querySelector("select");
       s.addEventListener("change", () => { onChange(s.value, true); if(p.type === "preset") s.value = ""; });
+    } else if(p.type === "shape"){
+      if(mobile){
+        wrap.innerHTML = `<select aria-label="${esc(p.label)}">${opt(p.options, value)}</select>`;
+        const s = wrap.querySelector("select");
+        s.addEventListener("change", () => onChange(s.value, true));
+      } else {
+        wrap.innerHTML = `${label}<div class="sp-shapes">${p.options.map(([v, l]) => `<button type="button" data-shape="${esc(v)}" title="${esc(l)}" aria-label="${esc(l)}" class="${v === value ? "on" : ""}">${shapeIcon(v)}${/^(triangle|poly\d+)$/.test(v) ? `<span>${v === "triangle" ? 3 : v.slice(4)}</span>` : ""}</button>`).join("")}</div>`;
+        wrap.querySelectorAll("[data-shape]").forEach(b => b.addEventListener("click", () => {
+          wrap.querySelectorAll("[data-shape]").forEach(x => x.classList.toggle("on", x === b));
+          onChange(b.dataset.shape, true);
+        }));
+      }
     } else if(p.type === "toggle"){
       wrap.innerHTML = `<label class="sp-toggle"><input type="checkbox"${value ? " checked" : ""}><span>${esc(p.label)}</span></label>`;
       const c = wrap.querySelector("input");
@@ -494,7 +516,8 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(s){
       host.appendChild(section("cell", `Foto del hueco ${sel.i + 1}`, s.photo
         ? [...CELL_PROPS.map(p => control(p, s[p.key], (v, f, st) => setCellProp(p.key, v, f, st))), cellButtons()]
-        : [Object.assign(document.createElement("p"), { className: "sp-note", textContent: "Hueco vacío: arrastra una foto de la bandeja, tócala, o ábrela desde aquí." }), cellButtons()]));
+        : [Object.assign(document.createElement("p"), { className: "sp-note", textContent: "Hueco vacío: arrastra una foto de la bandeja, tócala, o ábrela desde aquí." }),
+           ...CELL_PROPS.filter(p => p.empty).map(p => control(p, s[p.key], (v, f, st) => setCellProp(p.key, v, f, st))), cellButtons()]));
     } else if(t){
       for(const [g, label] of PROP_GROUPS){
         const els = TEXT_PROPS.filter(p => p.group === g && !((p.key === "color2" || p.key === "gradAngle") && t.fill !== "gradient"))
@@ -519,7 +542,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       ["Composición", COMP_PROPS],
       ["Fondo", BG_PROPS.filter(p => !p.when || p.when(S))]
     ];
-    if(s && s.photo) groups.unshift(["Foto elegida", CELL_PROPS.map(p => ({ ...p, cell: true }))]);
+    if(s) groups.unshift(["Foto elegida", CELL_PROPS.filter(p => s.photo || p.empty).map(p => ({ ...p, cell: true }))]);
     const ps = $(".sp-prop-select");
     ps.innerHTML = groups.map(([label, ps]) => `<optgroup label="${esc(label)}">${ps.map(p => `<option value="${p.cell ? "c:" : "s:"}${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>`).join("") +
       (t ? PROP_GROUPS.map(([g, label]) => `<optgroup label="Texto · ${esc(label)}">${TEXT_PROPS.filter(p => p.group === g).map(p => `<option value="t:${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>`).join("") : "");
@@ -570,8 +593,8 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     const ids = decoded.map(addPhoto);
     S.photos.push(...ids);
     // Soltada sobre un hueco: la primera va ahí; el resto, a los vacíos
-    if(target >= 0 && S.slots[target]){ S.slots[target] = { ...newSlot(ids[0]) }; }
-    else if(sel?.type === "cell" && S.slots[sel.i] && !S.slots[sel.i].photo){ S.slots[sel.i] = newSlot(ids[0]); }
+    if(target >= 0 && S.slots[target]){ S.slots[target] = newSlot(ids[0], S.slots[target].shape); }
+    else if(sel?.type === "cell" && S.slots[sel.i] && !S.slots[sel.i].photo){ S.slots[sel.i] = newSlot(ids[0], S.slots[sel.i].shape); }
     autofill();
     syncPanels(); request();
     toast(ids.length === 1 ? "Foto añadida" : `${ids.length} fotos añadidas`, "ok");
@@ -617,13 +640,13 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     if(accepting) return;
     remember();
     S.photos = S.photos.filter(p => p !== id);
-    S.slots.forEach(s => { if(s.photo === id) Object.assign(s, newSlot()); });
+    S.slots.forEach(s => { if(s.photo === id) Object.assign(s, newSlot(null, s.shape)); });
     syncPanels(); request();
   }
   const assign = (i, id) => {
     if(accepting || !S.slots[i]) return;
     remember();
-    S.slots[i] = newSlot(id);
+    S.slots[i] = newSlot(id, S.slots[i].shape);
     sel = { type: "cell", i };
     syncPanels(); request();
   };
@@ -690,7 +713,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
         if(what === "rotate") s.rot = (s.rot + 90) % 360;
         else if(what === "flip") s.flip = !s.flip;
         else if(what === "center") Object.assign(s, { zoom: 100, fx: 50, fy: 50 });
-        else if(what === "clear") Object.assign(s, newSlot());
+        else if(what === "clear") Object.assign(s, newSlot(null, s.shape));
       }
       syncPanels(); request(); return;
     }
@@ -735,8 +758,8 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   const pan = (i, s0, dx, dy) => {
     const c = cells[i], slot = S.slots[i], im = img(slot); if(!im) return;
     const a = -(c.rot || 0) * Math.PI / 180, lx = (dx * Math.cos(a) - dy * Math.sin(a)) / view.k, ly = (dx * Math.sin(a) + dy * Math.cos(a)) / view.k;
-    const inner = S.shape === "circle" && !c.ellipse ? circleOf(c) : c;
-    const r = photoRect(inner, im, slot);
+    const inner = shapeOf(localCell(c), shapeIdOf(S, slot));
+    const r = photoRect({ ...inner, float: false }, im, slot);
     if(r.bw - r.w < -.5) slot.fx = clamp(s0.fx + lx / (r.bw - r.w) * 100, 0, 100);
     if(r.bh - r.h < -.5) slot.fy = clamp(s0.fy + ly / (r.bh - r.h) * 100, 0, 100);
   };

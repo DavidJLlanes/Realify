@@ -79,6 +79,15 @@
 .sp-color{display:grid;grid-template-columns:1fr 64px;align-items:center}
 .sp-color>span{margin:0}
 .sp-color input{width:64px;height:30px;padding:0;border:1px solid #414852;border-radius:4px;background:#252a31;cursor:pointer}
+.sp-shapes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.sp-shapes button{position:relative;display:grid;place-items:center;height:38px;padding:0;background:#20252b;border:1px solid #30353d;border-radius:5px;cursor:pointer}
+.sp-shapes button:hover{background:#262d36}
+.sp-shapes button.on{background:#293b60;border-color:#547bbd}
+.sp-shapes svg{width:22px;height:22px}
+.sp-shapes span{position:absolute;right:3px;bottom:1px;font-size:9px;color:#8e97a5}
+.sp-shapes svg polygon,.sp-shapes svg ellipse{fill:#a9bde6}
+.sp-shapes button.on svg polygon,.sp-shapes button.on svg ellipse{fill:#d5e1ff}
+.sp-shapes svg .ln{fill:none;stroke:#8e97a5;stroke-width:1.6;stroke-linecap:round}
 .sp-toggle{display:flex;align-items:center;gap:10px;color:#cad1dc;cursor:pointer}
 .sp-toggle input{width:18px;height:18px;accent-color:#7fa6ff}
 .sp-slider-row{display:grid;grid-template-columns:32px minmax(0,1fr) 32px;gap:8px;align-items:center}

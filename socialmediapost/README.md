@@ -45,8 +45,14 @@ El documento de partida no se modifica.
   - De 2 a 16 fotos: columnas, filas, grande + pequeñas, mosaico y molinete
   - Diagonales y triángulos
   - Fotos esparcidas y giradas
-- **Composición**: espaciado, margen, esquinas redondeadas, forma circular, marco de
-  cada foto y sombra.
+- **Formas para las fotos**: en lugar del rectángulo del diseño, cada foto puede ir
+  dentro de un círculo, una elipse, un triángulo o un polígono regular de 5, 6, 7, 8, 9
+  o 10 lados. La forma elegida vale para todas las fotos, y además cada hueco puede
+  tener la suya propia («Forma de esta foto»). Los polígonos conservan su forma
+  regular y se encajan centrados en el hueco; la elipse lo llena entero. El marco, las
+  esquinas redondeadas y la sombra siguen la forma.
+- **Composición**: espaciado, margen, esquinas redondeadas, marco de cada foto y
+  sombra.
 - **Fondo**: color, degradado, la propia foto difuminada (con oscurecido) o
   transparente.
 - **Fotos**:
@@ -67,7 +73,7 @@ El documento de partida no se modifica.
 |---|---|
 | `formats.js` | Formatos, orientación, proporción legible y zonas seguras |
 | `layouts.js` | Diseños como polígonos convexos en coordenadas unitarias; separación entre huecos y miniaturas SVG |
-| `render.js` | Fondo y fotos en su hueco. Lo usan la vista previa y el resultado |
+| `render.js` | Fondo, formas geométricas y fotos en su hueco. Lo usan la vista previa y el resultado |
 | `ui.js` | La ventana (escritorio y móvil), los gestos y el historial |
 | `index.js` | Entrada y creación del documento nuevo en su pestaña |
 | `post.css` | Estilos. `index.js` también los carga por su cuenta si faltan |

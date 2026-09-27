@@ -100,15 +100,50 @@ export function drawBackground(ctx, S, W, H, k, bgPhoto){
   ctx.restore();
 }
 
+/* ── Formas geométricas para las fotos ─────────────────────────
+   En lugar del hueco rectangular (o diagonal) del diseño, la foto
+   puede ir dentro de un círculo, una elipse, un triángulo o un
+   polígono regular de 5 a 10 lados, encajado y centrado en el hueco.
+   Los polígonos conservan su forma regular (no se estiran); la elipse
+   es la que llena el hueco entero. */
+export const SHAPES = [
+  ["rect", "Según el diseño"], ["circle", "Círculo"], ["ellipse", "Elipse"], ["triangle", "Triángulo"],
+  ["poly5", "Pentágono"], ["poly6", "Hexágono"], ["poly7", "Heptágono"], ["poly8", "Octógono"],
+  ["poly9", "Eneágono"], ["poly10", "Decágono"]
+];
+const SIDES = { triangle: 3, poly5: 5, poly6: 6, poly7: 7, poly8: 8, poly9: 9, poly10: 10 };
+
+/* Hueco suelto (girado) en sus coordenadas propias, centrado en 0. */
+export const localCell = c => c.float
+  ? { ...c, pts: [[-c.w / 2, -c.h / 2], [c.w / 2, -c.h / 2], [c.w / 2, c.h / 2], [-c.w / 2, c.h / 2]], box: { x: -c.w / 2, y: -c.h / 2, w: c.w, h: c.h } }
+  : c;
+
+/** Forma `id` encajada en la caja del hueco `c`. */
+export function shapeOf(c, id){
+  if(!id || id === "rect") return c;
+  const b = c.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  if(id === "circle"){ const d = Math.min(b.w, b.h); return { ...c, ellipse: true, box: { x: cx - d / 2, y: cy - d / 2, w: d, h: d } }; }
+  if(id === "ellipse") return { ...c, ellipse: true, box: { ...b } };
+  const n = SIDES[id];
+  if(!n) return c;
+  // Impares, con un vértice arriba; pares, con un lado plano arriba.
+  const a0 = -Math.PI / 2 + (n % 2 ? 0 : Math.PI / n);
+  const unit = Array.from({ length: n }, (_, i) => [Math.cos(a0 + i * 2 * Math.PI / n), Math.sin(a0 + i * 2 * Math.PI / n)]);
+  const xs = unit.map(p => p[0]), ys = unit.map(p => p[1]);
+  const ux = Math.min(...xs), uy = Math.min(...ys), uw = Math.max(...xs) - ux, uh = Math.max(...ys) - uy;
+  const k = Math.min(b.w / uw, b.h / uh), ox = cx - (ux + uw / 2) * k, oy = cy - (uy + uh / 2) * k;
+  const pts = unit.map(([x, y]) => [ox + x * k, oy + y * k]);
+  return { ...c, ellipse: false, pts, box: { x: ox + ux * k, y: oy + uy * k, w: uw * k, h: uh * k } };
+}
+/* Forma que toca a un hueco: la suya propia o, si no tiene, la general. */
+export const shapeIdOf = (S, slot) => slot?.shape || S.shape;
+
 /* ── Una foto en su hueco ──────────────────────────────────────── */
 export function drawCell(ctx, S, c, img, slot, W, H, k, { empty = false } = {}){
   const radius = rel(S.radius, W, H), border = rel(S.border, W, H);
   ctx.save(); ctx.scale(k, k);
   if(c.float){ ctx.translate(c.cx, c.cy); ctx.rotate(c.rot * Math.PI / 180); }
-  const local = c.float ? { ...c, pts: [[-c.w / 2, -c.h / 2], [c.w / 2, -c.h / 2], [c.w / 2, c.h / 2], [-c.w / 2, c.h / 2]], box: { x: -c.w / 2, y: -c.h / 2, w: c.w, h: c.h } } : c;
-  const shape = S.shape === "circle" && !local.ellipse
-    ? { ...local, ellipse: true, box: (() => { const b = local.box, d = Math.min(b.w, b.h); return { x: b.x + (b.w - d) / 2, y: b.y + (b.h - d) / 2, w: d, h: d }; })() }
-    : local;
+  const shape = shapeOf(localCell(c), shapeIdOf(S, slot));
   // Sombra: se pinta la forma rellena con sombra y luego la foto encima.
   if(S.shadow > 0 && img){
     const px = Math.min(W, H) / 1000;
@@ -124,7 +159,7 @@ export function drawCell(ctx, S, c, img, slot, W, H, k, { empty = false } = {}){
   ctx.save();
   cellPath(ctx, inner, inner === shape ? radius : Math.max(0, radius - border)); ctx.clip();
   if(img){
-    const r = photoRect(inner.float ? { ...c, w: inner.box.w, h: inner.box.h } : inner, img, slot);
+    const r = photoRect({ ...inner, float: false }, img, slot);
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
     ctx.drawImage(img, r.x, r.y, r.w, r.h);
   } else if(empty){
