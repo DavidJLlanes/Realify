@@ -44,7 +44,7 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
   const snapshot = () => ({ state: structuredClone(state), selected });
   const remember = () => { history.push(snapshot()); if(history.length > 80) history.shift(); future.length = 0; syncActions(); };
   const sel = () => state.texts.find(t => t.uid === selected) || null;
-  const layout = () => design(state.design).layout(IW, IH, { color: state.frameColor, size: state.frameSize });
+  const layout = () => design(state.design).layout(IW, IH, { color: state.frameColor, size: state.frameSize }, photo);
 
   const opt = (list, value) => list.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(value) ? " selected" : ""}>${esc(l)}</option>`).join("");
   const root = document.createElement("section");

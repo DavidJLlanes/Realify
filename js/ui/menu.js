@@ -119,9 +119,7 @@ export const MENUS = [
     { label:"Texto", submenu:[
       { cmd:"layer.text",     label:"Nueva capa de texto" },
       { cmd:"layer.editText", label:"Editar texto" },
-      { cmd:"layer.rasterizeText", label:"Rasterizar texto" },
-      { cmd:"layer.meme",     label:"Crear meme…",
-        help:"Creador de memes a pantalla completa: 12 diseños (clásico, moderno, desmotivador, noticiario, cómic…), 26 tipografías, 26 estilos de texto, contornos, sombras, neón, relieve 3D, bocadillos y efectos de imagen." }
+      { cmd:"layer.rasterizeText", label:"Rasterizar texto" }
     ]},
     { label:"Capa de ajuste", submenu:[
       { cmd:"layer.addAdjust",  label:"Nueva capa de ajuste…" },
@@ -227,6 +225,9 @@ export const MENUS = [
     { cmd:"filter.photoDevelop", label:"Revelado fotográfico…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h16v11H4z"/><path d="M7 4.5h10M8 11h8M8 15h5"/><circle cx="17" cy="15" r="1.5"/></svg>',
       help:"Abre el revelador no destructivo sobre la capa activa. Sus parámetros, porcentaje de filtro, máscara y opacidad se guardan por separado." },
+    { cmd:"layer.meme", label:"Crear meme…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M6.5 6.5h11M6.5 17.5h11"/><circle cx="12" cy="12" r="3.2"/><path d="M10.6 12.6c.4.5.9.7 1.4.7s1-.2 1.4-.7"/><path d="M10.8 11.1h.01M13.2 11.1h.01"/></svg>',
+      help:"Creador de memes a pantalla completa: 26 diseños (clásico, fondo negro arriba y abajo, comparación, expectativa vs. realidad, periódico, chat, «Se busca», historias 9:16…), 29 tipografías, 26 estilos de texto, contornos, sombras, neón, relieve 3D, bocadillos y efectos de imagen." },
     { cmd:"filter.vintage", label:"Filtro Vintage…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 8h18M3 16h18"/><path d="M6 5v3M10 5v3M14 5v3M18 5v3M6 16v3M10 16v3M14 16v3M18 16v3" opacity=".6"/><circle cx="12" cy="12" r="1.6"/></svg>',
       help:"Da aspecto antiguo a la foto: virados, películas clásicas, grano, fugas de luz, polvo, bordes y ópticas de época. Crea una capa de filtro reeditable." },

@@ -12,10 +12,11 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { newText, applyPreset } from "./model.js";
+import { MORE_DESIGNS } from "./designs-more.js";
 
 const T = (preset, over) => { const t = newText(over); applyPreset(t, preset); Object.assign(t, over); return t; };
 
-export const DESIGNS = [
+const BASE_DESIGNS = [
   { id: "classic", label: "Clásico", hint: "Texto arriba y abajo, blanco con contorno", frameColor: "#000000", frameSize: 0,
     layout: (w, h) => ({ W: w, H: h, img: { x: 0, y: 0, w, h } }),
     texts: () => [T("classic", { text: "CUANDO ABRES EL EDITOR", y: 9, size: 85 }), T("classic", { text: "Y YA NO PUEDES PARAR", y: 91, size: 85 })] },
@@ -105,5 +106,15 @@ export const DESIGNS = [
 ];
 
 function fill(ctx, color, x, y, w, h){ ctx.fillStyle = color; ctx.fillRect(x, y, w, h); }
+
+/* Orden en que se ofrecen: por familias —barras de texto, paneles y
+   comparaciones, marcos, sobre la foto, formatos de redes— y «Libre»
+   al final. */
+const ORDER = ["classic", "blackbars", "whitebars", "blacktop", "blackbottom", "modern", "caption",
+  "demotivational", "side", "choice", "expectation", "polaroid", "movie", "news", "tweet", "chat",
+  "comic", "comicpanel", "quote", "poster", "movieposter", "newspaper", "wanted", "square", "story", "free"];
+const ALL = [...BASE_DESIGNS, ...MORE_DESIGNS];
+export const DESIGNS = [...ORDER.map(id => ALL.find(d => d.id === id)).filter(Boolean),
+  ...ALL.filter(d => !ORDER.includes(d.id))];
 
 export const design = id => DESIGNS.find(d => d.id === id) || DESIGNS[0];
