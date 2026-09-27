@@ -1,10 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════
    MEMES · TIPOGRAFÍAS
    Fuentes libres de Google Fonts (licencia OFL), cargadas sólo al
-   abrir el creador de memes. La CSP ya permite fonts.googleapis.com
-   (hojas de estilo) y fonts.gstatic.com (archivos de fuente). Si no
-   hay conexión, el lienzo usa la alternativa de cada una.
+   abrir el creador de memes, y sólo con permiso de quien usa la app
+   (el mismo que pide la herramienta de texto: ver js/editor/gfonts.js),
+   porque Google recibe la IP de quien descarga la fuente. La CSP ya
+   permite fonts.googleapis.com y fonts.gstatic.com. Sin permiso o sin
+   conexión, el lienzo usa la alternativa del sistema de cada una.
    ═══════════════════════════════════════════════════════════════ */
+
+import { ensureConsent } from "../js/editor/gfonts.js";
 
 /* [nombre en Google Fonts, pesos, alternativa, etiqueta] */
 export const FONTS = [
@@ -51,14 +55,20 @@ let linked = null;
     se resolvería al instante sin cargar nada. */
 export function linkFonts(){
   if(linked) return linked;
+  // Sin permiso no se enlaza nada; se olvida el intento para que, si
+  // luego se concede, la siguiente vez sí se cargue.
+  linked = ensureConsent().then(ok => { if(!ok){ linked = null; return; } return appendSheet(); });
+  return linked;
+}
+function appendSheet(){
   const families = FONTS.filter(f => f[1]).map(f =>
     `family=${f[0].replace(/ /g, "+")}${f[1].includes(";") ? `:wght@${f[1]}` : ""}`).join("&");
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
-  linked = new Promise(resolve => { link.onload = link.onerror = () => resolve(); });
+  const ready = new Promise(resolve => { link.onload = link.onerror = () => resolve(); });
   document.head.appendChild(link);
-  return linked;
+  return ready;
 }
 
 /** Promesa que se resuelve cuando la fuente está lista (o falla). */

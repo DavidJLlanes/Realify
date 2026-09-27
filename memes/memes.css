@@ -16,6 +16,7 @@
 .mm-left h3{margin:16px 0 8px;font-size:11px;font-weight:600;color:#aab3c2;text-transform:uppercase;letter-spacing:.06em}
 .mm-designs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .mm-designs button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;min-height:58px;overflow-wrap:anywhere;padding:8px 9px;text-align:left;background:#20252b;color:#e9edf4;border:1px solid #30353d;border-radius:6px;font:inherit;cursor:pointer}
+.mm-designs button b,.mm-designs button span{white-space:normal}
 .mm-designs button span{font-size:11px;line-height:1.25;color:#8e97a5}
 .mm-designs button:hover{background:#262d36}
 .mm-designs button.on{background:#293b60;border-color:#547bbd}
@@ -24,6 +25,10 @@
 .mm-textlist button.on{background:#293b60;border-color:#547bbd}
 .mm-addtext{width:100%;min-height:34px;background:#272b31;color:#e9edf4;border:1px dashed #4a5361;border-radius:5px;font:inherit}
 .mm-note{margin:6px 0;color:#9ca5b3;font-size:12px}
+.mm-photo2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.mm-photo2 button{min-height:34px;padding:0 6px;background:#272b31;color:#e9edf4;border:1px solid #3b414b;border-radius:5px;font:inherit;white-space:nowrap}
+.mm-photo2 button:hover{background:#35455e}
+.mm-photo2 button:disabled{opacity:.4}
 
 .mm-stage{position:relative;min-width:0;min-height:0;overflow:hidden;background:#0d0f12;background-image:linear-gradient(45deg,#111419 25%,transparent 25%,transparent 75%,#111419 75%),linear-gradient(45deg,#111419 25%,#15191e 25%,#15191e 75%,#111419 75%);background-size:20px 20px;background-position:0 0,10px 10px}
 .mm-stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
@@ -82,6 +87,7 @@
   .mm-slider-row{grid-template-columns:44px minmax(0,1fr) 44px;gap:12px}
   .mm-step{width:44px;height:44px;font-size:24px}
   .mm-mobile-control input[type=range]{min-height:42px}
+  .mm-photo2 button{min-height:44px;border-radius:7px}
   .mm-acts{grid-template-columns:repeat(3,1fr)}
   .mm-acts button{min-height:40px;border-radius:7px}
   .mm-acts button:disabled{opacity:.4}

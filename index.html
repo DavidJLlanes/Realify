@@ -105,8 +105,10 @@
 <!-- Windows: un solo browserconfig.xml en vez de listar cada tile -->
 <meta name="msapplication-config" content="/browserconfig.xml">
 
-<!-- PRECONNECT Y PREFETCH (RENDIMIENTO) -->
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<!-- Sin «preconnect» a Google Fonts: abría una conexión con Google (y
+     le enviaba la IP) en cada visita, antes de que nadie diera permiso.
+     Las tipografías de Google se piden sólo con consentimiento
+     (ver js/editor/gfonts.js). -->
 
 <!-- CANONICAL Y ALTERNATE -->
 <link rel="canonical" href="https://realify.es/">
@@ -142,6 +144,7 @@
 <link rel="stylesheet" href="vintagefilter/vintage.css">
 <link rel="stylesheet" href="stickers/stickers.css">
 <link rel="stylesheet" href="memes/memes.css">
+<link rel="stylesheet" href="socialmediapost/post.css">
 
 <!-- ANALYTICS: desactivada mientras GA_ID esté vacío. Antes se cargaba
      Google Tag Manager con el ID de marcador «G-», que hacía una petición
@@ -404,7 +407,7 @@
 <script src="js/vendor/ag-psd.js"></script>
 <script src="js/vendor/utif.js"></script>
 <script src="js/vendor/heic2any.min.js"></script>
-<script type="module" src="js/main.js?v=100"></script>
+<script type="module" src="js/main.js?v=105"></script>
 
 </body>
 </html>

@@ -4,6 +4,7 @@
    igual: mismos títulos, mismos párrafos, mismo diálogo. */
 
 import { dialog } from "./dialog.js";
+import { consent, setConsent } from "../editor/gfonts.js";
 
 const CONTACT = "djl@djl.red";
 const OWNER = "David";
@@ -19,7 +20,10 @@ const LEGAL_BODY = `<div class="guide">
   <p>Realify es una aplicación web que se ejecuta enteramente en el
     navegador de quien la usa: no hay servidores propios que reciban,
     procesen o almacenen imágenes de nadie. Todo el tratamiento ocurre en
-    tu propio equipo.</p>
+    tu propio equipo. Algunas funciones opcionales descargan recursos de
+    terceros (tipografías de Google Fonts y modelos de inteligencia
+    artificial de Hugging Face); se detallan en la Política de
+    privacidad.</p>
 
   <h3>Propiedad intelectual</h3>
   <p>El código, el diseño y los textos de Realify pertenecen a su autor,
@@ -45,7 +49,9 @@ const PRIVACY_BODY = `<div class="guide">
   <p class="lead">Realify no tiene servidores propios de procesamiento:
     todo ocurre en tu navegador. No se sube ninguna imagen, no hay
     analítica, no hacen falta cuentas de usuario y no se recoge ningún
-    dato personal para que la aplicación funcione.</p>
+    dato personal para que la aplicación funcione. Sólo si usas ciertas
+    funciones opcionales, tu navegador descarga recursos de dos servicios
+    de terceros, como se explica más abajo.</p>
 
   <h3>Responsable</h3>
   <p>El responsable de este sitio es ${OWNER}, contacto
@@ -56,6 +62,35 @@ const PRIVACY_BODY = `<div class="guide">
     permanecen en la memoria y el almacenamiento de tu propio navegador en
     todo momento.</p>
 
+  <h3>Servicios de terceros (opcionales)</h3>
+  <p>Para descargar un recurso de internet, tu navegador tiene que
+    conectarse al servidor que lo aloja, y ese servidor recibe
+    inevitablemente tu <b>dirección IP</b> y datos técnicos de la petición
+    (navegador, sistema, hora). Realify sólo hace estas descargas en dos
+    casos, y nunca envía tus imágenes ni tus textos:</p>
+  <ul>
+    <li><b>Google Fonts</b> (Google Ireland Limited / Google LLC). Las
+      tipografías de Google de la herramienta Texto y del creador de memes
+      se descargan de <code>fonts.googleapis.com</code> y
+      <code>fonts.gstatic.com</code>. <b>Sólo se descargan si das tu
+      permiso</b>, que se pide la primera vez que eliges una de ellas; si no
+      lo das, se usa una tipografía parecida del sistema. Base jurídica: tu
+      consentimiento (art. 6.1.a RGPD). Google puede tratar estos datos
+      fuera de la UE conforme a sus propias condiciones:
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidad de Google</a>
+      y <a href="https://developers.google.com/fonts/faq/privacy" target="_blank" rel="noopener">preguntas frecuentes de privacidad de Google Fonts</a>.
+      <div class="legal-consent"><span data-gf-state></span>
+        <button type="button" data-gf-toggle></button></div></li>
+    <li><b>Hugging Face</b> (Hugging Face, Inc.). Los modelos de
+      inteligencia artificial grandes (eliminar fondo con MODNet o ISNet,
+      relleno con LaMa, reducción de ruido y de artefactos JPEG) se
+      descargan de <code>huggingface.co</code> la primera vez que eliges
+      uno de ellos, y a partir de ahí se guardan en tu navegador. La imagen
+      se procesa en tu equipo: sólo se descarga el modelo. Base jurídica:
+      la ejecución de la función que has pedido (art. 6.1.b RGPD).
+      <a href="https://huggingface.co/privacy" target="_blank" rel="noopener">Política de privacidad de Hugging Face</a>.</li>
+  </ul>
+
   <h3>Qué guarda tu navegador (nunca sale de tu equipo)</h3>
   <ul>
     <li><b>Preferencias de la interfaz.</b> Posición de las ventanas,
@@ -65,6 +100,10 @@ const PRIVACY_BODY = `<div class="guide">
       localmente mediante <code>IndexedDB</code>, en tu propio equipo.</li>
     <li><b>Preferencias de EXIF y de la simulación de cámara.</b> Igual
       que lo anterior: quedan en tu navegador para la próxima visita.</li>
+    <li><b>Tu decisión sobre Google Fonts</b> y las tipografías que hayas
+      añadido, en <code>localStorage</code>.</li>
+    <li><b>Modelos de IA descargados</b>, en <code>IndexedDB</code>, para
+      no tener que volver a descargarlos.</li>
   </ul>
   <p>Nada de esto identifica a nadie ni se transmite a ningún servidor.
     Puedes borrarlo cuando quieras vaciando los datos del sitio desde tu
@@ -75,10 +114,16 @@ const PRIVACY_BODY = `<div class="guide">
     Consulta la Política de cookies para más detalle.</p>
 
   <h3>Tus derechos</h3>
-  <p>Como no se recoge ni almacena ningún dato personal en ningún
-    servidor, no existen ficheros ni bases de datos sobre los que ejercer
-    derechos de acceso, rectificación o supresión. Si aun así tienes
-    alguna duda sobre privacidad, escribe a <code>${CONTACT}</code>.</p>
+  <p>Realify no recoge ni almacena ningún dato personal en servidores
+    propios, así que no existen ficheros ni bases de datos sobre los que
+    ejercer derechos de acceso, rectificación o supresión frente a
+    Realify. Puedes retirar en cualquier momento tu permiso para Google
+    Fonts (arriba) y borrar todo lo guardado vaciando los datos del sitio
+    en tu navegador. Frente a Google y Hugging Face puedes ejercer tus
+    derechos según sus propias políticas. También puedes reclamar ante la
+    Agencia Española de Protección de Datos (<code>aepd.es</code>). Si
+    tienes cualquier duda sobre privacidad, escribe a
+    <code>${CONTACT}</code>.</p>
 
   <h3>Cambios</h3>
   <p>Esta política puede actualizarse si cambia el funcionamiento de la
@@ -97,6 +142,13 @@ const COOKIES_BODY = `<div class="guide">
     navegador para recordar información entre visitas. Realify no instala
     ninguna.</p>
 
+  <h3>Recursos de terceros</h3>
+  <p>Realify no incrusta contenido de terceros que instale cookies. Las
+    tipografías de Google Fonts (sólo con tu permiso) y los modelos de
+    Hugging Face (sólo si los usas) se descargan como archivos; ninguno de
+    los dos servicios instala cookies al hacerlo. Los detalles, en la
+    Política de privacidad.</p>
+
   <h3>Almacenamiento local, que no es lo mismo</h3>
   <p>Aparte de las cookies, los navegadores ofrecen otras formas de
     guardar datos sólo en tu equipo, como <code>localStorage</code> e
@@ -112,8 +164,21 @@ const COOKIES_BODY = `<div class="guide">
 
 </div>`;
 
-const open = (title, body) => dialog({ title, wide: true, body, buttons: [{ label: "Cerrar", primary: true }] });
+const open = (title, body, onOpen) => dialog({ title, wide: true, body, onOpen, buttons: [{ label: "Cerrar", primary: true }] });
+
+/* Estado y botón del permiso de Google Fonts dentro de la política. */
+function wireFontsConsent(host){
+  const state = host.querySelector("[data-gf-state]"), btn = host.querySelector("[data-gf-toggle]");
+  if(!state || !btn) return;
+  const sync = () => {
+    const c = consent();
+    state.textContent = c === "granted" ? "Estado: permitido." : c === "denied" ? "Estado: no permitido." : "Estado: todavía no has decidido.";
+    btn.textContent = c === "granted" ? "Retirar permiso" : "Permitir Google Fonts";
+  };
+  btn.addEventListener("click", () => { setConsent(consent() === "granted" ? "denied" : "granted"); sync(); });
+  sync();
+}
 
 export const openLegalNotice = () => open("Aviso legal", LEGAL_BODY);
-export const openPrivacyPolicy = () => open("Política de privacidad", PRIVACY_BODY);
+export const openPrivacyPolicy = () => open("Política de privacidad", PRIVACY_BODY, wireFontsConsent);
 export const openCookiesPolicy = () => open("Política de cookies", COOKIES_BODY);

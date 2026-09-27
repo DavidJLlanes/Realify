@@ -4,7 +4,8 @@
 
 import { on, emit } from "../core/bus.js";
 import { current, state, toolChosen } from "../editor/tools.js";
-import { loadFontFile } from "../editor/text.js";
+import { loadFontFile, FONTS, FONT_SEPARATOR } from "../editor/text.js";
+import { chooseFontValue, GOOGLE_OTHER, googleFontItems } from "../editor/gfonts.js";
 import { toast } from "./toast.js";
 import { stepper } from "./stepper.js";
 import { openGuide, openGuideForTool } from "./guide.js";
@@ -148,16 +149,18 @@ function buildControl(o){
     for(const [val, label] of items){
       const op = document.createElement("option");
       op.value = val; op.textContent = label;
+      if(val === FONT_SEPARATOR){ op.disabled = true; s.appendChild(op); continue; }
       // Ver la fuente en la propia lista ahorra el ensayo y error
       if(o.key === "fontFamily") op.style.fontFamily = val;
       s.appendChild(op);
     }
     if(o.key === "fontFamily"){
       s.style.minWidth = "128px";
-      const op = document.createElement("option");
-      op.value = LOAD_FONT;
-      op.textContent = "Cargar fuente desde archivo…";
-      s.appendChild(op);
+      for(const [v, l] of [[GOOGLE_OTHER, "Otra fuente de Google Fonts…"], [LOAD_FONT, "Cargar fuente desde archivo…"]]){
+        const op = document.createElement("option");
+        op.value = v; op.textContent = l;
+        s.appendChild(op);
+      }
     }
     s.value = state[o.key];
     s.addEventListener("change", async () => {
@@ -166,6 +169,22 @@ function buildControl(o){
         const family = await pickFontFile();
         if(!family) return;
         state[o.key] = family;
+        emit("tool:paramchange", o.key);
+        renderOptions();
+        return;
+      }
+      if(o.key === "fontFamily"){
+        // Fuentes de Google (con permiso) y «Otra fuente de Google…»
+        const wanted = s.value;
+        s.value = state[o.key];
+        const font = await chooseFontValue(wanted);
+        if(!font) return;
+        if(!FONTS.some(f => f[0] === font)){
+          // Una familia de Google recién añadida por su nombre
+          const item = googleFontItems().find(f => f[0] === font);
+          if(item) FONTS.push(item);
+        }
+        state[o.key] = font;
         emit("tool:paramchange", o.key);
         renderOptions();
         return;

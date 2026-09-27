@@ -15,7 +15,7 @@ import { beginScratch, ensureScratchRect, endScratch, discardScratch, scratchCtx
          setOverlay, scheduleCompose, scheduleOverlay, pickColor,
          compose, canvasEl } from "./compositor.js";
 import { toast } from "../ui/toast.js";
-import { createTextLayer, isText, updateText, textBounds, renderTextLayer,
+import { createTextLayer, isText, updateText, textBounds, renderTextLayer, alignTextPatch,
          pointInText, FONTS } from "./text.js";
 import { hitHandle, beginBoxDrag, boxDragTo, endBoxDrag,
          drawTextBox } from "./textbox.js";
@@ -3430,6 +3430,9 @@ on("tool:paramchange", key => {
     state.textBoxH = Math.max(24, Math.round(b.h) + Math.round(state.fontSize * 0.6));
   }
   noteStyleChange(l);
+  /* Alinear un texto de punto no lo mueve: se recoloca su ancla para
+     que el bloque se quede donde estaba (ver alignTextPatch). */
+  if(key === "align") updateText(l, alignTextPatch(l, state.align));
   pushTextStyle(l);
   /* Si se está escribiendo, el cuadro de edición tiene que seguir al
      cambio —otra tipografía o otro cuerpo lo dejan descuadrado sobre

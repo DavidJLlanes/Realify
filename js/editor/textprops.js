@@ -9,7 +9,8 @@
    al confirmar, igual que `endEdit` hace al terminar de escribir.
    ═══════════════════════════════════════════════════════════════ */
 
-import { FONTS, loadFontFile, updateText, isText } from "./text.js";
+import { FONTS, FONT_SEPARATOR, loadFontFile, updateText, isText } from "./text.js";
+import { chooseFontValue, GOOGLE_OTHER, googleFontItems } from "./gfonts.js";
 import { slider } from "./adjust.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
@@ -28,10 +29,15 @@ export function mountTextProperties(layer, container){
   for(const [val, label] of FONTS){
     const op = document.createElement("option");
     op.value = val; op.textContent = label;
+    if(val === FONT_SEPARATOR){ op.disabled = true; select.appendChild(op); continue; }
     op.style.fontFamily = val;
     if(val === layer.text.font) op.selected = true;
     select.appendChild(op);
   }
+  const otherOp = document.createElement("option");
+  otherOp.value = GOOGLE_OTHER;
+  otherOp.textContent = "Otra fuente de Google Fonts…";
+  select.appendChild(otherOp);
   const loadOp = document.createElement("option");
   loadOp.value = LOAD_FONT;
   loadOp.textContent = "Cargar fuente desde archivo…";
@@ -64,7 +70,22 @@ export function mountTextProperties(layer, container){
       inp.click();
       return;
     }
-    updateText(layer, { font: select.value });
+    // Fuentes de Google (con permiso) y «Otra fuente de Google…»
+    const wanted = select.value;
+    select.value = layer.text.font;
+    const font = await chooseFontValue(wanted);
+    if(!font) return;
+    if(!FONTS.some(f => f[0] === font)){
+      const item = googleFontItems().find(f => f[0] === font);
+      if(item){
+        FONTS.push(item);
+        const op = document.createElement("option");
+        op.value = item[0]; op.textContent = item[1];
+        select.insertBefore(op, otherOp);
+      }
+    }
+    select.value = font;
+    updateText(layer, { font });
   });
   box.appendChild(select.closest(".field"));
 

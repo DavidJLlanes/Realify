@@ -647,6 +647,12 @@
   padding:22px;
 }
 .modal[hidden]{display:none}
+/* Sobre los editores a pantalla completa (memes, collage, stickers,
+   vintage, Realify, RAW): un diálogo que abren ellos —el permiso de
+   Google Fonts, por ejemplo— y los avisos tienen que quedar delante,
+   no detrás. */
+body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer) .modal{z-index:2200}
+body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer) #toast{z-index:2300}
 .modal-card{
   background:var(--s-700);
   border:1px solid var(--line-strong);
@@ -730,15 +736,20 @@
   position:absolute;z-index:30;
   margin:0;padding:0;
   background:transparent;
-  border:1px dashed var(--ac);
+  /* Contorno y no borde: un borde desplaza el contenido un píxel y las
+     letras del cuadro dejarían de caer justo sobre las del lienzo. */
+  border:0;
   border-radius:0;
-  outline:none;resize:none;overflow:hidden;
+  outline:1px dashed var(--ac);outline-offset:0;resize:none;overflow:hidden;
   white-space:pre;
   caret-color:var(--ac);
   min-height:1em;
   box-shadow:0 0 0 9999px rgba(10,12,15,.18);
 }
+.text-edit:focus,.text-edit:focus-visible{outline:1px dashed var(--ac);outline-offset:0;border-radius:0}
 .text-edit::selection{background:rgba(232,163,61,.35)}
+/* Escribiendo sobre el render real: sólo cursor y selección */
+.text-edit.text-edit-live{color:transparent!important;-webkit-text-fill-color:transparent}
 
 /* Botón de opción activado (negrita, cursiva, sombra) */
 #optsbar button.on-toggle{
@@ -1191,3 +1202,7 @@
 .brush-range{display:flex;align-items:center;gap:7px;min-width:0}
 .brush-range input{flex:1;min-width:0}
 .brush-range b{width:45px;text-align:right;font:inherit;color:var(--tx)}
+
+/* Permiso de Google Fonts dentro de la Política de privacidad */
+.legal-consent{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 2px}
+.legal-consent span{color:var(--tx-dim)}

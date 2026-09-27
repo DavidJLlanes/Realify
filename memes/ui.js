@@ -19,11 +19,27 @@
 import { DESIGNS, design } from "./designs.js";
 import { PROPS, PROP_GROUPS, prop, TEXT_PRESETS, newText, applyPreset } from "./model.js";
 import { EFFECTS, applyEffect } from "./effects.js";
+import { coverCanvas } from "./designs-more.js";
 import { renderText, drawText } from "./text.js";
 import { linkFonts, loadFont } from "./fonts.js";
 import { toast } from "../js/ui/toast.js";
 
 const MOBILE = "(max-width:900px)";
+const MAX_SIDE = 6000;
+
+/* Decodifica una imagen (archivo o portapapeles) a un lienzo, con el
+   lado mayor limitado para no disparar la memoria con fotos enormes. */
+async function decodeImage(blob){
+  let bmp;
+  try{ bmp = await createImageBitmap(blob); }
+  catch{ throw new Error("No se pudo leer esa imagen. Prueba con JPEG, PNG o WebP."); }
+  const k = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+  const x = c.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close?.();
+  return c;
+}
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 /* Ajustes del meme entero (no de un texto), para el desplegable móvil */
@@ -40,11 +56,19 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
   const d0 = DESIGNS[0];
   const state = { design: d0.id, frameColor: d0.frameColor, frameSize: d0.frameSize, effect: "none", effectAmount: 70, texts: [] };
   let selected = null, closed = false, accepting = false, activeProp = "text";
+  /* Segunda foto (diseños con `second`, como «Expectativa vs.
+     realidad»). Va aparte del estado porque un lienzo no se puede
+     clonar; el historial guarda la referencia. */
+  let photo2 = null, photo2Id = 0;
   const history = [], future = [];
-  const snapshot = () => ({ state: structuredClone(state), selected });
+  const snapshot = () => ({ state: structuredClone(state), selected, photo2 });
   const remember = () => { history.push(snapshot()); if(history.length > 80) history.shift(); future.length = 0; syncActions(); };
   const sel = () => state.texts.find(t => t.uid === selected) || null;
-  const layout = () => design(state.design).layout(IW, IH, { color: state.frameColor, size: state.frameSize }, photo);
+  const layout = () => design(state.design).layout(IW, IH, { color: state.frameColor, size: state.frameSize }, photo, photo2);
+  const hasSecond = () => !!design(state.design).second;
+  /* Ajustes del meme del diseño actual: los comunes y, si el diseño
+     admite segunda foto, esa entrada. */
+  const memeProps = () => hasSecond() ? [{ key: "photo2", label: "Segunda foto", type: "photo2" }, ...MEME_PROPS] : MEME_PROPS;
 
   const opt = (list, value) => list.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(value) ? " selected" : ""}>${esc(l)}</option>`).join("");
   const root = document.createElement("section");
@@ -63,6 +87,7 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
     <main class="mm-workspace">
       <aside class="mm-left">
         <section><h3>Diseño</h3><div class="mm-designs">${DESIGNS.map(d => `<button type="button" data-design="${d.id}" title="${esc(d.hint)}"><b>${esc(d.label)}</b><span>${esc(d.hint)}</span></button>`).join("")}</div></section>
+        <section class="mm-second" hidden></section>
         <section class="mm-meme-props"></section>
         <section><h3>Textos</h3><div class="mm-textlist"></div><button type="button" class="mm-addtext">＋ Añadir texto</button></section>
       </aside>
@@ -101,13 +126,18 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
   const request = () => { if(!frame && !closed) frame = requestAnimationFrame(draw); };
 
   async function buildBase(){
-    const key = `${state.design}|${state.frameColor}|${state.frameSize}|${state.effect}|${state.effectAmount}|${view.k}`;
+    const keyNow = () => `${state.design}|${state.frameColor}|${state.frameSize}|${state.effect}|${state.effectAmount}|${view.k}|${photo2Id}`;
+    const key = keyNow();
     if(key === baseKey || baseBusy) return;
     baseBusy = true;
     const k = view.k, lay = L;
     const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(lay.W * k)); c.height = Math.max(1, Math.round(lay.H * k));
     const x = c.getContext("2d");
     x.save(); x.scale(k, k); lay.under?.(x); x.restore();
+    if(lay.slot2 && photo2){
+      const r = lay.slot2, sw = Math.max(1, Math.round(r.w * k)), sh = Math.max(1, Math.round(r.h * k));
+      x.drawImage(await applyEffect(coverCanvas(photo2, sw, sh), sw, sh, state.effect, state.effectAmount, k), r.x * k, r.y * k, r.w * k, r.h * k);
+    }
     const iw = lay.img.w * k, ih = lay.img.h * k;
     const img = await applyEffect(photo, Math.max(1, Math.round(iw)), Math.max(1, Math.round(ih)), state.effect, state.effectAmount, k);
     x.drawImage(img, lay.img.x * k, lay.img.y * k, iw, ih);
@@ -116,7 +146,7 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
     if(closed) return;
     base = c; baseKey = key;
     // Si algo cambió mientras se calculaba, otra vuelta.
-    if(key !== `${state.design}|${state.frameColor}|${state.frameSize}|${state.effect}|${state.effectAmount}|${view.k}`) buildBase();
+    if(key !== keyNow()) buildBase();
     request();
   }
   const rendered = t => {
@@ -187,6 +217,17 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
       wrap.innerHTML = `<label class="mm-toggle"><input type="checkbox"${value ? " checked" : ""}><span>${esc(p.label)}</span></label>`;
       const c = wrap.querySelector("input");
       c.addEventListener("change", () => onChange(c.checked, true));
+    } else if(p.type === "photo2"){
+      wrap.innerHTML = `${mobile ? "" : `<span>${esc(design(state.design).second || p.label)}</span>`}
+        <div class="mm-photo2">
+          <button type="button" data-p2="open">📂 Abrir foto…</button>
+          <button type="button" data-p2="paste">📋 Pegar</button>
+          <button type="button" data-p2="clear" class="danger"${photo2 ? "" : " disabled"}>Quitar</button>
+        </div>
+        <p class="mm-note">${photo2 ? `Segunda foto: ${photo2.width} × ${photo2.height}. ` : "Sin segunda foto: se usa la misma en blanco y negro. "}También puedes pegarla con Ctrl+V.</p>`;
+      wrap.querySelector("[data-p2=open]").addEventListener("click", openPhoto2);
+      wrap.querySelector("[data-p2=paste]").addEventListener("click", pastePhoto2);
+      wrap.querySelector("[data-p2=clear]").addEventListener("click", () => setPhoto2(null));
     } else if(p.type === "text"){
       wrap.innerHTML = `${label}<textarea rows="${mobile ? 1 : 3}" aria-label="${esc(p.label)}" placeholder="Escribe el texto…">${esc(value)}</textarea>`;
       const a = wrap.querySelector("textarea");
@@ -220,6 +261,9 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
 
   /* ── Panel izquierdo (escritorio) y listas ── */
   const syncMemeProps = () => {
+    const second = $(".mm-second");
+    second.hidden = !hasSecond(); second.innerHTML = "";
+    if(hasSecond()){ second.innerHTML = "<h3>Segunda foto</h3>"; second.appendChild(control(memeProps()[0], null, () => {})); }
     const host = $(".mm-meme-props"); host.innerHTML = "<h3>Marco e imagen</h3>";
     for(const p of MEME_PROPS) host.appendChild(control(p, state[p.key], (v, f, s) => setMemeProp(p.key, v, f, s)));
     root.querySelectorAll("[data-design]").forEach(b => b.classList.toggle("on", b.dataset.design === state.design));
@@ -236,6 +280,71 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
       list.appendChild(b);
     });
   };
+  /* ── Segunda foto: abrir, pegar, quitar ── */
+  function setPhoto2(img){
+    if(accepting || img === photo2) return;
+    remember();
+    const oldL = L, d = design(state.design);
+    photo2 = img; photo2Id++;
+    L = layout();
+    if(oldL.W !== L.W || oldL.H !== L.H) relayoutTexts(d, oldL, L);
+    textCache.clear(); fit(); syncMemeProps(); syncProps(); request();
+    if(img) toast("Segunda foto añadida", "ok");
+  }
+  /* La segunda foto puede cambiar la forma del lienzo (apilar, poner
+     al lado): los textos se recolocan sin perder lo escrito ni el
+     estilo. Los del diseño siguen a su posición de fábrica conservando
+     lo que el usuario los haya movido o escalado; los añadidos a mano
+     se quedan en el mismo sitio en píxeles. */
+  function relayoutTexts(d, oldL, newL){
+    const before = d.texts(oldL), after = d.texts(newL);
+    state.texts.forEach((t, i) => {
+      const a = before[i], b = after[i];
+      if(a && b){
+        t.x += b.x - a.x; t.y += b.y - a.y;
+        t.w = Math.max(10, Math.min(100, t.w * b.w / a.w));
+        t.size = Math.max(10, Math.min(300, t.size * b.size / a.size));
+      } else {
+        t.x = t.x * oldL.W / newL.W; t.y = t.y * oldL.H / newL.H;
+        t.w = Math.min(100, t.w * oldL.W / newL.W); t.size = t.size * oldL.W / newL.W;
+      }
+    });
+  }
+  async function useBlob(blob){
+    if(!hasSecond()){ toast("Este diseño no usa una segunda foto: elige, por ejemplo, «Expectativa vs. realidad»."); return; }
+    try{ setPhoto2(await decodeImage(blob)); }catch(e){ toast(e.message, "err"); }
+  }
+  function openPhoto2(){
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = "image/*";
+    input.addEventListener("change", () => { if(input.files?.[0]) useBlob(input.files[0]); });
+    input.click();
+  }
+  /* El botón «Pegar» lee el portapapeles con la API asíncrona (en
+     móvil no hay Ctrl+V); el navegador puede pedir permiso. */
+  async function pastePhoto2(){
+    try{
+      const items = await navigator.clipboard.read();
+      for(const item of items){
+        const type = item.types.find(t => t.startsWith("image/"));
+        if(type){ await useBlob(await item.getType(type)); return; }
+      }
+      toast("No hay ninguna imagen en el portapapeles");
+    }catch{ toast("El navegador no ha dejado leer el portapapeles. Prueba con Ctrl+V o con «Abrir foto».", "err"); }
+  }
+  /* Ctrl+V en cualquier parte de la ventana: sólo se intercepta si lo
+     pegado es una imagen, para no estorbar al pegar texto en un campo.
+     Se para la propagación porque la app tiene su propio pegado
+     (js/io/open.js), que pondría la imagen como capa del documento,
+     detrás de esta ventana. */
+  const onPaste = e => {
+    if(closed) return;
+    const file = [...(e.clipboardData?.items || [])].find(i => i.kind === "file" && i.type.startsWith("image/"))?.getAsFile();
+    if(!file) return;
+    e.preventDefault(); e.stopPropagation();
+    if(!accepting) useBlob(file);
+  };
+
   const chooseDesign = id => {
     if(accepting) return;
     remember();
@@ -284,9 +393,10 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
     }
     // Desplegable móvil: ajustes del meme + los del texto elegido
     const ps = $(".mm-prop-select");
-    ps.innerHTML = `<optgroup label="Meme">${MEME_PROPS.map(p => `<option value="m:${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>` +
+    ps.innerHTML = `<optgroup label="Meme">${memeProps().map(p => `<option value="m:${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>` +
       (t ? PROP_GROUPS.map(([g, label]) => `<optgroup label="${esc(label)}">${PROPS.filter(p => p.group === g).map(p => `<option value="${p.key}">${esc(p.label)}</option>`).join("")}</optgroup>`).join("") : "");
-    if(!t && !activeProp.startsWith("m:")) activeProp = "m:effect";
+    if(!t && !activeProp.startsWith("m:")) activeProp = hasSecond() ? "m:photo2" : "m:effect";
+    if(activeProp === "m:photo2" && !hasSecond()) activeProp = "m:effect";
     ps.value = activeProp;
     mobileControl();
     root.querySelectorAll(".mm-acts [data-do]").forEach(b => { b.disabled = !t || accepting; });
@@ -295,8 +405,8 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
   const mobileControl = () => {
     const host = $(".mm-mobile-control"); host.innerHTML = "";
     if(activeProp.startsWith("m:")){
-      const p = MEME_PROPS.find(p => p.key === activeProp.slice(2));
-      host.appendChild(control(p, state[p.key], (v, f, s) => setMemeProp(p.key, v, f, s), true));
+      const p = memeProps().find(p => p.key === activeProp.slice(2));
+      if(p) host.appendChild(control(p, state[p.key], (v, f, s) => setMemeProp(p.key, v, f, s), true));
     } else {
       const t = sel(), p = prop(activeProp);
       if(t && p) host.appendChild(control(p, t[p.key], (v, f, s) => setTextProp(p.key, v, f, s), true));
@@ -414,7 +524,7 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
   canvas.addEventListener("dblclick", e => { const [x, y] = toLocal(e.clientX, e.clientY); const hit = hitTest(x, y); if(hit){ selected = hit.uid; syncProps(); focusText(); } });
 
   /* ── Barra superior ── */
-  const restore = s => { Object.assign(state, structuredClone(s.state)); selected = s.selected; L = layout(); textCache.clear(); ensureFonts(); fit(); syncMemeProps(); syncProps(); };
+  const restore = s => { Object.assign(state, structuredClone(s.state)); selected = s.selected; if(s.photo2 !== photo2){ photo2 = s.photo2; photo2Id++; } L = layout(); textCache.clear(); ensureFonts(); fit(); syncMemeProps(); syncProps(); };
   $("[data-action=undo]").addEventListener("click", () => { const p = history.pop(); if(!p) return; future.push(snapshot()); restore(p); });
   $("[data-action=redo]").addEventListener("click", () => { const n = future.pop(); if(!n) return; history.push(snapshot()); restore(n); });
   $(".mm-cancel").addEventListener("click", () => close());
@@ -425,7 +535,7 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
     const button = $("[data-action=accept]"); button.textContent = "Aplicando…";
     try{
       await Promise.all(state.texts.map(t => loadFont(t.font, t.bold ? 700 : 400, t.italic)));
-      await onAccept(structuredClone(state), layout());
+      await onAccept(structuredClone(state), layout(), photo2);
       close();
     }catch(error){
       toast(error?.message || "No se pudo crear el meme", "err");
@@ -454,9 +564,11 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
   const close = () => {
     if(closed) return;
     closed = true; cancelAnimationFrame(frame); observer.disconnect();
-    document.removeEventListener("keydown", onKey, true); textCache.clear(); root.remove(); onClose?.();
+    document.removeEventListener("keydown", onKey, true); document.removeEventListener("paste", onPaste, true);
+    textCache.clear(); root.remove(); onClose?.();
   };
   document.addEventListener("keydown", onKey, true);
+  document.addEventListener("paste", onPaste, true);
 
   // Arranque con el diseño clásico y sus textos
   state.texts = d0.texts(L); selected = state.texts[0]?.uid ?? null;

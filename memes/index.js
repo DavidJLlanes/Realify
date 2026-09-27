@@ -23,6 +23,7 @@ import { fit as fitView } from "../js/editor/view.js";
 import { toast } from "../js/ui/toast.js";
 import { renderText, drawText } from "./text.js";
 import { applyEffect } from "./effects.js";
+import { coverCanvas } from "./designs-more.js";
 
 function ensureStyles(){
   const href = new URL("./memes.css", import.meta.url).href;
@@ -86,11 +87,18 @@ export async function openMemeCreator(){
   const photo = flatten();
   openMemeEditor({
     photo,
-    onAccept: async (state, L) => {
+    onAccept: async (state, L, photo2) => {
       // Lo lento (efecto, textos) se calcula antes de tocar el documento.
       const effect = state.effect !== "none" && state.effectAmount > 0
         ? await applyEffect(photo, photo.width, photo.height, state.effect, state.effectAmount, 1) : null;
       const texts = state.texts.map(t => ({ t, r: renderText(t, L.W, L.H, 1) })).filter(x => x.r);
+      // Segunda foto recortada a su hueco, con el mismo efecto de imagen
+      let second = null;
+      if(L.slot2 && photo2){
+        const r = L.slot2, cover = coverCanvas(photo2, r.w, r.h);
+        second = state.effect !== "none" && state.effectAmount > 0
+          ? await applyEffect(cover, cover.width, cover.height, state.effect, state.effectAmount, 1) : cover;
+      }
 
       const before = capture();
       if(L.W !== doc.w || L.H !== doc.h) extend(L.W, L.H, L.img.x, L.img.y);
@@ -98,6 +106,11 @@ export async function openMemeCreator(){
       if(L.under){
         const l = addLayer({ name: "Meme · marco", above: 0 });
         L.under(l.ctx); l.thumbDirty = true;
+      }
+      if(second){
+        // Justo encima del marco: la segunda foto es parte del fondo del meme.
+        const l = addLayer({ name: "Meme · segunda foto", above: L.under ? 1 : 0 });
+        l.ctx.drawImage(second, L.slot2.x, L.slot2.y); l.thumbDirty = true;
       }
       if(effect){
         const l = addLayer({ name: "Meme · efecto de imagen", above: top() });

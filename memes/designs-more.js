@@ -41,6 +41,15 @@ function grayCopy(ctx, photo, x, y){
   ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 }
+/** Lienzo `w`×`h` con `img` recortada para cubrirlo entero, centrada
+    (como `object-fit: cover`). Para la segunda foto de un diseño. */
+export function coverCanvas(img, w, h){
+  const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h));
+  const x = c.getContext("2d"), k = Math.max(c.width / img.width, c.height / img.height);
+  x.imageSmoothingQuality = "high";
+  x.drawImage(img, (c.width - img.width * k) / 2, (c.height - img.height * k) / 2, img.width * k, img.height * k);
+  return c;
+}
 function mark(ctx, cx, cy, r, ok){
   ctx.save();
   ctx.fillStyle = ok ? "#1faa59" : "#e0303a"; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
@@ -53,14 +62,24 @@ const bars = (w, f) => Math.round(w * (.12 + .2 * f.size / 100));
 
 export const MORE_DESIGNS = [
   { id: "blackbars", label: "Negro arriba y abajo", hint: "Fondo negro con texto arriba y abajo", frameColor: "#000000", frameSize: 40,
-    layout: (w, h, f) => { const b = bars(w, f); return { W: w, H: h + b * 2, img: { x: 0, y: b, w, h }, under: ctx => fill(ctx, f.color, 0, 0, w, h + b * 2) }; },
+    second: "Segunda foto (debajo de la primera)",
+    layout: (w, h, f, photo, photo2) => {
+      const b = bars(w, f), gap = photo2 ? Math.round(w * .015) : 0, H = h * (photo2 ? 2 : 1) + gap + b * 2;
+      return { W: w, H, img: { x: 0, y: b, w, h }, slot2: photo2 ? { x: 0, y: b + h + gap, w, h } : null,
+               under: ctx => fill(ctx, f.color, 0, 0, w, H) };
+    },
     texts: L => [T("classic", { text: "CUANDO EL LUNES", stroke: 0, y: pct(L.img.y / 2, L.H), size: 80 }),
-                 T("classic", { text: "VUELVE OTRA VEZ", stroke: 0, y: pct(L.img.y + L.img.h + L.img.y / 2, L.H), size: 80 })] },
+                 T("classic", { text: "VUELVE OTRA VEZ", stroke: 0, y: pct(L.H - L.img.y / 2, L.H), size: 80 })] },
 
   { id: "whitebars", label: "Blanco arriba y abajo", hint: "Barras blancas con texto negro", frameColor: "#ffffff", frameSize: 40,
-    layout: (w, h, f) => { const b = bars(w, f); return { W: w, H: h + b * 2, img: { x: 0, y: b, w, h }, under: ctx => fill(ctx, f.color, 0, 0, w, h + b * 2) }; },
+    second: "Segunda foto (debajo de la primera)",
+    layout: (w, h, f, photo, photo2) => {
+      const b = bars(w, f), gap = photo2 ? Math.round(w * .015) : 0, H = h * (photo2 ? 2 : 1) + gap + b * 2;
+      return { W: w, H, img: { x: 0, y: b, w, h }, slot2: photo2 ? { x: 0, y: b + h + gap, w, h } : null,
+               under: ctx => fill(ctx, f.color, 0, 0, w, H) };
+    },
     texts: L => [T("impact", { text: "YO ANTES DEL CAFÉ", color: "#111111", stroke: 0, y: pct(L.img.y / 2, L.H), size: 78 }),
-                 T("impact", { text: "YO DESPUÉS DEL CAFÉ", color: "#111111", stroke: 0, y: pct(L.img.y + L.img.h + L.img.y / 2, L.H), size: 78 })] },
+                 T("impact", { text: "YO DESPUÉS DEL CAFÉ", color: "#111111", stroke: 0, y: pct(L.H - L.img.y / 2, L.H), size: 78 })] },
 
   { id: "blacktop", label: "Barra negra arriba", hint: "Título blanco sobre barra negra", frameColor: "#000000", frameSize: 35,
     layout: (w, h, f) => { const b = bars(w, f); return { W: w, H: h + b, img: { x: 0, y: b, w, h }, under: ctx => fill(ctx, f.color, 0, 0, w, b) }; },
@@ -74,22 +93,34 @@ export const MORE_DESIGNS = [
     layout: (w, h, f) => { const pw = Math.round(w * (.5 + .5 * f.size / 100)); return { W: w + pw, H: h, img: { x: 0, y: 0, w, h }, under: ctx => fill(ctx, f.color, w, 0, pw, h) }; },
     texts: L => { const pw = L.W - L.img.w; return [T("modern", { text: "Cuando por fin entiendes el código que escribiste ayer", color: "#ffffff", x: pct(L.img.w + pw / 2, L.W), w: pct(pw * .84, L.W), y: 50, size: 48, align: "left" })]; } },
 
-  { id: "choice", label: "Comparación No / Sí", hint: "Dos opciones: la que no y la que sí", frameColor: "#ffffff", frameSize: 0,
-    layout: (w, h, f) => ({ W: w * 2, H: h, img: { x: 0, y: 0, w, h }, under: ctx => {
-      fill(ctx, f.color, w, 0, w, h);
-      ctx.fillStyle = "rgba(0,0,0,.14)"; ctx.fillRect(w, h / 2 - Math.max(1, w * .003), w, Math.max(2, w * .006));
-      mark(ctx, w + w * .12, h * .25, w * .07, false); mark(ctx, w + w * .12, h * .75, w * .07, true);
-    } }),
+  { id: "choice", label: "Comparación No / Sí", hint: "Dos opciones: la que no y la que sí (con dos fotos, formato Drake)", frameColor: "#ffffff", frameSize: 0,
+    second: "Foto de la opción «Sí» (abajo)",
+    /* Con una sola foto, ésta ocupa todo el alto a la izquierda. Con
+       dos, cuadrícula 2 × 2: cada foto junto a su opción. Los textos
+       quedan en el 25 % y el 75 % del alto en los dos casos. */
+    layout: (w, h, f, photo, photo2) => {
+      const H = photo2 ? h * 2 : h;
+      return { W: w * 2, H, img: { x: 0, y: 0, w, h }, slot2: photo2 ? { x: 0, y: h, w, h } : null, under: ctx => {
+        fill(ctx, f.color, w, 0, w, H);
+        ctx.fillStyle = "rgba(0,0,0,.14)"; ctx.fillRect(w, H / 2 - Math.max(1, w * .003), w, Math.max(2, w * .006));
+        const r = w * (photo2 ? .09 : .07);
+        mark(ctx, w + w * .12, H * .25, r, false); mark(ctx, w + w * .12, H * .75, r, true);
+      } };
+    },
     // El texto empieza a la derecha de los iconos (que llegan al 60 % del ancho).
     texts: L => [T("modern", { text: "Hacer la tarea con tiempo", x: 79, w: 34, y: 25, size: 40, align: "left" }),
                  T("modern", { text: "Hacerla la noche antes", x: 79, w: 34, y: 75, size: 40, align: "left" })] },
 
-  { id: "expectation", label: "Expectativa vs. realidad", hint: "La misma foto en color y en blanco y negro", frameColor: "#ffffff", frameSize: 30,
-    layout: (w, h, f, photo) => {
+  /* `second`: admite una segunda foto (abrir o pegar desde la
+     ventana), que ocupa `slot2`. Sin ella, la «realidad» es la misma
+     foto en blanco y negro. */
+  { id: "expectation", label: "Expectativa vs. realidad", hint: "Dos fotos lado a lado (sin segunda, la misma en B/N)", frameColor: "#ffffff", frameSize: 30,
+    second: "Foto de la derecha («Realidad»)",
+    layout: (w, h, f, photo, photo2) => {
       const gap = Math.round(w * .03), bar = Math.round(w * (.14 + .12 * f.size / 100));
-      return { W: w * 2 + gap, H: h + bar, img: { x: 0, y: bar, w, h }, under: ctx => {
+      return { W: w * 2 + gap, H: h + bar, img: { x: 0, y: bar, w, h }, slot2: { x: w + gap, y: bar, w, h }, under: ctx => {
         fill(ctx, f.color, 0, 0, w * 2 + gap, h + bar);
-        if(photo) grayCopy(ctx, photo, w + gap, bar);
+        if(photo && !photo2) grayCopy(ctx, photo, w + gap, bar);
       } };
     },
     texts: L => [T("impact", { text: "EXPECTATIVA", color: "#111111", stroke: 0, x: pct(L.img.w / 2, L.W), w: 46, y: pct(L.img.y / 2, L.H), size: 42 }),
@@ -104,13 +135,19 @@ export const MORE_DESIGNS = [
     texts: L => [T("caption", { text: "Cuando por fin es viernes", y: pct(Math.max(L.img.y / 2, L.H * .06), L.H), size: 52 })] },
 
   { id: "story", label: "Historia vertical 9:16", hint: "Para historias y vídeos cortos, con fondo difuminado", frameColor: "#000000", frameSize: 30,
-    layout: (w, h, f, photo) => {
-      const W = w, H = Math.max(Math.round(W * 16 / 9), Math.round(h + W * .5));
-      const y = Math.round((H - h) / 2);
-      return { W, H, img: { x: 0, y, w, h }, under: ctx => { fill(ctx, "#000", 0, 0, W, H); if(photo) blurCover(ctx, photo, 0, 0, W, H, .25 + .5 * f.size / 100); } };
+    second: "Segunda foto (debajo de la primera)",
+    layout: (w, h, f, photo, photo2) => {
+      const gap = photo2 ? Math.round(w * .02) : 0, block = h * (photo2 ? 2 : 1) + gap;
+      const W = w, H = Math.max(Math.round(W * 16 / 9), Math.round(block + W * .5));
+      const y = Math.round((H - block) / 2);
+      return { W, H, img: { x: 0, y, w, h }, slot2: photo2 ? { x: 0, y: y + h + gap, w, h } : null,
+               under: ctx => { fill(ctx, "#000", 0, 0, W, H); if(photo) blurCover(ctx, photo, 0, 0, W, H, .25 + .5 * f.size / 100); } };
     },
-    texts: L => [T("caption", { text: "POV: abres la nevera por quinta vez", font: "Montserrat", bold: true, y: pct(L.img.y / 2, L.H), size: 62, w: 88 }),
-                 T("caption", { text: "y sigue sin haber nada nuevo", font: "Montserrat", bold: true, y: pct(L.img.y + L.img.h + (L.H - L.img.y - L.img.h) / 2, L.H), size: 52, w: 88 })] },
+    texts: L => {
+      const bottom = L.slot2 ? L.slot2.y + L.slot2.h : L.img.y + L.img.h;
+      return [T("caption", { text: "POV: abres la nevera por quinta vez", font: "Montserrat", bold: true, y: pct(L.img.y / 2, L.H), size: 62, w: 88 }),
+              T("caption", { text: "y sigue sin haber nada nuevo", font: "Montserrat", bold: true, y: pct(bottom + (L.H - bottom) / 2, L.H), size: 52, w: 88 })];
+    } },
 
   { id: "newspaper", label: "Portada de periódico", hint: "Cabecera, titular a toda página y pie de foto", frameColor: "#f3efe4", frameSize: 30,
     layout: (w, h, f) => {
@@ -156,11 +193,21 @@ export const MORE_DESIGNS = [
       T("classic", { text: "POR COMERSE EL ÚLTIMO TROZO", font: "Rye", color: "#3b2612", stroke: 0, size: 38, y: pct(L.img.y + L.img.h + (L.H - L.img.y - L.img.h) * .35, L.H), w: 92 }),
       T("classic", { text: "RECOMPENSA: 10.000 $", font: "Rye", color: "#7a1f10", stroke: 0, size: 62, y: pct(L.img.y + L.img.h + (L.H - L.img.y - L.img.h) * .72, L.H), w: 92 })] },
 
-  { id: "comicpanel", label: "Viñeta de cómic", hint: "Cartela amarilla de narrador y borde negro", frameColor: "#111111", frameSize: 50,
-    layout: (w, h, f) => { const b = Math.max(2, Math.round(w * .03 * f.size / 100)); return { W: w + b * 2, H: h + b * 2, img: { x: b, y: b, w, h }, under: ctx => fill(ctx, f.color, 0, 0, w + b * 2, h + b * 2) }; },
-    texts: () => [
-      T("typewriter", { text: "MIENTRAS TANTO, EN LA OFICINA…", font: "Bangers", caps: true, color: "#111111", bgShape: "rect", bgColor: "#ffe24a", bgPad: 30, size: 42, x: 27, w: 44, y: 8, align: "left", tracking: 4 }),
-      T("typewriter", { text: "¡Y NADIE SE DIO CUENTA!", font: "Bangers", caps: true, color: "#111111", bgShape: "rect", bgColor: "#ffffff", bgPad: 30, size: 40, x: 72, w: 46, y: 91, align: "right", tracking: 3 })] },
+  { id: "comicpanel", label: "Viñeta de cómic", hint: "Cartela amarilla de narrador y borde negro (con dos fotos, tira de dos viñetas)", frameColor: "#111111", frameSize: 50,
+    second: "Segunda viñeta (a la derecha)",
+    layout: (w, h, f, photo, photo2) => {
+      const b = Math.max(2, Math.round(w * .03 * f.size / 100)), g = photo2 ? Math.max(b, Math.round(w * .025)) : 0;
+      const W = w * (photo2 ? 2 : 1) + b * 2 + g, H = h + b * 2;
+      return { W, H, img: { x: b, y: b, w, h }, slot2: photo2 ? { x: b + w + g, y: b, w, h } : null, under: ctx => fill(ctx, f.color, 0, 0, W, H) };
+    },
+    /* Posiciones y cuerpo relativos a CADA viñeta: con dos, el lienzo
+       dobla su ancho y los textos no deben doblar su tamaño. */
+    texts: L => {
+      const k = L.img.w / L.W, last = L.slot2 || L.img;
+      return [
+        T("typewriter", { text: "MIENTRAS TANTO, EN LA OFICINA…", font: "Bangers", caps: true, color: "#111111", bgShape: "rect", bgColor: "#ffe24a", bgPad: 30, size: 42 * k, x: pct(L.img.x + L.img.w * .25, L.W), w: pct(L.img.w * .44, L.W), y: 8, align: "left", tracking: 4 }),
+        T("typewriter", { text: "¡Y NADIE SE DIO CUENTA!", font: "Bangers", caps: true, color: "#111111", bgShape: "rect", bgColor: "#ffffff", bgPad: 30, size: 40 * k, x: pct(last.x + last.w * .72, L.W), w: pct(last.w * .46, L.W), y: 91, align: "right", tracking: 3 })];
+    } },
 
   { id: "movieposter", label: "Póster de película", hint: "Título enorme, lema y créditos sobre degradado", frameColor: "#000000", frameSize: 60,
     layout: (w, h, f) => ({ W: w, H: h, img: { x: 0, y: 0, w, h }, over: ctx => {

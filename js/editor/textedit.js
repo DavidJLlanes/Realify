@@ -17,6 +17,21 @@ let editor = null, editing = null, before = null, created = false;
 let refocus = null;
 
 export const isEditing = () => !!editing;
+
+/* ¿Se puede calcar el texto con un <textarea>? Sí mientras sea texto
+   recto: entonces se escribe sobre el render DE VERDAD —con su
+   contorno, su sombra, su fondo y su color— y el cuadro sólo aporta el
+   cursor y la selección, con las letras transparentes. En círculo, en
+   trazado, deformado, justificado, con sangrías o con kerning manual
+   la disposición del lienzo no la puede reproducir un cuadro de texto:
+   ahí se tapa la capa y se escribe en el cuadro, como siempre. */
+function liveRender(t){
+  const boxed = Number.isFinite(t.boxW) && t.boxW > 0;
+  if(t.circle || (t.path && t.path.p0) || (t.warp && t.warp.kind && t.warp.amount)) return false;
+  if(t.kerning && Object.keys(t.kerning).length) return false;
+  if(boxed && (t.align === "justify" || t.indentFirst || t.indentLeft || t.indentRight)) return false;
+  return true;
+}
 export const editingLayer = () => editing;
 
 /* Posición del cursor dentro del cuadro de edición, o null si no se
@@ -84,12 +99,19 @@ export function startEdit(layer, selectAll, isNew = selectAll){
      murió sin cerrarse, su marca se limpia aquí en vez de dejar esa
      capa invisible para el resto de la sesión. */
   for(const other of doc.layers) delete other.__editing;
-  layer.__editing = true;
+  if(!liveRender(t)) layer.__editing = true;
   emit("doc:change");
 
   editor.addEventListener("input", () => {
     t.content = editor.value;
+    // Con el render a la vista, se redibuja letra a letra según se teclea
+    // (y si la configuración cambió a un modo que no se puede calcar, se
+    // vuelve a tapar la capa).
+    const live = liveRender(t);
+    if(live){ delete layer.__editing; renderTextLayer(layer); }
+    else layer.__editing = true;
     autosize();
+    emit("doc:change");
     emit("text:cursor");
   });
   editor.addEventListener("keydown", e => {
@@ -178,6 +200,13 @@ export function place(keepHeight){
   editor.style.color  = t.color;
   editor.style.textAlign = t.circle ? "center" : t.align;
   editor.style.letterSpacing = (t.tracking * z) + "px";
+  editor.style.textTransform = t.allCaps ? "uppercase" : "none";
+  editor.style.fontVariantCaps = t.smallCaps ? "small-caps" : "normal";
+  // Letras invisibles sobre el render real (ver liveRender), o visibles
+  // cuando la capa se tapa.
+  const live = liveRender(t);
+  editor.classList.toggle("text-edit-live", live);
+  if(live) delete editing.__editing; else editing.__editing = true;
   // Los renglones se parten solos dentro del marco, igual que al
   // dibujar; en texto de punto sólo salta de línea donde haya un Intro.
   editor.style.whiteSpace = boxed ? "pre-wrap" : "pre";
@@ -191,6 +220,14 @@ export function place(keepHeight){
   } else {
     editor.style.transform = "";
     editor.style.transformOrigin = "";
+  }
+
+  /* `letter-spacing` de CSS añade el espaciado también DETRÁS de la
+     última letra, cosa que el lienzo no hace: con texto centrado o a la
+     derecha, lo escrito quedaba corrido respecto al render. Se amplía
+     el cuadro por la derecha en esa misma cantidad para compensarlo. */
+  if(!boxed && t.tracking > 0 && t.align !== "left" && t.align !== "justify" && !t.circle){
+    editor.style.width = ((w + t.tracking) * z) + "px";
   }
 
   if(!keepHeight || boxed) editor.style.height = (h * z) + "px";

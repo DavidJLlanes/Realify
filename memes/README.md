@@ -15,6 +15,16 @@ creación de memes, que se ha eliminado.
   película; Portada de periódico; Se busca; Cuadrado difuminado; Historia
   vertical 9:16 y Libre. Los que ponen barras o marcos fuera de la foto amplían el
   lienzo al aplicar; la foto nunca se reescala.
+- **Segunda foto** en los diseños que admiten dos imágenes: Negro arriba y
+  abajo y Blanco arriba y abajo (las dos apiladas), Comparación No / Sí
+  (cuadrícula 2 × 2 al estilo Drake), Expectativa vs. realidad (sin segunda,
+  la misma foto en B/N), Historia vertical 9:16 (apiladas) y Viñeta de cómic
+  (tira de dos viñetas). Se abre desde la propia ventana, se pega con Ctrl+V o
+  con el botón «Pegar» (móvil). Se recorta a su hueco, recibe el mismo efecto
+  de imagen y, al aplicar, queda en su propia capa («Meme · segunda foto»).
+  Si cambia la forma del lienzo, los textos se recolocan sin perder lo
+  escrito. Mientras la ventana está abierta, pegar una imagen no la añade al
+  documento.
 - **Marco**: color y tamaño.
 - **Efecto de imagen**: frito, blanco y negro, sepia, viñeta, alto contraste,
   colores vivos, desvaído, desenfocado, pixelado, negativo y JPEG destrozado,

@@ -186,6 +186,7 @@ const ITEMS = [
   { tool:"historyBrush", label:"Pincel de historial", cat:"pintar retoque" },
   { tool:"picker",       label:"Cuentagotas",  cat:"pintar" },
   { cmd:"layer.meme",      label:"Crear meme",     ic:"sticker",   cat:"pintar estilo" },
+  { cmd:"file.socialPost", label:"Collage / Post", ic:"layout-dashboard", cat:"pintar estilo" },
   { cmd:"layer.stickers",  label:"Stickers",       ic:"sparkles",  cat:"pintar estilo" },
   { cmd:"layer.watermark", label:"Marca de agua",  ic:"copyright", cat:"pintar" },
   { cmd:"layer.styles",    label:"Estilos de capa", ic:"layers-plus", cat:"pintar estilo" },

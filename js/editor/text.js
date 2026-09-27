@@ -10,14 +10,17 @@
 import { doc, addLayer } from "../core/doc.js";
 import { emit } from "../core/bus.js";
 import { record } from "../core/history.js";
+import { googleFontItems, isGoogleStack, ensureFont } from "./gfonts.js";
 
 /* Fuentes presentes en la práctica totalidad de los equipos, con
    sustitutas equivalentes de Windows, macOS/iOS y Android para que
-   cada entrada tenga algo parecido en todas partes. No se cargan
-   tipografías externas a propósito: la promesa de la herramienta es
-   que no habla con ningún servidor. Quien quiera otra la carga desde
-   un archivo suyo (.ttf/.otf/.woff/.woff2), que se registra en el
-   navegador con la API FontFace y se guarda localmente. */
+   cada entrada tenga algo parecido en todas partes. Detrás van las de
+   Google Fonts (ver gfonts.js), que sólo se descargan con permiso de
+   quien usa la app. Quien quiera otra la carga desde un archivo suyo
+   (.ttf/.otf/.woff/.woff2), que se registra en el navegador con la API
+   FontFace y se guarda localmente. */
+/* Valor de las entradas de lista que sólo separan grupos. */
+export const FONT_SEPARATOR = "__sep__";
 export const FONTS = [
   // Sans
   ["system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",           "Sistema"],
@@ -80,7 +83,10 @@ export const FONTS = [
   ["'Broadway', Impact, fantasy",                                         "Broadway"],
   ["'Jokerman', 'Chalkduster', fantasy",                                  "Jokerman"],
   ["'Kristen ITC', 'Chalkboard SE', cursive",                             "Kristen"],
-  ["'Ink Free', 'Bradley Hand', 'Marker Felt', cursive",                  "Ink Free"]
+  ["'Ink Free', 'Bradley Hand', 'Marker Felt', cursive",                  "Ink Free"],
+  // Separador (no seleccionable) y Google Fonts
+  [FONT_SEPARATOR, "── Google Fonts ──"],
+  ...googleFontItems()
 ];
 
 /* ── fuentes cargadas por el usuario ─────────────────────────────
@@ -491,10 +497,25 @@ export function layoutText(ctx, t){
            blockBox: { x: boxX, y: blockTop, w: width, h: blockBot - blockTop } };
 }
 
+/* Si la capa usa una fuente de Google Fonts que aún no ha llegado, se
+   pide (sólo con permiso: ver gfonts.js) y la capa se vuelve a dibujar
+   en cuanto está lista. Mientras tanto se ve con la alternativa. */
+function requestFont(layer){
+  const t = layer.text;
+  if(!isGoogleStack(t.font)) return;
+  const font = t.font, weight = t.weight, italic = t.italic;
+  ensureFont(font, { weight, italic }).then(changed => {
+    if(!changed || !layer.text || layer.text.font !== font) return;
+    renderTextLayer(layer);
+    emit("doc:change");
+  });
+}
+
 /* Dibuja la capa de texto en su propio lienzo, de cero. */
 export function renderTextLayer(layer){
   if(!layer || !layer.text) return;
   const t = layer.text;
+  requestFont(layer);
   const c = layer.canvas, x = layer.ctx;
 
   x.setTransform(1, 0, 0, 1, 0, 0);
@@ -888,6 +909,17 @@ export function textBounds(layer){
   }
   const L = layoutText(ctx, t);
   let box = L.frame || L.box;
+  /* El contorno y la caja de fondo forman parte de lo que se ve del
+     texto: los tiradores tienen que envolverlos, no quedarse por
+     dentro. (La sombra no: es un efecto que cae fuera, como en
+     cualquier editor.) En un párrafo se respeta el marco dibujado. */
+  if(!L.frame){
+    const grow = (b, m) => ({ x: b.x - m, y: b.y - m, w: b.w + m * 2, h: b.h + m * 2 });
+    const union = (a, b) => { const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+      return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y }; };
+    if(t.strokeWidth > 0) box = grow(box, t.strokeWidth);
+    if(t.bg) box = union(box, grow(L.blockBox, t.bgPadding || 0));
+  }
   // La deformación puede empujar las letras hasta un 60% del alto del
   // bloque por encima o por debajo de su sitio: la caja de selección
   // se ensancha esa misma cantidad para seguir envolviéndolas, en vez
@@ -941,6 +973,25 @@ export function pointInText(layer, p, margin = 0){
   const q = toTextSpace(layer, p);
   return q.x >= b.x - margin && q.x <= b.x + b.w + margin &&
          q.y >= b.y - margin && q.y <= b.y + b.h + margin;
+}
+
+/* Cambiar la alineación de un texto de PUNTO no debe moverlo: las
+   líneas se alinean entre sí y el bloque se queda donde está. Como el
+   ancla de un texto de punto es el borde izquierdo, el centro o el
+   borde derecho según la alineación, al cambiarla se recoloca el ancla
+   en el punto equivalente del mismo bloque (girado, si lo está). En un
+   párrafo el ancla es el centro del marco y no hace falta tocarla. */
+export function alignTextPatch(layer, align){
+  const t = layer.text;
+  const boxed = Number.isFinite(t.boxW) && t.boxW > 0;
+  if(!isText(layer) || boxed || t.circle || (t.path && t.path.p0) || t.align === align) return { align };
+  const ctx = measurer();
+  ctx.font = fontString(t);
+  const L = layoutText(ctx, t);
+  const left = L.box.x, w = L.box.w;
+  const k = align === "center" ? 0.5 : align === "right" ? 1 : 0;
+  const p = rotatePoint(left + w * k, t.y, t.x, t.y, t.angle || 0);
+  return { align, x: p.x, y: p.y };
 }
 
 export function createTextLayer(at){

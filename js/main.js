@@ -94,42 +94,6 @@ const selOrActive = () => getSelectedLayerIds().length >= 2 ? getSelectedLayerId
 const needsSelOrActive = () => doc.open && selOrActive().length >= 1;
 const photoTool = name => async () => (await import("./features/photo-tools.js"))[name]();
 
-/* Medidas reales del viewport, para poder diagnosticar de una vez las
-   franjas muertas que aparecen en algunos móviles —sobre todo en iOS
-   instalada como app— sin tener que adivinar a distancia: si el hueco
-   sigue ahí, esta línea dice si es que #app no llega al borde, si es
-   que el propio navegador ha encogido el viewport, o si el margen de
-   seguridad (el del indicador de inicio) es más grande de lo que se
-   esperaba. Va en «Acerca de», que es donde no estorba. */
-function viewportReport(){
-  const probe = document.createElement("div");
-  probe.style.cssText = "position:fixed;inset:0;visibility:hidden;pointer-events:none;" +
-    "padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";
-  document.body.appendChild(probe);
-  const cs = getComputedStyle(probe);
-  const insets = `${cs.paddingTop}/${cs.paddingRight}/${cs.paddingBottom}/${cs.paddingLeft}`;
-  probe.remove();
-
-  const appEl = document.getElementById("app");
-  const app = appEl ? appEl.getBoundingClientRect() : null;
-  const bar = document.getElementById("mobilebar");
-  const barRect = bar ? bar.getBoundingClientRect() : null;
-  const mode = ["standalone", "fullscreen", "minimal-ui", "browser"]
-    .find(m => matchMedia(`(display-mode:${m})`).matches) || "?";
-
-  return [
-    `vp ${innerWidth}×${innerHeight}`,
-    `screen ${screen.width}×${screen.height}`,
-    `vv ${visualViewport ? Math.round(visualViewport.height) : "—"}`,
-    `body ${Math.round(document.body.getBoundingClientRect().height)}`,
-    app ? `app ${Math.round(app.height)} (fin ${Math.round(app.bottom)})` : "app —",
-    barRect ? `bar fin ${Math.round(barRect.bottom)}` : "bar —",
-    `safe ${insets}`,
-    `modo ${mode}`,
-    `dpr ${devicePixelRatio}`
-  ].join(" · ");
-}
-
 registerAll({
   "file.open":      () => promptOpen(),
   "file.camera":    () => promptCamera(),
@@ -290,6 +254,9 @@ registerAll({
                        enabled: needsDoc },
   "layer.stickers":  { run: async () => (await import("../stickers/index.js")).openStickers(),
                        enabled: needsDoc },
+  /* Collage / History / Post (socialmediapost/): no necesita documento;
+     el resultado se abre en una pestaña nueva. */
+  "file.socialPost": { run: async () => (await import("../socialmediapost/index.js")).openSocialPost() },
 
   "view.fit":     { run: fit, enabled: needsDoc },
   "view.zoom100": { run: zoom100, enabled: needsDoc },
@@ -534,13 +501,15 @@ registerAll({
   "help.about": () => dialog({
     title: "Acerca de Realify",
     body: `<p class="hint">Editor de imagen con simulación de captura fotográfica.</p>
-           <p class="hint">Todo el procesado ocurre en tu equipo. No se sube nada a
-             ningún servidor, no hay analítica y no hace falta cuenta.</p>
+           <p class="hint">Todo el procesado ocurre en tu equipo: tus imágenes no se
+             suben a ningún servidor, no hay analítica y no hace falta cuenta. Sólo
+             algunas funciones opcionales descargan recursos de terceros (tipografías
+             de Google Fonts, con tu permiso, y modelos de IA de Hugging Face); los
+             detalles están en la Política de privacidad.</p>
            <p class="hint">El filtro Realify reproduce el recorrido físico de la luz
              —óptica, sensor, procesador y códec— sobre imágenes generadas, para
              investigación sobre detectores, trabajo artístico y prueba de defensas
-             propias.</p>
-           <p class="hint mono" style="font-size:var(--fs-xs);opacity:.75;margin-top:10px">${viewportReport()}</p>`,
+             propias.</p>`,
     buttons:[{ label:"Cerrar", primary:true }]
   }),
 
