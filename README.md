@@ -8,7 +8,9 @@ funciona sin conexión.
 - **Sin instalación ni cuenta**: basta con abrir la web.
 - **Escritorio y móvil**: menús clásicos en escritorio; en móvil, barra
   inferior y un cajón de herramientas ordenado por objetivo (mejorar,
-  corregir, color, estilo…).
+  corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
+  editores grandes se abren a pantalla completa, con la imagen primero y
+  mandos pensados para el pulgar.
 - **Sin dependencias ni compilación**: HTML, CSS y JavaScript con módulos ES.
 
 ---
@@ -41,9 +43,10 @@ funciona sin conexión.
 | **Abrir imagen** | JPEG, PNG, WebP, BMP, SVG, TIFF, HEIC/HEIF y PSD (con capas). Los archivos RAW se envían al revelador RAW. También se puede arrastrar y soltar o pegar desde el portapapeles. |
 | **Cargar archivos en pila** | Abre varias imágenes como capas de un mismo documento. |
 | **Documento nuevo** | Lienzo vacío del tamaño elegido. |
+| **Collage / History / Post** | Composiciones para redes creadas como documento nuevo (ver [módulos especiales](#collage--history--post--socialmediapost)). |
 | **Varios documentos** | Cada documento se abre en su propia pestaña. |
 | **Abrir / Guardar proyecto** | Guarda el documento completo (capas, máscaras, capas de ajuste y de filtro, textos) para seguir editándolo más tarde. |
-| **Exportar / Exportar como** | JPEG, PNG y WebP, con calidad, tamaño máximo y estimación de peso. Perfiles listos: web optimizada, Instagram, YouTube, marketplace, correo, fondo de pantalla e impresión. |
+| **Exportar / Exportar como** | JPEG, PNG y WebP, con calidad, tamaño máximo y estimación de peso. Perfiles listos: web optimizada, Instagram, YouTube, marketplace, correo, fondo de pantalla e impresión. **Tramado a 8 bits** opcional para evitar bandas en cielos y degradados. |
 | **Exportar PNG rápido** | Descarga inmediata en PNG. |
 | **Prueba para redes sociales** | Muestra cómo quedará la imagen tras la recompresión típica de las redes. |
 | **Procesar carpeta** | Aplica el filtro Realify a muchas imágenes a la vez y las entrega en un ZIP. |
@@ -81,16 +84,41 @@ r3d raf raw rwl rw2 rwz sr2 srf srw x3f`.
 | Lazo | L | | Comparar antes/después | Y |
 | Varita mágica | W | | | |
 
-Los pinceles tienen tamaño, dureza, opacidad, flujo, espaciado y biblioteca de
-puntas. Mover ajusta a los bordes y centros de las demás capas.
+Los pinceles tienen tamaño, dureza, opacidad, flujo, espaciado, dispersión,
+dinámicas por presión, velocidad o dirección y biblioteca de puntas (también
+desde imagen, capa o archivos `.abr`). Mover ajusta a los bordes y centros de
+las demás capas.
+
+**Pinceles especiales** (barra del Pincel o **Editar › Pinceles especiales**):
+
+- **Simétrico**: eje vertical, horizontal, ambos, cualquiera de las dos
+  diagonales (la diagonal real del documento), las dos a la vez o radial de 2 a
+  16 radios, con los ejes visibles como guía.
+- **Con textura**: grano, papel, lienzo, cristales, rayones, esponja o ruido
+  fino, generados de forma procedural y fijos al documento, con relieve y
+  escala.
+- **De degradado**: el color recorre del frontal al de fondo (o el arcoíris) a
+  lo largo del trazo, con longitud y repetición configurables.
+
+**Dodge & Burn** con «Ver gris 50 %»: muestra la capa gris de retoque en
+tiempo real mientras se pinta.
 
 ## 4. Imagen
 
-- Tamaño de imagen (con remuestreo de calidad), tamaño de lienzo y **escala
-  según el contenido**.
+- Tamaño de imagen con remuestreo **Lanczos 3, Mitchell, Catmull-Rom**,
+  bilineal o del navegador (en segundo plano), tamaño de lienzo y **escala
+  según el contenido**. Las máscaras de capa se reescalan, giran y recortan con
+  la imagen.
 - Recortar y **corregir perspectiva**.
 - Girar 90°/180° y voltear en horizontal o vertical.
-- **Eliminar fondo** con IA local.
+- **Dividir en trozos**: filas × columnas, tamaño fijo, carrusel panorámico
+  (2–10 publicaciones) o cuadrícula del perfil de Instagram numerada en el orden
+  de subida. Salida en ZIP, archivos sueltos o capas; PNG, JPEG o WebP.
+- **Recortar en forma**: la imagen dentro de 28 formas (círculo, polígonos,
+  estrellas de 4 a 10 puntas, corazón, flor, gota, escudo, luna, nube…) con
+  transparencia fuera, borde suave, contorno y lienzo ajustado a la forma.
+- **Eliminar fondo** con IA local (U²-Net rápido, MODNet para retratos, ISNet
+  de máxima calidad) o por color de los bordes, como máscara editable.
 - **Reemplazar cielo**: detecta el cielo (DeepLab/ADE20K) y lo sustituye por
   un color, un degradado o una foto propia, en una capa con su máscara.
 
@@ -101,7 +129,8 @@ puntas. Mover ajusta a los bordes y centros de las demás capas.
 - **Seleccionar sujeto** (IA, BodyPix) y **seleccionar cielo** (IA).
 - Pluma: trazados que se convierten en selección o en máscara de capa.
 - Difuminar y **refinar borde** (pelo y bordes finos).
-- **Rellenar según el contenido** y **mover según el contenido** (PatchMatch).
+- **Rellenar según el contenido** (PatchMatch o LaMa con IA) y **mover según
+  el contenido**.
 - **Máscaras de luminosidad y color**.
 
 **Máscaras de capa**
@@ -142,8 +171,20 @@ Todos se pueden aplicar directamente o como capa de ajuste.
 iluminaciones, balance de blancos, tonos (blancos/luces/sombras/negros), tono y
 saturación, vibrance.
 
+**Curvas**: RGB, rojo, verde, azul y **luminosidad** (cambia el brillo sin
+tocar el color). Todas las curvas se ven a la vez y hay una vista R · G · B
+en tres paneles simultáneos. Las curvas de luminosidad y color se pueden
+**vincular** y repartir su efecto. Incluye **25 estilos** con miniatura (S
+clásica, cine, mate, proceso cruzado, clave alta…) y estilos propios guardados
+en el navegador.
+
+**Tonos del histograma**: ajusta solo una franja de tonos (negros, sombras,
+medios, luces o blancos) eligiéndola en el histograma; brillo, contraste,
+saturación y calidez con bordes suaves.
+
 **Color avanzado**: gradación de color, virado dividido, filtro fotográfico,
-tono y saturación por rangos, reemplazar color, igualar color, curvas Lab y de
+**tono y saturación por rangos** (mezclador HSL de ocho rangos con cuentagotas;
+no afecta a grises), reemplazar color, igualar color, curvas Lab y de
 luminosidad, color por canales, equilibrio de color, corrección selectiva,
 mezclador de canales y mapa de degradado.
 
@@ -171,7 +212,9 @@ recetas), invertir, contraste automático y niveles automáticos.
 | **Otros** | Convolución personalizada 5×5. |
 
 Los filtros se procesan en GPU (WebGL2 y, si está disponible, WebGPU), con
-alternativa en CPU y Web Workers.
+alternativa en CPU y Web Workers: si la GPU da un error, el filtro se calcula
+en CPU en lugar de devolver una imagen vacía. Todos dejan su resultado en una
+capa de filtro reeditable.
 
 ## 10. Módulos especiales
 
@@ -187,16 +230,24 @@ corrección de aberración cromática. También se puede usar sobre cualquier ca
 raster. Detalles en [`raw/README.md`](raw/README.md).
 
 ### Realify — `js/filters/camera/`
-Simulación de cámara: ruido de sensor, respuesta de óptica y compresión, con
-presets, recomendaciones según la imagen y ajuste a partir de los datos EXIF.
+Simulación de cámara en 31 etapas (óptica, sensor, procesador, archivo y
+metadatos) con presets, recomendaciones según la imagen y ajuste a partir de los
+datos EXIF. Editor a pantalla completa con zoom real hasta 1:1, comparación,
+histograma y espectro.
 
 ### Filtro Vintage — `vintagefilter/`
-40 parámetros en 7 grupos y 26 presets: grano, fugas de luz, polvo, arañazos,
-halación, destellos, bordes, sello de fecha… Semilla reproducible y capa de
+41 parámetros en 7 grupos (virados, color —con blanco y negro ortocromático y
+pancromático—, tono, luz y película, daños, bordes y óptica) y **102 estilos**
+agrupados en décadas, películas en color, blanco y negro, procesos antiguos,
+cámaras y ópticas, creativos y estaciones. Semilla reproducible y capa de
 filtro reeditable. Detalles en [`vintagefilter/README.md`](vintagefilter/README.md).
 
 ### Estilos y LUT
-- **Estilos**: looks de color predefinidos.
+- **Estilos**: **160 looks** en 16 categorías (básicos, retrato, paisaje, cine,
+  películas, urbano, comida, moda y editorial, redes sociales, blanco y negro,
+  noche, estaciones, suaves y pastel, dramáticos, duotonos y creativos,
+  vintage), con buscador, miniatura sobre la propia foto e intensidad
+  regulable. Curvas por canal, saturación, virado partido y duotonos reales.
 - **Tabla de color (LUT)**: carga archivos `.cube` y los aplica en una capa.
 
 ### Adaptive Photo Lens — `js/filters/lens/`
@@ -217,7 +268,7 @@ historia 9:16…), segunda foto en los diseños que la admiten, marco, 11 efecto
 de imagen y textos ilimitados con 29 tipografías y 26 estilos rápidos (neón,
 3D, glitch, fuego…). Detalles en [`memes/README.md`](memes/README.md).
 
-### Collage / Historia / Post — `socialmediapost/`
+### Collage / History / Post — `socialmediapost/`
 También en **Archivo › Collage / History / Post…**, incluso sin documento
 abierto.
 - **Formatos**: 29 de redes sociales (Instagram, TikTok, Facebook, X, Threads,
@@ -225,7 +276,15 @@ abierto.
   móviles y tamaño personalizado.
 - **Zonas seguras** de historias y de pantallas de móvil.
 - **40 diseños de collage** de 1 a 16 fotos, con espaciado, márgenes,
-  esquinas, marcos, sombras y fondo (color, degradado o foto difuminada).
+  esquinas, marcos, sombras y fondo (color, degradado, foto difuminada o
+  transparente).
+- **Diseño «Libre»**: cada foto se coloca donde se quiera y se escala, gira,
+  duplica y ordena con tirador, dos dedos o el panel.
+- **28 formas** para las fotos (círculo, elipse, polígonos de 3 a 10 lados,
+  estrellas de 4 a 10 puntas, corazón, flor, gota, escudo, cruz, luna, sello,
+  nube, bocadillo…), para todas o por foto.
+- Fotos desde archivo, portapapeles o arrastrando; bandeja con arrastrar a un
+  hueco, encuadre, zoom e intercambio entre huecos.
 - Textos con el mismo motor del creador de memes.
 - El resultado se abre como documento nuevo, con cada foto y texto en su capa.
 
@@ -242,6 +301,13 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 - **Plausibilidad** y **Segunda opinión**: métricas y pruebas forenses sobre
   la imagen compuesta.
 - **Espectro de frecuencia** (FFT).
+- **Histograma interactivo** (panel lateral): histograma RGB en vivo dividido
+  en negros, sombras, medios, luces y blancos; al tocar una zona se ajustan
+  solo esos tonos.
+- **Cuadrícula inteligente**: detecta el sujeto, el horizonte y los rostros, y
+  dibuja tercios, proporción áurea, espiral áurea orientada hacia el sujeto y
+  diagonales. Propone un recorte que lleva el sujeto a un punto fuerte y
+  endereza el horizonte.
 - **Metadatos EXIF**: revisar y escribir datos de cámara en exportaciones JPEG.
 - **Limpiar metadatos de un archivo** sin abrirlo en el editor.
 
@@ -251,17 +317,23 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 - **Comparar antes/después** y comparar al 100 %.
 - Mostrar u ocultar paneles.
 - Reglas, guías, cuadrícula configurable y ajuste a la cuadrícula.
+- **Cuadrícula inteligente** e **histograma** (ver apartado anterior).
 
 ## 13. App, privacidad y ayuda
 
 - **PWA instalable** (Ayuda › Instalar como app) con service worker para
   funcionar sin conexión.
-- **Guía** interactiva y asistente de bienvenida.
+- **Guía** interactiva con **buscador** (sin tildes, varias palabras, salta al
+  párrafo exacto), página de **novedades** y ayuda directa de cada herramienta
+  (botón «?» de la barra de opciones); asistente de bienvenida.
 - **Diagnóstico** del navegador y del equipo.
 - Aviso legal, política de privacidad y de cookies.
-- Los modelos de IA se ejecutan en local (TensorFlow.js y ONNX Runtime). Los
-  modelos grandes se descargan la primera vez que se usan; la imagen nunca
-  sale del equipo.
+- Los modelos de IA se ejecutan en local (TensorFlow.js y ONNX Runtime, con
+  WebGPU o WebAssembly). Los modelos grandes (Hugging Face) se descargan la
+  primera vez que se usan y quedan en el navegador; la imagen nunca sale del
+  equipo.
+- **Google Fonts** solo se descargan con permiso del usuario, que se puede
+  retirar desde la política de privacidad.
 
 ## 14. Estructura del proyecto
 
@@ -273,15 +345,16 @@ manifest.webmanifest    Manifiesto de la PWA
 css/                    Estilos: tokens, base, layout y móvil
 js/
   main.js               Arranque
-  core/                 Documento, historial, instantáneas, bus de eventos, dispositivo
-  editor/               Herramientas, capas, máscaras, selección, texto, ajustes
+  core/                 Documento, historial, instantáneas, bus de eventos, dispositivo, búsqueda, formas
+  editor/               Herramientas, pinceles, capas, máscaras, selección, texto, ajustes,
+                        curvas, tonos del histograma, cuadrícula inteligente, trozos y formas
   filters/              Filtros y filtros especiales (camera, lens, lut, purepixel, unmark…)
   features/             Sujeto, cielo y herramientas fotográficas
   ai/                   Carga y ejecución de modelos de IA
   analysis/             Métricas, forense y FFT
   exif/                 Lectura y escritura de EXIF
   io/                   Abrir, exportar, proyectos, lotes y ZIP
-  ui/                   Menús, paneles, diálogos, guía y barra móvil
+  ui/                   Menús, paneles (con histograma), diálogos, guía y barra/cajón móvil
   vendor/               Librerías de terceros
 raw/                    Revelador RAW (LibRaw-Wasm)
 vintagefilter/          Filtro Vintage
