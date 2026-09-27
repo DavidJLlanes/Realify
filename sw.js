@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v95-sin-boton-filtros";
+const VERSION = "realify-v96-filtro-vintage";
 const SHELL = [
   "./",
   "./index.html",

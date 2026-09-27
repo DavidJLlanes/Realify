@@ -83,6 +83,7 @@ const ITEMS = [
   /* ── Filtro: especiales ── */
   { cmd:"filter.camera",    label:"Realify",          cat:"estilo ia" },
   { cmd:"filter.photoDevelop", label:"Revelado fotográfico", ic:"sliders-horizontal", cat:"mejorar color" },
+  { cmd:"filter.vintage",   label:"Filtro Vintage",   ic:"camera",             cat:"estilo efectos" },
   { cmd:"filter.purepixel", label:"PurePixel",        cat:"ia" },
   { cmd:"filter.unmark",    label:"Unmark",           cat:"ia corregir" },
   { cmd:"filter.looks",     label:"Estilos",          cat:"estilo" },

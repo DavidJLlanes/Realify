@@ -549,6 +549,8 @@ registerAll({
     }, enabled: needsDoc },
   "filter.photoDevelop": { run: async () => (await import("../raw/index.js")).openPhotoDevelop(),
     enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
+  "filter.vintage": { run: async () => (await import("../vintagefilter/index.js")).openVintageFilter(),
+    enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
   /* Sin `!anyDialogOpen()` en la condición, a propósito: en móvil los
      filtros se eligen desde una rejilla que ES un diálogo, así que esa
      comprobación dejaba el botón permanentemente gris ahí dentro —el

@@ -212,7 +212,12 @@ export const FILTERS = {
   "unmark":    { load: mod("../filters/unmark/ui.js"), fn: "openUnmark",
                  scale: (p, t) => ({ ...p, state: { ...(p.state || {}), dose: (p.state?.dose ?? 100) * t } }) },
   "photo-develop": { load: mod("../../raw/index.js"), fn: "renderPhotoDevelop",
-                     scale: () => null }
+                     scale: () => null },
+  /* Todos sus modificadores son cantidades 0-100 que empiezan en cero,
+     así que el porcentaje de la capa escala cada uno por igual. */
+  "vintage": { load: mod("../../vintagefilter/index.js"), fn: "renderVintageFilter",
+               scale: (p, t) => Object.fromEntries(Object.entries(p).map(([k, v]) =>
+                 [k, typeof v === "number" && k !== "seed" && k !== "version" ? v * t : v])) }
 };
 
 export const knownFilter = id => !!FILTERS[id];
