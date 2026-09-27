@@ -1,0 +1,36 @@
+# Unmark detrás de Nginx con TLS (certbot). El navegador sólo habla
+# HTTPS con orígenes distintos al de la app, así que hace falta un
+# subdominio con certificado, p.ej. unmark.tudominio.es.
+#
+# Después: añade  https://unmark.tudominio.es  al connect-src de la
+# CSP de Realify (.htaccess, o su equivalente en Nginx) y escribe la
+# misma dirección en «Semilla y servidor» dentro del filtro Unmark.
+
+server {
+    listen 443 ssl http2;
+    server_name unmark.tudominio.es;
+
+    ssl_certificate     /etc/letsencrypt/live/unmark.tudominio.es/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/unmark.tudominio.es/privkey.pem;
+
+    client_max_body_size 64m;
+
+    location / {
+        proxy_pass         http://127.0.0.1:8765;
+        proxy_http_version 1.1;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-Proto https;
+        # La difusión tarda: no cortar antes de 5 minutos
+        proxy_read_timeout    300s;
+        proxy_send_timeout    300s;
+        proxy_connect_timeout 30s;
+        proxy_request_buffering off;
+    }
+}
+
+server {
+    listen 80;
+    server_name unmark.tudominio.es;
+    return 301 https://$host$request_uri;
+}

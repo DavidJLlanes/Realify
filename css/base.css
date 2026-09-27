@@ -1,0 +1,251 @@
+/* ═══════════════════════════════════════════════════════════════
+   BASE Y CONTROLES
+   ═══════════════════════════════════════════════════════════════ */
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{height:100%;overflow:hidden}
+/* pan-x pan-y: se puede desplazar lo que tenga scroll, pero ni el
+   pellizco ni el doble toque amplían la página (el lienzo tiene su
+   propio zoom con touch-action:none). Sin esto, iOS ignora el
+   user-scalable=no de la meta viewport. */
+html{
+  touch-action:pan-x pan-y;
+  -webkit-text-size-adjust:100%;text-size-adjust:100%;
+}
+body{
+  margin:0;
+  background:var(--s-800);
+  color:var(--tx);
+  font:var(--fs)/1.45 var(--ui);
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
+  touch-action:pan-x pan-y;
+  /* `height:auto`, no el 100% que le pone la regla de arriba (html,
+     body{height:100%}): con `position:fixed` y las cuatro esquinas
+     puestas a la vez con `inset:0`, tener TAMBIÉN un alto explícito deja
+     el sistema sobre-restringido. La PWA de iOS usa una barra de estado
+     no translúcida para que WebKit entregue un viewport estable. */
+  position:fixed;inset:0;width:100%;height:auto;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sel{user-select:text;-webkit-user-select:text}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--s-800)}
+::-webkit-scrollbar-thumb{background:var(--s-500);border-radius:5px;border:2px solid var(--s-800)}
+::-webkit-scrollbar-thumb:hover{background:var(--line-strong)}
+*{scrollbar-width:thin;scrollbar-color:var(--s-500) var(--s-800)}
+
+/* ── foco: visible sólo con teclado, nunca al hacer clic ── */
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:1px;border-radius:2px}
+
+/* ─────────────── botones ─────────────── */
+button{
+  font:inherit;color:var(--tx);
+  background:var(--s-600);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:5px 11px;
+  cursor:pointer;
+  white-space:nowrap;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  transition:background .1s,border-color .1s;
+}
+button:hover:not(:disabled){background:var(--s-500);border-color:var(--line-strong)}
+button:active:not(:disabled){background:var(--s-400)}
+button:disabled{opacity:.38;cursor:default}
+
+button.primary{background:var(--ac);color:var(--on-ac);border-color:var(--ac);font-weight:600}
+button.primary:hover:not(:disabled){background:var(--ac-hi);border-color:var(--ac-hi)}
+button.ghost{background:transparent;border-color:transparent}
+button.ghost:hover:not(:disabled){background:var(--s-600);border-color:var(--line)}
+button.danger:hover:not(:disabled){background:#3a2422;border-color:var(--bad);color:#e5a49a}
+button.wide{width:100%}
+button.icon{padding:0;width:26px;height:26px;flex:none}
+
+/* ─────────────── campos ─────────────── */
+input[type=text],input[type=url],input[type=number],input[type=datetime-local],select,textarea{
+  font:inherit;
+  color:var(--tx);
+  background:var(--s-900);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:4px 7px;
+  min-width:0;
+  width:100%;
+}
+input:hover:not(:disabled),select:hover:not(:disabled){border-color:var(--line-strong)}
+input:focus,select:focus{border-color:var(--ac)}
+input:disabled,select:disabled{opacity:.45}
+select{cursor:pointer;appearance:none;padding-right:22px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--tx-dim) 50%),
+                   linear-gradient(135deg,var(--tx-dim) 50%,transparent 50%);
+  background-position:calc(100% - 12px) 52%,calc(100% - 7px) 52%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+input[type=number]{font-family:var(--mono);text-align:right}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+/* ─────────────── campo numérico con − / + ─────────────── */
+.stepper{
+  display:inline-flex;align-items:stretch;flex:none;
+  border:1px solid var(--line);border-radius:var(--r);
+  background:var(--s-900);overflow:hidden;min-width:0;
+}
+.stepper.grow{flex:1;display:flex}
+.stepper:hover{border-color:var(--line-strong)}
+.stepper:focus-within{border-color:var(--ac)}
+.stepper>input[type=number]{
+  flex:1 1 0;min-width:0;width:auto;
+  border:0;border-radius:0;background:transparent;text-align:center;padding:4px 2px;
+}
+.stepper>input[type=number]:focus{border:0}
+.stepper>.step-btn{
+  flex:none;width:24px;min-height:0;padding:0;
+  border:0;border-radius:0;background:var(--s-700);color:var(--tx-dim);
+  font-family:var(--mono);font-size:14px;line-height:1;cursor:pointer;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+.stepper>.step-btn:first-child{border-right:1px solid var(--line-soft)}
+.stepper>.step-btn:last-child{border-left:1px solid var(--line-soft)}
+.stepper>.step-btn:hover{background:var(--s-600);color:var(--tx)}
+.stepper>.step-btn:active{background:var(--s-500);color:var(--ac)}
+.stepper>input:disabled~.step-btn,.stepper>input:disabled+.step-btn{opacity:.4;pointer-events:none}
+#optsbar .stepper>input[type=number]{width:auto}
+
+/* ─────────────── casillas ─────────────── */
+.chk{
+  display:flex;align-items:center;gap:8px;
+  font-size:var(--fs-sm);color:var(--tx-dim);cursor:pointer;
+  padding:3px 0;min-height:22px;
+}
+.chk:hover{color:var(--tx)}
+.chk input{
+  appearance:none;flex:none;
+  width:14px;height:14px;border-radius:2px;
+  border:1px solid var(--line-strong);background:var(--s-900);
+  cursor:pointer;position:relative;
+}
+.chk input:checked{background:var(--ac);border-color:var(--ac)}
+.chk input:checked::after{
+  content:"";position:absolute;left:4px;top:1px;
+  width:4px;height:8px;border:solid var(--on-ac);
+  border-width:0 2px 2px 0;transform:rotate(42deg);
+}
+
+/* ─────────────── interruptor ─────────────── */
+.sw{
+  appearance:none;flex:none;cursor:pointer;position:relative;
+  width:28px;height:15px;border-radius:8px;
+  background:var(--s-400);border:0;transition:background .14s;
+}
+.sw::after{
+  content:"";position:absolute;top:2px;left:2px;
+  width:11px;height:11px;border-radius:50%;
+  background:var(--tx-faint);transition:left .14s,background .14s;
+}
+.sw:checked{background:var(--ac-lo)}
+.sw:checked::after{left:15px;background:var(--ac)}
+
+/* ─────────────── deslizadores ─────────────── */
+input[type=range]{
+  appearance:none;width:100%;height:16px;
+  background:transparent;cursor:pointer;display:block;margin:0;padding:0;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:3px;background:var(--s-400);border-radius:2px;
+}
+input[type=range]::-moz-range-track{height:3px;background:var(--s-400);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--tx);margin-top:-4.5px;border:0;
+  transition:background .1s,transform .1s;
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;border-radius:50%;background:var(--tx);border:0;
+}
+input[type=range]:hover::-webkit-slider-thumb{background:var(--ac)}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);background:var(--ac)}
+input[type=range]:hover::-moz-range-thumb{background:var(--ac)}
+
+/* ─────────────── segmentado ─────────────── */
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{
+  border:0;border-radius:0;flex:1;
+  padding:4px 9px;font-size:var(--fs-sm);
+  background:transparent;color:var(--tx-dim);
+}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{background:var(--s-600);color:var(--tx)}
+.seg button.on{background:var(--s-400);color:var(--tx)}
+.seg button.on:hover{background:var(--s-400)}
+
+/* ─────────────── fila etiqueta+control ─────────────── */
+.field{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.field>label{
+  /* 112px porque «Cambio máximo RGB» (PurePixel) mide unos 107px con
+     esta tipografía: a 76px se cortaba con puntos suspensivos a media
+     palabra («Suavizado de...», «Recorte horiz...»), ilegible. El
+     recorte por si acaso queda, para una etiqueta aún más larga que
+     pueda llegar en el futuro, pero ya no debería activarse nunca. */
+  flex:none;width:112px;
+  color:var(--tx-dim);font-size:var(--fs-sm);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.field>.grow{flex:1;min-width:0}
+.field .unit{flex:none;color:var(--tx-faint);font-size:var(--fs-xs)}
+.field.stack{flex-direction:column;align-items:stretch;gap:4px}
+.field.stack>label{width:auto}
+
+/* ─────────────── etiquetas y ayudas ─────────────── */
+.hint{color:var(--tx-faint);font-size:var(--fs-sm);line-height:1.5;margin:0 0 9px}
+.section-label{
+  color:var(--tx-faint);font-size:var(--fs-xs);
+  text-transform:uppercase;letter-spacing:.07em;
+  margin:13px 0 7px;font-weight:600;
+}
+.section-label:first-child{margin-top:2px}
+.props-section+.props-section{border-top:1px solid var(--line-soft);padding-top:4px;margin-top:4px}
+kbd{
+  font-family:var(--mono);font-size:var(--fs-xs);
+  background:var(--s-600);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:3px;padding:1px 4px;color:var(--tx-dim);
+}
+hr{border:0;border-top:1px solid var(--line-soft);margin:11px 0}
+
+.badge{
+  font-size:var(--fs-xs);padding:1px 5px;border-radius:2px;
+  background:var(--s-600);color:var(--tx-faint);
+}
+.badge.pro{background:var(--ac-ghost);color:var(--ac)}
+
+@media (pointer:coarse){
+  button{min-height:var(--touch);padding:8px 13px}
+  button.icon{width:var(--touch);height:var(--touch)}
+  input[type=text],input[type=url],input[type=number],select{min-height:var(--touch)}
+  .stepper>input[type=number]{min-height:calc(var(--touch) - 2px)}
+  .stepper>.step-btn{width:var(--touch);font-size:18px}
+  #optsbar .stepper{width:auto!important;min-width:136px}
+  input[type=range]{height:30px}
+  input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8.5px}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px}
+  .chk{min-height:var(--touch)}
+  .chk input{width:18px;height:18px}
+  .chk input:checked::after{left:5px;top:1px;width:5px;height:10px}
+  .sw{width:36px;height:20px}
+  .sw::after{width:16px;height:16px}
+  .sw:checked::after{left:18px}
+  .seg button{padding:9px 12px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}

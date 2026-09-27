@@ -1,0 +1,19 @@
+﻿# Logs del servidor (contienen IPs de visitantes)
+log/
+*.log
+
+# Configuracion local de Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+node_modules/

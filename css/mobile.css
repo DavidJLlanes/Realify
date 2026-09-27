@@ -1,0 +1,765 @@
+/* ═══════════════════════════════════════════════════════════════
+   PANTALLAS PEQUEÑAS
+   No es la interfaz de escritorio encogida: es otra disposición.
+   El pulgar llega al borde inferior y no a la esquina superior
+   izquierda, así que las herramientas bajan; los paneles pasan a ser
+   una hoja que se arrastra desde abajo; y el lienzo se queda con
+   todo lo que sobra, que es lo único que de verdad importa mirar.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Elementos que sólo existen en móvil */
+#sheet,#sheetGrip,#mMenu,#mPanels,.sheet-grab,.cs-launcher,#compareFab,
+#toolsHandle,#toolDrawer,#toolDrawerVeil,.opts-swatch,
+#empty .welcome-grid .welcome-camera{display:none}
+
+@media (max-width:900px){
+
+  /* En iOS instalado la barra de estado usa el modo `black` (no el
+     `black-translucent` defectuoso de WebKit), por lo que el viewport ya
+     empieza debajo de ella. No se vuelve a reservar aquí su safe-area. */
+  @supports (-webkit-touch-callout:none){
+    html.ios-standalone #app{
+      padding-top:0;
+    }
+  }
+
+  /* --menubar sube a 44px en TODO el rango móvil, no sólo bajo 560px:
+     entre 560-900px (tablets pequeñas, phablets en horizontal) el
+     botón de menú (#mMenu) y el de paneles (#mPanels) llenan esta
+     misma variable con height:100%, así que se quedaban en el valor
+     de escritorio (30px) justo en esa franja — por debajo del mínimo
+     táctil sin ningún motivo, ya que aquí ya estamos en disposición
+     móvil de todas formas. */
+  :root{--menubar:44px}
+
+  /* #menubar —hamburguesa, logo, botón de paneles— desaparece entera
+     en la disposición normal de móvil: su hamburguesa y su botón de
+     paneles son EXACTAMENTE lo mismo que «Menú» y «Capas» en
+     #mobilebar, alcanzable con el pulgar; tenerla arriba era la misma
+     función dos veces, y encima en la esquina donde peor llega la
+     mano. Ese hueco entero vuelve al lienzo. Sólo resucita en el
+     apaisado de más abajo, donde no hay barra inferior con la que
+     ser redundante. */
+  #menubar{display:none}
+
+  /* El hueco del notch/barra de estado se paga UNA vez, como
+     padding-top del contenedor entero —no como alto extra de la
+     primera fila—: metido dentro de la fila (var(--optionsbar) +
+     env(...)) el contenido seguía centrándose con `align-items:center`
+     dentro de esa fila ya inflada, y ese centrado añadía SU PROPIO
+     hueco de sobra por encima del icono de ayuda, encima del propio
+     margen del notch. Como padding del contenedor, la fila de opciones
+     se queda exactamente con su alto de siempre y el notch no se nota
+     dos veces. */
+  #app{padding-top:env(safe-area-inset-top)}
+
+  /* Sin fila de herramientas: la tira de iconos que iba encima de
+     #mobilebar se ha sustituido por el cajón de herramientas (asa
+     «Herramientas» sobre la barra; ver js/ui/tooldrawer.js), así que
+     ese alto vuelve entero al lienzo. */
+  #app{
+    grid-template-columns:1fr;
+    grid-template-rows:var(--optionsbar) 1fr 58px;
+    grid-template-areas:
+      "opts"
+      "canvas"
+      "mobilebar";
+  }
+  #app.has-tabs{
+    grid-template-rows:52px var(--optionsbar) 1fr 58px;
+    grid-template-areas:
+      "docbar"
+      "opts"
+      "canvas"
+      "mobilebar";
+  }
+  /* Miniatura primero, nombre debajo cabe justo en 52px: en una tira
+     que ya se desplaza en horizontal, el dedo reconoce la foto antes
+     de leer nada, así que el nombre es lo prescindible si hace falta
+     apretar. */
+  #docbar{padding:4px 6px 0;gap:6px}
+  .doctab{
+    flex-direction:column;justify-content:center;gap:2px;
+    min-width:52px;max-width:68px;padding:4px 3px 3px;
+    border-radius:var(--r-lg);border-bottom:1px solid var(--line);
+  }
+  .doctab-thumb{width:30px;height:30px;border-radius:4px}
+  .doctab-name{width:100%;text-align:center;font-size:10px}
+  .doctab-close{
+    position:absolute;margin:-30px 0 0 30px;
+    width:18px;height:18px;background:var(--s-900);border:1px solid var(--line);
+  }
+  .doctab{position:relative}
+  .doctab-add{align-self:center;width:44px;min-height:44px;font-size:20px}
+
+  /* ── barra superior ──
+     Sólo queda visible en el apaisado de más abajo —aquí #menubar está
+     en display:none—, pero sus reglas se dejan tal cual: el mismo
+     padding-top del notch que necesita ahí. */
+  #menubar{
+    padding:env(safe-area-inset-top) 4px 0 0;
+    gap:0;
+  }
+  #brand{padding:0 10px;border-right:0;margin-right:0}
+  #brand small{display:none}
+  .menu-root{display:none}          /* los menús se pliegan en ☰ */
+  #mMenu{
+    display:inline-flex;flex:none;
+    background:transparent;border:0;border-radius:0;
+    width:var(--menubar);height:100%;color:var(--tx-dim);padding:0;
+    min-height:0;
+  }
+  #mMenu:hover{background:var(--s-600);color:var(--tx)}
+  #menubar .spring{flex:1 1 auto}
+  #mPanels{
+    display:inline-flex;flex:none;
+    background:transparent;border:0;border-radius:0;
+    height:100%;padding:0 11px;color:var(--tx-dim);
+    font-size:var(--fs-sm);min-height:0;gap:6px;
+  }
+  #mPanels.on{color:var(--ac)}
+
+  /* El desplegable de menú ocupa el ancho, que es donde cae el dedo */
+  .menu-pop{
+    left:6px!important;right:6px;width:auto;min-width:0;
+    max-height:70vh;overflow-y:auto;
+  }
+  .menu-item{padding:11px 12px;font-size:var(--fs)}
+
+  /* Buscador del menú móvil: fijo sobre la lista que se desplaza, así
+     que sigue a mano tras hacer scroll para refinar el término. */
+  .menu-pop-mobile{display:flex;flex-direction:column;padding:0;overflow:hidden}
+  .menu-search{
+    flex:none;padding:8px;border-bottom:1px solid var(--line);
+    background:var(--s-700);
+  }
+  .menu-search input{
+    width:100%;min-height:40px;padding:0 11px;
+    background:var(--s-600);border:1px solid var(--line-strong);
+    border-radius:var(--r);color:var(--tx);font-size:var(--fs);
+  }
+  .menu-list{overflow-y:auto;padding:4px}
+  .menu-row-hidden{display:none!important}
+
+  /* ── opciones de herramienta ── */
+  #optsbar{
+    padding:0 8px;gap:7px;
+    -webkit-overflow-scrolling:touch;
+  }
+  #optsbar .tool-name{display:none}
+  #optsbar input[type=range]{width:120px}
+  #optsbar.opts-in{animation:opts-in .16s ease-out}
+
+  /* ── lienzo ── */
+  #stage{grid-area:canvas}
+  #empty h1{font-size:15px}
+  #empty p{font-size:var(--fs-sm)}
+
+  /* ── herramientas abajo ──
+     En vertical la fila ya no se muestra (la sustituye el cajón); las
+     reglas se conservan porque el apaisado de más abajo la recupera
+     como columna lateral. */
+  #tools{display:none}
+  #tools{
+    grid-area:tools;
+    flex-direction:row;
+    border-right:0;border-top:1px solid var(--line);
+    /* Esta fila no toca el borde físico: #mobilebar está debajo y es
+       quien absorbe la zona segura inferior. Contarla también aquí
+       separaba innecesariamente ambas barras. */
+    padding:4px calc(4px + env(safe-area-inset-left))
+            4px
+            calc(4px + env(safe-area-inset-right));
+    gap:6px;
+    overflow-x:auto;overflow-y:hidden;
+    justify-content:flex-start;
+  }
+  .tool{
+    width:var(--touch);height:var(--touch);
+    margin:0;
+    transition:transform .1s,background .12s;
+  }
+  .tool svg{width:23px;height:23px}
+  .tool:active{transform:scale(.92)}
+  .tool-sep{
+    width:1px;height:auto;margin:6px 4px;
+    align-self:stretch;flex:none;
+  }
+
+  /* #tools es una fila horizontal aquí (no una columna), así que el
+     widget de frontal/fondo no puede quedar "pegado al fondo" con
+     sticky: en vez de eso, margin-left:auto lo empuja al final de la
+     fila, y el ancho de "dedo" (--touch) le da hueco de sobra para
+     tocar cada swatch sin fallar. */
+  .color-swatch{
+    position:relative;
+    width:var(--touch);height:var(--touch);
+    margin:0 4px 0 auto;
+    box-shadow:none;
+  }
+  .color-swatch .cs-fg,.color-swatch .cs-bg{width:22px;height:22px}
+  .color-swatch .cs-swap{width:15px;height:15px}
+  .color-swatch .cs-swap svg{width:12px;height:12px}
+  .color-swatch .cs-reset{width:13px;height:13px}
+
+  /* El widget compacto se queda igual de mirar, pero un cristal
+     transparente encima lo convierte en un único botón grande: un
+     toque en cualquier punto —no sólo en el cuadrado de 22px exacto—
+     abre el popover con los controles a tamaño de dedo. */
+  .cs-launcher{
+    display:block;position:absolute;inset:0;z-index:4;
+    background:transparent;border:0;padding:0;
+  }
+  .color-popover{
+    position:fixed;z-index:200;padding:10px;
+    display:flex;flex-direction:column;gap:10px;
+    animation:menu-in .16s ease-out;
+  }
+  .cp-swatches{display:flex;gap:10px}
+  .cp-fg,.cp-bg{
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    width:56px;padding:0;background:transparent;border:0;
+    font-size:var(--fs-xs);color:var(--tx-dim);
+  }
+  .cp-fg .cp-box,.cp-bg .cp-box{
+    position:relative;width:56px;height:56px;
+    border-radius:var(--r-lg);border:1px solid var(--line-strong);
+    overflow:hidden;
+  }
+  .cp-fg input,.cp-bg input{
+    position:absolute;inset:0;width:100%;height:100%;
+    opacity:0;cursor:pointer;padding:0;border:0;
+  }
+  .cp-actions{display:flex;gap:8px}
+  .cp-actions button{
+    flex:1;min-height:44px;padding:0 10px;
+    background:var(--s-600);border:1px solid var(--line-strong);
+    border-radius:var(--r);color:var(--tx);font-size:var(--fs-sm);
+  }
+  .cp-actions button:active{background:var(--s-500)}
+
+  #mobilebar{
+    grid-area:mobilebar;display:grid;grid-template-columns:repeat(6,1fr);
+    background:var(--s-700);border-top:1px solid var(--line-strong);
+    /* Barra compacta hasta el borde físico: 48px de blanco táctil y
+       sólo 5px de aire arriba y abajo. */
+    padding:5px env(safe-area-inset-right) 5px env(safe-area-inset-left);
+    z-index:90;
+  }
+  #mobilebar button{
+    min-width:0;min-height:48px;padding:3px 1px;border:0;border-radius:var(--r);
+    background:transparent;color:var(--tx-dim);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1px;
+  }
+  #mobilebar button:active{background:var(--ac-ghost);color:var(--ac)}
+  #mobilebar button>span{font-size:20px;line-height:20px;font-weight:400}
+  #mobilebar button>b{font-size:10px;line-height:13px;font-weight:600}
+
+  /* Por encima de la barra de acciones inferior y del asa del cajón
+     de herramientas que asoma sobre ella (58px de #mobilebar + ~34px
+     del asa), para no tapar ninguna de las dos. El `left:var(--toolbar)`
+     de layout.css es sólo para el escritorio. */
+  /* Tarjeta compacta de una fila: texto corto a la izquierda y el botón
+     a la derecha. Antes iba en columna, y en columna el
+     `flex:1 1 320px` del párrafo (pensado para el ancho en escritorio)
+     pasaba a ser su ALTO: un bloque vacío de 320px en mitad de la
+     pantalla. */
+  .cookiebar{
+    left:8px;right:8px;
+    bottom:calc(58px + 34px + 8px);
+    flex-wrap:nowrap;gap:10px;
+    padding:8px 8px 8px 12px;
+    border:1px solid var(--line-strong);border-radius:var(--r);
+  }
+  .cookiebar p{flex:1 1 auto;font-size:12px;line-height:1.35}
+  .cookiebar .cb-long{display:none}
+  .cookiebar .cb-short{display:inline}
+  .cookiebar button{min-height:36px;padding:0 12px}
+
+  #empty{gap:10px;padding:14px}
+  #empty .drop-ring{display:none}
+  #empty .welcome-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  #empty .welcome-grid button{min-height:49px;padding:6px 8px}
+  #empty .drop-help{display:none}
+  @media (pointer:coarse){ #empty .welcome-grid .welcome-camera{display:flex} }
+  .preview-pair{grid-template-columns:1fr}
+
+  /* ── paneles: hoja arrastrable desde abajo ── */
+  #panels{
+    position:fixed;left:0;right:0;bottom:0;
+    width:auto;height:78dvh;max-height:78dvh;
+    border-left:0;border-top:1px solid var(--line-strong);
+    border-radius:var(--r-lg) var(--r-lg) 0 0;
+    box-shadow:var(--sh-3);
+    transform:translateY(100%);
+    transition:transform .26s cubic-bezier(.32,.72,0,1);
+    z-index:120;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  #panels.open{transform:translateY(0)}
+  #panels.collapsed{width:auto;overflow:visible;border-top:1px solid var(--line-strong)}
+
+  #sheetGrip{
+    display:flex;align-items:center;justify-content:center;
+    height:22px;flex:none;cursor:grab;touch-action:none;
+  }
+  #sheetGrip::before{
+    content:"";width:38px;height:4px;border-radius:2px;
+    background:var(--line-strong);
+  }
+  #sheetGrip:active{cursor:grabbing}
+
+  /* Zona invisible que cierra la hoja al tocar fuera (sin oscurecer nada) */
+  #sheetVeil{
+    display:block;position:fixed;inset:0;z-index:110;
+    pointer-events:none;
+  }
+  #sheetVeil.on{pointer-events:auto}
+
+  .panel-head{padding:10px 12px}
+  .panel-body{padding:11px 12px}
+
+  /* Miniaturas más grandes dentro de la hoja de paneles: con el
+     pulgar y sin la precisión de un ratón, una capa se reconoce
+     mejor por su contenido que por su nombre. */
+  .layer .thumb{width:44px;height:44px}
+  .layer .mask-thumb,.layer .add-mask{width:32px;height:32px}
+
+  /* ── estado ── */
+  #statusbar{
+    display:none;                    /* se reemplaza por la píldora del lienzo */
+  }
+
+  /* ── diálogos como hoja inferior ──
+     El lienzo es el resultado; el diálogo es la herramienta para
+     llegar a él. Si el diálogo tapa el lienzo entero (como hacía
+     antes, a pantalla completa) la vista previa en vivo —la razón
+     de ser de Niveles, Curvas, Realify…— deja de poder verse
+     mientras se ajusta, que es precisamente cuando más falta hace.
+     Snapseed/Lightroom Mobile/Photoshop Express resuelven esto
+     igual: el diálogo sube desde abajo y deja el lienzo asomando
+     por encima. */
+  /* El margen del indicador de inicio (home indicator) se paga aquí,
+     en el contenedor fijo que de verdad cubre la pantalla entera —no
+     como padding-bottom del pie del diálogo—: puesto ahí dentro, con
+     una hoja de alto automático (`height:auto`, la de abajo) el hueco
+     se sumaba dos veces —una vez porque el pie ya lo empujaba hacia
+     arriba con su propio padding, y otra porque la propia hoja, más
+     corta que su tope de 65dvh, ya se quedaba corta del borde de
+     pantalla de por sí—, dejando una franja vacía de más entre el pie
+     y el borde inferior real. Con el margen puesto aquí, la hoja se
+     coloca YA por encima de esa franja y el pie no necesita repetirlo.
+     `dlg-full` (Realify) queda fuera: esa hoja ocupa 100dvh de verdad
+     y sigue resolviendo su propio margen por dentro, como hasta ahora. */
+  .modal{padding:0 0 env(safe-area-inset-bottom);align-items:flex-end}
+  .modal:has(.dlg-full){padding-bottom:0}
+  .modal-card{
+    max-width:none;width:100%;
+    max-height:65dvh;height:auto;
+    border-radius:16px 16px 0 0;border:0;border-top:1px solid var(--line-strong);
+    animation:sheet-in .26s cubic-bezier(.32,.72,0,1);
+  }
+  .modal-card.wide{max-width:none;max-height:88dvh}
+
+  /* Excepción a la hoja de dos tercios: un panel que es a la vez la
+     vista de la foto y veinte grupos de mandos (Realify) no cabe
+     asomando por abajo —o se ve la foto, o se llega a los
+     deslizadores—. A pantalla completa la foto vive dentro del propio
+     panel, que la dibuja tan grande como le deje el espacio libre. */
+  .modal-card.dlg-full{
+    /* Porcentaje de `.modal` —ya `position:fixed;inset:0`, con alto
+       real garantizado, ver el comentario de #app en layout.css—, no
+       una unidad de viewport. */
+    height:100%;max-height:100%;
+    border-radius:0;border-top:0;
+  }
+  .modal-card.dlg-full .modal-body{
+    padding:0;display:flex;flex-direction:column;
+    flex:1 1 auto;min-height:0;
+  }
+  .sheet-grab{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;height:18px;flex:none;
+    cursor:grab;touch-action:none;
+  }
+  .sheet-grab::before{
+    content:"";width:38px;height:4px;border-radius:2px;
+    background:var(--line-strong);
+  }
+  .sheet-grab:active{cursor:grabbing}
+  .modal-body{padding:14px}
+  .modal-foot{
+    padding:11px 14px;
+  }
+  /* Excepción: `dlg-full` (Realify) no se beneficia del margen puesto
+     en `.modal` —está exento ahí arriba, porque su hoja de 100dvh sí
+     llega de verdad al borde por su cuenta—, así que su pie es el
+     único que todavía necesita apartarse del indicador de inicio por
+     sí mismo. */
+  .modal-card.dlg-full .modal-foot{
+    padding-bottom:calc(11px + env(safe-area-inset-bottom));
+  }
+
+  /* Paneles con desplegable (pickerGroup en adjust.js; las etapas de
+     Realify): sin cabecera —el propio desplegable ya dice qué mando se
+     está viendo, y para explicaciones está el botón de ayuda «?» de la
+     barra de opciones, no hace falta repetirlo aquí dentro—, sin el
+     texto de ayuda bajo cada mando, y un pie de Cancelar/Aplicar mucho
+     más bajo —unos 3/5 de su alto normal—. El asa para arrastrar la
+     hoja (.sheet-grab) no está dentro de .modal-head: sigue ahí. Se
+     activa por hoja con `cls:"dlg-compact"` en cada `dialog()`, no
+     para todas: un diálogo sin desplegable —confirmar, un formulario—
+     sigue necesitando su título para saber qué es. */
+  .dlg-compact .modal-head{display:none}
+  .dlg-compact .modal-body .hint{display:none}
+  .dlg-compact .modal-foot{
+    padding:6px 10px;
+    gap:6px;
+  }
+  .modal-card.dlg-full.dlg-compact .modal-foot{
+    padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
+  .dlg-compact .modal-foot button{
+    min-height:28px;padding:0 11px;font-size:var(--fs-sm);
+  }
+  .art-gallery{display:flex;flex-direction:column;gap:7px}
+  .art-preview{width:100%;height:150px;object-fit:contain;flex:none}
+  .art-choices{display:flex;overflow-x:auto;gap:5px;padding-bottom:2px;width:100%}
+  .art-choices button{flex:0 0 auto;min-height:30px;padding:4px 8px;font-size:var(--fs-xs)}
+  .kernel-grid{grid-template-columns:repeat(5,minmax(34px,1fr));gap:3px;margin-bottom:6px}
+  .kernel-grid input{padding:4px 1px;font-size:var(--fs-xs)}
+  .convolution-panel{min-width:0}
+  .brush-panel{min-width:0;gap:8px}
+  .brush-tip-grid{grid-template-columns:repeat(4,minmax(68px,1fr));max-height:148px;gap:4px}
+  .brush-tip{min-height:64px;padding:4px}
+  .brush-tip canvas{width:38px;height:38px}
+  .brush-actions{display:grid;grid-template-columns:1fr 1fr}
+  .brush-actions button:last-child{grid-column:1/-1}
+  .brush-settings{grid-template-columns:1fr;gap:5px;padding-top:8px}
+  .brush-control{grid-template-columns:105px minmax(0,1fr);gap:6px}
+
+  #toast{bottom:calc(var(--toolbar) + 22px)}
+}
+
+@keyframes sheet-in{
+  from{transform:translateY(100%)}
+  to{transform:translateY(0)}
+}
+@keyframes menu-in{
+  from{opacity:0;transform:scale(.94)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes opts-in{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (max-width:900px){
+  .menu-pop{animation:menu-in .16s ease-out}
+}
+
+/* Píldora flotante con el zoom, que sustituye a la barra de estado */
+#zoomPill{display:none}
+@media (max-width:900px){
+  #zoomPill{
+    display:flex;align-items:center;gap:2px;
+    /* 38px y no 8px: el centro del borde inferior es del asa
+       «Herramientas» (30px), y en un móvil estrecho la píldora llegaba
+       a montarse sobre ella. */
+    position:absolute;left:8px;bottom:38px;z-index:20;
+    background:rgba(27,29,32,.9);
+    border:1px solid var(--line);border-radius:20px;
+    padding:2px;backdrop-filter:blur(6px);
+  }
+  /* Sin documento no hay nada que ampliar, y en apaisado la píldora
+     caía encima de los botones de la pantalla de inicio. */
+  #stage:has(#empty:not(.hide)) #zoomPill{display:none}
+  #zoomPill button{
+    background:transparent;border:0;border-radius:16px;
+    width:32px;height:32px;min-height:0;padding:0;
+    color:var(--tx-dim);font-size:15px;
+  }
+  #zoomPill .lvl{
+    min-width:46px;font-size:var(--fs-xs);font-family:var(--mono);
+    color:var(--tx);text-align:center;padding:0 3px;
+  }
+  #msgPill{
+    display:block;
+    position:absolute;left:50%;transform:translateX(-50%);
+    /* Por encima del asa «Herramientas», que ocupa el centro del borde
+       inferior del lienzo. */
+    bottom:44px;z-index:20;
+    background:rgba(27,29,32,.92);
+    border:1px solid var(--line);border-radius:14px;
+    padding:5px 12px;font-size:var(--fs-xs);color:var(--ac);
+    max-width:70vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    opacity:0;transition:opacity .2s;pointer-events:none;
+  }
+  #msgPill.show{opacity:1}
+
+  /* Botón flotante de "Comparar": la herramienta ya existe y es
+     ideal en móvil (pantalla completa, un dedo mantiene pulsado para
+     ver el antes), pero hoy sólo se llega a ella desde la fila de
+     herramientas o el menú. Aparece sólo cuando hay algo que
+     comparar (ver `syncCompareFab` en main.js) — mostrarlo sobre un
+     documento recién abierto y sin editar no tendría sentido. */
+  #compareFab{
+    display:flex;align-items:center;justify-content:center;
+    position:absolute;z-index:20;
+    right:calc(8px + env(safe-area-inset-right));
+    bottom:38px;
+    width:46px;height:46px;border-radius:50%;
+    background:var(--ac);color:var(--on-ac);border:0;
+    box-shadow:var(--sh-2);
+    transition:transform .1s;
+  }
+  #compareFab[hidden]{display:none}
+  #compareFab:active{transform:scale(.92)}
+
+  /* ── cajón de herramientas (js/ui/tooldrawer.js) ──
+     El asa es una pestaña pegada al borde superior de #mobilebar, del
+     mismo color que la barra, como si la barra tuviera una lengüeta
+     de la que tirar: se lee como parte de ella y no como otro botón
+     flotante más sobre la foto. */
+  #toolsHandle{
+    position:absolute;left:50%;bottom:0;z-index:21;
+    transform:translateX(-50%);
+    display:flex;align-items:center;gap:6px;
+    height:30px;min-height:0;padding:0 16px 0 12px;
+    background:var(--s-700);color:var(--tx);
+    border:1px solid var(--line-strong);border-bottom:0;
+    border-radius:14px 14px 0 0;
+    font-size:var(--fs-sm);font-weight:600;letter-spacing:.01em;
+    box-shadow:0 -3px 10px rgba(0,0,0,.25);
+  }
+  #toolsHandle[hidden]{display:none}
+  #toolsHandle svg{color:var(--ac);flex:none;transition:transform .2s}
+  #toolsHandle[aria-expanded="true"] svg{transform:rotate(180deg)}
+  #toolsHandle:active{background:var(--s-600)}
+
+  #toolDrawerVeil{
+    display:block;position:fixed;inset:0;z-index:125;
+    background:rgba(0,0,0,.42);
+    opacity:0;pointer-events:none;transition:opacity .22s;
+  }
+  #toolDrawerVeil.on{opacity:1;pointer-events:auto}
+
+  #toolDrawer{
+    display:flex;flex-direction:column;
+    position:fixed;left:0;right:0;bottom:0;z-index:126;
+    max-height:72dvh;
+    background:var(--s-800);
+    border-top:1px solid var(--line-strong);
+    border-radius:16px 16px 0 0;
+    box-shadow:var(--sh-3);
+    padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    transform:translateY(105%);
+    transition:transform .26s cubic-bezier(.32,.72,0,1);
+    visibility:hidden;
+  }
+  #toolDrawer.open{transform:translateY(0);visibility:visible}
+  #toolDrawer:not(.open){transition:transform .22s ease-in,visibility 0s .22s}
+
+  .td-grab{
+    display:flex;align-items:center;justify-content:center;
+    height:20px;flex:none;cursor:grab;touch-action:none;
+  }
+  .td-grab::before{
+    content:"";width:38px;height:4px;border-radius:2px;
+    background:var(--line-strong);
+  }
+
+  .td-head{
+    display:flex;align-items:center;gap:8px;
+    padding:0 8px 8px 16px;flex:none;
+  }
+  .td-head h2{
+    flex:1;margin:0;font-size:15px;font-weight:600;color:var(--tx);
+  }
+  .td-autobtn{
+    display:inline-flex;align-items:center;gap:6px;
+    min-height:36px;padding:0 14px 0 11px;border-radius:18px;
+    font-size:var(--fs-sm);
+  }
+  .td-autobtn svg{width:17px;height:17px;flex:none}
+  .td-close{width:40px;height:40px;border-radius:20px;color:var(--tx-dim)}
+  .td-close svg{width:20px;height:20px}
+
+  /* Pestañas: fila que se desliza en horizontal; la activa, en el
+     ámbar de la app —el mismo papel que el amarillo de Snapseed—. */
+  .td-tabs{
+    display:flex;gap:6px;flex:none;
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+    padding:2px 12px 10px;
+    border-bottom:1px solid var(--line-soft);
+    -webkit-overflow-scrolling:touch;
+  }
+  .td-tabs::-webkit-scrollbar{display:none}
+  .td-tab{
+    flex:none;min-height:34px;padding:0 14px;
+    border-radius:17px;border:1px solid var(--line);
+    background:var(--s-700);color:var(--tx-dim);
+    font-size:var(--fs-sm);font-weight:600;white-space:nowrap;
+  }
+  .td-tab.on{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+
+  .td-grid{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    align-content:start;gap:4px 2px;
+    padding:10px 6px 14px;
+    overflow-y:auto;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    flex:1 1 auto;min-height:0;
+  }
+  .td-item{
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    gap:6px;min-height:78px;padding:9px 2px 6px;
+    background:transparent;border:0;border-radius:var(--r-lg);
+    color:var(--tx);
+  }
+  .td-item:active:not(:disabled){background:var(--s-600)}
+  .td-item:disabled{opacity:.35}
+  .td-ic{
+    display:flex;align-items:center;justify-content:center;
+    width:26px;height:26px;flex:none;
+  }
+  .td-ic svg{width:25px;height:25px;stroke-width:1.75}
+  /* Nombre en dos líneas como mucho y SIN partir palabras por la
+     mitad (el «Quitamancha-s» de Snapseed): si algo no cabe, se
+     recorta con puntos suspensivos en vez de desbordarse. */
+  .td-label{
+    font-size:11px;line-height:1.25;text-align:center;color:var(--tx-dim);
+    white-space:normal;overflow-wrap:normal;word-break:normal;hyphens:manual;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;max-width:100%;
+  }
+  .td-item.on .td-ic,.td-item.on .td-label{color:var(--ac)}
+  .td-item.td-auto .td-ic,.td-item.td-auto .td-label{color:var(--ac)}
+
+  /* ── color frontal/fondo en la barra superior ──
+     Sustituye al widget que vivía al final de la fila de herramientas;
+     sólo aparece con las herramientas que pintan con él (ver
+     optionsbar.js). Un toque abre el mismo popover de siempre. */
+  .opts-swatch{
+    display:block;
+    position:relative;flex:none;
+    width:34px;height:30px;min-height:0;padding:0;
+    background:transparent;border:0;
+  }
+  .opts-swatch i{
+    position:absolute;width:18px;height:18px;border-radius:3px;
+    border:1px solid var(--line-strong);box-shadow:0 0 0 1px rgba(0,0,0,.35);
+  }
+  .opts-swatch .osw-fg{left:4px;top:3px;z-index:2}
+  .opts-swatch .osw-bg{right:4px;bottom:3px;z-index:1}
+
+  /* ── onboarding de primer uso ── */
+  .onboard-overlay{
+    position:fixed;inset:0;z-index:400;
+    pointer-events:none;
+  }
+  .onboard-card{
+    position:fixed;left:12px;right:12px;
+    pointer-events:auto;
+    animation:menu-in .18s ease-out;
+  }
+  .onboard-card.onboard-center{
+    top:50%;transform:translateY(-50%);
+  }
+  .onboard-card p{margin:2px 4px 10px;font-size:var(--fs);color:var(--tx);line-height:1.4}
+  .onboard-foot{display:flex;justify-content:flex-end;gap:8px;padding:0 2px 2px}
+  .onboard-foot button{min-height:38px;padding:0 14px}
+  .onboard-highlight{
+    position:relative;z-index:410;
+    outline:2px solid var(--ac);outline-offset:2px;border-radius:var(--r);
+  }
+  /* Con un diálogo abierto, el recorrido se aparta: su tarjeta (z-index
+     400) quedaba encima de la hoja del diálogo y le tapaba el título y
+     el primer mando. Vuelve solo, en el mismo paso, al cerrarlo. */
+  body:has(.modal) .onboard-overlay{display:none}
+  body:has(.modal) .onboard-highlight{z-index:auto;outline:none}
+}
+
+/* ── móviles estrechos ── */
+@media (max-width:560px){
+  :root{--optionsbar:38px}
+  #brand span{display:none}
+  #brand{padding:0 8px}
+  .field{flex-wrap:wrap}
+  .field>label{width:100%;margin-bottom:1px}
+  .field>.grow{width:100%}
+  #panels{height:82dvh;max-height:82dvh}
+}
+
+/* ── apaisado en móvil: sobra ancho y falta altura ── */
+@media (max-width:900px) and (max-height:480px) and (orientation:landscape){
+  /* Aquí sí hace falta #menubar: en este modo no hay #mobilebar (no
+     cabe una fila más con tan poca altura), así que su hamburguesa y
+     su botón de paneles vuelven a ser el único camino a ellos. Y como
+     es su propia fila la que absorbe el notch aquí (ver su alto más
+     abajo), el padding-top del contenedor —pensado para cuando
+     #menubar no existe— se quita, o el notch se contaría dos veces. */
+  #menubar{display:flex}
+  /* Sin fila para #mobilebar en esta rejilla: si se queda visible, el
+     grid la coloca en una columna implícita a la derecha y le roba
+     casi medio ancho al lienzo. Aquí su papel lo hace #menubar. */
+  #mobilebar{display:none}
+  #app{padding-top:0}
+  #app{
+    grid-template-columns:var(--toolbar) 1fr;
+    grid-template-rows:calc(var(--menubar) + env(safe-area-inset-top)) var(--optionsbar) 1fr;
+    grid-template-areas:
+      "menu  menu"
+      "opts  opts"
+      "tools canvas";
+  }
+  #tools{
+    display:flex;
+    flex-direction:column;
+    border-top:0;border-right:1px solid var(--line);
+    padding:4px 0;
+    overflow-y:auto;overflow-x:hidden;
+  }
+  .tool-sep{width:auto;height:1px;margin:5px 8px;align-self:auto}
+  #panels{
+    /* `position:fixed` ya viene de la regla base de #panels; con
+       `top:0` Y `bottom:0` puestos a la vez no hace falta ningún
+       `height` —ni en vh/dvh, con los fallos ya vistos en iOS
+       instalado, ni ninguna otra unidad—: el propio navegador calcula
+       el alto real entre esos dos bordes, sin intermediarios. */
+    top:0;bottom:0;left:auto;right:0;height:auto;max-height:none;
+    width:min(320px,58vw);
+    border-radius:0;border-left:1px solid var(--line-strong);border-top:0;
+    transform:translateX(100%);
+  }
+  #panels.open{transform:translateX(0)}
+  #sheetGrip{display:none}
+  #toast{bottom:44px}   /* por encima del asa «Herramientas» */
+}
+
+/* ── pantallas muy anchas: los paneles pueden respirar ── */
+@media (min-width:1600px){
+  :root{--panel-w:300px}
+}
+@media (min-width:2000px){
+  :root{--panel-w:330px;--fs:13px;--fs-sm:12px}
+}
+
+/* ── Adaptive Photo Lens en móvil: todo apilado, todo a dedo ── */
+@media (max-width:768px){
+  .lens-grid{grid-template-columns:1fr;gap:10px;align-items:stretch}
+  .lens-field select{width:100%;min-height:44px;font-size:var(--fs)}
+  .lens-detect{min-height:46px;font-size:var(--fs)}
+  .lens-badge{min-height:44px;white-space:normal;line-height:1.3}
+  .lens-chip{min-height:44px;flex:1 1 auto;padding:0 12px}
+  .lens-amount{flex-direction:column;align-items:stretch;gap:6px}
+  .lens-amount>label{width:auto}
+  .lens-amount b{width:auto;text-align:left}
+  .lens-amount input[type=range]{min-height:44px}
+  .lens-adj{grid-template-columns:1fr;gap:4px}
+  .lens-adj-row{flex-direction:column;align-items:stretch;gap:2px;padding:4px 0}
+  .lens-adj-name{width:auto}
+  .lens-adj-row input[type=range]{min-height:40px}
+  .lens-adj-val{width:auto;text-align:right;margin-top:-22px;pointer-events:none}
+  .lens-adv-foot button{min-height:44px;width:100%}
+  .modal-card.dlg-lens{max-height:92dvh}
+}

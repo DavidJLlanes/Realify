@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS
+   Un editor de imagen se mira durante horas y compite con la propia
+   imagen por la atención. Por eso todo el gris es neutro de verdad
+   (sin tinte azul ni verde): cualquier dominante en el marco engaña
+   al ojo al juzgar el color de la foto. Es la razón por la que
+   Photoshop, Capture One y Photopea son grises y no azules.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── superficies, de más hundida a más elevada ── */
+  --s-900:#141517;   /* fondo del lienzo, lo más oscuro */
+  --s-800:#1b1d20;   /* fondo de la aplicación */
+  --s-700:#212428;   /* paneles */
+  --s-600:#282c31;   /* controles, cabeceras */
+  --s-500:#31363c;   /* control con el ratón encima */
+  --s-400:#3c424a;   /* control pulsado */
+
+  /* ── líneas ── */
+  --line:#33383e;
+  --line-soft:#2a2e33;
+  --line-strong:#454c55;
+
+  /* ── texto ── */
+  --tx:#d6dade;
+  --tx-dim:#8e969f;
+  --tx-faint:#646c75;
+  --tx-off:#4a5058;
+
+  /* ── acento: el ámbar de sala de revelado ── */
+  --ac:#e8a33d;
+  --ac-hi:#f4b65c;
+  --ac-lo:#8a6224;
+  --ac-ghost:rgba(232,163,61,.14);
+  --on-ac:#20180a;
+
+  /* ── semántica ── */
+  --ok:#4a9d63;
+  --warn:#e8a33d;
+  --bad:#c25548;
+  --info:#4a7fb5;
+
+  /* ── métrica ── */
+  --menubar:30px;
+  --docbar:38px;
+  --optionsbar:34px;
+  --statusbar:24px;
+  --toolbar:44px;
+  --panel-w:268px;
+  --r:3px;
+  --r-lg:5px;
+
+  /* ── tipografía ── */
+  --ui:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,monospace;
+  --fs:12.5px;
+  --fs-sm:11.5px;
+  --fs-xs:10.5px;
+
+  /* ── sombras ── */
+  --sh-1:0 1px 3px rgba(0,0,0,.4);
+  --sh-2:0 4px 14px rgba(0,0,0,.45);
+  --sh-3:0 12px 38px rgba(0,0,0,.55);
+
+  /* ── tamaño mínimo de blanco táctil ── */
+  --touch:46px;
+}
+
+/* Un tema claro completo es otro proyecto; se deja el enganche
+   puesto para no tener que reescribir los colores luego. */
+:root[data-theme="light"]{
+  --s-900:#c8ccd0; --s-800:#e4e7ea; --s-700:#eef0f2;
+  --s-600:#e2e5e8; --s-500:#d6dade; --s-400:#c4cad0;
+  --line:#c3c8cd; --line-soft:#d5d9dd; --line-strong:#a8afb6;
+  --tx:#1d2125; --tx-dim:#5a626a; --tx-faint:#7d858d; --tx-off:#9aa2a9;
+  --on-ac:#20180a;
+}
+
+@media (pointer:coarse){
+  :root{ --toolbar:52px; --fs:13px; --fs-sm:12px; }
+}

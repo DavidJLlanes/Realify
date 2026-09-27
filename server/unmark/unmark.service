@@ -1,0 +1,21 @@
+[Unit]
+Description=Unmark server (Realify)
+After=network.target
+
+[Service]
+User=unmark
+Group=unmark
+WorkingDirectory=/opt/unmark
+Environment=UNMARK_TOKEN=CAMBIA-ESTE-TOKEN
+Environment=UNMARK_ORIGINS=https://realify.es,https://www.realify.es
+Environment=UNMARK_MAX_MP=6
+Environment=UNMARK_PORT=8765
+# Environment=UNMARK_DEVICE=cuda
+ExecStart=/opt/unmark/venv/bin/uvicorn app:app --host 127.0.0.1 --port 8765 --timeout-keep-alive 300
+Restart=on-failure
+RestartSec=5
+# Un trabajo de difusión puede tardar minutos: no matarlo al parar
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

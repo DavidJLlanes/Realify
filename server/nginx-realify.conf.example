@@ -1,0 +1,75 @@
+# ════════════════════════════════════════════════════════════════
+#  Realify en nginx: equivalente de .htaccess (que nginx ignora).
+#  Copiar DENTRO del bloque `server { … }` de realify.es que escucha en
+#  el 443 (el que creó certbot), sin tocar sus líneas ssl_* ni root.
+#  Después:  sudo nginx -t  &&  sudo systemctl reload nginx
+# ════════════════════════════════════════════════════════════════
+
+    # ── Cabeceras de seguridad ──────────────────────────────────────
+    # `always` para que salgan también en 404/301. No usar add_header
+    # dentro de los location de abajo: en nginx eso anula TODAS estas.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # CSP en modo INFORME primero: no bloquea nada, sólo avisa en la
+    # consola del navegador de lo que bloquearía. Tras probar la app
+    # unos días sin avisos, cambiar el nombre de la cabecera a
+    # «Content-Security-Policy» para que se aplique de verdad.
+    add_header Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' www.googletagmanager.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' fonts.gstatic.com; connect-src 'self' blob: data: www.googletagmanager.com https://*.google-analytics.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'none';" always;
+
+    # ── Compresión ──────────────────────────────────────────────────
+    # text/html ya va siempre; no repetirlo aquí.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css text/javascript application/javascript application/json
+               application/manifest+json image/svg+xml application/wasm text/plain
+               application/xml;
+
+    # ── Nunca públicos ──────────────────────────────────────────────
+    location ^~ /log/    { return 404; }
+    location ^~ /server/ { return 404; }
+    location = /IDEAS_Y_HOJA_DE_RUTA.md { return 404; }
+    location ~ /\.(?!well-known/) { return 404; }   # .htaccess, .git, .env… (no toca certbot)
+
+    # ── Código y páginas: siempre se revalidan ─────────────────────
+    # «no-cache» no es «no guardar»: el navegador pregunta con su ETag
+    # y el servidor contesta un 304 vacío si no cambió. Así una versión
+    # nueva se ve al instante (el service worker pide a la red a través
+    # de esta misma caché HTTP; con 30 días, como tenía .htaccess, un
+    # móvil podía seguir con JS viejo un mes entero).
+    # El bloque `types` corrige los dos tipos que faltan en nginx 1.24:
+    # .webmanifest (salía como application/octet-stream) y .mjs.
+    location ~* \.(?:html|css|js|mjs|json|webmanifest)$ {
+        types {
+            text/html                 html;
+            text/css                  css;
+            text/javascript           js mjs;
+            application/json          json;
+            application/manifest+json webmanifest;
+        }
+        expires -1;
+    }
+
+    # ── Imágenes, fuentes y motor de IA: caché de 30 días ──────────
+    location ~* \.(?:png|jpe?g|gif|webp|ico|svg|woff2?|ttf|otf|wasm|onnx)$ {
+        expires 30d;
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+#  Opcional: que www.realify.es redirija a realify.es (ahora mismo
+#  responden las dos con el mismo contenido). Bloque APARTE, fuera del
+#  anterior. Las rutas del certificado son las que ya use el bloque
+#  principal (certbot suele emitir uno solo para ambos nombres); si el
+#  bloque principal lista «server_name realify.es www.realify.es;»,
+#  quitar de ahí «www.realify.es».
+# ════════════════════════════════════════════════════════════════
+# server {
+#     listen 443 ssl http2;
+#     server_name www.realify.es;
+#     ssl_certificate     /etc/letsencrypt/live/realify.es/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/realify.es/privkey.pem;
+#     return 301 https://realify.es$request_uri;
+# }

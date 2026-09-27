@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="dark">
+
+<!-- SEO TÍTULOS Y DESCRIPCIONES -->
+<title>Realify | Humaniza tus Imágenes de IA</title>
+<meta name="description" content="Realify humaniza tus imágenes de IA: ruido de sensor, óptica y compresión de cámara real para evitar detectores. Privado, sin servidores.">
+<meta name="keywords" content="realify, humanizar imágenes IA, editor de imágenes, detectores de IA, simulación fotográfica, ruido de sensor, aberración cromática, privado, local, sin servidor">
+<meta name="author" content="David">
+
+<!-- SEO MOBILE Y ACCESIBILIDAD -->
+<meta name="theme-color" content="#212428">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Realify">
+
+<!-- OPEN GRAPH (REDES SOCIALES) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Realify - Humaniza tus Imágenes de IA">
+<meta property="og:description" content="Ruido de sensor, óptica y compresión de una cámara real sobre imágenes generadas por IA. Todo el procesado ocurre en tu equipo, sin servidores.">
+<meta property="og:image" content="https://realify.es/assets/og-image-1200x630.webp">
+<meta property="og:image:alt" content="Realify - Editor de imágenes para humanizar fotos de IA">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/webp">
+<meta property="og:image:secure_url" content="https://realify.es/assets/og-image-1200x630.webp">
+<meta property="og:url" content="https://realify.es/">
+<meta property="og:site_name" content="Realify">
+<meta property="og:locale" content="es_ES">
+
+<!-- TWITTER CARD -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Realify - Humaniza tus Imágenes de IA">
+<meta name="twitter:description" content="Ruido, óptica y compresión de cámara real sobre imágenes generadas por IA. Privado, sin servidores.">
+<meta name="twitter:image" content="https://realify.es/assets/og-image-1200x630.webp">
+<meta name="twitter:image:alt" content="Realify - Editor de imágenes para humanizar fotos de IA">
+
+<!-- SCHEMA.ORG JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Realify",
+  "description": "Editor de imágenes que convierte fotos generadas por IA en fotografías realistas, simulando la cadena de captura de una cámara real: ruido de sensor, óptica, compresión. Procesado íntegramente local, sin servidores.",
+  "url": "https://realify.es/",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web, Windows, macOS, Linux",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "David"
+  },
+  "image": "https://realify.es/assets/og-image-1200x630.webp",
+  "inLanguage": "es-ES",
+  "isAccessibleForFree": true,
+  "keywords": "realify, editor de imágenes, detectores de IA, simulación fotográfica, privado, local"
+}
+</script>
+
+<!-- ICONOGRAFÍA Y MANIFEST -->
+<link rel="manifest" href="manifest.webmanifest">
+
+<!-- Favicon: el .webp va primero para el navegador que lo entienda (más
+     nitidez a menos peso); el .ico en la raíz es lo que navegadores y
+     crawlers viejos piden por defecto sin declaración, y el resto de
+     PNG cubre cada densidad de pestaña/marcador donde no llega el webp. -->
+<link rel="icon" type="image/webp" sizes="any" href="assets/favicon.webp">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
+<link rel="icon" type="image/png" sizes="96x96" href="assets/favicon-96.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
+
+<!-- Apple touch icon: 180 es lo único que Apple recomienda declarar
+     hoy (iPhone @3x, escala el resto solo); el resto es compatibilidad
+     con hardware que WebKit sigue soportando si aparece declarado. -->
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="57x57" href="assets/apple-touch-icon-57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="assets/apple-touch-icon-60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="assets/apple-touch-icon-72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="assets/apple-touch-icon-76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="assets/apple-touch-icon-114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="assets/apple-touch-icon-120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="assets/apple-touch-icon-144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="assets/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="assets/apple-touch-icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon-180.png">
+
+<!-- Safari, pestaña fijada: exige un SVG monocromo silueteado, no una
+     miniatura del icono real —Safari lo tiñe él mismo del color que
+     el usuario elija—, así que sigue siendo el trazo geométrico
+     simple en vez de una versión reducida del icono con degradados. -->
+<link rel="mask-icon" href="assets/safari-pinned-tab.svg" color="#171b1f">
+
+<!-- Windows: un solo browserconfig.xml en vez de listar cada tile -->
+<meta name="msapplication-config" content="/browserconfig.xml">
+
+<!-- PRECONNECT Y PREFETCH (RENDIMIENTO) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+
+<!-- CANONICAL Y ALTERNATE -->
+<link rel="canonical" href="https://realify.es/">
+<link rel="alternate" hreflang="es" href="https://realify.es/">
+<link rel="alternate" hreflang="x-default" href="https://realify.es/">
+
+<!-- VERIFICACIÓN MOTORES BÚSQUEDA -->
+<meta name="google-site-verification" content="">
+<meta name="msvalidate.01" content="">
+
+<!-- ROBOTS Y CRAWLING -->
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+<meta name="bingbot" content="index, follow">
+
+<!-- PRIVACIDAD Y SEGURIDAD -->
+<!-- X-Content-Type-Options, X-Frame-Options y X-XSS-Protection sólo
+     funcionan como cabecera HTTP real, nunca vía <meta>: el navegador
+     los ignora con un aviso en consola si se ponen aquí. Ya están
+     configurados como cabeceras reales en .htaccess (Nginx: ver plantilla
+     en backup/files/nginx.conf.example). -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- FUENTES Y ESTILOS -->
+<link rel="preload" href="css/tokens.css" as="style">
+<link rel="preload" href="css/base.css" as="style">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="raw/raw.css">
+
+<!-- ANALYTICS: desactivada mientras GA_ID esté vacío. Antes se cargaba
+     Google Tag Manager con el ID de marcador «G-», que hacía una petición
+     inútil a Google y contradecía el aviso de cookies («no usa cookies de
+     analítica»). Si se pone un ID real (p. ej. "G-ABC123XYZ"), hay que
+     cambiar también ese aviso y pedir consentimiento antes de cargarla. -->
+<script>
+  (function(){
+    var GA_ID = "";
+    if(!/^G-[A-Z0-9]{4,}$/.test(GA_ID)) return;
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ dataLayer.push(arguments); };
+    gtag('js', new Date());
+    gtag('config', GA_ID, {
+      'page_path': window.location.pathname,
+      'anonymize_ip': true
+    });
+  })();
+</script>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="app">
+
+  <!-- ───────────── barra de menús ───────────── -->
+  <header id="menubar">
+    <button id="mMenu" aria-label="Menú">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div id="brand"><img class="brand-logo" src="assets/logo-app.webp" width="20" height="20" alt=""><span>Realify</span><small>editor</small></div>
+    <nav id="menuRoots" aria-label="Menú principal"></nav>
+    <div class="spring"></div>
+    <button id="mPanels" aria-label="Paneles">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+    </button>
+  </header>
+
+  <!-- ───────────── pestañas de documento ─────────────
+       Oculta con un solo documento abierto; ver js/ui/docbar.js. -->
+  <nav id="docbar" role="tablist" aria-label="Documentos abiertos"></nav>
+
+  <!-- ───────────── opciones de la herramienta ───────────── -->
+  <div id="optsbar" role="toolbar" aria-label="Opciones de herramienta"></div>
+
+  <!-- ───────────── herramientas ───────────── -->
+  <div id="tools" role="toolbar" aria-label="Herramientas"></div>
+
+  <!-- ───────────── lienzo ───────────── -->
+  <main id="stage">
+    <div id="scroller">
+      <div id="board"></div>
+    </div>
+
+    <div id="empty">
+      <div class="drop-ring">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.8"/><path d="m21 15-5-5L5 21"/></svg>
+      </div>
+      <h1>Sin documento abierto</h1>
+      <p>Empieza con una imagen o continúa donde lo dejaste. Todo el procesado ocurre en tu equipo.</p>
+      <div class="welcome-grid">
+        <button class="primary" data-cmd="file.open"><b>Abrir imagen</b><span>Desde este dispositivo</span></button>
+        <button class="welcome-camera" data-cmd="file.camera"><b>Hacer foto</b><span>Con la cámara del móvil</span></button>
+        <button data-cmd="file.pasteImage"><b>Pegar imagen</b><span>Desde el portapapeles</span></button>
+        <button data-cmd="file.batch"><b>Abrir lote</b><span>Procesar varias imágenes</span></button>
+        <button data-cmd="file.openProject"><b>Abrir proyecto</b><span>Capas y ajustes intactos</span></button>
+        <button id="continueRecent" data-cmd="file.openRecent" hidden><b>Continuar proyecto reciente</b><span id="recentProjectName">Guardado en este dispositivo</span></button>
+        <button data-cmd="file.new"><b>Documento nuevo</b><span>Lienzo vacío</span></button>
+      </div>
+      <p class="drop-help">También puedes arrastrar una imagen o un proyecto hasta aquí.</p>
+    </div>
+
+    <div id="zoomPill">
+      <button data-cmd="view.zoomOut" aria-label="Alejar">−</button>
+      <span class="lvl" id="zoomPillLvl">—</span>
+      <button data-cmd="view.zoomIn" aria-label="Acercar">+</button>
+      <button data-cmd="view.fit" aria-label="Ajustar">⤢</button>
+    </div>
+    <div id="msgPill"></div>
+    <!-- Asa del cajón de herramientas (sólo móvil; ver js/ui/tooldrawer.js) -->
+    <button id="toolsHandle" type="button" aria-label="Herramientas" aria-expanded="false" hidden>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+      <span>Herramientas</span>
+    </button>
+    <button id="compareFab" aria-label="Comparar antes y después" title="Comparar antes y después" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 3v18"/><path d="m5 8-3 4 3 4"/><path d="M15 3v18"/><path d="m19 8 3 4-3 4"/>
+      </svg>
+    </button>
+  </main>
+
+  <!-- ───────────── paneles ───────────── -->
+  <aside id="panels">
+    <div id="sheetGrip" aria-hidden="true"></div>
+
+    <section class="panel grow" id="panel-layers">
+      <div class="panel-head">
+        <span class="caret">▾</span>
+        <h3>Capas</h3>
+        <div class="tools">
+          <button class="icon ghost" data-cmd="layer.add" title="Nueva capa" aria-label="Nueva capa">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/></svg></button>
+          <button class="icon ghost" data-cmd="layer.duplicate" title="Duplicar" aria-label="Duplicar capa">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7">
+              <rect x="9" y="9" width="11" height="11" rx="1.5"/>
+              <path d="M5 15V5a1 1 0 0 1 1-1h9"/></svg></button>
+          <button class="icon ghost danger" data-cmd="layer.remove" title="Eliminar" aria-label="Eliminar capa">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <label for="layerOpacity">Opacidad</label>
+          <input type="range" id="layerOpacity" class="grow" min="0" max="100" value="100">
+          <span class="unit mono" id="layerOpacityVal">100%</span>
+        </div>
+        <div class="field">
+          <label for="layerBlend">Fusión</label>
+          <select id="layerBlend" class="grow">
+            <option value="source-over">Normal</option>
+            <option value="dissolve">Disolver</option>
+            <optgroup label="Oscurecer">
+              <option value="darken">Oscurecer</option>
+              <option value="multiply">Multiplicar</option>
+              <option value="color-burn">Subexponer color</option>
+              <option value="linear-burn">Quemar lineal</option>
+              <option value="darker-color">Color más oscuro</option>
+            </optgroup>
+            <optgroup label="Aclarar">
+              <option value="lighten">Aclarar</option>
+              <option value="screen">Trama</option>
+              <option value="color-dodge">Sobreexponer color</option>
+              <option value="lighter">Sumar (dodge lineal)</option>
+              <option value="lighter-color">Color más claro</option>
+            </optgroup>
+            <optgroup label="Contraste">
+              <option value="overlay">Superponer</option>
+              <option value="soft-light">Luz suave</option>
+              <option value="hard-light">Luz fuerte</option>
+              <option value="vivid-light">Luz intensa</option>
+              <option value="linear-light">Luz lineal</option>
+              <option value="pin-light">Luz suave puntual</option>
+              <option value="hard-mix">Mezcla fuerte</option>
+            </optgroup>
+            <optgroup label="Comparar">
+              <option value="difference">Diferencia</option>
+              <option value="exclusion">Exclusión</option>
+              <option value="subtract">Restar</option>
+              <option value="divide">Dividir</option>
+            </optgroup>
+            <optgroup label="Componente">
+              <option value="hue">Tono</option>
+              <option value="saturation">Saturación</option>
+              <option value="color">Color</option>
+              <option value="luminosity">Luminosidad</option>
+            </optgroup>
+          </select>
+        </div>
+        <hr>
+        <div id="layerList"></div>
+      </div>
+    </section>
+
+    <section class="panel fixed" id="panel-props">
+      <div class="panel-head">
+        <span class="caret">▾</span>
+        <h3>Propiedades</h3>
+      </div>
+      <div class="panel-body" style="max-height:420px">
+        <p class="hint" id="propsEmpty" style="margin:0">Selecciona una capa de ajuste, de
+          texto, con máscara o con un filtro reeditable para ver aquí sus mandos, siempre
+          a la vista y sin abrir ningún diálogo.</p>
+        <div id="propsBody"></div>
+      </div>
+    </section>
+
+    <section class="panel closed fixed" id="panel-history">
+      <div class="panel-head">
+        <span class="caret">▾</span>
+        <h3>Historial</h3>
+        <div class="tools">
+          <button class="icon ghost" data-cmd="snapshot.add" title="Nueva instantánea" aria-label="Nueva instantánea">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="13" r="6"/><path d="M9 4h6l1.5 3h-9z"/></svg></button>
+          <button class="icon ghost" data-cmd="edit.undo" title="Deshacer" aria-label="Deshacer">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+          <button class="icon ghost" data-cmd="edit.redo" title="Rehacer" aria-label="Rehacer">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+        </div>
+      </div>
+      <div class="panel-body" style="max-height:280px">
+        <div id="snapshotList"></div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <section class="panel closed fixed" id="panel-info">
+      <div class="panel-head">
+        <span class="caret">▾</span>
+        <h3>Información</h3>
+      </div>
+      <div class="panel-body">
+        <div id="infoBody" class="hint" style="margin:0"></div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ───────────── barra de estado ───────────── -->
+  <footer id="statusbar">
+    <div class="cell" id="zoomCell"><b>Zoom</b><span class="v" id="stZoom">—</span></div>
+    <div class="cell"><b>Tamaño</b><span class="v" id="stSize">—</span></div>
+    <div class="cell"><b>Capa</b><span class="v" id="stLayer">—</span></div>
+    <div class="cell" id="stPosCell"><b>Cursor</b><span class="v" id="stPos">—</span></div>
+    <div class="cell spring"></div>
+    <div class="cell msg" id="stMsg"></div>
+  </footer>
+
+  <nav id="mobilebar" aria-label="Acciones principales">
+    <button data-cmd="file.open" aria-label="Abrir"><span aria-hidden="true">＋</span><b>Abrir</b></button>
+    <button data-cmd="view.panels" aria-label="Capas"><span aria-hidden="true">▱</span><b>Capas</b></button>
+    <button data-cmd="file.export" aria-label="Exportar"><span aria-hidden="true">⇧</span><b>Exportar</b></button>
+    <button data-cmd="edit.undo" aria-label="Deshacer"><span aria-hidden="true">↶</span><b>Deshacer</b></button>
+    <button data-cmd="edit.redo" aria-label="Rehacer"><span aria-hidden="true">↷</span><b>Rehacer</b></button>
+    <button id="mobilebarMenu" aria-label="Menú"><span aria-hidden="true">☰</span><b>Menú</b></button>
+  </nav>
+
+</div>
+
+<div id="sheetVeil"></div>
+<div id="toast"></div>
+
+<div id="cookieBar" class="cookiebar" role="region" aria-label="Aviso de cookies" hidden>
+  <p><span class="cb-long">Esta aplicación no usa cookies de analítica, publicidad ni seguimiento: sólo
+    guarda tus propias preferencias de uso en tu navegador, y eso nunca sale de tu
+    equipo.</span><span class="cb-short">Sin cookies de seguimiento: sólo tus preferencias,
+    en este navegador.</span> <a href="#" data-cmd="help.cookies">Más información</a></p>
+  <button type="button" class="primary" data-cookie-accept>Entendido</button>
+</div>
+
+<input type="file" id="filePicker" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
+<input type="file" id="cameraPicker" accept="image/*" capture="environment" hidden>
+<input type="file" id="filePickerMulti" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
+<input type="file" id="filePickerStack" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
+<input type="file" id="projectPicker" accept=".realify,application/vnd.realify+json,application/json" hidden>
+
+<script src="js/vendor/ag-psd.js"></script>
+<script src="js/vendor/utif.js"></script>
+<script src="js/vendor/heic2any.min.js"></script>
+<script type="module" src="js/main.js?v=94"></script>
+
+</body>
+</html>

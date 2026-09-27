@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .icon-stroke { stroke: #4DA6FF; }
+        .icon-fill { fill: #4DA6FF; }
+      }
+      @media (prefers-color-scheme: light) {
+        .icon-stroke { stroke: #0066CC; }
+        .icon-fill { fill: #0066CC; }
+      }
+    </style>
+  </defs>
+  <!-- Frame principal (lienzo/rectángulo) -->
+  <rect x="24" y="24" width="144" height="144" fill="none" class="icon-stroke" stroke-width="8" rx="16"/>
+  <!-- Punto de esquina (foto) -->
+  <circle cx="72" cy="72" r="8" class="icon-fill"/>
+  <!-- Línea diagonal (edición/trazo) -->
+  <line x1="56" y1="136" x2="136" y2="56" class="icon-stroke" stroke-width="8" stroke-linecap="round"/>
+</svg>

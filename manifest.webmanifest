@@ -1,0 +1,49 @@
+{
+  "name": "Realify - Editor de Imágenes para Evitar Detectores de IA",
+  "short_name": "Realify",
+  "description": "Editor de imágenes que convierte fotos generadas por IA en fotografías realistas y evita detectores. Herramientas avanzadas, privado y sin servidores.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#212428",
+  "theme_color": "#212428",
+  "prefer_related_applications": false,
+  "categories": ["productivity", "graphics"],
+  "icons": [
+    { "src": "assets/android-48.webp",  "sizes": "48x48",   "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-72.webp",  "sizes": "72x72",   "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-96.webp",  "sizes": "96x96",   "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-128.webp", "sizes": "128x128", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-144.webp", "sizes": "144x144", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-152.webp", "sizes": "152x152", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-256.webp", "sizes": "256x256", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-384.webp", "sizes": "384x384", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any" },
+    { "src": "assets/android-maskable-48.webp",  "sizes": "48x48",   "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-72.webp",  "sizes": "72x72",   "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-96.webp",  "sizes": "96x96",   "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-128.webp", "sizes": "128x128", "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-144.webp", "sizes": "144x144", "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-152.webp", "sizes": "152x152", "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-256.webp", "sizes": "256x256", "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-384.webp", "sizes": "384x384", "type": "image/webp", "purpose": "maskable" },
+    { "src": "assets/android-maskable-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Abrir imagen",
+      "short_name": "Abrir",
+      "description": "Abre una imagen en Realify para editarla",
+      "url": "/?action=open"
+    },
+    {
+      "name": "Documento nuevo",
+      "short_name": "Nuevo",
+      "description": "Crea un documento nuevo en Realify",
+      "url": "/?action=new"
+    }
+  ]
+}

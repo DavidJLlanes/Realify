@@ -1,0 +1,165 @@
+# Realify - SEO & Performance Configuration
+# Apache .htaccess para optimización
+
+# ============================================
+# SEGURIDAD
+# ============================================
+<IfModule mod_headers.c>
+  # Prevenir MIME type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Prevenir clickjacking
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # XSS Protection
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # Referrer Policy
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Política de Seguridad de Contenido (CSP)
+  # blob: lo necesita el códec local y la exportación.
+  # connect-src: la app no sale a la red, con UNA excepción opcional: el
+  # filtro Unmark puede enviar la imagen al servidor propio del usuario
+  # (regeneración por difusión y relleno LaMa; ver server/unmark). Para
+  # que el navegador lo permita, añade aquí el origen de ese servidor,
+  # p.ej.  connect-src 'self' www.googletagmanager.com https://unmark.tudominio.es;
+  # Modelos de IA (js/ai): 'wasm-unsafe-eval' deja compilar el motor ONNX
+  # Runtime local (js/vendor/ort), y huggingface.co + *.hf.co (su CDN)
+  # sirven los pesos de los modelos grandes, que se DESCARGAN la primera
+  # vez que se usan. Sólo se bajan pesos: la imagen nunca sale del equipo.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' www.googletagmanager.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' fonts.gstatic.com; connect-src 'self' www.googletagmanager.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'none';"
+</IfModule>
+
+# ============================================
+# COMPRESIÓN Y CACHÉ (Core Web Vitals)
+# ============================================
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE application/xhtml+xml
+  AddOutputFilterByType DEFLATE application/rss+xml
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/x-javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ============================================
+# CACHÉ DEL NAVEGADOR
+# ============================================
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Cache de 1 año para archivos estáticos versionados
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+
+  # Cache de 30 días para CSS y JS
+  ExpiresByType text/css "access plus 30 days"
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType text/javascript "access plus 30 days"
+
+  # Sin caché para HTML (permite updates frecuentes)
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+
+  # Cache por defecto
+  ExpiresDefault "access plus 2 days"
+</IfModule>
+
+# ============================================
+# REESCRITURA DE URLs (Fallback para SPA)
+# ============================================
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # No reescribir archivos existentes
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Redirigir todas las URLs a index.html (app SPA)
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# ============================================
+# ETAGS Y VALIDACIÓN
+# ============================================
+<IfModule mod_headers.c>
+  Header unset ETag
+</IfModule>
+
+FileETag None
+
+# ============================================
+# TIPO MIME CORRECTO
+# ============================================
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType application/json .json
+  AddType image/webp .webp
+  AddType image/x-icon .ico
+  AddType text/javascript .js
+  # Motor ONNX Runtime (js/vendor/ort): con nosniff, un .mjs sin tipo
+  # JavaScript no carga como módulo, y un .wasm sin su tipo se compila
+  # por la vía lenta.
+  AddType text/javascript .mjs
+  AddType application/wasm .wasm
+  AddEncoding gzip .js.gz
+  AddEncoding gzip .css.gz
+
+  # Font types
+  AddType font/woff2 .woff2
+  AddType font/woff .woff
+  AddType font/ttf .ttf
+  AddType font/otf .otf
+</IfModule>
+
+# ============================================
+# PRECOMPRESIÓN (si existen archivos .gz)
+# ============================================
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{REQUEST_FILENAME}.gz -f
+  RewriteRule ^(.*)$ $1.gz [QSA]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header append Vary Accept-Encoding
+</IfModule>
+
+# ============================================
+# REDIRECTS TEMPORALES PARA SEO
+# ============================================
+# Redirect 301 /old-page /new-page
+
+# ============================================
+# ACCESO A ARCHIVOS DE CONFIGURACIÓN
+# ============================================
+<FilesMatch "^\.">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<FilesMatch "\.(json|xml|md)$">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+</FilesMatch>

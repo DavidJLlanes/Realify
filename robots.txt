@@ -1,0 +1,32 @@
+# Realify - Editor de Imágenes
+# SEO Robots Configuration
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /css/
+Allow: /js/
+
+# Permitir indexación de todas las páginas
+Allow: /?*
+
+# Disallow private API endpoints (si aplica)
+Disallow: /admin/
+Disallow: /private/
+Disallow: /api/private/
+
+# Especificar sitemap (debe ser URL absoluta según el estándar)
+Sitemap: https://realify.es/sitemap.xml
+
+# Crawl delay (permitir crawl agresivo)
+Crawl-delay: 0
+
+# Política de robots más permisiva para Googlebot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1

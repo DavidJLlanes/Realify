@@ -1,0 +1,28 @@
+/* ═════════════════════════════════════════════════════════════
+   REALIFY - EDITOR DE IMÁGENES IA
+   ═════════════════════════════════════════════════════════════ */
+
+/* TEAM */
+Developer: David
+
+/* SITE */
+Last Update: 2026-09-08
+Standards: HTML5, CSS3, ES6+
+Components: SPA (Single Page Application)
+
+/* DESIGN & DEVELOPMENT */
+Design Philosophy: Professional, minimal, dark mode optimized
+Performance First: Client-side processing, zero server uploads
+Privacy Focused: All data stays on your device
+
+/* TECHNOLOGIES USED */
+Frontend: Vanilla ES6 modules, Canvas 2D, WebGL2
+Architecture: Modular ES6 modules, event bus pattern
+Storage: localStorage (preferences), Service Worker (offline)
+
+/* MISSION */
+Convertir imágenes generadas por IA en fotografías realistas,
+simulando la cadena de captura completa de una cámara real —óptica,
+sensor, compresión— sin subir nada a ningún servidor.
+
+═════════════════════════════════════════════════════════════
