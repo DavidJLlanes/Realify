@@ -21,6 +21,7 @@ import { TOOLS, current, setTool } from "../editor/tools.js";
 import { haptic } from "../core/device.js";
 import { MENUS } from "./menu.js";
 import { ICONS } from "./tooldrawer-icons.js";
+import { matchScore, searchable } from "../core/search.js";
 
 const CATS = [
   ["todos",     "Todos"],
@@ -185,6 +186,7 @@ const ITEMS = [
   { tool:"historyBrush", label:"Pincel de historial", cat:"pintar retoque" },
   { tool:"picker",       label:"Cuentagotas",  cat:"pintar" },
   { cmd:"layer.meme",      label:"Crear meme",     ic:"sticker",   cat:"pintar" },
+  { cmd:"layer.stickers",  label:"Stickers",       ic:"sparkles",  cat:"pintar estilo" },
   { cmd:"layer.watermark", label:"Marca de agua",  ic:"copyright", cat:"pintar" },
   { cmd:"layer.styles",    label:"Estilos de capa", ic:"layers-plus", cat:"pintar estilo" },
 
@@ -242,17 +244,36 @@ function checkCoverage(){
   if(missing.length) console.warn("[cajón] comandos sin entrada:", missing.join(", "));
 }
 
-let drawer, veil, tabsEl, gridEl, handle, cat = "todos", openState = false;
+let drawer, veil, tabsEl, gridEl, searchEl, emptyEl, handle, cat = "todos", openState = false, query = "";
 
-function itemsFor(c){
-  if(c === "todos"){
-    /* «Todos» en orden alfabético, como Snapseed —así se encuentra
-       algo por su nombre sin saber en qué pestaña cae—, salvo
-       «Automático», que se queda el primero. */
-    const [auto, ...rest] = ITEMS;
-    return [auto, ...rest.slice().sort((a, b) => a.label.localeCompare(b.label, "es"))];
+/* Texto en el que busca el buscador: el nombre corto del cajón y, si
+   el comando está en un menú con otro nombre, también ése. */
+const menuLabels = new Map();
+(function collectLabels(items){
+  for(const it of items){
+    if(it.submenu) collectLabels(it.submenu);
+    else if(it.items) collectLabels(it.items);
+    else if(it.cmd && it.label) menuLabels.set(it.cmd, it.label.replace(/…|\(.*?\)/g, ""));
   }
-  return ITEMS.filter(i => i.cat.split(" ").includes(c));
+})(MENUS);
+const haystack = new Map();
+const searchTextOf = it => {
+  if(!haystack.has(it)) haystack.set(it, searchable(`${it.label} ${(it.cmd && menuLabels.get(it.cmd)) || ""}`));
+  return haystack.get(it);
+};
+
+/* Cada pestaña en orden alfabético —como Snapseed: así se encuentra
+   algo por su nombre—, salvo «Automático», que se queda el primero
+   allí donde aparece. Con algo escrito en el buscador, sólo lo que
+   coincide DENTRO de la pestaña activa: primero lo que contiene las
+   palabras tal cual y después lo que se les parece (erratas). */
+const byLabel = (a, b) => a.label.localeCompare(b.label, "es");
+function itemsFor(c){
+  const list = c === "todos" ? ITEMS.slice() : ITEMS.filter(i => i.cat.split(" ").includes(c));
+  const auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto).sort(byLabel);
+  if(!query.trim()) return [...auto, ...rest];
+  const scored = [...auto, ...rest].map(it => [it, matchScore(query, searchTextOf(it))]).filter(([, s]) => s > 0);
+  return [...scored.filter(([, s]) => s === 2), ...scored.filter(([, s]) => s === 1)].map(([it]) => it);
 }
 
 function renderTabs(){
@@ -272,7 +293,14 @@ function renderTabs(){
 
 function renderGrid(){
   gridEl.innerHTML = "";
-  for(const it of itemsFor(cat)){
+  const items = itemsFor(cat);
+  emptyEl.hidden = items.length > 0;
+  if(!items.length){
+    const label = CATS.find(c => c[0] === cat)?.[1] || "";
+    emptyEl.textContent = cat === "todos" ? `Nada coincide con «${query.trim()}».`
+      : `Nada coincide con «${query.trim()}» en ${label}.`;
+  }
+  for(const it of items){
     const b = document.createElement("button");
     b.type = "button";
     b.className = "td-item" + (it.auto ? " td-auto" : "");
@@ -305,6 +333,8 @@ export function openDrawer(){
   if(openState || !doc.open) return;
   openState = true;
   haptic(6);
+  // Cada vez que se abre, el buscador empieza vacío.
+  query = ""; searchEl.value = "";
   renderTabs();
   renderGrid();
   drawer.style.transform = "";
@@ -388,6 +418,12 @@ export function initToolDrawer(){
       <button type="button" class="td-close icon ghost" aria-label="Cerrar">${svgWrap(ICONS["x"])}</button>
     </div>
     <nav class="td-tabs" role="tablist" aria-label="Categorías"></nav>
+    <div class="td-search">
+      ${svgWrap('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')}
+      <input type="search" enterkeyhint="search" autocomplete="off" spellcheck="false"
+        placeholder="Buscar herramienta o filtro" aria-label="Buscar herramienta o filtro">
+    </div>
+    <p class="td-empty" hidden></p>
     <div class="td-grid"></div>`;
   document.body.appendChild(drawer);
 
@@ -397,6 +433,15 @@ export function initToolDrawer(){
 
   tabsEl = drawer.querySelector(".td-tabs");
   gridEl = drawer.querySelector(".td-grid");
+  searchEl = drawer.querySelector(".td-search input");
+  emptyEl = drawer.querySelector(".td-empty");
+  searchEl.addEventListener("input", () => { query = searchEl.value; renderGrid(); });
+  // Intro activa el primer resultado, como en un lanzador.
+  searchEl.addEventListener("keydown", e => {
+    if(e.key !== "Enter") return;
+    const first = itemsFor(cat).find(isEnabled);
+    if(first){ e.preventDefault(); searchEl.blur(); activate(first); }
+  });
 
   handle.addEventListener("click", () => openState ? closeDrawer() : openDrawer());
   veil.addEventListener("click", closeDrawer);

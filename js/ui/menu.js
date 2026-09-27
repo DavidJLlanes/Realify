@@ -170,6 +170,8 @@ export const MENUS = [
       { cmd:"layer.maskRemove",  label:"Eliminar máscara" }
     ]},
     { sep:true },
+    { cmd:"layer.stickers",  label:"Añadir stickers…",
+      help:"Más de 1.500 emojis en 3D, color, plano o alto contraste: colócalos, escálalos y gíralos sobre la foto. Cada sticker queda en su propia capa." },
     { cmd:"layer.watermark", label:"Añadir marca de agua…" }
   ]},
   { label:"Ajustes", items:[

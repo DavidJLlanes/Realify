@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v96-filtro-vintage";
+const VERSION = "realify-v97-stickers-buscador";
 const SHELL = [
   "./",
   "./index.html",

@@ -47,7 +47,7 @@
 @media (max-width:900px){
   .vf-editor{grid-template-rows:minmax(0,1fr) auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);background:#060709}
   .vf-topbar{position:absolute;inset:calc(env(safe-area-inset-top) + 8px) 8px auto;background:transparent;border:0;padding:0;z-index:2}
-  .vf-title,.vf-cancel,[data-action=undo],[data-action=redo]{display:none}
+  .vf-title,.vf-cancel,.vf-actions [data-action=undo],.vf-actions [data-action=redo]{display:none}
   .vf-close{display:block;width:38px;min-height:38px;padding:0;background:#0009!important;font-size:16px}
   .vf-actions button{min-height:38px;background:#0009}
   .vf-actions .primary{border-color:#7fa6ff;color:#e9edf4}

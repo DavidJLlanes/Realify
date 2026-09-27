@@ -287,6 +287,8 @@ registerAll({
                        enabled: () => isText(activeLayer()) },
   "layer.meme":      { run: async () => (await import("./editor/meme.js")).openMeme(),
                        enabled: needsDoc },
+  "layer.stickers":  { run: async () => (await import("../stickers/index.js")).openStickers(),
+                       enabled: needsDoc },
 
   "view.fit":     { run: fit, enabled: needsDoc },
   "view.zoom100": { run: zoom100, enabled: needsDoc },

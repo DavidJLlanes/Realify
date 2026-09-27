@@ -603,6 +603,23 @@
   }
   .td-tab.on{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
 
+  /* Buscador: filtra en vivo la pestaña activa (ver tooldrawer.js). */
+  .td-search{
+    position:relative;flex:none;
+    padding:10px 12px 0;
+  }
+  .td-search svg{
+    position:absolute;left:24px;top:50%;margin-top:5px;transform:translateY(-50%);
+    width:17px;height:17px;color:var(--tx-faint);pointer-events:none;
+  }
+  .td-search input{
+    width:100%;min-height:38px;padding:0 12px 0 36px;
+    border-radius:19px;border:1px solid var(--line);
+    background:var(--s-700);color:var(--tx);font-size:16px;
+  }
+  .td-search input:focus{border-color:var(--ac);outline:none}
+  .td-empty{margin:18px 16px 0;color:var(--tx-faint);font-size:var(--fs-sm);text-align:center}
+
   .td-grid{
     display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
     align-content:start;gap:4px 2px;
