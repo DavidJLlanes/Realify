@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🌐 Usar Realify
+    url: https://realify.es
+    about: Abre el editor en el navegador. La guía integrada está en Ayuda › Guía…
+  - name: 🔒 Informar de una vulnerabilidad
+    url: https://github.com/DavidJLlanes/Realify/security/policy
+    about: Los problemas de seguridad se comunican en privado, nunca en un issue público.

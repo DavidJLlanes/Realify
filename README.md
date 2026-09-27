@@ -1,11 +1,103 @@
+<div align="center">
+
+<a href="https://realify.es">
+  <img src="assets/og-image-1200x630.png" alt="Realify — editor de imágenes en el navegador" width="100%">
+</a>
+
 # Realify
 
-Editor de imágenes completo que funciona en el navegador. Todo el procesado
-—capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del usuario:
-las imágenes no se suben a ningún servidor. Se instala como app (PWA) y
-funciona sin conexión.
+**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor.**
 
-- **Sin instalación ni cuenta**: basta con abrir la web.
+[![Web](https://img.shields.io/badge/web-realify.es-f5b82e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://realify.es)
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-3b82f6?style=for-the-badge)](LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-instalable-5a0fc8?style=for-the-badge&logo=pwa&logoColor=white)](https://realify.es)
+
+![JavaScript](https://img.shields.io/badge/JavaScript-ES_modules-f7df1e?logo=javascript&logoColor=black)
+![WebGL2](https://img.shields.io/badge/GPU-WebGL2_·_WebGPU-990000?logo=webgl&logoColor=white)
+![WebAssembly](https://img.shields.io/badge/WebAssembly-LibRaw_·_ONNX-654ff0?logo=webassembly&logoColor=white)
+![Sin dependencias](https://img.shields.io/badge/build-sin_compilación-2ea44f)
+![Privacidad](https://img.shields.io/badge/procesado-100%25_local-2ea44f)
+
+### [🚀 Abrir Realify en realify.es](https://realify.es)
+
+[Características](#características-destacadas) ·
+[Funcionalidades](#índice) ·
+[Tecnología](#16-tecnología) ·
+[Desarrollo local](#15-despliegue) ·
+[Contribuir](CONTRIBUTING.md) ·
+[Novedades](CHANGELOG.md)
+
+</div>
+
+---
+
+## Qué es Realify
+
+Realify es un editor de imágenes completo que funciona en el navegador. Todo el
+procesado —capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del
+usuario: **las imágenes no se suben a ningún servidor**. Se instala como app
+(PWA) y funciona sin conexión.
+
+La versión pública está en **[realify.es](https://realify.es)**.
+
+## Características destacadas
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🎨 Edición por capas
+Capas, grupos, máscaras, modos de fusión, estilos de capa, objetos
+inteligentes y capas de ajuste y de filtro reeditables.
+
+</td>
+<td width="50%" valign="top">
+
+### 📷 Revelado RAW de 16 bits
+Más de 40 formatos RAW con LibRaw en WebAssembly, flujo lineal de 16 bits y
+vista previa por GPU.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🤖 IA local
+Seleccionar sujeto y cielo, eliminar fondo, rellenar según el contenido,
+reducción de ruido y clasificación de escenas, sin enviar la imagen a nadie.
+
+</td>
+<td valign="top">
+
+### ⚡ Aceleración por GPU
+Filtros en WebGL2 y WebGPU, con alternativa en CPU y Web Workers para que
+nunca falle un resultado.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### ✨ Creatividad
+160 estilos, 102 estilos vintage, LUT `.cube`, memes, stickers, collages y
+publicaciones para más de 29 formatos de redes sociales.
+
+</td>
+<td valign="top">
+
+### 📱 Escritorio y móvil
+Menús clásicos en escritorio; en móvil, un cajón de herramientas pensado para
+el pulgar. Instalable y disponible sin conexión.
+
+</td>
+</tr>
+</table>
+
+### Principios
+
+- **Sin instalación ni cuenta**: basta con abrir [realify.es](https://realify.es).
+- **Privado por diseño**: el procesado es local; los modelos de IA se
+  descargan, las imágenes nunca se suben.
 - **Escritorio y móvil**: menús clásicos en escritorio; en móvil, barra
   inferior y un cajón de herramientas ordenado por objetivo (mejorar,
   corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
@@ -32,7 +124,10 @@ funciona sin conexión.
 13. [App, privacidad y ayuda](#13-app-privacidad-y-ayuda)
 14. [Estructura del proyecto](#14-estructura-del-proyecto)
 15. [Despliegue](#15-despliegue)
-16. [Licencias](#16-licencias)
+16. [Tecnología](#16-tecnología)
+17. [Compatibilidad](#17-compatibilidad)
+18. [Contribuir](#18-contribuir)
+19. [Licencias](#19-licencias)
 
 ---
 
@@ -382,7 +477,43 @@ python -m http.server 8080
 
 y abre `http://localhost:8080`.
 
-## 16. Licencias
+## 16. Tecnología
+
+| Área | Tecnología |
+|---|---|
+| Interfaz | HTML5, CSS con tokens de diseño, JavaScript con módulos ES (sin framework ni compilación) |
+| Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU |
+| Concurrencia | Web Workers y OffscreenCanvas |
+| RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
+| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN) |
+| Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any) |
+| App | Service worker, Web App Manifest, IndexedDB |
+
+## 17. Compatibilidad
+
+Realify funciona en las versiones actuales de Chrome, Edge, Firefox y Safari,
+en escritorio y en móvil.
+
+| Requisito | Uso |
+|---|---|
+| **WebGL2** | Imprescindible: filtros, revelado RAW y Filtro Vintage |
+| **Módulos ES y Web Workers** | Imprescindibles: carga de la app y procesado en segundo plano |
+| **WebGPU** | Opcional: acelera algunos modelos de IA; sin él se usa WebAssembly |
+| **HTTPS** | Necesario para el service worker y la instalación como app |
+
+## 18. Contribuir
+
+Las contribuciones son bienvenidas. Antes de empezar, lee la
+[guía de contribución](CONTRIBUTING.md) y el
+[código de conducta](CODE_OF_CONDUCT.md).
+
+- 🐞 ¿Has encontrado un error? [Abre un issue](../../issues/new?template=bug_report.yml).
+- 💡 ¿Tienes una idea? [Propón una mejora](../../issues/new?template=feature_request.yml).
+- 🔒 ¿Es un problema de seguridad? Sigue la [política de seguridad](SECURITY.md).
+
+Los cambios de cada versión se recogen en el [CHANGELOG](CHANGELOG.md).
+
+## 19. Licencias
 
 Código de Realify bajo licencia [MIT](LICENSE). Los componentes de terceros
 conservan sus licencias:
@@ -390,3 +521,11 @@ conservan sus licencias:
 - LibRaw-Wasm (ISC) y LibRaw (LGPL-2.1 / CDDL-1.0): ver `raw/NOTICES.md`.
 - Fluent Emoji (MIT): ver `stickers/emoji/LICENSE`.
 - Resto de librerías: ver `js/vendor/ATTRIBUTIONS.md`.
+
+---
+
+<div align="center">
+
+**[realify.es](https://realify.es)** · Hecho con ❤️
+
+</div>
