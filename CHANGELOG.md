@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Fusión HDR, máximo de 11 fotos con aviso**: si se eligen más, un diálogo deja escoger
+  cuáles (contador «9 de 11», no deja pasar del límite) antes de abrir ninguna; con 11 el
+  botón de añadir lo indica y explica cómo liberar sitio. Las fotos con otra proporción
+  u orientación se descartan de una en una, con aviso, sin rechazar las demás.
 - **Fusión HDR con RAW**: revelar la primera y aplicar los mismos ajustes a todas,
   revelar una a una en el revelador RAW o usar su JPEG incrustado; la exposición sale
   de los metadatos del RAW.

@@ -57,7 +57,24 @@ const handlers = {
     const before = stagedFrom ?? orig.length;
     stagedFrom = null;
     for(const im of m.images || []){ orig.push({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) }); exifEvs.push(im.ev ?? null); }
-    try{ return setup(); }
+    // Las fotos nuevas con otra proporción u orientación que el resto no
+    // se quedan, pero no arrastran a las demás: se devuelven sus posiciones
+    // (en el orden en que llegaron) para avisar de cuáles eran.
+    const ar = im => im.w / im.h, dropped = [];
+    let refAr;
+    if(before > 0) refAr = ar(orig[0]);
+    else {
+      const groups = [];
+      for(const im of orig){ const g = groups.find(g => Math.abs(g.ar - ar(im)) <= 0.03); if(g) g.n++; else groups.push({ ar: ar(im), n: 1 }); }
+      refAr = groups.sort((a, b) => b.n - a.n)[0]?.ar;
+    }
+    for(let i = orig.length - 1; i >= before; i--){
+      if(Math.abs(ar(orig[i]) - refAr) > 0.03){ orig.splice(i, 1); exifEvs.splice(i, 1); dropped.unshift(i - before); }
+    }
+    // Ninguna encaja con las que ya había: todo sigue como estaba.
+    if(orig.length === before && before > 0) return { unchanged: true, dropped };
+    if(!orig.length) throw new Error("No se han podido añadir las fotos.");
+    try{ return { ...setup(), dropped }; }
     catch(err){
       // La foto que no encaja no se queda: el resto sigue como estaba.
       orig.length = before; exifEvs.length = before;

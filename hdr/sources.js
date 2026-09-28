@@ -153,26 +153,62 @@ function fitCanvas(img, fit){
 }
 
 /**
- * Elegir entre las fotos abiertas (pestañas). `tabs`: [{ id, title,
- * thumb, used }]. Con una sola disponible se devuelve directamente.
- * Devuelve la lista de ids elegidos.
+ * Elegir hasta `max` elementos de una lista, con casillas y un contador
+ * que no deja pasar del límite (al llegar, las demás casillas se
+ * desactivan). `items`: [{ id, label, thumb?, note?, locked? }]; los
+ * `locked` se muestran pero no se pueden elegir. Las primeras `max`
+ * libres salen marcadas. Devuelve los ids elegidos o [] si se cancela.
+ * No abre ni decodifica nada: con una selección enorme la app no se
+ * queda colgada procesando fotos que no van a entrar.
  */
-export async function pickOpenPhotos(tabs){
+export async function chooseUpTo({ title, intro, items, max, okLabel = "Añadir" }){
+  let chosen = null;
+  const free = items.filter(t => !t.locked);
+  const pre = new Set(free.slice(0, max).map(t => String(t.id)));
+  const withThumbs = items.some(t => t.thumb);
+  const res = await dialog({
+    title, cls: "dlg-stack",
+    body: `<p class="hint" style="margin:0 0 8px">${intro}</p>
+      <p class="hint hdr-count" style="margin:0 0 10px;font-weight:600"></p>
+      <div class="hdr-pick" style="display:grid;grid-template-columns:${withThumbs ? "repeat(auto-fill,minmax(96px,1fr))" : "1fr"};gap:${withThumbs ? 8 : 4}px;max-height:52vh;overflow:auto">
+      ${items.map(t => `<label style="display:grid;gap:4px;padding:${withThumbs ? 6 : 7}px;border:1px solid var(--line,#333);border-radius:8px;cursor:pointer;${t.locked ? "opacity:.45;cursor:default" : ""}">
+        <span style="display:flex;align-items:center;gap:8px;min-width:0"><input type="checkbox" value="${esc(t.id)}" ${t.locked ? "disabled" : pre.has(String(t.id)) ? "checked" : ""}><small style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.label)}</small></span>
+        ${t.thumb ? `<img src="${t.thumb}" alt="" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;background:#111">` : ""}
+        ${t.note ? `<small>${esc(t.note)}</small>` : ""}
+      </label>`).join("")}</div>`,
+    buttons: [{ label: "Cancelar", value: null }, { label: okLabel, primary: true, value: "ok" }],
+    onOpen(body){
+      const boxes = [...body.querySelectorAll('input[type=checkbox]:not([disabled])')];
+      const count = body.querySelector(".hdr-count");
+      const ok = body.closest(".modal")?.querySelector(".modal-foot button.primary");
+      const sync = () => {
+        const n = boxes.filter(b => b.checked).length;
+        count.textContent = `${n} de ${max} elegidas` + (n >= max ? " · no caben más" : "");
+        for(const b of boxes) if(!b.checked){ b.disabled = n >= max; b.closest("label").style.opacity = n >= max ? ".5" : ""; }
+        if(ok) ok.disabled = n === 0;
+      };
+      body.addEventListener("change", sync);
+      sync();
+      chosen = () => boxes.filter(b => b.checked).map(b => b.value);
+    }
+  });
+  return res === "ok" && chosen ? chosen() : [];
+}
+
+/**
+ * Elegir entre las fotos abiertas (pestañas). `tabs`: [{ id, title,
+ * thumb, used }], `room`: cuántas caben aún en el HDR. Con una sola
+ * disponible (y sitio) se devuelve directamente.
+ */
+export async function pickOpenPhotos(tabs, room){
   const free = tabs.filter(t => !t.used);
   if(!free.length){ toast("Ya están todas las fotos abiertas en el HDR"); return []; }
   if(free.length === 1) return [free[0].id];
-  let chosen = null;
-  const res = await dialog({
+  const ids = await chooseUpTo({
     title: "Usar las fotos abiertas",
-    body: `<p class="hint" style="margin:0 0 10px">Elige las fotos que forman el horquillado. Entran tal como las estás editando.</p>
-      <div class="hdr-pick" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px">
-      ${tabs.map(t => `<label style="display:grid;gap:4px;padding:6px;border:1px solid var(--line,#333);border-radius:8px;cursor:pointer;${t.used ? "opacity:.45;cursor:default" : ""}">
-        <span style="display:flex;align-items:center;gap:6px"><input type="checkbox" value="${t.id}" ${t.used ? "disabled" : "checked"}><small style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.title)}</small></span>
-        ${t.thumb ? `<img src="${t.thumb}" alt="" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;background:#111">` : ""}
-        ${t.used ? `<small>Ya en el HDR</small>` : ""}
-      </label>`).join("")}</div>`,
-    buttons: [{ label: "Cancelar", value: null }, { label: "Añadir", primary: true, value: "ok" }],
-    onOpen(body){ chosen = () => [...body.querySelectorAll("input:checked")].map(i => i.value === "null" ? null : +i.value); }
+    intro: `Elige las fotos que forman el horquillado (caben ${room} más; el máximo del HDR son 11). Entran tal como las estás editando.`,
+    items: tabs.map(t => ({ id: t.id, label: t.title, thumb: t.thumb, locked: t.used, note: t.used ? "Ya en el HDR" : "" })),
+    max: room
   });
-  return res === "ok" && chosen ? chosen() : [];
+  return ids.map(v => v === "null" ? null : +v);
 }

@@ -23,7 +23,7 @@ import { readExposure, exposureText } from "./exif.js";
 import { evFromExif } from "./engine.js";
 import { toast } from "../js/ui/toast.js";
 import { sortable } from "../js/ui/sortable.js";
-import { isRaw, developRaws, exifFromRaw, pickOpenPhotos } from "./sources.js";
+import { isRaw, developRaws, exifFromRaw, pickOpenPhotos, chooseUpTo } from "./sources.js";
 import { dialog } from "../js/ui/dialog.js";
 
 export const MAX_PHOTOS = 11;
@@ -88,9 +88,10 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
   });
 
   async function addFiles(items){
+    // Tope de 11: normalmente ya se ha elegido antes (ver `fitToRoom`);
+    // esto es sólo la última red por si llega algo de más.
     const room = MAX_PHOTOS - photos.length;
-    if(room <= 0){ toast(`Máximo ${MAX_PHOTOS} fotos`, "err"); return; }
-    if(items.length > room) toast(`Sólo caben ${room} fotos más (máximo ${MAX_PHOTOS})`, "err");
+    if(room <= 0){ fullNotice(); return; }
     items = items.slice(0, room);
     // RAW: revelarlos (o sacar su JPEG) antes de nada; entran ya como lienzos.
     const rawFlags = await Promise.all(items.map(it => it.file ? isRaw(it.file) : false));
@@ -140,26 +141,63 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
       sh.setBusy("Detectando el horquillado y alineando…");
       const r = await call({ type: "add", images: [], previewSide: PREVIEW_SIDE, alignSide: ALIGN_SIDE });
       staged = false;
-      photos.push(...added);
-      afterSetup(r);
+      const drop = new Set(r.dropped || []);
+      if(!r.unchanged){
+        photos.push(...added.filter((_, k) => !drop.has(k)));
+        afterSetup(r);
+      }
+      if(drop.size){
+        const names = added.filter((_, k) => drop.has(k)).map(a => a.name);
+        dialog({ title: drop.size === 1 ? "Una foto no se ha añadido" : `${drop.size} fotos no se han añadido`,
+          body: `<p class="hint" style="margin:0 0 6px">${names.map(esc).join(", ")}</p>
+            <p class="hint" style="margin:0">Tienen otra proporción u orientación que el resto: en un horquillado todas las tomas deben ser iguales (misma cámara, mismo encuadre, sin girar).</p>`,
+          buttons: [{ label: "Entendido", primary: true, value: "ok" }] });
+      }
     }catch(err){
       if(staged) try{ await call({ type: "unstage" }); }catch{}
       toast(err.message, "err");
     }
     finally{ sh.setBusy(null); }
   }
+  /* Aviso cuando el HDR ya tiene las 11 fotos. */
+  function fullNotice(){
+    dialog({ title: "El HDR ya tiene 11 fotos", body: `<p class="hint" style="margin:0">11 fotos es el máximo de la fusión HDR. Para añadir otra, quita antes alguna de la lista (✕).</p>`,
+      buttons: [{ label: "Entendido", primary: true, value: "ok" }] });
+  }
+  /* Si se eligen más fotos de las que caben, se pregunta cuáles ANTES de
+     abrir ninguna (nada se decodifica hasta entonces: la app no se queda
+     trabajando con fotos que no van a entrar). */
+  async function fitToRoom(files){
+    const room = MAX_PHOTOS - photos.length;
+    if(room <= 0){ fullNotice(); return []; }
+    if(files.length <= room) return files;
+    const ids = await chooseUpTo({
+      title: `Has elegido ${files.length} fotos`,
+      intro: photos.length
+        ? `La fusión HDR admite hasta ${MAX_PHOTOS} fotos y ya tiene ${photos.length}: caben ${room} más. Elige cuáles añadir.`
+        : `La fusión HDR admite hasta ${MAX_PHOTOS} fotos. Elige cuáles usar; normalmente, las del mismo horquillado.`,
+      items: files.map((f, i) => ({ id: i, label: f.name })),
+      max: room
+    });
+    return ids.map(Number).sort((a, b) => a - b).map(i => files[i]);
+  }
   async function addPhotos(){
+    if(photos.length >= MAX_PHOTOS){ fullNotice(); return; }
     const { RAW_EXTENSIONS } = await import("../raw/formats.js");
-    const files = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff," + [...RAW_EXTENSIONS].map(e => "." + e).join(",") });
-    if(files.length) addFiles(files.map(f => ({ file: f, name: f.name })));
+    const picked = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff," + [...RAW_EXTENSIONS].map(e => "." + e).join(",") });
+    if(!picked.length || closed) return;
+    const files = await fitToRoom(picked);
+    if(files.length && !closed) addFiles(files.map(f => ({ file: f, name: f.name })));
   }
   /* Fotos abiertas en Realify (pestañas), tal como se están editando. */
   const usedTabs = new Set();
   const openCount = () => openDocs ? openDocs.list().length : 0;
   async function addOpen(){
     if(!openDocs) return;
+    const room = MAX_PHOTOS - photos.length;
+    if(room <= 0){ fullNotice(); return; }
     const tabs = openDocs.list().map(t => ({ ...t, used: usedTabs.has(t.id) }));
-    const ids = await pickOpenPhotos(tabs);
+    const ids = await pickOpenPhotos(tabs, room);
     if(!ids.length || closed) return;
     const got = openDocs.grab(ids);
     const items = [];
@@ -173,6 +211,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
   }
   /* «+» cuando además hay fotos abiertas: de dónde. */
   async function addAny(){
+    if(photos.length >= MAX_PHOTOS){ fullNotice(); return; }
     if(!openCount()) return addPhotos();
     const v = await dialog({ title: "Añadir fotos", body: `<p class="hint" style="margin:0">Desde el dispositivo (JPEG, HEIC, RAW…) o las fotos que tienes abiertas en Realify, tal como las estás editando.</p>`,
       buttons: [{ label: "Cancelar", value: null }, { label: "Fotos abiertas", value: "open" }, { label: "Del dispositivo", primary: true, value: "files" }], cls: "dlg-stack" });
@@ -288,7 +327,8 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     L.appendChild(list);
     if(photos.length > 1) sortable(list, { axis: "y", onMove: movePhoto });
     const add = document.createElement("button"); add.type = "button"; add.className = "fsp-btn dashed"; add.textContent = "+ Añadir fotos";
-    add.disabled = photos.length >= MAX_PHOTOS; add.addEventListener("click", addPhotos); L.appendChild(add);
+    if(photos.length >= MAX_PHOTOS){ add.textContent = `Máximo de ${MAX_PHOTOS} fotos`; add.title = "Quita alguna para añadir otra"; }
+    add.addEventListener("click", addPhotos); L.appendChild(add);
     if(openCount() && photos.length < MAX_PHOTOS){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = openCount() > 1 ? "Usar fotos abiertas…" : "Usar la foto abierta"; b.addEventListener("click", addOpen); L.appendChild(b); }
     if(photos.length){
       const n = document.createElement("p"); n.className = "fsp-note";
@@ -310,12 +350,14 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     const wrap = document.createElement("div"); wrap.className = "fsp-mphotos";
     for(const i of order()) wrap.appendChild(photoRow(i, true));
     if(photos.length > 1) sortable(wrap, { axis: "x", onMove: movePhoto });
-    if(photos.length < MAX_PHOTOS){
-      const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
-      b.style.cssText = "display:grid;place-items:center;width:68px;height:68px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
-      b.setAttribute("aria-label", "Añadir fotos"); b.textContent = "+"; b.addEventListener("click", addAny);
-      wrap.appendChild(b);
-    }
+    // Con 11, el «+» se queda como indicador del máximo y explica por qué.
+    const full = photos.length >= MAX_PHOTOS;
+    const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
+    b.style.cssText = `display:grid;place-items:center;width:68px;height:68px;color:${full ? "#9ca5b3" : "#e9edf4"};font-size:${full ? 12 : 22}px;background:#272b31;border-style:dashed;line-height:1.2`;
+    b.setAttribute("aria-label", full ? "Máximo de 11 fotos" : "Añadir fotos");
+    b.innerHTML = full ? `${MAX_PHOTOS}/${MAX_PHOTOS}<br>máx.` : "+";
+    b.addEventListener("click", full ? fullNotice : addAny);
+    wrap.appendChild(b);
     return wrap;
   }
 

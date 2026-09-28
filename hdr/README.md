@@ -21,6 +21,9 @@ la misma escena con distinta exposición.
   el revelador RAW se abre sólo con la primera), *revelar una a una* (el
   revelador con cada foto) o *usar el JPEG de todas* (la previsualización
   incrustada). La exposición de cada RAW sale de sus metadatos.
+- **Máximo 11 fotos**: si se eligen más (del dispositivo o de las abiertas), un
+  diálogo con contador deja escoger cuáles antes de abrir ninguna. Las fotos con
+  otra proporción u orientación se descartan una a una, con aviso.
 - **Fotos abiertas**: las pestañas abiertas en Realify, tal como se están
   editando (todas sus capas compuestas). Se eligen con miniaturas.
 
