@@ -526,9 +526,10 @@ export async function resultToLayer(canvas, { name, docName, newDocument = false
     let img = canvas;
     if(w !== canvas.width || h !== canvas.height){ img = document.createElement("canvas"); img.width = w; img.height = h; const x = img.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(canvas, 0, 0, w, h); }
     const ok = await openAsNewTab(() => {
-      newDoc(w, h, { name: docName || name, layerName: name });
-      const l = doc.layers[0];
-      l.ctx.clearRect(0, 0, w, h); l.ctx.drawImage(img, 0, 0); l.thumbDirty = true;
+      // Con la imagen ya dentro desde el principio: el «antes» de Comparar
+      // se toma del documento recién creado.
+      newDoc(w, h, { name: docName || name, layerName: name, image: img });
+      doc.layers[0].thumbDirty = true;
       clearHistory(); clearSnapshots();
     });
     if(!ok) throw new Error("No se pudo abrir la pestaña nueva");

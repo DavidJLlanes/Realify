@@ -54,6 +54,10 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Comparar: tras crear un HDR (o cualquier resultado que se abre en una pestaña
+  nueva) el «antes» salía vacío, y al cambiar de pestaña se perdía y pasaba a ser la
+  propia edición. Ahora cada pestaña guarda su «antes». Al cerrar la foto con Comparar
+  activo, la comparación se quedaba pintada sobre la pantalla de inicio.
 - Fusión HDR: con − / + la foto elegida saltaba de sitio en la lista; el EXIF sin
   diafragma ya no obliga a estimar la exposición por el brillo.
 - Fusión HDR: la exposición de una foto no se veía hasta soltar el deslizador; ahora

@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v131-hdr-orden";
+const VERSION = "realify-v132-comparar";
 const SHELL = [
   "./",
   "./index.html",

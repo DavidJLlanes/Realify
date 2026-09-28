@@ -2544,6 +2544,11 @@ on("doc:resize", () => { moveBuf = null; liqSession = null; });
 on("doc:structure", () => {
   if(doc.open) return;
   moveBuf = null; liqSession = null; invalidateCompareBaseline();
+  // Sin documento no queda nada que comparar ni superposición que
+  // mantener: se sale de Comparar y se limpia su capa (si no, la última
+  // comparación se quedaba pintada sobre la pantalla de inicio).
+  if(current && current.id === "compare") setTool("move");
+  scheduleOverlay();
 });
 
 function moveBufFor(layer){
@@ -2774,7 +2779,9 @@ let cmpOriginal = null;   // <canvas> o null si aún no hay documento
 let cmpActive = false;    // aparte de qué herramienta esté activa: ver nota en deactivate()
 
 function cmpCapture(){
-  invalidateCompareBaseline();
+  // Sólo se suelta la referencia: el lienzo anterior puede seguir siendo
+  // el «antes» de otra pestaña (guardado con ella, ver documents.js).
+  cmpOriginal = null;
   if(!doc.open) return;
   // Comparison is a display preview, not an export. In tiled mode
   // canvasEl() creates a full-size composite; copying that doubled the
@@ -2798,8 +2805,22 @@ function cmpCapture(){
    Comparar tiene que dejar de ser el de la pestaña que se acaba de
    abandonar: activarlo con `!cmpOriginal` de más abajo volverá a
    capturarlo sobre lo que se esté viendo ahora en cuanto haga falta. */
-export function invalidateCompareBaseline(){ if(cmpOriginal)cmpOriginal.width=cmpOriginal.height=1;cmpOriginal = null; }
-on("doc:new", cmpCapture);
+export function invalidateCompareBaseline(){ cmpOriginal = null; }
+/* Cada pestaña guarda su propio «antes» (documents.js lo mete en la
+   instantánea de la pestaña y lo devuelve al volver a ella): cambiar de
+   pestaña ya no lo pierde ni lo vuelve a capturar sobre lo editado. */
+export const getCompareBaseline = () => cmpOriginal;
+export function setCompareBaseline(c){ cmpOriginal = c || null; if(cmpActive) scheduleOverlay(); }
+/* Se captura un instante DESPUÉS de «doc:new»: muchos documentos se
+   crean vacíos y se pintan justo a continuación (resultado de un
+   plugin, un collage, un PSD con sus capas…); capturar en el propio
+   evento guardaba un «antes» transparente. */
+let cmpPending = 0;
+on("doc:new", () => {
+  const t = ++cmpPending;
+  cmpOriginal = null;
+  setTimeout(() => { if(t === cmpPending && doc.open && !cmpOriginal) cmpCapture(); }, 0);
+});
 
 /* Comparison is drawn into the viewport overlay. Request its refresh
    after composition without allocating or altering the export canvas. */

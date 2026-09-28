@@ -26,7 +26,7 @@ import { emit, on } from "./bus.js";
 import * as history from "./history.js";
 import * as snapshots from "./snapshots.js";
 import { view, apply as applyView } from "../editor/view.js";
-import { invalidateCompareBaseline } from "../editor/tools.js";
+import { getCompareBaseline, setCompareBaseline } from "../editor/tools.js";
 import { anyDialogOpen, confirmDlg } from "../ui/dialog.js";
 import { toast } from "../ui/toast.js";
 
@@ -91,7 +91,8 @@ function snapshotLive(){
     },
     view: { zoom: view.zoom, x: view.x, y: view.y, fitted: view.fitted },
     history: history.exportState(),
-    snapshots: snapshots.exportState()
+    snapshots: snapshots.exportState(),
+    compare: getCompareBaseline()      // el «antes» de Comparar de esta pestaña
   };
 }
 
@@ -100,6 +101,7 @@ function loadSnapshot(snap){
   Object.assign(view, snap.view);
   history.importState(snap.history);
   snapshots.importState(snap.snapshots);
+  setCompareBaseline(snap.compare);
 }
 
 /* Guarda el estado vivo en la pestaña activa, si hay alguna y tiene
@@ -117,11 +119,9 @@ function stashActive(){
    cualquier operación estructural, más `doc:resize` —que aquí no
    cambia el tamaño de nada, pero es la que ya usan las reglas para
    recalcular su longitud y Mover/Licuar para soltar sus búferes de la
-   pestaña anterior— y una invalidación explícita del original que usa
-   Comparar, que vive fuera de `doc` y si no se avisara seguiría
-   comparando contra los píxeles de la pestaña vieja. */
+   pestaña anterior—. El «antes» de Comparar no hace falta tocarlo aquí:
+   viaja con la instantánea de cada pestaña (ver `loadSnapshot`). */
 function announceSwitch(){
-  invalidateCompareBaseline();
   applyView();
   emit("doc:structure");
   emit("doc:change");
