@@ -19,16 +19,28 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          # Una sola conexión (sólo la clave ed25519): el VPS limita las
+          # conexiones SSH seguidas, y pedir las tres claves de golpe hacía
+          # que rechazara la del despliegue («Connection reset by peer»).
+          for i in 1 2 3; do
+            ssh-keyscan -T 15 -t ed25519 -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null && [ -s ~/.ssh/known_hosts ] && break
+            sleep $((i * 10))
+          done
 
       # La copia del VPS queda idéntica a main: `reset --hard` en lugar de `pull`
       # para que no falle si main se ha reescrito (push --force) ni si alguien
       # editó archivos directamente en el servidor. Los archivos no versionados
-      # (logs, etc.) no se tocan.
+      # (logs, etc.) no se tocan. Si el servidor corta la conexión (límite de
+      # conexiones, reinicio), se reintenta con espera creciente.
       - name: 🚀 Actualizar la web en el VPS
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "cd ${{ secrets.VPS_PATH }} \
-             && git fetch --quiet origin main \
-             && git reset --hard origin/main \
-             && git log --oneline -1"
+          for i in 1 2 3 4; do
+            ssh -i ~/.ssh/deploy_key -o ConnectTimeout=20 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+              "cd ${{ secrets.VPS_PATH }} \
+               && git fetch --quiet origin main \
+               && git reset --hard origin/main \
+               && git log --oneline -1" && exit 0
+            echo "Intento $i fallido; reintentando en $((i * 15)) s…"
+            sleep $((i * 15))
+          done
+          exit 1
