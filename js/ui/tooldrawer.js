@@ -24,6 +24,7 @@ import { ICONS } from "./tooldrawer-icons.js";
 import { matchScore, searchable } from "../core/search.js";
 
 const CATS = [
+  ["basicos",   "Básicos"],
   ["todos",     "Todos"],
   ["mejorar",   "Mejorar"],
   ["corregir",  "Corregir"],
@@ -35,6 +36,23 @@ const CATS = [
   ["seleccion", "Selección"],
   ["pintar",    "Pintar"],
   ["analizar",  "Analizar"]
+];
+
+/* «Básicos»: lo que más usa la gente al editar una foto, en el orden en
+   que suele hacerse (encuadrar, luz, color, detalle, estilo, retoque y
+   extras). Es la pestaña con la que se abre el cajón la primera vez,
+   para que la app no parezca abrumadora; el resto sigue en «Todos» y en
+   las demás pestañas. Cada clave es el `cmd` o el `tool` de su entrada
+   de ITEMS («auto» para Automático). */
+const BASICS = [
+  "auto",
+  "crop", "image.rotR",
+  "adj.brightness", "adj.exposure", "adj.shadowsHighlights",
+  "adj.whiteBalance", "adj.vibrance", "adj.hsl",
+  "filter.sharpen",
+  "filter.looks", "filter.vintage", "adj.grayscale", "filter.vignette",
+  "heal", "image.removeBackground",
+  "text", "layer.stickers", "layer.meme", "file.socialPost"
 ];
 
 /* Cada entrada: `cmd` (comando registrado) o `tool` (herramienta de
@@ -254,7 +272,7 @@ function checkCoverage(){
   if(missing.length) console.warn("[cajón] comandos sin entrada:", missing.join(", "));
 }
 
-let drawer, veil, tabsEl, gridEl, searchEl, emptyEl, handle, cat = "todos", openState = false, query = "";
+let drawer, veil, tabsEl, gridEl, searchEl, emptyEl, handle, cat = "basicos", openState = false, query = "";
 
 /* Texto en el que busca el buscador: el nombre corto del cajón y, si
    el comando está en un menú con otro nombre, también ése. */
@@ -278,7 +296,13 @@ const searchTextOf = it => {
    coincide DENTRO de la pestaña activa: primero lo que contiene las
    palabras tal cual y después lo que se les parece (erratas). */
 const byLabel = (a, b) => a.label.localeCompare(b.label, "es");
+const keyOf = it => it.auto ? "auto" : it.cmd || it.tool;
 function itemsFor(c){
+  /* Básicos va en su orden propio; con algo escrito en el buscador se
+     busca en todo, porque quien busca algo concreto no tiene por qué
+     saber que no es «básico». */
+  if(c === "basicos" && !query.trim()) return BASICS.map(k => ITEMS.find(i => keyOf(i) === k)).filter(Boolean);
+  if(c === "basicos") c = "todos";
   const list = c === "todos" ? ITEMS.slice() : ITEMS.filter(i => i.cat.split(" ").includes(c));
   const auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto).sort(byLabel);
   if(!query.trim()) return [...auto, ...rest];
@@ -307,7 +331,7 @@ function renderGrid(){
   emptyEl.hidden = items.length > 0;
   if(!items.length){
     const label = CATS.find(c => c[0] === cat)?.[1] || "";
-    emptyEl.textContent = cat === "todos" ? `Nada coincide con «${query.trim()}».`
+    emptyEl.textContent = cat === "todos" || cat === "basicos" ? `Nada coincide con «${query.trim()}».`
       : `Nada coincide con «${query.trim()}» en ${label}.`;
   }
   for(const it of items){

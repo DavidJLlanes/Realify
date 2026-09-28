@@ -15,7 +15,7 @@ const KEY = "realify.onboarded.v1";
 
 const STEPS = [
   { target: "#toolsHandle",
-    text: "Todas las herramientas, ajustes y filtros están aquí, ordenados por categorías. Desliza para cambiar de categoría o escribe en el buscador para encontrar cualquiera." },
+    text: "En «Básicos» tienes lo que más se usa para editar una foto. Todo lo demás está en «Todos» y en las demás categorías: desliza para cambiar o usa el buscador." },
   { target: "#mobilebar",
     text: "Lo más habitual, abajo del todo: abrir, capas, exportar, deshacer/rehacer y el menú completo." },
   { target: null,

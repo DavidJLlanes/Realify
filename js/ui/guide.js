@@ -1227,11 +1227,15 @@ const TOPICS = [
       <ul>
         <li><b>Barra inferior.</b> Abrir, Capas (la hoja de paneles), Exportar, Deshacer,
           Rehacer, Comparar y el Menú con todos los menús de escritorio en una lista.</li>
-        <li><b>Cajón de herramientas.</b> Todas las herramientas, ajustes y filtros por
-          categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA, Selección,
-          Pintar, Analizar), en orden alfabético. El <b>buscador</b> filtra en tiempo real
-          dentro de la categoría abierta, sin importar tildes ni pequeñas erratas; Intro
-          abre el primer resultado. Desliza a los lados para cambiar de categoría.</li>
+        <li><b>Cajón de herramientas.</b> Se abre en <b>Básicos</b>: lo que más se usa
+          para editar una foto (recortar, luz, color, nitidez, estilos, quitamanchas,
+          texto, stickers…), en el orden en que suele hacerse. En <b>Todos</b> y en las
+          demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
+          Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
+          orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la
+          categoría abierta (en Básicos, en todo), sin importar tildes ni pequeñas
+          erratas; Intro abre el primer resultado. Desliza a los lados para cambiar de
+          categoría.</li>
         <li><b>Hoja de paneles.</b> Capas, Histograma, Propiedades, Historial e Información
           suben desde abajo; se cierra arrastrándola hacia abajo. En el móvil sólo hay un
           panel abierto a la vez.</li>
