@@ -165,7 +165,8 @@ registerAll({
   "image.rotR":   { run: rotateRight, enabled: needsDoc },
   "image.rot180": { run: rotate180,   enabled: needsDoc },
   /* Imagen › Dividir en trozos y Recortar en forma (editor/imagetools.js) */
-  "image.slice":     { run: async () => (await import("./editor/imagetools.js")).sliceImage(), enabled: needsDoc },
+  /* Cortar en partes (cortar/): sin documento, pide una foto */
+  "image.slice":     { run: async () => (await import("../cortar/index.js")).openCut() },
   "image.shapeCrop": { run: async () => (await import("./editor/imagetools.js")).shapeCrop(), enabled: needsDoc },
   /* Plugins a pantalla completa (carpetas hdr/, …): no necesitan documento */
   "image.hdr":       { run: async () => (await import("../hdr/index.js")).openHdr() },

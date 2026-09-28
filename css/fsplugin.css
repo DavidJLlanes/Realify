@@ -13,6 +13,8 @@
 .fsp-title span{font-size:11px;color:#9ca5b3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fsp-actions{margin-left:auto;display:flex;gap:6px}
 .fsp-work{min-height:0;display:grid;grid-template-columns:280px minmax(0,1fr) 320px}
+.fsp-noleft .fsp-work{grid-template-columns:minmax(0,1fr) 320px}
+.fsp-noleft .fsp-left{display:none}
 .fsp-left,.fsp-right{overflow:auto;background:#1a1d21;overscroll-behavior:contain}
 .fsp-left{border-right:1px solid #30353d;padding:0 12px 22px}
 .fsp-right{border-left:1px solid #30353d;padding:0 14px 22px}
