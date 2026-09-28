@@ -179,10 +179,17 @@ r3d raf raw rwl rw2 rwz sr2 srf srw x3f`.
 | Lazo | L | | Comparar antes/después | Y |
 | Varita mágica | W | | | |
 
-Los pinceles tienen tamaño, dureza, opacidad, flujo, espaciado, dispersión,
-dinámicas por presión, velocidad o dirección y biblioteca de puntas (también
-desde imagen, capa o archivos `.abr`). Mover ajusta a los bordes y centros de
-las demás capas.
+Los pinceles tienen tamaño, dureza, opacidad, flujo, espaciado y dispersión.
+Mover ajusta a los bordes y centros de las demás capas.
+
+**Dinámicas del pincel**: la presión, velocidad e inclinación del stylus (o
+emuladas con el ratón) pueden aplicarse a:
+- Tamaño del pincel
+- Opacidad
+- Flujo
+- Dispersión
+
+Biblioteca de puntas: estándar, desde imagen, desde capa o archivos `.abr`.
 
 **Pinceles especiales** (barra del Pincel o **Editar › Pinceles especiales**):
 
@@ -201,9 +208,11 @@ tiempo real mientras se pinta.
 ## 4. Imagen
 
 - Tamaño de imagen con remuestreo **Lanczos 3, Mitchell, Catmull-Rom**,
-  bilineal o del navegador (en segundo plano), tamaño de lienzo y **escala
-  según el contenido**. Las máscaras de capa se reescalan, giran y recortan con
-  la imagen.
+  bilineal o del navegador (en segundo plano) y tamaño de lienzo.
+- **Escala según el contenido**: redimensiona la imagen sin distorsionar objetos
+  importantes. Analiza bordes y detalle, da más espacio a columnas con bordes y
+  protege al sujeto. No destructivo: las capas se adaptan de forma inteligente.
+  Las máscaras de capa se reescalan, giran y recortan con la imagen.
 - Recortar y **corregir perspectiva**.
 - Girar 90°/180° y voltear en horizontal o vertical.
 - **Dividir en trozos**: filas × columnas, tamaño fijo, carrusel panorámico
@@ -296,7 +305,7 @@ recetas), invertir, contraste automático y niveles automáticos.
 | **Desenfoques** | Gaussiano, galería de desenfoque, caja/forma/promedio/inteligente, movimiento, lente, radial/zoom y superficie. |
 | **Enfoque y restauración** | Enfocar, máscara de enfoque/estabilizador, enfoque selectivo, nitidez inteligente, paso alto y mediana/polvo/destramar. |
 | **Fotografía y detalle** | Corrección de lente, retoque de retrato, **separación de frecuencias**, Dodge & Burn, detalle y estructura, viñeteado. |
-| **Ruido** | Reducción de ruido (normal, por canal y **con IA**), **quitar artefactos JPEG con IA** y añadir ruido. |
+| **Ruido** | **Reducción de ruido con IA** (denoise, detección automática de nivel), reducción normal, por canal, **quitar artefactos JPEG con IA** y añadir ruido. |
 | **Pixelizar** | Mosaico, cristalizar, puntillismo y semitono. |
 | **Estilizar** | Relieve, hallar bordes, resplandor, solarizar, viento y óleo. |
 | **Artísticos** | Galería de filtros artísticos. |
@@ -412,7 +421,11 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 - **Comparar antes/después** y comparar al 100 %.
 - Mostrar u ocultar paneles.
 - Reglas, guías, cuadrícula configurable y ajuste a la cuadrícula.
-- **Cuadrícula inteligente** e **histograma** (ver apartado anterior).
+- **Cuadrícula inteligente**: ayudas de composición que se recalculan según el
+  contenido de la foto. Detecta al sujeto, el horizonte y rostros; propone un
+  recorte que coloca el sujeto en un punto fuerte y endereza la línea del
+  horizonte. Ver «Análisis y metadatos» para detalles.
+- **Histograma interactivo** en el panel lateral (ver apartado anterior).
 
 ## 13. App, privacidad y ayuda
 
