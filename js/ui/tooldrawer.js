@@ -168,6 +168,7 @@ const ITEMS = [
   { cmd:"image.resize", label:"Tamaño de imagen",     ic:"scaling",           cat:"corregir" },
   { cmd:"image.canvasSize", label:"Tamaño de lienzo", ic:"maximize-2",        cat:"corregir" },
   { cmd:"image.contentAwareScale", label:"Escala por contenido", ic:"shrink",  cat:"corregir" },
+  { cmd:"image.hdr",       label:"Fusión HDR",          ic:"hdr",               cat:"mejorar estilo" },
   { cmd:"image.slice",     label:"Dividir en trozos",   ic:"layout-grid",       cat:"corregir" },
   { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"heart",             cat:"corregir estilo" },
   { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia retoque" },
