@@ -98,6 +98,9 @@ async function fetchModel(id, model){
   }
   post({ type:"download", model:id, loaded, total: total || loaded });
   const blob = new Blob(chunks);
+  // Los trozos ya están en el Blob: fuera de memoria cuanto antes (con
+  // ISNet son 180 MB que, si no, se tienen dos y tres veces a la vez).
+  chunks.length = 0;
   if(!local) await dbPut(model.url, blob);
   return new Uint8Array(await blob.arrayBuffer());
 }
@@ -226,9 +229,11 @@ async function matte({ model, id, rgba, size }){
   let lo = Infinity, hi = -Infinity;
   for(let i = 0; i < n; i++){ const v = vals[i]; if(v < lo) lo = v; if(v > hi) hi = v; }
   const logits = lo < -0.5 || hi > 1.5;
+  // `minmax`: la salida se estira entre su mínimo y su máximo (ISNet).
+  const span = model.minmax && !logits && hi - lo > 1e-6 ? hi - lo : 0;
   const mask = new Uint8ClampedArray(n);
   for(let i = 0; i < n; i++){
-    const v = logits ? 1 / (1 + Math.exp(-vals[i])) : vals[i];
+    const v = logits ? 1 / (1 + Math.exp(-vals[i])) : span ? (vals[i] - lo) / span : vals[i];
     mask[i] = Math.round(v * 255);
   }
   return { mask };

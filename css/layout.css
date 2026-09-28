@@ -1237,3 +1237,16 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 .update-bar[hidden]{display:none}
 .update-bar span{flex:1;min-width:0}
 @media (max-width:560px){.update-bar{left:10px;right:10px;transform:none;flex-wrap:wrap}.update-bar span{flex-basis:100%}}
+
+/* Trabajo de IA en curso (js/ai/runtime.js) */
+.ai-busy{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:2400;display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100vw - 20px);padding:10px 10px 10px 14px;background:var(--s-700);border:1px solid var(--line-strong);border-radius:12px;box-shadow:var(--sh-3);font-size:var(--fs-sm)}
+.ai-busy-spin{flex:none;width:18px;height:18px;border:2px solid var(--line-strong);border-top-color:var(--ac);border-radius:50%;animation:ai-spin .8s linear infinite}
+@keyframes ai-spin{to{transform:rotate(360deg)}}
+.ai-busy-text{display:grid;gap:2px;min-width:0}
+.ai-busy-msg{color:var(--tx-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-busy-hint{color:var(--tx-dim);white-space:normal}
+.ai-busy-hint[hidden]{display:none}
+.ai-busy-time{flex:none;color:var(--tx-dim)}
+.ai-busy-cancel{flex:none}
+@media (max-width:560px){.ai-busy{left:10px;right:10px;width:auto;transform:none;bottom:calc(env(safe-area-inset-bottom) + 76px)}}
+@media (prefers-reduced-motion:reduce){.ai-busy-spin{animation-duration:2.4s}}

@@ -307,7 +307,7 @@ export async function removeBackground(){
     <p class="hint">La IA detecta el sujeto y crea una máscara editable. «Color de los bordes» funciona mejor con fondos relativamente uniformes.</p>
     <div class="field"><label for="bgMethod">Método</label>
       <select id="bgMethod" class="grow">${BG_METHODS.map(([k, label]) =>
-        `<option value="${k}"${k === saved ? " selected" : ""}>${label}${k === "color" ? "" : ` (${notes[k]})`}</option>`).join("")}</select></div>
+        `<option value="${k}"${k === saved ? " selected" : ""}>${label}${k === "color" ? "" : ` (${notes[k]}${k === "isnet" && COARSE ? ", pesado en móvil" : ""})`}</option>`).join("")}</select></div>
     <div id="bgTolRow">${sliderRow("bgTol","Tolerancia",5,140,42)}</div>
     ${sliderRow("bgFeather","Suavizar borde",0,30,3," px")}`);
   if(!body) return;
@@ -319,7 +319,22 @@ export async function removeBackground(){
     mask=backgroundMask(img,+body.querySelector("#bgTol").value);
   } else {
     try{ mask = await aiBackgroundMask(layer, method); }
-    catch(err){ toast("No se pudo eliminar el fondo: " + err.message, "err"); return; }
+    catch(err){
+      if(err.cancelled) toast("Eliminar fondo cancelado");
+      else toast("No se pudo eliminar el fondo: " + err.message, "err");
+      return;
+    }
+  }
+  /* Una máscara que lo deja todo (o nada) no quita ningún fondo: se
+     avisa en vez de añadirla y dar a entender que ha funcionado. */
+  let kept = 0;
+  for(let i = 0; i < mask.length; i++) if(mask[i] > 127) kept++;
+  const frac = kept / mask.length;
+  if(frac > 0.995 || frac < 0.005){
+    toast(method === "color"
+      ? "No se ha encontrado un fondo uniforme en los bordes; sube la tolerancia o prueba un método de IA"
+      : "La IA no ha distinguido un sujeto del fondo en esta imagen; prueba con otro método", "err");
+    return;
   }
   const f=+body.querySelector("#bgFeather").value;
   if(f) mask=featherMask(mask,doc.w,doc.h,f);

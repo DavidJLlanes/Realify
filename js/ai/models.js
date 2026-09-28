@@ -29,8 +29,12 @@ export const MODELS = {
      GPUs de gama alta, y en la CPU agota los 4 GB de WebAssembly a
      1024 px. ISNet, de la misma familia de alta resolución, cabe en las
      dos. */
+  /* ISNet espera la imagen centrada en 0 (media 0,5, desviación 1) y su
+     salida se estira a 0-1 con su mínimo y su máximo, igual que hace
+     rembg con este mismo archivo: sin eso la máscara salía casi
+     uniforme y «Eliminar fondo» parecía no hacer nada. */
   isnet:    { url: HF + "isnet-general-use.onnx",         size: 178647984, input: 1024,
-              label: "ISNet", license: "Apache-2.0" },
+              label: "ISNet", license: "Apache-2.0", norm: [0.5, 1], minmax: true },
 
   /* ── Relleno: imagen 1×3×512×512 en 0-1 + máscara 1×1×512×512 ── */
   lama:     { url: HF + "onnx/inpaint/lama/LaMa_512.onnx", size: 208044816, input: 512,
