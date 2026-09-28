@@ -449,7 +449,7 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 index.html              Página principal
 sw.js                   Service worker (red primero, caché de respaldo)
 manifest.webmanifest    Manifiesto de la PWA
-.htaccess               Cabeceras de seguridad (CSP), compresión y caché
+.htaccess               Cabeceras, compresión y caché para Apache
 css/                    Estilos: tokens, base, layout y móvil
 js/
   main.js               Arranque
@@ -470,17 +470,23 @@ memes/                  Creador de memes
 socialmediapost/        Collage / Historia / Post
 stickers/               Stickers (Fluent Emoji)
 assets/                 Iconos, imágenes y modelos de IA
-server/                 Servidor opcional para Unmark (FastAPI)
+server/                 Configuración de nginx y servidor opcional para Unmark (FastAPI)
+.github/workflows/      Despliegue automático en realify.es
 ```
 
 ## 15. Despliegue
 
-Es un sitio estático: basta con subir los archivos a cualquier servidor web.
+Es un sitio estático: basta con servir los archivos con cualquier servidor web.
 
-- El `.htaccess` está pensado para Apache (CSP, compresión y caché).
+- **Producción ([realify.es](https://realify.es))**: nginx. Cada push a `main`
+  se publica automáticamente con GitHub Actions; ver [DEPLOY.md](DEPLOY.md).
+- **nginx**: la configuración de cabeceras de seguridad, compresión, caché y
+  bloqueo de archivos internos está en
+  [`server/nginx-realify.conf.example`](server/nginx-realify.conf.example).
+- **Apache**: el `.htaccess` hace lo mismo (nginx lo ignora).
 - Hace falta **HTTPS** para el service worker y la instalación como app.
-- En cada despliegue, sube `VERSION` en `sw.js` y el `?v=` de `js/main.js` en
-  `index.html` para que los usuarios reciban la versión nueva.
+- Al cambiar archivos de la app, sube `VERSION` en `sw.js` y el `?v=` de
+  `js/main.js` en `index.html` para que los usuarios reciban la versión nueva.
 
 Para probarlo en local, sirve la carpeta con cualquier servidor estático:
 

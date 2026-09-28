@@ -5,23 +5,30 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Nunca dos despliegues a la vez: si llega otro push, espera a que acabe el anterior.
+concurrency:
+  group: deploy-realify
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 🔑 Agregar clave SSH
+      - name: 🔑 Preparar clave SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 📦 Actualizar repositorio en VPS
+      # La copia del VPS queda idéntica a main: `reset --hard` en lugar de `pull`
+      # para que no falle si main se ha reescrito (push --force) ni si alguien
+      # editó archivos directamente en el servidor. Los archivos no versionados
+      # (logs, etc.) no se tocan.
+      - name: 🚀 Actualizar la web en el VPS
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "cd ${{ secrets.VPS_PATH }} && git pull origin main && echo '✅ Desplegado'"
-
-      - name: 🔄 Actualizar versión del service worker
-        run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "cd ${{ secrets.VPS_PATH }} && git log --oneline -1 | grep -o '[a-f0-9]*' | head -1 > version.txt && cat version.txt"
+            "cd ${{ secrets.VPS_PATH }} \
+             && git fetch --quiet origin main \
+             && git reset --hard origin/main \
+             && git log --oneline -1"
