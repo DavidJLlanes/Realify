@@ -28,10 +28,26 @@ export function enabled(id){
   return c.enabled ? !!c.enabled() : true;
 }
 
+/* Observadores de comandos (grabador de acciones, features/actions.js):
+   reciben cada comando de primer nivel antes de ejecutarse. */
+const runHooks = new Set();
+export const onRun = fn => { runHooks.add(fn); return () => runHooks.delete(fn); };
+let depth = 0;
+
+/** Ejecuta un comando y devuelve su promesa (para reproducir acciones). */
+export async function runAsync(id, arg){
+  const c = registry.get(id);
+  if(!c) throw new Error(`El comando «${id}» ya no existe`);
+  if(c.enabled && !c.enabled()) throw new Error(`«${id}» no se puede aplicar ahora`);
+  return c.run(arg);
+}
+
 export function run(id, arg){
   const c = registry.get(id);
   if(!c){ console.warn("[cmd] no existe:", id); return; }
   if(c.enabled && !c.enabled()) return;
+  if(depth === 0) for(const h of runHooks){ try{ h(id, arg); }catch{} }
+  depth++;
   try{
     const r = c.run(arg);
     if(r instanceof Promise) r.catch(err => {
@@ -41,7 +57,7 @@ export function run(id, arg){
   }catch(err){
     console.error("[cmd]", id, err);
     toast(err.message || "Algo ha fallado", "err");
-  }
+  }finally{ depth--; }
   emit("cmd:done", id);
 }
 

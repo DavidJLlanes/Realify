@@ -34,6 +34,8 @@ export const MENUS = [
     { cmd:"file.socialPreview", label:"Prueba para redes sociales…" },
     { sep:true },
     { cmd:"file.batch",    label:"Procesar carpeta…" },
+    { cmd:"actions.open",  label:"Acciones (grabar y repetir)…",
+      help:"Graba una secuencia de ajustes, filtros y comandos con sus valores y repítela en cualquier foto o en muchas a la vez (ZIP). Se pueden exportar e importar." },
     { cmd:"file.revert",   label:"Restaurar al estado original…", help:"Descarta capas, ediciones e historial y vuelve al archivo tal como se abrió." },
     { sep:true },
     { cmd:"file.close",    label:"Cerrar documento" }

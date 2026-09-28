@@ -108,6 +108,7 @@ registerAll({
   "file.exportPng": { run: quickPng, enabled: needsDoc },
   "file.socialPreview": { run: photoTool("socialPreview"), enabled: needsDoc },
   "file.batch":     async () => (await import("./io/batch.js")).openBatch(),
+  "actions.open":   { run: async () => (await import("./features/actions.js")).openActions() },
   "file.exportGif":  { run: async () => (await import("./io/gifexport.js")).exportGif(), enabled: needsDoc },
   "file.contactSheet": { run: async () => (await import("../hojacontactos/index.js")).openContacts() },
   "image.beforeAfter": { run: async () => (await import("../comparar/index.js")).openCompare(), enabled: needsDoc },

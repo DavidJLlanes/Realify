@@ -10,6 +10,13 @@ import { attachViewGestures, zoomIn, zoomOut, zoom100, fit } from "../editor/vie
 import { isMobile as isPhone, haptic } from "../core/device.js";
 import { autoCompact } from "./compact.js";
 
+/* Enganches del grabador de acciones (features/actions.js):
+   · onClose(título, índice del botón o -1, cuerpo) al cerrar;
+   · autofill(título, cuerpo) al abrir: si devuelve un índice de botón,
+     el diálogo se rellenó solo y se pulsa ese botón. */
+let hooks = null;
+export const setDialogHooks = h => { hooks = h; };
+
 const FOCUSABLE = 'button, [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 let openCount = 0;
 
@@ -126,6 +133,7 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
 
     const foot = back.querySelector(".modal-foot");
     const close = value => {
+      if(hooks?.onClose){ try{ hooks.onClose(title || "", buttons.findIndex(b => (b.value === undefined ? b.label : b.value) === value), bodyEl, value); }catch{} }
       back.remove();
       openCount--;
       document.removeEventListener("keydown", onKey, true);
@@ -214,6 +222,18 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
     /* Hojas de ajuste del móvil: los deslizadores apilados se agrupan
        tras un desplegable, como en Tono y saturación (ui/compact.js). */
     if(/\bdlg-compact\b/.test(cls)) autoCompact(bodyEl);
+    if(hooks?.autofill){
+      let idx = -2;
+      try{ idx = hooks.autofill(title || "", bodyEl); }catch{}
+      if(idx !== -2 && idx !== undefined){
+        // Se deja un momento para que la vista previa se calcule con los valores puestos
+        setTimeout(() => {
+          if(!back.isConnected) return;
+          const btn = idx >= 0 ? foot?.children[idx] : null;
+          if(btn) btn.click(); else close(null);
+        }, 120);
+      }
+    }
     const f = bodyEl.querySelector(FOCUSABLE) || back.querySelector("[data-close]");
     if(f) f.focus();
   });
