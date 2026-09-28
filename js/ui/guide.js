@@ -46,8 +46,11 @@ const TOPICS = [
         <li><a data-go="especiales#sp-collage">Collage / History / Post</a>: collages,
           publicaciones e historias con 41 diseños (incluido «Libre»), formatos de todas las
           redes y de los móviles más conocidos, y fotos dentro de 28 formas.</li>
-        <li><a data-go="imagen#img-slice">Dividir en trozos</a> y <a data-go="imagen#img-shapecrop">Recortar en
-          forma</a>, en el menú Imagen.</li>
+        <li><a data-go="imagen#img-hdr">Fusión HDR</a>, <a data-go="imagen#img-merge">Unir imágenes</a>,
+          <a data-go="imagen#img-slice">Cortar en partes</a> y <a data-go="imagen#img-shapecrop">Recortar en
+          forma</a>, a pantalla completa en el menú Imagen.</li>
+        <li><a data-go="imagen#img-ai">Ampliar, colorear y expandir con IA</a>; exportar en AVIF, PDF y GIF
+          animado; <b>Acciones</b> para grabar y repetir pasos (Archivo › Acciones…).</li>
         <li><a data-go="vistas#view-histogram">Histograma interactivo</a> y <a data-go="ajustes#adj-toneband">Tonos
           del histograma</a>: toca una zona y ajusta sólo esos tonos.</li>
         <li><a data-go="ajustes#adj-curves">Curvas</a> con luminosidad, las curvas de todos los
@@ -334,30 +337,35 @@ const TOPICS = [
           transformar».</li>
         <li><b>Girar 90° / 180° y Voltear.</b> Afectan a todo el documento, máscaras
           incluidas.</li>
-        <li id="img-slice"><b>Dividir en trozos…</b> Corta la imagen (todas las capas combinadas)
-          en piezas, con vista previa de los cortes numerados:
-          <ul>
-            <li><b>Filas × columnas</b> o <b>tamaño fijo</b> de trozo en píxeles.</li>
-            <li><b>Carrusel</b>: de 2 a 10 publicaciones seguidas con la proporción elegida
-              (1:1, 4:5, 3:4, 9:16…) que al deslizar forman una sola imagen panorámica.</li>
-            <li><b>Perfil de Instagram</b>: tres columnas y las filas que quieras, en 1:1 o
-              3:4, <b>numeradas en el orden de subida</b> (se sube primero la 1; al final la
-              imagen completa aparece en la cuadrícula del perfil).</li>
-          </ul>
-          Los trozos se guardan en un ZIP, como archivos sueltos o como capas del propio
-          documento, en PNG, JPEG o WebP.</li>
-        <li id="img-shapecrop"><b>Recortar en forma…</b> Deja la imagen dentro de una forma
-          —círculo, elipse, polígonos de 3 a 10 lados, estrellas de 4 a 10 puntas, corazón,
-          flor, gota, escudo, cruz, luna, nube, bocadillo…— con <b>transparencia</b> fuera.
-          Arrastra en la vista previa para colocarla, la rueda cambia su tamaño; también
-          se puede estirar, girar, suavizar el borde y añadir un contorno de color. Con
-          «Ajustar el lienzo a la forma», el documento queda del tamaño justo. Para
-          conservar la transparencia, exporta en PNG o WebP.</li>
+        <li id="img-hdr"><b>Fusión HDR…</b> Pantalla completa. Añade de 2 a 11 fotos de la misma
+          escena con distinta exposición (o una sola, para un HDR simulado): la app detecta el
+          horquillado (por EXIF o por el brillo, corregible en tercios de paso), las alinea y,
+          si algo se mueve entre tomas, aplica el <b>antifantasmas</b>. Métodos: detalles
+          realzados, fusión de exposición, compresor de tonos y fotográfico, con 17 estilos en
+          miniatura y ajustes de tono, color y nitidez. Crea una capa nueva.</li>
+        <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. <b>Panorámica</b>: fotos
+          solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
+          iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:
+          en fila, columna o cuadrícula, con separación, margen, esquinas y fondo.</li>
+        <li id="img-slice"><b>Cortar en partes…</b> Pantalla completa. Cuadrícula, tamaño fijo,
+          <b>carrusel</b> (2 a 10 publicaciones seguidas), <b>perfil de Instagram</b> (numerado en
+          el orden de subida) o <b>cortes a mano</b> (toca para añadir, arrastra para mover).
+          En carrusel e Instagram, arrastra para mover el encuadre. Cada trozo va a una capa
+          nueva, a su propia pestaña, a un ZIP o suelto.</li>
+        <li id="img-shapecrop"><b>Recortar en forma…</b> Pantalla completa, con unas 60 formas
+          (polígonos y estrellas configurables, corazón, flores, nube, bocadillos, engranaje,
+          anillo, marco, flechas, puzle…). Arrastra la forma para moverla, una esquina para
+          escalarla y el asa de arriba para girarla; borde suave, contorno e inversión. Crea
+          una capa nueva con transparencia fuera (expórtala en PNG o WebP).</li>
+        <li id="img-ai"><b>Ampliar con IA…</b> ×2 o ×4 recuperando detalle (el resultado se abre en
+          otra pestaña). <b>Colorear con IA…</b> da color a fotos en blanco y negro en una capa
+          nueva. <b>Expandir con IA…</b> agranda el lienzo a un formato o con márgenes y rellena
+          lo nuevo. Los modelos se descargan una vez y trabajan en tu equipo.</li>
         <li><b>Eliminar fondo…</b> Cuatro métodos: tres modelos de IA que funcionan en tu
           propio equipo —rápido (U²-Net), retratos (MODNet) y máxima calidad (ISNet)— y
-          «Color de los bordes», el de siempre para fondos lisos. El resultado es una
-          máscara editable, no un borrado irreversible. Los modelos se descargan una vez y
-          quedan guardados en el navegador.</li>
+          «Color de los bordes», el de siempre para fondos lisos. El recorte va a una
+          <b>capa nueva</b> con el fondo transparente y la original se oculta, sin borrarla.
+          Los modelos se descargan una vez y quedan guardados en el navegador.</li>
         <li><b>Reemplazar cielo…</b> Detecta el cielo con IA (el mismo modelo que
           «Seleccionar cielo») y deja el reemplazo —color liso, degradado o una foto
           propia, con «Desvanecer borde» para que el corte no se note— en una capa

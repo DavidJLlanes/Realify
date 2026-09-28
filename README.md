@@ -63,8 +63,9 @@ vista previa por GPU.
 <td valign="top">
 
 ### 🤖 IA local
-Seleccionar sujeto y cielo, eliminar fondo, rellenar según el contenido,
-reducción de ruido y clasificación de escenas, sin enviar la imagen a nadie.
+Seleccionar sujeto y cielo, eliminar fondo, rellenar y expandir según el
+contenido, ampliar ×2/×4, colorear fotos en blanco y negro y reducir ruido,
+sin enviar la imagen a nadie.
 
 </td>
 <td valign="top">
@@ -79,8 +80,9 @@ nunca falle un resultado.
 <td valign="top">
 
 ### ✨ Creatividad
-160 estilos, 102 estilos vintage, LUT `.cube`, memes, stickers, collages y
-publicaciones para más de 29 formatos de redes sociales.
+Fusión HDR de hasta 11 fotos, panorámicas, 160 estilos, 102 estilos vintage,
+LUT `.cube`, recortes en ~60 formas, memes, stickers, collages y publicaciones
+para más de 29 formatos de redes sociales.
 
 </td>
 <td valign="top">
@@ -141,10 +143,13 @@ el pulgar. Instalable y disponible sin conexión.
 | **Collage / History / Post** | Composiciones para redes creadas como documento nuevo (ver [módulos especiales](#collage--history--post--socialmediapost)). |
 | **Varios documentos** | Cada documento se abre en su propia pestaña. |
 | **Abrir / Guardar proyecto** | Guarda el documento completo (capas, máscaras, capas de ajuste y de filtro, textos) para seguir editándolo más tarde. |
-| **Exportar / Exportar como** | JPEG, PNG y WebP, con calidad, tamaño máximo y estimación de peso. Perfiles listos: web optimizada, Instagram, YouTube, marketplace, correo, fondo de pantalla e impresión. **Tramado a 8 bits** opcional para evitar bandas en cielos y degradados. |
+| **Exportar / Exportar como** | JPEG, PNG, WebP, **AVIF** (mucho más ligero) y **PDF** (tamaño de página y margen), con calidad, tamaño máximo y estimación de peso. Perfiles listos: web optimizada, Instagram, YouTube, marketplace, correo, fondo de pantalla e impresión. **Tramado a 8 bits** opcional para evitar bandas en cielos y degradados. |
 | **Exportar PNG rápido** | Descarga inmediata en PNG. |
 | **Prueba para redes sociales** | Muestra cómo quedará la imagen tras la recompresión típica de las redes. |
+| **Exportar GIF animado** | Cada capa visible es un fotograma (sola o acumulada): duración, bucle, ida y vuelta, tamaño y número de colores. |
+| **Hoja de contactos** | Pantalla completa: hasta 200 fotos en páginas A4, A3, A5, Carta, Oficio o 10 × 15 con columnas, márgenes, título y nombre de cada foto. PDF de varias páginas o capas (`hojacontactos/`). |
 | **Procesar carpeta** | Aplica el filtro Realify a muchas imágenes a la vez y las entrega en un ZIP. |
+| **Acciones** | Graba una secuencia de ajustes, filtros y comandos con los valores de sus diálogos y repítela en la foto abierta o en lote (ZIP en JPEG, PNG, WebP o AVIF). Se exportan e importan en JSON. |
 | **Restaurar al estado original** | Descarta capas, ediciones e historial y vuelve al archivo tal como se abrió. |
 
 Formatos RAW admitidos (vía LibRaw): `3fr ari arw bay cap cr2 cr3 crw dcr dcs
@@ -215,14 +220,29 @@ tiempo real mientras se pinta.
   Las máscaras de capa se reescalan, giran y recortan con la imagen.
 - Recortar y **corregir perspectiva**.
 - Girar 90°/180° y voltear en horizontal o vertical.
-- **Dividir en trozos**: filas × columnas, tamaño fijo, carrusel panorámico
-  (2–10 publicaciones) o cuadrícula del perfil de Instagram numerada en el orden
-  de subida. Salida en ZIP, archivos sueltos o capas; PNG, JPEG o WebP.
-- **Recortar en forma**: la imagen dentro de 28 formas (círculo, polígonos,
-  estrellas de 4 a 10 puntas, corazón, flor, gota, escudo, luna, nube…) con
-  transparencia fuera, borde suave, contorno y lienzo ajustado a la forma.
+- **Fusión HDR** (pantalla completa, `hdr/`): de 1 a 11 fotos con el
+  horquillado detectado por EXIF o por el brillo, alineación, antifantasmas,
+  mapa de radiancia o fusión de exposición y mapeo tonal (detalles realzados,
+  compresor de tonos, fotográfico) con 17 estilos en miniatura. Capa nueva.
+- **Unir imágenes** (pantalla completa, `unir/`): panorámica automática
+  (proyección cilíndrica, solape por correlación de gradientes, exposición
+  igualada, costuras suaves y recorte) o unión en fila, columna o cuadrícula.
+- **Cortar en partes** (pantalla completa, `cortar/`): cuadrícula, tamaño fijo,
+  carrusel, perfil de Instagram (orden de subida) o cortes a mano. Cada trozo en
+  una capa nueva, en su pestaña, en un ZIP o suelto.
+- **Recortar en forma** (pantalla completa, `formas/`): unas 60 formas
+  (polígonos de 3 a 24 lados, estrellas de 3 a 30 puntas, corazón, flores,
+  nube, bocadillos, engranaje, anillo, marco, flechas, puzle…) que se mueven,
+  escalan y giran sobre la foto, con borde suave y contorno. Capa nueva con
+  transparencia.
+- **Antes y después** (pantalla completa, `comparar/`): imagen de comparación
+  dividida, diagonal, lado a lado o apilada, con etiquetas y formatos de redes.
 - **Eliminar fondo** con IA local (U²-Net rápido, MODNet para retratos, ISNet
-  de máxima calidad) o por color de los bordes, como máscara editable.
+  de máxima calidad) o por color de los bordes: el recorte va a una capa nueva
+  y la original se oculta.
+- **Ampliar con IA** ×2 o ×4 (Real-ESRGAN, SPAN, UltraSharp), **Colorear con
+  IA** (SpongeColor, Colorizer, DDColor; el color se aplica a la luminancia
+  original) y **Expandir con IA** (LaMa rellena los bordes nuevos del lienzo).
 - **Reemplazar cielo**: detecta el cielo (DeepLab/ADE20K) y lo sustituye por
   un color, un degradado o una foto propia, en una capa con su máscara.
 
@@ -413,6 +433,10 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
   dibuja tercios, proporción áurea, espiral áurea orientada hacia el sujeto y
   diagonales. Propone un recorte que lleva el sujeto a un punto fuerte y
   endereza el horizonte.
+- **Paleta de colores**: los colores dominantes de la imagen para copiar,
+  usar como color frontal, descargar o crear como capa.
+- **Cuentagotas de pantalla**: coge un color de cualquier parte de la pantalla
+  (Chrome y Edge de escritorio).
 - **Metadatos EXIF**: revisar y escribir datos de cámara en exportaciones JPEG.
 - **Limpiar metadatos de un archivo** sin abrirlo en el editor.
 
@@ -456,20 +480,26 @@ js/
   main.js               Arranque
   core/                 Documento, historial, instantáneas, bus de eventos, dispositivo, búsqueda, formas
   editor/               Herramientas, pinceles, capas, máscaras, selección, texto, ajustes,
-                        curvas, tonos del histograma, cuadrícula inteligente, trozos y formas
+                        curvas, tonos del histograma y cuadrícula inteligente
   filters/              Filtros y filtros especiales (camera, lens, lut, purepixel, unmark…)
-  features/             Sujeto, cielo y herramientas fotográficas
+  features/             Sujeto, cielo, herramientas fotográficas, IA, paleta y acciones
   ai/                   Carga y ejecución de modelos de IA
   analysis/             Métricas, forense y FFT
   exif/                 Lectura y escritura de EXIF
-  io/                   Abrir, exportar, proyectos, lotes y ZIP
-  ui/                   Menús, paneles (con histograma), diálogos, guía y barra/cajón móvil
+  io/                   Abrir, exportar (AVIF, PDF, GIF), proyectos, lotes y ZIP
+  ui/                   Menús, paneles, diálogos, ventana común de plugins (fsshell), guía y cajón móvil
   vendor/               Librerías de terceros
 raw/                    Revelador RAW (LibRaw-Wasm)
 vintagefilter/          Filtro Vintage
 memes/                  Creador de memes
 socialmediapost/        Collage / Historia / Post
 stickers/               Stickers (Fluent Emoji)
+hdr/                    Fusión HDR
+unir/                   Unir imágenes (panorámica y unión)
+cortar/                 Cortar en partes
+formas/                 Recortar en forma
+comparar/               Antes y después
+hojacontactos/          Hoja de contactos
 assets/                 Iconos, imágenes y modelos de IA
 fonts/                  Tipografías libres (catálogo completo de Google Fonts), servidas desde el sitio
 server/                 Configuración de nginx y servidor opcional para Unmark (FastAPI)

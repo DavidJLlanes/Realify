@@ -10,6 +10,30 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Fusión HDR** (`hdr/`): hasta 11 fotos, horquillado detectado solo, alineación,
+  antifantasmas, fusión de exposición y mapeo tonal con 17 estilos.
+- **Unir imágenes** (`unir/`): panorámica automática y unión en fila, columna o
+  cuadrícula.
+- **Cortar en partes** (`cortar/`) y **Recortar en forma** (`formas/`, ~60 formas)
+  a pantalla completa, sustituyen a «Dividir en trozos» y al diálogo anterior.
+- **Antes y después** (`comparar/`) y **Hoja de contactos** (`hojacontactos/`).
+- Exportar en **AVIF** y **PDF**; **GIF animado** a partir de las capas.
+- **Paleta de colores** y **cuentagotas de pantalla**.
+- **Acciones**: grabar y repetir secuencias de comandos, también en lote.
+- IA: **ampliar** ×2/×4, **colorear** y **expandir** el lienzo.
+- Zoom y desplazamiento de la imagen mientras se aplica cualquier efecto.
+- Aviso visible con botón Cancelar mientras trabaja la IA; si un modelo pesado
+  agota la memoria y la página se recarga, la imagen se recupera.
+
+### Cambiado
+- **Eliminar fondo** crea una capa nueva con el recorte y oculta la original.
+
+### Corregido
+- ISNet recibía la imagen sin normalizar y devolvía máscaras casi uniformes.
+- Rasterizar un texto mientras se editaba dejaba un error al cerrar la edición.
+- El despliegue reintenta la conexión SSH si el servidor la corta.
+
+### Añadido
 - **Aviso de versión nueva**: al volver a la app (y cada 30 minutos) se
   comprueba si hay una versión publicada; si la hay, una barra ofrece
   «Actualizar», que guarda todas las pestañas abiertas, recarga y las reabre.

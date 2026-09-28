@@ -69,8 +69,9 @@ const PRIVACY_BODY = `<div class="guide">
     caso, y nunca envía tus imágenes ni tus textos:</p>
   <ul>
     <li><b>Hugging Face</b> (Hugging Face, Inc.). Los modelos de
-      inteligencia artificial grandes (eliminar fondo con MODNet o ISNet,
-      relleno con LaMa, reducción de ruido y de artefactos JPEG) se
+      inteligencia artificial (eliminar fondo con MODNet o ISNet, relleno y
+      expansión con LaMa, ampliar, colorear, reducción de ruido y de
+      artefactos JPEG) se
       descargan de <code>huggingface.co</code> la primera vez que eliges
       uno de ellos, y a partir de ahí se guardan en tu navegador. La imagen
       se procesa en tu equipo: sólo se descarga el modelo. Base jurídica:
