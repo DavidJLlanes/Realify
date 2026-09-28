@@ -24,6 +24,7 @@
    Aquí la foto se deforma en directo mientras se arrastra.
    ═══════════════════════════════════════════════════════════════ */
 
+import { grabDoc, drawPx, nearest } from "./grab.js";
 import { doc } from "../core/doc.js";
 import { emit } from "../core/bus.js";
 import { record } from "../core/history.js";
@@ -254,7 +255,7 @@ function makeRoomFor(kind){
    borrar una guía mal puesta sin empezar de cero es la diferencia
    entre usar el modo y abandonarlo. */
 export function perspGuideAt(p){
-  const tol = 14 / Math.max(view.zoom, 1e-6);
+  const tol = grabDoc(view.zoom, 14);
   let mejor = -1, mejorD = tol;
   persp.guides.forEach((g, i) => {
     const a = toCanvas(g.x1, g.y1), b = toCanvas(g.x2, g.y2);
@@ -277,17 +278,14 @@ function distPointSeg(px, py, x1, y1, x2, y2){
 export function perspHandleAt(p){
   const q = persp.base;
   if(!q) return null;
-  const t = 22 / Math.max(view.zoom, 1e-6);
+  const t = grabDoc(view.zoom, 22);
   if(persp.mode === "edges"){
-    for(const [a, b] of [[0,1],[1,2],[2,3],[3,0]]){
-      const mx = (q[a][0] + q[b][0]) / 2, my = (q[a][1] + q[b][1]) / 2;
-      if(Math.hypot(p.x - mx, p.y - my) < t) return { kind:"edge", a, b };
-    }
-    return null;
+    const E = [[0,1],[1,2],[2,3],[3,0]];
+    const k = nearest(p, E.map(([a, b]) => [(q[a][0] + q[b][0]) / 2, (q[a][1] + q[b][1]) / 2]), t);
+    return k < 0 ? null : { kind:"edge", a: E[k][0], b: E[k][1] };
   }
-  for(let i = 0; i < 4; i++)
-    if(Math.hypot(p.x - q[i][0], p.y - q[i][1]) < t) return { kind:"corner", i };
-  return null;
+  const i = nearest(p, q, t);
+  return i < 0 ? null : { kind:"corner", i };
 }
 
 /* ── gestos ───────────────────────────────────────────────────── */
@@ -503,7 +501,7 @@ export function drawPerspOverlay(ctx){
 
   if(persp.mode === "adjust") return;
 
-  const r = 8 * px;
+  const r = drawPx(8) * px;
   const dot = (x, y) => {
     ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
     ctx.fillStyle = "#e8a33d"; ctx.fill();

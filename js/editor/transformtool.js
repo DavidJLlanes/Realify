@@ -29,6 +29,7 @@
    mover.
    ═══════════════════════════════════════════════════════════════ */
 
+import { grabDoc, drawPx, nearest, offset } from "./grab.js";
 import { doc, activeLayer } from "../core/doc.js";
 import { emit } from "../core/bus.js";
 import { record } from "../core/history.js";
@@ -374,30 +375,27 @@ function toLocal(p, pivot){
 export function xformHandleAt(p){
   if(!armed || xform.mode !== "free") return null;
   const q = xform.quad;
-  const t = HANDLE_R / Math.max(view.zoom, 1e-6);
-  for(let i = 0; i < 4; i++)
-    if(Math.hypot(p.x - q[i][0], p.y - q[i][1]) < t) return { kind:"corner", i };
+  const t = grabDoc(view.zoom, HANDLE_R);
+  // Esquinas, puntos medios y pivote compiten: gana el más cercano, así
+  // una caja pequeña en pantalla sigue dejando elegir cada tirador.
   const mids = [[0,1],[1,2],[2,3],[3,0]];
-  for(let k = 0; k < 4; k++){
-    const [a,b] = mids[k];
-    const mx = (q[a][0]+q[b][0])/2, my = (q[a][1]+q[b][1])/2;
-    if(Math.hypot(p.x - mx, p.y - my) < t) return { kind:"edge", a, b, axis: k % 2 === 0 ? "h" : "v" };
+  const cands = [...q, ...mids.map(([a,b]) => [(q[a][0]+q[b][0])/2, (q[a][1]+q[b][1])/2]), pivotPoint()];
+  const i = nearest(p, cands, t);
+  if(i >= 0 && i < 4) return { kind:"corner", i, at: cands[i] };
+  if(i >= 4 && i < 8){ const k = i - 4, [a,b] = mids[k]; return { kind:"edge", a, b, axis: k % 2 === 0 ? "h" : "v", at: cands[i] }; }
+  if(i === 8) return { kind:"pivot", at: cands[8] };
+  // Girar: el anillo de fuera de cada esquina, sólo si no se está dentro de la caja.
+  const rr = t + grabDoc(view.zoom, ROTATE_R - HANDLE_R);
+  if(!pointInQuad(p, q)){
+    const j = nearest(p, q, rr);
+    if(j >= 0) return { kind:"rotate", i: j };
   }
-  const piv = pivotPoint();
-  if(Math.hypot(p.x - piv[0], p.y - piv[1]) < t) return { kind:"pivot" };
-  const rr = ROTATE_R / Math.max(view.zoom, 1e-6);
-  for(let i = 0; i < 4; i++)
-    if(Math.hypot(p.x - q[i][0], p.y - q[i][1]) < rr) return { kind:"rotate", i };
   return null;
 }
 
 export function xformWarpHandleAt(p){
   if(!armed || xform.mode !== "warp") return -1;
-  const t = HANDLE_R / Math.max(view.zoom, 1e-6);
-  const grid = xform.grid;
-  for(let i = 0; i < grid.length; i++)
-    if(Math.hypot(p.x - grid[i][0], p.y - grid[i][1]) < t) return i;
-  return -1;
+  return nearest(p, xform.grid, grabDoc(view.zoom, HANDLE_R));
 }
 
 function pointInQuad(p, q){
@@ -441,7 +439,11 @@ export function xformDown(p, e){
 
   const h = xformHandleAt(p);
   if(h){
-    if(h.kind === "pivot"){ xform._drag = { kind:"pivot", from: p }; return; }
+    // Desfase entre el dedo y el centro del tirador: el tirador no salta
+    // bajo el puntero, se arrastra tal cual se cogió.
+    const off = h.at ? { x: h.at[0] - p.x, y: h.at[1] - p.y } : null;
+    if(off) p = offset(p, off);
+    if(h.kind === "pivot"){ xform._drag = { kind:"pivot", from: p, off }; return; }
     if(h.kind === "rotate"){
       const piv = pivotPoint();
       const a0 = Math.atan2(p.y - piv[1], p.x - piv[0]);
@@ -449,12 +451,12 @@ export function xformDown(p, e){
       return;
     }
     if(h.kind === "corner"){
-      xform._drag = { kind:"corner", i: h.i, from: p,
+      xform._drag = { kind:"corner", i: h.i, from: p, off,
         s0: { sx: xform.sx, sy: xform.sy, tx: xform.tx, ty: xform.ty } };
       return;
     }
     if(h.kind === "edge"){
-      xform._drag = { kind:"edge", axis: h.axis, from: p,
+      xform._drag = { kind:"edge", axis: h.axis, from: p, off,
         s0: { sx: xform.sx, sy: xform.sy, tx: xform.tx, ty: xform.ty } };
       return;
     }
@@ -475,6 +477,7 @@ export function xformMove(p, e){
   if(!armed) return;
   const d = xform._drag;
   if(!d) return;
+  if(d.off) p = offset(p, d.off);
 
   if(d.kind === "panWarp"){
     const dx = p.x - d.from.x, dy = p.y - d.from.y;
@@ -550,7 +553,12 @@ export function xformMove(p, e){
       return;
     }
 
-    const loFrom = toLocal(d.from, piv), loNow = toLocal(p, piv);
+    // Respecto al pivote YA desplazado (pivote + traslación al empezar):
+    // si la capa se había movido antes, medir desde el pivote sin
+    // desplazar daba escalas equivocadas.
+    const t0 = { x: d.s0.tx, y: d.s0.ty };
+    const loFrom = toLocal({ x: d.from.x - t0.x, y: d.from.y - t0.y }, piv);
+    const loNow  = toLocal({ x: p.x - t0.x, y: p.y - t0.y }, piv);
     const { w, h } = xform.box;
     const halfW = w/2, halfH = h/2;
     // Signo del cuadrante que se está agarrando, en los ejes locales
@@ -573,8 +581,16 @@ export function xformMove(p, e){
       if(sxSign) newSx = Math.max(0.02, (loNow[0] * sxSign) / halfW);
       if(sySign) newSy = Math.max(0.02, (loNow[1] * sySign) / halfH);
     } else {
-      if(sxSign) newSx = Math.max(0.02, (loNow[0] + sxSign * halfW) / (2 * sxSign * halfW));
-      if(sySign) newSy = Math.max(0.02, (loNow[1] + sySign * halfH) / (2 * sySign * halfH));
+      // Desde la esquina/borde opuesto, que queda FIJO donde estaba al
+      // empezar: la escala es lo que mide, en los ejes de la caja, el
+      // vector de ese punto fijo al puntero. (Antes el punto fijo se
+      // recalculaba con la escala del paso anterior y, con movimientos
+      // rápidos —el dedo—, la esquina opuesta se desplazaba y el
+      // tirador se quedaba atrás del puntero.)
+      const opp = toWorldLocal(oppLocalFor(d, sxSign, sySign, halfW, halfH), d.s0.sx, d.s0.sy, piv, d.s0.tx, d.s0.ty);
+      const v = toLocal({ x: p.x - opp[0] + piv[0], y: p.y - opp[1] + piv[1] }, piv);
+      if(sxSign) newSx = Math.max(0.02, v[0] / (2 * sxSign * halfW));
+      if(sySign) newSy = Math.max(0.02, v[1] / (2 * sySign * halfH));
     }
 
     if(shift){
@@ -601,19 +617,27 @@ export function xformMove(p, e){
     } else {
       // Desde la esquina/borde opuesto: hay que desplazar tx/ty para
       // que el punto opuesto no se mueva ni un píxel en pantalla.
-      const oppLocal = d.kind === "corner"
-        ? [-cornerSigns[d.i][0] * halfW, -cornerSigns[d.i][1] * halfH]
-        : [sxSign ? -sxSign * halfW : 0, sySign ? -sySign * halfH : 0];
-      const oldOpp = toWorldLocal(oppLocal, xform.sx, xform.sy, piv, d.s0.tx, d.s0.ty);
+      const oppLocal = oppLocalFor(d, sxSign, sySign, halfW, halfH);
+      const oldOpp = toWorldLocal(oppLocal, d.s0.sx, d.s0.sy, piv, d.s0.tx, d.s0.ty);
       xform.sx = newSx; xform.sy = newSy;
       const newOpp = toWorldLocal(oppLocal, newSx, newSy, piv, 0, 0);
-      xform.tx = d.s0.tx + (oldOpp[0] - newOpp[0]);
-      xform.ty = d.s0.ty + (oldOpp[1] - newOpp[1]);
+      // `oldOpp` ya incluye la traslación inicial: no volver a sumarla
+      // (con la capa movida antes, la caja saltaba al escalar).
+      xform.tx = oldOpp[0] - newOpp[0];
+      xform.ty = oldOpp[1] - newOpp[1];
     }
 
     xformRecompute();
     xformPreview("drag");
   }
+}
+
+/* Punto opuesto al tirador agarrado, en ejes locales sin escalar. */
+function oppLocalFor(d, sxSign, sySign, halfW, halfH){
+  const cornerSigns = [[-1,-1],[1,-1],[1,1],[-1,1]];
+  return d.kind === "corner"
+    ? [-cornerSigns[d.i][0] * halfW, -cornerSigns[d.i][1] * halfH]
+    : [sxSign ? -sxSign * halfW : 0, sySign ? -sySign * halfH : 0];
 }
 
 /* Punto local (ya en ejes de la caja, sin escalar) llevado a mundo
@@ -751,7 +775,7 @@ export function drawXformOverlay(ctx){
       for(let j = 1; j <= r; j++) ctx.lineTo(g[j*(c+1)+i][0], g[j*(c+1)+i][1]);
     }
     ctx.stroke();
-    const rad = 5 * px;
+    const rad = drawPx(5) * px;
     for(const [x, y] of g){
       ctx.beginPath(); ctx.arc(x, y, rad, 0, 6.2832);
       ctx.fillStyle = "#e8a33d"; ctx.fill();
@@ -777,7 +801,7 @@ export function drawXformOverlay(ctx){
   ctx.lineTo((q[3][0]+q[0][0])/2, (q[3][1]+q[0][1])/2);
   ctx.stroke();
 
-  const r = 7 * px;
+  const r = drawPx(7) * px;
   const dot = (x, y) => {
     ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
     ctx.fillStyle = "#e8a33d"; ctx.fill();

@@ -9,6 +9,7 @@
      · Carrusel y perfil de Instagram: arrastrar mueve el encuadre.
    ═══════════════════════════════════════════════════════════════ */
 
+import { grabPx } from "../js/editor/grab.js";
 import { createShell, mountControls, stateHistory } from "../js/ui/fsshell.js";
 import { plan, pieceNumber, RATIOS, MODES, modeSvg } from "./plan.js";
 
@@ -59,7 +60,7 @@ export function openCutEditor({ source, name, canLayers, onAccept }){
     });
   });
   const lineAt = pt => {
-    const tol = 14 / Math.max(.01, pt.k);
+    const tol = grabPx(14) / Math.max(.01, pt.k);
     let best = null;
     P.xs.forEach((v, i) => { const d = Math.abs(v * W - pt.x); if(d < tol && (!best || d < best.d)) best = { axis: "x", i, d }; });
     P.ys.forEach((v, i) => { const d = Math.abs(v * H - pt.y); if(d < tol && (!best || d < best.d)) best = { axis: "y", i, d }; });
@@ -72,7 +73,9 @@ export function openCutEditor({ source, name, canLayers, onAccept }){
     if(type === "down"){
       if(fixed){ drag = { area: true, x: pt.x, y: pt.y, ox: P.ox, oy: P.oy }; return true; }
       const hit = lineAt(pt);
-      drag = hit ? { ...hit, moved: false } : { add: true, x: pt.x, y: pt.y, moved: false };
+      // La línea se arrastra con el desfase con que se cogió: no salta bajo el dedo.
+      drag = hit ? { ...hit, moved: false, off: hit.axis === "x" ? P.xs[hit.i] * W - pt.x : P.ys[hit.i] * H - pt.y }
+                 : { add: true, x: pt.x, y: pt.y, moved: false };
       return true;
     }
     if(!drag) return false;
@@ -86,7 +89,7 @@ export function openCutEditor({ source, name, canLayers, onAccept }){
       }
       if(drag.add){ if(Math.hypot(pt.x - drag.x, pt.y - drag.y) * pt.k > 8) drag.moved = true; return true; }
       drag.moved = true;
-      if(drag.axis === "x") P.xs[drag.i] = pt.x / W; else P.ys[drag.i] = pt.y / H;
+      if(drag.axis === "x") P.xs[drag.i] = (pt.x + drag.off) / W; else P.ys[drag.i] = (pt.y + drag.off) / H;
       refresh(); return true;
     }
     if(type === "up" || type === "cancel"){

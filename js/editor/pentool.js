@@ -20,6 +20,7 @@
    que aquí no hace falta.
    ═══════════════════════════════════════════════════════════════ */
 
+import { grabDoc, drawPx, nearest } from "./grab.js";
 import { doc } from "../core/doc.js";
 import { view } from "./view.js";
 import { scheduleOverlay } from "./compositor.js";
@@ -29,7 +30,7 @@ import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { toast } from "../ui/toast.js";
 
-const HIT_R = 9;         // radio de acierto sobre ancla/tirador, en píxeles de pantalla
+const HIT_R = 9;  /* con el dedo lo agranda grab.js */         // radio de acierto sobre ancla/tirador, en píxeles de pantalla
 const CLOSE_R = 11;       // radio, algo mayor, para acertar sobre la ancla inicial y cerrar
 
 export const pen = {
@@ -68,41 +69,23 @@ function allOpenAndClosed(){
   return pen.current ? [...pen.subpaths, pen.current] : pen.subpaths;
 }
 
-function hitAnchor(p, t){
-  for(let si = 0; si < pen.subpaths.length; si++){
-    const pts = pen.subpaths[si].points;
-    for(let i = 0; i < pts.length; i++){
-      if(Math.hypot(p.x - pts[i].x, p.y - pts[i].y) < t) return { subpath: si, point: i, part: "anchor" };
+/* Ancla o tirador más cercano dentro del radio `t` (no el primero de
+   la lista: con el dedo el radio es grande y varios pueden solaparse). */
+function hitNearest(p, t, parts){
+  const cands = [], ids = [];
+  const add = (pts, si) => pts.forEach((a, i) => {
+    for(const part of parts){
+      cands.push(part === "anchor" ? [a.x, a.y] : a[part]);
+      ids.push({ subpath: si, point: i, part });
     }
-  }
-  if(pen.current){
-    const pts = pen.current.points;
-    for(let i = 0; i < pts.length; i++){
-      if(Math.hypot(p.x - pts[i].x, p.y - pts[i].y) < t) return { subpath: -1, point: i, part: "anchor" };
-    }
-  }
-  return null;
+  });
+  pen.subpaths.forEach((sp, si) => add(sp.points, si));
+  if(pen.current) add(pen.current.points, -1);
+  const k = nearest(p, cands, t);
+  return k < 0 ? null : ids[k];
 }
-
-function hitHandle(p, t){
-  const check = (pts, si) => {
-    for(let i = 0; i < pts.length; i++){
-      const a = pts[i];
-      if(Math.hypot(p.x - a.out[0], p.y - a.out[1]) < t) return { subpath: si, point: i, part: "out" };
-      if(Math.hypot(p.x - a.in[0], p.y - a.in[1]) < t) return { subpath: si, point: i, part: "in" };
-    }
-    return null;
-  };
-  for(let si = 0; si < pen.subpaths.length; si++){
-    const h = check(pen.subpaths[si].points, si);
-    if(h) return h;
-  }
-  if(pen.current){
-    const h = check(pen.current.points, -1);
-    if(h) return h;
-  }
-  return null;
-}
+const hitAnchor = (p, t) => hitNearest(p, t, ["anchor"]);
+const hitHandle = (p, t) => hitNearest(p, t, ["out", "in"]);
 
 function pointsOf(subpathIdx){
   return subpathIdx === -1 ? pen.current.points : pen.subpaths[subpathIdx].points;
@@ -111,7 +94,7 @@ function pointsOf(subpathIdx){
 /* ── gestos ──────────────────────────────────────────────────── */
 export function penDown(p, e){
   if(!armed) return;
-  const t = HIT_R / Math.max(view.zoom, 1e-6);
+  const t = grabDoc(view.zoom, HIT_R);
 
   // Reeditar un ancla o un tirador ya puestos, de un subtrazado
   // cerrado o del que está en curso — siempre que no se esté a punto
@@ -121,7 +104,7 @@ export function penDown(p, e){
 
   if(pen.current){
     const pts = pen.current.points;
-    const closeT = CLOSE_R / Math.max(view.zoom, 1e-6);
+    const closeT = grabDoc(view.zoom, CLOSE_R);
     if(pts.length > 2 && Math.hypot(p.x - pts[0].x, p.y - pts[0].y) < closeT){
       pen.current.closed = true;
       pen.subpaths.push(pen.current);
@@ -178,6 +161,8 @@ export function penMove(p, e){
   }
   if(d.kind === "handle"){
     const a = pointsOf(d.subpath)[d.point];
+    // Relativo a donde se cogió: el tirador no salta bajo el dedo.
+    p = { x: d.start[0] + (p.x - d.from.x), y: d.start[1] + (p.y - d.from.y) };
     a[d.part] = [p.x, p.y];
     // Simétrico salvo que se rompa a propósito con Alt —comprobado en
     // cada movimiento, no sólo al agarrar el tirador, para poder
@@ -363,7 +348,7 @@ export function drawPenOverlay(ctx){
         ctx.moveTo(a.in[0], a.in[1]); ctx.lineTo(a.out[0], a.out[1]);
         ctx.stroke();
         for(const h of [a.in, a.out]){
-          ctx.beginPath(); ctx.arc(h[0], h[1], 3.5*px, 0, 6.2832);
+          ctx.beginPath(); ctx.arc(h[0], h[1], drawPx(3.5)*px, 0, 6.2832);
           ctx.fillStyle = "#4fc3f7"; ctx.fill();
         }
       }
@@ -373,7 +358,7 @@ export function drawPenOverlay(ctx){
   for(const sp of list){
     for(let i = 0; i < sp.points.length; i++){
       const a = sp.points[i];
-      const r = 4 * px;
+      const r = drawPx(4) * px;
       ctx.beginPath();
       ctx.rect(a.x - r, a.y - r, r*2, r*2);
       ctx.fillStyle = (pen.current && sp === pen.current && i === 0) ? "#fff" : "#4fc3f7";

@@ -7,6 +7,7 @@
      · el asa de arriba la gira.
    ═══════════════════════════════════════════════════════════════ */
 
+import { grabPx, drawPx, nearest } from "../js/editor/grab.js";
 import { createShell, mountControls, stateHistory, scaledCanvas } from "../js/ui/fsshell.js";
 import { SHAPES, GROUPS, placeShape, traceShape, fillRule, shapeIcon } from "./shapes.js";
 
@@ -109,7 +110,7 @@ export function openShapeEditor({ source, canLayer, onAccept }){
     x.stroke();
     const top = [(g.corners[0][0] + g.corners[1][0]) / 2, (g.corners[0][1] + g.corners[1][1]) / 2];
     x.strokeStyle = "#fff"; x.lineWidth = 1.5 * d; x.beginPath(); x.moveTo(X(top[0]), Y(top[1])); x.lineTo(X(g.rotH[0]), Y(g.rotH[1])); x.stroke();
-    const R = (TOUCH ? 9 : 6) * d;
+    const R = drawPx(TOUCH ? 7 : 6) * d;
     x.fillStyle = "#fff"; x.strokeStyle = "#1a1d21"; x.lineWidth = 1.5 * d;
     for(const [a, b] of g.corners){ x.beginPath(); x.rect(X(a) - R, Y(b) - R, R * 2, R * 2); x.fill(); x.stroke(); }
     x.beginPath(); x.arc(X(g.rotH[0]), Y(g.rotH[1]), R * 1.1, 0, Math.PI * 2); x.fillStyle = "#6794ff"; x.fill(); x.stroke();
@@ -119,9 +120,11 @@ export function openShapeEditor({ source, canLayer, onAccept }){
     const g = geom();
     if(type === "hover"){ return false; }
     if(type === "down"){
-      const tol = (TOUCH ? 22 : 12) / Math.max(.01, pt.k);
-      if(Math.hypot(pt.x - g.rotH[0], pt.y - g.rotH[1]) < tol * 1.2){ drag = { kind: "rot", a0: Math.atan2(pt.y - g.cy, pt.x - g.cx), r0: S.rot }; return true; }
-      if(g.corners.some(([a, b]) => Math.hypot(pt.x - a, pt.y - b) < tol)){ drag = { kind: "size", d0: Math.hypot(pt.x - g.cx, pt.y - g.cy), s0: S.size }; return true; }
+      const tol = grabPx(12) / Math.max(.01, pt.k);
+      // Esquinas y asa de giro compiten: gana la más cercana.
+      const hit = nearest(pt, [...g.corners, g.rotH], tol * 1.2);
+      if(hit === g.corners.length){ drag = { kind: "rot", a0: Math.atan2(pt.y - g.cy, pt.x - g.cx), r0: S.rot }; return true; }
+      if(hit >= 0){ drag = { kind: "size", d0: Math.hypot(pt.x - g.cx, pt.y - g.cy), s0: S.size }; return true; }
       // Dentro de la caja girada
       const a = -S.rot * Math.PI / 180, dx = pt.x - g.cx, dy = pt.y - g.cy;
       const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);

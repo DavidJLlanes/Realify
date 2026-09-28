@@ -11,6 +11,7 @@ import { doc, activeLayer, cropDoc, addLayer } from "../core/doc.js";
 import { flatten } from "./layertree.js";
 import { beginPixels, expandPendingPixels, commitPixels, cancelPixels, abortPixels, record, recordLayers } from "../core/history.js";
 import { view, toImage, zoomAt, zoomToRect, fit } from "./view.js";
+import { grabDoc, drawPx, nearest, rectHandleAt, rectHandleOffset, offset } from "./grab.js";
 import { beginScratch, ensureScratchRect, endScratch, discardScratch, scratchCtx, scratchView,
          setOverlay, scheduleCompose, scheduleOverlay, pickColor,
          compose, canvasEl } from "./compositor.js";
@@ -529,6 +530,7 @@ export const TOOLS = [
       const r = state.cropRect;
       const h = cropHandleAt(p);
       this._mode = h || (inRect(p, r) ? "move" : "new");
+      this._off = h ? rectHandleOffset(h, r, p) : null;
       this._from = p;
       this._start = { ...r };
       if(this._mode === "new"){
@@ -539,7 +541,7 @@ export const TOOLS = [
     },
     move(p){
       if(!this._mode) return;
-      resizeCrop(this._mode, p, this._from, this._start);
+      resizeCrop(this._mode, offset(p, this._off), this._from, this._start);
       scheduleOverlay();
     },
     up(){ this._mode = null; }
@@ -801,7 +803,8 @@ export const TOOLS = [
         if(h && beginBoxDrag(l, h, p)){ this._mode = "box"; return; }
         if(l.text.path){
           const ph = textPathHandleAt(p, l.text.path);
-          if(ph){ this._mode = "pathedit"; this._pathHandle = ph; this._editLayer = l; return; }
+          if(ph){ this._mode = "pathedit"; this._pathHandle = ph; this._editLayer = l;
+                  this._off = { x: l.text.path[ph][0] - p.x, y: l.text.path[ph][1] - p.y }; return; }
         }
       }
 
@@ -829,7 +832,8 @@ export const TOOLS = [
         const l = this._editLayer;
         if(!l || !l.text.path) return;
         const np = { p0:[...l.text.path.p0], p1:[...l.text.path.p1], p2:[...l.text.path.p2] };
-        np[this._pathHandle] = [p.x, p.y];
+        const q = offset(p, this._off);
+        np[this._pathHandle] = [q.x, q.y];
         noteStyleChange(l);
         updateText(l, { path: np });
         scheduleOverlay();
@@ -1132,6 +1136,8 @@ export const TOOLS = [
         if(onRadius || onHandle || inRect(p, s)){
           if(active.locked){ toast("La capa est\u00e1 bloqueada"); return; }
           this._mode = onRadius ? "radius" : (onHandle || "move");
+          this._off = onRadius ? { x: shapeRadiusHandleX(s) - p.x, y: 0 }
+                    : onHandle ? rectHandleOffset(onHandle, s, p) : null;
           this._editLayer = active;
           this._editBefore = JSON.parse(JSON.stringify(s));
           this._from = p;
@@ -1170,7 +1176,7 @@ export const TOOLS = [
         return;
       }
       if(this._mode && this._editLayer){
-        previewShapeParams(this._editLayer, resizeShape(this._mode, p, this._from, this._editBefore));
+        previewShapeParams(this._editLayer, resizeShape(this._mode, offset(p, this._off), this._from, this._editBefore));
         scheduleOverlay();
       }
     },
@@ -2850,18 +2856,7 @@ const HANDLE = 9;
 function inRect(p, r){ return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.w && p.y <= r.y + r.h; }
 
 function cropHandleAt(p){
-  const r = state.cropRect;
-  if(!r) return null;
-  const t = HANDLE / view.zoom;
-  const L = Math.abs(p.x - r.x) < t, R = Math.abs(p.x - (r.x + r.w)) < t;
-  const T = Math.abs(p.y - r.y) < t, B = Math.abs(p.y - (r.y + r.h)) < t;
-  const inY = p.y > r.y - t && p.y < r.y + r.h + t;
-  const inX = p.x > r.x - t && p.x < r.x + r.w + t;
-  if(L && T) return "nw"; if(R && T) return "ne";
-  if(L && B) return "sw"; if(R && B) return "se";
-  if(L && inY) return "w"; if(R && inY) return "e";
-  if(T && inX) return "n"; if(B && inX) return "s";
-  return null;
+  return rectHandleAt(p, state.cropRect, grabDoc(view.zoom, HANDLE));
 }
 
 function ratioValue(){
@@ -2940,16 +2935,7 @@ function resizeCrop(mode, p, from, start){
    derecha lo agranda, a la izquierda lo achica, sin salirse nunca de
    0..mitad del lado corto—. */
 function shapeHandleAt(p, s){
-  const t = HANDLE / view.zoom;
-  const L = Math.abs(p.x - s.x) < t, R = Math.abs(p.x - (s.x + s.w)) < t;
-  const T = Math.abs(p.y - s.y) < t, B = Math.abs(p.y - (s.y + s.h)) < t;
-  const inY = p.y > s.y - t && p.y < s.y + s.h + t;
-  const inX = p.x > s.x - t && p.x < s.x + s.w + t;
-  if(L && T) return "nw"; if(R && T) return "ne";
-  if(L && B) return "sw"; if(R && B) return "se";
-  if(L && inY) return "w"; if(R && inY) return "e";
-  if(T && inX) return "n"; if(B && inX) return "s";
-  return null;
+  return rectHandleAt(p, s, grabDoc(view.zoom, HANDLE));
 }
 
 function shapeRadiusHandleX(s){
@@ -2957,8 +2943,8 @@ function shapeRadiusHandleX(s){
 }
 function shapeRadiusHandleAt(p, s){
   if(s.kind !== "rect") return false;
-  const t = HANDLE / view.zoom;
-  return Math.abs(p.x - shapeRadiusHandleX(s)) < t && Math.abs(p.y - s.y) < t;
+  const t = grabDoc(view.zoom, HANDLE);
+  return Math.hypot(p.x - shapeRadiusHandleX(s), p.y - s.y) < t;
 }
 
 function resizeShape(mode, p, from, start){
@@ -3007,7 +2993,7 @@ function drawCropOverlay(ctx){
   }
 
   // Asas
-  const s = HANDLE / view.zoom;
+  const s = drawPx(HANDLE) / view.zoom;
   ctx.fillStyle = "#e8a33d";
   for(const [hx, hy] of [[0,0],[.5,0],[1,0],[1,.5],[1,1],[.5,1],[0,1],[0,.5]]){
     ctx.fillRect(r.x + r.w * hx - s / 2, r.y + r.h * hy - s / 2, s, s);
@@ -3055,7 +3041,7 @@ function drawShapeToolOverlay(ctx){
   }
   ctx.setLineDash([]);
 
-  const hs = HANDLE / view.zoom;
+  const hs = drawPx(HANDLE) / view.zoom;
   ctx.fillStyle = "#e8a33d";
   for(const [hx, hy] of [[0,0],[.5,0],[1,0],[1,.5],[1,1],[.5,1],[0,1],[0,.5]]){
     ctx.fillRect(sh.x + sh.w * hx - hs / 2, sh.y + sh.h * hy - hs / 2, hs, hs);
@@ -3265,7 +3251,7 @@ function drawTextPathHandles(ctx, path){
   ctx.moveTo(path.p0[0], path.p0[1]); ctx.lineTo(path.p1[0], path.p1[1]);
   ctx.moveTo(path.p2[0], path.p2[1]); ctx.lineTo(path.p1[0], path.p1[1]);
   ctx.stroke();
-  const hs = HANDLE / view.zoom;
+  const hs = drawPx(HANDLE) / view.zoom;
   for(const [pt, color] of [[path.p0,"#e8a33d"],[path.p1,"#38a4e8"],[path.p2,"#e8a33d"]]){
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -3278,11 +3264,8 @@ function drawTextPathHandles(ctx, path){
 /* Distancia a cada una de las tres asas del trazado, en coordenadas
    de documento —igual criterio que `shapeHandleAt`—. */
 function textPathHandleAt(p, path){
-  const t = HANDLE / view.zoom;
-  if(Math.hypot(p.x - path.p0[0], p.y - path.p0[1]) < t) return "p0";
-  if(Math.hypot(p.x - path.p1[0], p.y - path.p1[1]) < t) return "p1";
-  if(Math.hypot(p.x - path.p2[0], p.y - path.p2[1]) < t) return "p2";
-  return null;
+  const i = nearest(p, [path.p0, path.p1, path.p2], grabDoc(view.zoom, HANDLE));
+  return i < 0 ? null : "p" + i;
 }
 
 function setActiveLayerId(id){

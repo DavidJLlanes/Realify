@@ -9,6 +9,7 @@
    valor guardado.
    ═══════════════════════════════════════════════════════════════ */
 
+import { isTouch } from "./grab.js";
 import { doc } from "../core/doc.js";
 import { record } from "../core/history.js";
 import { emit, on } from "../core/bus.js";
@@ -498,7 +499,7 @@ function dragEndOnce(e){
 stage.addEventListener("pointerdown", e => {
   if(!showGuides || !doc.open || drag) return;
   const p = toImage(e.clientX, e.clientY);
-  const hit = guideAt(p);
+  const hit = guideAt(p, isTouch() ? 18 : 8);
   if(!hit) return;
   // Este manejador va en fase de CAPTURA (tercer argumento `true` más
   // abajo), así que corre antes que el de la herramienta activa, que

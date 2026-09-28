@@ -12,16 +12,18 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { view } from "./view.js";
+import { grabDoc, drawPx, nearest, isTouch } from "./grab.js";
 import { emit } from "../core/bus.js";
 import { record } from "../core/history.js";
 import { isText, textBounds, textQuad, toTextSpace, rotatePoint,
          textOverflows, renderTextLayer } from "./text.js";
 
-/* Radio de agarre de un tirador, en píxeles de pantalla. Generoso a
-   propósito: con el dedo, un cuadrado de seis píxeles no se acierta. */
+/* Radio de agarre de un tirador con ratón, en píxeles de pantalla; con
+   el dedo lo agranda grab.js. */
 const GRAB = 11;
-/* Cuánto se separa el asa de giro del borde superior. */
-const SPIN_GAP = 26;
+/* Cuánto se separa el asa de giro del borde superior (más con el dedo,
+   para que no se confunda con el tirador del borde). */
+const spinGap = () => isTouch() ? 42 : 26;
 
 let drag = null;
 
@@ -39,7 +41,7 @@ function handlePoints(layer){
     { id:"ne", x:b.x + b.w,  y:b.y },
     { id:"se", x:b.x + b.w,  y:b.y + b.h },
     { id:"sw", x:b.x,        y:b.y + b.h },
-    { id:"spin", x:mx, y:b.y - SPIN_GAP / view.zoom }
+    { id:"spin", x:mx, y:b.y - spinGap() / view.zoom }
   ];
   if(boxed){
     out.push({ id:"w", x:b.x,       y:my },
@@ -54,11 +56,9 @@ function handlePoints(layer){
 export function hitHandle(layer, p){
   if(!isText(layer)) return null;
   const q = toTextSpace(layer, p);
-  const r = GRAB / view.zoom;
-  for(const h of handlePoints(layer)){
-    if(Math.abs(q.x - h.x) <= r && Math.abs(q.y - h.y) <= r) return h.id;
-  }
-  return null;
+  const pts = handlePoints(layer);
+  const i = nearest(q, pts, grabDoc(view.zoom, GRAB));
+  return i < 0 ? null : pts[i].id;
 }
 
 export function cursorFor(id, layer){
@@ -238,7 +238,7 @@ export function drawTextBox(ctx, layer){
     ctx.stroke();
   }
 
-  const r = 4.5 * px;
+  const r = drawPx(4.5) * px;
   for(const h of pts){
     ctx.beginPath();
     if(h.id === "spin") ctx.arc(h.x, h.y, r, 0, 6.2832);

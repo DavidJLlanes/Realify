@@ -10,6 +10,11 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Tiradores más fáciles de agarrar**, sobre todo con el dedo (`js/editor/grab.js`):
+  zona de agarre mayor en táctil y lápiz, tiradores más grandes, gana el más cercano
+  cuando se solapan y no saltan bajo el dedo al cogerlos. En Recortar, Transformar,
+  Deformar, Perspectiva, formas, marco y trazado del texto, pluma, guías, Formas,
+  Cortar y Galería de desenfoque.
 - **Cerrar todas las fotos**: en Archivo, en Herramientas y en la barra de pestañas;
   una sola confirmación.
 - **Fusión HDR** (`hdr/`): hasta 11 fotos, horquillado detectado solo, alineación,
@@ -40,6 +45,8 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Transformar: al estirar una esquina rápido, la esquina opuesta se movía y el
+  tirador se quedaba atrás; con la capa ya movida, escalar la hacía saltar.
 - ISNet recibía la imagen sin normalizar y devolvía máscaras casi uniformes.
 - Rasterizar un texto mientras se editaba dejaba un error al cerrar la edición.
 - El despliegue reintenta la conexión SSH si el servidor la corta.
