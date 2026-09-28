@@ -313,6 +313,7 @@ export async function removeBackground(){
   if(!body) return;
   const method = body.querySelector("#bgMethod").value;
   try{ localStorage.setItem(BG_KEY, method); }catch{}
+  const { activeTab, switchTo } = await import("../core/documents.js"), tabId = activeTab()?.tabId;
   let mask;
   if(method === "color"){
     const img=layer.ctx.getImageData(0,0,doc.w,doc.h);
@@ -337,6 +338,7 @@ export async function removeBackground(){
     return;
   }
   const f=+body.querySelector("#bgFeather").value;
+  if(tabId != null) switchTo(tabId, { force: true });   // el documento donde se empezó
   if(f) mask=featherMask(mask,doc.w,doc.h,f);
   cutoutLayer(layer, mask);
   toast("Fondo eliminado en una capa nueva", "ok");

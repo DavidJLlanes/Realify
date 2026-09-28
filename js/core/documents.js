@@ -138,9 +138,12 @@ function blockedByDialog(){
   return true;
 }
 
-export function switchTo(tabId){
+/* `force`: cambio interno que no espera al usuario (copia de seguridad
+   antes de la IA, volver a la pestaña donde empezó una operación larga):
+   no lo impide un diálogo abierto. */
+export function switchTo(tabId, { force = false } = {}){
   if(tabId === activeTabId) return true;
-  if(blockedByDialog()) return false;
+  if(!force && blockedByDialog()) return false;
   const target = tabs.find(t => t.tabId === tabId);
   if(!target || !target.snapshot) return false;
   stashActive();

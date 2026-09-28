@@ -102,6 +102,12 @@ export const MENUS = [
       help:"Pantalla completa: recorta la foto con una de unas 60 formas (círculo, polígonos y estrellas configurables, corazón, flores, nube, bocadillos, engranaje, anillo, marco, flechas…) que se mueve, escala y gira sobre la imagen, con borde suave y contorno. Crea una capa nueva con transparencia fuera." },
     { sep:true },
     { cmd:"image.removeBackground", label:"Eliminar fondo…" },
+    { cmd:"ai.upscale", label:"Ampliar con IA…",
+      help:"Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva." },
+    { cmd:"ai.colorize", label:"Colorear con IA…",
+      help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
+    { cmd:"ai.expand", label:"Expandir con IA…",
+      help:"Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva." },
     { cmd:"sky.replace", label:"Reemplazar cielo…",
       help:"Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara." }
   ]},

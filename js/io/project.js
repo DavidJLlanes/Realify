@@ -270,13 +270,18 @@ export async function stashForUpdate(key = UPDATE_KEY){
   const tabs = listTabs(), start = activeTab()?.tabId ?? null, docs = [];
   let active = 0;
   if(tabs.length){
-    for(const t of tabs){
-      if(t.tabId !== activeTab()?.tabId && !switchTo(t.tabId)) continue;   // un diálogo abierto impide cambiar
-      if(!doc.open) continue;
-      if(t.tabId === start) active = docs.length;
-      docs.push(await serializeProject());
-    }
-    if(start !== null) switchTo(start);
+    // Cambios forzados (sin esperar a que se cierre un diálogo) y vuelta
+    // SIEMPRE a la pestaña de partida: con documentos grandes esto tarda
+    // unos segundos, y si el usuario abre un diálogo mientras tanto, lo
+    // que viene después (el resultado de la IA) iría a otro documento.
+    try{
+      for(const t of tabs){
+        if(t.tabId !== activeTab()?.tabId && !switchTo(t.tabId, { force: true })) continue;
+        if(!doc.open) continue;
+        if(t.tabId === start) active = docs.length;
+        docs.push(await serializeProject());
+      }
+    }finally{ if(start !== null) switchTo(start, { force: true }); }
   } else if(doc.open) docs.push(await serializeProject());
   if(!docs.length) return 0;
   await idb("readwrite", s => s.put({ docs, active, savedAt: Date.now() }, key));

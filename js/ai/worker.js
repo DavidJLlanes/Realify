@@ -23,6 +23,7 @@
    del servidor. Por eso también se le dan a ONNX Runtime las dos rutas
    explícitas, en vez de la carpeta: por sí mismo buscaría el .mjs. */
 import * as ort from "../vendor/ort/ort.webgpu.min.js";
+import { rgbToLab, rgbfToLab, labToRgb } from "./lab.js";
 
 ort.env.wasm.wasmPaths = {
   mjs:  new URL("../vendor/ort/ort-wasm-simd-threaded.asyncify.js", import.meta.url).href,
@@ -341,13 +342,109 @@ async function restore({ model, id, rgba, w, h, strength = 50 }){
   return { rgba: out };
 }
 
+/* ── Ampliar ─────────────────────────────────────────────────
+   Teselas con solape como `restore`, pero la salida es `scale` veces
+   mayor (se mide en la primera tesela, por si el modelo no es el que
+   dice el catálogo). El alfa se amplía aparte, sin IA. */
+async function upscale({ model, id, rgba, w, h }){
+  const { session } = await getSession(id, model);
+  const name = session.inputNames[0], type = inputType(session, name);
+  const tile = Math.min(model.tile || 192, Math.max(w, h)), overlap = 12;
+  const xs = starts(w, Math.min(tile, w), overlap), ys = starts(h, Math.min(tile, h), overlap);
+  const total = xs.length * ys.length;
+  let S = model.scale || 4, W = 0, H = 0, out = null, done = 0;
+  post({ type:"stage", model:id, stage:"run" });
+  for(let r = 0; r < ys.length; r++) for(let c = 0; c < xs.length; c++){
+    const x0 = xs[c], y0 = ys[r], tw = Math.min(tile, w), th = Math.min(tile, h), n = tw * th;
+    const input = new Float32Array(3 * n);
+    for(let y = 0; y < th; y++) for(let x = 0; x < tw; x++){
+      const si = ((y0 + y) * w + x0 + x) * 4, p = y * tw + x;
+      input[p] = rgba[si] / 255; input[n + p] = rgba[si + 1] / 255; input[2 * n + p] = rgba[si + 2] / 255;
+    }
+    const res = await runSession(id, model, { [name]: makeTensor(type, input, [1, 3, th, tw]) });
+    const t = res[session.outputNames[0]], vals = readFloats(t);
+    const oh = t.dims[2], ow = t.dims[3];
+    if(!out){ S = Math.round(ow / tw) || S; W = w * S; H = h * S; out = new Uint8ClampedArray(W * H * 4); }
+    const on = ow * oh, ovL = c ? (xs[c - 1] + tw - x0) * S : 0, ovT = r ? (ys[r - 1] + th - y0) * S : 0;
+    for(let y = 0; y < oh; y++) for(let x = 0; x < ow; x++){
+      const p = y * ow + x, di = ((y0 * S + y) * W + x0 * S + x) * 4;
+      let a = 1;
+      if(x < ovL){ const k = x / Math.max(1, ovL - 1); a = Math.min(a, k * k * (3 - 2 * k)); }
+      if(y < ovT){ const k = y / Math.max(1, ovT - 1); a = Math.min(a, k * k * (3 - 2 * k)); }
+      const rr = vals[p] * 255, gg = vals[on + p] * 255, bb = vals[2 * on + p] * 255;
+      out[di]     = a === 1 ? rr : out[di]     * (1 - a) + rr * a;
+      out[di + 1] = a === 1 ? gg : out[di + 1] * (1 - a) + gg * a;
+      out[di + 2] = a === 1 ? bb : out[di + 2] * (1 - a) + bb * a;
+      out[di + 3] = 255;
+    }
+    done++; post({ type:"tiles", model:id, done, total });
+  }
+  // Alfa (vecino más próximo): sólo si la imagen tenía transparencia
+  let hasAlpha = false; for(let i = 3; i < rgba.length; i += 4) if(rgba[i] < 255){ hasAlpha = true; break; }
+  if(hasAlpha) for(let y = 0; y < H; y++) for(let x = 0; x < W; x++) out[(y * W + x) * 4 + 3] = rgba[(((y / S) | 0) * w + ((x / S) | 0)) * 4 + 3];
+  return { rgba: out, w: W, h: H, scale: S };
+}
+
+/* ── Colorear ─────────────────────────────────────────────────
+   Devuelve sólo el color (a, b de Lab) a la resolución de trabajo; la
+   luminancia la pone quien llama, de la foto original. */
+async function colorize({ model, id, rgba, w, h }){
+  const { session } = await getSession(id, model);
+  const name = session.inputNames[0], type = inputType(session, name);
+  const ab = new Float32Array(w * h * 2);
+  post({ type:"stage", model:id, stage:"run" });
+  if(model.colorize === "ab"){
+    // DDColor: la luminancia en RGB (a = b = 0) a N × N, salida a y b.
+    const N = model.input || 512, n = N * N, input = new Float32Array(3 * n);
+    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+      const sx = Math.min(w - 1, (x * w / N) | 0), sy = Math.min(h - 1, (y * h / N) | 0), si = (sy * w + sx) * 4;
+      const L = rgbToLab(rgba[si], rgba[si + 1], rgba[si + 2])[0], [r, g, b] = labToRgb(L, 0, 0), p = y * N + x;
+      input[p] = r / 255; input[n + p] = g / 255; input[2 * n + p] = b / 255;
+    }
+    const res = await runSession(id, model, { [name]: makeTensor(type, input, [1, 3, N, N]) });
+    const t = res[session.outputNames[0]], v = readFloats(t), oh = t.dims[2], ow = t.dims[3], on = ow * oh;
+    for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+      const sx = Math.min(ow - 1, (x * ow / w) | 0), sy = Math.min(oh - 1, (y * oh / h) | 0), p = sy * ow + sx, o = (y * w + x) * 2;
+      ab[o] = v[p]; ab[o + 1] = v[on + p];
+    }
+    return { ab, w, h };
+  }
+  // Modelos «1x»: la foto en gris, por teselas; del resultado sólo el color.
+  const gray = new Uint8ClampedArray(rgba.length);
+  for(let i = 0; i < rgba.length; i += 4){ const L = rgbToLab(rgba[i], rgba[i + 1], rgba[i + 2])[0], [r, g, b] = labToRgb(L, 0, 0); gray[i] = r; gray[i + 1] = g; gray[i + 2] = b; gray[i + 3] = 255; }
+  const tile = Math.min(model.tile || 512, Math.max(w, h)), overlap = 32;
+  const xs = starts(w, Math.min(tile, w), overlap), ys = starts(h, Math.min(tile, h), overlap);
+  const total = xs.length * ys.length; let done = 0;
+  for(let r = 0; r < ys.length; r++) for(let c = 0; c < xs.length; c++){
+    const x0 = xs[c], y0 = ys[r], tw = Math.min(tile, w), th = Math.min(tile, h);
+    const pw = Math.ceil(tw / 8) * 8, ph = Math.ceil(th / 8) * 8, n = pw * ph, input = new Float32Array(3 * n);
+    for(let y = 0; y < ph; y++) for(let x = 0; x < pw; x++){
+      const si = ((y0 + mirror(y, th)) * w + x0 + mirror(x, tw)) * 4, p = y * pw + x;
+      input[p] = gray[si] / 255; input[n + p] = gray[si + 1] / 255; input[2 * n + p] = gray[si + 2] / 255;
+    }
+    const res = await runSession(id, model, { [name]: makeTensor(type, input, [1, 3, ph, pw]) });
+    const t = res[session.outputNames[0]], v = readFloats(t), ow = t.dims[3], on = t.dims[2] * ow;
+    const ovL = c ? xs[c - 1] + tw - x0 : 0, ovT = r ? ys[r - 1] + th - y0 : 0;
+    for(let y = 0; y < th; y++) for(let x = 0; x < tw; x++){
+      const p = y * ow + x, o = ((y0 + y) * w + x0 + x) * 2;
+      const [, A, B] = rgbfToLab(v[p], v[on + p], v[2 * on + p]);
+      let a = 1;
+      if(x < ovL){ const k = x / Math.max(1, ovL - 1); a = Math.min(a, k * k * (3 - 2 * k)); }
+      if(y < ovT){ const k = y / Math.max(1, ovT - 1); a = Math.min(a, k * k * (3 - 2 * k)); }
+      ab[o] = a === 1 ? A : ab[o] * (1 - a) + A * a; ab[o + 1] = a === 1 ? B : ab[o + 1] * (1 - a) + B * a;
+    }
+    done++; post({ type:"tiles", model:id, done, total });
+  }
+  return { ab, w, h };
+}
+
 async function probe({ model, id }){
   const { session, backend } = await getSession(id, model);
   return { backend, inputs: session.inputMetadata || session.inputNames,
            outputs: session.outputMetadata || session.outputNames };
 }
 
-const TASKS = { matte, inpaint, restore, probe };
+const TASKS = { matte, inpaint, restore, upscale, colorize, probe };
 
 self.onmessage = async e => {
   const m = e.data || {};
@@ -361,7 +458,7 @@ self.onmessage = async e => {
     const t0 = performance.now();
     const res = await task(m);
     const backend = sessions.get(m.id)?.backend;
-    const transfer = [res.mask?.buffer, res.rgba?.buffer].filter(Boolean);
+    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);
     // Un modelo grande no se queda ocupando cientos de MB después de usarlo.
     if((m.model?.size || 0) > 100e6 && sessions.has(m.id)){

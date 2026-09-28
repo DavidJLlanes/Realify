@@ -173,6 +173,9 @@ const ITEMS = [
   { cmd:"image.slice",     label:"Cortar en partes",    ic:"layout-grid",       cat:"corregir estilo" },
   { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"shapes",            cat:"corregir estilo" },
   { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia retoque" },
+  { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia mejorar" },
+  { cmd:"ai.colorize",  label:"Colorear con IA",      ic:"palette",           cat:"ia color" },
+  { cmd:"ai.expand",    label:"Expandir con IA",      ic:"expand",            cat:"ia corregir" },
   { cmd:"sky.replace",  label:"Reemplazar cielo",     ic:"cloud-sun",         cat:"ia estilo" },
 
   /* ── Herramientas de la antigua fila ── */

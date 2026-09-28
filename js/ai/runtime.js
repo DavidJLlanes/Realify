@@ -60,7 +60,7 @@ function cancelAll(){
   hideBusy();
 }
 
-const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA" };
+const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA" };
 
 /* ── Red de seguridad para modelos pesados ──────────────────────
    Un modelo grande (ISNet, LaMa…) puede agotar la memoria de la
@@ -93,6 +93,23 @@ function releaseHeavy(id, ok){
   try{ localStorage.removeItem(RUNNING); }catch{}
   if(ok){ const c = readCrashed(); if(c[id]){ delete c[id]; writeCrashed(c); } }
   import("../io/project.js").then(m => m.discardStash(STASH_KEY)).catch(() => {});
+}
+
+/** Varias llamadas seguidas a un modelo pesado bajo UNA sola copia de
+    seguridad (p. ej. «Expandir» por teselas): dentro de `fn`, usar
+    runModel(…, { noGuard: true }). */
+export async function withHeavyGuard(id, title, fn){
+  const model = MODELS[id];
+  if(!model) throw new Error("Modelo desconocido: " + id);
+  await confirmDownload(id);
+  const heavy = model.size > HEAVY;
+  let ok = false;
+  try{
+    if(heavy) await guardHeavy(id, model, title);
+    const r = await fn();
+    ok = true;
+    return r;
+  }finally{ if(heavy) releaseHeavy(id, ok); hideBusy(); }
 }
 
 /** Al arrancar (main.js): si la página se cayó con un modelo pesado en
@@ -161,16 +178,18 @@ function call(msg, transfer){
 
 /** Ejecuta una tarea del worker (`matte`, `inpaint`, `restore`) con
     el modelo `id` del catálogo. Limpia estado y progreso al acabar. */
-export async function runModel(type, id, payload, transfer){
+export async function runModel(type, id, payload, transfer, opts = {}){
   const model = MODELS[id];
   if(!model) throw new Error("Modelo desconocido: " + id);
   await confirmDownload(id);
-  const heavy = model.size > HEAVY;
+  // `opts.noGuard`: pasadas 2ª y siguientes de una misma operación (la
+  // copia de seguridad ya se hizo en la primera). `opts.title`: aviso.
+  const heavy = model.size > HEAVY && !opts.noGuard;
   let ok = false;
   progress(0.02);
   try{
     if(heavy) await guardHeavy(id, model, TITLES[type] || "Procesando con IA");
-    if(busy) busyMsg("Preparando…"); else showBusy(TITLES[type] || "Procesando con IA");
+    if(busy) busyMsg("Preparando…"); else showBusy(opts.title || TITLES[type] || "Procesando con IA");
     const res = await call({ type, id, model, ...payload }, transfer);
     ok = true;
     return res;
