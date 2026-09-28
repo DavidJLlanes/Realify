@@ -19,6 +19,7 @@ import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { blendBySelection } from "./selection.js";
 import { isMobile } from "../core/device.js";
+import { fitAbove } from "./view.js";
 
 /* Por encima de este tamaño, la vista previa se calcula sobre una
    versión reducida: al aceptar sí se aplica entera.
@@ -304,6 +305,44 @@ export function applyDirect(title, compute, { asLayer = false, filterId, filterP
   record(title, () => restore(layer, before), () => restore(layer, after));
   emit("doc:structure"); emit("doc:change");
   toast(title, "ok");
+}
+
+/* En el móvil, la hoja de un ajuste tapa casi toda la imagen: mientras
+   esté abierta, la imagen se coloca en la franja libre de encima para
+   ver el resultado en tiempo real (y se recoloca si la hoja cambia de
+   alto). Al cerrarse, la vista vuelve a como estaba. `el` es cualquier
+   elemento del cuerpo del diálogo. */
+export function liftImageAbove(el){
+  if(!isMobile()) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const card = el.closest(".modal-card"), back = el.closest(".modal");
+    if(!card || !back) return;
+    let restore = null, lastTop = -1;
+    const place = () => {
+      const top = Math.round(card.getBoundingClientRect().top);
+      if(Math.abs(top - lastTop) < 4) return;
+      lastTop = top;
+      const r = fitAbove(top);
+      if(!restore) restore = r;
+    };
+    /* La hoja entra deslizándose desde abajo: se espera a que su borde
+       deje de moverse (unos fotogramas seguidos quieto) antes de
+       colocar la imagen; después, cada cambio de alto la recoloca. */
+    let prevTop = null, still = 0, frames = 0;
+    const settle = () => {
+      if(!back.isConnected) return;
+      const top = Math.round(card.getBoundingClientRect().top);
+      still = top === prevTop ? still + 1 : 0; prevTop = top;
+      if(still >= 3 || ++frames > 90) place(); else requestAnimationFrame(settle);
+    };
+    requestAnimationFrame(settle);
+    const ro = new ResizeObserver(() => { if(restore) place(); }); ro.observe(card);
+    const mo = new MutationObserver(() => {
+      if(back.isConnected) return;
+      mo.disconnect(); ro.disconnect(); restore?.();
+    });
+    mo.observe(document.body, { childList: true });
+  }));
 }
 
 /* ── controles reutilizables ──────────────────────────────────── */

@@ -1194,12 +1194,10 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 .lens-note{margin:6px 0 0}
 
 /* Galería artística y matriz de convolución. */
-.art-gallery{display:grid;grid-template-columns:minmax(360px,1fr) 190px;gap:12px;align-items:start}
-.art-preview{grid-row:span 2;width:100%;height:auto;max-height:58vh;object-fit:contain;background:#111;border:1px solid var(--line);border-radius:var(--r)}
-.art-choices{display:grid;gap:5px}
+.art-gallery{display:grid;gap:12px}
+.art-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 .art-choices button{text-align:left;min-height:34px;padding:6px 9px}
 .art-choices button.active{border-color:var(--ac);color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,var(--s-800))}
-.art-gallery>.picker{align-self:end}
 .kernel-grid{display:grid;grid-template-columns:repeat(5,minmax(45px,1fr));gap:5px;margin-bottom:12px}
 .kernel-grid input{width:100%;min-width:0;text-align:center;padding:6px 2px}
 .convolution-panel{min-width:min(430px,75vw)}

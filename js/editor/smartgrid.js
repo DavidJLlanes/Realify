@@ -45,8 +45,14 @@ const GUIDES = [
   ["center", "Centro y simetría"]
 ];
 const cfg = { on: false, subject: true, horizon: true, faces: true, thirds: true, phi: false, spiral: false, diagonals: false, center: false };
+/* Se recuerdan qué guías se prefieren, pero NO si está encendida: antes
+   se guardaba también `on`, y tras abrirla una vez aparecía sola en
+   cada imagen que se abriera, incluso días después. Ahora se enciende
+   al usarla y se apaga al abrir otra imagen. */
 try{ Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || "{}")); }catch{}
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(cfg)); }catch{} };
+cfg.on = false;
+const save = () => { try{ const { on: _, ...prefs } = cfg; localStorage.setItem(KEY, JSON.stringify(prefs)); }catch{} };
+save();
 
 let result = null, analyzing = null, dirty = true;
 export const smartGridOn = () => cfg.on;
@@ -200,7 +206,7 @@ export async function analyze(){
 }
 let timer = 0;
 on("doc:change", () => { dirty = true; if(cfg.on){ clearTimeout(timer); timer = setTimeout(analyze, 900); } });
-on("doc:new", () => { result = null; dirty = true; if(cfg.on) setTimeout(analyze, 300); });
+on("doc:new", () => { result = null; dirty = true; if(cfg.on){ cfg.on = false; scheduleOverlay(); } });
 
 /* ── Geometría de las guías ───────────────────────────────────── */
 const POWER = [[1 / 3, 1 / 3], [2 / 3, 1 / 3], [1 / 3, 2 / 3], [2 / 3, 2 / 3]];

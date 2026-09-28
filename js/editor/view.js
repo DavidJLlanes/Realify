@@ -137,6 +137,25 @@ export function zoomToRect(r){
   apply();
 }
 
+/* Encaja el documento en la franja del escenario que queda por encima
+   de `bottom` (coordenada de pantalla), p.ej. el borde superior de una
+   hoja de ajustes en el móvil, para ver el resultado mientras se
+   mueven sus mandos. Devuelve una función que deja la vista como
+   estaba. */
+export function fitAbove(bottom){
+  if(!doc.open) return () => {};
+  const prev = { ...view };
+  const r = stage.getBoundingClientRect(), pad = 12;
+  const visH = Math.max(40, Math.min(r.height, bottom - r.top));
+  const z = clamp(Math.min((r.width - pad * 2) / doc.w, (visH - pad * 2) / doc.h), ZMIN, 1);
+  view.zoom = z;
+  view.x = (r.width - doc.w * z) / 2;
+  view.y = (visH - doc.h * z) / 2;
+  view.fitted = false;
+  apply();
+  return () => { Object.assign(view, prev); apply(); };
+}
+
 /* Pantalla → coordenadas de imagen */
 export function toImage(clientX, clientY){
   const r = stage.getBoundingClientRect();

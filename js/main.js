@@ -1191,7 +1191,6 @@ document.getElementById("zoomCell").addEventListener("click", () => run("view.fi
 initPWA();
 initMenu();
 initPanels();
-try{ if(JSON.parse(localStorage.getItem("realify.smartGrid") || "{}").on) import("./editor/smartgrid.js"); }catch{}
 import("./ui/histogrampanel.js").then(m => m.initHistogramPanel());
 initOpen();
 initDocbar();
