@@ -10,6 +10,9 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Guía actualizada** con todo lo nuevo: tiradores, cerrar todas las fotos, editar
+  en lote, antes y después, hoja de contactos, GIF, AVIF y PDF, acciones, paleta,
+  cuentagotas de pantalla y zoom con el efecto abierto.
 - **Tiradores más fáciles de agarrar**, sobre todo con el dedo (`js/editor/grab.js`):
   zona de agarre mayor en táctil y lápiz, tiradores más grandes, gana el más cercano
   cuando se solapan y no saltan bajo el dedo al cogerlos. En Recortar, Transformar,

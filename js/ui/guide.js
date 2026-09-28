@@ -43,6 +43,19 @@ const TOPICS = [
     html:`
       <h3>Novedades</h3>
       <ul class="guide-news">
+        <li><a data-go="mover#tool-handles">Tiradores más fáciles de agarrar</a>, sobre todo con el
+          dedo: más grandes, se coge siempre el más cercano y no saltan bajo el dedo.</li>
+        <li><a data-go="archivo#file-closeall">Cerrar todas las fotos</a> de una vez (Archivo, Herramientas
+          y un botón en la barra de pestañas).</li>
+        <li><a data-go="archivo#file-batch">Editar en lote</a>: edita una foto y copia su edición a las
+          demás, igualando la exposición.</li>
+        <li><a data-go="imagen#img-beforeafter">Antes y después</a>, <a data-go="archivo#file-contactsheet">Hoja
+          de contactos</a>, <a data-go="archivo#file-gif">GIF animado</a> y
+          <a data-go="archivo#file-actions">Acciones</a> para grabar y repetir pasos.</li>
+        <li><a data-go="vistas#an-palette">Paleta de colores</a> y <a data-go="vistas#an-eyedropper">cuentagotas
+          de pantalla</a> (menú Análisis).</li>
+        <li><a data-go="filtros#flt-zoom">Zoom con el efecto abierto</a>: acerca la imagen para juzgar un
+          enfoque o un filtro sin que se cancele.</li>
         <li><a data-go="especiales#sp-collage">Collage / History / Post</a>: collages,
           publicaciones e historias con 41 diseños (incluido «Libre»), formatos de todas las
           redes y de los móviles más conocidos, y fotos dentro de 28 formas.</li>
@@ -260,6 +273,17 @@ const TOPICS = [
     html:`
       <h3>Mover, recortar y transformar</h3>
       <ul>
+        <li id="tool-handles"><b>Tiradores.</b> Los cuadraditos y puntos de Recortar,
+          Transformación libre, Deformar, Perspectiva, las formas, el marco y la curva del
+          texto, la pluma, las guías y los editores a pantalla completa (Recortar en forma,
+          Cortar en partes, Galería de desenfoque) se adaptan a lo que usas: con el
+          <b>dedo</b> la zona para agarrarlos es mucho más grande (un círculo del tamaño de la yema)
+          y se dibujan mayores; con lápiz, algo más; con ratón, como siempre. Si dos
+          tiradores quedan muy juntos (un marco pequeño en pantalla), se coge el
+          <b>más cercano</b>. Un borde se agarra con margen por fuera pero sólo un poco
+          por dentro, así que un recorte pequeño se sigue pudiendo mover arrastrando desde
+          su interior. Y al coger un tirador un poco desviado <b>no salta</b> bajo el
+          dedo: se mueve con esa misma distancia, sin tapar lo que estás ajustando.</li>
         <li id="tool-move"><b>Mover (V).</b> Arrastra el contenido de la capa activa (o el cuadro de un
           texto): sus dos bordes y su centro —no sólo el centro— se ajustan solos en
           cuanto caen cerca de los bordes o el centro del documento, de una guía puesta a
@@ -318,7 +342,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"imagen", title:"Imagen (menú Imagen)",
-    desc:"Tamaño, lienzo, escala según contenido, girar, dividir en trozos, recortar en forma, fondo, cielo.",
+    desc:"Tamaño, lienzo, HDR, unir, cortar en partes, recortar en forma, antes y después, IA, fondo, cielo.",
     html:`
       <h3>Imagen (menú Imagen)</h3>
       <ul>
@@ -357,6 +381,11 @@ const TOPICS = [
           anillo, marco, flechas, puzle…). Arrastra la forma para moverla, una esquina para
           escalarla y el asa de arriba para girarla; borde suave, contorno e inversión. Crea
           una capa nueva con transparencia fuera (expórtala en PNG o WebP).</li>
+        <li id="img-beforeafter"><b>Antes y después…</b> Pantalla completa. Una imagen para compartir
+          con el original y tu edición: <b>dividida</b> (arrastra o toca para mover la línea, con
+          tirador opcional en el centro), <b>diagonal</b>, lado a lado o arriba y abajo, con
+          etiquetas, grosor y color de la línea, separación y formatos de redes. Se puede
+          elegir otra foto como «antes». El resultado va a una capa nueva en otra pestaña.</li>
         <li id="img-ai"><b>Ampliar con IA…</b> ×2 o ×4 recuperando detalle (el resultado se abre en
           otra pestaña). <b>Colorear con IA…</b> da color a fotos en blanco y negro en una capa
           nueva. <b>Expandir con IA…</b> agranda el lienzo a un formato o con márgenes y rellena
@@ -574,6 +603,10 @@ const TOPICS = [
           «Filtros especiales», en el índice.</li>
         <li><b>Todo filtro deja su resultado en una capa nueva</b> reeditable (insignia «fx»);
           ver «Capas de filtro» en el tema Capas.</li>
+        <li id="flt-zoom"><b>Zoom con el efecto abierto.</b> Con cualquier filtro o ajuste abierto
+          puedes acercar y mover la imagen —rueda del ratón o pellizco con dos dedos sobre
+          el lienzo— para juzgar de cerca un enfoque, un ruido o un borde, sin que el efecto
+          se cancele ni se pierdan sus valores.</li>
         <li><b>Desenfoque gaussiano / Enfocar / Enfoque selectivo.</b> Suavizar,
           endurecer o endurecer sólo el detalle fino sin tocar las zonas planas.</li>
         <li><b>Desenfoques (submenú).</b> Gaussiano, galería de desenfoque (campo, iris,
@@ -582,7 +615,7 @@ const TOPICS = [
         <li><b>Reducción de ruido.</b> Aplana el grano conservando los bordes, para
           fotos con ISO alto o muy comprimidas. Con IA (en el propio equipo):
           <i>Reducción de ruido con IA</i> (SCUNet, quita ruido real de cámara conservando
-          el detalle; sólo en escritorio) y <i>Quitar artefactos JPEG con IA</i> (FBCNN,
+          el detalle; en el móvil avisa antes, porque el modelo es grande y puede tardar) y <i>Quitar artefactos JPEG con IA</i> (FBCNN,
           elimina bloques y halos de compresión). La primera vez descargan su modelo y lo
           guardan en el navegador.</li>
         <li><b>Corrección de lente.</b> Distorsión, aberración cromática y viñeteo,
@@ -766,7 +799,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"archivo", title:"Archivo y documentos",
-    desc:"Abrir, guardar, exportar, procesar por lotes, varios documentos a la vez.",
+    desc:"Abrir, guardar, exportar (AVIF, PDF, GIF), hoja de contactos, lotes, acciones, cerrar todas.",
     html:`
       <h3>Archivo</h3>
       <ul>
@@ -775,19 +808,36 @@ const TOPICS = [
           otro día; una imagen abierta directamente empieza como una sola capa.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
-        <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato,
-          calidad y metadatos EXIF, y <b>«Tramado a 8 bits»</b>: añade un ruido
+        <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato (JPEG,
+          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad— o <b>PDF</b>, con tamaño de página y
+          margen), calidad y metadatos EXIF, y <b>«Tramado a 8 bits»</b>: añade un ruido
           imperceptible que evita las bandas en cielos y degradados suaves. El segundo
           entrega un PNG sin preguntar nada.</li>
+        <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
+          sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
+          número de colores.</li>
+        <li id="file-contactsheet"><b>Hoja de contactos…</b> Pantalla completa. Muchas fotos
+          ordenadas en páginas A4, A3, Carta o 10 × 15, con columnas, márgenes, título y el
+          nombre de cada foto. Sale como <b>PDF</b> de varias páginas o como capas nuevas.</li>
         <li><b>Prueba para redes sociales…</b> Muestra cómo queda la imagen tras la
           recompresión que aplican Instagram, WhatsApp, Facebook o X, antes de
           publicarla de verdad.</li>
-        <li><b>Editar en lote…</b> y <b>Aplicar esta edición a otras fotos…</b> Abre varias
+        <li id="file-batch"><b>Editar en lote…</b> y <b>Aplicar esta edición a otras fotos…</b> Abre varias
           fotos (cada una en su pestaña), edita una como siempre y copia su edición —capas
           de ajuste, filtros, textos, marcas de agua, con su opacidad y fusión— a las demás
           o a fotos de la galería. Vista previa de todas, <b>igualar exposición</b> con la de
           referencia y resultado en sus pestañas (capas reeditables) o en un ZIP. No se
           copian máscaras, pinceladas ni recortes.</li>
+        <li id="file-actions"><b>Acciones (grabar y repetir)…</b> Pulsa <b>Grabar</b>, usa ajustes,
+          filtros y comandos como siempre y detén la grabación: queda guardada con sus
+          valores. Después se repite con un toque en cualquier foto, o en muchas a la vez
+          (resultado en un ZIP). Se pueden renombrar, borrar, exportar e importar. No se
+          graban los trazos de pincel ni los gestos sobre la imagen.</li>
+        <li id="file-closeall"><b>Cerrar documento / Cerrar todas las fotos.</b> El primero cierra
+          la foto activa; el segundo, todas las abiertas de una vez, con una sola
+          confirmación. «Cerrar todas» también está en Herramientas (móvil) y como botón al
+          final de la barra de pestañas cuando hay más de una foto abierta. Lo que no hayas
+          exportado o guardado como proyecto se pierde.</li>
         <li><b>Restaurar al estado original…</b> Descarta capas, ediciones e historial
           y vuelve exactamente al archivo tal como se abrió. No se puede deshacer.</li>
       </ul>
@@ -819,7 +869,8 @@ const TOPICS = [
           <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>W</kbd> quedan reservados por el propio
           navegador para sus pestañas y nunca llegan a la página, así que aquí no
           hacen nada: para cerrar un documento, la cruz de su pestaña o «Archivo →
-          Cerrar documento».</li>
+          Cerrar documento»; para cerrarlos todos, el botón «Cerrar todas» de la
+          barra de pestañas o «Archivo → Cerrar todas las fotos».</li>
       </ul>` },
 
   { id:"realify", title:"Realify · simulación de captura",
@@ -1183,7 +1234,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"vistas", title:"Ver y análisis visual",
-    desc:"Histograma interactivo, cuadrícula inteligente, reglas, guías, cuadrícula, comparar.",
+    desc:"Histograma interactivo, cuadrícula inteligente, reglas, guías, comparar, paleta, cuentagotas.",
     html:`
       <h3>Ver y análisis visual</h3>
       <ul>
@@ -1214,6 +1265,12 @@ const TOPICS = [
           hace que lo que mueves se enganche a ella.</li>
         <li><b>Comparar antes/después</b> (también al 100 %) y <b>Mostrar u ocultar
           paneles</b> (<kbd>Tab</kbd>).</li>
+        <li id="an-palette"><b>Paleta de colores…</b> (menú Análisis). Los colores dominantes de la
+          imagen: tocar uno copia su código y lo pone como color frontal. La paleta se puede
+          crear como capa, descargar o copiar.</li>
+        <li id="an-eyedropper"><b>Cuentagotas de pantalla</b> (menú Análisis). Coge un color de
+          cualquier parte de la pantalla, también fuera de la imagen. Sólo en Chrome y Edge de
+          escritorio, que son los navegadores que lo permiten.</li>
       </ul>` },
 
   { id:"movil", title:"Uso en el móvil",
@@ -1243,6 +1300,10 @@ const TOPICS = [
           collage): la imagen primero, y abajo un desplegable para elegir el ajuste y un
           deslizador con botones − y + de tamaño cómodo para el pulgar. Dos dedos hacen
           zoom y giran donde tiene sentido.</li>
+        <li><b>Tiradores y pestañas.</b> Con el dedo, los tiradores de recortar, transformar,
+          perspectiva, texto y formas son más grandes y se agarran con mucho margen (ver
+          <a data-go="mover#tool-handles">Tiradores</a>). Con varias fotos abiertas, el botón
+          del final de la barra de pestañas las cierra todas.</li>
         <li><b>Pinceles.</b> La barra de opciones lleva el color frontal y de fondo al
           principio; la simetría, la textura y el color del pincel están en la misma
           barra.</li>
