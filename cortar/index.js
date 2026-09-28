@@ -27,10 +27,12 @@ export async function openCut(){
 }
 
 async function save(src, pieces, o, prefix){
+  // `fill`: sobre el color de fondo (JPEG, o si no se quiere conservar la
+  // transparencia); si no, tal cual, con su transparencia.
   const piece = (q, fill) => {
     const c = document.createElement("canvas"); c.width = q.w; c.height = q.h;
     const x = c.getContext("2d");
-    if(fill){ x.fillStyle = "#fff"; x.fillRect(0, 0, q.w, q.h); }
+    if(fill){ x.fillStyle = o.bg || "#fff"; x.fillRect(0, 0, q.w, q.h); }
     x.drawImage(src, q.x, q.y, q.w, q.h, 0, 0, q.w, q.h);
     return c;
   };
@@ -62,7 +64,7 @@ async function save(src, pieces, o, prefix){
   const base = String(o.prefix || prefix).replace(/[^\w\-áéíóúñÁÉÍÓÚÑ ]+/g, "").trim() || "imagen";
   toast("Preparando los trozos…");
   for(const q of pieces){
-    const blob = await new Promise(r => piece(q, o.format === "jpeg").toBlob(r, mime, o.quality / 100));
+    const blob = await new Promise(r => piece(q, o.format === "jpeg" || o.alpha === false).toBlob(r, mime, o.quality / 100));
     entries.push({ name: `${base}_${String(q.n).padStart(pad, "0")}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()), blob });
   }
   const { download, saveOrShare, stamp } = await import("../js/io/export.js");

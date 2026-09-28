@@ -393,8 +393,12 @@ const TOPICS = [
         <li id="img-shapecrop"><b>Recortar en forma…</b> Pantalla completa, con unas 60 formas
           (polígonos y estrellas configurables, corazón, flores, nube, bocadillos, engranaje,
           anillo, marco, flechas, puzle…). Arrastra la forma para moverla, una esquina para
-          escalarla y el asa de arriba para girarla; borde suave, contorno e inversión. Crea
-          una capa nueva con transparencia fuera (expórtala en PNG o WebP).</li>
+          escalarla y el asa de arriba para girarla; borde suave, contorno e inversión. Recorta
+          <b>sólo la capa activa</b>: crea encima una capa con la forma y transparencia alrededor y
+          <b>oculta todas las demás capas</b> (no las borra), para que lo que se guarde sea la forma
+          sobre transparente. Un aviso lo explica al aplicar y ofrece exportar directamente; para
+          conservar la transparencia, guarda en PNG, WebP o AVIF. Deshacer lo devuelve todo como
+          estaba.</li>
         <li id="img-beforeafter"><b>Antes y después…</b> Pantalla completa. Una imagen para compartir
           con el original y tu edición: <b>dividida</b> (arrastra o toca para mover la línea, con
           tirador opcional en el centro), <b>diagonal</b>, lado a lado o arriba y abajo, con
@@ -822,6 +826,13 @@ const TOPICS = [
           otro día; una imagen abierta directamente empieza como una sola capa.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
+        <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas
+          (JPEG, PNG, WebP, AVIF, PDF, GIF) es el <b>acoplado de las capas visibles</b>: lo que ves. Si
+          hay zonas transparentes, PNG, WebP, AVIF y GIF las <b>conservan</b> (casilla «Conservar la
+          transparencia», marcada por defecto, en Exportar, Exportar como, lotes, acciones y Cortar
+          en partes); JPEG y PDF no admiten transparencia y esas zonas se rellenan con el
+          <b>color de fondo</b> que elijas (blanco por defecto). Con transparencia, Exportar propone
+          PNG de entrada. Para guardar las capas por separado, usa Guardar proyecto.</li>
         <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato (JPEG,
           PNG, WebP, <b>AVIF</b> —más ligero a igual calidad— o <b>PDF</b>, con tamaño de página y
           margen), calidad y metadatos EXIF, y <b>«Tramado a 8 bits»</b>: añade un ruido

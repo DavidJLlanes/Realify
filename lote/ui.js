@@ -20,7 +20,7 @@ const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 export function openBatchEditor({ edit, tabs, onApply }){
   // tabs: [{ tabId, name, proxy }] — las otras pestañas abiertas
   const targets = tabs.map(t => ({ ...t, kind: "tab", on: true, preview: null }));
-  const S = { expo: true, expoStrength: 100, output: "tabs", format: "image/jpeg", quality: 90 };
+  const S = { expo: true, expoStrength: 100, output: "tabs", format: "image/jpeg", quality: 90, alpha: true, bg: "#ffffff" };
   let closed = false, seq = 0, grid = null;
 
   const sh = createShell({ title: "Aplicar esta edición a otras fotos", subtitle: `Referencia: ${edit.name}`, applyLabel: "Aplicar",
@@ -143,11 +143,14 @@ export function openBatchEditor({ edit, tabs, onApply }){
     { id: "out", label: "Resultado", props: [
       { key: "output", label: "Resultado", type: "seg", options: [["tabs", "En sus pestañas"], ["zip", "ZIP"]] },
       { key: "format", label: "Formato", type: "select", options: [["image/jpeg", "JPEG"], ["image/png", "PNG"], ["image/webp", "WebP"], ["image/avif", "AVIF"]], when: () => S.output === "zip" },
-      { key: "quality", label: "Calidad", type: "range", min: 40, max: 100, unit: " %", def: 90, when: () => S.output === "zip" && S.format !== "image/png" }
+      { key: "quality", label: "Calidad", type: "range", min: 40, max: 100, unit: " %", def: 90, when: () => S.output === "zip" && S.format !== "image/png" },
+      // Transparencia (ver js/io/alpha.js): se conserva en los formatos que la admiten.
+      { key: "alpha", label: "Conservar la transparencia", type: "toggle", when: () => S.output === "zip" && S.format !== "image/jpeg" },
+      { key: "bg", label: "Fondo de las zonas transparentes", type: "color", when: () => S.output === "zip" && (S.format === "image/jpeg" || !S.alpha) }
     ], note: () => S.output === "tabs" ? "Cada foto queda en su pestaña con la edición como capas nuevas que puedes retocar." : "Se exporta cada foto editada y se entrega todo en un ZIP; las pestañas abiertas no se modifican." }
   ];
   const controls = mountControls(sh, { sections, get: k => S[k],
-    set: (k, v, final) => { S[k] = v; if(final && (k === "expo" || k === "output" || k === "format")) controls.refresh(); if(k.startsWith("expo") && final) refreshPreviews(); } });
+    set: (k, v, final) => { S[k] = v; if(final && (k === "expo" || k === "output" || k === "format" || k === "alpha")) controls.refresh(); if(k.startsWith("expo") && final) refreshPreviews(); } });
 
   async function apply(){
     const list = targets.filter(t => t.on);

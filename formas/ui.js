@@ -189,7 +189,7 @@ export function openShapeEditor({ source, canLayer, onAccept }){
       { key: "bg", label: "Color", type: "color", when: () => S.outside === "color" }
     ] },
     { id: "out", label: "Resultado", props: [
-      { key: "output", label: "Crear", type: "select", options: [...(canLayer ? [["layer", "Capa nueva en este documento"]] : []), ["crop", "Pestaña nueva recortada a la forma"]] }
+      { key: "output", label: "Crear", type: "select", options: [...(canLayer ? [["layer", "Capa nueva (oculta las demás)"]] : []), ["crop", "Pestaña nueva recortada a la forma"]] }
     ] }
   ];
   const controls = mountControls(sh, {
@@ -204,7 +204,7 @@ export function openShapeEditor({ source, canLayer, onAccept }){
   function apply(){
     const r = renderShape(source, S, 1);
     close();
-    onAccept(r.canvas, { output: S.output, bounds: shapeBounds(r.placed, S, 1, W, H), name: SHAPES.find(s => s[0] === S.shape)[1] });
+    onAccept(r.canvas, { output: S.output, bounds: shapeBounds(r.placed, S, 1, W, H), name: SHAPES.find(s => s[0] === S.shape)[1], transparent: S.outside !== "color" });
   }
   function close(){ if(closed) return; closed = true; sh.close(); }
   renderLeft(); render();

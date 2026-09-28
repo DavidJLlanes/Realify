@@ -4,6 +4,7 @@
 
 import { doc } from "../core/doc.js";
 import { flatten } from "../editor/layertree.js";
+import { prepareForType, hasTransparency, alphaFieldsHTML, wireAlphaFields } from "./alpha.js";
 import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
@@ -144,7 +145,11 @@ export function stamp(){
 let lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
 export const exportPrecisionInfo=()=>({...lastPrecisionInfo});
 
-export async function renderExport({ w, h, type, quality, precision = false, dither = false }){
+/* `alpha`: conservar la transparencia si el formato la admite (PNG, WebP,
+   AVIF). Si no la admite —JPEG, PDF— o no se quiere, las zonas
+   transparentes se rellenan con `background` (ver io/alpha.js). Lo que se
+   guarda es siempre el acoplado de las capas visibles. */
+export async function renderExport({ w, h, type, quality, precision = false, dither = false, alpha = true, background = "#ffffff" }){
   let flat = null, out = null;
   if(precision){
     /* Primero se intenta recalcular la cadena compatible de ajustes en
@@ -178,6 +183,7 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
     x.drawImage(src, 0, 0, w, h);
   }
   if(!precision)lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
+  out = prepareForType(out, type, { alpha, background });
   /* AVIF y PDF no los genera `toBlob`: ver io/formats.js */
   if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6).catch(() => null);
   if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
@@ -189,10 +195,10 @@ let pdfOptions = { page: "image", orientation: "auto", margin: 0 };
 /* Codifica repetidamente hasta respetar el peso pedido. Primero baja la
    calidad de JPEG/WebP y, sólo si hace falta, reduce dimensiones. PNG no
    tiene control de calidad, así que usa únicamente la segunda estrategia. */
-export async function renderCleanWeb({ w, h, type, quality = .82, maxBytes = 500 * 1024 }){
+export async function renderCleanWeb({ w, h, type, quality = .82, maxBytes = 500 * 1024, alpha = true, background = "#ffffff" }){
   let cw = Math.max(1, Math.round(w)), ch = Math.max(1, Math.round(h));
   let q = type === "image/png" ? undefined : Math.max(.45, Math.min(.92, quality));
-  let blob = await renderExport({ w:cw, h:ch, type, quality:q });
+  let blob = await renderExport({ w:cw, h:ch, type, quality:q, alpha, background });
   for(let attempt = 0; blob && blob.size > maxBytes && attempt < 12; attempt++){
     if(q !== undefined && q > .54){
       q = Math.max(.52, q - .07);
@@ -201,7 +207,7 @@ export async function renderCleanWeb({ w, h, type, quality = .82, maxBytes = 500
       cw = Math.max(1, Math.round(cw * scale));
       ch = Math.max(1, Math.round(ch * scale));
     }
-    blob = await renderExport({ w:cw, h:ch, type, quality:q });
+    blob = await renderExport({ w:cw, h:ch, type, quality:q, alpha, background });
   }
   return { blob, w:cw, h:ch, quality:q };
 }
@@ -226,6 +232,7 @@ export async function exportDialog(){
         <option value="image/avif">AVIF (más ligero)</option>
         <option value="application/pdf">PDF</option>
       </select></div>
+    ${alphaFieldsHTML("exA")}
     <div class="field" id="exPdfRow" hidden><label>Página</label>
       <select id="exPdfPage" class="grow">
         <option value="image">Del tamaño de la imagen</option>
@@ -280,7 +287,9 @@ export async function exportDialog(){
     </div>
     <p class="hint" id="exEst" style="margin:12px 0 0">Calculando…</p>`;
 
-  let estTimer = null;
+  let estTimer = null, alphaUI = null;
+  // ¿Hay zonas transparentes en lo visible? Decide qué se propone.
+  const hasAlpha = hasTransparency(flatten());
   /* Mientras no se toque el campo, el nombre sigue el automatismo de
      siempre —incluido el nombre de cámara del panel EXIF, si está
      activo—. En cuanto el usuario escribe algo, esa elección manda
@@ -354,6 +363,7 @@ export async function exportDialog(){
         type.value = p.type; q.value = p.quality; qv.textContent = p.quality;
         qRow.style.display = p.type === "image/png" ? "none" : "";
         ext.textContent = "." + extOf(p.type);
+        alphaUI?.sync(); syncPdf?.();
         clean.checked = p.clean; weightRow.hidden = cleanHint.hidden = !p.clean;
         if(p.kb) body.querySelector("#exMaxKB").value = p.kb;
         if(p.clean){ name.value = safeWebFilename(name.value); nameEdited = true; }
@@ -367,7 +377,8 @@ export async function exportDialog(){
           const b = await renderExport({
             w: +W.value || 1, h: +H.value || 1,
             type: type.value,
-            quality: type.value === "image/png" ? undefined : +q.value / 100
+            quality: type.value === "image/png" ? undefined : +q.value / 100,
+            ...(alphaUI ? alphaUI.values() : {})
           });
           if(!b){ est.textContent = "Este navegador no puede generar ese formato."; return; }
           const kb = b.size / 1024;
@@ -426,11 +437,15 @@ export async function exportDialog(){
       body.querySelector("#exPdfPage").addEventListener("change", syncPdf);
       body.querySelector("#exPdfMargin").addEventListener("input", syncPdf);
       type.addEventListener("change", () => {
-        syncPdf();
+        syncPdf(); alphaUI.sync();
         qRow.style.display = type.value === "image/png" ? "none" : "";
         ext.textContent = "." + extOf(type.value);
         precisionState(); estimate();
       });
+      // Con transparencia, se propone PNG para no perderla sin darse cuenta.
+      if(hasAlpha && type.value === "image/jpeg"){ type.value = "image/png"; qRow.style.display = "none"; }
+      alphaUI = wireAlphaFields(body, { id: "exA", getType: () => type.value, hasAlpha, onChange: () => estimate(),
+        switchTo: t => { type.value = t; type.dispatchEvent(new Event("change")); } });
       ext.textContent = "." + extOf(type.value);
       q.addEventListener("input", () => { qv.textContent = q.value; estimate(); });
       W.addEventListener("input", () => {
@@ -465,14 +480,15 @@ export async function exportDialog(){
   const clean = wrap.querySelector("#exClean").checked;
   const precision = wrap.querySelector("#exPrecision").checked && !clean;
   const dither = precision && wrap.querySelector("#exDither").checked;
+  const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
 
   status("Exportando…");
   const cleanResult = clean ? await renderCleanWeb({
     w, h, type, quality:q,
-    maxBytes:Math.max(50, +wrap.querySelector("#exMaxKB").value || 500) * 1024
+    maxBytes:Math.max(50, +wrap.querySelector("#exMaxKB").value || 500) * 1024, ...alphaOpts
   }) : null;
   const blob = cleanResult ? cleanResult.blob : await renderExport({
-    w, h, type, quality: type === "image/png" ? undefined : q, precision, dither
+    w, h, type, quality: type === "image/png" ? undefined : q, precision, dither, ...alphaOpts
   });
   if(!blob){ toast("La exportación ha fallado", "err"); return; }
   const ext = ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "application/pdf": "pdf" })[type] || "jpg";

@@ -42,7 +42,7 @@ export async function openBatchEdit(){
           else { if(!(await docs.openAsNewTab(() => openFile(t.file)))) throw new Error("no se pudo abrir"); opened = true; }
           const res = await applyEdit(edit, { expo: S.expo, expoStrength: S.expoStrength / 100, record: !zip });
           if(zip){
-            const blob = await renderExport({ w: doc.w, h: doc.h, type: S.format, quality: S.format === "image/png" ? undefined : S.quality / 100 });
+            const blob = await renderExport({ w: doc.w, h: doc.h, type: S.format, quality: S.format === "image/png" ? undefined : S.quality / 100, alpha: S.alpha, background: S.bg });
             if(!blob) throw new Error("no se pudo exportar");
             entries.push({ name: `${t.name}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) });
             if(opened){ const a = docs.activeTab(); if(a) await docs.closeTab(a.tabId, { confirm: false }); }

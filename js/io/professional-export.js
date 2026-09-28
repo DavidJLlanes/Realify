@@ -8,6 +8,7 @@ import { toast, status } from "../ui/toast.js";
 import { isMobile } from "../core/device.js";
 import { saveOrShare, sanitizeFilename, stamp } from "./export.js";
 import { buildZip, crc32 } from "./zip.js";
+import { prepareForType, hasTransparency, alphaFieldsHTML, wireAlphaFields } from "./alpha.js";
 import { highPrecisionAvailableFor, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=3";
 
 const enc=new TextEncoder();
@@ -73,7 +74,9 @@ async function tagPngSRGB(blob){
   return new Blob([src.subarray(0,33),chunk,src.subarray(33)],{type:"image/png"});
 }
 
-async function encodeCanvas(canvas,format,quality,profile=true){
+/* `opts`: { alpha, background } — ver io/alpha.js. */
+async function encodeCanvas(canvas,format,quality,profile=true,opts={}){
+  canvas=prepareForType(canvas,mimeOf(format),opts);
   if(format==="pdf"){
     const jpg=await blobOf(canvas,"image/jpeg",quality);
     return pdfFromJpeg(await jpg.arrayBuffer(),canvas.width,canvas.height);
@@ -98,6 +101,7 @@ export async function professionalExport(){
     </div>
     <div class="field"><label>Nombre</label><input id="pxName" class="grow" value="${base.replace(/"/g,"&quot;")}"></div>
     <div class="field"><label>Formato</label><select id="pxFormat" class="grow"><option value="jpg">JPEG</option><option value="png">PNG</option><option value="webp">WebP</option><option value="avif">AVIF</option><option value="pdf">PDF</option></select></div>
+    ${alphaFieldsHTML("pxA")}
     <div class="field" id="pxQualityRow"><label>Calidad</label><input id="pxQuality" type="range" class="grow" min="20" max="100" value="88"><span class="unit mono" id="pxQualityV">88</span></div>
     <div class="field"><label>Contenido</label><select id="pxScope" class="grow"><option value="document">Documento compuesto</option><option value="layers">Cada capa y grupo</option></select></div>
     <div class="field"><label>Escalas</label><div class="grow" style="display:flex;gap:14px"><label class="chk"><input type="checkbox" data-scale="1" checked>1×</label><label class="chk"><input type="checkbox" data-scale="2">2×</label><label class="chk"><input type="checkbox" data-scale="3">3×</label></div></div>
@@ -105,11 +109,12 @@ export async function professionalExport(){
     <p class="hint" id="pxPrecisionHint" style="margin:-3px 0 8px"></p>
     <label class="chk"><input id="pxProfile" type="checkbox" checked> Incrustar/etiquetar perfil sRGB</label>
     <p class="hint" id="pxSupport">PNG recibe una etiqueta sRGB explícita; JPEG, WebP y AVIF usan la gestión de color sRGB del codificador del navegador. AVIF depende de que el navegador lo incluya.</p>`;
-  let timer=null,lastUrl="";
+  let timer=null,lastUrl="",alphaUI=null;
+  const hasAlpha=hasTransparency(flat);
   const update=()=>{clearTimeout(timer);timer=setTimeout(async()=>{
     const f=body.querySelector("#pxFormat").value,q=+body.querySelector("#pxQuality").value/100;
     const sample=resizeCanvas(flat,Math.min(doc.w,900),Math.max(1,Math.round(Math.min(doc.w,900)*doc.h/doc.w)));
-    const blob=await encodeCanvas(sample,f,q,body.querySelector("#pxProfile").checked);
+    const blob=await encodeCanvas(sample,f,q,body.querySelector("#pxProfile").checked,alphaUI?alphaUI.values():{});
     if(!blob){body.querySelector("#pxInfo").textContent=`${f.toUpperCase()} no disponible`;return;}
     if(lastUrl)URL.revokeObjectURL(lastUrl);lastUrl=URL.createObjectURL(blob);
     const bmp=await createImageBitmap(blob.type==="application/pdf"?await blobOf(sample,"image/jpeg",q):blob);
@@ -121,11 +126,14 @@ export async function professionalExport(){
     const f=host.querySelector("#pxFormat"),q=host.querySelector("#pxQuality"),qv=host.querySelector("#pxQualityV"),row=host.querySelector("#pxQualityRow");
     const precision=host.querySelector("#pxPrecision"),hint=host.querySelector("#pxPrecisionHint");
     const precisionState=()=>{const biggest=Math.max(...[...host.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale),1),ok=highPrecisionAvailableFor(doc.w*biggest,doc.h*biggest);precision.disabled=!ok.ok;hint.textContent=ok.ok?"RGB lineal Float32 al generar los archivos; la previsualización sigue siendo rápida.":`Se usará el motor compatible: ${ok.reason}.`;};
-    f.addEventListener("change",()=>{row.hidden=f.value==="png";update();});q.addEventListener("input",()=>{qv.textContent=q.value;update();});host.querySelector("#pxProfile").addEventListener("change",update);update();
+    if(hasAlpha&&f.value==="jpg"){f.value="png";row.hidden=true;}
+    alphaUI=wireAlphaFields(host,{id:"pxA",getType:()=>f.value,hasAlpha,onChange:update,switchTo:()=>{f.value="png";f.dispatchEvent(new Event("change"));}});
+    f.addEventListener("change",()=>{row.hidden=f.value==="png";alphaUI.sync();update();});q.addEventListener("input",()=>{qv.textContent=q.value;update();});host.querySelector("#pxProfile").addEventListener("change",update);update();
     host.querySelectorAll("[data-scale]").forEach(x=>x.addEventListener("change",precisionState));precisionState();
   }});
   clearTimeout(timer);if(lastUrl)URL.revokeObjectURL(lastUrl);if(result!=="go")return;
   const format=body.querySelector("#pxFormat").value,quality=+body.querySelector("#pxQuality").value/100,scope=body.querySelector("#pxScope").value,profile=body.querySelector("#pxProfile").checked,precision=body.querySelector("#pxPrecision").checked;
+  const alphaOpts={alpha:body.querySelector("#pxAAlpha").checked&&!body.querySelector("#pxAAlpha").disabled,background:body.querySelector("#pxABg").value};
   const scales=[...body.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale);if(!scales.length){toast("Selecciona al menos una escala","err");return;}
   const items=exportItems(scope),entries=[];status("Exportando archivos…");
   for(const item of items)for(const scale of scales){
@@ -133,7 +141,7 @@ export async function professionalExport(){
        conocemos la pila de filtros. Las salidas de capa/grupo conservan
        su compositor actual hasta que cada tipo de capa se migre. */
     const precise=precision&&scope==="document"?renderPrecisionAdjustmentStack(item.canvas.width*scale,item.canvas.height*scale):null;
-    const c=precise?.canvas||resizeForExport(item.canvas,item.canvas.width*scale,item.canvas.height*scale,precision),blob=await encodeCanvas(c,format,quality,profile);
+    const c=precise?.canvas||resizeForExport(item.canvas,item.canvas.width*scale,item.canvas.height*scale,precision),blob=await encodeCanvas(c,format,quality,profile,alphaOpts);
     if(!blob){status("");toast(`${format.toUpperCase()} no está disponible en este navegador`,"err");return;}
     const itemName=scope==="document"?(cleanName(body.querySelector("#pxName").value)||base):cleanName(item.name)||"capa";
     entries.push({name:`${itemName}@${scale}x.${extOf(format)}`,data:new Uint8Array(await blob.arrayBuffer())});

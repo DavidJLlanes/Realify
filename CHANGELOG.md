@@ -10,6 +10,13 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Transparencia al guardar, en toda la web**: casilla «Conservar la transparencia» y color
+  de fondo en Exportar, Exportar como, Editar en lote, Acciones y Cortar en partes
+  (`js/io/alpha.js`). Se guarda el acoplado de las capas visibles; PNG, WebP, AVIF y GIF
+  conservan la transparencia y JPEG/PDF rellenan con el color elegido. Con transparencia,
+  Exportar propone PNG.
+- **Recortar en forma** recorta sólo la capa activa, oculta las demás capas y avisa de cómo
+  guardar con transparencia (con botón para exportar).
 - **Fusión HDR, máximo de 11 fotos con aviso**: si se eligen más, un diálogo deja escoger
   cuáles (contador «9 de 11», no deja pasar del límite) antes de abrir ninguna; con 11 el
   botón de añadir lo indica y explica cómo liberar sitio. Las fotos con otra proporción
@@ -63,6 +70,8 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Exportar en JPEG una imagen con zonas transparentes las volvía negras; ahora se rellenan
+  con el color de fondo elegido (blanco por defecto).
 - Fusión HDR con horquillados largos (hasta 11 fotos, ±5 EV): la alineación fallaba en
   las tomas extremas (hasta 43 px de error, y el resultado salía muy recortado). Ahora
   combina tres métodos y dos criterios: error máximo de 2 px en las pruebas. Menos

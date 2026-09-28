@@ -16,6 +16,7 @@
    sobre muchas fotos, con el resultado en un ZIP.
    ═══════════════════════════════════════════════════════════════ */
 
+import { alphaFieldsHTML, wireAlphaFields } from "../io/alpha.js";
 import { onRun, runAsync } from "../ui/commands.js";
 import { dialog, setDialogHooks, promptDlg, confirmDlg } from "../ui/dialog.js";
 import { toast, status, progress } from "../ui/toast.js";
@@ -168,11 +169,16 @@ async function playBatch(a){
   const body = document.createElement("div");
   body.innerHTML = `<p class="hint" style="margin:0 0 8px">${files.length} fotos. Cada una se abre, se le aplica «${esc(a.name)}» y se guarda en un ZIP.</p>
     <div class="field"><label>Formato</label><select id="abType" class="grow"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option></select></div>
-    <div class="field"><label>Calidad</label><input type="range" id="abQ" class="grow" min="40" max="100" value="90"><span class="unit mono" id="abQV">90</span></div>`;
+    <div class="field"><label>Calidad</label><input type="range" id="abQ" class="grow" min="40" max="100" value="90"><span class="unit mono" id="abQV">90</span></div>
+    ${alphaFieldsHTML("abA")}`;
   body.querySelector("#abQ").addEventListener("input", e => { body.querySelector("#abQV").textContent = e.target.value; });
+  const tsel = body.querySelector("#abType");
+  const alphaUI = wireAlphaFields(body, { id: "abA", getType: () => tsel.value, hasAlpha: false,
+    switchTo: t => { tsel.value = t; tsel.dispatchEvent(new Event("change")); } });
+  tsel.addEventListener("change", alphaUI.sync);
   const go = await dialog({ title: "Aplicar acción en lote", body, cls: isMobile() ? "dlg-compact" : "", buttons: [{ label: "Cancelar", value: null }, { label: `Procesar ${files.length}`, primary: true, value: "go" }] });
   if(go !== "go") return;
-  const type = body.querySelector("#abType").value, q = +body.querySelector("#abQ").value / 100;
+  const type = body.querySelector("#abType").value, q = +body.querySelector("#abQ").value / 100, alphaOpts = alphaUI.values();
   const ext = { "image/png": "png", "image/webp": "webp", "image/avif": "avif" }[type] || "jpg";
   const [{ openFile }, { openAsNewTab, activeTab, closeTab }, { doc }, { renderExport, saveOrShare, stamp }, { buildZip }] = await Promise.all([
     import("../io/open.js"), import("../core/documents.js"), import("../core/doc.js"), import("../io/export.js"), import("../io/zip.js")]);
@@ -183,7 +189,7 @@ async function playBatch(a){
     try{
       if(!(await openAsNewTab(() => openFile(f)))) throw new Error("no se pudo abrir");
       await playAction(a, { quiet: true });
-      const blob = await renderExport({ w: doc.w, h: doc.h, type, quality: type === "image/png" ? undefined : q });
+      const blob = await renderExport({ w: doc.w, h: doc.h, type, quality: type === "image/png" ? undefined : q, ...alphaOpts });
       if(!blob) throw new Error("no se pudo exportar");
       entries.push({ name: `${f.name.replace(/\.[^.]+$/, "")}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) });
       const t = activeTab(); if(t) await closeTab(t.tabId, { confirm: false });

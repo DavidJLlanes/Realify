@@ -1,9 +1,11 @@
 # Recortar en forma
 
 Plugin a pantalla completa (escritorio y móvil) que sustituye al antiguo
-diálogo. Recorta la imagen visible (o, sin documento, una foto que se elige)
-con una forma y crea una **capa nueva** con transparencia fuera, o una pestaña
-nueva recortada al contorno de la forma. El documento de partida no se toca.
+diálogo. Recorta **sólo la capa activa** (o, sin documento, una foto que se elige)
+con una forma y crea una **capa nueva** con transparencia fuera —ocultando todas
+las demás capas, en un solo paso de deshacer, con un aviso al aplicar que ofrece
+exportar en PNG/WebP/AVIF—, o una pestaña
+nueva recortada al contorno de la forma. Las demás capas no se modifican: sólo se ocultan.
 
 | Archivo | Qué hace |
 |---|---|

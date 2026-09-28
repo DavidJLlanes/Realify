@@ -18,7 +18,7 @@ export function openCutEditor({ source, name, canLayers, onAccept }){
   const state = {
     p: { mode: "grid", rows: 2, cols: 2, tileW: Math.round(W / 2), tileH: Math.round(H / 2), pieces: 3, ratio: "4:5",
          igRows: 3, igRatio: "3:4", xs: [0.5], ys: [], ox: 0.5, oy: 0.5, addDir: "v" },
-    out: { output: canLayers ? "layers" : "zip", format: "png", quality: 92, prefix: name }
+    out: { output: canLayers ? "layers" : "zip", format: "png", quality: 92, prefix: name, alpha: true, bg: "#ffffff" }
   };
   const P = state.p, O = state.out;
   let closed = false;
@@ -140,6 +140,9 @@ export function openCutEditor({ source, name, canLayers, onAccept }){
       { key: "o.output", label: "Guardar como", type: "select", options: [...(canLayers ? [["layers", "Capas nuevas en este documento"]] : []), ["tabs", "Cada trozo en una pestaña"], ["zip", "Un archivo ZIP"], ["files", "Archivos sueltos"]] },
       { key: "o.format", label: "Formato", type: "select", options: [["png", "PNG (sin pérdida)"], ["jpeg", "JPEG"], ["webp", "WebP"]], when: () => O.output === "zip" || O.output === "files" },
       { key: "o.quality", label: "Calidad", type: "range", min: 40, max: 100, unit: " %", def: 92, when: () => (O.output === "zip" || O.output === "files") && O.format !== "png" },
+      // Transparencia (ver js/io/alpha.js)
+      { key: "o.alpha", label: "Conservar la transparencia", type: "toggle", when: () => (O.output === "zip" || O.output === "files") && O.format !== "jpeg" },
+      { key: "o.bg", label: "Fondo de las zonas transparentes", type: "color", when: () => (O.output === "zip" || O.output === "files") && (O.format === "jpeg" || O.alpha === false) },
       { key: "o.prefix", label: "Nombre", type: "text", when: () => O.output === "zip" || O.output === "files" }
     ] }
   ];
@@ -148,7 +151,7 @@ export function openCutEditor({ source, name, canLayers, onAccept }){
     get: k => k.startsWith("o.") ? O[k.slice(2)] : P[k],
     set: (k, v, final) => {
       if(k.startsWith("o.")) O[k.slice(2)] = v; else P[k] = v;
-      if(final){ hist.commit(); if(k === "mode" || k === "o.output" || k === "o.format") controls.refresh(); }
+      if(final){ hist.commit(); if(k === "mode" || k === "o.output" || k === "o.format" || k === "o.alpha") controls.refresh(); }
       refresh();
     }
   });
