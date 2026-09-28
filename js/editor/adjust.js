@@ -112,7 +112,7 @@ export function drawHistogram(canvas, hist, channel = "l"){
    filtros. Ver editor/filterlayer.js. */
 export async function runAdjust({ title, buildBody, compute, wide = false,
                                   previewLimit = PREVIEW_LIMIT, dlgCls = "",
-                                  asLayer = false, filterId, filterParams }, opts = {}){
+                                  asLayer = false, filterId, filterParams, fullscreen = false }, opts = {}){
   /* Modo sin diálogo (registro de filtros): `compute` sobre un lienzo
      cualquiera y se devuelve el resultado. */
   if(opts.render){
@@ -237,6 +237,17 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
   if(opts.container){
     opts.container.appendChild(body);
     return { body, commit: () => finish(true), cancel: () => finish(false) };
+  }
+
+  /* Pantalla completa (Curvas): el propio cuerpo se presenta, como el
+     revelador RAW, y devuelve "go" al aplicar o null al cancelar. La
+     vista previa, el historial y la capa de filtro siguen siendo los
+     de aquí; el cuerpo sólo dibuja la capa en su propio lienzo en cada
+     `onPreview`. */
+  if(fullscreen && body?.present){
+    const res = await body.present({ layer, edit });
+    await finish(res === "go");
+    return;
   }
 
   /* Todos los ajustes del menú comparten este punto de entrada. En

@@ -56,6 +56,74 @@ export function curveLut(points){
 }
 
 
+/* Estilos: las curvas más usadas (S clásica, cine, mate, película
+   cruzada…). Cada uno es [id, nombre, curvas por canal]; los canales
+   que no aparecen quedan en la diagonal. */
+const ID = () => [[0,0],[255,255]];
+export const CURVE_PRESETS = [
+  ["linear",    "Lineal",                 { rgb: ID() }],
+  ["s-soft",    "Curva en S suave",       { rgb: [[0,0],[64,56],[192,200],[255,255]] }],
+  ["s-classic", "Curva en S clásica",     { rgb: [[0,0],[64,48],[192,208],[255,255]] }],
+  ["s-strong",  "Curva en S fuerte",      { rgb: [[0,0],[60,34],[128,128],[196,222],[255,255]] }],
+  ["contrast-l","Contraste en luminosidad", { lum: [[0,0],[64,46],[192,210],[255,255]] }],
+  ["inverse-s", "S invertida (suavizar)", { rgb: [[0,0],[64,78],[192,178],[255,255]] }],
+  ["fade",      "Desvanecido",            { rgb: [[0,28],[255,236]] }],
+  ["matte",     "Mate de película",       { rgb: [[0,34],[48,48],[128,130],[210,214],[255,238]] }],
+  ["cine",      "Cine (turquesa y naranja)", { rgb: [[0,10],[64,54],[192,204],[255,248]], r: [[0,0],[70,62],[190,204],[255,255]], g: [[0,4],[128,128],[255,250]], b: [[0,26],[80,92],[190,178],[255,232]] }],
+  ["blockbuster","Cine de acción",        { rgb: [[0,0],[50,38],[200,214],[255,255]], r: [[0,0],[128,136],[255,255]], b: [[0,20],[128,120],[255,236]] }],
+  ["cross",     "Proceso cruzado",        { r: [[0,0],[64,50],[192,218],[255,255]], g: [[0,0],[64,58],[192,208],[255,255]], b: [[0,40],[128,120],[255,210]] }],
+  ["vintage",   "Vintage cálido",         { rgb: [[0,30],[128,132],[255,232]], r: [[0,20],[128,140],[255,255]], b: [[0,40],[128,118],[255,200]] }],
+  ["cold",      "Frío nórdico",           { rgb: [[0,12],[128,126],[255,246]], r: [[0,0],[128,118],[255,240]], b: [[0,14],[128,140],[255,255]] }],
+  ["warm",      "Cálido suave",           { r: [[0,0],[128,140],[255,255]], b: [[0,0],[128,116],[255,240]] }],
+  ["portra",    "Retrato (piel suave)",   { rgb: [[0,18],[64,66],[192,196],[255,246]], r: [[0,6],[128,134],[255,255]], g: [[0,4],[128,130],[255,252]] }],
+  ["bleach",    "Blanqueo parcial",       { rgb: [[0,0],[64,40],[128,132],[192,220],[255,255]], lum: [[0,0],[96,84],[255,255]] }],
+  ["lift-shadows","Abrir sombras",        { rgb: [[0,0],[48,70],[128,142],[255,255]] }],
+  ["tame-lights","Recuperar luces",       { rgb: [[0,0],[128,124],[210,196],[255,236]] }],
+  ["brighten",  "Aclarar",                { rgb: [[0,0],[128,160],[255,255]] }],
+  ["darken",    "Oscurecer",              { rgb: [[0,0],[128,100],[255,255]] }],
+  ["highkey",   "Clave alta",             { rgb: [[0,40],[96,150],[255,255]] }],
+  ["lowkey",    "Clave baja",             { rgb: [[0,0],[160,96],[255,220]] }],
+  ["solarize",  "Solarizar",              { rgb: [[0,0],[128,255],[255,0]] }],
+  ["negative",  "Negativo",               { rgb: [[0,255],[255,0]] }],
+  ["posterlike","Tonos separados",        { rgb: [[0,0],[60,20],[70,120],[180,140],[190,235],[255,255]] }]
+];
+
+/* Estilos propios, guardados en el navegador (hasta 40). */
+const USER_CURVES_KEY = "realify.curves.presets";
+export const userCurvePresets = () => { try{ return JSON.parse(localStorage.getItem(USER_CURVES_KEY) || "[]"); }catch{ return []; } };
+export const saveUserCurvePresets = list => { try{ localStorage.setItem(USER_CURVES_KEY, JSON.stringify(list.slice(-40))); }catch{} };
+
+/* Aplica las cinco curvas a unos píxeles RGBA, en el orden de
+   Photoshop más una etapa final: canal → maestra RGB → luminosidad.
+   `s` es { points: { rgb, r, g, b, lum }, link, mix }. Con el vínculo,
+   la maestra y la de luminosidad son la misma curva y `mix` reparte su
+   efecto: `wc` lo que se aplica en color, `wl` en luminosidad. La usan
+   el ajuste (adjustments.js) y las miniaturas de los estilos. */
+export function applyCurves(data, s){
+  const P = s.points;
+  const master = curveLut(P.rgb || ID()), lr = curveLut(P.r || ID()), lg = curveLut(P.g || ID()), lb = curveLut(P.b || ID());
+  const lum = curveLut(s.link ? (P.rgb || ID()) : (P.lum || ID()));
+  const wl = s.link ? s.mix / 100 : 1, wc = s.link ? 1 - wl : 1;
+  const r = new Uint8ClampedArray(256), g = new Uint8ClampedArray(256), b = new Uint8ClampedArray(256);
+  for(let i = 0; i < 256; i++){
+    r[i] = lr[i] + (master[lr[i]] - lr[i]) * wc;
+    g[i] = lg[i] + (master[lg[i]] - lg[i]) * wc;
+    b[i] = lb[i] + (master[lb[i]] - lb[i]) * wc;
+  }
+  for(let i = 0; i < data.length; i += 4){
+    data[i] = r[data[i]]; data[i + 1] = g[data[i + 1]]; data[i + 2] = b[data[i + 2]];
+  }
+  let lumOn = false;
+  for(let i = 0; i < 256; i++) if(lum[i] !== i){ lumOn = true; break; }
+  if(!lumOn || wl <= 0) return;
+  for(let i = 0; i < data.length; i += 4){
+    const y = data[i] * .2126 + data[i + 1] * .7152 + data[i + 2] * .0722;
+    const yi = y | 0, ny = lum[yi] + (lum[Math.min(255, yi + 1)] - lum[yi]) * (y - yi);
+    const d = (ny - y) * wl;
+    data[i] += d; data[i + 1] += d; data[i + 2] += d;
+  }
+}
+
 const SIZE = 256;
 const PAD = 10;
 
@@ -104,7 +172,7 @@ export function curveEditor({ getPoints, setPoints, hist, channel, overlays = nu
   el.appendChild(cv);
   const cx = cv.getContext("2d");
 
-  let dragging = -1;
+  let dragging = -1, outside = false;
 
   const toCanvas = p => [PAD + p[0] / 255 * SIZE, PAD + SIZE - p[1] / 255 * SIZE];
   const toValue = (x, y) => [
@@ -120,9 +188,12 @@ export function curveEditor({ getPoints, setPoints, hist, channel, overlays = nu
     return [(e.clientX - r.left) * sx, (e.clientY - r.top) * sy];
   }
 
-  function nearest(x, y){
+  /* Radio para «agarrar» un punto, en píxeles del lienzo: con el dedo
+     hace falta bastante más margen que con el ratón. */
+  function nearest(x, y, touch = false){
     const pts = getPoints();
-    let best = -1, bd = 14;
+    const k = cv.width / (cv.getBoundingClientRect().width || cv.width);
+    let best = -1, bd = Math.max(14, (touch ? 24 : 12) * k);
     pts.forEach((p, i) => {
       const [px, py] = toCanvas(p);
       const d = Math.hypot(px - x, py - y);
@@ -199,21 +270,22 @@ export function curveEditor({ getPoints, setPoints, hist, channel, overlays = nu
     }
     cx.stroke();
 
-    // Puntos
-    for(const p of pts){
+    // Puntos (el que se está sacando del cuadro, en rojo: al soltar se quita)
+    pts.forEach((p, i) => {
       const [x, y] = toCanvas(p);
+      const out = outside && i === dragging;
       cx.fillStyle = "#141517";
-      cx.beginPath(); cx.arc(x, y, 5, 0, 6.2832); cx.fill();
-      cx.fillStyle = cx.strokeStyle;
-      cx.beginPath(); cx.arc(x, y, 3.4, 0, 6.2832); cx.fill();
-    }
+      cx.beginPath(); cx.arc(x, y, out ? 7 : 5, 0, 6.2832); cx.fill();
+      cx.fillStyle = out ? "#ff6b6b" : cx.strokeStyle;
+      cx.beginPath(); cx.arc(x, y, out ? 5 : 3.4, 0, 6.2832); cx.fill();
+    });
   }
 
   cv.addEventListener("pointerdown", e => {
     e.preventDefault();
     const [x, y] = eventPos(e);
     const pts = getPoints().slice();
-    let i = nearest(x, y);
+    let i = nearest(x, y, e.pointerType === "touch" || e.pointerType === "pen");
 
     if(e.button === 2){                       // clic derecho: quitar
       if(i >= 0 && pts.length > 2){
@@ -237,6 +309,13 @@ export function curveEditor({ getPoints, setPoints, hist, channel, overlays = nu
   cv.addEventListener("pointermove", e => {
     if(dragging < 0) return;
     const [x, y] = eventPos(e);
+    /* Arrastrar un punto intermedio bien fuera del cuadro lo quita al
+       soltar (en el móvil no hay clic derecho ni doble clic fiable). */
+    const r = cv.getBoundingClientRect(), m = 28;
+    const wasOut = outside;
+    outside = dragging > 0 && dragging < getPoints().length - 1 &&
+      (e.clientX < r.left - m || e.clientX > r.right + m || e.clientY < r.top - m || e.clientY > r.bottom + m);
+    if(outside){ if(!wasOut) draw(); return; }
     const pts = getPoints().slice();
     const v = toValue(x, y);
     /* Los extremos sólo se mueven en vertical: si el primer punto se
@@ -254,7 +333,15 @@ export function curveEditor({ getPoints, setPoints, hist, channel, overlays = nu
     draw();
   });
 
-  const end = () => { if(dragging >= 0 && onEnd) onEnd(); dragging = -1; };
+  const end = () => {
+    if(dragging >= 0 && outside){
+      const pts = getPoints().slice();
+      if(dragging > 0 && dragging < pts.length - 1){ pts.splice(dragging, 1); setPoints(pts); }
+    }
+    outside = false;
+    if(dragging >= 0 && onEnd) onEnd();
+    dragging = -1; draw();
+  };
   cv.addEventListener("pointerup", end);
   cv.addEventListener("pointercancel", end);
   cv.addEventListener("contextmenu", e => e.preventDefault());

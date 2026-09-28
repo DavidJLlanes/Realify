@@ -25,6 +25,7 @@ const SHELL = [
   "./css/base.css",
   "./css/layout.css",
   "./css/mobile.css",
+  "./css/curves.css",
   "./js/main.js",
   "./js/core/viewport-lock.js"
   ,"./js/vendor/ag-psd.js"
