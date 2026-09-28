@@ -1227,3 +1227,9 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 .font-picker .fp-item b{font-size:19px;font-weight:400;line-height:1.25;overflow-wrap:anywhere}
 .font-picker .fp-item span{font-size:11px;color:var(--tx-dim)}
 @media (max-width:900px){.font-picker .fp-list{grid-template-columns:1fr;max-height:52dvh}}
+
+/* Aviso de versión nueva (js/pwa.js) */
+.update-bar{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);z-index:2400;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 20px);padding:8px 8px 8px 14px;background:var(--s-700);border:1px solid var(--ac);border-radius:10px;box-shadow:var(--sh-3);font-size:var(--fs-sm)}
+.update-bar[hidden]{display:none}
+.update-bar span{flex:1;min-width:0}
+@media (max-width:560px){.update-bar{left:10px;right:10px;transform:none;flex-wrap:wrap}.update-bar span{flex-basis:100%}}

@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Añadido
+- **Aviso de versión nueva**: al volver a la app (y cada 30 minutos) se
+  comprueba si hay una versión publicada; si la hay, una barra ofrece
+  «Actualizar», que guarda todas las pestañas abiertas, recarga y las reabre.
+
 ### Cambiado
 - **Tipografías sin Google**: todo el catálogo de Google Fonts (1908 familias)
   se sirve desde el propio sitio, en `/fonts/`. El navegador ya no se conecta

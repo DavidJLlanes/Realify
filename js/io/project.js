@@ -10,7 +10,7 @@ import { view, apply as applyView } from "../editor/view.js";
 import { flatten } from "../editor/layertree.js";
 import { saveOrShare, stamp } from "./export.js";
 import { toast, status } from "../ui/toast.js";
-import { openAsNewTab } from "../core/documents.js";
+import { openAsNewTab, listTabs, activeTab, switchTo } from "../core/documents.js";
 import { anyDialogOpen } from "../ui/dialog.js";
 
 export const PROJECT_MIME = "application/vnd.realify+json";
@@ -243,6 +243,57 @@ async function putRecent(blob, name, thumbnail = null){
   });
   db.close();
   dispatchEvent(new Event("realify:recent"));
+}
+
+/* ── Guardado para actualizar la app ─────────────────────────────
+   Antes de recargar para pasar a una versión nueva (ver pwa.js) se
+   guardan TODAS las pestañas abiertas, completas —capas, máscaras,
+   ajustes y textos—, y al arrancar la versión nueva se reabren solas.
+   Se usa la misma base de datos local que el «proyecto reciente»,
+   con otra clave; nada sale del navegador. */
+const UPDATE_KEY = "before-update";
+async function idb(mode, fn){
+  const db = await openDb();
+  try{
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, mode), req = fn(tx.objectStore(STORE));
+      tx.oncomplete = () => resolve(req?.result); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+    });
+  }finally{ db.close(); }
+}
+
+/** Guarda todas las pestañas. Devuelve cuántas se guardaron. */
+export async function stashForUpdate(){
+  const tabs = listTabs(), start = activeTab()?.tabId ?? null, docs = [];
+  let active = 0;
+  if(tabs.length){
+    for(const t of tabs){
+      if(t.tabId !== activeTab()?.tabId && !switchTo(t.tabId)) continue;   // un diálogo abierto impide cambiar
+      if(!doc.open) continue;
+      if(t.tabId === start) active = docs.length;
+      docs.push(await serializeProject());
+    }
+    if(start !== null) switchTo(start);
+  } else if(doc.open) docs.push(await serializeProject());
+  if(!docs.length) return 0;
+  await idb("readwrite", s => s.put({ docs, active, savedAt: Date.now() }, UPDATE_KEY));
+  return docs.length;
+}
+
+/** Al arrancar: si hay pestañas guardadas antes de actualizar, las reabre. */
+export async function restoreAfterUpdate(){
+  let saved = null;
+  try{ saved = await idb("readonly", s => s.get(UPDATE_KEY)); }catch{ return 0; }
+  if(!saved) return 0;
+  try{ await idb("readwrite", s => s.delete(UPDATE_KEY)); }catch{}
+  if(Date.now() - saved.savedAt > 24 * 3600e3 || !Array.isArray(saved.docs)) return 0;
+  const ids = [];
+  for(const data of saved.docs){
+    try{ if(await openAsNewTab(() => restoreProject(data))) ids.push(activeTab()?.tabId); }catch(e){ console.warn("[actualizar] no se pudo reabrir", e); }
+  }
+  const back = ids[saved.active];
+  if(back != null) switchTo(back);
+  return ids.length;
 }
 
 export async function getRecentProject(){

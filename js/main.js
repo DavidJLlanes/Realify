@@ -59,7 +59,7 @@ import { saveCharStyle, saveParaStyle } from "./editor/textstyles.js";
 import { copyToClipboard, cutToClipboard, pasteFromClipboard, hasClip,
          deleteSelection } from "./editor/clipboard.js";
 import { startEdit, endEdit, isEditing } from "./editor/textedit.js";
-import { initPWA, promptInstall } from "./pwa.js";
+import { initPWA, promptInstall, resumeAfterUpdate } from "./pwa.js";
 import { initMobileBar } from "./ui/mobilebar.js";
 import { initToolDrawer } from "./ui/tooldrawer.js";
 import { haptic } from "./core/device.js";
@@ -1195,6 +1195,7 @@ import("./ui/histogrampanel.js").then(m => m.initHistogramPanel());
 initOpen();
 initDocbar();
 initProjects();
+resumeAfterUpdate();   // lo que se guardó justo antes de actualizar la app (pwa.js)
 initMobileBar();
 initToolDrawer();
 initRulers();
