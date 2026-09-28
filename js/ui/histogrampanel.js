@@ -109,9 +109,9 @@ export async function showHistogramPanel(){
   if(!panel) return;
   const { isMobile } = await import("../core/device.js");
   if(isMobile()){
-    const { toggleSheet } = await import("./panels.js");
+    const { toggleSheet, openOnlyPanel } = await import("./panels.js");
     toggleSheet(true);
-    document.querySelectorAll(".panel").forEach(p => p.classList.toggle("closed", p !== panel));
+    openOnlyPanel(panel.id);
   } else panel.classList.remove("closed");
   panel.scrollIntoView({ block: "nearest", behavior: "smooth" });
   schedule();

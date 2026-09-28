@@ -60,9 +60,20 @@ export { isMobile };
    así que dos abiertos significan que el segundo asoma por debajo del
    primero: pulsar «Capas» abría también Propiedades —con los mandos
    del filtro de la capa activa— encima de la lista, que no es lo que
-   se pide al pulsar «Capas». Aquí, uno abierto a la vez. */
-function openOnlyPanel(id){
-  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("closed", p.id !== id));
+   se pide al pulsar «Capas». Aquí, uno abierto a la vez.
+
+   Y sólo ése a la vista: antes seguían asomando las cabeceras de
+   Histograma, Propiedades, Historial e Información, que en la hoja a
+   media altura se comían el sitio y la lista de capas no llegaba a
+   verse. Ahora «Capas» enseña sólo las capas; Histograma o Propiedades
+   aparecen solos cuando se piden (menú Ver, botón fx de una capa). */
+export function openOnlyPanel(id){
+  const solo = isMobile();
+  panels.classList.toggle("solo", solo);
+  document.querySelectorAll(".panel").forEach(p => {
+    p.classList.toggle("closed", p.id !== id);
+    p.classList.toggle("solo-on", solo && p.id === id);
+  });
 }
 
 export function initPanels(){
@@ -70,6 +81,7 @@ export function initPanels(){
     const head = p.querySelector(".panel-head");
     head.addEventListener("click", e => {
       if(e.target.closest("button")) return;   // los iconos de la cabecera no pliegan
+      if(panels.classList.contains("solo") && p.classList.contains("solo-on")) return;   // móvil: el único panel no se pliega
       const opening = p.classList.contains("closed");
       if(isMobile() && opening) openOnlyPanel(p.id);
       else p.classList.toggle("closed");
@@ -134,6 +146,11 @@ function dropImage(){
 }
 panels.addEventListener("transitionend", e => {
   if(e.target === panels && (e.propertyName === "transform" || e.propertyName === "height")) liftImage();
+});
+/* Al pasar a escritorio vuelven a verse todos los paneles. */
+matchMedia("(max-width:900px)").addEventListener?.("change", e => {
+  if(!e.matches){ panels.classList.remove("solo"); document.querySelectorAll(".panel.solo-on").forEach(p => p.classList.remove("solo-on")); }
+  else openOnlyPanel("panel-layers");
 });
 matchMedia(SHEET).addEventListener?.("change", () => {
   if(!sheetMode()){ panels.classList.remove("half", "peek"); dropImage(); }

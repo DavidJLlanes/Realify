@@ -1240,8 +1240,9 @@ const TOPICS = [
           suben desde abajo a media pantalla, con la imagen colocada encima para ver en
           directo lo que cambias. Arrastra el asa hacia arriba para verla alta o hacia abajo
           para cerrarla. Con el dedo en un deslizador (la opacidad de la capa, por ejemplo),
-          la hoja se vuelve transparente salvo ese deslizador. En el móvil sólo hay un
-          panel abierto a la vez.</li>
+          la hoja se vuelve transparente salvo ese deslizador. En el móvil la hoja enseña
+          un solo panel: «Capas» sólo las capas (con la opacidad y la fusión en una
+          fila); el Histograma se abre desde el menú Ver y Propiedades desde el botón fx.</li>
         <li><b>Editores a pantalla completa</b> (Realify, Filtro Vintage, memes, stickers,
           collage): la imagen primero, y abajo un desplegable para elegir el ajuste y un
           deslizador con botones − y + de tamaño cómodo para el pulgar. Dos dedos hacen

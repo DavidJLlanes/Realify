@@ -300,6 +300,19 @@
   #panels.open{transform:translateY(0)}
   /* Media altura (al abrirla): la imagen se ve en el hueco de encima */
   #panels.half{height:46dvh;max-height:46dvh}
+  /* Un solo panel a la vista (ver openOnlyPanel en panels.js) */
+  #panels.solo>.panel:not(.solo-on){display:none}
+  #panels.solo>.panel.solo-on{flex:1 1 auto;min-height:0}
+  #panels.solo>.panel.solo-on>.panel-head .caret{display:none}
+  /* Capas: opacidad y fusión en una sola fila, fijas arriba; debajo la
+     lista, que es lo único que se desplaza. Así caben varias capas aun
+     con la hoja a media altura. */
+  #panel-layers>.panel-body{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:0 10px;overflow:hidden;padding:8px 12px 0}
+  #panel-layers>.panel-body>.field{flex-wrap:nowrap;margin:0;min-width:0}
+  #panel-layers>.panel-body>.field>label{display:none}
+  #panel-layers>.panel-body>.field select{min-width:0}
+  #panel-layers>.panel-body>hr{grid-column:1/-1;margin:8px 0 4px}
+  #panel-layers #layerList{grid-column:1/-1;min-height:0;overflow-y:auto;padding-bottom:10px;overscroll-behavior:contain}
   /* Con el dedo en un deslizador: transparente salvo esa fila */
   #panels.peek{background-color:transparent;box-shadow:none;border-color:transparent}
   #panels.peek *{visibility:hidden}
