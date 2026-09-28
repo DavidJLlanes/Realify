@@ -90,7 +90,7 @@ export const MENUS = [
       help:"Pantalla completa: corta la imagen en filas y columnas, en trozos de tamaño fijo, en un carrusel panorámico, en la cuadrícula del perfil de Instagram o con cortes a mano, y guarda cada trozo en una capa nueva, en su propia pestaña, en un ZIP o suelto." },
     { cmd:"image.shapeCrop", label:"Recortar en forma…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
-      help:"Deja la imagen dentro de un círculo, un polígono, una estrella, un corazón… con transparencia fuera, y ajusta el lienzo a la forma." },
+      help:"Pantalla completa: recorta la foto con una de unas 60 formas (círculo, polígonos y estrellas configurables, corazón, flores, nube, bocadillos, engranaje, anillo, marco, flechas…) que se mueve, escala y gira sobre la imagen, con borde suave y contorno. Crea una capa nueva con transparencia fuera." },
     { sep:true },
     { cmd:"image.removeBackground", label:"Eliminar fondo…" },
     { cmd:"sky.replace", label:"Reemplazar cielo…",
