@@ -1,16 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
    MEMES · TIPOGRAFÍAS
-   Fuentes libres de Google Fonts (licencia OFL), cargadas sólo al
-   abrir el creador de memes, y sólo con permiso de quien usa la app
-   (el mismo que pide la herramienta de texto: ver js/editor/gfonts.js),
-   porque Google recibe la IP de quien descarga la fuente. La CSP ya
-   permite fonts.googleapis.com y fonts.gstatic.com. Sin permiso o sin
-   conexión, el lienzo usa la alternativa del sistema de cada una.
+   Tipografías libres (del catálogo de Google Fonts, licencia OFL)
+   alojadas en /fonts/ del propio sitio: ver js/editor/gfonts.js. Se
+   descargan sólo al usarlas, sin contactar con Google ni con nadie
+   más. Mientras llegan, el lienzo usa la alternativa de cada una.
+   También las usa el collage (socialmediapost/).
    ═══════════════════════════════════════════════════════════════ */
 
-import { ensureConsent } from "../js/editor/gfonts.js";
+import { loadFamily } from "../js/editor/gfonts.js";
 
-/* [nombre en Google Fonts, pesos, alternativa, etiqueta] */
+/* [familia (en /fonts/), pesos, alternativa, etiqueta] */
 export const FONTS = [
   ["Anton", "400", "Impact, 'Arial Narrow Bold', sans-serif", "Anton (clásica de meme)"],
   ["Impact", null, "Haettenschweiler, 'Arial Narrow Bold', sans-serif", "Impact (del sistema)"],
@@ -48,36 +47,15 @@ export const fontStack = name => {
   return f ? `"${f[0]}", ${f[2]}` : `"${name}", sans-serif`;
 };
 
-let linked = null;
-/** Enlaza la hoja de Google Fonts una sola vez. Devuelve una promesa
-    que se cumple cuando la hoja ha llegado (o ha fallado): hasta
-    entonces el navegador no conoce las @font-face y pedir una fuente
-    se resolvería al instante sin cargar nada. */
-export function linkFonts(){
-  if(linked) return linked;
-  // Sin permiso no se enlaza nada; se olvida el intento para que, si
-  // luego se concede, la siguiente vez sí se cargue.
-  linked = ensureConsent().then(ok => { if(!ok){ linked = null; return; } return appendSheet(); });
-  return linked;
-}
-function appendSheet(){
-  const families = FONTS.filter(f => f[1]).map(f =>
-    `family=${f[0].replace(/ /g, "+")}${f[1].includes(";") ? `:wght@${f[1]}` : ""}`).join("&");
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
-  const ready = new Promise(resolve => { link.onload = link.onerror = () => resolve(); });
-  document.head.appendChild(link);
-  return ready;
-}
+/* Las tipografías se sirven desde /fonts/ (ver js/editor/gfonts.js):
+   nada que enlazar ni permiso que pedir. Se mantiene `linkFonts` por
+   compatibilidad con quien la llama al abrir el editor. */
+export function linkFonts(){ return Promise.resolve(); }
 
 /** Promesa que se resuelve cuando la fuente está lista (o falla). */
 const ready = new Map();
 export function loadFont(name, weight = 400, italic = false){
   const key = `${name}|${weight}|${italic}`;
-  if(!ready.has(key)){
-    const spec = `${italic ? "italic " : ""}${weight} 40px "${name}"`;
-    ready.set(key, linkFonts().then(() => document.fonts?.load(spec)).catch(() => {}));
-  }
+  if(!ready.has(key)) ready.set(key, loadFamily(name, weight, italic).catch(() => {}));
   return ready.get(key);
 }

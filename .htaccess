@@ -28,7 +28,7 @@
   # Runtime local (js/vendor/ort), y huggingface.co + *.hf.co (su CDN)
   # sirven los pesos de los modelos grandes, que se DESCARGAN la primera
   # vez que se usan. Sólo se bajan pesos: la imagen nunca sale del equipo.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' www.googletagmanager.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' fonts.gstatic.com; connect-src 'self' www.googletagmanager.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'none';"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' www.googletagmanager.com https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self' blob:; frame-ancestors 'none';"
 </IfModule>
 
 # ============================================

@@ -183,7 +183,7 @@ export function openMemeEditor({ photo, onAccept, onClose = null }){
     }
     $(".mm-size").textContent = `${L.W} × ${L.H}${L.W !== IW || L.H !== IH ? " · amplía el lienzo" : ""}`;
   }
-  /* Cuando llega una fuente de Google Fonts, se vuelve a medir todo. */
+  /* Cuando llega una tipografía (de /fonts/), se vuelve a medir todo. */
   const ensureFonts = () => {
     for(const t of state.texts) loadFont(t.font, t.bold ? 700 : 400, t.italic).then(() => { textCache.clear(); request(); });
   };

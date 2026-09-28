@@ -14,9 +14,9 @@ import { googleFontItems, isGoogleStack, ensureFont } from "./gfonts.js";
 
 /* Fuentes presentes en la práctica totalidad de los equipos, con
    sustitutas equivalentes de Windows, macOS/iOS y Android para que
-   cada entrada tenga algo parecido en todas partes. Detrás van las de
-   Google Fonts (ver gfonts.js), que sólo se descargan con permiso de
-   quien usa la app. Quien quiera otra la carga desde un archivo suyo
+   cada entrada tenga algo parecido en todas partes. Detrás van las
+   tipografías libres alojadas en /fonts/ (ver gfonts.js): las más
+   usadas en la lista y el resto en el buscador. Quien quiera otra la carga desde un archivo suyo
    (.ttf/.otf/.woff/.woff2), que se registra en el navegador con la API
    FontFace y se guarda localmente. */
 /* Valor de las entradas de lista que sólo separan grupos. */
@@ -84,8 +84,8 @@ export const FONTS = [
   ["'Jokerman', 'Chalkduster', fantasy",                                  "Jokerman"],
   ["'Kristen ITC', 'Chalkboard SE', cursive",                             "Kristen"],
   ["'Ink Free', 'Bradley Hand', 'Marker Felt', cursive",                  "Ink Free"],
-  // Separador (no seleccionable) y Google Fonts
-  [FONT_SEPARATOR, "── Google Fonts ──"],
+  // Separador (no seleccionable) y tipografías libres alojadas en /fonts/
+  [FONT_SEPARATOR, "── Tipografías libres ──"],
   ...googleFontItems()
 ];
 
@@ -497,12 +497,14 @@ export function layoutText(ctx, t){
            blockBox: { x: boxX, y: blockTop, w: width, h: blockBot - blockTop } };
 }
 
-/* Si la capa usa una fuente de Google Fonts que aún no ha llegado, se
-   pide (sólo con permiso: ver gfonts.js) y la capa se vuelve a dibujar
-   en cuanto está lista. Mientras tanto se ve con la alternativa. */
+/* Si la capa usa una tipografía de /fonts/ que aún no ha llegado, se
+   pide (ver gfonts.js) y la capa se vuelve a dibujar en cuanto está
+   lista. Mientras tanto se ve con la alternativa. Sin comprobar antes
+   si es «de las nuestras»: un proyecto puede traer una elegida en el
+   buscador en otro equipo; si no está en el catálogo, no se hace nada. */
 function requestFont(layer){
   const t = layer.text;
-  if(!isGoogleStack(t.font)) return;
+  if(!t.font) return;
   const font = t.font, weight = t.weight, italic = t.italic;
   ensureFont(font, { weight, italic }).then(changed => {
     if(!changed || !layer.text || layer.text.font !== font) return;

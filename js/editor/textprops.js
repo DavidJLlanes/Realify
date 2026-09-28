@@ -10,7 +10,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { FONTS, FONT_SEPARATOR, loadFontFile, updateText, isText } from "./text.js";
-import { chooseFontValue, GOOGLE_OTHER, googleFontItems } from "./gfonts.js";
+import { chooseFontValue, GOOGLE_OTHER, MORE_FONTS_LABEL, googleFontItems } from "./gfonts.js";
 import { slider } from "./adjust.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
@@ -36,7 +36,7 @@ export function mountTextProperties(layer, container){
   }
   const otherOp = document.createElement("option");
   otherOp.value = GOOGLE_OTHER;
-  otherOp.textContent = "Otra fuente de Google Fonts…";
+  otherOp.textContent = MORE_FONTS_LABEL;
   select.appendChild(otherOp);
   const loadOp = document.createElement("option");
   loadOp.value = LOAD_FONT;
@@ -70,7 +70,7 @@ export function mountTextProperties(layer, container){
       inp.click();
       return;
     }
-    // Fuentes de Google (con permiso) y «Otra fuente de Google…»
+    // Tipografías libres y «Más fuentes…» (buscador)
     const wanted = select.value;
     select.value = layer.text.font;
     const font = await chooseFontValue(wanted);

@@ -1,23 +1,27 @@
 /* ═══════════════════════════════════════════════════════════════
-   GOOGLE FONTS
-   Tipografías libres servidas por Google Fonts para la herramienta de
-   texto (y para el creador de memes, ver memes/fonts.js).
+   TIPOGRAFÍAS LIBRES (alojadas en /fonts/)
+   Todo el catálogo de Google Fonts —unas 1900 familias con licencias
+   libres (SIL OFL, Apache, UFL), que permiten redistribuirlas— servido
+   desde el propio sitio: /fonts/<id>/<id>-<peso>.woff2, con el índice
+   en /fonts/catalog.json. No se conecta con Google ni con ningún otro
+   tercero, así que no hace falta pedir permiso a nadie, y funcionan sin
+   conexión (el service worker las guarda en cuanto se usan).
 
-   Privacidad: descargar una fuente de fonts.googleapis.com /
-   fonts.gstatic.com hace que el navegador envíe a Google la dirección
-   IP y el agente de usuario de quien la pide. Por eso nada se descarga
-   sin permiso: la primera vez que alguien elige una fuente de Google
-   se le explica y se le pregunta, y la respuesta se recuerda en este
-   navegador (localStorage, «realify.googleFonts»). Sin permiso, las
-   entradas de Google siguen en la lista pero se dibujan con su
-   alternativa del sistema. Se puede cambiar de opinión desde la
-   Política de privacidad.
+   Cada familia se registra con la API FontFace sólo cuando se usa, y el
+   navegador descarga únicamente el peso que se dibuja. De cada familia
+   hay alfabeto latino (español incluido) en normal (400) y, si existe,
+   negrita (700); la cursiva y los pesos intermedios los sintetiza el
+   navegador. Las pocas familias sin letras latinas (coreano, jemer…)
+   vienen troceadas por rangos de caracteres.
+
+   Lo usan la herramienta Texto (listas de fuentes y buscador), el
+   creador de memes y el collage (ver memes/fonts.js).
    ═══════════════════════════════════════════════════════════════ */
 
-const KEY = "realify.googleFonts";
-const CUSTOM_KEY = "realify.googleFonts.custom";
+const CUSTOM_KEY = "realify.googleFonts.custom";   // familias elegidas en el buscador
 
-/* [familia, categoría CSS de reserva] — las más usadas de Google Fonts */
+/* [familia, categoría CSS de reserva] — las más usadas, que salen
+   directamente en las listas de fuentes. El resto, en el buscador. */
 const BASE = [
   ["Roboto", "sans-serif"], ["Open Sans", "sans-serif"], ["Lato", "sans-serif"], ["Montserrat", "sans-serif"],
   ["Poppins", "sans-serif"], ["Inter", "sans-serif"], ["Nunito", "sans-serif"], ["Raleway", "sans-serif"],
@@ -43,134 +47,178 @@ const BASE = [
 let custom = [];
 try{ custom = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "[]").filter(f => typeof f === "string"); }catch{}
 
+const GENERIC = { "sans-serif": "sans-serif", serif: "serif", monospace: "monospace", handwriting: "cursive", display: "fantasy" };
+const CATEGORY_LABEL = { "sans-serif": "Sans", serif: "Serif", monospace: "Monoespaciada", handwriting: "Manuscrita", display: "Display" };
+
 export const stackOf = (family, generic = "sans-serif") => `'${family}', ${generic}`;
 const familyOf = stack => { const m = /^\s*'([^']+)'/.exec(String(stack || "")); return m ? m[1] : null; };
 
+/* ── catálogo ───────────────────────────────────────────────── */
+const FONTS_URL = new URL("../../fonts/", import.meta.url);
+let catalogP = null, byName = null;
+/** Índice de todas las familias: [{ f, id, c, w:[pesos], sc?, s? }]. */
+export function catalog(){
+  if(!catalogP){
+    catalogP = fetch(new URL("catalog.json", FONTS_URL))
+      .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(list => { byName = new Map(list.map(e => [e.f, e])); return list; })
+      .catch(() => { catalogP = null; return []; });
+  }
+  return catalogP;
+}
+catalog();   // se pide ya: es pequeño y así las listas saben qué hay
+
+const genericOf = family => {
+  const b = BASE.find(x => x[0] === family); if(b) return b[1];
+  return GENERIC[byName?.get(family)?.c] || "sans-serif";
+};
+
 /** Entradas [stack, etiqueta] para las listas de fuentes. */
 export function googleFontItems(){
-  return [...BASE, ...custom.map(f => [f, "sans-serif"])].map(([f, g]) => [stackOf(f, g), `${f} · Google`]);
+  const seen = new Set();
+  return [...BASE.map(b => b[0]), ...custom].filter(f => !seen.has(f) && seen.add(f))
+    .map(f => [stackOf(f, genericOf(f)), f]);
 }
-const known = () => new Set([...BASE.map(b => b[0]), ...custom]);
+const known = () => new Set([...BASE.map(b => b[0]), ...custom, ...(byName ? byName.keys() : [])]);
 export const isGoogleStack = stack => { const f = familyOf(stack); return !!f && known().has(f); };
 
-/* ── consentimiento ─────────────────────────────────────────── */
-export const consent = () => { try{ return localStorage.getItem(KEY) || ""; }catch{ return ""; } };
-export function setConsent(v){ try{ v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); }catch{} }
-
-let asking = null;
-/** Pregunta una vez; devuelve true si se permite descargar de Google Fonts. */
-export async function ensureConsent(){
-  const c = consent();
-  if(c === "granted") return true;
-  if(c === "denied") return false;
-  if(asking) return asking;
-  asking = (async () => {
-    const { dialog } = await import("../ui/dialog.js");
-    const res = await dialog({
-      title: "Usar tipografías de Google Fonts",
-      body: `<p class="hint">Las fuentes de Google se descargan de los servidores de Google
-          (<code>fonts.googleapis.com</code> y <code>fonts.gstatic.com</code>). Para servirlas,
-          Google recibe la <b>dirección IP</b> y el <b>navegador</b> de quien las pide. Tus imágenes
-          y tus textos <b>no</b> se envían: sólo la petición de la fuente.</p>
-        <p class="hint">Si no lo permites, esas fuentes se dibujan con una parecida del sistema.
-          Puedes cambiar de opinión cuando quieras en la Política de privacidad.</p>`,
-      buttons: [{ label: "No, gracias", value: "denied" }, { label: "Permitir Google Fonts", primary: true, value: "granted" }]
-    });
-    const v = res === "granted" ? "granted" : "denied";
-    setConsent(v);
-    return v === "granted";
-  })();
-  try{ return await asking; } finally{ asking = null; }
-}
-
 /* ── carga ──────────────────────────────────────────────────── */
-const sheets = new Map();   // familia → Promise<boolean>
-function linkSheet(href){
-  return new Promise(resolve => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet"; link.href = href;
-    link.onload = () => resolve(true);
-    link.onerror = () => { link.remove(); resolve(false); };
-    document.head.appendChild(link);
-  });
-}
-/* Pide los cuatro estilos (normal, negrita y sus cursivas). Muchas
-   familias sólo tienen uno: Google responde con error a una petición
-   de estilos que no existen, y entonces se pide sólo la regular (el
-   navegador sintetiza la negrita y la cursiva). */
-function loadSheet(family){
-  if(!sheets.has(family)){
-    const q = encodeURIComponent(family).replace(/%20/g, "+");
-    sheets.set(family, (async () =>
-      await linkSheet(`https://fonts.googleapis.com/css2?family=${q}:ital,wght@0,400;0,700;1,400;1,700&display=swap`) ||
-      await linkSheet(`https://fonts.googleapis.com/css2?family=${q}&display=swap`))());
-    sheets.get(family).then(ok => { if(!ok) sheets.delete(family); });
+const FORMAT = { woff2: "woff2", woff: "woff", ttf: "truetype", otf: "opentype" };
+const families = new Map();   // familia → Promise<boolean>
+/* Registra las caras de la familia (sin descargarlas todavía). */
+function registerFamily(family){
+  if(!families.has(family)){
+    families.set(family, (async () => {
+      await catalog();
+      const e = byName?.get(family);
+      if(!e) return false;
+      const dir = new URL(`${e.id}/`, FONTS_URL);
+      /* `s`: lista explícita de archivos [archivo, peso, rango|null] —las
+         familias sin letras latinas, troceadas por rangos de caracteres,
+         y las pocas que Google sirve en .ttf—; si no, un .woff2 por peso. */
+      const faces = e.s || e.w.map(w => [`${e.id}-${w}.woff2`, w, null]);
+      for(const [file, w, u] of faces){
+        const desc = { weight: String(w), style: "normal", display: "swap" };
+        if(u) desc.unicodeRange = u;
+        const fmt = FORMAT[file.split(".").pop()] || "woff2";
+        document.fonts.add(new FontFace(family, `url("${new URL(file, dir)}") format("${fmt}")`, desc));
+      }
+      return true;
+    })().then(ok => { if(!ok) families.delete(family); return ok; }));
   }
-  return sheets.get(family);
+  return families.get(family);
+}
+
+/** Deja lista `family` en `weight`/cursiva. Promesa que se cumple cuando está (o falla). */
+export async function loadFamily(family, weight = 400, italic = false, text = undefined){
+  if(!await registerFamily(family)) return false;
+  try{ await document.fonts.load(`${italic ? "italic " : ""}${weight} 40px '${family}'`, text); return true; }catch{ return false; }
 }
 
 /**
- * Deja lista la fuente de `stack` si es de Google y hay permiso.
+ * Deja lista la fuente de `stack` si es una de las alojadas.
  * Devuelve true si hay que volver a dibujar (acaba de cargarse).
- * `ask`: si no hay decisión todavía, preguntar (sólo desde un gesto
- * del usuario, nunca al abrir un proyecto).
  */
-export async function ensureFont(stack, { weight = 400, italic = false, ask = false } = {}){
+export async function ensureFont(stack, { weight = 400, italic = false } = {}){
   const family = familyOf(stack);
-  if(!family || !known().has(family)) return false;
-  if(consent() !== "granted" && !(ask && await ensureConsent())) return false;
+  if(!family) return false;
   const spec = `${italic ? "italic " : ""}${weight} 40px '${family}'`;
   /* Ojo: `document.fonts.check()` responde «sí» para una familia que el
      navegador aún no conoce (no hay nada pendiente de cargar), así que
      no sirve para saber si ya se descargó. Se lleva la cuenta aquí. */
   if(loadedSpecs.has(spec)) return false;
-  if(!await loadSheet(family)) return false;
-  try{ await document.fonts.load(spec); }catch{ return false; }
+  if(!await loadFamily(family, weight, italic)) return false;
   loadedSpecs.add(spec);
   return true;
 }
 const loadedSpecs = new Set();
 
-/* Valor de la entrada «Otra fuente de Google Fonts…» de las listas. */
+/* Valor de la entrada «Más fuentes…» de las listas. */
 export const GOOGLE_OTHER = "__google_other__";
+export const MORE_FONTS_LABEL = "Más fuentes (buscar entre 1900)…";
 
 /**
  * Lo que hay que hacer cuando alguien elige `value` en una lista de
  * fuentes. Devuelve la fuente a aplicar, o null para dejar la de antes
- * (separador, permiso denegado, cancelado). Pregunta el permiso la
- * primera vez que se elige una de Google y la deja cargada.
+ * (separador o buscador cancelado).
  */
 export async function chooseFontValue(value){
-  const { toast } = await import("../ui/toast.js");
   if(!value || value.startsWith("__sep")) return null;
   if(value === GOOGLE_OTHER){
-    const { promptDlg } = await import("../ui/dialog.js");
-    const name = await promptDlg("Otra fuente de Google Fonts", "Nombre exacto de la familia (como aparece en fonts.google.com)", "");
-    if(!name) return null;
-    try{
-      const stack = await addCustomGoogleFont(name);
-      if(!stack){ toast("Sin permiso para usar Google Fonts"); return null; }
-      toast(`Fuente añadida: ${name.trim()}`, "ok");
-      return stack;
-    }catch(e){ toast(e.message, "err"); return null; }
+    const family = await pickFont();
+    if(!family) return null;
+    return addCustomGoogleFont(family);
   }
-  if(isGoogleStack(value)){
-    if(!await ensureConsent()){ toast("Sin permiso para usar Google Fonts: se mantiene la fuente anterior"); return null; }
-    ensureFont(value);
-  }
+  if(isGoogleStack(value)) ensureFont(value);
   return value;
 }
 
-/** Añade una familia cualquiera de Google Fonts por su nombre exacto. */
+/** Añade una familia del catálogo a las listas (y la deja cargando). */
 export async function addCustomGoogleFont(name){
-  const family = String(name || "").trim().replace(/\s+/g, " ").replace(/['"<>;{}]/g, "");
-  if(!family) return null;
-  if(!await ensureConsent()) return null;
-  if(!await loadSheet(family)) throw new Error(`Google Fonts no tiene ninguna familia llamada «${family}». Comprueba el nombre en fonts.google.com.`);
+  const family = String(name || "").trim();
+  await catalog();
+  if(!byName?.has(family)) throw new Error(`No hay ninguna fuente llamada «${family}».`);
   if(!BASE.some(b => b[0] === family) && !custom.includes(family)){
     custom.push(family);
-    try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom)); }catch{}
+    try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom.slice(-60))); }catch{}
   }
-  try{ await document.fonts.load(`400 40px '${family}'`); }catch{}
-  return stackOf(family, (BASE.find(b => b[0] === family) || [0, "sans-serif"])[1]);
+  loadFamily(family);
+  return stackOf(family, genericOf(family));
+}
+
+/* ── buscador ───────────────────────────────────────────────── */
+const norm = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+/** Diálogo para buscar en todo el catálogo. Devuelve la familia elegida o null. */
+export async function pickFont(){
+  const [{ dialog }, list] = await Promise.all([import("../ui/dialog.js"), catalog()]);
+  if(!list.length){
+    const { toast } = await import("../ui/toast.js");
+    toast("No se pudo cargar el catálogo de fuentes", "err");
+    return null;
+  }
+  const body = document.createElement("div");
+  body.className = "font-picker";
+  body.innerHTML = `
+    <input type="search" class="fp-q" placeholder="Buscar fuente (p. ej. Lobster, Roboto…)" aria-label="Buscar fuente" autocomplete="off">
+    <div class="seg fp-cats">${[["", "Todas"], ...Object.entries(CATEGORY_LABEL)].map(([k, l]) => `<button type="button" data-c="${k}"${k ? "" : ' class="on"'}>${l}</button>`).join("")}</div>
+    <p class="hint fp-count"></p>
+    <div class="fp-list" role="listbox" aria-label="Fuentes"></div>`;
+  const q = body.querySelector(".fp-q"), listEl = body.querySelector(".fp-list"), count = body.querySelector(".fp-count");
+  let cat = "", chosen = null, closeDlg = null;
+  /* Cada nombre se ve con su propia fuente, que se descarga sólo
+     cuando su fila entra en pantalla. */
+  const io = new IntersectionObserver(entries => entries.forEach(en => {
+    if(!en.isIntersecting) return;
+    io.unobserve(en.target);
+    const fam = en.target.dataset.f;
+    loadFamily(fam, 400, false, fam).then(() => { en.target.querySelector("b").style.fontFamily = `'${fam}', ${genericOf(fam)}`; });
+  }), { root: listEl, rootMargin: "120px" });
+  const render = () => {
+    const words = norm(q.value).split(/\s+/).filter(Boolean);
+    const hits = list.filter(e => (!cat || e.c === cat) && words.every(w => norm(e.f).includes(w)));
+    count.textContent = `${hits.length} fuente${hits.length === 1 ? "" : "s"}${hits.length > 120 ? " · se muestran las 120 primeras: escribe para afinar" : ""}`;
+    io.disconnect(); listEl.innerHTML = "";
+    for(const e of hits.slice(0, 120)){
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "fp-item"; b.dataset.f = e.f; b.setAttribute("role", "option");
+      b.innerHTML = `<b></b><span>${CATEGORY_LABEL[e.c] || ""}${e.sc ? " · " + e.sc : ""}</span>`;
+      b.querySelector("b").textContent = e.f;
+      listEl.appendChild(b); io.observe(b);
+    }
+  };
+  q.addEventListener("input", render);
+  body.querySelector(".fp-cats").addEventListener("click", e => {
+    const b = e.target.closest("[data-c]"); if(!b) return;
+    cat = b.dataset.c;
+    body.querySelectorAll(".fp-cats button").forEach(x => x.classList.toggle("on", x === b));
+    render();
+  });
+  listEl.addEventListener("click", e => { const b = e.target.closest(".fp-item"); if(!b) return; chosen = b.dataset.f; closeDlg?.(); });
+  q.addEventListener("keydown", e => { if(e.key === "Enter"){ const first = listEl.querySelector(".fp-item"); if(first){ e.preventDefault(); chosen = first.dataset.f; closeDlg?.(); } } });
+  render();
+  await dialog({ title: "Todas las fuentes", body, wide: true, cls: "dlg-fonts",
+    onOpen: (_, api) => { closeDlg = () => api.close(null); setTimeout(() => q.focus(), 50); },
+    buttons: [{ label: "Cancelar", value: null }] });
+  io.disconnect();
+  return chosen;
 }

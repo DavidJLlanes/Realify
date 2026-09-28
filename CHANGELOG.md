@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Cambiado
+- **Tipografías sin Google**: todo el catálogo de Google Fonts (1908 familias)
+  se sirve desde el propio sitio, en `/fonts/`. El navegador ya no se conecta
+  con Google, desaparece el aviso de permiso y las fuentes funcionan sin
+  conexión. La herramienta Texto tiene un buscador con vista previa
+  («Más fuentes (buscar entre 1900)…»).
+
 ### Añadido
 - Documentación del repositorio: guía de contribución, código de conducta,
   política de seguridad, plantillas de issues y pull requests, y este registro

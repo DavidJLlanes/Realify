@@ -510,8 +510,8 @@ registerAll({
     body: `<p class="hint">Editor de imagen con simulación de captura fotográfica.</p>
            <p class="hint">Todo el procesado ocurre en tu equipo: tus imágenes no se
              suben a ningún servidor, no hay analítica y no hace falta cuenta. Sólo
-             algunas funciones opcionales descargan recursos de terceros (tipografías
-             de Google Fonts, con tu permiso, y modelos de IA de Hugging Face); los
+             los modelos de IA grandes se descargan de un tercero (Hugging Face), y
+             sólo si los usas; las tipografías se sirven desde el propio sitio. Los
              detalles están en la Política de privacidad.</p>
            <p class="hint">El filtro Realify reproduce el recorrido físico de la luz
              —óptica, sensor, procesador y códec— sobre imágenes generadas, para

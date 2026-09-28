@@ -29,7 +29,7 @@ creación de memes, que se ha eliminado.
 - **Efecto de imagen**: frito, blanco y negro, sepia, viñeta, alto contraste,
   colores vivos, desvaído, desenfocado, pixelado, negativo y JPEG destrozado,
   con intensidad.
-- **Textos ilimitados**, cada uno con: 29 tipografías de Google Fonts, tamaño,
+- **Textos ilimitados**, cada uno con: 29 tipografías libres (alojadas en `/fonts/`), tamaño,
   negrita, cursiva, mayúsculas, alineación, interlineado y espaciado; relleno
   sólido o degradado; contorno y contorno exterior; sombra (dirección,
   difuminado, color, opacidad); brillo/neón; glitch RGB; relieve 3D; fondo
@@ -57,9 +57,9 @@ Al aplicar se crea, en un único paso de historial:
 | `model.js` | Propiedades del texto, su descripción para la interfaz y los estilos rápidos |
 | `text.js` | Dibujo del texto (vista previa y resultado usan la misma función) |
 | `effects.js` | Efectos de imagen |
-| `fonts.js` | Tipografías de Google Fonts |
+| `fonts.js` | Tipografías (servidas desde `/fonts/`) |
 | `ui.js`, `memes.css` | Ventana |
 
-Las tipografías se cargan de Google Fonts sólo al abrir el creador; sin conexión
-se usa la alternativa de cada una. La CSP ya permite `fonts.googleapis.com` y
-`fonts.gstatic.com`.
+Las tipografías se sirven desde `/fonts/` del propio sitio (ver
+`js/editor/gfonts.js`) y se descargan sólo al usarlas, sin contactar con Google.
+Mientras llegan, se usa la alternativa de cada una.

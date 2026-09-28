@@ -261,7 +261,8 @@ tiempo real mientras se pinta.
 
 ## 7. Texto
 
-- Capas de texto editables: fuente (incluidas Google Fonts), tamaño, color,
+- Capas de texto editables: fuente (del sistema y **las ~1900 tipografías libres
+  del catálogo de Google Fonts**, alojadas en `/fonts/`, con buscador), tamaño, color,
   interlineado, espaciado, kerning, ligaduras, mayúsculas y versalitas.
 - Estilos de carácter y de párrafo, alineación y sangrías.
 - Cuadros de texto y **texto en trazado**.
@@ -440,8 +441,8 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
   WebGPU o WebAssembly). Los modelos grandes (Hugging Face) se descargan la
   primera vez que se usan y quedan en el navegador; la imagen nunca sale del
   equipo.
-- **Google Fonts** solo se descargan con permiso del usuario, que se puede
-  retirar desde la política de privacidad.
+- **Tipografías** servidas desde el propio sitio (`/fonts/`): el navegador no
+  se conecta con Google ni con otros terceros para usarlas.
 
 ## 14. Estructura del proyecto
 
@@ -470,6 +471,7 @@ memes/                  Creador de memes
 socialmediapost/        Collage / Historia / Post
 stickers/               Stickers (Fluent Emoji)
 assets/                 Iconos, imágenes y modelos de IA
+fonts/                  Tipografías libres (catálogo completo de Google Fonts), servidas desde el sitio
 server/                 Configuración de nginx y servidor opcional para Unmark (FastAPI)
 .github/workflows/      Despliegue automático en realify.es
 ```

@@ -49,8 +49,10 @@ se conecta a la red para:
 - Cargar la propia aplicación desde [realify.es](https://realify.es).
 - Descargar modelos de IA bajo demanda (Hugging Face), que quedan guardados en
   el navegador.
-- Descargar Google Fonts, solo con permiso del usuario.
 - Enviar la imagen a un servidor **propio del usuario**, solo si configura
   expresamente el servidor opcional de Unmark.
+
+Las tipografías (todo el catálogo libre de Google Fonts) se sirven desde el
+propio sitio, en `/fonts/`: el navegador no se conecta con Google.
 
 La app no carga analítica ni cookies de seguimiento.

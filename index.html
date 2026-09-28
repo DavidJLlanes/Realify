@@ -105,10 +105,8 @@
 <!-- Windows: un solo browserconfig.xml en vez de listar cada tile -->
 <meta name="msapplication-config" content="/browserconfig.xml">
 
-<!-- Sin «preconnect» a Google Fonts: abría una conexión con Google (y
-     le enviaba la IP) en cada visita, antes de que nadie diera permiso.
-     Las tipografías de Google se piden sólo con consentimiento
-     (ver js/editor/gfonts.js). -->
+<!-- Tipografías: todas se sirven desde /fonts/ del propio sitio (ver
+     js/editor/gfonts.js); ninguna conexión con Google. -->
 
 <!-- CANONICAL Y ALTERNATE -->
 <link rel="canonical" href="https://realify.es/">
@@ -420,7 +418,7 @@
 <script src="js/vendor/ag-psd.js"></script>
 <script src="js/vendor/utif.js"></script>
 <script src="js/vendor/heic2any.min.js"></script>
-<script type="module" src="js/main.js?v=116"></script>
+<script type="module" src="js/main.js?v=117"></script>
 
 </body>
 </html>

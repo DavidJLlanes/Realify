@@ -1217,6 +1217,13 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 .brush-range input{flex:1;min-width:0}
 .brush-range b{width:45px;text-align:right;font:inherit;color:var(--tx)}
 
-/* Permiso de Google Fonts dentro de la Política de privacidad */
-.legal-consent{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 2px}
-.legal-consent span{color:var(--tx-dim)}
+/* Buscador de tipografías (js/editor/gfonts.js · pickFont) */
+.font-picker{display:grid;gap:8px}
+.font-picker .fp-q{width:100%;min-height:36px;box-sizing:border-box}
+.font-picker .fp-cats{flex-wrap:wrap;height:auto}
+.font-picker .fp-count{margin:0}
+.font-picker .fp-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:5px;max-height:min(52vh,460px);overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.font-picker .fp-item{display:grid;justify-items:start;gap:2px;min-width:0;height:auto;padding:8px 10px;text-align:left;white-space:normal}
+.font-picker .fp-item b{font-size:19px;font-weight:400;line-height:1.25;overflow-wrap:anywhere}
+.font-picker .fp-item span{font-size:11px;color:var(--tx-dim)}
+@media (max-width:900px){.font-picker .fp-list{grid-template-columns:1fr;max-height:52dvh}}

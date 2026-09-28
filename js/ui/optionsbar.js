@@ -5,7 +5,7 @@
 import { on, emit } from "../core/bus.js";
 import { current, state, toolChosen } from "../editor/tools.js";
 import { loadFontFile, FONTS, FONT_SEPARATOR } from "../editor/text.js";
-import { chooseFontValue, GOOGLE_OTHER, googleFontItems } from "../editor/gfonts.js";
+import { chooseFontValue, GOOGLE_OTHER, MORE_FONTS_LABEL, googleFontItems } from "../editor/gfonts.js";
 import { toast } from "./toast.js";
 import { stepper } from "./stepper.js";
 import { openGuide, openGuideForTool } from "./guide.js";
@@ -156,7 +156,7 @@ function buildControl(o){
     }
     if(o.key === "fontFamily"){
       s.style.minWidth = "128px";
-      for(const [v, l] of [[GOOGLE_OTHER, "Otra fuente de Google Fonts…"], [LOAD_FONT, "Cargar fuente desde archivo…"]]){
+      for(const [v, l] of [[GOOGLE_OTHER, MORE_FONTS_LABEL], [LOAD_FONT, "Cargar fuente desde archivo…"]]){
         const op = document.createElement("option");
         op.value = v; op.textContent = l;
         s.appendChild(op);
@@ -174,13 +174,13 @@ function buildControl(o){
         return;
       }
       if(o.key === "fontFamily"){
-        // Fuentes de Google (con permiso) y «Otra fuente de Google…»
+        // Tipografías libres y «Más fuentes…» (buscador)
         const wanted = s.value;
         s.value = state[o.key];
         const font = await chooseFontValue(wanted);
         if(!font) return;
         if(!FONTS.some(f => f[0] === font)){
-          // Una familia de Google recién añadida por su nombre
+          // Una familia recién elegida en el buscador
           const item = googleFontItems().find(f => f[0] === font);
           if(item) FONTS.push(item);
         }

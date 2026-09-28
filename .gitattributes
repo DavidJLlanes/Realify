@@ -11,11 +11,16 @@
 *.wasm   binary
 *.onnx   binary
 *.bin    binary
+*.woff2  binary
+*.woff   binary
+*.ttf    binary
+*.otf    binary
 
 # Estadísticas de lenguajes de GitHub: sin librerías de terceros ni modelos
 js/vendor/**            linguist-vendored
 raw/vendor/**           linguist-vendored
 stickers/emoji/**       linguist-vendored
 assets/models/**        linguist-vendored
+fonts/**                linguist-vendored
 *.min.js                linguist-generated
 *.js.map                linguist-generated

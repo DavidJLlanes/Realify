@@ -65,8 +65,8 @@ El documento de partida no se modifica.
   - En cada hueco: zoom con la rueda, dos dedos o el deslizador; encuadre
     arrastrando; girar, voltear y centrar.
   - Intercambiar: soltar una foto sobre otro hueco.
-- **Textos**: el mismo motor del creador de memes. Incluye 29 tipografías (Google
-  Fonts solo con permiso), 26 estilos rápidos, contornos, sombras, neón, relieve 3D,
+- **Textos**: el mismo motor del creador de memes. Incluye 29 tipografías
+  (servidas desde `/fonts/`), 26 estilos rápidos, contornos, sombras, neón, relieve 3D,
   fondos y curvatura.
 - Deshacer y rehacer propios, además de atajos: Ctrl+Z, Ctrl+Shift+Z, Supr,
   flechas y Esc.

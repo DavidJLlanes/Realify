@@ -63,7 +63,7 @@ const TOPICS = [
           y negro pancromático.</li>
         <li><a data-go="ajustes#adj-rangehsl">Color por rangos</a> rehecho como mezclador HSL de
           ocho rangos, y Curvas Lab y Desplazamiento / mínimo / máximo corregidos.</li>
-        <li><a data-go="otras#tool-text">Texto</a> con Google Fonts y alineación que no mueve el bloque.</li>
+        <li><a data-go="otras#tool-text">Texto</a> con unas 1900 tipografías libres (con buscador) y alineación que no mueve el bloque.</li>
         <li><a data-go="especiales#sp-meme">Creador de memes</a>, <a data-go="capas">stickers</a>
           y <a data-go="especiales#sp-realify">Realify</a> a pantalla completa.</li>
         <li><a data-go="movil">Móvil</a>: cajón de herramientas con buscador y editores pensados para
@@ -389,10 +389,10 @@ const TOPICS = [
           (menú Capa) la convierte en píxeles normales cuando ya no hace falta
           seguir editándola. Al cambiar la alineación, el bloque se queda en su sitio y
           sólo se realinean las líneas entre sí. Además de las fuentes del sistema, la
-          lista trae <b>Google Fonts</b> (más de setenta, y «Otra fuente de Google Fonts…»
-          para cualquier otra por su nombre): sólo se descargan si das permiso la primera
-          vez —se puede retirar en la Política de privacidad— y, sin él, se dibujan con
-          una parecida del sistema. Además del cuerpo, la fuente, el color, la sombra, el
+          lista trae más de setenta <b>tipografías libres</b> y, en «Más fuentes (buscar
+          entre 1900)…», todo el catálogo de Google Fonts, con vista previa de cada una.
+          Se sirven desde el propio Realify, sin conectarse con Google, y cada fuente se
+          descarga sólo cuando se usa. Además del cuerpo, la fuente, el color, la sombra, el
           contorno, el círculo y el fondo de siempre, la barra de opciones trae:
           <ul>
             <li><b>Justificado</b>, cuarta opción junto a Izquierda/Centrado/Derecha
