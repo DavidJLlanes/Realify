@@ -107,7 +107,9 @@ registerAll({
   "file.exportAs":  { run: async () => (await import("./io/professional-export.js")).professionalExport(), enabled: needsDoc },
   "file.exportPng": { run: quickPng, enabled: needsDoc },
   "file.socialPreview": { run: photoTool("socialPreview"), enabled: needsDoc },
-  "file.batch":     async () => (await import("./io/batch.js")).openBatch(),
+  /* Misma edición en varias fotos (lote/) */
+  "file.batchEdit":  { run: async () => (await import("../lote/index.js")).openBatchEdit(), enabled: needsDoc },
+  "file.startBatch": async () => (await import("../lote/index.js")).startBatch(),
   "ai.upscale":     { run: async () => (await import("./features/aitools.js")).aiUpscale(), enabled: needsDoc },
   "ai.colorize":    { run: async () => (await import("./features/aitools.js")).aiColorize(), enabled: needsDoc },
   "ai.expand":      { run: async () => (await import("./features/aitools.js")).aiExpand(), enabled: needsDoc },

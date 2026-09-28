@@ -782,8 +782,12 @@ const TOPICS = [
         <li><b>Prueba para redes sociales…</b> Muestra cómo queda la imagen tras la
           recompresión que aplican Instagram, WhatsApp, Facebook o X, antes de
           publicarla de verdad.</li>
-        <li><b>Procesar carpeta…</b> Aplica los mismos ajustes a muchas imágenes de
-          una vez; ver «Lotes», dentro de «Realify · simulación de captura».</li>
+        <li><b>Editar en lote…</b> y <b>Aplicar esta edición a otras fotos…</b> Abre varias
+          fotos (cada una en su pestaña), edita una como siempre y copia su edición —capas
+          de ajuste, filtros, textos, marcas de agua, con su opacidad y fusión— a las demás
+          o a fotos de la galería. Vista previa de todas, <b>igualar exposición</b> con la de
+          referencia y resultado en sus pestañas (capas reeditables) o en un ZIP. No se
+          copian máscaras, pinceladas ni recortes.</li>
         <li><b>Restaurar al estado original…</b> Descarta capas, ediciones e historial
           y vuelve exactamente al archivo tal como se abrió. No se puede deshacer.</li>
       </ul>
@@ -1084,23 +1088,7 @@ const TOPICS = [
           </ul>
           <p>Cuando los dos paneles coinciden, la señal vale algo. Cuando el primero va alto
             y el segundo bajo, es que la cadena está haciendo ruido sin dejar la estructura
-            que ese ruido debería tener.</p>` },
-
-      { id:"lotes", title:"Lotes",
-        desc:"Procesar una carpeta entera, con variación automática entre archivos.",
-        html:`
-          <h3>Lotes</h3>
-          <p>«Procesar carpeta» aplica la cadena entera a todas las imágenes que
-            selecciones. Con «Variar cada una», cada archivo sale con sus parámetros
-            desviados y su propia semilla: veinte salidas idénticas en configuración
-            comparten firma, y eso es exactamente lo que se quiere evitar. Las fechas EXIF
-            del lote caen a minutos unas de otras, como una sesión real, en vez de
-            repartidas por tres años.</p>
-          <p>Por defecto se entrega todo en un ZIP. La alternativa —una descarga por
-            archivo— obliga a esperar entre una y otra porque el navegador estrangula las
-            descargas seguidas, y con cien imágenes son casi veinte segundos de pura
-            espera. Si el lote pasa de 1,5 GB se cambia solo a descargas sueltas, porque el
-            ZIP se construye en memoria.</p>` }
+            que ese ruido debería tener.</p>` }
     ] },
 
   { id:"especiales", title:"Filtros especiales",

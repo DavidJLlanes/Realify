@@ -148,7 +148,7 @@ el pulgar. Instalable y disponible sin conexión.
 | **Prueba para redes sociales** | Muestra cómo quedará la imagen tras la recompresión típica de las redes. |
 | **Exportar GIF animado** | Cada capa visible es un fotograma (sola o acumulada): duración, bucle, ida y vuelta, tamaño y número de colores. |
 | **Hoja de contactos** | Pantalla completa: hasta 200 fotos en páginas A4, A3, A5, Carta, Oficio o 10 × 15 con columnas, márgenes, título y nombre de cada foto. PDF de varias páginas o capas (`hojacontactos/`). |
-| **Procesar carpeta** | Aplica el filtro Realify a muchas imágenes a la vez y las entrega en un ZIP. |
+| **Editar en lote / Aplicar esta edición a otras fotos** | Edita una foto y copia su edición (capas de ajuste, filtros, textos, marcas de agua) a otras pestañas o fotos de la galería, con vista previa e **igualado de exposición**. Resultado en sus pestañas, con capas reeditables, o en un ZIP (`lote/`). |
 | **Acciones** | Graba una secuencia de ajustes, filtros y comandos con los valores de sus diálogos y repítela en la foto abierta o en lote (ZIP en JPEG, PNG, WebP o AVIF). Se exportan e importan en JSON. |
 | **Restaurar al estado original** | Descarta capas, ediciones e historial y vuelve al archivo tal como se abrió. |
 
@@ -500,6 +500,7 @@ cortar/                 Cortar en partes
 formas/                 Recortar en forma
 comparar/               Antes y después
 hojacontactos/          Hoja de contactos
+lote/                   Aplicar una edición a varias fotos
 assets/                 Iconos, imágenes y modelos de IA
 fonts/                  Tipografías libres (catálogo completo de Google Fonts), servidas desde el sitio
 server/                 Configuración de nginx y servidor opcional para Unmark (FastAPI)

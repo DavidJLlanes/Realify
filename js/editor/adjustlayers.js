@@ -80,6 +80,24 @@ export const ADJUST_TYPES = {
     defaults: () => ({ hue: 0, sat: 0, light: 0, colorize: false }),
     apply(data, w, h, p){ hslShift(data, p); }
   },
+  /* Exposición en pasos (EV), en luz lineal como en una cámara: +1 EV
+     duplica la luz. La usa también «Aplicar esta edición a otras
+     fotos» (lote/) para igualar la exposición de cada foto. */
+  exposure: {
+    name: "Exposición",
+    defaults: () => ({ ev: 0 }),
+    apply(data, w, h, p){
+      const k = Math.pow(2, p.ev || 0);
+      if(k === 1) return;
+      const t = new Uint8ClampedArray(256);
+      for(let i = 0; i < 256; i++){
+        let v = i / 255; v = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        v = Math.min(1, v * k);
+        t[i] = Math.round((v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055) * 255);
+      }
+      applyLut(data, { r: t, g: t, b: t });
+    }
+  },
   gray: {
     name: "Blanco y negro",
     defaults: () => ({}),
@@ -206,6 +224,9 @@ function bodyFor(typeId, p, preview){
     hint.textContent = "Sólo la curva maestra: para ajustar canales por separado, usa " +
       "Curvas… en el menú Ajustes como retoque normal.";
     box.appendChild(hint);
+  } else if(typeId === "exposure"){
+    box.appendChild(slider("Exposición", -3, 3, Math.round((p.ev || 0) * 100) / 100,
+      v => { p.ev = v; preview(); }, " EV", 0.05));
   } else if(typeId === "wb"){
     S("Temperatura", "temp", -100, 100);
     S("Tinte", "tint", -100, 100);

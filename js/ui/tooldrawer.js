@@ -221,6 +221,8 @@ const ITEMS = [
   { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"layout-grid", cat:"estilo" },
   { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos" },
   { cmd:"actions.open",     label:"Acciones",         ic:"clapperboard", cat:"mejorar estilo" },
+  { cmd:"file.batchEdit",   label:"Aplicar edición a otras fotos", ic:"layers-2", cat:"basicos mejorar estilo" },
+  { cmd:"file.startBatch",  label:"Editar en lote",   ic:"layers-plus",  cat:"mejorar estilo" },
   { cmd:"layer.stickers",  label:"Stickers",       ic:"sparkles",  cat:"pintar estilo" },
   { cmd:"layer.watermark", label:"Marca de agua",  ic:"copyright", cat:"pintar" },
   { cmd:"layer.styles",    label:"Estilos de capa", ic:"layers-plus", cat:"pintar estilo" },

@@ -20,6 +20,11 @@ que las entradas se agrupan por fecha.
 - Exportar en **AVIF** y **PDF**; **GIF animado** a partir de las capas.
 - **Paleta de colores** y **cuentagotas de pantalla**.
 - **Acciones**: grabar y repetir secuencias de comandos, también en lote.
+- **Editar en lote / Aplicar esta edición a otras fotos** (`lote/`): edita una
+  foto y copia su edición (ajustes, filtros, textos, marcas de agua) a otras
+  pestañas o fotos de la galería, con vista previa, **igualado de exposición**
+  y resultado en sus pestañas (capas reeditables) o en un ZIP.
+- Capa de ajuste **Exposición** (en pasos EV).
 - IA: **ampliar** ×2/×4, **colorear** y **expandir** el lienzo.
 - Zoom y desplazamiento de la imagen mientras se aplica cualquier efecto.
 - Aviso visible con botón Cancelar mientras trabaja la IA; si un modelo pesado
@@ -27,6 +32,10 @@ que las entradas se agrupan por fecha.
 
 ### Cambiado
 - **Eliminar fondo** crea una capa nueva con el recorte y oculta la original.
+
+### Eliminado
+- «Procesar carpeta» (y el botón «Abrir lote» del inicio): sólo aplicaba el
+  filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
 - ISNet recibía la imagen sin normalizar y devolvía máscaras casi uniformes.

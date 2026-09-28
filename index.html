@@ -217,7 +217,7 @@
         <button class="primary" data-cmd="file.open"><b>Abrir imagen</b><span>Desde este dispositivo</span></button>
         <button class="welcome-camera" data-cmd="file.camera"><b>Hacer foto</b><span>Con la cámara del móvil</span></button>
         <button data-cmd="file.pasteImage"><b>Pegar imagen</b><span>Desde el portapapeles</span></button>
-        <button data-cmd="file.batch"><b>Abrir lote</b><span>Procesar varias imágenes</span></button>
+        <button data-cmd="file.startBatch"><b>Editar en lote</b><span>La misma edición en varias fotos</span></button>
         <button data-cmd="file.openProject"><b>Abrir proyecto</b><span>Capas y ajustes intactos</span></button>
         <button id="continueRecent" data-cmd="file.openRecent" hidden><b>Continuar proyecto reciente</b><span id="recentProjectName">Guardado en este dispositivo</span></button>
         <button data-cmd="file.new"><b>Documento nuevo</b><span>Lienzo vacío</span></button>
@@ -411,14 +411,13 @@
 
 <input type="file" id="filePicker" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
 <input type="file" id="cameraPicker" accept="image/*" capture="environment" hidden>
-<input type="file" id="filePickerMulti" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
 <input type="file" id="filePickerStack" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
 <input type="file" id="projectPicker" accept=".realify,application/vnd.realify+json,application/json" hidden>
 
 <script src="js/vendor/ag-psd.js"></script>
 <script src="js/vendor/utif.js"></script>
 <script src="js/vendor/heic2any.min.js"></script>
-<script type="module" src="js/main.js?v=124"></script>
+<script type="module" src="js/main.js?v=125"></script>
 
 </body>
 </html>
