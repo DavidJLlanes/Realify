@@ -1,0 +1,21 @@
+# Finales de línea: LF en el repositorio y en la copia de trabajo,
+# también en Windows (evita los avisos «LF will be replaced by CRLF»).
+* text=auto eol=lf
+
+# Binarios
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.ico    binary
+*.wasm   binary
+*.onnx   binary
+*.bin    binary
+
+# Estadísticas de lenguajes de GitHub: sin librerías de terceros ni modelos
+js/vendor/**            linguist-vendored
+raw/vendor/**           linguist-vendored
+stickers/emoji/**       linguist-vendored
+assets/models/**        linguist-vendored
+*.min.js                linguist-generated
+*.js.map                linguist-generated

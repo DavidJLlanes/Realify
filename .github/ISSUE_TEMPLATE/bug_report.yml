@@ -1,0 +1,85 @@
+name: 🐞 Informar de un error
+description: Algo no funciona como debería en Realify.
+title: "[Error]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por ayudar a mejorar Realify. Antes de enviar, comprueba que el error
+        no esté ya [informado](https://github.com/DavidJLlanes/Realify/issues) y que ocurre en la última versión de
+        [realify.es](https://realify.es) (recarga con Ctrl+F5).
+
+        ⚠️ Si es un problema de seguridad, **no abras un issue**: sigue la
+        [política de seguridad](https://github.com/DavidJLlanes/Realify/security/policy).
+
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Qué ocurre
+      description: Describe el error con claridad.
+      placeholder: Al aplicar el Filtro Vintage sobre una capa con máscara, la máscara desaparece.
+    validations:
+      required: true
+
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducirlo
+      placeholder: |
+        1. Abrir una imagen JPEG
+        2. Ir a Filtro › Especiales › Filtro Vintage…
+        3. Pulsar Aplicar
+        4. Ver el error
+    validations:
+      required: true
+
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué esperabas que pasara
+    validations:
+      required: true
+
+  - type: dropdown
+    id: dispositivo
+    attributes:
+      label: Dispositivo
+      options:
+        - Escritorio
+        - Móvil
+        - Tableta
+    validations:
+      required: true
+
+  - type: input
+    id: navegador
+    attributes:
+      label: Navegador y sistema
+      placeholder: Chrome 140 en Windows 11 / Safari en iOS 26
+    validations:
+      required: true
+
+  - type: dropdown
+    id: modo
+    attributes:
+      label: ¿Cómo usas Realify?
+      options:
+        - En el navegador (realify.es)
+        - Instalada como app (PWA)
+        - En local (servidor propio)
+
+  - type: textarea
+    id: diagnostico
+    attributes:
+      label: Diagnóstico y consola
+      description: |
+        Pega el resultado de **Ayuda › Diagnóstico…** y, si puedes, los errores de la
+        consola del navegador (F12 › Consola).
+      render: text
+
+  - type: textarea
+    id: capturas
+    attributes:
+      label: Capturas o archivos
+      description: Arrastra aquí capturas de pantalla. No subas fotos privadas.

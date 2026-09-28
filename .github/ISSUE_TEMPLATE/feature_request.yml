@@ -1,0 +1,57 @@
+name: 💡 Proponer una mejora
+description: Sugiere una función nueva o una mejora para Realify.
+title: "[Mejora]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por la idea! Revisa antes que no esté ya [propuesta](https://github.com/DavidJLlanes/Realify/issues).
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema resuelve
+      description: Explica qué quieres conseguir y por qué ahora no es posible o es incómodo.
+      placeholder: Cuando edito muchas fotos de una sesión, tengo que repetir los mismos ajustes en cada una…
+    validations:
+      required: true
+
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Solución propuesta
+      description: Cómo te gustaría que funcionara.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Edición y capas
+        - Herramientas y pinceles
+        - Ajustes de color y tono
+        - Filtros
+        - Revelado RAW
+        - IA (selección, fondo, ruido…)
+        - Memes, stickers o collages
+        - Abrir y exportar
+        - Móvil
+        - Rendimiento
+        - Otra
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas
+      description: Otras soluciones que hayas pensado o cómo lo resuelven otras aplicaciones.
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto adicional
+      description: Capturas, bocetos o ejemplos.
