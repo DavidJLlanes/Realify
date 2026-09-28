@@ -35,12 +35,12 @@
 .sp-layouts button{position:relative;display:grid;place-items:center;min-height:58px;padding:6px;background:#20252b;border:1px solid #30353d;border-radius:6px;cursor:pointer}
 .sp-layouts button:hover{background:#262d36}
 .sp-layouts button.on{background:#293b60;border-color:#547bbd}
-.sp-layouts svg .bg{fill:#3a414c}
-.sp-layouts svg polygon,.sp-layouts svg ellipse{fill:#a9bde6}
-.sp-layouts svg .f{stroke:#20252b;stroke-width:.8}
-.sp-layouts svg rect.f{fill:#a9bde6}
-.sp-layouts button.on svg rect.f{fill:#d5e1ff}
-.sp-layouts button.on svg polygon,.sp-layouts button.on svg ellipse{fill:#d5e1ff}
+.sp-layouts svg .bg,.sp-sheet-grid svg .bg{fill:#3a414c}
+.sp-layouts svg polygon,.sp-layouts svg ellipse,.sp-sheet-grid svg polygon,.sp-sheet-grid svg ellipse{fill:#a9bde6}
+.sp-layouts svg .f,.sp-sheet-grid svg .f{stroke:#20252b;stroke-width:.8}
+.sp-layouts svg rect.f,.sp-sheet-grid svg rect.f{fill:#a9bde6}
+.sp-layouts button.on svg rect.f,.sp-sheet-grid button.on svg rect.f{fill:#d5e1ff}
+.sp-layouts button.on svg polygon,.sp-layouts button.on svg ellipse,.sp-sheet-grid button.on svg polygon,.sp-sheet-grid button.on svg ellipse{fill:#d5e1ff}
 .sp-layouts span{position:absolute;right:4px;bottom:2px;font-size:10px;color:#8e97a5}
 
 .sp-tray{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px}
@@ -101,6 +101,24 @@
 .sp-buttons button:hover{background:#35455e}
 .sp-editor .danger{color:#ff9a9a;border-color:#5a3a3e}
 .sp-mobile{display:none}
+
+/* Móvil: hoja para elegir el diseño con miniaturas */
+.sp-layout-pick{position:relative;min-width:0}
+.sp-layout-hit{position:absolute;inset:0;width:100%;padding:0;background:transparent;border:0;border-radius:7px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sp-layout-hit:focus-visible{outline:2px solid #7fa6ff;outline-offset:1px}
+.sp-sheet{position:fixed;inset:0;z-index:2050;display:flex;align-items:flex-end;background:#000b}
+.sp-sheet[hidden]{display:none}
+.sp-sheet-panel{width:100%;max-height:80vh;max-height:80dvh;display:grid;grid-template-rows:auto minmax(0,1fr);background:#13161a;border-top:1px solid #343a43;border-radius:14px 14px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+.sp-sheet-panel header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px}
+.sp-sheet-panel header b{font-size:15px}
+.sp-sheet-close{width:38px;height:38px;padding:0;border:1px solid #3b414b;border-radius:7px;background:#272b31;color:#e9edf4;font-size:16px}
+.sp-sheet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:max-content;gap:8px;padding:4px 12px 14px;overflow:auto;overscroll-behavior:contain}
+.sp-sheet-grid button{display:grid;align-content:start;gap:5px;padding:8px 6px 9px;background:#20252b;color:#e9edf4;border:1px solid #30353d;border-radius:8px;font:inherit;text-align:center;cursor:pointer}
+.sp-sheet-grid button.on{background:#293b60;border-color:#7fa6ff}
+.sp-sheet-grid i{display:block;height:92px}
+.sp-sheet-grid svg{display:block;width:100%;height:100%}
+.sp-sheet-grid b{font-size:12px;font-weight:500;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
+.sp-sheet-grid span{font-size:11px;color:#8e97a5;white-space:normal}
 
 /* Móvil: la composición a pantalla completa y controles mínimos abajo */
 @media (max-width:900px){

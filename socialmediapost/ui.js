@@ -215,12 +215,18 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     </main>
     <footer class="sp-mobile">
       <div class="sp-row"><select class="sp-format-select" aria-label="Formato">${formatOptions()}</select><button type="button" class="sp-orient-btn" aria-label="Cambiar orientación">⇆</button></div>
-      <div class="sp-row"><select class="sp-layout-select" aria-label="Diseño">${opt(LAYOUTS.map(l => [l.id, l.id === "free" ? l.label : `${l.label} · ${l.cells.length}`]), S.layout)}</select><button type="button" class="sp-add primary" data-p="open">＋ Fotos</button></div>
+      <div class="sp-row"><div class="sp-layout-pick"><select class="sp-layout-select" aria-hidden="true" tabindex="-1">${opt(LAYOUTS.map(l => [l.id, l.id === "free" ? l.label : `${l.label} · ${l.cells.length}`]), S.layout)}</select><button type="button" class="sp-layout-hit" aria-haspopup="dialog" aria-label="Elegir diseño"></button></div><button type="button" class="sp-add primary" data-p="open">＋ Fotos</button></div>
       <select class="sp-prop-select" aria-label="Ajuste"></select>
       <div class="sp-mobile-control"></div>
       <div class="sp-tray sp-tray-m"></div>
       <div class="sp-row sp-acts"></div>
-    </footer>`;
+    </footer>
+    <div class="sp-sheet" role="dialog" aria-modal="true" aria-label="Diseño del collage" hidden>
+      <div class="sp-sheet-panel">
+        <header><b>Diseño</b><button type="button" class="sp-sheet-close" aria-label="Cerrar">✕</button></header>
+        <div class="sp-sheet-grid"></div>
+      </div>
+    </div>`;
   document.body.appendChild(root);
   const $ = s => root.querySelector(s);
   const stage = $(".sp-stage"), canvas = $(".sp-stage canvas"), ctx = canvas.getContext("2d");
@@ -533,6 +539,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     // Móvil
     $(".sp-format-select").value = S.format;
     $(".sp-layout-select").value = S.layout;
+    $(".sp-layout-hit").setAttribute("aria-label", `Diseño: ${layoutById(S.layout).label}. Cambiar`);
     syncTray(); syncTextList(); syncProps(mobile); syncActions();
   }
   function syncTray(){
@@ -651,6 +658,38 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   $(".sp-orient-btn").addEventListener("click", () => setOrient(S.orient === "portrait" ? "landscape" : "portrait"));
   $(".sp-format-select").addEventListener("change", e => chooseFormat(e.target.value));
   $(".sp-layout-select").addEventListener("change", e => chooseLayout(e.target.value));
+
+  /* ── Móvil: elegir diseño con miniaturas ──
+     La lista del desplegable nativo sólo daba nombres («Grande arriba + 2
+     · 3») y costaba imaginar la distribución. El <select> sigue a la vista
+     igual que antes, pero el toque lo recoge un botón transparente que
+     tiene encima y abre esta hoja con el mismo dibujo de cada diseño que
+     el panel de escritorio, en la proporción del formato elegido. */
+  const sheet = $(".sp-sheet"), sheetGrid = $(".sp-sheet-grid"), layoutHit = $(".sp-layout-hit");
+  const openLayoutSheet = () => {
+    if(accepting) return;
+    sheetGrid.innerHTML = LAYOUTS.map(l => {
+      const n = l.cells.length, on = l.id === S.layout;
+      return `<button type="button" data-sheet-layout="${l.id}" class="${on ? "on" : ""}" aria-pressed="${on}"><i>${layoutSvg(l, W, H)}</i><b>${esc(l.id === "free" ? "Libre" : l.label)}</b><span>${l.id === "free" ? "Colócalas donde quieras" : `${n} ${n === 1 ? "foto" : "fotos"}`}</span></button>`;
+    }).join("");
+    sheet.hidden = false;
+    const cur = sheetGrid.querySelector(".on");
+    cur?.scrollIntoView({ block: "center" });
+    cur?.focus({ preventScroll: true });
+  };
+  const closeLayoutSheet = () => {
+    if(sheet.hidden) return;
+    sheet.hidden = true;
+    if(matchMedia(MOBILE).matches) layoutHit.focus({ preventScroll: true });
+  };
+  layoutHit.addEventListener("click", openLayoutSheet);
+  $(".sp-sheet-close").addEventListener("click", closeLayoutSheet);
+  sheet.addEventListener("click", e => { if(e.target === sheet) closeLayoutSheet(); });
+  sheetGrid.addEventListener("click", e => {
+    const b = e.target.closest("[data-sheet-layout]");
+    if(!b) return;
+    closeLayoutSheet(); chooseLayout(b.dataset.sheetLayout);
+  });
   root.querySelectorAll(".sp-photo-btns [data-p=open], .sp-add[data-p=open]").forEach(b => b.addEventListener("click", openPhotos));
   $(".sp-photo-btns [data-p=paste]").addEventListener("click", pastePhotos);
 
@@ -1040,6 +1079,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   });
   const onKey = e => {
     if(closed) return;
+    if(e.key === "Escape" && !sheet.hidden){ e.preventDefault(); closeLayoutSheet(); return; }
     const typing = e.target.matches?.("input, textarea, select");
     if(e.key === "Escape"){ e.preventDefault(); if(typing) e.target.blur(); else if(!accepting) close(); return; }
     if(typing) return;
@@ -1066,7 +1106,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   observer.observe(stage);
   /* Al cruzar el punto de corte escritorio ↔ móvil cambian los
      controles visibles. */
-  const mq = matchMedia(MOBILE), onMq = () => syncPanels();
+  const mq = matchMedia(MOBILE), onMq = () => { closeLayoutSheet(); syncPanels(); };
   mq.addEventListener?.("change", onMq);
   const close = () => {
     if(closed) return;
