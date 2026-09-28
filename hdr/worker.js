@@ -10,7 +10,7 @@
 import { downscale, estimateEvs, alignAll, commonRect, mergeRadiance, fuseMertens,
          toneMap, finish, downRadiance } from "./engine.js";
 
-let orig = [], exifEvs = [], previewSide = 1200;
+let orig = [], exifEvs = [], previewSide = 1200, alignSide = 2048, stagedFrom = null;
 let full = [], proxy = [], draft = null, evs = [], shifts = [], cache = null;
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
@@ -38,10 +38,25 @@ function render(imgs, k, s, radCache){
 }
 
 const handlers = {
+  /* Las fotos llegan de una en una («stage») para que la página no tenga
+     que retener las 11 a la vez antes de enviarlas: con horquillados
+     largos, ese pico de memoria cerraba la pestaña en el móvil. */
+  stage(m){
+    if(stagedFrom === null) stagedFrom = orig.length;
+    const im = m.image;
+    orig.push({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) }); exifEvs.push(im.ev ?? null);
+    return { ok: true };
+  },
+  unstage(){
+    if(stagedFrom !== null){ orig.length = stagedFrom; exifEvs.length = stagedFrom; stagedFrom = null; }
+    return { ok: true };
+  },
   add(m){
     if(m.previewSide) previewSide = m.previewSide;
-    const before = orig.length;
-    for(const im of m.images){ orig.push({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) }); exifEvs.push(im.ev ?? null); }
+    if(m.alignSide) alignSide = m.alignSide;
+    const before = stagedFrom ?? orig.length;
+    stagedFrom = null;
+    for(const im of m.images || []){ orig.push({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) }); exifEvs.push(im.ev ?? null); }
     try{ return setup(); }
     catch(err){
       // La foto que no encaja no se queda: el resto sigue como estaba.
@@ -73,14 +88,17 @@ function setup(){
     draft = null;
     const small = full.map(im => downscale(im, 700));
     // Exposiciones: EXIF si todas lo tienen y no son iguales; si no, estimadas.
+    post({ type: "progress", msg: "Detectando la exposición de cada foto…" });
     const ex = exifEvs;
     let source = "exif";
     if(ex.length > 1 && ex.every(v => v !== null && Number.isFinite(v)) && Math.max(...ex) - Math.min(...ex) > 0.2){
       const mn = Math.min(...ex); evs = ex.map(v => Math.round((v - mn) * 3) / 3);
     } else { evs = full.length > 1 ? estimateEvs(small) : [0]; source = full.length > 1 ? "estimada" : "única"; }
-    // Alineación, contra la de exposición intermedia, sobre una copia de ≤ 2048 px.
-    const al = full.map(im => downscale(im, 2048)), k = full[0].w / al[0].w;
-    shifts = alignAll(al, evs).map(s => ({ dx: Math.round(s.dx * k), dy: Math.round(s.dy * k) }));
+    // Alineación, contra la de exposición intermedia, sobre una copia
+    // reducida (≤ 2048 px en el ordenador, menos en el móvil).
+    const al = full.map(im => downscale(im, alignSide)), k = full[0].w / al[0].w;
+    shifts = alignAll(al, evs, (i, n) => post({ type: "progress", msg: `Alineando las fotos · ${i} de ${n}` }))
+      .map(s => ({ dx: Math.round(s.dx * k), dy: Math.round(s.dy * k) }));
     cache = null;
     return { evs, source, shifts, w, h };
   }

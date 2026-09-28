@@ -59,6 +59,11 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Fusión HDR con horquillados largos (hasta 11 fotos, ±5 EV): la alineación fallaba en
+  las tomas extremas (hasta 43 px de error, y el resultado salía muy recortado). Ahora
+  combina tres métodos y dos criterios: error máximo de 2 px en las pruebas. Menos
+  memoria al cargar muchas fotos, progreso «Alineando · k de n» y, en el móvil, copia
+  de seguridad de las fotos abiertas por si la página se cierra.
 - Los diálogos y avisos quedaban detrás de los editores a pantalla completa (HDR,
   Unir, Cortar, Formas…).
 - Fusión HDR: el resultado se abre siempre como una foto nueva (pestaña propia,

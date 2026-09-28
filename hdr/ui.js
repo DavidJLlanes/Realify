@@ -34,6 +34,9 @@ const TOUCH = matchMedia("(pointer:coarse)").matches;
    medio giga en memoria). */
 const WORK_SIDE = TOUCH || MOBILE.matches ? 2400 : 4096;
 const PREVIEW_SIDE = TOUCH || MOBILE.matches ? 900 : 1400;
+/* Copia para alinear: basta con menos resolución y en el móvil, con
+   11 fotos, la memoria manda. */
+const ALIGN_SIDE = TOUCH || MOBILE.matches ? 1600 : 2048;
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const STEPS = [[1 / 3, "⅓ EV"], [2 / 3, "⅔ EV"], [1, "1 EV"], [4 / 3, "1⅓ EV"], [5 / 3, "1⅔ EV"], [2, "2 EV"], [7 / 3, "2⅓ EV"], [8 / 3, "2⅔ EV"], [3, "3 EV"], [4, "4 EV"]];
 /* «+2⅓ EV»: los horquillados van por tercios de paso. */
@@ -42,7 +45,7 @@ const evText = v => {
   return (n > 0 ? "+" : n < 0 ? "−" : "±") + (w || !r ? w : "") + (r === 1 ? "⅓" : r === 2 ? "⅔" : "") + " EV";
 };
 
-export function openHdrEditor({ openDocs = null, onAccept }){
+export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClose = null }){
   const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
   let req = 0;
   const pending = new Map();
@@ -103,27 +106,46 @@ export function openHdrEditor({ openDocs = null, onAccept }){
       });
       if(!items.length) return;
     }
-    sh.setBusy(`Abriendo ${items.length === 1 ? "la foto" : items.length + " fotos"}…`);
-    const images = [], added = [];
+    // Horquillado largo en el móvil: antes de cargarlo, copia de seguridad
+    // de las fotos abiertas por si la página se queda sin memoria.
+    if(onHeavy && (TOUCH || MOBILE.matches) && photos.length + items.length >= 4){
+      sh.setBusy("Guardando una copia de tus fotos abiertas por seguridad…");
+      try{ await onHeavy(); }catch{}
+      if(closed) return;
+    }
+    const added = [];
+    let staged = false;
     try{
-      for(const it of items){
+      for(let k = 0; k < items.length; k++){
+        const it = items[k];
+        sh.setBusy(items.length === 1 ? "Abriendo la foto…" : `Abriendo las fotos · ${k + 1} de ${items.length}`);
         const canvas = it.canvas || await decodePhoto(it.file, WORK_SIDE);
+        if(closed) return;
         const exif = it.exif !== undefined ? it.exif : await readExposure(it.file);
-        const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
-        images.push({ w: canvas.width, h: canvas.height, data: data.buffer, ev: evFromExif(exif) });
-        const t = document.createElement("canvas"), k = Math.min(1, 160 / Math.max(canvas.width, canvas.height));
-        t.width = Math.round(canvas.width * k); t.height = Math.round(canvas.height * k);
+        const t = document.createElement("canvas"), tk = Math.min(1, 160 / Math.max(canvas.width, canvas.height));
+        t.width = Math.round(canvas.width * tk); t.height = Math.round(canvas.height * tk);
         t.getContext("2d").drawImage(canvas, 0, 0, t.width, t.height);
         const pk = Math.min(1, PREVIEW_SIDE / Math.max(canvas.width, canvas.height)), pc = document.createElement("canvas");
         pc.width = Math.round(canvas.width * pk); pc.height = Math.round(canvas.height * pk);
         pc.getContext("2d").drawImage(canvas, 0, 0, pc.width, pc.height);
+        // A resolución de trabajo sólo vive en el motor: se envía y se suelta
+        // antes de abrir la siguiente (con 11 fotos, retenerlas todas aquí
+        // duplicaba la memoria).
+        const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+        await call({ type: "stage", image: { w: canvas.width, h: canvas.height, data: data.buffer, ev: evFromExif(exif) } }, [data.buffer]);
+        staged = true;
+        canvas.width = canvas.height = 1;
         added.push({ name: it.name, thumb: t.toDataURL("image/jpeg", .8), exif, proxy: pc });
       }
       sh.setBusy("Detectando el horquillado y alineando…");
-      const r = await call({ type: "add", images, previewSide: PREVIEW_SIDE }, images.map(i => i.data));
+      const r = await call({ type: "add", images: [], previewSide: PREVIEW_SIDE, alignSide: ALIGN_SIDE });
+      staged = false;
       photos.push(...added);
       afterSetup(r);
-    }catch(err){ toast(err.message, "err"); }
+    }catch(err){
+      if(staged) try{ await call({ type: "unstage" }); }catch{}
+      toast(err.message, "err");
+    }
     finally{ sh.setBusy(null); }
   }
   async function addPhotos(){
@@ -445,6 +467,7 @@ export function openHdrEditor({ openDocs = null, onAccept }){
   function close(){
     if(closed) return;
     closed = true;
+    try{ onClose?.(); }catch{}
     worker.terminate();
     sh.close();
   }

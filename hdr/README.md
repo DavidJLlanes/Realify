@@ -38,10 +38,18 @@ la misma escena con distinta exposición.
    **arrastrando** (ratón, o mantener pulsado con el dedo; `js/ui/sortable.js`):
    los valores se quedan en su posición y pasan a la foto que la ocupa.
    Cambiar una exposición no reordena la lista.
-2. **Alineación**: cada foto se alinea con su vecina de exposición (en cadena
-   hasta la intermedia) probando dos métodos —gradientes del logaritmo de la
-   luminancia con la exposición igualada, y mapas de umbral mediano de Ward— y
-   quedándose con el de menor error. Después se pueden recortar los bordes.
+2. **Alineación** (pensada para horquillados de hasta 11 fotos, ±5 EV): cada
+   foto se alinea con su vecina de exposición, en cadena hasta la intermedia.
+   Para cada par proponen candidato tres métodos —gradientes del logaritmo de
+   la luminancia con la exposición igualada, umbral mediano de Ward y umbral a
+   exposición igualada (un nivel de radiancia común a las dos fotos, el único
+   que ve algo en las tomas casi quemadas o casi negras)— más «sin
+   desplazamiento». Cada candidato se mide a resolución completa con dos
+   criterios (gradientes y mapas de umbral), ponderados por los píxeles útiles
+   de cada uno, con una preferencia suave por desplazamientos pequeños; se
+   afina ±1 px y el acumulado de la cadena se limita al 6 %. Con horquillados
+   sintéticos de 3 a 11 fotos: 110 de 116 fotos a ±1 px, error máximo 2 px
+   (antes, hasta 43 px en los extremos). Después se pueden recortar los bordes.
 3. **Fusión**:
    - *Mapa de radiancia* (Debevec, curva sRGB) con pesos en sombrero y
      **antifantasmas** (suave, medio, fuerte) con foto de referencia elegible.
@@ -59,5 +67,10 @@ Orden de los grupos, el del trabajo: Foto elegida → Fusión de las fotos →
 Estilo → Método → mandos del método → Tono → Color → Detalle. Mientras se
 arrastra una exposición, el worker fusiona un borrador más pequeño (55 % de
 la vista previa) y sólo se calcula la última posición, sin cola.
+
+Memoria: las fotos se envían al worker de una en una (no se retienen las 11
+en la página); en el móvil la copia para alinear es de 1600 px y, antes de
+cargar 4 fotos o más, se guarda una copia de las pestañas abiertas: si la
+página se cierra por falta de memoria, se recuperan al volver.
 
 Tamaño de trabajo: 4096 px de lado en el ordenador y 2400 px en el móvil.
