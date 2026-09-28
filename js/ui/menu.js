@@ -45,7 +45,8 @@ export const MENUS = [
       help:"Graba una secuencia de ajustes, filtros y comandos con sus valores y repítela en cualquier foto o en muchas a la vez (ZIP). Se pueden exportar e importar." },
     { cmd:"file.revert",   label:"Restaurar al estado original…", help:"Descarta capas, ediciones e historial y vuelve al archivo tal como se abrió." },
     { sep:true },
-    { cmd:"file.close",    label:"Cerrar documento" }
+    { cmd:"file.close",    label:"Cerrar documento" },
+    { cmd:"file.closeAll", ic:"close-all", label:"Cerrar todas las fotos", help:"Cierra de una vez todas las fotos abiertas (con una sola confirmación)." }
   ]},
   { label:"Editar", items:[
     { cmd:"edit.undo", label:"Deshacer" },

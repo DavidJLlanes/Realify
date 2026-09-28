@@ -166,6 +166,14 @@
   font-size:16px;line-height:1;min-height:24px;padding:0;margin:0 0 3px;
 }
 .doctab-add:hover{border-color:var(--ac);color:var(--ac);background:var(--ac-ghost)}
+.doctab-closeall{
+  flex:none;align-self:center;margin:0 0 3px auto;padding:0 8px;min-height:24px;
+  background:transparent;border:1px solid var(--line-strong);border-radius:var(--r);
+  color:var(--tx-faint);font-size:11px;white-space:nowrap;
+  display:flex;align-items:center;gap:5px;
+}
+.doctab-closeall svg{width:14px;height:14px}
+.doctab-closeall:hover{border-color:var(--bad);color:var(--bad)}
 
 /* ─────────────── barra de opciones ─────────────── */
 #optsbar{

@@ -12,8 +12,9 @@
 
 import { on, emit } from "../core/bus.js";
 import { doc } from "../core/doc.js";
-import { listTabs, activeTab, switchTo, closeTab, moveTab, copyLayerToTab } from "../core/documents.js";
+import { listTabs, activeTab, switchTo, closeTab, closeAllTabs, moveTab, copyLayerToTab } from "../core/documents.js";
 import { promptOpen } from "../io/open.js";
+import { ICONS } from "./tooldrawer-icons.js";
 
 const app  = document.getElementById("app");
 const bar  = document.getElementById("docbar");
@@ -33,7 +34,8 @@ function render(){
       <span class="doctab-name">${escapeHtml(t.title)}</span>
       <span class="doctab-close" data-close="${t.tabId}" title="Cerrar documento" aria-label="Cerrar documento">✕</span>
     </button>`).join("") +
-    `<button type="button" class="doctab-add" data-add title="Abrir otra imagen…" aria-label="Abrir otra imagen">+</button>`;
+    `<button type="button" class="doctab-add" data-add title="Abrir otra imagen…" aria-label="Abrir otra imagen">+</button>` +
+    `<button type="button" class="doctab-closeall" data-closeall title="Cerrar todas las fotos" aria-label="Cerrar todas las fotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS["close-all"]}</svg><span>Cerrar todas</span></button>`;
 }
 
 function escapeHtml(s){
@@ -46,6 +48,7 @@ export function initDocbar(){
 
   bar.addEventListener("click", e => {
     if(e.target.closest("[data-add]")){ promptOpen(); return; }
+    if(e.target.closest("[data-closeall]")){ closeAllTabs(); return; }
     const close = e.target.closest("[data-close]");
     if(close){ closeTab(+close.dataset.close); return; }
     const tab = e.target.closest(".doctab");

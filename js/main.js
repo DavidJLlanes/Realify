@@ -65,7 +65,7 @@ import { initToolDrawer } from "./ui/tooldrawer.js";
 import { haptic } from "./core/device.js";
 import { maybeShowOnboarding } from "./ui/onboarding.js";
 import { initDocbar } from "./ui/docbar.js";
-import { openAsNewTab, closeActiveTab } from "./core/documents.js";
+import { openAsNewTab, closeActiveTab, closeAllTabs } from "./core/documents.js";
 import { groupLayers, ungroupLayers, removeGroupAndContents, duplicateGroup,
          moveLayerOrGroup } from "./editor/groups.js";
 import { openLayerStyles } from "./editor/layerstyles.js";
@@ -125,6 +125,7 @@ registerAll({
      última — lo mismo que hacía este comando antes de que existieran
      las pestañas, ahora con el resto de la sesión intacto. */
   "file.close":     { run: closeActiveTab, enabled: needsDoc },
+  "file.closeAll":  { run: () => closeAllTabs(), enabled: needsDoc },
 
   "edit.undo": { run: () => { if(!undo()) toast("Nada que deshacer"); }, enabled: canUndo },
   "edit.redo": { run: () => { if(!redo()) toast("Nada que rehacer"); }, enabled: canRedo },

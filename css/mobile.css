@@ -91,6 +91,9 @@
   }
   .doctab{position:relative}
   .doctab-add{align-self:center;width:44px;min-height:44px;font-size:20px}
+  .doctab-closeall{min-height:44px;width:44px;padding:0;justify-content:center}
+  .doctab-closeall svg{width:20px;height:20px}
+  .doctab-closeall span{display:none}
 
   /* ── barra superior ──
      Sólo queda visible en el apaisado de más abajo —aquí #menubar está

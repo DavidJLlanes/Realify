@@ -256,6 +256,22 @@ export async function closeTab(tabId, { confirm = true } = {}){
 
 export const closeActiveTab = (opts) => activeTabId !== null && closeTab(activeTabId, opts);
 
+/** Cierra todas las fotos abiertas de una vez, con una sola confirmación. */
+export async function closeAllTabs({ confirm = true } = {}){
+  if(blockedByDialog()) return false;
+  if(!tabs.length) return false;
+  const n = tabs.length;
+  if(confirm && !(await confirmDlg(n > 1 ? "Cerrar todas las fotos" : "Cerrar documento",
+       n > 1 ? `Se cerrarán las ${n} fotos abiertas y se perderá lo que no hayas exportado.`
+             : "Se perderá lo que no hayas exportado.",
+       n > 1 ? "Cerrar todas" : "Cerrar"))) return false;
+  tabs.length = 0;
+  activeTabId = null;
+  closeDoc(); history.importState(null); snapshots.importState(null);
+  emit("docs:change");
+  return true;
+}
+
 /* Reordena arrastrando una pestaña sobre otra. */
 export function moveTab(tabId, beforeTabId){
   const i = tabs.findIndex(t => t.tabId === tabId);

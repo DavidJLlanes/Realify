@@ -10,6 +10,8 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Cerrar todas las fotos**: en Archivo, en Herramientas y en la barra de pestañas;
+  una sola confirmación.
 - **Fusión HDR** (`hdr/`): hasta 11 fotos, horquillado detectado solo, alineación,
   antifantasmas, fusión de exposición y mapeo tonal con 17 estilos.
 - **Unir imágenes** (`unir/`): panorámica automática y unión en fila, columna o
