@@ -297,14 +297,13 @@ async function aiBackgroundMask(layer, id){
 
 export async function removeBackground(){
   const layer = rasterLayer(); if(!layer) return;
-  if(layer.mask){ toast("La capa ya tiene una máscara; elimínala o aplícala antes"); return; }
   let saved = "u2netp";
   try{ const v = localStorage.getItem(BG_KEY); if(BG_METHODS.some(([k]) => k === v)) saved = v; }catch{}
   const { sizeNote } = await import("../ai/runtime.js");
   const notes = Object.fromEntries(await Promise.all(
     BG_METHODS.filter(([k]) => k !== "color").map(async ([k]) => [k, await sizeNote(k)])));
   const body = await settingsDialog("Eliminar fondo", `
-    <p class="hint">La IA detecta el sujeto y crea una máscara editable. «Color de los bordes» funciona mejor con fondos relativamente uniformes.</p>
+    <p class="hint">El sujeto recortado, sin fondo, va a una capa nueva; la original se oculta sin borrarla. «Color de los bordes» funciona mejor con fondos relativamente uniformes.</p>
     <div class="field"><label for="bgMethod">Método</label>
       <select id="bgMethod" class="grow">${BG_METHODS.map(([k, label]) =>
         `<option value="${k}"${k === saved ? " selected" : ""}>${label}${k === "color" ? "" : ` (${notes[k]}${k === "isnet" && COARSE ? ", pesado en móvil" : ""})`}</option>`).join("")}</select></div>
@@ -338,8 +337,40 @@ export async function removeBackground(){
   }
   const f=+body.querySelector("#bgFeather").value;
   if(f) mask=featherMask(mask,doc.w,doc.h,f);
-  doc.selection={ mask,w:doc.w,h:doc.h }; addMask(layer,true); doc.selection=null;
-  emit("doc:structure"); emit("doc:change"); toast("Fondo ocultado con una máscara editable", "ok");
+  cutoutLayer(layer, mask);
+  toast("Fondo eliminado en una capa nueva", "ok");
+}
+
+/* El resultado va a una capa NUEVA encima de la original, con el fondo
+   ya transparente, y la original se oculta (sin borrarla) para que se
+   vea el recorte. Así el original queda intacto por si hay que volver a
+   él. Todo es un solo paso de deshacer. */
+function cutoutLayer(src, mask){
+  const w = doc.w, h = doc.h;
+  const m = document.createElement("canvas"); m.width = w; m.height = h;
+  const mx = m.getContext("2d");
+  const a = mx.createImageData(w, h);
+  for(let p = 0; p < mask.length; p++) a.data[p * 4 + 3] = mask[p];
+  mx.putImageData(a, 0, 0);
+
+  const prevLayers = doc.layers.slice(), prevActive = doc.activeId, wasVisible = src.visible;
+  const name = !src.name || /^fondo$/i.test(src.name) ? "Sin fondo" : src.name + " · sin fondo";
+  const l = addLayer({ name, above: doc.layers.indexOf(src) + 1 });
+  l.groupId = src.groupId;
+  l.ctx.drawImage(src.canvas, 0, 0);
+  l.ctx.globalCompositeOperation = "destination-in";
+  l.ctx.drawImage(m, 0, 0);
+  l.ctx.globalCompositeOperation = "source-over";
+  l.thumbDirty = true;
+  src.visible = false; src.thumbDirty = true;
+  const nextLayers = doc.layers.slice(), nextActive = l.id;
+  const put = (layers, active, vis) => {
+    doc.layers = layers.slice(); doc.activeId = active; src.visible = vis;
+    emit("doc:structure"); emit("doc:change");
+  };
+  record("Eliminar fondo", () => put(prevLayers, prevActive, wasVisible), () => put(nextLayers, nextActive, false));
+  emit("doc:structure"); emit("doc:change");
+  return l;
 }
 
 /* ── Reducción de ruido ─────────────────────────────────────── */
