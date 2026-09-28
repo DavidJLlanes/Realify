@@ -10,6 +10,8 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Fusión HDR**: ordenar las fotos arrastrándolas (ratón, o mantener pulsado con el
+  dedo); la exposición sigue al orden. EV contados desde la foto normal (−2 / 0 / +2).
 - **Fusión HDR**: «Foto elegida» es el primer grupo (escritorio y móvil), con la
   exposición en tercios de paso, botones − / + y **Pasos entre fotos** para todo el
   horquillado de golpe; grupos ordenados según el flujo de trabajo y tira de fotos
@@ -52,6 +54,8 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Fusión HDR: con − / + la foto elegida saltaba de sitio en la lista; el EXIF sin
+  diafragma ya no obliga a estimar la exposición por el brillo.
 - Fusión HDR: la exposición de una foto no se veía hasta soltar el deslizador; ahora
   cambia en tiempo real. Se lee el EXIF de HEIC, PNG y WebP, y la estimación sin EXIF
   iguala los pasos del horquillado.

@@ -55,9 +55,11 @@ export function downscale(img, maxSide){
 /* ── Exposición ──────────────────────────────────────────────── */
 /** EV relativo de EXIF: más alto = más luz captada. null si falta algo. */
 export function evFromExif(e){
-  if(!e || !(e.exposureTime > 0) || !(e.fNumber > 0)) return null;
-  const iso = e.iso > 0 ? e.iso : 100;
-  return Math.log2(e.exposureTime * iso / 100 / (e.fNumber * e.fNumber));
+  // Sin diafragma (objetivos manuales, algunos móviles) se da por fijo:
+  // en un horquillado lo que cambia es el tiempo (o el ISO).
+  if(!e || !(e.exposureTime > 0)) return null;
+  const iso = e.iso > 0 ? e.iso : 100, f = e.fNumber > 0 ? e.fNumber : 1;
+  return Math.log2(e.exposureTime * iso / 100 / (f * f));
 }
 
 /** EV relativo entre dos fotos alineadas: mediana de la razón de sus

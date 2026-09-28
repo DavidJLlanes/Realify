@@ -22,6 +22,7 @@ import { DEFAULTS, METHODS, PRESETS, presetSettings } from "./presets.js";
 import { readExposure, exposureText } from "./exif.js";
 import { evFromExif } from "./engine.js";
 import { toast } from "../js/ui/toast.js";
+import { sortable } from "../js/ui/sortable.js";
 
 export const MAX_PHOTOS = 11;
 const MOBILE = matchMedia("(max-width:900px)");
@@ -54,8 +55,8 @@ export function openHdrEditor({ current = null, onAccept }){
   const call = (msg, transfer) => new Promise((resolve, reject) => { const id = ++req; pending.set(id, { resolve, reject }); worker.postMessage({ ...msg, req: id }, transfer || []); });
 
   const photos = [];   // { name, thumb (dataURL), exif, proxy (canvas para comparar) }
-  const state = { s: { ...DEFAULTS, ...presetSettings("realista") }, preset: "realista", evs: [], sel: 0 };
-  let detected = [];   // EV detectados al añadir las fotos, para «Pasos entre fotos › Los detectados»
+  const state = { s: { ...DEFAULTS, ...presetSettings("realista") }, preset: "realista", evs: [], sel: 0, order: [] };
+  let detected = [], hintShown = false;   // EV detectados al añadir las fotos, para «Pasos entre fotos › Los detectados»
   let evSource = "", size = null, usedCurrent = false, thumbs = new Map(), previewTimer = 0, previewSeq = 0, thumbsSeq = 0, closed = false;
 
   const sh = createShell({
@@ -129,7 +130,11 @@ export function openHdrEditor({ current = null, onAccept }){
     finally{ sh.setBusy(null); }
   }
   function afterSetup(r){
-    state.evs = r.evs.slice(); detected = r.evs.slice(); evSource = r.source; size = r.w ? [r.w, r.h] : null;
+    // Como las etiqueta la cámara: respecto a la foto «normal» (la del
+    // medio del horquillado), no respecto a la más oscura: −2 / 0 / +2.
+    detected = centered(r.evs); state.evs = detected.slice();
+    state.order = byEv(detected);
+    evSource = r.source; size = r.w ? [r.w, r.h] : null;
     state.sel = Math.min(state.sel, Math.max(0, photos.length - 1));
     if(S.ghostRef >= photos.length) S.ghostRef = -1;
     hist.reset();
@@ -139,44 +144,71 @@ export function openHdrEditor({ current = null, onAccept }){
     if(shifts.some(s => s.dx || s.dy)) toast(`Fotos alineadas (desplazamiento máximo ${Math.max(...shifts.map(s => Math.max(Math.abs(s.dx), Math.abs(s.dy))))} px)`);
     empty(); renderPhotos(); controls.refresh();
     // Nada más cargar el horquillado, lo primero es revisar su exposición.
-    if(photos.length > 1) controls.select("photo", "evSel");
+    if(photos.length > 1){
+      controls.select("photo", "evSel");
+      if(MOBILE.matches && !hintShown){ hintShown = true; toast("Mantén pulsada una foto y arrástrala para cambiarla de sitio"); }
+    }
     thumbs = new Map();
     if(!photos.length){ sh.setView(null); sh.setOriginal(null); return; }
     schedule(true, true);
   }
-  /* Exposición de una foto. `final` = fin del gesto: entra en el
-     historial y se reordena la lista; mientras tanto sólo se actualizan
-     los rótulos y la vista (borrador) para no mover nada bajo el dedo. */
+  const round3 = v => Math.round(v * 3) / 3;
+  /* Índices de las fotos de la más oscura a la más clara (a igualdad, en el orden en que se añadieron). */
+  const byEv = evs => evs.map((v, i) => i).sort((a, b) => evs[a] - evs[b] || a - b);
+  /* EV respecto a la foto del medio (la mediana): 0 = exposición normal. */
+  function centered(evs){
+    if(!evs.length) return [];
+    const o = byEv(evs), n = o.length;
+    const mid = n % 2 ? evs[o[n >> 1]] : (evs[o[n / 2 - 1]] + evs[o[n / 2]]) / 2;
+    return evs.map(v => round3(v - mid));
+  }
+  /* Orden en pantalla: el que el usuario ha dejado (arrastrando); al
+     cargar, de la más oscura a la más clara. Cambiar una exposición NO
+     reordena la lista, así la foto elegida no salta de sitio. */
+  const order = () => state.order.length === photos.length ? state.order : byEv(state.evs);
+
+  /* Exposición de una foto. `final` = fin del gesto (entra en el
+     historial); mientras tanto sólo se actualizan los rótulos y la vista
+     (borrador), sin rehacer la lista. */
   function setEv(i, v, final){
-    state.evs[i] = Math.round(v * 3) / 3;
+    state.evs[i] = round3(v);
     for(const el of document.querySelectorAll(`[data-evlabel="${i}"]`)) el.textContent = evText(state.evs[i]);
     if(final){ hist.commit(); renderPhotos(); controls.refresh(); schedule(false, true); }
     else schedule(false, false, true);
   }
+  /* Pasos iguales en el orden de la lista, centrados en la foto del medio. */
+  const stepEv = (k, n, step) => round3((k - (n - 1) / 2) * step);
   function setSteps(step){
     if(!photos.length) return;
-    if(step === 0) state.evs = detected.slice();
-    else {
-      // Del más oscuro al más claro, en el orden detectado, a pasos iguales.
-      const ord = photos.map((p, i) => i).sort((a, b) => (detected[a] ?? 0) - (detected[b] ?? 0) || a - b);
-      ord.forEach((i, k) => { state.evs[i] = Math.round(k * step * 3) / 3; });
-    }
+    if(step === 0){ state.evs = detected.slice(); state.order = byEv(detected); }
+    else { const o = order(); o.forEach((i, k) => { state.evs[i] = stepEv(k, o.length, step); }); }
     hist.commit(); renderPhotos(); controls.refresh(); schedule(false, true);
   }
   /* Qué opción de «Pasos entre fotos» describe las exposiciones actuales. */
   function currentStep(){
     if(state.evs.every((v, i) => Math.abs(v - (detected[i] ?? 0)) < 1e-6)) return 0;
-    const ord = photos.map((p, i) => i).sort((a, b) => (detected[a] ?? 0) - (detected[b] ?? 0) || a - b);
-    for(const [st] of STEPS) if(ord.every((i, k) => Math.abs(state.evs[i] - Math.round(k * st * 3) / 3) < 1e-6)) return st;
+    const o = order();
+    for(const [st] of STEPS) if(o.every((i, k) => Math.abs(state.evs[i] - stepEv(k, o.length, st)) < 1e-6)) return st;
     return -1;
   }
+  /* Arrastrar una foto a otra posición: la lista es el orden de
+     exposición, de la más oscura a la más clara, así que los valores de
+     EV se quedan en su sitio y pasan a la foto que ahora ocupa cada
+     posición. Sirve para corregir un horquillado mal ordenado. */
+  function movePhoto(from, to){
+    const o = order().slice(), vals = o.map(i => state.evs[i]).sort((a, b) => a - b);
+    const [i] = o.splice(from, 1); o.splice(to, 0, i);
+    state.order = o;
+    o.forEach((j, k) => { state.evs[j] = vals[k]; });
+    state.sel = i;
+    hist.commit(); renderPhotos(); controls.refresh(); schedule(false, true);
+  }
 
-  /* Orden visual: de la más oscura a la más clara. */
-  const order = () => photos.map((p, i) => i).sort((a, b) => (state.evs[a] ?? 0) - (state.evs[b] ?? 0));
   function photoRow(i, compact){
     const p = photos[i], ev = state.evs[i] ?? 0;
     const row = document.createElement("div");
     row.className = "fsp-photo" + (i === state.sel ? " on" : "");
+    row.dataset.sort = i;
     row.innerHTML = `<img alt="" src="${p.thumb}"><div><b>${esc(p.name)}</b><small><span data-evlabel="${i}">${evText(ev)}</span>${p.exif ? " · " + esc(exposureText(p.exif)) : ""}</small></div>
       <span class="ops">${compact ? `<small class="ev" data-evlabel="${i}">${evText(ev)}</small>` : `<button type="button" class="x" data-ev="-1" title="Un tercio de paso menos" aria-label="Menos exposición">−</button><button type="button" class="x" data-ev="1" title="Un tercio de paso más" aria-label="Más exposición">+</button>`}<button type="button" class="x" data-rm aria-label="Quitar ${esc(p.name)}">✕</button></span>`;
     row.addEventListener("click", e => {
@@ -195,14 +227,15 @@ export function openHdrEditor({ current = null, onAccept }){
     const list = document.createElement("div"); list.className = "fsp-photos";
     for(const i of order()) list.appendChild(photoRow(i, false));
     L.appendChild(list);
+    if(photos.length > 1) sortable(list, { axis: "y", onMove: movePhoto });
     const add = document.createElement("button"); add.type = "button"; add.className = "fsp-btn dashed"; add.textContent = "+ Añadir fotos";
     add.disabled = photos.length >= MAX_PHOTOS; add.addEventListener("click", addPhotos); L.appendChild(add);
     if(current && !usedCurrent){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = "Usar la imagen abierta"; b.addEventListener("click", addCurrent); L.appendChild(b); }
     if(photos.length){
       const n = document.createElement("p"); n.className = "fsp-note";
-      n.textContent = evSource === "exif" ? "Exposición leída del EXIF. Si alguna está mal, elígela y corrígela en «Foto elegida» (o con − / +)." :
+      n.textContent = (photos.length > 1 ? "Arrastra las fotos para ordenarlas de la más oscura a la más clara: la exposición sigue al orden. " : "") + (evSource === "exif" ? "Exposición leída del EXIF. Si alguna está mal, elígela y corrígela en «Foto elegida» (o con − / +)." :
         evSource === "estimada" ? "Sin EXIF de exposición: estimada por el brillo. Si sabes los pasos del horquillado, elígelos en «Foto elegida › Pasos entre fotos»; o corrige cada foto." :
-        "Con una sola foto se hace un HDR simulado (mapeo tonal de la propia imagen).";
+        "Con una sola foto se hace un HDR simulado (mapeo tonal de la propia imagen).");
       L.appendChild(n);
     }
     const hs = document.createElement("h3"); hs.textContent = "Estilos"; L.appendChild(hs);
@@ -217,6 +250,7 @@ export function openHdrEditor({ current = null, onAccept }){
   function mobilePhotos(){
     const wrap = document.createElement("div"); wrap.className = "fsp-mphotos";
     for(const i of order()) wrap.appendChild(photoRow(i, true));
+    if(photos.length > 1) sortable(wrap, { axis: "x", onMove: movePhoto });
     if(photos.length < MAX_PHOTOS){
       const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
       b.style.cssText = "display:grid;place-items:center;width:68px;height:68px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
@@ -328,7 +362,7 @@ export function openHdrEditor({ current = null, onAccept }){
         out.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
         const first = !sh.view;
         sh.setView(out, !first);
-        const refIdx = order()[(photos.length - 1) >> 1];
+        const refIdx = byEv(state.evs)[(photos.length - 1) >> 1];
         sh.setOriginal(photos[refIdx]?.proxy || null);
       }
     }catch(err){ if(!closed) toast(err.message, "err"); }

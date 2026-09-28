@@ -367,7 +367,10 @@ const TOPICS = [
           alguna exposición no es la correcta, el primer grupo, <b>Foto elegida</b>, sirve para
           corregirla: toca la foto y mueve su exposición (en tercios de paso, con − / + para
           afinar; la vista cambia mientras arrastras), o elige los <b>Pasos entre fotos</b> de tu
-          horquillado (por ejemplo, 2 EV) y se ponen todas a la vez. Los grupos siguen el orden
+          horquillado (por ejemplo, 2 EV) y se ponen todas a la vez. Los EV se cuentan desde la
+          foto normal (−2 / 0 / +2). Si el orden de las fotos no es el bueno, <b>arrástralas</b>
+          (con el ratón, o mantén pulsada una con el dedo) de la más oscura a la más clara: la
+          exposición sigue al orden. Los grupos siguen el orden
           del trabajo: Foto elegida, Fusión de las fotos (alinear, recortar bordes y
           <b>antifantasmas</b> si algo se mueve entre tomas), Estilo (17, en miniatura), Método
           (detalles realzados, fusión de exposición, compresor de tonos o fotográfico) con sus

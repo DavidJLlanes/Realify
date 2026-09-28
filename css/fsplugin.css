@@ -72,6 +72,14 @@
 .fsp-photo small{color:#9ca5b3;font-size:11px}
 .fsp-photo .x{width:28px;height:28px;padding:0;border:1px solid #3b414b;border-radius:5px;background:#272b31;color:#e9edf4;cursor:pointer}
 .fsp-photo .ops{display:flex;gap:4px}
+.fsp-photo[data-sort]{cursor:grab;touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.fsp-photo[data-sort] img{-webkit-user-drag:none;pointer-events:none}
+.fsp-photo.sorting{position:relative;z-index:5;cursor:grabbing;opacity:.92;box-shadow:0 6px 18px #000a;transition:none}
+.is-sorting .fsp-photo:not(.sorting){transition:box-shadow .08s}
+.fsp-photos .sort-before{box-shadow:0 -3px 0 #7fa6ff}
+.fsp-photos .sort-after{box-shadow:0 3px 0 #7fa6ff}
+.fsp-mphotos .sort-before{box-shadow:-4px 0 0 #7fa6ff}
+.fsp-mphotos .sort-after{box-shadow:4px 0 0 #7fa6ff}
 .fsp-rangebtns{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;gap:8px;align-items:center}
 .fsp-rangebtns button{width:30px;height:30px;padding:0;border:1px solid #3b414b;border-radius:6px;background:#272b31;color:#e9edf4;font-size:17px;line-height:1;cursor:pointer}
 .fsp-rangebtns button:active{background:#33394a}

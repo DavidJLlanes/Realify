@@ -21,6 +21,11 @@ la misma escena con distinta exposición.
    en **Foto elegida**, el primer grupo: la exposición de cada foto en tercios
    de paso (deslizador con − / +, la vista cambia mientras se arrastra) o
    **Pasos entre fotos** para poner todo el horquillado a ⅓…4 EV de golpe.
+   Los EV se muestran como los etiqueta la cámara: respecto a la foto del medio
+   (−2 / 0 / +2). La lista es el orden de exposición y se reordena
+   **arrastrando** (ratón, o mantener pulsado con el dedo; `js/ui/sortable.js`):
+   los valores se quedan en su posición y pasan a la foto que la ocupa.
+   Cambiar una exposición no reordena la lista.
 2. **Alineación**: cada foto se alinea con su vecina de exposición (en cadena
    hasta la intermedia) probando dos métodos —gradientes del logaritmo de la
    luminancia con la exposición igualada, y mapas de umbral mediano de Ward— y
