@@ -9,6 +9,7 @@ import { clear as clearHistory } from "../js/core/history.js";
 import { clearSnapshots } from "../js/core/snapshots.js";
 import { emit } from "../js/core/bus.js";
 import { commitFilter, filterBase } from "../js/editor/filterlayer.js";
+import { docSizeLimit } from "../js/core/device.js";
 
 const canvasCopy=source=>{const c=document.createElement("canvas");c.width=source.width;c.height=source.height;c.getContext("2d",{willReadFrequently:true}).drawImage(source,0,0);return c;};
 
@@ -24,16 +25,24 @@ export async function openRawFile(file) {
     if(choice==="jpeg"){
       let thumb;try{thumb=await decoder.thumbnail();}catch{throw new Error("Este RAW no contiene una previsualización JPEG utilizable; elige «Revelar RAW».");}
       decoder.dispose();
-      newDoc(thumb.width,thumb.height,{image:thumb,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),source:{w:thumb.width,h:thumb.height,type:"image/jpeg",size:file.size,name:file.name,file,rawPreview:true}});clearHistory();clearSnapshots();emit("doc:change");toast("Previsualización JPEG abierta");return true;
+      const [tw,th,tl]=docSizeLimit(thumb.width,thumb.height);
+      newDoc(tw,th,{image:thumb,adoptImage:!tl,name:file.name.replace(/\.[^.]+$/,""),source:{w:thumb.width,h:thumb.height,type:"image/jpeg",size:file.size,name:file.name,file,rawPreview:true}});clearHistory();clearSnapshots();emit("doc:change");toast("Previsualización JPEG abierta");return true;
     }
-    openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial:defaults(),onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
+    /* Mismo tope de tamaño que cualquier otra imagen abierta (ver
+       docSizeLimit): antes el RAW pasaba al editor a resolución completa
+       —48-50 MP en los móviles actuales, diez veces más que cualquier
+       otra imagen en el móvil— y todo lo de después se arrastraba o
+       colgaba la web. El revelado final ya sale reducido. */
+    let limited=false;
+    const outputSize=(w,h)=>{const [ow,oh,l]=docSizeLimit(w,h);limited=l;return [ow,oh];};
+    openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial:defaults(),outputSize,onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
       const rawMetadata=decoder.metadata;
       /* Liberar el buffer lineal del decodificador antes de que el
          compositor móvil empiece a preparar el documento. En RAW de
          24 MP ese buffer puede superar 100 MB y mantenerlo durante el
          primer repintado provocaba cierres por presión de memoria. */
       decoder.dispose();
-      newDoc(result.width,result.height,{image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});clearHistory();clearSnapshots();emit("doc:change");toast("RAW revelado y abierto en Reality","ok");
+      newDoc(result.width,result.height,{image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});clearHistory();clearSnapshots();emit("doc:change");toast(limited?`RAW revelado y abierto a ${result.width} × ${result.height} (reducido para esta pantalla)`:"RAW revelado y abierto en Realify","ok");
     }});
     // The developer owns the linear source now; do not retain the first
     // decode after engine settings replace it with a new one.

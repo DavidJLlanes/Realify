@@ -20,6 +20,21 @@ export const COARSE = matchMedia("(pointer:coarse)").matches;
    entre los dos sitios. */
 export const isMobile = () => matchMedia("(max-width:900px)").matches;
 
+/* Tamaño máximo de un documento recién abierto. En un móvil, 24 MP por
+   trece etapas de shader es pedir un cuelgue (y Safari de iPhone ni
+   siquiera dibuja lienzos de más de ~16,7 MP): se limita el lado mayor
+   a 2400 px; en escritorio, a 8192. Devuelve [ancho, alto, reducida].
+   La usan al abrir imágenes (io/open.js) y al pasar un RAW revelado
+   al editor (raw/index.js). */
+export function docSizeLimit(w, h){
+  const coarse = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
+  const LIM = coarse ? 2400 : 8192;
+  const m = Math.max(w, h);
+  if(m <= LIM) return [w, h, false];
+  const s = LIM / m;
+  return [Math.max(1, Math.round(w * s)), Math.max(1, Math.round(h * s)), true];
+}
+
 /* Un toque háptico breve, sólo donde tiene sentido: dispositivos con
    puntero impreciso (los que ya usan `COARSE` para todo lo demás). En
    escritorio esto es simplemente un no-op, así que no hace falta que

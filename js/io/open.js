@@ -9,6 +9,7 @@ import { confirmDlg } from "../ui/dialog.js";
 import { openAsNewTab, refreshActiveTabMeta } from "../core/documents.js";
 import { compatibleFile, decodeCompatible, openPsd, svgCanvas } from "./compatibility.js";
 import { isRawFile } from "../../raw/formats.js";
+import { docSizeLimit } from "../core/device.js";
 
 const picker = document.getElementById("filePicker");
 const stage  = document.getElementById("stage");
@@ -34,18 +35,8 @@ async function decodeImage(file){
   }
 }
 
-/* En un móvil, 24 MP por trece etapas de shader es pedir un cuelgue.
-   Se limita el documento y se avisa, en vez de dejar que se arrastre
-   o se quede sin memoria a mitad. */
-function limitFor(w, h){
-  const coarse = matchMedia("(pointer:coarse)").matches ||
-                 matchMedia("(max-width:900px)").matches;
-  const LIM = coarse ? 2400 : 8192;
-  const m = Math.max(w, h);
-  if(m <= LIM) return [w, h, false];
-  const s = LIM / m;
-  return [Math.round(w * s), Math.round(h * s), true];
-}
+/* Límite de tamaño: ver `docSizeLimit` en core/device.js. */
+const limitFor = docSizeLimit;
 
 export async function openFile(file){
   if(!file) return;

@@ -16,7 +16,7 @@ const metaLine = metadata => {
   return [make,lens,iso ? `ISO ${Math.round(iso)}` : ""].filter(Boolean).join(" · ");
 };
 
-export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null }) {
+export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null }) {
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
   let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;
   state.autoWb=autoWhiteBalance(source);
@@ -158,7 +158,8 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
         renderer.dispose();
         await finalWorker.setSource(workingSource,{transfer:true});
         workingSource=null;
-        result=await finalWorker.renderToCanvas(settings,width,height,percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;});
+        const [outW,outH]=outputSize?outputSize(width,height):[width,height];
+        result=await finalWorker.renderToCanvas(settings,width,height,percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;},outW,outH);
       }else{
         await finalWorker.setSource(workingSource);
         bitmap=await finalWorker.render(settings);

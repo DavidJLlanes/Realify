@@ -34,18 +34,35 @@ export class RenderWorker {
     catch (error) { bitmap.close(); throw error; }
   }
   render(settings) { return this.request("render", { settings }); }
-  async renderToCanvas(settings, width, height, onProgress = ()=>{}) {
-    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  /* `outW`×`outH` (opcional): tamaño del resultado. Si es menor que el
+     original, cada franja se reduce al dibujarla, de modo que nunca se
+     crea el lienzo a resolución completa (en el móvil, un RAW de 48 MP
+     no cabe en memoria ni en el límite de lienzo de Safari). */
+  async renderToCanvas(settings, width, height, onProgress = ()=>{}, outW = width, outH = height) {
+    const canvas=document.createElement('canvas');canvas.width=outW;canvas.height=outH;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     if(!ctx)throw new Error('No se pudo crear el lienzo de salida');
+    const sx=outW/width, sy=outH/height, scaled=outW!==width||outH!==height;
+    if(scaled){ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';}
+    // Al reducir, el filtro de reescalado lee varias filas por encima y
+    // por debajo de cada franja: margen mayor para que no queden costuras.
+    const halo=scaled?Math.max(2,Math.ceil(3/Math.min(sx,sy))+2):2;
     // One bounded strip in flight. Two halo rows preserve the largest
     // detail kernel; global coordinates preserve grain, vignette and CA.
     const rows=Math.max(1,Math.min(128,Math.floor(262144/width)));
     try{
       for(let y=0;y<height;y+=rows){
-        const count=Math.min(rows,height-y),top=Math.max(0,y-2),bottom=Math.min(height,y+count+2);
+        const count=Math.min(rows,height-y),top=Math.max(0,y-halo),bottom=Math.min(height,y+count+halo);
         const bitmap=await this.request('render',{settings,region:{x:0,y:top,width,height:bottom-top}});
-        try{ctx.drawImage(bitmap,0,y-top,width,count,0,y,width,count);}finally{bitmap.close();}
+        try{
+          if(!scaled)ctx.drawImage(bitmap,0,y-top,width,count,0,y,width,count);
+          else{
+            // Filas de destino enteras; el origen correspondiente cae dentro
+            // de la franja (con sus dos filas de margen), sin costuras.
+            const d0=Math.round(y*sy),d1=y+count>=height?outH:Math.round((y+count)*sy);
+            if(d1>d0)ctx.drawImage(bitmap,0,d0/sy-top,width,(d1-d0)/sy,0,d0,outW,d1-d0);
+          }
+        }finally{bitmap.close();}
         onProgress(Math.round((y+count)/height*100));
       }
       return canvas;
