@@ -32,6 +32,7 @@ import { toast } from "./toast.js";
 import { toggleClip, toggleCollapsed } from "../editor/groups.js";
 import { hasEnabledStyle, openLayerStyles } from "../editor/layerstyles.js";
 import { initProperties } from "./properties.js";
+import { fitAbove, view } from "../editor/view.js";
 
 /* ── selección múltiple de capas ─────────────────────────────────
    Aparte de `doc.activeId` —que sigue siendo "la capa sobre la que
@@ -111,8 +112,39 @@ function revealProperties(){
   setTimeout(() => panel.classList.remove("flash"), 1000);
 }
 
+/* ── Hoja del móvil (vertical): media altura, alta y la imagen encima ──
+   Antes la hoja ocupaba el 82 % de la pantalla y tapaba la imagen: al
+   mover la opacidad de una capa no se veía el resultado. Ahora se abre
+   a media altura y la imagen se encaja en el hueco libre de encima; el
+   asa la sube a alta (entonces la vista vuelve a como estaba) o la
+   cierra. Al cerrarla, la vista vuelve a como estaba, salvo que se haya
+   hecho zoom o se haya movido la imagen mientras tanto. */
+const SHEET = "(max-width:900px) and (orientation:portrait)";
+const sheetMode = () => matchMedia(SHEET).matches;
+let lifted = null;          // { restore, set: vista que se puso }
+function liftImage(){
+  if(!panels.classList.contains("open") || !panels.classList.contains("half") || !sheetMode()){ dropImage(); return; }
+  const r = fitAbove(panels.getBoundingClientRect().top);
+  lifted = { restore: lifted ? lifted.restore : r, set: { zoom: view.zoom, x: view.x, y: view.y } };
+}
+function dropImage(){
+  if(!lifted) return;
+  const { restore, set } = lifted; lifted = null;
+  if(view.zoom === set.zoom && view.x === set.x && view.y === set.y) restore();
+}
+panels.addEventListener("transitionend", e => {
+  if(e.target === panels && (e.propertyName === "transform" || e.propertyName === "height")) liftImage();
+});
+matchMedia(SHEET).addEventListener?.("change", () => {
+  if(!sheetMode()){ panels.classList.remove("half", "peek"); dropImage(); }
+  else liftImage();
+});
+
 export function toggleSheet(v){
   const open = v === undefined ? !panels.classList.contains("open") : v;
+  const wasOpen = panels.classList.contains("open");
+  if(open && !wasOpen && sheetMode()) panels.classList.add("half");
+  if(!open){ panels.classList.remove("half", "peek"); dropImage(); }
   /* El botón que abre esta hoja se llama «Capas», así que al abrirla
      eso es lo que tiene que haber delante —aunque la última vez se
      dejara abierto Propiedades desde el botón «fx» de una capa—. */
@@ -123,37 +155,58 @@ export function toggleSheet(v){
   panels.style.transform = "";
 }
 
-/* Arrastre de la hoja. Se sigue el dedo en tiempo real y al soltar
-   decide por velocidad o por distancia, que es lo que hace que un
-   gesto se sienta bien y no como un botón con animación. */
+/* Arrastre de la hoja. Se sigue el dedo en tiempo real (cambiando su
+   alto) y al soltar decide por velocidad o por distancia entre tres
+   posiciones: alta, media o cerrada. Es lo que hace que un gesto se
+   sienta bien y no como un botón con animación. */
 function initGrip(){
   let start = null;
   grip.addEventListener("pointerdown", e => {
-    start = { y: e.clientY, t: performance.now() };
+    start = { y: e.clientY, t: performance.now(), h: panels.getBoundingClientRect().height };
     grip.setPointerCapture(e.pointerId);
     panels.style.transition = "none";
   });
   grip.addEventListener("pointermove", e => {
     if(!start) return;
-    const dy = Math.max(0, e.clientY - start.y);
-    panels.style.transform = `translateY(${dy}px)`;
-    veil.style.opacity = String(Math.max(0, 1 - dy / 320));
+    const dy = e.clientY - start.y;
+    const h = Math.max(0, Math.min(innerHeight * .9, start.h - dy));
+    panels.style.height = panels.style.maxHeight = h + "px";
   });
   const end = e => {
     if(!start) return;
-    const dy = Math.max(0, e.clientY - start.y);
-    const dt = performance.now() - start.t;
-    const fast = dy / Math.max(dt, 1) > 0.5;
+    const dy = e.clientY - start.y, dt = performance.now() - start.t;
+    const v = dy / Math.max(dt, 1), h = start.h - dy, vh = innerHeight;
+    const HALF = vh * .46, FULL = vh * .82;
     panels.style.transition = "";
-    panels.style.transform = "";
-    veil.style.opacity = "";
+    panels.style.height = panels.style.maxHeight = "";
     haptic(8);
-    toggleSheet(!(fast || dy > 110));
     start = null;
+    if(v > .5 || h < HALF * .55){ toggleSheet(false); return; }
+    const full = v < -.5 || h > (HALF + FULL) / 2;
+    panels.classList.toggle("half", !full);
+    if(full) dropImage();
+    // Si el alto no cambia (se soltó donde estaba), no habrá transitionend
+    requestAnimationFrame(() => requestAnimationFrame(liftImage));
   };
   grip.addEventListener("pointerup", end);
   grip.addEventListener("pointercancel", end);
 }
+
+/* ── Ver la imagen mientras se arrastra un deslizador (móvil) ──
+   Con el dedo sobre un deslizador de la hoja (opacidad de la capa, los
+   mandos de Propiedades…), la hoja se vuelve transparente y sólo queda
+   a la vista la fila de ese deslizador; al soltar, reaparece. */
+panels.addEventListener("pointerdown", e => {
+  const range = e.target.closest?.('input[type="range"]');
+  if(!range || !matchMedia("(max-width:900px)").matches) return;
+  const keep = range.closest(".field") || range.parentElement;
+  panels.classList.add("peek"); keep.classList.add("peek-keep");
+  const endPeek = () => {
+    panels.classList.remove("peek"); keep.classList.remove("peek-keep");
+    removeEventListener("pointerup", endPeek, true); removeEventListener("pointercancel", endPeek, true);
+  };
+  addEventListener("pointerup", endPeek, true); addEventListener("pointercancel", endPeek, true);
+});
 
 /* ── panel de capas ── */
 const layerList = document.getElementById("layerList");
