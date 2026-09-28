@@ -415,6 +415,11 @@
   .modal-foot{
     padding:11px 14px;
   }
+  /* `dlg-stack`: diálogos con varias opciones largas (p. ej. qué hacer
+     con unos RAW): un botón por fila, a todo lo ancho, la principal
+     arriba, en vez de una fila que se sale de la pantalla. */
+  .dlg-stack .modal-foot{flex-direction:column-reverse;align-items:stretch;gap:8px}
+  .dlg-stack .modal-foot button{width:100%;margin:0;min-height:44px}
   /* Excepción: `dlg-full` (Realify) no se beneficia del margen puesto
      en `.modal` —está exento ahí arriba, porque su hoja de 100dvh sí
      llega de verdad al borde por su cuenta—, así que su pie es el

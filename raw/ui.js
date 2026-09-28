@@ -16,7 +16,7 @@ const metaLine = metadata => {
   return [make,lens,iso ? `ISO ${Math.round(iso)}` : ""].filter(Boolean).join(" · ");
 };
 
-export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null }) {
+export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify" }) {
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
   let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;
   state.autoWb=autoWhiteBalance(source);
@@ -26,7 +26,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     <header class="raw-topbar">
       <button class="raw-cancel" type="button">Cancelar</button>
       <div class="raw-title"><b>${title}</b><span>${metaLine(metadata)}</span></div>
-      <div class="raw-actions"><button type="button" data-action="undo" aria-label="Deshacer">↶</button><button type="button" data-action="redo" aria-label="Rehacer">↷</button><button class="primary" type="button" data-action="accept">Abrir en Realify</button></div>
+      <div class="raw-actions"><button type="button" data-action="undo" aria-label="Deshacer">↶</button><button type="button" data-action="redo" aria-label="Rehacer">↷</button><button class="primary" type="button" data-action="accept">${acceptLabel}</button></div>
     </header>
     <main class="raw-workspace">
       <aside class="raw-left">
@@ -172,7 +172,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
       renderer.dispose();workingSource=null;
       await onAccept(result,settings);close();
     }catch(error){if(!closed){toast(error?.message||"No se pudo aplicar el revelado","err");if(renderer.closed)close();}}
-    finally{bitmap?.close();finalWorker?.dispose();finalWorker=null;accepting=false;if(!closed){root.querySelectorAll("input,select,button").forEach(input=>input.disabled=false);button.textContent="Abrir en Realify";}}
+    finally{bitmap?.close();finalWorker?.dispose();finalWorker=null;accepting=false;if(!closed){root.querySelectorAll("input,select,button").forEach(input=>input.disabled=false);button.textContent=acceptLabel;}}
   });
   const rawPreview=root.querySelector(".raw-preview");
   const previewPointers=new Map();let previewPinch=null,previewDrag=null;

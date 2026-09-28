@@ -10,6 +10,11 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Fusión HDR con RAW**: revelar la primera y aplicar los mismos ajustes a todas,
+  revelar una a una en el revelador RAW o usar su JPEG incrustado; la exposición sale
+  de los metadatos del RAW.
+- **Fusión HDR con las fotos abiertas**: elige, con miniaturas, las pestañas abiertas
+  y entran tal como las estás editando.
 - **Fusión HDR**: ordenar las fotos arrastrándolas (ratón, o mantener pulsado con el
   dedo); la exposición sigue al orden. EV contados desde la foto normal (−2 / 0 / +2).
 - **Fusión HDR**: «Foto elegida» es el primer grupo (escritorio y móvil), con la
@@ -54,6 +59,8 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Los diálogos y avisos quedaban detrás de los editores a pantalla completa (HDR,
+  Unir, Cortar, Formas…).
 - Fusión HDR: el resultado se abre siempre como una foto nueva (pestaña propia,
   historial vacío). Si la imagen abierta era del horquillado, antes se añadía como capa
   encima y Comparar enseñaba la foto original en vez del HDR.

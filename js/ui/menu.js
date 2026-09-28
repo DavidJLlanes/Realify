@@ -94,7 +94,7 @@ export const MENUS = [
     { sep:true },
     { cmd:"image.hdr", label:"Fusión HDR…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="14" height="12" rx="2"/><path d="M6 4h12a2 2 0 0 1 2 2v9"/><path d="M9 1.5h11a2.5 2.5 0 0 1 2.5 2.5v8" opacity=".55"/><path d="M5.5 16l3-4 2 2.5 1.5-1.5 2 3"/></svg>',
-      help:"Fusiona de 2 a 11 fotos de la misma escena con distinta exposición (horquillado detectado solo por EXIF o brillo): alineación, antifantasmas, fusión de exposición y mapeo tonal con estilos tipo Photomatix. El resultado se abre como una foto nueva." },
+      help:"Fusiona de 2 a 11 fotos de la misma escena con distinta exposición (horquillado detectado solo por EXIF o brillo): alineación, antifantasmas, fusión de exposición y mapeo tonal con estilos tipo Photomatix. Admite RAW y las fotos que ya tienes abiertas. El resultado se abre como una foto nueva." },
     { cmd:"image.beforeAfter", label:"Antes y después…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 2v20"/><path d="M3 20l6-7 3 3"/></svg>',
       help:"Pantalla completa: imagen de comparación para compartir con el original y tu edición (dividida, diagonal, lado a lado o arriba y abajo), con etiquetas y formatos de redes. Crea una capa nueva en otra pestaña." },

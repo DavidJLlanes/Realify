@@ -669,8 +669,8 @@
    vintage, Realify, RAW): un diálogo que abren ellos —el permiso de
    Google Fonts, por ejemplo— y los avisos tienen que quedar delante,
    no detrás. */
-body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.cv-editor) .modal{z-index:2200}
-body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.cv-editor) #toast{z-index:2300}
+body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.cv-editor,.fsp) .modal{z-index:2200}
+body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.cv-editor,.fsp) #toast{z-index:2300}
 .modal-card{
   background:var(--s-700);
   border:1px solid var(--line-strong);

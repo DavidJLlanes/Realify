@@ -5,12 +5,24 @@ la misma escena con distinta exposición.
 
 | Archivo | Qué hace |
 |---|---|
+| `sources.js` | Origen de las fotos: RAW (revelar la primera y aplicar a todas, una a una, o su JPEG) y fotos abiertas en Realify. |
 | `index.js` | Entrada: abre el editor y abre el resultado como una foto nueva (pestaña propia, historial vacío). |
 | `ui.js` | Ventana (sobre `js/ui/fsshell.js`): fotos, estilos y ajustes. |
 | `worker.js` | Todo el cálculo, fuera del hilo de la interfaz. |
 | `engine.js` | Funciones puras: exposición, alineación, fusión y mapeo tonal. |
 | `presets.js` | Ajustes por defecto y los 17 estilos. |
 | `exif.js` | Lee tiempo, diafragma, ISO y compensación de JPEG/TIFF. |
+
+## Fotos de entrada
+
+- **Del dispositivo**: JPEG, PNG, WebP, HEIC, TIFF y **RAW**. Con RAW se
+  pregunta una vez para todo el lote: *revelar la primera y aplicar a todas*
+  (recomendado: mismos ajustes y balance de blancos para que las tomas casen;
+  el revelador RAW se abre sólo con la primera), *revelar una a una* (el
+  revelador con cada foto) o *usar el JPEG de todas* (la previsualización
+  incrustada). La exposición de cada RAW sale de sus metadatos.
+- **Fotos abiertas**: las pestañas abiertas en Realify, tal como se están
+  editando (todas sus capas compuestas). Se eligen con miniaturas.
 
 ## Proceso
 

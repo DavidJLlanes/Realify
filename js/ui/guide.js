@@ -362,7 +362,11 @@ const TOPICS = [
         <li><b>Girar 90° / 180° y Voltear.</b> Afectan a todo el documento, máscaras
           incluidas.</li>
         <li id="img-hdr"><b>Fusión HDR…</b> Pantalla completa. Añade de 2 a 11 fotos de la misma
-          escena con distinta exposición (o una sola, para un HDR simulado): la app detecta el
+          escena con distinta exposición (o una sola, para un HDR simulado): del dispositivo
+          —JPEG, HEIC, <b>RAW</b>…— o <b>las fotos que ya tienes abiertas</b>, tal como las estás
+          editando. Con RAW eliges <b>revelar la primera y aplicar lo mismo a todas</b> (mismo
+          balance de blancos, lo recomendado), <b>revelar una a una</b> en el revelador RAW o
+          <b>usar el JPEG</b> que llevan dentro. La app detecta el
           horquillado (por EXIF —también de HEIC, PNG y WebP— o por el brillo) y las alinea. Si
           alguna exposición no es la correcta, el primer grupo, <b>Foto elegida</b>, sirve para
           corregirla: toca la foto y mueve su exposición (en tercios de paso, con − / + para

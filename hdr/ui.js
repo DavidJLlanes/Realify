@@ -23,6 +23,8 @@ import { readExposure, exposureText } from "./exif.js";
 import { evFromExif } from "./engine.js";
 import { toast } from "../js/ui/toast.js";
 import { sortable } from "../js/ui/sortable.js";
+import { isRaw, developRaws, exifFromRaw, pickOpenPhotos } from "./sources.js";
+import { dialog } from "../js/ui/dialog.js";
 
 export const MAX_PHOTOS = 11;
 const MOBILE = matchMedia("(max-width:900px)");
@@ -40,7 +42,7 @@ const evText = v => {
   return (n > 0 ? "+" : n < 0 ? "−" : "±") + (w || !r ? w : "") + (r === 1 ? "⅓" : r === 2 ? "⅔" : "") + " EV";
 };
 
-export function openHdrEditor({ current = null, onAccept }){
+export function openHdrEditor({ openDocs = null, onAccept }){
   const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
   let req = 0;
   const pending = new Map();
@@ -57,7 +59,7 @@ export function openHdrEditor({ current = null, onAccept }){
   const photos = [];   // { name, thumb (dataURL), exif, proxy (canvas para comparar) }
   const state = { s: { ...DEFAULTS, ...presetSettings("realista") }, preset: "realista", evs: [], sel: 0, order: [] };
   let detected = [], hintShown = false;   // EV detectados al añadir las fotos, para «Pasos entre fotos › Los detectados»
-  let evSource = "", size = null, usedCurrent = false, thumbs = new Map(), previewTimer = 0, previewSeq = 0, thumbsSeq = 0, closed = false;
+  let evSource = "", size = null, thumbs = new Map(), previewTimer = 0, previewSeq = 0, thumbsSeq = 0, closed = false;
 
   const sh = createShell({
     title: "Fusión HDR", subtitle: "Hasta 11 fotos de un horquillado", applyLabel: "Crear HDR",
@@ -74,12 +76,12 @@ export function openHdrEditor({ current = null, onAccept }){
 
   /* ── Fotos ── */
   const empty = () => sh.setEmpty(photos.length ? null :
-    `<b>Fusión HDR</b><span>Añade de 2 a 11 fotos de la misma escena con distinta exposición.<br>La app detecta sola el horquillado (EXIF o brillo) y las alinea.</span>
+    `<b>Fusión HDR</b><span>Añade de 2 a 11 fotos de la misma escena con distinta exposición (JPEG, HEIC, RAW…) o usa las que tienes abiertas.<br>La app detecta sola el horquillado (EXIF o brillo) y las alinea.</span>
      <button type="button" data-add>Añadir fotos</button>` +
-    (current ? `<button type="button" data-cur style="background:#272b31;color:#e9edf4;border-color:#3b414b">Usar la imagen abierta</button>` : ""));
+    (openCount() ? `<button type="button" data-cur style="background:#272b31;color:#e9edf4;border-color:#3b414b">${openCount() > 1 ? "Usar las fotos abiertas" : "Usar la foto abierta"}</button>` : ""));
   sh.stage.addEventListener("click", e => {
     if(e.target.closest("[data-add]")) addPhotos();
-    else if(e.target.closest("[data-cur]")) addCurrent();
+    else if(e.target.closest("[data-cur]")) addOpen();
   });
 
   async function addFiles(items){
@@ -87,6 +89,20 @@ export function openHdrEditor({ current = null, onAccept }){
     if(room <= 0){ toast(`Máximo ${MAX_PHOTOS} fotos`, "err"); return; }
     if(items.length > room) toast(`Sólo caben ${room} fotos más (máximo ${MAX_PHOTOS})`, "err");
     items = items.slice(0, room);
+    // RAW: revelarlos (o sacar su JPEG) antes de nada; entran ya como lienzos.
+    const rawFlags = await Promise.all(items.map(it => it.file ? isRaw(it.file) : false));
+    if(rawFlags.some(Boolean)){
+      const raws = items.filter((it, k) => rawFlags[k]);
+      const dev = await developRaws(raws.map(it => it.file), { fit: fitWork, busy: m => sh.setBusy(m) });
+      if(closed) return;
+      const byFile = new Map((dev || []).map(d => [d.file, d]));
+      items = items.flatMap((it, k) => {
+        if(!rawFlags[k]) return [it];
+        const d = byFile.get(it.file);
+        return d ? [{ canvas: d.canvas, name: it.name, exif: d.exif }] : [];
+      });
+      if(!items.length) return;
+    }
     sh.setBusy(`Abriendo ${items.length === 1 ? "la foto" : items.length + " fotos"}…`);
     const images = [], added = [];
     try{
@@ -111,15 +127,36 @@ export function openHdrEditor({ current = null, onAccept }){
     finally{ sh.setBusy(null); }
   }
   async function addPhotos(){
-    const files = await pickFiles();
+    const { RAW_EXTENSIONS } = await import("../raw/formats.js");
+    const files = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff," + [...RAW_EXTENSIONS].map(e => "." + e).join(",") });
     if(files.length) addFiles(files.map(f => ({ file: f, name: f.name })));
   }
-  async function addCurrent(){
-    if(!current || usedCurrent) return;
-    usedCurrent = true;
-    const exif = current.file ? await readExposure(current.file) : null;
-    addFiles([{ canvas: current.canvas, name: current.name || "Imagen abierta", exif }]);
+  /* Fotos abiertas en Realify (pestañas), tal como se están editando. */
+  const usedTabs = new Set();
+  const openCount = () => openDocs ? openDocs.list().length : 0;
+  async function addOpen(){
+    if(!openDocs) return;
+    const tabs = openDocs.list().map(t => ({ ...t, used: usedTabs.has(t.id) }));
+    const ids = await pickOpenPhotos(tabs);
+    if(!ids.length || closed) return;
+    const got = openDocs.grab(ids);
+    const items = [];
+    for(const g of got){
+      usedTabs.add(g.tabId);
+      let exif = g.rawMetadata ? exifFromRaw(g.rawMetadata) : null;
+      if(!exif && g.file && !(await isRaw(g.file))) exif = await readExposure(g.file);
+      items.push({ canvas: g.canvas, name: g.name, exif: exif || null });
+    }
+    if(items.length) addFiles(items);
   }
+  /* «+» cuando además hay fotos abiertas: de dónde. */
+  async function addAny(){
+    if(!openCount()) return addPhotos();
+    const v = await dialog({ title: "Añadir fotos", body: `<p class="hint" style="margin:0">Desde el dispositivo (JPEG, HEIC, RAW…) o las fotos que tienes abiertas en Realify, tal como las estás editando.</p>`,
+      buttons: [{ label: "Cancelar", value: null }, { label: "Fotos abiertas", value: "open" }, { label: "Del dispositivo", primary: true, value: "files" }], cls: "dlg-stack" });
+    if(v === "open") addOpen(); else if(v === "files") addPhotos();
+  }
+  const fitWork = (w, h) => { const k = Math.min(1, WORK_SIDE / Math.max(w, h)); return [Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k))]; };
   async function removePhoto(i){
     try{
       sh.setBusy("Recalculando…");
@@ -230,7 +267,7 @@ export function openHdrEditor({ current = null, onAccept }){
     if(photos.length > 1) sortable(list, { axis: "y", onMove: movePhoto });
     const add = document.createElement("button"); add.type = "button"; add.className = "fsp-btn dashed"; add.textContent = "+ Añadir fotos";
     add.disabled = photos.length >= MAX_PHOTOS; add.addEventListener("click", addPhotos); L.appendChild(add);
-    if(current && !usedCurrent){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = "Usar la imagen abierta"; b.addEventListener("click", addCurrent); L.appendChild(b); }
+    if(openCount() && photos.length < MAX_PHOTOS){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = openCount() > 1 ? "Usar fotos abiertas…" : "Usar la foto abierta"; b.addEventListener("click", addOpen); L.appendChild(b); }
     if(photos.length){
       const n = document.createElement("p"); n.className = "fsp-note";
       n.textContent = (photos.length > 1 ? "Arrastra las fotos para ordenarlas de la más oscura a la más clara: la exposición sigue al orden. " : "") + (evSource === "exif" ? "Exposición leída del EXIF. Si alguna está mal, elígela y corrígela en «Foto elegida» (o con − / +)." :
@@ -254,7 +291,7 @@ export function openHdrEditor({ current = null, onAccept }){
     if(photos.length < MAX_PHOTOS){
       const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
       b.style.cssText = "display:grid;place-items:center;width:68px;height:68px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
-      b.setAttribute("aria-label", "Añadir fotos"); b.textContent = "+"; b.addEventListener("click", addPhotos);
+      b.setAttribute("aria-label", "Añadir fotos"); b.textContent = "+"; b.addEventListener("click", addAny);
       wrap.appendChild(b);
     }
     return wrap;
@@ -398,7 +435,7 @@ export function openHdrEditor({ current = null, onAccept }){
       const r = await call({ type: "final", s: { ...S }, evs: state.evs.slice() });
       const c = document.createElement("canvas"); c.width = r.w; c.height = r.h;
       c.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
-      await onAccept(c, { usedCurrent, count: photos.length, style: PRESETS.find(p => p[0] === state.preset)?.[1] || "Personalizado" });
+      await onAccept(c, { count: photos.length, style: PRESETS.find(p => p[0] === state.preset)?.[1] || "Personalizado" });
       close();
     }catch(err){
       toast("No se pudo crear el HDR: " + err.message, "err");
@@ -413,6 +450,6 @@ export function openHdrEditor({ current = null, onAccept }){
   }
 
   empty(); renderPhotos();
-  if(current) sh.setSubtitle("Añade fotos o usa la imagen abierta");
+  if(openCount()) sh.setSubtitle(openCount() > 1 ? "Añade fotos o usa las que tienes abiertas" : "Añade fotos o usa la que tienes abierta");
   return { close };
 }
