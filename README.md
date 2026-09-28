@@ -223,7 +223,7 @@ tiempo real mientras se pinta.
 - **Fusión HDR** (pantalla completa, `hdr/`): de 1 a 11 fotos con el
   horquillado detectado por EXIF o por el brillo, alineación, antifantasmas,
   mapa de radiancia o fusión de exposición y mapeo tonal (detalles realzados,
-  compresor de tonos, fotográfico) con 17 estilos en miniatura. Capa nueva.
+  compresor de tonos, fotográfico) con 17 estilos en miniatura. Se abre como foto nueva.
 - **Unir imágenes** (pantalla completa, `unir/`): panorámica automática
   (proyección cilíndrica, solape por correlación de gradientes, exposición
   igualada, costuras suaves y recorte) o unión en fila, columna o cuadrícula.

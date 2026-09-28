@@ -374,7 +374,9 @@ const TOPICS = [
           del trabajo: Foto elegida, Fusión de las fotos (alinear, recortar bordes y
           <b>antifantasmas</b> si algo se mueve entre tomas), Estilo (17, en miniatura), Método
           (detalles realzados, fusión de exposición, compresor de tonos o fotográfico) con sus
-          mandos, y al final Tono, Color y Detalle. Crea una capa nueva.</li>
+          mandos, y al final Tono, Color y Detalle. El resultado se abre como una <b>foto nueva</b>, en su
+          propia pestaña y con el historial vacío: Comparar muestra el HDR recién creado como
+          «antes».</li>
         <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. <b>Panorámica</b>: fotos
           solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
           iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:

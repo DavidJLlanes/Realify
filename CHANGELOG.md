@@ -54,6 +54,9 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Fusión HDR: el resultado se abre siempre como una foto nueva (pestaña propia,
+  historial vacío). Si la imagen abierta era del horquillado, antes se añadía como capa
+  encima y Comparar enseñaba la foto original en vez del HDR.
 - Comparar: tras crear un HDR (o cualquier resultado que se abre en una pestaña
   nueva) el «antes» salía vacío, y al cambiar de pestaña se perdía y pasaba a ser la
   propia edición. Ahora cada pestaña guarda su «antes». Al cerrar la foto con Comparar

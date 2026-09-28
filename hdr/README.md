@@ -5,7 +5,7 @@ la misma escena con distinta exposición.
 
 | Archivo | Qué hace |
 |---|---|
-| `index.js` | Entrada: abre el editor y lleva el resultado a una capa nueva. |
+| `index.js` | Entrada: abre el editor y abre el resultado como una foto nueva (pestaña propia, historial vacío). |
 | `ui.js` | Ventana (sobre `js/ui/fsshell.js`): fotos, estilos y ajustes. |
 | `worker.js` | Todo el cálculo, fuera del hilo de la interfaz. |
 | `engine.js` | Funciones puras: exposición, alineación, fusión y mapeo tonal. |
