@@ -282,17 +282,26 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
 
   /* ── Vista previa ── */
   const stage = $(".cvf-stage"), view = $(".cvf-stage canvas"), vctx = view.getContext("2d");
+  /* Zoom de la vista previa: `zoom` multiplica el encaje (1 = imagen
+     entera) y `panX/panY` desplazan en píxeles del lienzo. Rueda,
+     pellizco o Ctrl + / − amplían; arrastrar desplaza; doble clic o
+     Ctrl+0 vuelven a encajar. */
+  let zoom = 1, panX = 0, panY = 0;
+  const layout = src => {
+    const pad = (matchMedia(MOBILE).matches ? 8 : 24) * (devicePixelRatio || 1);
+    const k = Math.min((view.width - pad * 2) / src.width, (view.height - pad * 2) / src.height) * zoom;
+    const w = Math.max(1, src.width * k), h = Math.max(1, src.height * k);
+    return { w, h, x: (view.width - w) / 2 + panX, y: (view.height - h) / 2 + panY };
+  };
   const draw = () => {
     frame = 0;
     if(closed) return;
     const src = comparing ? source : layer?.canvas;
     vctx.clearRect(0, 0, view.width, view.height);
     if(!src) return;
-    const pad = (matchMedia(MOBILE).matches ? 8 : 24) * (devicePixelRatio || 1);
-    const k = Math.min((view.width - pad * 2) / src.width, (view.height - pad * 2) / src.height);
-    const w = Math.max(1, src.width * k), h = Math.max(1, src.height * k);
-    vctx.imageSmoothingEnabled = true; vctx.imageSmoothingQuality = "high";
-    vctx.drawImage(src, (view.width - w) / 2, (view.height - h) / 2, w, h);
+    const { w, h, x, y } = layout(src);
+    vctx.imageSmoothingEnabled = zoom < 2; vctx.imageSmoothingQuality = "high";
+    vctx.drawImage(src, x, y, w, h);
   };
   const request = () => { if(!frame && !closed) frame = requestAnimationFrame(draw); };
   const fit = () => {
@@ -349,6 +358,57 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
   ["pointerup", "pointercancel", "lostpointercapture"].forEach(t => cmp.addEventListener(t, () => setCompare(false)));
   cmp.addEventListener("contextmenu", e => e.preventDefault());
 
+  /* Zoom y desplazamiento sobre la vista previa */
+  const dpr = () => view.width / Math.max(1, stage.clientWidth);
+  const zoomTo = (z, cx, cy) => {
+    z = Math.max(1, Math.min(32, z));
+    const r = stage.getBoundingClientRect(), d = dpr();
+    // El punto bajo el cursor se queda quieto: en coordenadas del lienzo, relativo al centro.
+    const px = cx === undefined ? 0 : (cx - r.left) * d - view.width / 2;
+    const py = cy === undefined ? 0 : (cy - r.top) * d - view.height / 2;
+    panX = px - (px - panX) * z / zoom;
+    panY = py - (py - panY) * z / zoom;
+    zoom = z;
+    if(zoom === 1){ panX = panY = 0; }
+    request();
+  };
+  const pts = new Map();
+  let gest = null;
+  const beginGesture = () => {
+    const p = [...pts.values()];
+    gest = p.length === 1 ? { x: p[0].x, y: p[0].y, px: panX, py: panY }
+         : p.length === 2 ? { pinch: true, d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), z: zoom,
+                              cx: (p[0].x + p[1].x) / 2, cy: (p[0].y + p[1].y) / 2 } : null;
+  };
+  stage.addEventListener("pointerdown", e => {
+    if(e.target === cmp || pts.size >= 2) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try{ stage.setPointerCapture(e.pointerId); }catch{}
+    beginGesture();
+  });
+  stage.addEventListener("pointermove", e => {
+    if(!gest || !pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const p = [...pts.values()];
+    if(gest.pinch && p.length === 2){
+      const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      zoomTo(gest.z * d / Math.max(gest.d, 1), gest.cx, gest.cy);
+    } else if(!gest.pinch && zoom > 1){
+      const d = dpr();
+      panX = gest.px + (e.clientX - gest.x) * d;
+      panY = gest.py + (e.clientY - gest.y) * d;
+      request();
+    }
+  });
+  const endGesture = e => { if(pts.delete(e.pointerId)) beginGesture(); };
+  stage.addEventListener("pointerup", endGesture);
+  stage.addEventListener("pointercancel", endGesture);
+  stage.addEventListener("wheel", e => {
+    e.preventDefault();
+    zoomTo(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+  }, { passive: false });
+  stage.addEventListener("dblclick", e => { if(e.target !== cmp) zoomTo(zoom > 1 ? 1 : 3, e.clientX, e.clientY); });
+
   /* Teclado: Esc cancela (o cierra la hoja), Ctrl+Z / Ctrl+Mayús+Z
      deshacen y rehacen aquí. Mientras el editor está abierto, ninguna
      tecla llega a los atajos de la app que hay detrás. Con un diálogo
@@ -366,6 +426,9 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
     const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
     if(mod && k === "z"){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
     else if(mod && k === "y"){ e.preventDefault(); redo(); }
+    else if(mod && (k === "+" || k === "=")){ e.preventDefault(); zoomTo(zoom * 1.25); }
+    else if(mod && k === "-"){ e.preventDefault(); zoomTo(zoom / 1.25); }
+    else if(mod && (k === "0" || k === "1")){ e.preventDefault(); zoomTo(1); }
   };
   const mq = matchMedia(MOBILE);
   const onMq = () => { place(); fit(); };

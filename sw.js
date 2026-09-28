@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v119-auditoria";
+const VERSION = "realify-v120-zoom-efectos";
 const SHELL = [
   "./",
   "./index.html",

@@ -6,7 +6,7 @@
    quien navega con teclado se sale por detrás y se pierde.
    ═══════════════════════════════════════════════════════════════ */
 
-import { view, zoomAt } from "../editor/view.js";
+import { attachViewGestures, zoomIn, zoomOut, zoom100, fit } from "../editor/view.js";
 import { isMobile as isPhone, haptic } from "../core/device.js";
 import { autoCompact } from "./compact.js";
 
@@ -149,23 +149,36 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
     }
 
     back.querySelector("[data-close]").addEventListener("click", () => close(null));
-    back.addEventListener("click", e => { if(e.target === back) close(null); });
 
     /* El fondo del diálogo nunca se oscurece (ver comentario de
-       `makeDraggable`), así que el lienzo sigue visible alrededor de
-       la tarjeta y ésta se puede arrastrar a un lado. La rueda sobre
-       ese fondo hace zoom en la imagen igual que si el diálogo no
-       estuviera: sólo cuando `e.target` es el propio fondo, nunca
-       sobre la tarjeta, donde la rueda debe poder seguir haciendo
-       scroll dentro del panel. */
-    back.addEventListener("wheel", e => {
-      if(e.target !== back) return;
-      e.preventDefault();
-      const f = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-      zoomAt(view.zoom * f, e.clientX, e.clientY);
-    }, { passive: false });
+       `makeDraggable`), así que la imagen sigue a la vista alrededor de
+       la tarjeta. Sobre ese fondo se puede ampliar y desplazar la imagen
+       igual que si el diálogo no estuviera (rueda, pellizco, arrastre),
+       para revisar de cerca un efecto antes de aplicarlo. Sólo cuando el
+       gesto empieza en el propio fondo, nunca sobre la tarjeta, donde la
+       rueda debe poder seguir haciendo scroll dentro del panel. */
+    const gestured = attachViewGestures(back);
 
+    /* Tocar fuera cierra sólo los diálogos sin nada que perder (avisos,
+       listas para elegir). Uno con deslizadores o con un botón de aplicar
+       es un efecto a medias: tocar la imagen para ampliarla no puede
+       tirarlo. Se cierra con ✕, Cancelar o Esc. */
+    const dismissable = () => !buttons.some(b => b.primary) && !bodyEl.querySelector('input[type="range"]');
+    back.addEventListener("click", e => {
+      if(e.target === back && !gestured() && dismissable()) close(null);
+    });
+
+    /* Zoom con el teclado (Ctrl + / − / 0 / 1) aunque el foco esté en
+       un deslizador del diálogo, donde los atajos generales no llegan y
+       el navegador ampliaría la página entera. */
+    const ZOOM_KEYS = { "+": zoomIn, "=": zoomIn, "-": zoomOut, "0": () => fit(), "1": zoom100 };
     const onKey = e => {
+      if((e.ctrlKey || e.metaKey) && !e.altKey && ZOOM_KEYS[e.key] && e.target.tagName !== "TEXTAREA" &&
+         !(e.target.tagName === "INPUT" && /^(text|search|number)$/.test(e.target.type))){
+        e.preventDefault(); e.stopPropagation();
+        ZOOM_KEYS[e.key]();
+        return;
+      }
       if(e.key === "Escape"){
         e.preventDefault(); e.stopPropagation();
         close(null);

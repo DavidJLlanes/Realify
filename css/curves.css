@@ -28,7 +28,7 @@
 .cvf-wide{width:100%;min-height:34px;margin-top:10px;background:#272b31;color:#e9edf4;border:1px dashed #4a5361;border-radius:5px;font:inherit}
 .cvf-wide:hover{background:#35455e}
 
-.cvf-stage{position:relative;min-width:0;min-height:0;overflow:hidden;background:#0d0f12;background-image:linear-gradient(45deg,#111419 25%,transparent 25%,transparent 75%,#111419 75%),linear-gradient(45deg,#111419 25%,#15191e 25%,#15191e 75%,#111419 75%);background-size:20px 20px;background-position:0 0,10px 10px}
+.cvf-stage{position:relative;min-width:0;min-height:0;overflow:hidden;touch-action:none;cursor:zoom-in;background:#0d0f12;background-image:linear-gradient(45deg,#111419 25%,transparent 25%,transparent 75%,#111419 75%),linear-gradient(45deg,#111419 25%,#15191e 25%,#15191e 75%,#111419 75%);background-size:20px 20px;background-position:0 0,10px 10px}
 .cvf-stage canvas{position:absolute;inset:0;width:100%;height:100%}
 .cvf-compare{position:absolute;left:12px;bottom:10px;min-height:32px;padding:0 12px;border:1px solid #414852;border-radius:6px;background:#20252bdd;color:#e9edf4;font:inherit;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
 .cvf-compare.on{background:#6794ff;color:#071120;border-color:#80a7ff}

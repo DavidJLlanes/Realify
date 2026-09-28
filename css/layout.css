@@ -651,6 +651,10 @@
   position:fixed;inset:0;z-index:300;
   display:flex;align-items:center;justify-content:center;
   padding:22px;
+  /* Pellizcar y arrastrar sobre el fondo amplía y desplaza la imagen
+     (ui/dialog.js); el cuerpo de la tarjeta sigue desplazándose porque
+     es su propio contenedor de scroll. */
+  touch-action:none;
 }
 .modal[hidden]{display:none}
 /* Sobre los editores a pantalla completa (memes, collage, stickers,

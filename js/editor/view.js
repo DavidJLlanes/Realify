@@ -291,6 +291,71 @@ export function edgeAutoScroll(clientX, clientY){
 ["gesturestart", "gesturechange", "gestureend"].forEach(name =>
   stage.addEventListener(name, e => e.preventDefault()));
 
+/* Zoom y desplazamiento desde una capa que tapa el lienzo, como el fondo
+   transparente de un diálogo de ajuste: pellizcar con dos dedos amplía,
+   arrastrar con uno (o con el ratón) desplaza, igual que sobre el propio
+   lienzo pero sin pasar nada a la herramienta activa. Sólo los gestos
+   que empiezan en `el` mismo, nunca en lo que tenga dentro. Devuelve
+   una función que dice si el último gesto movió la vista, para que
+   quien escuche el «click» del final no lo tome por un toque suelto. */
+export function attachViewGestures(el){
+  const pts = new Map();
+  let g = null, moved = false;
+  const begin = () => {
+    const p = [...pts.values()];
+    if(p.length === 1) g = { x: p[0].x, y: p[0].y, vx: view.x, vy: view.y };
+    else if(p.length === 2){
+      g = { pinch: true, d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), z: view.zoom,
+            cx: (p[0].x + p[1].x) / 2, cy: (p[0].y + p[1].y) / 2, px: view.x, py: view.y };
+    } else g = null;
+  };
+  el.addEventListener("pointerdown", e => {
+    if(e.target !== el || !doc.open || pts.size >= 2) return;
+    if(e.pointerType === "mouse" && e.button !== 0 && e.button !== 1) return;
+    if(!pts.size) moved = false;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try{ el.setPointerCapture(e.pointerId); }catch{}
+    begin();
+    if(e.button === 1) e.preventDefault();
+  });
+  el.addEventListener("pointermove", e => {
+    if(!g || !pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const p = [...pts.values()];
+    if(g.pinch && p.length === 2){
+      const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      const cx = (p[0].x + p[1].x) / 2, cy = (p[0].y + p[1].y) / 2;
+      const z = clamp(g.z * (d / Math.max(g.d, 1)), ZMIN, ZMAX);
+      const r = stage.getBoundingClientRect();
+      const ix = (g.cx - r.left - g.px) / g.z, iy = (g.cy - r.top - g.py) / g.z;
+      view.zoom = z;
+      view.x = (cx - r.left) - ix * z;
+      view.y = (cy - r.top)  - iy * z;
+      moved = true;
+    } else if(!g.pinch){
+      const dx = e.clientX - g.x, dy = e.clientY - g.y;
+      if(!moved && Math.hypot(dx, dy) < 4) return;
+      view.x = g.vx + dx; view.y = g.vy + dy;
+      moved = true;
+    } else return;
+    view.fitted = false;
+    apply();
+  });
+  const end = e => {
+    if(!pts.delete(e.pointerId)) return;
+    begin();   // al levantar un dedo del pellizco se sigue desplazando con el otro, sin salto
+  };
+  el.addEventListener("pointerup", end);
+  el.addEventListener("pointercancel", end);
+  el.addEventListener("wheel", e => {
+    if(e.target !== el || !doc.open) return;
+    e.preventDefault();
+    const f = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+    zoomAt(view.zoom * f, e.clientX, e.clientY);
+  }, { passive: false });
+  return () => moved;
+}
+
 export function handlePointerMove(e){
   if(pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 

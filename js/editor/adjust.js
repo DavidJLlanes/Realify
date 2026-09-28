@@ -19,7 +19,7 @@ import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { blendBySelection } from "./selection.js";
 import { isMobile } from "../core/device.js";
-import { fitAbove } from "./view.js";
+import { view, fitAbove } from "./view.js";
 
 /* Por encima de este tamaño, la vista previa se calcula sobre una
    versión reducida: al aceptar sí se aplica entera.
@@ -317,13 +317,18 @@ export function liftImageAbove(el){
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const card = el.closest(".modal-card"), back = el.closest(".modal");
     if(!card || !back) return;
-    let restore = null, lastTop = -1;
+    let restore = null, lastTop = -1, placed = null;
     const place = () => {
       const top = Math.round(card.getBoundingClientRect().top);
       if(Math.abs(top - lastTop) < 4) return;
+      /* Si el usuario ya ha ampliado o movido la imagen (pellizco sobre
+         el fondo del diálogo), un cambio de alto de la hoja no le
+         deshace el zoom. */
+      if(placed && (view.zoom !== placed.zoom || view.x !== placed.x || view.y !== placed.y)) return;
       lastTop = top;
       const r = fitAbove(top);
       if(!restore) restore = r;
+      placed = { zoom: view.zoom, x: view.x, y: view.y };
     };
     /* La hoja entra deslizándose desde abajo: se espera a que su borde
        deje de moverse (unos fotogramas seguidos quieto) antes de
