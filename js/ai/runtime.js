@@ -69,7 +69,7 @@ const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA",
    (io/project.js) y se deja una marca; si la página vuelve a arrancar
    con la marca puesta es que se cayó a mitad: se reabren y se recuerda
    que ese modelo no cabe en este dispositivo. */
-const HEAVY = 100e6, STASH_KEY = "before-ai", RUNNING = "realify.aiRunning", CRASHED = "realify.aiCrashed";
+const HEAVY = 80e6, STASH_KEY = "before-ai", RUNNING = "realify.aiRunning", CRASHED = "realify.aiCrashed";
 const readCrashed = () => { try{ return JSON.parse(localStorage.getItem(CRASHED) || "{}"); }catch{ return {}; } };
 const writeCrashed = v => { try{ localStorage.setItem(CRASHED, JSON.stringify(v)); }catch{} };
 

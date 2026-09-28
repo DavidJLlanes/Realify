@@ -425,6 +425,11 @@ const AI_RESTORE = {
 async function aiRestore(id){
   const layer = rasterLayer(); if(!layer) return;
   const cfg = AI_RESTORE[id];
+  if(id === "scunet" && COARSE){
+    const { confirmDlg } = await import("../ui/dialog.js");
+    if(!(await confirmDlg("Reducción de ruido con IA en el móvil",
+      "SCUNet es un modelo grande (91 MB): en un móvil puede tardar varios minutos y calentar el teléfono. Si la página se cierra por falta de memoria, tu imagen se recupera al volver. ¿Continuar?", "Continuar"))) return;
+  }
   const { sizeNote, runModel } = await import("../ai/runtime.js");
   const note = await sizeNote(id);
   const body = await settingsDialog(cfg.title, `

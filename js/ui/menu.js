@@ -7,11 +7,15 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { run, enabled, labelFor } from "./commands.js";
+import { ICONS } from "./tooldrawer-icons.js";
 
 /* Icono opcional delante del texto de una entrada: un SVG en línea,
    que hereda el color del texto. Sólo lo usan las entradas a las que
    una marca visual les añade algo; el resto siguen siendo texto. */
-const iconHtml = it => it.icon ? `<span class="mi" aria-hidden="true">${it.icon}</span>` : "";
+/* `icon`: SVG completo propio; `ic`: nombre de un icono del cajón de
+   herramientas (ui/tooldrawer-icons.js), el mismo que en el móvil. */
+const iconHtml = it => it.icon ? `<span class="mi" aria-hidden="true">${it.icon}</span>`
+  : it.ic && ICONS[it.ic] ? `<span class="mi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[it.ic]}</svg></span>` : "";
 
 export const MENUS = [
   { label:"Archivo", items:[
@@ -27,17 +31,17 @@ export const MENUS = [
     { cmd:"file.export",   label:"Exportar…" },
     { cmd:"file.exportAs", label:"Exportar como…" },
     { cmd:"file.exportPng",label:"Exportar PNG rápido" },
-    { cmd:"file.exportGif", label:"Exportar GIF animado…",
+    { cmd:"file.exportGif", ic:"film", label:"Exportar GIF animado…",
       help:"Cada capa visible es un fotograma (sola o acumulada): duración, bucle, ida y vuelta, tamaño y colores." },
-    { cmd:"file.contactSheet", label:"Hoja de contactos…",
+    { cmd:"file.contactSheet", ic:"contact-sheet", label:"Hoja de contactos…",
       help:"Pantalla completa: muchas fotos en páginas A4, A3, Carta o 10 × 15 con columnas, márgenes, título y nombre de cada foto. Crea un PDF de varias páginas o capas nuevas." },
     { cmd:"file.socialPreview", label:"Prueba para redes sociales…" },
     { sep:true },
-    { cmd:"file.startBatch", label:"Editar en lote (abrir varias fotos)…",
+    { cmd:"file.startBatch", ic:"layers-plus", label:"Editar en lote (abrir varias fotos)…",
       help:"Abre varias fotos, cada una en su pestaña: edita una y copia su edición a las demás con «Aplicar esta edición a otras fotos»." },
-    { cmd:"file.batchEdit", label:"Aplicar esta edición a otras fotos…",
+    { cmd:"file.batchEdit", ic:"layers-2", label:"Aplicar esta edición a otras fotos…",
       help:"Copia las capas de ajuste, filtros, textos y marcas de agua de la foto abierta a otras pestañas o fotos de la galería, con vista previa e igualado de exposición. Resultado en sus pestañas (capas reeditables) o en un ZIP." },
-    { cmd:"actions.open",  label:"Acciones (grabar y repetir)…",
+    { cmd:"actions.open", ic:"clapperboard",  label:"Acciones (grabar y repetir)…",
       help:"Graba una secuencia de ajustes, filtros y comandos con sus valores y repítela en cualquier foto o en muchas a la vez (ZIP). Se pueden exportar e importar." },
     { cmd:"file.revert",   label:"Restaurar al estado original…", help:"Descarta capas, ediciones e historial y vuelve al archivo tal como se abrió." },
     { sep:true },
@@ -104,12 +108,12 @@ export const MENUS = [
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
       help:"Pantalla completa: recorta la foto con una de unas 60 formas (círculo, polígonos y estrellas configurables, corazón, flores, nube, bocadillos, engranaje, anillo, marco, flechas…) que se mueve, escala y gira sobre la imagen, con borde suave y contorno. Crea una capa nueva con transparencia fuera." },
     { sep:true },
-    { cmd:"image.removeBackground", label:"Eliminar fondo…" },
-    { cmd:"ai.upscale", label:"Ampliar con IA…",
+    { cmd:"image.removeBackground", ic:"image-minus", label:"Eliminar fondo…" },
+    { cmd:"ai.upscale", ic:"scaling", label:"Ampliar con IA…",
       help:"Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva." },
-    { cmd:"ai.colorize", label:"Colorear con IA…",
+    { cmd:"ai.colorize", ic:"colorize", label:"Colorear con IA…",
       help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
-    { cmd:"ai.expand", label:"Expandir con IA…",
+    { cmd:"ai.expand", ic:"expand", label:"Expandir con IA…",
       help:"Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva." },
     { cmd:"sky.replace", label:"Reemplazar cielo…",
       help:"Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara." }
@@ -330,7 +334,7 @@ export const MENUS = [
     ]},
     { label:"Ruido", submenu:[
       { cmd:"filter.denoise", label:"Reducción de ruido…" },
-      { cmd:"filter.aiDenoise", label:"Reducción de ruido con IA…", desktopOnly:true,
+      { cmd:"filter.aiDenoise", ic:"denoise-ai", label:"Reducción de ruido con IA…",
         help:"SCUNet (modelo de ImageToolbox): quita el ruido real de cámara conservando el detalle. La primera vez descarga el modelo (91 MB)." },
       { cmd:"filter.aiDejpeg", label:"Quitar artefactos JPEG con IA…",
         help:"FBCNN (modelo de ImageToolbox): elimina bloques y halos de compresión. La primera vez descarga el modelo (144 MB)." },
@@ -371,9 +375,9 @@ export const MENUS = [
     ]}
   ]},
   { label:"Análisis", items:[
-    { cmd:"an.palette", label:"Paleta de colores…",
+    { cmd:"an.palette", ic:"palette", label:"Paleta de colores…",
       help:"Los colores dominantes de la imagen: tocar uno lo copia y lo pone como color frontal; se puede crear como capa, descargar o copiar." },
-    { cmd:"an.eyedropper", label:"Cuentagotas de pantalla",
+    { cmd:"an.eyedropper", ic:"pipette", label:"Cuentagotas de pantalla",
       help:"Coge un color de cualquier parte de la pantalla, fuera de la imagen también (Chrome y Edge de escritorio)." },
     { sep:true },
     { cmd:"an.metrics",   label:"Plausibilidad…" },
