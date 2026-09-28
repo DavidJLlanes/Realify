@@ -250,7 +250,7 @@ registerAll({
                                     // `isNew` Esc lo borraba entero y aceptar anotaba otro «Añadir texto».
                                     if(isText(l)){ setTool("text"); startEdit(l, true, false); } },
                        enabled: () => isText(activeLayer()) },
-  "layer.rasterizeText": { run: () => rasterizeText(activeLayer()),
+  "layer.rasterizeText": { run: () => { if(isEditing()) endEdit(); rasterizeText(activeLayer()); },
                        enabled: () => isText(activeLayer()) },
   /* Creador de memes a pantalla completa (memes/). */
   "layer.meme":      { run: async () => (await import("../memes/index.js")).openMemeCreator(),

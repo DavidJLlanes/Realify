@@ -258,6 +258,10 @@ export function endEdit(){
 
   delete layer.__editing;
 
+  /* Si la capa dejó de ser de texto mientras se escribía (se rasterizó),
+     ya no hay texto que guardar. */
+  if(!isText(layer)){ emit("doc:change"); return; }
+
   /* Una capa que se queda sin una sola letra no es una capa: es el
      rastro de haber pinchado sin querer. Se descarta, como hace
      cualquier editor, en vez de dejar una capa vacía en la pila. */
