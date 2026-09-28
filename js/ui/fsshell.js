@@ -312,6 +312,15 @@ export function mountControls(sh, { sections, get, set, desktop = sh.right, mobi
       inp.addEventListener("input", () => { out.textContent = fmt(+inp.value); set(p.key, +inp.value, false); });
       inp.addEventListener("change", () => set(p.key, +inp.value, true));
       inp.addEventListener("dblclick", () => { if(p.def !== undefined){ inp.value = p.def; out.textContent = fmt(p.def); set(p.key, p.def, true); } });
+      // `buttons`: − / + a los lados, un paso cada toque (ajuste fino con el dedo).
+      if(p.buttons){
+        const row = document.createElement("div"); row.className = "fsp-rangebtns";
+        const mk = (d, txt, lbl) => { const b = document.createElement("button"); b.type = "button"; b.textContent = txt; b.setAttribute("aria-label", lbl);
+          b.addEventListener("click", e => { e.preventDefault(); const st = +(p.step || 1), v = clamp(Math.round((+inp.value + d * st) / st) * st, p.min, p.max);
+            inp.value = v; out.textContent = fmt(v); set(p.key, v, true); }); return b; };
+        inp.replaceWith(row);
+        row.append(mk(-1, "−", "Menos"), inp, mk(1, "+", "Más"));
+      }
       return wrap;
     }
     if(p.type === "select" || (p.type === "thumbs" && compact)){

@@ -11,7 +11,7 @@ import { downscale, estimateEvs, alignAll, commonRect, mergeRadiance, fuseMerten
          toneMap, finish, downRadiance } from "./engine.js";
 
 let orig = [], exifEvs = [], previewSide = 1200;
-let full = [], proxy = [], evs = [], shifts = [], cache = null;
+let full = [], proxy = [], draft = null, evs = [], shifts = [], cache = null;
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 const scaleShifts = (k) => shifts.map(s => ({ dx: Math.round(s.dx * k), dy: Math.round(s.dy * k) }));
@@ -70,6 +70,7 @@ function setup(){
     const w = Math.min(...full.map(i => i.w)), h = Math.min(...full.map(i => i.h));
     full = full.map(im => im.w === w && im.h === h ? im : cropTo(im, w, h));
     proxy = full.map(im => downscale(im, previewSide));
+    draft = null;
     const small = full.map(im => downscale(im, 700));
     // Exposiciones: EXIF si todas lo tienen y no son iguales; si no, estimadas.
     const ex = exifEvs;
@@ -88,12 +89,22 @@ function setup(){
 Object.assign(handlers, {
   setEvs(m){ evs = m.evs.slice(); cache = null; return { ok: true }; },
   preview(m){
+    if(m.evs) evs = m.evs.slice();
+    // Borrador: mientras se arrastra la exposición de una foto, la
+    // fusión se rehace entera en cada paso; con una copia más pequeña
+    // la vista sigue al dedo en tiempo real.
+    if(m.draft){
+      if(!draft) draft = proxy.map(im => downscale(im, Math.max(360, Math.round(previewSide * 0.55))));
+      const out = render(draft, draft[0].w / full[0].w, m.s, null);
+      return { w: out.w, h: out.h, data: out.data.buffer, transfer: [out.data.buffer] };
+    }
     const s = m.s, k = proxy[0].w / full[0].w, kk = key(s);
     const radCache = R => { if(R){ cache = { key: kk, R }; return; } return cache?.key === kk ? cache.R : null; };
     const out = render(proxy, k, s, radCache);
     return { w: out.w, h: out.h, data: out.data.buffer, transfer: [out.data.buffer] };
   },
   thumbs(m){
+    if(m.evs) evs = m.evs.slice();
     const res = [];
     const k = proxy[0].w / full[0].w;
     let small = null, smallK = 0, R = null;
@@ -115,6 +126,7 @@ Object.assign(handlers, {
     return { list: res, transfer: res.map(r => r.data) };
   },
   final(m){
+    if(m.evs) evs = m.evs.slice();
     post({ type: "progress", msg: "Fusionando a resolución completa…" });
     const out = render(full, 1, m.s, null);
     return { w: out.w, h: out.h, data: out.data.buffer, transfer: [out.data.buffer] };

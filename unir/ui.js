@@ -200,7 +200,7 @@ export function openMergeEditor({ current = null, onAccept }){
     });
     if(photos.length < MAX_PHOTOS){
       const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
-      b.style.cssText = "display:grid;place-items:center;width:56px;height:56px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
+      b.style.cssText = "display:grid;place-items:center;width:68px;height:68px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
       b.setAttribute("aria-label", "Añadir fotos"); b.textContent = "+"; b.addEventListener("click", addPhotos); wrap.appendChild(b);
     }
     return wrap;

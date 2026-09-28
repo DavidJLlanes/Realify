@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Fusión HDR**: «Foto elegida» es el primer grupo (escritorio y móvil), con la
+  exposición en tercios de paso, botones − / + y **Pasos entre fotos** para todo el
+  horquillado de golpe; grupos ordenados según el flujo de trabajo y tira de fotos
+  más cómoda en el móvil.
 - **Guía actualizada** con todo lo nuevo: tiradores, cerrar todas las fotos, editar
   en lote, antes y después, hoja de contactos, GIF, AVIF y PDF, acciones, paleta,
   cuentagotas de pantalla y zoom con el efecto abierto.
@@ -48,6 +52,9 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Fusión HDR: la exposición de una foto no se veía hasta soltar el deslizador; ahora
+  cambia en tiempo real. Se lee el EXIF de HEIC, PNG y WebP, y la estimación sin EXIF
+  iguala los pasos del horquillado.
 - Transformar: al estirar una esquina rápido, la esquina opuesta se movía y el
   tirador se quedaba atrás; con la capa ya movida, escalar la hacía saltar.
 - ISNet recibía la imagen sin normalizar y devolvía máscaras casi uniformes.

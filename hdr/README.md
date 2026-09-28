@@ -14,9 +14,13 @@ la misma escena con distinta exposición.
 
 ## Proceso
 
-1. **Horquillado**: EV relativo de cada foto desde el EXIF; si falta (HEIC,
-   fotos reenviadas…), se estima por la razón de los valores lineales entre
-   fotos vecinas de brillo. Se puede corregir a mano en tercios de paso.
+1. **Horquillado**: EV relativo de cada foto desde el EXIF (JPEG, TIFF/DNG,
+   HEIC, PNG y WebP); si falta (fotos reenviadas…), se estima por la razón de
+   los valores lineales entre fotos vecinas de brillo y, si los saltos se
+   parecen, se igualan (un horquillado suele ir a pasos iguales). Se corrige
+   en **Foto elegida**, el primer grupo: la exposición de cada foto en tercios
+   de paso (deslizador con − / +, la vista cambia mientras se arrastra) o
+   **Pasos entre fotos** para poner todo el horquillado a ⅓…4 EV de golpe.
 2. **Alineación**: cada foto se alinea con su vecina de exposición (en cadena
    hasta la intermedia) probando dos métodos —gradientes del logaritmo de la
    luminancia con la exposición igualada, y mapas de umbral mediano de Ward— y
@@ -33,5 +37,10 @@ la misma escena con distinta exposición.
 5. **Ajustes finales**: exposición, contraste, puntos negro y blanco, gamma,
    sombras, altas luces, saturación, intensidad, saturación en luces y en
    sombras, temperatura, tinte y nitidez.
+
+Orden de los grupos, el del trabajo: Foto elegida → Fusión de las fotos →
+Estilo → Método → mandos del método → Tono → Color → Detalle. Mientras se
+arrastra una exposición, el worker fusiona un borrador más pequeño (55 % de
+la vista previa) y sólo se calcula la última posición, sin cola.
 
 Tamaño de trabajo: 4096 px de lado en el ordenador y 2400 px en el móvil.

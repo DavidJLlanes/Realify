@@ -72,6 +72,9 @@
 .fsp-photo small{color:#9ca5b3;font-size:11px}
 .fsp-photo .x{width:28px;height:28px;padding:0;border:1px solid #3b414b;border-radius:5px;background:#272b31;color:#e9edf4;cursor:pointer}
 .fsp-photo .ops{display:flex;gap:4px}
+.fsp-rangebtns{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;gap:8px;align-items:center}
+.fsp-rangebtns button{width:30px;height:30px;padding:0;border:1px solid #3b414b;border-radius:6px;background:#272b31;color:#e9edf4;font-size:17px;line-height:1;cursor:pointer}
+.fsp-rangebtns button:active{background:#33394a}
 
 /* Móvil: la imagen arriba y un único control abajo */
 .fsp-mobile{display:none}
@@ -118,10 +121,14 @@
   .fsp-mtools button.on{background:#293b60;border-color:#7fa6ff}
   .fsp-mphotos{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
   .fsp-mphotos::-webkit-scrollbar{display:none}
-  .fsp-mphotos .fsp-photo{flex:none;grid-template-columns:48px;padding:3px;position:relative}
+  .fsp-mphotos .fsp-photo{flex:none;grid-template-columns:60px;padding:3px;position:relative}
+  .fsp-mphotos .fsp-photo.on{outline:2px solid #7fa6ff;outline-offset:1px}
   .fsp-mphotos .fsp-photo div{display:none}
-  .fsp-mphotos .fsp-photo img,.fsp-mphotos .fsp-photo canvas{width:48px;height:48px}
-  .fsp-mphotos .fsp-photo .x{position:absolute;top:-4px;right:-4px;width:22px;height:22px;font-size:11px;border-radius:11px}
+  .fsp-mphotos .fsp-photo img,.fsp-mphotos .fsp-photo canvas{width:60px;height:60px}
+  .fsp-mphotos .fsp-photo .x{position:absolute;top:5px;right:5px;width:22px;height:22px;min-width:0;min-height:0;font-size:11px;line-height:1;border:none;border-radius:11px;background:#000b}
   .fsp-mphotos .fsp-photo .ops{display:contents}
-  .fsp-mphotos .fsp-photo small.ev{position:absolute;left:3px;bottom:3px;padding:0 3px;border-radius:3px;background:#000b;color:#fff;font:10px var(--mono,monospace)}
+  .fsp-mphotos .fsp-photo small.ev{position:absolute;left:3px;right:3px;bottom:3px;padding:1px 0;border-radius:0 0 4px 4px;background:#000c;color:#fff;text-align:center;font:600 11px var(--mono,monospace)}
+  .fsp-mphotos .fsp-photo.on small.ev{background:#3d5fae}
+  .fsp-rangebtns{grid-template-columns:44px minmax(0,1fr) 44px}
+  .fsp-rangebtns button{width:44px;height:44px;font-size:20px}
 }

@@ -363,10 +363,15 @@ const TOPICS = [
           incluidas.</li>
         <li id="img-hdr"><b>Fusión HDR…</b> Pantalla completa. Añade de 2 a 11 fotos de la misma
           escena con distinta exposición (o una sola, para un HDR simulado): la app detecta el
-          horquillado (por EXIF o por el brillo, corregible en tercios de paso), las alinea y,
-          si algo se mueve entre tomas, aplica el <b>antifantasmas</b>. Métodos: detalles
-          realzados, fusión de exposición, compresor de tonos y fotográfico, con 17 estilos en
-          miniatura y ajustes de tono, color y nitidez. Crea una capa nueva.</li>
+          horquillado (por EXIF —también de HEIC, PNG y WebP— o por el brillo) y las alinea. Si
+          alguna exposición no es la correcta, el primer grupo, <b>Foto elegida</b>, sirve para
+          corregirla: toca la foto y mueve su exposición (en tercios de paso, con − / + para
+          afinar; la vista cambia mientras arrastras), o elige los <b>Pasos entre fotos</b> de tu
+          horquillado (por ejemplo, 2 EV) y se ponen todas a la vez. Los grupos siguen el orden
+          del trabajo: Foto elegida, Fusión de las fotos (alinear, recortar bordes y
+          <b>antifantasmas</b> si algo se mueve entre tomas), Estilo (17, en miniatura), Método
+          (detalles realzados, fusión de exposición, compresor de tonos o fotográfico) con sus
+          mandos, y al final Tono, Color y Detalle. Crea una capa nueva.</li>
         <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. <b>Panorámica</b>: fotos
           solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
           iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:

@@ -91,7 +91,18 @@ export function estimateEvs(imgs){
     if(d === null || !Number.isFinite(d)) d = Math.log2(Math.max(1e-4, meanLum(b)) / Math.max(1e-4, meanLum(a)));
     ev[order[k]] = ev[order[k - 1]] + Math.max(0, d);
   }
-  const base = ev[0];
+  // Un horquillado casi siempre va a pasos iguales: si los saltos
+  // estimados entre vecinas se parecen, se igualan (la curva de la
+  // cámara hace que unos salgan algo más cortos que otros).
+  if(order.length >= 3){
+    const steps = order.slice(1).map((o, k) => ev[o] - ev[order[k]]);
+    const mean = steps.reduce((a, b) => a + b, 0) / steps.length;
+    if(mean > 0.2 && steps.every(d => Math.abs(d - mean) <= Math.max(0.4, mean * 0.3))){
+      const st = Math.round(mean * 3) / 3;
+      order.forEach((o, k) => { ev[o] = ev[order[0]] + k * st; });
+    }
+  }
+  const base = Math.min(...ev);
   return ev.map(v => Math.round((v - base) * 3) / 3);
 }
 

@@ -3,11 +3,18 @@
    Pantalla completa, como el revelador RAW (js/ui/fsshell.js):
 
      · Escritorio: a la izquierda las fotos (hasta 11) con su
-       exposición detectada —editable— y los estilos en miniatura; en
-       el centro el resultado; a la derecha todos los ajustes.
+       exposición detectada y los estilos en miniatura; en el centro el
+       resultado; a la derecha los ajustes.
      · Móvil: el resultado arriba; abajo la tira de fotos, un
        desplegable de grupo, otro de ajuste y su deslizador. El
        desplegable de estilos abre una hoja de miniaturas.
+
+   Los grupos van en el orden en que conviene trabajar: primero lo que
+   cambia la FUSIÓN (la exposición de cada foto —«Foto elegida»—, la
+   alineación y el antifantasmas), después el estilo y el método, y al
+   final los retoques de tono, color y detalle. La exposición de una
+   foto se ve cambiar en tiempo real mientras se arrastra (ver
+   `schedule`, con un borrador más pequeño durante el gesto).
    ═══════════════════════════════════════════════════════════════ */
 
 import { createShell, mountControls, stateHistory, decodePhoto, pickFiles, thumbButton } from "../js/ui/fsshell.js";
@@ -25,7 +32,12 @@ const TOUCH = matchMedia("(pointer:coarse)").matches;
 const WORK_SIDE = TOUCH || MOBILE.matches ? 2400 : 4096;
 const PREVIEW_SIDE = TOUCH || MOBILE.matches ? 900 : 1400;
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-const evText = v => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(Math.round(v * 3) / 3).toFixed(Number.isInteger(Math.round(v * 3) / 3) ? 0 : 1) + " EV";
+const STEPS = [[1 / 3, "⅓ EV"], [2 / 3, "⅔ EV"], [1, "1 EV"], [4 / 3, "1⅓ EV"], [5 / 3, "1⅔ EV"], [2, "2 EV"], [7 / 3, "2⅓ EV"], [8 / 3, "2⅔ EV"], [3, "3 EV"], [4, "4 EV"]];
+/* «+2⅓ EV»: los horquillados van por tercios de paso. */
+const evText = v => {
+  const n = Math.round(v * 3), a = Math.abs(n), w = Math.floor(a / 3), r = a % 3;
+  return (n > 0 ? "+" : n < 0 ? "−" : "±") + (w || !r ? w : "") + (r === 1 ? "⅓" : r === 2 ? "⅔" : "") + " EV";
+};
 
 export function openHdrEditor({ current = null, onAccept }){
   const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
@@ -43,6 +55,7 @@ export function openHdrEditor({ current = null, onAccept }){
 
   const photos = [];   // { name, thumb (dataURL), exif, proxy (canvas para comparar) }
   const state = { s: { ...DEFAULTS, ...presetSettings("realista") }, preset: "realista", evs: [], sel: 0 };
+  let detected = [];   // EV detectados al añadir las fotos, para «Pasos entre fotos › Los detectados»
   let evSource = "", size = null, usedCurrent = false, thumbs = new Map(), previewTimer = 0, previewSeq = 0, thumbsSeq = 0, closed = false;
 
   const sh = createShell({
@@ -55,7 +68,7 @@ export function openHdrEditor({ current = null, onAccept }){
   const S = state.s;
   // Deshacer sustituye `state.s` por una copia: se vuelca en el mismo
   // objeto para que `S` siga siendo el que usan todos los controles.
-  const hist = stateHistory(state, () => { Object.assign(S, state.s); state.s = S; syncEvs(); controls.refresh(); renderPhotos(); schedule(true); }, sh);
+  const hist = stateHistory(state, () => { Object.assign(S, state.s); state.s = S; controls.refresh(); renderPhotos(); schedule(false, true); }, sh);
   sh.setApplyEnabled(false);
 
   /* ── Fotos ── */
@@ -116,7 +129,7 @@ export function openHdrEditor({ current = null, onAccept }){
     finally{ sh.setBusy(null); }
   }
   function afterSetup(r){
-    state.evs = r.evs.slice(); evSource = r.source; size = r.w ? [r.w, r.h] : null;
+    state.evs = r.evs.slice(); detected = r.evs.slice(); evSource = r.source; size = r.w ? [r.w, r.h] : null;
     state.sel = Math.min(state.sel, Math.max(0, photos.length - 1));
     if(S.ghostRef >= photos.length) S.ghostRef = -1;
     hist.reset();
@@ -125,11 +138,38 @@ export function openHdrEditor({ current = null, onAccept }){
     const shifts = r.shifts || [];
     if(shifts.some(s => s.dx || s.dy)) toast(`Fotos alineadas (desplazamiento máximo ${Math.max(...shifts.map(s => Math.max(Math.abs(s.dx), Math.abs(s.dy))))} px)`);
     empty(); renderPhotos(); controls.refresh();
+    // Nada más cargar el horquillado, lo primero es revisar su exposición.
+    if(photos.length > 1) controls.select("photo", "evSel");
     thumbs = new Map();
     if(!photos.length){ sh.setView(null); sh.setOriginal(null); return; }
     schedule(true, true);
   }
-  async function syncEvs(){ if(photos.length) try{ await call({ type: "setEvs", evs: state.evs }); }catch{} }
+  /* Exposición de una foto. `final` = fin del gesto: entra en el
+     historial y se reordena la lista; mientras tanto sólo se actualizan
+     los rótulos y la vista (borrador) para no mover nada bajo el dedo. */
+  function setEv(i, v, final){
+    state.evs[i] = Math.round(v * 3) / 3;
+    for(const el of document.querySelectorAll(`[data-evlabel="${i}"]`)) el.textContent = evText(state.evs[i]);
+    if(final){ hist.commit(); renderPhotos(); controls.refresh(); schedule(false, true); }
+    else schedule(false, false, true);
+  }
+  function setSteps(step){
+    if(!photos.length) return;
+    if(step === 0) state.evs = detected.slice();
+    else {
+      // Del más oscuro al más claro, en el orden detectado, a pasos iguales.
+      const ord = photos.map((p, i) => i).sort((a, b) => (detected[a] ?? 0) - (detected[b] ?? 0) || a - b);
+      ord.forEach((i, k) => { state.evs[i] = Math.round(k * step * 3) / 3; });
+    }
+    hist.commit(); renderPhotos(); controls.refresh(); schedule(false, true);
+  }
+  /* Qué opción de «Pasos entre fotos» describe las exposiciones actuales. */
+  function currentStep(){
+    if(state.evs.every((v, i) => Math.abs(v - (detected[i] ?? 0)) < 1e-6)) return 0;
+    const ord = photos.map((p, i) => i).sort((a, b) => (detected[a] ?? 0) - (detected[b] ?? 0) || a - b);
+    for(const [st] of STEPS) if(ord.every((i, k) => Math.abs(state.evs[i] - Math.round(k * st * 3) / 3) < 1e-6)) return st;
+    return -1;
+  }
 
   /* Orden visual: de la más oscura a la más clara. */
   const order = () => photos.map((p, i) => i).sort((a, b) => (state.evs[a] ?? 0) - (state.evs[b] ?? 0));
@@ -137,13 +177,14 @@ export function openHdrEditor({ current = null, onAccept }){
     const p = photos[i], ev = state.evs[i] ?? 0;
     const row = document.createElement("div");
     row.className = "fsp-photo" + (i === state.sel ? " on" : "");
-    row.innerHTML = `<img alt="" src="${p.thumb}"><div><b>${esc(p.name)}</b><small>${evText(ev)}${p.exif ? " · " + esc(exposureText(p.exif)) : ""}</small></div>
-      <span class="ops">${compact ? `<small class="ev">${evText(ev)}</small>` : `<button type="button" class="x" data-ev="-1" title="Un tercio de paso menos" aria-label="Menos exposición">−</button><button type="button" class="x" data-ev="1" title="Un tercio de paso más" aria-label="Más exposición">+</button>`}<button type="button" class="x" data-rm aria-label="Quitar ${esc(p.name)}">✕</button></span>`;
+    row.innerHTML = `<img alt="" src="${p.thumb}"><div><b>${esc(p.name)}</b><small><span data-evlabel="${i}">${evText(ev)}</span>${p.exif ? " · " + esc(exposureText(p.exif)) : ""}</small></div>
+      <span class="ops">${compact ? `<small class="ev" data-evlabel="${i}">${evText(ev)}</small>` : `<button type="button" class="x" data-ev="-1" title="Un tercio de paso menos" aria-label="Menos exposición">−</button><button type="button" class="x" data-ev="1" title="Un tercio de paso más" aria-label="Más exposición">+</button>`}<button type="button" class="x" data-rm aria-label="Quitar ${esc(p.name)}">✕</button></span>`;
     row.addEventListener("click", e => {
       if(e.target.closest("[data-rm]")){ removePhoto(i); return; }
       const d = e.target.closest("[data-ev]");
-      if(d){ state.evs[i] = Math.round(((state.evs[i] || 0) + (+d.dataset.ev) / 3) * 3) / 3; hist.commit(); syncEvs().then(() => schedule(true, true)); renderPhotos(); return; }
-      state.sel = i; renderPhotos(); controls.renderMobile();
+      if(d){ state.sel = i; setEv(i, (state.evs[i] || 0) + (+d.dataset.ev) / 3, true); return; }
+      if(state.sel === i) return;
+      state.sel = i; renderPhotos(); controls.refresh();
     });
     return row;
   }
@@ -159,8 +200,8 @@ export function openHdrEditor({ current = null, onAccept }){
     if(current && !usedCurrent){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = "Usar la imagen abierta"; b.addEventListener("click", addCurrent); L.appendChild(b); }
     if(photos.length){
       const n = document.createElement("p"); n.className = "fsp-note";
-      n.textContent = evSource === "exif" ? "Exposición leída del EXIF. Ajústala con − / + si alguna está mal." :
-        evSource === "estimada" ? "Sin EXIF de exposición: se ha estimado por el brillo. Corrígela con − / + si hace falta." :
+      n.textContent = evSource === "exif" ? "Exposición leída del EXIF. Si alguna está mal, elígela y corrígela en «Foto elegida» (o con − / +)." :
+        evSource === "estimada" ? "Sin EXIF de exposición: estimada por el brillo. Si sabes los pasos del horquillado, elígelos en «Foto elegida › Pasos entre fotos»; o corrige cada foto." :
         "Con una sola foto se hace un HDR simulado (mapeo tonal de la propia imagen).";
       L.appendChild(n);
     }
@@ -178,7 +219,7 @@ export function openHdrEditor({ current = null, onAccept }){
     for(const i of order()) wrap.appendChild(photoRow(i, true));
     if(photos.length < MAX_PHOTOS){
       const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
-      b.style.cssText = "display:grid;place-items:center;width:56px;height:56px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
+      b.style.cssText = "display:grid;place-items:center;width:68px;height:68px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
       b.setAttribute("aria-label", "Añadir fotos"); b.textContent = "+"; b.addEventListener("click", addPhotos);
       wrap.appendChild(b);
     }
@@ -193,12 +234,22 @@ export function openHdrEditor({ current = null, onAccept }){
   }
   const R = (key, label, min, max, unit = "", def) => ({ key, label, type: "range", min, max, unit, def: def ?? DEFAULTS[key] });
   const is = (...m) => () => m.includes(S.method);
+  const selInfo = () => {
+    const p = photos[state.sel], d = document.createElement("div");
+    d.className = "fsp-photo on"; d.style.cursor = "default";
+    if(p) d.innerHTML = `<img alt="" src="${p.thumb}"><div><b>${esc(p.name)}</b><small>Detectada: ${evText(detected[state.sel] ?? 0)}${p.exif ? " · " + esc(exposureText(p.exif)) : ""}</small></div>`;
+    return d;
+  };
   const sections = [
-    { id: "style", label: "Estilo", props: [{ key: "preset", label: "Estilo", type: "thumbs", options: PRESETS.map(p => [p[0], p[1]]), thumb: v => thumbs.get(v) }], when: () => MOBILE.matches },
-    { id: "method", label: "Método", props: [{ key: "method", label: "Método de fusión", type: "select", options: METHODS }] },
-    { id: "photo", label: "Foto elegida", when: () => MOBILE.matches && photos.length > 0, props: [
-      { key: "evSel", label: "Exposición de la foto elegida", type: "range", min: -6, max: 6, step: 1 / 3, fmt: v => evText(v) }
-    ] },
+    // 1. Lo que cambia la fusión: exposición de cada foto, alineación, fantasmas.
+    { id: "photo", label: "Foto elegida", when: () => photos.length > 1,
+      note: () => MOBILE.matches ? "" : "Elige la foto en la lista de la izquierda. La vista cambia mientras arrastras.",
+      props: [
+        { key: "selInfo", type: "custom", render: () => selInfo(), when: () => !MOBILE.matches },
+        { key: "evSel", label: "Exposición (EV)", type: "range", min: -4, max: 12, step: 1 / 3, fmt: v => evText(v), buttons: true },
+        { key: "evStep", label: "Pasos entre fotos", type: "select",
+          options: () => [[0, "Los detectados"], ...(currentStep() === -1 ? [[-1, "Personalizados"]] : []), ...STEPS] }
+      ] },
     { id: "merge", label: "Fusión de las fotos", props: [
       { key: "align", label: "Alinear las fotos", type: "toggle" },
       { key: "crop", label: "Recortar bordes tras alinear", type: "toggle", when: () => S.align },
@@ -206,6 +257,10 @@ export function openHdrEditor({ current = null, onAccept }){
       { key: "ghostRef", label: "Foto de referencia", type: "select", when: () => S.deghost > 0,
         options: () => [[-1, "Automática (exposición media)"], ...photos.map((p, i) => [i, `${evText(state.evs[i] ?? 0)} · ${p.name}`])] }
     ] },
+    // 2. El aspecto general: estilo (en escritorio, miniaturas a la izquierda) y método.
+    { id: "style", label: "Estilo", props: [{ key: "preset", label: "Estilo", type: "thumbs", options: PRESETS.map(p => [p[0], p[1]]), thumb: v => thumbs.get(v) }], when: () => MOBILE.matches },
+    { id: "method", label: "Método", props: [{ key: "method", label: "Método de fusión", type: "select", options: METHODS }] },
+    // 3. Los mandos del método y los retoques finales.
     { id: "details", label: "Detalles realzados", when: is("details"), props: [
       R("strength", "Fuerza", 0, 100), R("sat", "Saturación del color", 0, 200),
       R("luminosity", "Luminosidad", -100, 100), R("detail", "Contraste de detalle", -100, 100),
@@ -237,10 +292,11 @@ export function openHdrEditor({ current = null, onAccept }){
   ];
   const controls = mountControls(sh, {
     sections,
-    get: k => k === "preset" ? state.preset : k === "evSel" ? (state.evs[state.sel] ?? 0) : S[k],
+    get: k => k === "preset" ? state.preset : k === "evSel" ? (state.evs[state.sel] ?? 0) : k === "evStep" ? currentStep() : S[k],
     set: (k, v, final) => {
       if(k === "preset"){ setPreset(v); return; }
-      if(k === "evSel"){ state.evs[state.sel] = v; if(final){ hist.commit(); syncEvs().then(() => schedule(true, true)); renderPhotos(); } return; }
+      if(k === "evSel"){ setEv(state.sel, v, final); return; }
+      if(k === "evStep"){ if(v !== -1) setSteps(v); return; }
       S[k] = v;
       const structural = ["align", "crop", "deghost", "ghostRef", "method"].includes(k);
       if(final){ hist.commit(); if(structural) controls.refresh(); }
@@ -251,31 +307,41 @@ export function openHdrEditor({ current = null, onAccept }){
 
   /* ── Vista previa ── */
   const out = document.createElement("canvas");
-  function schedule(merge = false, withThumbs = false){
+  /* Una sola vista previa en marcha: si llegan cambios mientras
+     tanto, al terminar se calcula la última (no una cola de todas). */
+  let running = false, pendingRun = null;
+  function schedule(merge = false, withThumbs = false, draft = false){
     if(!photos.length) return;
     clearTimeout(previewTimer);
-    previewTimer = setTimeout(async () => {
-      const seq = ++previewSeq;
-      sh.setBusy(merge ? "Fusionando…" : null);
-      try{
-        const r = await call({ type: "preview", s: { ...S } });
-        if(seq !== previewSeq || closed) return;
+    const job = { merge, withThumbs: withThumbs || (pendingRun?.withThumbs ?? false), draft };
+    previewTimer = setTimeout(() => run(job), merge || draft ? 0 : 50);
+  }
+  async function run(job){
+    if(running){ pendingRun = job; return; }
+    running = true;
+    const seq = ++previewSeq;
+    if(job.merge) sh.setBusy("Fusionando…");
+    try{
+      const r = await call({ type: "preview", s: { ...S }, evs: state.evs.slice(), draft: job.draft });
+      if(!closed && !(pendingRun && !pendingRun.draft && job.draft)){
         out.width = r.w; out.height = r.h;
         out.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
         const first = !sh.view;
         sh.setView(out, !first);
         const refIdx = order()[(photos.length - 1) >> 1];
         sh.setOriginal(photos[refIdx]?.proxy || null);
-      }catch(err){ if(!closed) toast(err.message, "err"); }
-      finally{ if(seq === previewSeq) sh.setBusy(null); }
-      if(withThumbs || !thumbs.size) makeThumbs();
-    }, merge ? 0 : 50);
+      }
+    }catch(err){ if(!closed) toast(err.message, "err"); }
+    finally{ if(seq === previewSeq) sh.setBusy(null); running = false; }
+    if(closed) return;
+    if(pendingRun){ const j = pendingRun; pendingRun = null; run(j); return; }
+    if(!job.draft && (job.withThumbs || !thumbs.size)) makeThumbs();
   }
   async function makeThumbs(){
     const seq = ++thumbsSeq;
     const list = PRESETS.map(([id]) => presetSettings(id, S));
     try{
-      const r = await call({ type: "thumbs", list, side: 150 });
+      const r = await call({ type: "thumbs", list, side: 150, evs: state.evs.slice() });
       if(seq !== thumbsSeq || closed) return;
       const c = document.createElement("canvas");
       r.list.forEach((t, i) => {
@@ -295,7 +361,7 @@ export function openHdrEditor({ current = null, onAccept }){
     sh.setApplyEnabled(false);
     sh.setBusy("Fusionando a resolución completa…");
     try{
-      const r = await call({ type: "final", s: { ...S } });
+      const r = await call({ type: "final", s: { ...S }, evs: state.evs.slice() });
       const c = document.createElement("canvas"); c.width = r.w; c.height = r.h;
       c.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
       await onAccept(c, { usedCurrent, count: photos.length, style: PRESETS.find(p => p[0] === state.preset)?.[1] || "Personalizado" });
