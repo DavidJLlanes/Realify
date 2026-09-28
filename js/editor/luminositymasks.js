@@ -27,6 +27,7 @@ import { toast } from "../ui/toast.js";
 import { dialog } from "../ui/dialog.js";
 import { slider } from "./adjust.js";
 import { rangeMask as colorRangeMask } from "../features/photo-tools.js";
+import { autoCompact } from "../ui/compact.js";
 
 const clamp255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
 const LR = 0.2126, LG = 0.7152, LB = 0.0722;
@@ -296,6 +297,7 @@ export async function openLuminosityMaskPanel(){
   markSelected("lights-1");
   updatePreview();
 
+  /* Móvil: deslizadores apilados → desplegable + uno (ui/compact.js). */ autoCompact(box);
   const res = await dialog({
     title: "Máscaras de luminosidad y color", body: box, wide: true,
     buttons: [

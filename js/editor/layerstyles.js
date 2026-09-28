@@ -14,6 +14,7 @@ import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { dialog } from "../ui/dialog.js";
 import { slider } from "./adjust.js";
+import { autoCompact } from "../ui/compact.js";
 
 export function defaultStyles(){
   return {
@@ -219,6 +220,7 @@ export async function openLayerStyles(layer){
 
   preview();
 
+  /* Móvil: deslizadores apilados → desplegable + uno (ui/compact.js). */ autoCompact(wrap);
   const res = await dialog({
     title: "Estilos de capa — " + layer.name,
     body: wrap,

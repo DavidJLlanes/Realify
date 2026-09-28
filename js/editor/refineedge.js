@@ -23,6 +23,7 @@ import { slider } from "./adjust.js";
 import { cloneMask } from "./masks.js";
 import { commitSelection } from "./selection.js";
 import { computeRefinedAlpha, decontaminate } from "./refineedge-math.js";
+import { autoCompact } from "../ui/compact.js";
 
 /* ═══════════════════════════════════════════════════════════════
    DIÁLOGO
@@ -277,6 +278,7 @@ export async function refineEdge(source){
 
   preview();
 
+  /* Móvil: deslizadores apilados → desplegable + uno (ui/compact.js). */ autoCompact(body);
   const res = await dialog({
     title: "Refinar borde", body, wide: true,
     buttons: [{ label:"Cancelar", value:null }, { label:"Aplicar", primary:true, value:"go" }]

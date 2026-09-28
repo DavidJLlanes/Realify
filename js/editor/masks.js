@@ -17,6 +17,7 @@ import { doc } from "../core/doc.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { dialog } from "../ui/dialog.js";
+import { autoCompact } from "../ui/compact.js";
 
 function makeMaskCanvas(w, h){
   const c = document.createElement("canvas");
@@ -322,6 +323,7 @@ export async function runMaskDialog(layer, { title, wide = false, buildBody, app
   };
 
   const body = buildBody({ preview, backup, w, h });
+  /* Móvil: deslizadores apilados → desplegable + uno (ui/compact.js). */ autoCompact(body);
   const res = await dialog({
     title, body, wide,
     buttons: [{ label:"Cancelar", value:null },

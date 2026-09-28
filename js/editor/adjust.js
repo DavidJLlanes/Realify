@@ -388,6 +388,7 @@ export function pickerGroup(entries){
     return frag;
   }
   const wrap = document.createElement("div");
+  wrap.dataset.picker = "1";                     // ya compacto: ui/compact.js no lo toca
   const select = document.createElement("select");
   select.className = "grow";
   // Más bajo que el touch mínimo de siempre: sigue siendo cómodo de

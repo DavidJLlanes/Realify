@@ -25,6 +25,7 @@ import { dialog } from "../ui/dialog.js";
 import { toast } from "../ui/toast.js";
 import { slider } from "./adjust.js";
 import { SHAPE_LIST, fitShape, tracePath, shapeSvg } from "../core/shapes.js";
+import { autoCompact } from "../ui/compact.js";
 
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const el = (html) => { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstElementChild; };
@@ -243,6 +244,7 @@ export async function shapeCrop(){
     slider("Contorno", 0, 60, p.outline, v => { p.outline = v; }, " px"),
     color, ck);
   paint();
+  /* Móvil: deslizadores apilados → desplegable + uno (ui/compact.js). */ autoCompact(body);
   const res = await dialog({ title: "Recortar en forma", body, wide: true,
     buttons: [{ label: "Cancelar", value: null }, { label: "Recortar", primary: true, value: "go" }] });
   if(res !== "go") return;

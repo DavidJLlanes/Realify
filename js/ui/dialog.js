@@ -8,6 +8,7 @@
 
 import { view, zoomAt } from "../editor/view.js";
 import { isMobile as isPhone, haptic } from "../core/device.js";
+import { autoCompact } from "./compact.js";
 
 const FOCUSABLE = 'button, [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 let openCount = 0;
@@ -197,6 +198,9 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
                   back.querySelector(".sheet-grab"), close);
 
     if(onOpen) onOpen(bodyEl, { close });
+    /* Hojas de ajuste del móvil: los deslizadores apilados se agrupan
+       tras un desplegable, como en Tono y saturación (ui/compact.js). */
+    if(/\bdlg-compact\b/.test(cls)) autoCompact(bodyEl);
     const f = bodyEl.querySelector(FOCUSABLE) || back.querySelector("[data-close]");
     if(f) f.focus();
   });
