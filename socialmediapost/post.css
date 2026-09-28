@@ -102,6 +102,8 @@
 .sp-editor .danger{color:#ff9a9a;border-color:#5a3a3e}
 .sp-mobile{display:none}
 
+.sp-file{position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+
 /* Móvil: hoja para elegir el diseño con miniaturas */
 .sp-layout-pick{position:relative;min-width:0}
 .sp-layout-hit{position:absolute;inset:0;width:100%;padding:0;background:transparent;border:0;border-radius:7px;cursor:pointer;-webkit-tap-highlight-color:transparent}

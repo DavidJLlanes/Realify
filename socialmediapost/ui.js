@@ -29,22 +29,52 @@ import { toast } from "../js/ui/toast.js";
 import { shapeSvg } from "../js/core/shapes.js";
 
 const MOBILE = "(max-width:900px)";
-const MAX_SIDE = 5000, PROXY_SIDE = 1600;
+/* Lado máximo con que se guarda cada foto. En móviles y tabletas se
+   limita más: Safari de iPhone/iPad no dibuja lienzos de más de ~16,7
+   millones de píxeles (salen en blanco) y reparte poca memoria entre
+   todos; 3072 px da de sobra para el resultado (una historia al 200 %
+   mide 3840 px de alto) y deja sitio para muchas fotos. */
+const TOUCH = matchMedia("(pointer:coarse)").matches;
+const MAX_SIDE = TOUCH ? 3072 : 5000, PROXY_SIDE = 1600;
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+/* Fotos de la galería: se abren con un <img>, que es lo que mejor
+   soportan Safari (iPhone) y Chrome (Android): respeta la orientación
+   EXIF de las fotos del móvil y, en Safari, abre HEIC. Si falla y es
+   HEIC (Android no lo decodifica), se convierte con heic2any, ya
+   cargado por la app; como último intento, createImageBitmap. */
+const isHeic = f => /image\/hei[cf]/i.test(f.type || "") || /\.hei[cf]$/i.test(f.name || "");
+const isImageFile = f => (f.type || "").startsWith("image/") || /\.(hei[cf]|jpe?g|png|webp|gif|bmp|avif)$/i.test(f.name || "");
+function loadImg(blob){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob), img = new Image();
+    img.decoding = "async";
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("img")); };
+    img.src = url;
+  });
+}
 async function decodeImage(blob){
-  let bmp;
-  try{ bmp = await createImageBitmap(blob); }
-  catch{ throw new Error("No se pudo leer esa imagen. Prueba con JPEG, PNG o WebP."); }
-  const c = scaled(bmp, MAX_SIDE);
-  bmp.close?.();
-  return c;
+  let loaded = null, bmp = null;
+  try{ loaded = await loadImg(blob); }catch{}
+  if(!loaded && isHeic(blob) && typeof globalThis.heic2any === "function"){
+    try{
+      const out = await globalThis.heic2any({ blob, toType: "image/jpeg", quality: .92 });
+      loaded = await loadImg(Array.isArray(out) ? out[0] : out);
+    }catch{}
+  }
+  if(!loaded){ try{ bmp = await createImageBitmap(blob); }catch{} }
+  const src = loaded?.img || bmp;
+  if(!src || !(src.naturalWidth || src.width)) throw new Error("No se pudo abrir esa imagen. Prueba con JPEG, PNG, WebP o HEIC.");
+  try{ return scaled(src, MAX_SIDE); }
+  finally{ bmp?.close?.(); if(loaded) URL.revokeObjectURL(loaded.url); }
 }
 function scaled(img, side){
-  const k = Math.min(1, side / Math.max(img.width, img.height));
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const k = Math.min(1, side / Math.max(iw, ih));
   const c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+  c.width = Math.max(1, Math.round(iw * k)); c.height = Math.max(1, Math.round(ih * k));
   const x = c.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(img, 0, 0, c.width, c.height);
   return c;
 }
@@ -221,6 +251,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
       <div class="sp-tray sp-tray-m"></div>
       <div class="sp-row sp-acts"></div>
     </footer>
+    <input type="file" class="sp-file" accept="image/*,.heic,.heif" tabindex="-1" aria-hidden="true">
     <div class="sp-sheet" role="dialog" aria-modal="true" aria-label="Diseño del collage" hidden>
       <div class="sp-sheet-panel">
         <header><b>Diseño</b><button type="button" class="sp-sheet-close" aria-label="Cerrar">✕</button></header>
@@ -696,6 +727,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   /* ── Fotos: abrir, pegar, soltar, quitar ── */
   async function addBlobs(blobs, target = -1){
     if(accepting || !blobs.length) return;
+    if(blobs.length > 1) toast(`Abriendo ${blobs.length} fotos…`);
     const decoded = [];
     for(const b of blobs){ try{ decoded.push(await decodeImage(b)); }catch(e){ toast(e.message, "err"); } }
     if(!decoded.length || closed) return;
@@ -709,11 +741,25 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     syncPanels(); request();
     toast(ids.length === 1 ? "Foto añadida" : `${ids.length} fotos añadidas`, "ok");
   }
+  /* Selector de fotos. Un único <input> que vive dentro del editor:
+     en Safari de iPhone, un input suelto (fuera de la página) puede
+     perderse antes de avisar de la foto elegida. Se vacía antes de cada
+     apertura para que elegir la misma foto otra vez también cuente, y
+     sólo se llama desde un toque o clic del usuario (si no, iPhone y
+     Android no abren la galería). */
+  const fileInput = $(".sp-file");
+  let pickTarget = -1;
+  fileInput.addEventListener("change", () => {
+    const files = [...(fileInput.files || [])];
+    fileInput.value = "";
+    if(files.length) addBlobs(files, pickTarget);
+  });
   function openPhotos(target = -1){
-    const input = document.createElement("input");
-    input.type = "file"; input.accept = "image/*"; input.multiple = target < 0 || typeof target !== "number";
-    input.addEventListener("change", () => { if(input.files?.length) addBlobs([...input.files], typeof target === "number" ? target : -1); });
-    input.click();
+    if(accepting) return;
+    pickTarget = typeof target === "number" ? target : -1;
+    fileInput.multiple = pickTarget < 0;
+    fileInput.value = "";
+    fileInput.click();
   }
   async function pastePhotos(){
     try{
@@ -740,7 +786,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
   });
   root.addEventListener("dragleave", e => { if(e.target === canvas){ dropTarget = -1; request(); } });
   root.addEventListener("drop", e => {
-    const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith("image/"));
+    const files = [...(e.dataTransfer?.files || [])].filter(isImageFile);
     e.preventDefault(); e.stopPropagation();
     const target = e.target === canvas ? cellAt(...toLocal(e.clientX, e.clientY)) : -1;
     dropTarget = -1; request();
@@ -947,7 +993,7 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
          encuadra la foto dentro de ella, como en los demás diseños. */
       gesture = isFree() && !e.altKey && !e.shiftKey
         ? { type: "freemove", i, saved: snapshot(), x0: x, y0: y, it0: { ...S.free[i] } }
-        : { type: "cell", i, saved: snapshot(), x0: x, y0: y, s0: { fx: slot.fx, fy: slot.fy } };
+        : { type: "cell", i, saved: snapshot(), x0: x, y0: y, s0: { fx: slot.fx, fy: slot.fy }, pointerType: e.pointerType };
     } else if(sel){ sel = null; syncPanels(); gesture = null; }
     request();
   });
@@ -1019,6 +1065,8 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
         sel = { type: "cell", i: j }; dropTarget = -1;
         pushHistory(gesture.saved); syncPanels(); request();
       } else if(gesture.moved && gesture.saved){ pushHistory(gesture.saved); syncPanels(); }
+      else if(gesture.type === "cell" && !gesture.moved && S.slots[gesture.i] && !S.slots[gesture.i].photo
+              && (gesture.pointerType !== "mouse" || matchMedia(MOBILE).matches)) emptyTap = { i: gesture.i, t: performance.now() };
       gesture = null;
     } else if(gesture.type === "pinch"){
       const [p] = [...pointers.values()], t = selText();
@@ -1032,6 +1080,17 @@ export function openPostEditor({ photo = null, onAccept, onClose = null }){
     }
   };
   canvas.addEventListener("pointerup", endPointer);
+  /* Toque en el «+» de un hueco vacío: abre la galería para ese hueco.
+     Se abre en el «click» que sigue al toque, no en pointerup: es el
+     evento que Safari de iPhone acepta con seguridad para abrir el
+     selector de archivos. En escritorio con ratón sigue siendo doble
+     clic, porque un clic elige el hueco para ponerle una foto de la
+     bandeja. */
+  let emptyTap = null;
+  canvas.addEventListener("click", () => {
+    const tap = emptyTap; emptyTap = null;
+    if(tap && performance.now() - tap.t < 800 && S.slots[tap.i] && !S.slots[tap.i].photo) openPhotos(tap.i);
+  });
   canvas.addEventListener("pointercancel", e => { dropTarget = -1; endPointer(e); });
   canvas.addEventListener("dblclick", e => {
     const [x, y] = toLocal(e.clientX, e.clientY), hit = textAt(x, y);
