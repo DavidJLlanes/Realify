@@ -262,8 +262,11 @@ async function idb(mode, fn){
   }finally{ db.close(); }
 }
 
-/** Guarda todas las pestañas. Devuelve cuántas se guardaron. */
-export async function stashForUpdate(){
+/** Guarda todas las pestañas. Devuelve cuántas se guardaron. La
+    misma copia sirve, con otra `key`, de red de seguridad antes de un
+    modelo de IA pesado (ver ai/runtime.js): si el navegador se queda
+    sin memoria y recarga la página, al arrancar se reabren. */
+export async function stashForUpdate(key = UPDATE_KEY){
   const tabs = listTabs(), start = activeTab()?.tabId ?? null, docs = [];
   let active = 0;
   if(tabs.length){
@@ -276,16 +279,16 @@ export async function stashForUpdate(){
     if(start !== null) switchTo(start);
   } else if(doc.open) docs.push(await serializeProject());
   if(!docs.length) return 0;
-  await idb("readwrite", s => s.put({ docs, active, savedAt: Date.now() }, UPDATE_KEY));
+  await idb("readwrite", s => s.put({ docs, active, savedAt: Date.now() }, key));
   return docs.length;
 }
 
 /** Al arrancar: si hay pestañas guardadas antes de actualizar, las reabre. */
-export async function restoreAfterUpdate(){
+export async function restoreAfterUpdate(key = UPDATE_KEY){
   let saved = null;
-  try{ saved = await idb("readonly", s => s.get(UPDATE_KEY)); }catch{ return 0; }
+  try{ saved = await idb("readonly", s => s.get(key)); }catch{ return 0; }
   if(!saved) return 0;
-  try{ await idb("readwrite", s => s.delete(UPDATE_KEY)); }catch{}
+  try{ await idb("readwrite", s => s.delete(key)); }catch{}
   if(Date.now() - saved.savedAt > 24 * 3600e3 || !Array.isArray(saved.docs)) return 0;
   const ids = [];
   for(const data of saved.docs){
@@ -294,6 +297,11 @@ export async function restoreAfterUpdate(){
   const back = ids[saved.active];
   if(back != null) switchTo(back);
   return ids.length;
+}
+
+/** Borra una copia guardada con `stashForUpdate(key)` que ya no hace falta. */
+export async function discardStash(key){
+  try{ await idb("readwrite", s => s.delete(key)); }catch{}
 }
 
 export async function getRecentProject(){

@@ -130,8 +130,12 @@ async function getSession(id, model){
   // total). Sin arena ni patrón de memoria el pico baja mucho a cambio
   // de algo de velocidad, que es lo que permite a BiRefNet trabajar a
   // 1024 px sin «bad_alloc».
+  // Modelos grandes (ISNet, LaMa): sin «prepacking», que guarda una
+  // segunda copia de los pesos reordenada y casi duplica la memoria.
+  const big = (model.size || 0) > 100e6;
   if(!session) session = await ort.InferenceSession.create(bytes, { ...opts,
-    executionProviders: ["wasm"], enableCpuMemArena: false, enableMemPattern: false });
+    executionProviders: ["wasm"], enableCpuMemArena: false, enableMemPattern: false,
+    ...(big ? { extra: { session: { disable_prepacking: "1" } } } : {}) });
   const entry = { session, backend };
   sessions.set(id, entry);
   return entry;
@@ -359,6 +363,11 @@ self.onmessage = async e => {
     const backend = sessions.get(m.id)?.backend;
     const transfer = [res.mask?.buffer, res.rgba?.buffer].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);
+    // Un modelo grande no se queda ocupando cientos de MB después de usarlo.
+    if((m.model?.size || 0) > 100e6 && sessions.has(m.id)){
+      try{ await sessions.get(m.id).session.release(); }catch{}
+      sessions.delete(m.id);
+    }
   }catch(err){
     post({ type:"error", req: m.req, message: String(err?.message || err) });
   }

@@ -299,14 +299,15 @@ export async function removeBackground(){
   const layer = rasterLayer(); if(!layer) return;
   let saved = "u2netp";
   try{ const v = localStorage.getItem(BG_KEY); if(BG_METHODS.some(([k]) => k === v)) saved = v; }catch{}
-  const { sizeNote } = await import("../ai/runtime.js");
+  const { sizeNote, crashedBefore } = await import("../ai/runtime.js");
   const notes = Object.fromEntries(await Promise.all(
-    BG_METHODS.filter(([k]) => k !== "color").map(async ([k]) => [k, await sizeNote(k)])));
+    BG_METHODS.filter(([k]) => k !== "color").map(async ([k]) =>
+      [k, (await sizeNote(k)) + (crashedBefore(k) ? ", falló por memoria aquí" : k === "isnet" && COARSE ? ", pesado en móvil" : "")])));
   const body = await settingsDialog("Eliminar fondo", `
     <p class="hint">El sujeto recortado, sin fondo, va a una capa nueva; la original se oculta sin borrarla. «Color de los bordes» funciona mejor con fondos relativamente uniformes.</p>
     <div class="field"><label for="bgMethod">Método</label>
       <select id="bgMethod" class="grow">${BG_METHODS.map(([k, label]) =>
-        `<option value="${k}"${k === saved ? " selected" : ""}>${label}${k === "color" ? "" : ` (${notes[k]}${k === "isnet" && COARSE ? ", pesado en móvil" : ""})`}</option>`).join("")}</select></div>
+        `<option value="${k}"${k === saved ? " selected" : ""}>${label}${k === "color" ? "" : ` (${notes[k]})`}</option>`).join("")}</select></div>
     <div id="bgTolRow">${sliderRow("bgTol","Tolerancia",5,140,42)}</div>
     ${sliderRow("bgFeather","Suavizar borde",0,30,3," px")}`);
   if(!body) return;

@@ -62,6 +62,53 @@ function cancelAll(){
 
 const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA" };
 
+/* ── Red de seguridad para modelos pesados ──────────────────────
+   Un modelo grande (ISNet, LaMa…) puede agotar la memoria de la
+   pestaña; entonces el navegador la mata y la recarga, y con ella se
+   iba la imagen abierta. Antes de lanzarlo se guardan las pestañas
+   (io/project.js) y se deja una marca; si la página vuelve a arrancar
+   con la marca puesta es que se cayó a mitad: se reabren y se recuerda
+   que ese modelo no cabe en este dispositivo. */
+const HEAVY = 100e6, STASH_KEY = "before-ai", RUNNING = "realify.aiRunning", CRASHED = "realify.aiCrashed";
+const readCrashed = () => { try{ return JSON.parse(localStorage.getItem(CRASHED) || "{}"); }catch{ return {}; } };
+const writeCrashed = v => { try{ localStorage.setItem(CRASHED, JSON.stringify(v)); }catch{} };
+
+/** ¿Se cerró la página la última vez que se usó este modelo aquí? */
+export const crashedBefore = id => !!readCrashed()[id];
+
+async function guardHeavy(id, model, title){
+  if(crashedBefore(id)){
+    const ok = await confirmDlg("Modelo muy pesado para este dispositivo",
+      `La última vez, <b>${model.label}</b> cerró la página por falta de memoria en este
+       dispositivo. Puedes probar otra vez (tu imagen se guarda antes y se recupera si vuelve
+       a pasar) o cancelar y usar un modelo más ligero.`, "Probar otra vez");
+    if(!ok){ const e = new Error("cancelado"); e.cancelled = true; throw e; }
+  }
+  showBusy(title);
+  busyMsg("Guardando una copia de tu imagen por seguridad…");
+  try{ const { stashForUpdate } = await import("../io/project.js"); await stashForUpdate(STASH_KEY); }catch{}
+  try{ localStorage.setItem(RUNNING, JSON.stringify({ id, t: Date.now() })); }catch{}
+}
+function releaseHeavy(id, ok){
+  try{ localStorage.removeItem(RUNNING); }catch{}
+  if(ok){ const c = readCrashed(); if(c[id]){ delete c[id]; writeCrashed(c); } }
+  import("../io/project.js").then(m => m.discardStash(STASH_KEY)).catch(() => {});
+}
+
+/** Al arrancar (main.js): si la página se cayó con un modelo pesado en
+    marcha, reabre lo que había y lo explica. */
+export async function recoverAfterCrash(){
+  let run = null;
+  try{ run = JSON.parse(localStorage.getItem(RUNNING) || "null"); localStorage.removeItem(RUNNING); }catch{}
+  if(!run) return;
+  const c = readCrashed(); c[run.id] = true; writeCrashed(c);
+  let n = 0;
+  try{ const { restoreAfterUpdate } = await import("../io/project.js"); n = await restoreAfterUpdate(STASH_KEY); }catch{}
+  const { toast } = await import("../ui/toast.js");
+  toast(`${MODELS[run.id]?.label || "El modelo de IA"} necesitó más memoria de la que tiene este dispositivo y la página se cerró.` +
+        (n ? " Tu imagen se ha recuperado." : "") + " Prueba con un modelo más ligero.", "err");
+}
+
 function ensureWorker(){
   if(worker) return worker;
   if(typeof Worker === "undefined") throw new Error("Este navegador no tiene Web Workers.");
@@ -118,16 +165,22 @@ export async function runModel(type, id, payload, transfer){
   const model = MODELS[id];
   if(!model) throw new Error("Modelo desconocido: " + id);
   await confirmDownload(id);
+  const heavy = model.size > HEAVY;
+  let ok = false;
   progress(0.02);
-  showBusy(TITLES[type] || "Procesando con IA");
   try{
-    return await call({ type, id, model, ...payload }, transfer);
+    if(heavy) await guardHeavy(id, model, TITLES[type] || "Procesando con IA");
+    if(busy) busyMsg("Preparando…"); else showBusy(TITLES[type] || "Procesando con IA");
+    const res = await call({ type, id, model, ...payload }, transfer);
+    ok = true;
+    return res;
   }catch(err){
     /* Mensajes del motor que no dicen nada a quien edita una foto. */
     if(!err.cancelled && /bad_alloc|out of memory|memory access out of bounds|Aborted\(|RangeError: Array buffer allocation/i.test(err.message))
       err.message = "no hay memoria suficiente en este dispositivo para el modelo " + model.label + ". Prueba con uno más ligero";
     throw err;
   }finally{
+    if(heavy) releaseHeavy(id, ok);
     hideBusy();
     progress(null);
     status("");

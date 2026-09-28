@@ -1196,6 +1196,8 @@ initOpen();
 initDocbar();
 initProjects();
 resumeAfterUpdate();   // lo que se guardó justo antes de actualizar la app (pwa.js)
+// Si la página se cayó con un modelo de IA pesado en marcha (ai/runtime.js)
+try{ if(localStorage.getItem("realify.aiRunning")) import("./ai/runtime.js").then(m => m.recoverAfterCrash()); }catch{}
 initMobileBar();
 initToolDrawer();
 initRulers();
