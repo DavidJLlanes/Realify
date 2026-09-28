@@ -47,6 +47,9 @@ function pickerTypes(type){
   if(type === "image/webp"){
     return [{ description: "WebP", accept: { "image/webp": [".webp"] } }];
   }
+  if(type === "image/avif") return [{ description: "AVIF", accept: { "image/avif": [".avif"] } }];
+  if(type === "image/gif") return [{ description: "GIF", accept: { "image/gif": [".gif"] } }];
+  if(type === "application/pdf") return [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }];
   return [{ description: "JPEG", accept: { "image/jpeg": [".jpg", ".jpeg"] } }];
 }
 
@@ -175,8 +178,13 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
     x.drawImage(src, 0, 0, w, h);
   }
   if(!precision)lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
+  /* AVIF y PDF no los genera `toBlob`: ver io/formats.js */
+  if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6).catch(() => null);
+  if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
   return new Promise(res => out.toBlob(res, type, quality));
 }
+/* Página del PDF (la elige el diálogo de exportar) */
+let pdfOptions = { page: "image", orientation: "auto", margin: 0 };
 
 /* Codifica repetidamente hasta respetar el peso pedido. Primero baja la
    calidad de JPEG/WebP y, sólo si hace falta, reduce dimensiones. PNG no
@@ -215,7 +223,18 @@ export async function exportDialog(){
         <option value="image/jpeg">JPEG</option>
         <option value="image/png">PNG</option>
         <option value="image/webp">WebP</option>
+        <option value="image/avif">AVIF (más ligero)</option>
+        <option value="application/pdf">PDF</option>
       </select></div>
+    <div class="field" id="exPdfRow" hidden><label>Página</label>
+      <select id="exPdfPage" class="grow">
+        <option value="image">Del tamaño de la imagen</option>
+        <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
+        <option value="letter">Carta</option><option value="legal">Oficio (Legal)</option>
+        <option value="photo10x15">Foto 10 × 15 cm</option>
+      </select></div>
+    <div class="field" id="exPdfMarginRow" hidden><label>Margen</label>
+      <input type="number" id="exPdfMargin" class="grow" min="0" max="100" value="10"><span class="unit">mm</span></div>
     <div class="field"><label>Destino</label>
       <select id="exDest" class="grow">
         <option value="auto">Automático</option>
@@ -356,7 +375,7 @@ export async function exportDialog(){
         }, 260);
       };
 
-      const extOf = t => t === "image/png" ? "png" : t === "image/webp" ? "webp" : "jpg";
+      const extOf = t => ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "application/pdf": "pdf" })[t] || "jpg";
       const syncDestination = () => {
         const picker = canPickExportFile();
         const share = typeof navigator.canShare === "function" && typeof navigator.share === "function";
@@ -397,7 +416,17 @@ export async function exportDialog(){
       });
       precision.addEventListener("change", precisionState);
       dest.addEventListener("change", syncDestination);
+      const pdfRow = body.querySelector("#exPdfRow"), pdfMarginRow = body.querySelector("#exPdfMarginRow");
+      const syncPdf = () => {
+        pdfRow.hidden = type.value !== "application/pdf";
+        pdfMarginRow.hidden = type.value !== "application/pdf" || body.querySelector("#exPdfPage").value === "image";
+        pdfOptions = { page: body.querySelector("#exPdfPage").value, orientation: "auto",
+                       margin: body.querySelector("#exPdfPage").value === "image" ? 0 : (+body.querySelector("#exPdfMargin").value || 0) * 72 / 25.4 };
+      };
+      body.querySelector("#exPdfPage").addEventListener("change", syncPdf);
+      body.querySelector("#exPdfMargin").addEventListener("input", syncPdf);
       type.addEventListener("change", () => {
+        syncPdf();
         qRow.style.display = type.value === "image/png" ? "none" : "";
         ext.textContent = "." + extOf(type.value);
         precisionState(); estimate();
@@ -446,7 +475,7 @@ export async function exportDialog(){
     w, h, type, quality: type === "image/png" ? undefined : q, precision, dither
   });
   if(!blob){ toast("La exportación ha fallado", "err"); return; }
-  const ext = type === "image/png" ? "png" : type === "image/webp" ? "webp" : "jpg";
+  const ext = ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "application/pdf": "pdf" })[type] || "jpg";
 
   // Si el panel EXIF está activo, el JPEG sale con su cabecera
   let out = blob, named = null;

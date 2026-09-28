@@ -12,3 +12,9 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 - Modelos ONNX publicados por el proyecto ImageToolbox (T8RIN, licencia Apache-2.0) en https://huggingface.co/T8RIN/ImageToolbox-models. La preparación de cada modelo (tamaños de entrada, teselas, rangos) sigue el código de ImageToolbox.
   - `assets/models/u2netp/u2netp.onnx` (incluido): U²-Net portátil, Xuebin Qin et al., licencia Apache-2.0.
   - Descargados bajo demanda y guardados en IndexedDB: MODNet (Apache-2.0), ISNet general-use (Apache-2.0), LaMa (Apache-2.0), SCUNet (Apache-2.0) y FBCNN (Apache-2.0).
+
+# Codificadores de exportación
+
+- `avif/`: codificador AVIF de Squoosh (libavif + libaom) empaquetado por @jsquash/avif 2.1.1, copyright Google Inc. y colaboradores, licencia Apache-2.0. Se carga sólo al exportar en AVIF.
+- `gifenc/`: gifenc 1.0.3, copyright Matt DesLauriers, licencia MIT. GIF animados.
+- El PDF lo genera `js/io/formats.js` sin bibliotecas (una imagen JPEG por página).

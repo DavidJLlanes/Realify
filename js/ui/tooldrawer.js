@@ -214,6 +214,9 @@ const ITEMS = [
   { tool:"picker",       label:"Cuentagotas",  cat:"pintar" },
   { cmd:"layer.meme",      label:"Crear meme",     ic:"sticker",   cat:"pintar estilo" },
   { cmd:"file.socialPost", label:"Collage / Post", ic:"layout-dashboard", cat:"pintar estilo" },
+  { cmd:"image.beforeAfter", label:"Antes y después", ic:"before-after", cat:"estilo analizar" },
+  { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"layout-grid", cat:"estilo" },
+  { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos" },
   { cmd:"layer.stickers",  label:"Stickers",       ic:"sparkles",  cat:"pintar estilo" },
   { cmd:"layer.watermark", label:"Marca de agua",  ic:"copyright", cat:"pintar" },
   { cmd:"layer.styles",    label:"Estilos de capa", ic:"layers-plus", cat:"pintar estilo" },
@@ -226,6 +229,8 @@ const ITEMS = [
   { cmd:"an.spectrum",   label:"Espectro",         ic:"radar",        cat:"analizar" },
   { cmd:"view.histogram", label:"Histograma",       ic:"chart-column", cat:"analizar mejorar" },
   { cmd:"view.smartGrid", label:"Cuadrícula inteligente", ic:"grid-3x3", cat:"analizar corregir" },
+  { cmd:"an.palette",    label:"Paleta de colores", ic:"palette",     cat:"analizar color" },
+  { cmd:"an.eyedropper", label:"Cuentagotas de pantalla", ic:"pipette", cat:"analizar color" },
   { cmd:"an.exif",       label:"Metadatos EXIF",   ic:"tags",         cat:"analizar" },
   { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"analizar ia" }
 ];

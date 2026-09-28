@@ -108,6 +108,11 @@ registerAll({
   "file.exportPng": { run: quickPng, enabled: needsDoc },
   "file.socialPreview": { run: photoTool("socialPreview"), enabled: needsDoc },
   "file.batch":     async () => (await import("./io/batch.js")).openBatch(),
+  "file.exportGif":  { run: async () => (await import("./io/gifexport.js")).exportGif(), enabled: needsDoc },
+  "file.contactSheet": { run: async () => (await import("../hojacontactos/index.js")).openContacts() },
+  "image.beforeAfter": { run: async () => (await import("../comparar/index.js")).openCompare(), enabled: needsDoc },
+  "an.palette":     { run: async () => (await import("./features/palette.js")).colorPalette(), enabled: needsDoc },
+  "an.eyedropper":  { run: async () => (await import("./features/palette.js")).screenEyedropper() },
   "file.revert":    { run: revertToOriginal, enabled: () => doc.open && !!doc.source?.file },
   /* Cierra la pestaña activa (core/documents.js): activa la vecina si
      queda alguna, o vuelve al estado «sin documento» si era la
