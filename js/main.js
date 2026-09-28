@@ -169,6 +169,7 @@ registerAll({
   "image.shapeCrop": { run: async () => (await import("./editor/imagetools.js")).shapeCrop(), enabled: needsDoc },
   /* Plugins a pantalla completa (carpetas hdr/, …): no necesitan documento */
   "image.hdr":       { run: async () => (await import("../hdr/index.js")).openHdr() },
+  "image.merge":     { run: async () => (await import("../unir/index.js")).openMerge() },
   "image.flipH":  { run: flipH,       enabled: needsDoc },
   "image.flipV":  { run: flipV,       enabled: needsDoc },
   "image.removeBackground": { run: photoTool("removeBackground"), enabled: needsDoc },
