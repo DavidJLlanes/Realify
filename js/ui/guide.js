@@ -873,7 +873,9 @@ const TOPICS = [
           filtros y comandos como siempre y detén la grabación: queda guardada con sus
           valores. Después se repite con un toque en cualquier foto, o en muchas a la vez
           (resultado en un ZIP). Se pueden renombrar, borrar, exportar e importar. No se
-          graban los trazos de pincel ni los gestos sobre la imagen.</li>
+          graban los trazos de pincel ni los gestos sobre la imagen. La barra «Grabando» es
+          flotante: arrástrala por el asa ⠿ (o por el texto) a donde no estorbe, por ejemplo
+          para llegar a la barra superior; recuerda dónde la dejaste.</li>
         <li id="file-closeall"><b>Cerrar documento / Cerrar todas las fotos.</b> El primero cierra
           la foto activa; el segundo, todas las abiertas de una vez, con una sola
           confirmación. «Cerrar todas» también está en Herramientas (móvil) y como botón al

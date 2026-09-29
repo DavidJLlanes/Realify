@@ -76,16 +76,48 @@ function fill(body, rec){
 
 /* ── Grabación ───────────────────────────────────────────────── */
 let rec = null, bar = null, unhook = null;
+/* La barra de grabación es flotante: se arrastra por el asa (⠿) o por el
+   texto a cualquier sitio de la pantalla, para dejar libre la barra
+   superior. La posición se recuerda para la próxima grabación. */
+const BAR_POS = "realify.actionsBarPos";
+function placeBar(x, y){
+  const r = bar.getBoundingClientRect(), m = 6;
+  x = Math.max(m, Math.min(innerWidth - r.width - m, x));
+  y = Math.max(m, Math.min(innerHeight - r.height - m, y));
+  Object.assign(bar.style, { left: `${x}px`, top: `${y}px`, right: "auto", bottom: "auto", transform: "none" });
+  return { x, y };
+}
 function showBar(){
   bar?.remove();
   bar = document.createElement("div");
   bar.className = "update-bar actions-bar";
   bar.setAttribute("role", "status");
-  bar.innerHTML = `<span><b style="color:#ff6b6b">●</b> Grabando «${esc(rec.name)}» · <span class="n">0 pasos</span></span>
+  bar.innerHTML = `<button type="button" class="actions-bar-grip" aria-label="Mover la barra" title="Arrastra para mover la barra">⠿</button>
+    <span class="actions-bar-text"><b style="color:#ff6b6b">●</b> Grabando «${esc(rec.name)}» · <span class="n">0 pasos</span></span>
     <button type="button" data-a="stop" class="primary">Detener y guardar</button><button type="button" data-a="cancel">Descartar</button>`;
   bar.addEventListener("click", e => { const a = e.target.closest("[data-a]")?.dataset.a; if(a === "stop") stopRecording(); else if(a === "cancel") stopRecording(true); });
   document.body.appendChild(bar);
+  try{ const p = JSON.parse(localStorage.getItem(BAR_POS)); if(p) placeBar(p.x, p.y); }catch{}
+  let drag = null;
+  bar.addEventListener("pointerdown", e => {
+    if(!e.target.closest(".actions-bar-grip, .actions-bar-text") || e.button > 0) return;
+    e.preventDefault();
+    const r = bar.getBoundingClientRect();
+    drag = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    bar.classList.add("is-dragging");
+    try{ bar.setPointerCapture(e.pointerId); }catch{}
+  });
+  bar.addEventListener("pointermove", e => { if(drag?.id === e.pointerId) placeBar(e.clientX - drag.dx, e.clientY - drag.dy); });
+  const end = e => {
+    if(drag?.id !== e.pointerId) return;
+    drag = null; bar.classList.remove("is-dragging");
+    const r = bar.getBoundingClientRect();
+    try{ localStorage.setItem(BAR_POS, JSON.stringify({ x: r.left, y: r.top })); }catch{}
+  };
+  bar.addEventListener("pointerup", end); bar.addEventListener("pointercancel", end);
 }
+// Si la ventana cambia de tamaño (o se gira el móvil), la barra no se queda fuera
+addEventListener("resize", () => { if(bar?.style.left) placeBar(parseFloat(bar.style.left), parseFloat(bar.style.top)); });
 const updateBar = () => { if(bar) bar.querySelector(".n").textContent = `${rec.steps.length} ${rec.steps.length === 1 ? "paso" : "pasos"}`; };
 
 export async function startRecording(){

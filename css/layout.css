@@ -1252,6 +1252,16 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 .update-bar[hidden]{display:none}
 .update-bar span{flex:1;min-width:0}
 @media (max-width:560px){.update-bar{left:10px;right:10px;transform:none;flex-wrap:wrap}.update-bar span{flex-basis:100%}}
+/* Barra de grabación de acciones: flotante y arrastrable (js/features/actions.js) */
+.actions-bar{touch-action:none;user-select:none;-webkit-user-select:none}
+.actions-bar.is-dragging{opacity:.92;box-shadow:0 12px 34px #000a}
+.actions-bar-text{cursor:grab}
+.actions-bar.is-dragging .actions-bar-text,.actions-bar.is-dragging .actions-bar-grip{cursor:grabbing}
+.actions-bar-grip{flex:none;width:30px;min-height:34px;margin-left:-8px;padding:0;background:transparent;border:0;color:var(--tx-2,#aab3c2);font-size:18px;line-height:1;cursor:grab;touch-action:none}
+@media (max-width:560px){
+  .actions-bar{right:auto;width:calc(100vw - 20px)}
+  .actions-bar .actions-bar-text{flex:1 1 calc(100% - 40px)}
+}
 
 /* Trabajo de IA en curso (js/ai/runtime.js) */
 .ai-busy{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:2400;display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100vw - 20px);padding:10px 10px 10px 14px;background:var(--s-700);border:1px solid var(--line-strong);border-radius:12px;box-shadow:var(--sh-3);font-size:var(--fs-sm)}
