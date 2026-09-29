@@ -96,6 +96,7 @@ const photoTool = name => async () => (await import("./features/photo-tools.js")
 
 registerAll({
   "file.open":      () => promptOpen(),
+  "file.openFiles": () => import("./io/open.js").then(m => m.promptOpenFiles()),
   "file.camera":    () => promptCamera(),
   "file.openStack": () => promptLoadStack(),
   "file.pasteImage": () => promptPasteImage(),

@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Android: «Abrir» va directo a la galería** (el selector pide sólo imágenes; con
+  extensiones añadidas, Android mostraba «Cámara / Archivos»). Nuevo **Archivo › Abrir RAW,
+  PSD, TIFF o SVG…** (y enlace en la pantalla de inicio) para esos formatos, que no salen en
+  la galería. En la Fusión HDR, el «+» ofrece Galería o Archivos.
 - **Transparencia al guardar, en toda la web**: casilla «Conservar la transparencia» y color
   de fondo en Exportar, Exportar como, Editar en lote, Acciones y Cortar en partes
   (`js/io/alpha.js`). Se guarda el acoplado de las capas visibles; PNG, WebP, AVIF y GIF

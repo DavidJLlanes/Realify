@@ -20,6 +20,14 @@ export const COARSE = matchMedia("(pointer:coarse)").matches;
    entre los dos sitios. */
 export const isMobile = () => matchMedia("(max-width:900px)").matches;
 
+/* Android: su navegador sólo abre directamente la GALERÍA (el selector
+   de fotos del sistema) cuando el selector de archivos pide únicamente
+   imágenes (`image/*`); con cualquier extensión añadida (.psd, .tif,
+   RAW…) muestra en su lugar «Cámara / Archivos». Ver io/open.js. */
+export const isAndroid = () => navigator.userAgentData?.platform === "Android" || /Android/i.test(navigator.userAgent || "");
+/* Selector de fotos: en Android, sólo `image/*` (galería directa). */
+export const galleryAccept = full => isAndroid() ? "image/*" : full;
+
 /* Tamaño máximo de un documento recién abierto. En un móvil, 24 MP por
    trece etapas de shader es pedir un cuelgue (y Safari de iPhone ni
    siquiera dibuja lienzos de más de ~16,7 MP): se limita el lado mayor

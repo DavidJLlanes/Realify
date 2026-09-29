@@ -350,6 +350,13 @@
 #empty .welcome-grid span{font-size:var(--fs-xs);color:var(--tx-faint)}
 #empty .welcome-grid .primary span{color:color-mix(in srgb,var(--on-ac) 72%,transparent)}
 #empty .drop-help{font-size:var(--fs-xs);color:var(--tx-off)}
+/* Enlace a «Abrir RAW, PSD, TIFF o SVG…»: en Android «Abrir imagen» va a
+   la galería, donde esos formatos no suelen salir. Recibe toques aunque
+   el resto de la pantalla de inicio los deje pasar al lienzo. */
+#empty .open-files-link{
+  pointer-events:auto;background:none;border:0;padding:6px 8px;min-height:0;
+  color:var(--ac);font-size:var(--fs-xs);text-decoration:underline;cursor:pointer;
+}
 #empty .drop-ring{
   width:56px;height:56px;border-radius:12px;
   border:2px dashed var(--line-strong);

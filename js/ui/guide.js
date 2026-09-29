@@ -1303,6 +1303,10 @@ const TOPICS = [
     html:`
       <h3>Uso en el móvil</h3>
       <ul>
+        <li><b>Abrir fotos.</b> En Android, «Abrir» va directo a la <b>galería</b>; en iPhone,
+          a la fototeca. Los RAW, PSD, TIFF y SVG no suelen salir en la galería: ábrelos con
+          <b>Archivo › Abrir RAW, PSD, TIFF o SVG…</b> (o el enlace de la pantalla de inicio), que
+          abre el explorador de archivos. En la Fusión HDR, el «+» ofrece Galería o Archivos.</li>
         <li><b>Barra inferior.</b> Abrir, Capas (la hoja de paneles), Exportar, Deshacer,
           Rehacer, Comparar y el Menú con todos los menús de escritorio en una lista.</li>
         <li><b>Cajón de herramientas.</b> Se abre en <b>Básicos</b>: lo que más se usa

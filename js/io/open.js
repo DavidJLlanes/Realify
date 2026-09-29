@@ -9,7 +9,7 @@ import { confirmDlg } from "../ui/dialog.js";
 import { openAsNewTab, refreshActiveTabMeta } from "../core/documents.js";
 import { compatibleFile, decodeCompatible, openPsd, svgCanvas } from "./compatibility.js";
 import { isRawFile } from "../../raw/formats.js";
-import { docSizeLimit } from "../core/device.js";
+import { docSizeLimit, galleryAccept } from "../core/device.js";
 
 const picker = document.getElementById("filePicker");
 const stage  = document.getElementById("stage");
@@ -167,6 +167,16 @@ export async function loadFilesAsStack(files){
 }
 
 export function initOpen(){
+  // Android: galería directa (sólo `image/*`); RAW, PSD, TIFF y SVG,
+  // desde «Abrir RAW, PSD o TIFF…» (`filePickerFiles`).
+  picker.accept = galleryAccept(picker.accept);
+  const stackP = document.getElementById("filePickerStack");
+  if(stackP) stackP.accept = galleryAccept(stackP.accept);
+  document.getElementById("filePickerFiles")?.addEventListener("change", e => {
+    const files = [...e.target.files].filter(compatibleFile);
+    e.target.value = "";
+    if(files.length) files.length > 1 ? openFilesInNewTabs(files) : openFileInNewTab(files[0]);
+  });
   picker.addEventListener("change", e => {
     const files = [...e.target.files].filter(compatibleFile);
     e.target.value = "";
@@ -238,6 +248,9 @@ export function initOpen(){
 }
 
 export function promptOpen(){ picker.click(); }
+/** RAW, PSD, TIFF y SVG: desde el explorador de archivos (en Android no
+    salen en la galería). */
+export function promptOpenFiles(){ document.getElementById("filePickerFiles")?.click(); }
 
 export function promptCamera(){ document.getElementById("cameraPicker")?.click(); }
 

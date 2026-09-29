@@ -20,6 +20,7 @@ const iconHtml = it => it.icon ? `<span class="mi" aria-hidden="true">${it.icon}
 export const MENUS = [
   { label:"Archivo", items:[
     { cmd:"file.open",     label:"Abrir imagen…" },
+    { cmd:"file.openFiles", label:"Abrir RAW, PSD, TIFF o SVG…", help:"Abre estos formatos desde el explorador de archivos. En Android, «Abrir imagen» va directo a la galería, donde no suelen aparecer." },
     { cmd:"file.openStack",label:"Cargar archivos en pila…" },
     { cmd:"file.openProject", label:"Abrir proyecto…" },
     { cmd:"file.saveProject", label:"Guardar proyecto…" },

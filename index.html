@@ -222,6 +222,7 @@
         <button id="continueRecent" data-cmd="file.openRecent" hidden><b>Continuar proyecto reciente</b><span id="recentProjectName">Guardado en este dispositivo</span></button>
         <button data-cmd="file.new"><b>Documento nuevo</b><span>Lienzo vacío</span></button>
       </div>
+      <button type="button" class="open-files-link" data-cmd="file.openFiles">¿RAW, PSD, TIFF o SVG? Ábrelos desde Archivos</button>
       <p class="drop-help">También puedes arrastrar una imagen o un proyecto hasta aquí.</p>
     </div>
 
@@ -410,6 +411,7 @@
 </div>
 
 <input type="file" id="filePicker" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
+<input type="file" id="filePickerFiles" accept=".psd,.tif,.tiff,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
 <input type="file" id="cameraPicker" accept="image/*" capture="environment" hidden>
 <input type="file" id="filePickerStack" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
 <input type="file" id="projectPicker" accept=".realify,application/vnd.realify+json,application/json" hidden>
@@ -417,7 +419,7 @@
 <script src="js/vendor/ag-psd.js"></script>
 <script src="js/vendor/utif.js"></script>
 <script src="js/vendor/heic2any.min.js"></script>
-<script type="module" src="js/main.js?v=137"></script>
+<script type="module" src="js/main.js?v=138"></script>
 
 </body>
 </html>

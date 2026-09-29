@@ -497,10 +497,14 @@ export function scaledCanvas(img, side){
 }
 
 /** Selector de archivos (varias fotos). Resuelve con la lista (vacía si se cancela). */
-export function pickFiles({ multiple = true, accept = "image/*,.heic,.heif,.tif,.tiff" } = {}){
+/* `gallery`: en Android se pide sólo `image/*` para que se abra la galería
+   directamente (ver core/device.js); con `gallery: false`, el explorador
+   de archivos con todos los formatos de `accept`. */
+export function pickFiles({ multiple = true, accept = "image/*,.heic,.heif,.tif,.tiff", gallery = true } = {}){
   return new Promise(resolve => {
     const input = document.createElement("input");
-    input.type = "file"; input.accept = accept; input.multiple = multiple;
+    const android = /Android/i.test(navigator.userAgent || "") || navigator.userAgentData?.platform === "Android";
+    input.type = "file"; input.accept = gallery && android ? "image/*" : accept; input.multiple = multiple;
     input.style.cssText = "position:fixed;left:-9999px;opacity:0";
     document.body.appendChild(input);
     let done = false;

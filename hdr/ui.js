@@ -25,6 +25,7 @@ import { toast } from "../js/ui/toast.js";
 import { sortable } from "../js/ui/sortable.js";
 import { isRaw, developRaws, exifFromRaw, pickOpenPhotos, chooseUpTo } from "./sources.js";
 import { dialog } from "../js/ui/dialog.js";
+import { isAndroid } from "../js/core/device.js";
 
 export const MAX_PHOTOS = 11;
 const MOBILE = matchMedia("(max-width:900px)");
@@ -83,7 +84,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
      <button type="button" data-add>Añadir fotos</button>` +
     (openCount() ? `<button type="button" data-cur style="background:#272b31;color:#e9edf4;border-color:#3b414b">${openCount() > 1 ? "Usar las fotos abiertas" : "Usar la foto abierta"}</button>` : ""));
   sh.stage.addEventListener("click", e => {
-    if(e.target.closest("[data-add]")) addPhotos();
+    if(e.target.closest("[data-add]")) addAny(false);
     else if(e.target.closest("[data-cur]")) addOpen();
   });
 
@@ -181,10 +182,12 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     });
     return ids.map(Number).sort((a, b) => a - b).map(i => files[i]);
   }
-  async function addPhotos(){
+  /* `fromFiles`: el explorador de archivos (RAW, TIFF…) en vez de la
+     galería; sólo cambia algo en Android (ver core/device.js). */
+  async function addPhotos(fromFiles = false){
     if(photos.length >= MAX_PHOTOS){ fullNotice(); return; }
     const { RAW_EXTENSIONS } = await import("../raw/formats.js");
-    const picked = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff," + [...RAW_EXTENSIONS].map(e => "." + e).join(",") });
+    const picked = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff," + [...RAW_EXTENSIONS].map(e => "." + e).join(","), gallery: fromFiles !== true });
     if(!picked.length || closed) return;
     const files = await fitToRoom(picked);
     if(files.length && !closed) addFiles(files.map(f => ({ file: f, name: f.name })));
@@ -210,12 +213,21 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     if(items.length) addFiles(items);
   }
   /* «+» cuando además hay fotos abiertas: de dónde. */
-  async function addAny(){
+  /* `includeOpen === false`: sin la opción de fotos abiertas (la pantalla
+     vacía ya tiene su propio botón para ellas). */
+  async function addAny(includeOpen){
     if(photos.length >= MAX_PHOTOS){ fullNotice(); return; }
-    if(!openCount()) return addPhotos();
-    const v = await dialog({ title: "Añadir fotos", body: `<p class="hint" style="margin:0">Desde el dispositivo (JPEG, HEIC, RAW…) o las fotos que tienes abiertas en Realify, tal como las estás editando.</p>`,
-      buttons: [{ label: "Cancelar", value: null }, { label: "Fotos abiertas", value: "open" }, { label: "Del dispositivo", primary: true, value: "files" }], cls: "dlg-stack" });
-    if(v === "open") addOpen(); else if(v === "files") addPhotos();
+    // En Android la galería no muestra los RAW: se ofrece también Archivos.
+    const android = isAndroid(), open = includeOpen !== false && openCount() > 0;
+    if(!open && !android) return addPhotos();
+    const buttons = [{ label: "Cancelar", value: null }];
+    if(open) buttons.push({ label: "Fotos abiertas", value: "open" });
+    if(android) buttons.push({ label: "Archivos (RAW, TIFF…)", value: "raw" });
+    buttons.push({ label: android ? "Galería" : "Del dispositivo", primary: true, value: "files" });
+    const v = await dialog({ title: "Añadir fotos",
+      body: `<p class="hint" style="margin:0">${android ? "De la galería, o desde Archivos para RAW o TIFF (no salen en la galería)" : "Desde el dispositivo (JPEG, HEIC, RAW…)"}${open ? ", o las fotos que tienes abiertas en Realify, tal como las estás editando" : ""}.</p>`,
+      buttons, cls: "dlg-stack" });
+    if(v === "open") addOpen(); else if(v === "files") addPhotos(); else if(v === "raw") addPhotos(true);
   }
   const fitWork = (w, h) => { const k = Math.min(1, WORK_SIDE / Math.max(w, h)); return [Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k))]; };
   async function removePhoto(i){
