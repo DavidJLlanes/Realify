@@ -81,14 +81,16 @@
 .vf-sheet-panel header b{font-size:15px}
 .vf-sheet-cat{margin-left:auto;min-width:0;max-width:60%;height:36px;background:#222831;border:1px solid #3f4855;color:#eef3ff;border-radius:7px;padding:0 8px;font:inherit}
 .vf-sheet-close{flex:none;width:38px;height:38px;padding:0;border:1px solid #3b414b;border-radius:7px;background:#272b31;color:#e9edf4;font-size:16px}
-.vf-sheet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));grid-auto-rows:max-content;gap:8px;padding:2px 0 6px;overflow:auto;overscroll-behavior:contain}
+.vf-sheet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));align-items:start;grid-auto-rows:max-content;gap:8px;padding:2px 0 6px;overflow:auto;overscroll-behavior:contain}
 .vf-sheet-grid h4{grid-column:1/-1;margin:10px 2px 0;font-size:11px;font-weight:600;color:#aab3c2;text-transform:uppercase;letter-spacing:.06em;scroll-margin-top:4px}
-.vf-thumb{display:grid;gap:5px;align-content:start;min-width:0;padding:6px 6px 8px;background:#20252b;color:#dfe5ee;border:1px solid #30353d;border-radius:8px;font:12px/1.2 inherit;text-align:center;cursor:pointer}
+/* Tarjetas todas iguales: casilla cuadrada fija (la miniatura se encaja
+   dentro, sea horizontal o vertical) y nombre en dos líneas como máximo. */
+.vf-thumb{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;width:100%;overflow:hidden;padding:6px;background:#20252b;color:#dfe5ee;border:1px solid #30353d;border-radius:8px;font-family:inherit;font-size:12px;line-height:1.25;text-align:center;cursor:pointer}
 .vf-thumb:hover{background:#262d36}
 .vf-thumb.on{background:#293b60;border-color:#7fa6ff;color:#fff}
-.vf-thumb-img{display:block;aspect-ratio:1;border-radius:5px;background:#0d0f12;overflow:hidden}
-.vf-thumb-img img{display:block;width:100%;height:100%;object-fit:contain}
-.vf-thumb-label{overflow-wrap:anywhere}
+.vf-thumb-img{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:5px;background:#0d0f12;overflow:hidden}
+.vf-thumb-img img{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;object-fit:contain}
+.vf-thumb-label{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;height:2.5em;overflow-wrap:anywhere}
 @media (max-width:900px){
   .vf-mobile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
   .vf-mobile .vf-frame-btn{height:42px;border-radius:7px;border-color:#3f4855;background:#222831;font-size:14px}

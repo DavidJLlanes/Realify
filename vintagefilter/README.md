@@ -41,7 +41,7 @@ sobre la capa «paint» que el shader compone al final: los virados no tiñen el
 marco. El marco cubre los bordes de la foto; el tamaño del documento no cambia.
 
 Las miniaturas de la hoja se dibujan con el mismo `drawFrame` sobre la foto
-reducida (unos 168 px), sólo cuando entran en pantalla, y se guardan mientras no
+reducida (unos 320 px), sólo cuando entran en pantalla, y se guardan mientras no
 cambien la semilla ni la anchura.
 
 Para añadir uno: una entrada `F(id, categoría, nombre, dibujo)` en `FRAMES`

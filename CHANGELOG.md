@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Corregido
+- **Filtro Vintage · hoja de marcos**: todas las miniaturas del mismo tamaño y alineadas en su
+  rejilla (antes algunas se salían de la tarjeta en el móvil), nombres de dos líneas como
+  máximo, miniaturas más nítidas en pantallas de alta densidad y el selector de categoría
+  sigue al desplazamiento.
+
 ### Añadido
 - **Filtro Vintage: 119 marcos y 113 estilos nuevos**. Nuevo desplegable **Marco** (escritorio y
   móvil) que abre una hoja con la miniatura de cada marco sobre la propia foto, en 10 categorías:

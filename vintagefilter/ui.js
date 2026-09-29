@@ -286,7 +286,7 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
      guardan mientras no cambie la semilla ni la anchura del marco. */
   const sheet = root.querySelector(".vf-sheet"), sheetGrid = root.querySelector(".vf-sheet-grid"), sheetCat = root.querySelector(".vf-sheet-cat");
   const thumbs = new Map(); let thumbKey = "", thumbBase = null, thumbObserver = null;
-  const thumbSize = () => { const k = Math.min(1, 168 / Math.max(source.width, source.height)); return [Math.max(1, Math.round(source.width * k)), Math.max(1, Math.round(source.height * k))]; };
+  const thumbSize = () => { const k = Math.min(1, 320 / Math.max(source.width, source.height)); return [Math.max(1, Math.round(source.width * k)), Math.max(1, Math.round(source.height * k))]; };
   const frameThumb = id => {
     const key = `${state.seed}|${state.frameWidth}`;
     if(key !== thumbKey){ thumbs.clear(); thumbKey = key; }
@@ -307,7 +307,7 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
     const b = document.createElement("button");
     b.type = "button"; b.className = "vf-thumb" + (id === state.frame ? " on" : ""); b.dataset.frame = id;
     b.innerHTML = `<span class="vf-thumb-img"></span><span class="vf-thumb-label"></span>`;
-    b.querySelector(".vf-thumb-label").textContent = label;
+    b.querySelector(".vf-thumb-label").textContent = label; b.title = label;
     b.addEventListener("click", () => pickFrame(id));
     return b;
   };
@@ -345,6 +345,13 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
     sync(); schedule();
   };
   frameButtons.forEach(b => b.addEventListener("click", openFrames));
+  // El selector de categoría sigue al desplazamiento de la hoja
+  sheetGrid.addEventListener("scroll", () => {
+    const top = sheetGrid.getBoundingClientRect().top + 8;
+    let cur = null;
+    for(const h of sheetGrid.querySelectorAll("h4")){ if(h.getBoundingClientRect().top <= top + 40) cur = h.dataset.cat; else break; }
+    if(cur && sheetCat.value !== cur) sheetCat.value = cur;
+  }, { passive: true });
   sheetCat.addEventListener("change", () => sheetGrid.querySelector(`h4[data-cat="${sheetCat.value}"]`)?.scrollIntoView({ block: "start" }));
   root.querySelector(".vf-sheet-close").addEventListener("click", closeFrames);
   sheet.addEventListener("click", e => { if(e.target === sheet) closeFrames(); });
