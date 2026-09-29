@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Añadido
+- **Barra de grabación de acciones flotante**: se arrastra por el asa ⠿ o por el texto a
+  cualquier sitio de la pantalla (ratón o dedo) para dejar libre la barra superior; recuerda la
+  posición y no se sale de la pantalla al girar el móvil o cambiar el tamaño de la ventana.
+
 ### Corregido
 - **Actualizaciones que no llegaban**: tras publicar, el móvil podía seguir usando durante horas
   archivos antiguos (p. ej. los del Filtro Vintage) guardados en la caché del navegador. El
