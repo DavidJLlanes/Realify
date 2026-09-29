@@ -258,7 +258,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
     ? ["dlg-compact", dlgCls].filter(Boolean).join(" ")
     : dlgCls;
   const res = await dialog({
-    title, body, wide, cls: mobileCls,
+    title, body, wide, cls: mobileCls, footStart: body?.footStart || null,
     buttons: [{ label:"Cancelar", value:null },
               { label: edit ? "Guardar cambios" : "Aplicar", primary:true, value:"go" }]
   });

@@ -877,3 +877,25 @@
 .landscape-notice h2{margin:0 0 8px;font-size:19px}
 .landscape-notice p{margin:0 0 6px;color:#c9d1dc}
 .ln-go{margin-top:12px;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #3b414b;background:#272b31;color:#e9edf4;font:inherit}
+
+/* ── Interruptor Premium en el móvil (js/ui/premium.js › dockPremium) ──
+   REGLA: la vista previa manda y los plugins son mínimos. El interruptor
+   va en la barra del botón de aplicar, a la izquierda, sin texto (sólo
+   interruptor y corona) y sin fila propia. */
+@media (max-width:900px){
+  .premium-switch.ps-docked{margin-right:auto;gap:5px;padding:0 8px 0 6px}
+  .premium-switch.ps-docked .ps-label{display:none}
+  /* Editores a pantalla completa y revelador RAW: junto a ✕, misma altura */
+  .fsp-top .premium-switch.ps-docked,.raw-topbar .premium-switch.ps-docked{min-height:38px;background:#000a}
+  .raw-topbar .premium-switch.ps-docked{pointer-events:auto}
+  /* Ajustes (Tono y saturación…): a la izquierda de Cancelar/Aplicar */
+  .modal-foot .foot-start{margin:0 auto 0 0}
+  /* Hojas de ajuste compactas: menos aire para que la imagen tenga más sitio */
+  .dlg-compact .modal-body{padding-top:10px;padding-bottom:8px}
+  .dlg-compact .modal-body label.chk{min-height:34px;padding-top:0;padding-bottom:0}
+  .dlg-compact .modal-foot .premium-switch{min-height:28px;padding:0 7px 0 5px;gap:4px}
+  .dlg-compact .modal-foot .premium-switch .ps-track{width:26px;height:15px}
+  .dlg-compact .modal-foot .premium-switch .ps-thumb{top:2px;left:2px;width:11px;height:11px}
+  .dlg-compact .modal-foot .premium-switch input:checked + .ps-track .ps-thumb{transform:translateX(11px)}
+  .dlg-compact .modal-foot .premium-switch .crown-icon{width:13px;height:13px}
+}

@@ -112,7 +112,7 @@ function makeSheetDismissable(card, handle, close){
   handle.addEventListener("pointercancel", end);
 }
 
-export function dialog({ title, body, buttons = [], wide = false, cls = "", onOpen }){
+export function dialog({ title, body, buttons = [], wide = false, cls = "", onOpen, footStart = null }){
   return new Promise(resolve => {
     const back = document.createElement("div");
     back.className = "modal";
@@ -157,6 +157,9 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
         foot.appendChild(el);
       }
     }
+
+    // Algo a la izquierda de la barra de botones (el interruptor Premium)
+    if(foot && footStart){ footStart.classList.add("foot-start"); foot.prepend(footStart); }
 
     back.querySelector("[data-close]").addEventListener("click", () => close(null));
 

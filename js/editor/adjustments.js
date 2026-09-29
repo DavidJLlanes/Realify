@@ -8,6 +8,7 @@ import { doc, activeLayer } from "../core/doc.js";
 import { PIPETTE_SVG, averageRGB } from "../ui/wbpick.js";
 import { toImage } from "./view.js";
 import { toast } from "../ui/toast.js";
+import { isMobile } from "../core/device.js";
 import { premiumSwitch, premiumPref } from "../ui/premium.js";
 import { hslPremium } from "./hslpremium.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
@@ -808,7 +809,9 @@ export function hueSaturation(opts = {}){
       const sw = premiumSwitch({ checked: p.premium, title: "Tono y saturación de alta calidad: OKLCh, luz lineal, mapeo de gama y tramado (función Premium)",
         onChange: on => { p.premium = on; premiumPref.set("hsl", on); preview(); } });
       sw.classList.add("adj-premium");
-      box.appendChild(sw);
+      // Móvil: en la barra de Cancelar/Aplicar, a la izquierda (sin fila
+      // propia: la imagen manda). Escritorio: encima de los mandos.
+      if(isMobile()){ sw.classList.add("ps-docked"); box.footStart = sw; } else box.appendChild(sw);
       box.appendChild(pickerGroup([
         { label: "Tono", node: slider("Tono", -180, 180, p.hue, v => { p.hue = v; preview(); }, "°") },
         { label: "Saturación", node: slider("Saturación", -100, 100, p.sat, v => { p.sat = v; preview(); }) },

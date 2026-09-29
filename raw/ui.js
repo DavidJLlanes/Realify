@@ -6,7 +6,7 @@ import { autoWhiteBalance, wbPickNeutral, toLinear } from './tone.js';
 import { isLinearSource, linearReader } from './source.js';
 import { PIPETTE_SVG } from '../js/ui/wbpick.js';
 import { SRGB_TO_2020 } from './premium/core.js';
-import { premiumSwitch, premiumPref } from "../js/ui/premium.js";
+import { premiumSwitch, premiumPref, dockPremium } from "../js/ui/premium.js";
 import { outputSharpen, tiff16 } from "./premium/output.js";
 
 const canvasCopy = source => {
@@ -82,6 +82,8 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   };
   const premium=premiumSwitch({checked:state.premium,onChange:on=>setPremium(on)});
   root.querySelector('.raw-premium-slot').replaceWith(premium);
+  // Móvil: a la izquierda de la barra de arriba, la del botón de aplicar
+  dockPremium(premium,{mobile:sw=>root.querySelector('.raw-topbar').prepend(sw),desktop:sw=>root.querySelector('.raw-actions').prepend(sw)});
   const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
   const engineChange=(next,item)=>{
     if(!item.engine||!onSettingChange||closed)return;

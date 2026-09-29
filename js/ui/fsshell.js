@@ -22,6 +22,8 @@ const MOBILE = "(max-width:900px)";
 const isMobile = () => matchMedia(MOBILE).matches;
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+import { dockPremium } from "./premium.js";
+
 
 export function ensureShellStyles(){
   const href = new URL("../../css/fsplugin.css", import.meta.url).href;
@@ -254,7 +256,13 @@ export function createShell({ title, subtitle = "", applyLabel = "Aplicar", cls 
     setApplyLabel(s){ $('[data-a="apply"]').textContent = s; },
     /** Un elemento más en la barra de arriba, antes de deshacer (p. ej.
         el interruptor Premium con la corona, js/ui/premium.js). */
-    addAction(el){ $(".fsp-actions").prepend(el); return el; },
+    addAction(el){
+      // El interruptor Premium, en el móvil, a la izquierda junto a ✕
+      // (ver dockPremium en premium.js); lo demás, con las acciones.
+      if(el.classList?.contains("premium-switch"))
+        return dockPremium(el, { mobile: sw => $(".fsp-close").after(sw), desktop: sw => $(".fsp-actions").prepend(sw) });
+      $(".fsp-actions").prepend(el); return el;
+    },
     setClass(cls, on){ root.classList.toggle(cls, !!on); },
     /** Contenido cuando aún no hay imagen (p. ej. «Añadir fotos»). null lo oculta. */
     setEmpty(html){ emptyEl.hidden = !html; if(html !== null && html !== undefined) emptyEl.innerHTML = html; return emptyEl; },

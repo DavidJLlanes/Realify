@@ -31,3 +31,27 @@ export const premiumPref = {
   get(key){ try{ return localStorage.getItem("realify.premium." + key) === "1"; }catch{ return false; } },
   set(key, on){ try{ localStorage.setItem("realify.premium." + key, on ? "1" : "0"); }catch{} }
 };
+
+/* ── Dónde va el interruptor ─────────────────────────────────────
+   REGLA (móvil): la vista previa de la imagen manda y la interfaz de
+   cada plugin es mínima. El interruptor Premium no ocupa una fila
+   propia: va en la MISMA barra que el botón de aplicar/aceptar,
+   alineado a la IZQUIERDA (junto a ✕ en los editores a pantalla
+   completa, a la izquierda de Cancelar/Aplicar en los ajustes).
+   En escritorio se queda donde cada plugin lo ponía.
+
+   `dockPremium(sw, { mobile, desktop })`: cada uno es una función que
+   coloca `sw` en su sitio; se vuelve a llamar al cruzar el ancho de
+   móvil (girar una tableta, redimensionar la ventana). */
+const MOBILE = "(max-width:900px)";
+export function dockPremium(sw, { mobile, desktop }){
+  const mq = matchMedia(MOBILE);
+  const place = () => {
+    const m = mq.matches;
+    sw.classList.toggle("ps-docked", m);
+    (m ? mobile : desktop)(sw);
+  };
+  place();
+  mq.addEventListener?.("change", () => { if(sw.isConnected) place(); });
+  return sw;
+}
