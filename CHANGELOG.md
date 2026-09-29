@@ -109,6 +109,8 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Escritorio: en los menús de herramientas agrupadas de la barra izquierda (mantener pulsado o
+  clic derecho) los iconos y nombres salían centrados; ahora van alineados a la izquierda.
 - **Revelador RAW, luz lineal real**: el motor (LibRaw-Wasm) entrega los datos con la curva
   BT.709 aunque se le pida lineal, y el revelado los trataba como lineales: todo salía más
   claro y los ajustes de exposición, balance y tono trabajaban sobre valores equivocados.
