@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Añadido
+- **Tono y saturación Premium 👑**: interruptor con corona en el ajuste. Mismos mandos, motor
+  en OKLCh, luz lineal y coma flotante: al girar el tono se conserva la luminosidad percibida
+  (en el modo normal un amarillo girado a azul pasaba de 0,58 a 0,11 de luminancia; en Premium
+  se queda en 0,57), la saturación trabaja sobre el croma, Luminosidad apaga el color al
+  acercarse al blanco o al negro, Colorear conserva la luminosidad de cada píxel, mapeo de
+  gama sin recortar canales y tramado al volver a 8 bits. Vista previa en vivo con una tabla de
+  33³ colores interpolada en luz lineal; el resultado final se calcula color a color
+  (`js/editor/hslpremium.js`). Apagado, el ajuste es idéntico al de siempre.
+
+### Corregido
+- **Los desplegables ya no aparecen abiertos al abrir un ajuste en el iPhone**: el diálogo
+  daba el foco a su primer mando y, en iOS, enfocar un desplegable lo despliega (pasaba en Tono
+  y saturación y en cualquier ajuste con desplegable). En pantallas táctiles el foco va ahora a
+  la propia ventana; los desplegables aparecen siempre cerrados.
+
 ### Corregido
 - **Balance de blancos sin miniatura**: se quita la vista previa que abría la herramienta (y su
   capa de ajuste). Actúa sobre la imagen abierta en tiempo real con la misma interfaz mínima
