@@ -31,6 +31,8 @@ export function rng(seed){
   };
 }
 
+import { drawFrame } from "./frames.js";
+
 const cache = new Map();
 
 function geometry(seed, W, H){
@@ -114,8 +116,8 @@ function geometry(seed, W, H){
 
 /* Claves de los modificadores que se dibujan aquí: si ninguno cambia,
    no hace falta redibujar las capas. */
-export const OVERLAY_KEYS = ["dust", "scratches", "stains", "cracks", "instant", "filmBorder", "paperBorder", "dateStamp"];
-export const overlayKey = s => OVERLAY_KEYS.map(k => s[k]).join(",") + "|" + s.seed + "|" + (s.date || "");
+export const OVERLAY_KEYS = ["dust", "scratches", "stains", "cracks", "instant", "filmBorder", "paperBorder", "dateStamp", "frameWidth"];
+export const overlayKey = s => OVERLAY_KEYS.map(k => s[k]).join(",") + "|" + s.seed + "|" + (s.date || "") + "|" + (s.frame || "");
 
 const prep = (ctx, region) => {
   const c = ctx.canvas, sx = c.width / region.w, sy = c.height / region.h;
@@ -351,6 +353,9 @@ export function drawOverlays(ctxs, W, H, region, s){
     paint.restore();
   }
   paint.globalAlpha = 1;
+
+  // Marco elegido en el desplegable «Marco» (frames.js), encima de todo
+  drawFrame(paint, W, H, s);
 }
 
 /* Texto del sello: «'98 7 14». */

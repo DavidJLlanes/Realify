@@ -10,6 +10,8 @@
    resultado en la vista previa, al aceptar y al reabrir la capa.
    ═══════════════════════════════════════════════════════════════ */
 
+import { frameById } from "./frames.js";
+
 export const VINTAGE_VERSION = 1;
 
 export const GROUPS = [
@@ -56,6 +58,7 @@ export const CONTROLS = [
   C("bordes", "filmBorder","Bordes de película 35 mm", "Marco negro, perforaciones y rótulos del borde."),
   C("bordes", "paperBorder","Bordes de papel",         "Margen de papel baritado cortado a mano."),
   C("bordes", "dateStamp", "Sello de fecha",           "Números naranjas quemados en la esquina."),
+  C("bordes", "frameWidth","Anchura del marco",        "Ensancha el marco elegido en el desplegable «Marco» (0 = anchura normal)."),
 
   C("optica", "soft",      "Baja nitidez",             "Menos microcontraste; texturas y piel más suaves."),
   C("optica", "ca",        "Aberración cromática",     "Flecos de color en las siluetas."),
@@ -71,7 +74,8 @@ export const CONTROLS = [
 
 export const defaults = () => {
   // `date`: texto del sello de fecha («'98 7 14»), fijado al abrir.
-  const state = { version: VINTAGE_VERSION, seed: 1, date: "" };
+  // `frame`: id del marco de frames.js ("" = sin marco).
+  const state = { version: VINTAGE_VERSION, seed: 1, date: "", frame: "" };
   for(const item of CONTROLS) state[item.key] = 0;
   return state;
 };
@@ -84,10 +88,11 @@ export const normalize = value => {
   }
   state.seed = Number.isFinite(+state.seed) ? (+state.seed >>> 0) || 1 : 1;
   state.date = typeof state.date === "string" ? state.date.slice(0, 16) : "";
+  state.frame = frameById(state.frame) ? state.frame : "";
   return state;
 };
 
 export const control = key => CONTROLS.find(item => item.key === key);
 export const controlsFor = group => CONTROLS.filter(item => item.group === group);
 export const valueText = (item, value) => `${Math.round(value)}${item.unit || ""}`;
-export const isActive = state => CONTROLS.some(item => state[item.key] > 0);
+export const isActive = state => !!state.frame || CONTROLS.some(item => item.key !== "frameWidth" && state[item.key] > 0);

@@ -227,6 +227,147 @@ export const PRESETS = [
     values: { fog: 55, fade: 30, agedDesat: 30, soft: 25, rolloff: 40 } }
 ];
 
+
+/* ── Estilos añadidos en la v148: nuevas categorías y estilos con marco
+   (`frame` = id de frames.js; el marco forma parte del estilo). ── */
+const P = (cat, id, label, values, frame) => ({ id, cat, label, values, ...(frame ? { frame } : {}) });
+PRESETS.push(
+  /* Laboratorio y revelado */
+  P("Laboratorio y revelado", "labPush", "Forzado dos pasos", { lowRange: 55, grain: 75, panchro: 100, vigOptical: 25 }),
+  P("Laboratorio y revelado", "labPull", "Revelado corto y suave", { fade: 35, rolloff: 60, grain: 20, agedDesat: 25 }),
+  P("Laboratorio y revelado", "labBleach", "Blanqueo parcial", { agedDesat: 65, lowRange: 55, grain: 40, split: 15 }),
+  P("Laboratorio y revelado", "labTired", "Químicos agotados", { castYellow: 40, fog: 30, stains: 45, fade: 25, grain: 35 }),
+  P("Laboratorio y revelado", "labSolar", "Efecto Sabattier", { panchro: 100, cross: 35, fog: 25, lowRange: 40, halation: 30 }),
+  P("Laboratorio y revelado", "labHot", "Revelador demasiado caliente", { castMagenta: 35, grain: 65, fog: 20, lowRange: 25, cracks: 15 }),
+  P("Laboratorio y revelado", "labContact", "Hoja de contactos", { panchro: 100, grain: 35, dust: 30, fade: 10 }, "film35"),
+  P("Laboratorio y revelado", "labTest", "Tira de prueba", { panchro: 100, ortho: 20, fog: 20, grain: 40, stains: 25 }, "filmFiledWhite"),
+  P("Laboratorio y revelado", "labDarkroom", "Luz roja del cuarto oscuro", { selenium: 40, castMagenta: 50, lowRange: 30, grain: 30, vigOptical: 35 }),
+  P("Laboratorio y revelado", "labLith", "Copia lith", { sepia: 60, lowRange: 45, grain: 60, rolloff: 20, vigOptical: 25 }),
+
+  /* Cine clásico */
+  P("Cine clásico", "cineTechni", "Tres bandas de color", { warmSlide: 60, lowRange: 30, halation: 25, bloom: 20, grain: 20 }),
+  P("Cine clásico", "cineWestern", "Western polvoriento", { castYellow: 55, fade: 25, dust: 35, scratches: 30, grain: 40, vigOptical: 30 }),
+  P("Cine clásico", "cineSilent", "Cine mudo", { panchro: 100, ortho: 70, shake: 20, scratches: 60, dust: 50, vigOptical: 55, soft: 30 }, "filmCine"),
+  P("Cine clásico", "cineNouvelle", "Nueva ola francesa", { panchro: 100, grain: 50, lowRange: 25, soft: 15 }),
+  P("Cine clásico", "cineGiallo", "Giallo italiano", { castMagenta: 35, warmSlide: 45, halation: 55, bloom: 35, grain: 35 }),
+  P("Cine clásico", "cineScifi70", "Ciencia ficción de los 70", { coolNeg: 50, bloom: 45, flare: 55, grain: 35, fade: 20 }),
+  P("Cine clásico", "cineMusical", "Musical en color", { warmSlide: 70, bloom: 40, halation: 30, rolloff: 30 }),
+  P("Cine clásico", "cineNoirRain", "Detective bajo la lluvia", { panchro: 100, lowRange: 55, halation: 40, grain: 50, vigOptical: 45 }),
+  P("Cine clásico", "cineDrive", "Autocine", { cross: 30, halation: 50, fade: 20, grain: 35, vigOptical: 30 }, "projector"),
+  P("Cine clásico", "cineTrailer", "Tráiler rayado", { warmSlide: 40, scratches: 70, dust: 55, grain: 45, fade: 20 }, "leader"),
+  P("Cine clásico", "cineS8", "Vacaciones en súper 8", { warmSlide: 55, leaks: 45, grain: 60, soft: 30, shake: 20, vigOptical: 35 }, "filmS8"),
+
+  /* Viajes y postales */
+  P("Viajes y postales", "tRiviera", "Riviera de 1960", { warmSlide: 65, fade: 20, rolloff: 45, grain: 20 }, "postcard"),
+  P("Viajes y postales", "tSafari", "Safari", { castYellow: 60, fog: 20, grain: 40, vigOptical: 35, dust: 20 }),
+  P("Viajes y postales", "tAlps", "Postal alpina", { coolNeg: 40, lowRange: 20, paperBorder: 20, grain: 15 }, "deckleWhite"),
+  P("Viajes y postales", "tRoute", "Carretera americana", { warmSlide: 55, fade: 25, halation: 25, grain: 30, leaks: 20 }),
+  P("Viajes y postales", "tAirmail", "Carta desde lejos", { castYellow: 35, agedDesat: 35, fade: 25, grain: 20 }, "airmail"),
+  P("Viajes y postales", "tStamp", "Sello de colección", { agedDesat: 45, castYellow: 30, lowRange: 25, soft: 20 }, "stamp"),
+  P("Viajes y postales", "tPostmark", "Matasellos", { sepia: 40, agedDesat: 30, fade: 25, stains: 20 }, "postmark"),
+  P("Viajes y postales", "tTropic", "Trópico saturado", { warmSlide: 55, cross: 20, bloom: 25, grain: 15 }),
+  P("Viajes y postales", "tSlideShow", "Proyección de diapositivas", { warmSlide: 60, vigOptical: 40, dust: 25, soft: 15 }, "slideWhite"),
+  P("Viajes y postales", "tSouvenir", "Recuerdo en la maleta", { castYellow: 40, fade: 30, cracks: 25, stains: 20 }, "scallop"),
+
+  /* Retratos antiguos */
+  P("Retratos antiguos", "rCabinet", "Retrato de estudio 1890", { sepia: 80, soft: 35, vigOptical: 45, cracks: 20, fade: 15 }, "cabinet"),
+  P("Retratos antiguos", "rCdv", "Carte de visite", { sepia: 70, platinum: 20, soft: 30, dust: 20, fade: 20 }, "cdv"),
+  P("Retratos antiguos", "rCameo", "Camafeo victoriano", { sepia: 65, soft: 40, vigOptical: 30, grain: 20 }, "cameo"),
+  P("Retratos antiguos", "rOval", "Óvalo de la abuela", { sepia: 55, fade: 30, soft: 35, stains: 20 }, "ovalMat"),
+  P("Retratos antiguos", "rTintype", "Ferrotipo", { platinum: 50, selenium: 40, lowRange: 40, vigMech: 35, cracks: 30, soft: 35 }, "ovalDark"),
+  P("Retratos antiguos", "rAmbro", "Ambrotipo en estuche", { selenium: 55, platinum: 30, vigOptical: 55, soft: 40, cracks: 25 }, "goldOrnate"),
+  P("Retratos antiguos", "rWedding", "Boda de 1920", { sepia: 55, rolloff: 50, soft: 35, bloom: 25, fade: 20 }, "matOval"),
+  P("Retratos antiguos", "rSoldier", "Retrato de uniforme", { sepia: 75, ortho: 30, panchro: 100, grain: 35, cracks: 30, stains: 25 }, "albumen"),
+  P("Retratos antiguos", "rHollywood", "Galán de estudio", { panchro: 100, bloom: 40, rolloff: 45, soft: 30, vigOptical: 35 }),
+  P("Retratos antiguos", "rChild", "Primera comunión", { sepia: 40, fade: 35, rolloff: 50, soft: 30 }, "lace"),
+
+  /* Instantáneas */
+  P("Instantáneas", "iClassic", "Instantánea clásica", { fade: 35, split: 30, rolloff: 55, instant: 40, soft: 20 }, "instWhite"),
+  P("Instantáneas", "iExpired", "Instantánea caducada", { castYellow: 45, fade: 45, fog: 25, instant: 75, agedDesat: 30 }, "instCream"),
+  P("Instantáneas", "iBlack", "Edición negra", { lowRange: 30, split: 35, rolloff: 45, grain: 20 }, "instBlack"),
+  P("Instantáneas", "iPink", "Pastel rosa", { castMagenta: 25, fade: 40, rolloff: 55, bloom: 20 }, "instPink"),
+  P("Instantáneas", "iMint", "Menta fresca", { castGreen: 25, fade: 35, rolloff: 45, split: 20 }, "instMint"),
+  P("Instantáneas", "iSky", "Celeste de verano", { coolNeg: 35, fade: 35, bloom: 20, rolloff: 50 }, "instSky"),
+  P("Instantáneas", "iSquare", "Cuadrada con cinta", { fade: 30, split: 30, instant: 30, grain: 15 }, "instTape"),
+  P("Instantáneas", "iMono", "Instantánea en blanco y negro", { panchro: 100, fade: 30, rolloff: 45, instant: 35 }, "instWhite"),
+  P("Instantáneas", "iNote", "Con dedicatoria", { castYellow: 30, fade: 35, split: 25, rolloff: 45 }, "instNote"),
+  P("Instantáneas", "iCoffee", "Olvidada en la mesa", { castYellow: 45, fade: 40, stains: 35, agedDesat: 30 }, "instCoffee"),
+  P("Instantáneas", "iWide", "Panorámica de fiesta", { warmSlide: 30, halation: 30, fade: 25, flare: 20 }, "instWide"),
+
+  /* Álbum de familia */
+  P("Álbum de familia", "fAlbum60", "Álbum de los 60", { castYellow: 45, agedDesat: 40, fade: 30, grain: 25 }, "cornersBlack"),
+  P("Álbum de familia", "fAlbum70", "Álbum de los 70", { warmSlide: 45, castYellow: 30, fade: 35, grain: 30 }, "scallop"),
+  P("Álbum de familia", "fAlbum80", "Álbum de los 80", { coolNeg: 35, castMagenta: 25, fade: 25, grain: 30, dateStamp: 50 }, "cornersGold"),
+  P("Álbum de familia", "fBirthday", "Cumpleaños con flash", { warmSlide: 30, halation: 35, lowRange: 30, vigOptical: 30, grain: 25 }),
+  P("Álbum de familia", "fChristmas", "Navidad de 1975", { warmSlide: 55, halation: 40, bloom: 30, grain: 35, fade: 20 }, "wave"),
+  P("Álbum de familia", "fBeach", "Verano en la playa", { warmSlide: 50, fade: 35, rolloff: 55, leaks: 25 }, "deckleCream"),
+  P("Álbum de familia", "fAttic", "Encontrada en el desván", { castYellow: 50, agedDesat: 50, dust: 45, stains: 35, cracks: 30 }, "wornCorners"),
+  P("Álbum de familia", "fScrap", "Cuaderno de recuerdos", { fade: 30, castYellow: 30, grain: 20 }, "scrapbook"),
+  P("Álbum de familia", "fWashi", "Álbum decorado", { fade: 25, split: 25, rolloff: 40 }, "washi"),
+  P("Álbum de familia", "fDrawer", "Cajón de fotos sueltas", { castMagenta: 40, agedDesat: 40, fade: 35, dust: 25 }, "zigzag"),
+
+  /* Noir y misterio */
+  P("Noir y misterio", "nKeyhole", "Por la cerradura", { panchro: 100, lowRange: 45, grain: 45 }, "keyhole"),
+  P("Noir y misterio", "nSpy", "Prismáticos del espía", { panchro: 100, grain: 50, soft: 25 }, "binoculars"),
+  P("Noir y misterio", "nCase", "Expediente policial", { panchro: 100, ortho: 40, fade: 20, stains: 30, grain: 40 }, "kraft"),
+  P("Noir y misterio", "nFog", "Niebla en el puerto", { panchro: 100, fog: 45, grain: 45, halation: 30, vigOptical: 40 }),
+  P("Noir y misterio", "nSmoke", "Club de jazz", { selenium: 45, bloom: 45, halation: 45, grain: 50, vigOptical: 45 }),
+  P("Noir y misterio", "nMoon", "Luna de sangre", { panchro: 100, castMagenta: 30, lowRange: 50, grain: 40, vigMech: 30 }),
+  P("Noir y misterio", "nGhost", "Fotografía espiritista", { platinum: 60, shake: 55, bloom: 40, fog: 30, vigOptical: 50 }, "ovalSepia"),
+  P("Noir y misterio", "nBurnt", "Rescatada del incendio", { sepia: 60, lowRange: 35, stains: 40, cracks: 35, grain: 30 }, "burnt"),
+  P("Noir y misterio", "nPinhole", "Estenopeica nocturna", { panchro: 100, soft: 55, grain: 55, lowRange: 25 }, "pinhole"),
+  P("Noir y misterio", "nTelegram", "Telegrama urgente", { sepia: 40, agedDesat: 40, fade: 30, grain: 25 }, "telegram"),
+
+  /* Pop y psicodelia */
+  P("Pop y psicodelia", "pFlower", "Flower power", { cross: 55, warmSlide: 30, bloom: 30, grain: 25 }, "floral"),
+  P("Pop y psicodelia", "pRainbow", "Arcoíris setentero", { warmSlide: 55, fade: 30, halation: 30, grain: 25 }, "rainbow70"),
+  P("Pop y psicodelia", "pNeon", "Neón ochentero", { cross: 45, halation: 60, bloom: 40, coolNeg: 20 }, "neon80"),
+  P("Pop y psicodelia", "pAcid", "Viaje ácido", { cross: 90, swirl: 40, ca: 45, bloom: 30 }),
+  P("Pop y psicodelia", "pCandy", "Tienda de caramelos", { warmSlide: 40, castMagenta: 25, fade: 25, bloom: 25 }, "candy"),
+  P("Pop y psicodelia", "pPolka", "Lunares pop", { cross: 35, lowRange: 30, grain: 20 }, "polka"),
+  P("Pop y psicodelia", "pStars", "Noche estrellada", { coolNeg: 50, halation: 40, bloom: 30, grain: 30 }, "stars"),
+  P("Pop y psicodelia", "pChecker", "Ska y cuadros", { panchro: 100, lowRange: 40, grain: 30 }, "checker"),
+  P("Pop y psicodelia", "pZigzag", "Memphis 1985", { cross: 40, fade: 25, bloom: 20 }, "zigzagColor"),
+  P("Pop y psicodelia", "pHeart", "San Valentín", { castMagenta: 30, bloom: 35, fade: 30, rolloff: 45 }, "heart"),
+
+  /* Tecnología retro */
+  P("Tecnología retro", "tvCrt", "Televisor de tubo", { bloom: 30, ca: 40, soft: 30, lowRange: 20, vigOptical: 30 }, "crt"),
+  P("Tecnología retro", "tvPhosphor", "Monitor de fósforo verde", { panchro: 100, castGreen: 60, bloom: 35, soft: 25 }, "crtGreen"),
+  P("Tecnología retro", "tvCamcorder", "Videocámara familiar", { coolNeg: 30, ca: 45, soft: 35, grain: 30, bloom: 20 }, "camcorder"),
+  P("Tecnología retro", "tvVhs", "Cinta VHS gastada", { ca: 55, soft: 40, castMagenta: 20, fade: 25, shake: 15 }, "vhs"),
+  P("Tecnología retro", "tvViewfinder", "Visor réflex", { warmSlide: 25, vigOptical: 35, soft: 10 }, "viewfinder"),
+  P("Tecnología retro", "tvRange", "Telémetro de 1965", { panchro: 100, grain: 40, vigOptical: 30 }, "rangefinder"),
+  P("Tecnología retro", "tvDigicam", "Cámara digital de 2003", { coolNeg: 25, ca: 35, lowRange: 40, soft: 15, dateStamp: 70 }),
+  P("Tecnología retro", "tvPhone", "Móvil con tapa", { soft: 55, ca: 40, grain: 50, lowRange: 35, castGreen: 20 }),
+  P("Tecnología retro", "tvScanner", "Escáner de sobremesa", { fade: 20, dust: 40, agedDesat: 25, soft: 20 }, "floating"),
+  P("Tecnología retro", "tvFax", "Fax recibido", { panchro: 100, lowRange: 70, grain: 70, scratches: 30 }, "grungeWhite"),
+
+  /* Galería y museo */
+  P("Galería y museo", "gOldMaster", "Viejo maestro", { warmSlide: 40, castYellow: 30, lowRange: 30, cracks: 40, vigOptical: 40 }, "gold"),
+  P("Galería y museo", "gBaroque", "Salón barroco", { warmSlide: 45, cracks: 35, vigOptical: 50, soft: 15 }, "goldOrnate"),
+  P("Galería y museo", "gMuseum", "Sala de museo", { platinum: 60, fade: 15, rolloff: 40 }, "goldMuseum"),
+  P("Galería y museo", "gSilver", "Plata antigua", { selenium: 70, rolloff: 35, grain: 20 }, "silver"),
+  P("Galería y museo", "gWalnut", "Salón de nogal", { sepia: 50, fade: 20, vigOptical: 30, grain: 20 }, "woodDark"),
+  P("Galería y museo", "gCottage", "Casa de campo", { castYellow: 35, fade: 25, grain: 25 }, "woodRustic"),
+  P("Galería y museo", "gDeco", "Gran hotel déco", { panchro: 100, selenium: 30, lowRange: 35, bloom: 20 }, "artDeco"),
+  P("Galería y museo", "gGallery", "Galería contemporánea", { split: 30, fade: 20, rolloff: 35 }, "gallery"),
+  P("Galería y museo", "gVelvet", "Palacio de terciopelo", { warmSlide: 50, halation: 30, vigOptical: 40 }, "redVelvet"),
+  P("Galería y museo", "gNouveau", "Modernismo", { sepia: 35, castGreen: 20, fade: 25, soft: 20 }, "nouveau"),
+  P("Galería y museo", "gShadowbox", "Vitrina", { platinum: 40, fade: 15 }, "shadowbox"),
+
+  /* Papel y archivo */
+  P("Papel y archivo", "aTorn", "Página arrancada", { sepia: 45, agedDesat: 35, stains: 30, grain: 20 }, "torn"),
+  P("Papel y archivo", "aWater", "Inundación del archivo", { castYellow: 50, stains: 55, agedDesat: 45, fog: 20 }, "water"),
+  P("Papel y archivo", "aMold", "Sótano húmedo", { castGreen: 40, agedDesat: 45, stains: 40, fade: 25 }, "mold"),
+  P("Papel y archivo", "aKraft", "Sobre de papel madera", { sepia: 35, fade: 30, grain: 25 }, "kraft"),
+  P("Papel y archivo", "aLabel", "Botica antigua", { sepia: 55, fade: 25, soft: 20 }, "label"),
+  P("Papel y archivo", "aEmboss", "Cartón gofrado", { platinum: 55, fade: 20, rolloff: 40 }, "emboss"),
+  P("Papel y archivo", "aGreek", "Álbum de viaje a Grecia", { warmSlide: 45, fade: 30, grain: 20 }, "greek"),
+  P("Papel y archivo", "aTiles", "Azulejo portugués", { cyanotype: 60, fade: 20 }, "tiles"),
+  P("Papel y archivo", "aDusty", "Negativo polvoriento", { coolNeg: 30, dust: 60, scratches: 30, grain: 35 }, "dusty"),
+  P("Papel y archivo", "aScratched", "Placa rayada", { panchro: 100, scratches: 55, dust: 35, grain: 35 }, "scratchedBlack")
+);
+
 /* Categoría de cada estilo para agruparlos en el desplegable. Los
    originales no la declaran: van a «Clásicos» (salvo los procesos B/N
    y de ópticas, que se reparten en sus grupos). */
@@ -236,6 +377,8 @@ const ORIGINAL_CATS = { sepia1900: "Procesos antiguos", cyanotype: "Procesos ant
   date98: "Décadas", slide60: "Décadas", neg90: "Décadas", family70: "Décadas", scan35: "Películas en color",
   cross: "Películas en color", expired: "Películas en color", xray: "Películas en color" };
 for(const p of PRESETS) if(!p.cat) p.cat = p.id === "none" ? "" : ORIGINAL_CATS[p.id] || "Clásicos";
-export const PRESET_CATS = ["Clásicos", "Décadas", "Películas en color", "Blanco y negro", "Procesos antiguos", "Cámaras y ópticas", "Creativos", "Estaciones y ambientes"];
+export const PRESET_CATS = ["Clásicos", "Décadas", "Películas en color", "Blanco y negro", "Procesos antiguos", "Cámaras y ópticas", "Creativos", "Estaciones y ambientes",
+  "Laboratorio y revelado", "Cine clásico", "Viajes y postales", "Retratos antiguos", "Instantáneas", "Álbum de familia", "Noir y misterio",
+  "Pop y psicodelia", "Tecnología retro", "Galería y museo", "Papel y archivo"];
 
 export const preset = id => PRESETS.find(p => p.id === id);

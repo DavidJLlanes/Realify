@@ -9,7 +9,12 @@
        desplegable de ajustes predefinidos, las pestañas de grupo y
        todos los deslizadores del grupo.
      · Móvil: la foto ocupa toda la pantalla; abajo, un desplegable de
-       ajustes predefinidos, otro de modificador y su deslizador.
+       ajustes predefinidos, el botón «Marco», otro desplegable de
+       modificador y su deslizador.
+
+   El desplegable «Marco» abre una hoja con la miniatura de cada marco
+   sobre la propia foto (en el móvil sube desde abajo, como en los
+   demás filtros a pantalla completa; en el escritorio es una ventana).
 
    La vista previa se recalcula en la GPU una vez por fotograma como
    mucho, con el último estado pedido: arrastrar un deslizador nunca
@@ -18,6 +23,7 @@
 
 import { GROUPS, CONTROLS, control, controlsFor, normalize, valueText } from "./state.js";
 import { PRESETS, PRESET_CATS, preset } from "./presets.js";
+import { FRAMES, FRAME_CATS, frameById, drawFrame } from "./frames.js";
 import { VintageGL } from "./engine.js";
 import { toast } from "../js/ui/toast.js";
 
@@ -100,15 +106,25 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
       <div class="vf-preview"><canvas></canvas><div class="vf-zoom">100 %</div><button class="vf-fit" type="button" title="Encajar vista">⌗</button></div>
       <aside class="vf-controls">
         <label class="vf-preset"><span>Ajuste predefinido</span><select data-role="preset">${presetOptions()}</select></label>
+        <div class="vf-preset"><span>Marco</span><button type="button" class="vf-frame-btn" data-role="frame" aria-haspopup="dialog"></button></div>
         <div class="vf-groups"></div>
         <div class="vf-list"></div>
       </aside>
     </main>
     <footer class="vf-mobile">
-      <select aria-label="Ajuste predefinido" data-role="preset">${presetOptions()}</select>
+      <div class="vf-mobile-row">
+        <select aria-label="Ajuste predefinido" data-role="preset">${presetOptions()}</select>
+        <button type="button" class="vf-frame-btn" data-role="frame" aria-haspopup="dialog" aria-label="Marco"></button>
+      </div>
       <select aria-label="Modificador" class="vf-mobile-control"></select>
       <div class="vf-mobile-slider"></div>
-    </footer>`;
+    </footer>
+    <div class="vf-sheet" hidden>
+      <div class="vf-sheet-panel" role="dialog" aria-label="Marcos">
+        <header><b>Marcos</b><select class="vf-sheet-cat" aria-label="Ir a la categoría"></select><button type="button" class="vf-sheet-close" aria-label="Cerrar">✕</button></header>
+        <div class="vf-sheet-grid"></div>
+      </div>
+    </div>`;
   document.body.appendChild(root);
 
   const canvas = root.querySelector(".vf-preview canvas");
@@ -116,6 +132,7 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
   const list = root.querySelector(".vf-list"), groups = root.querySelector(".vf-groups");
   const mobileControl = root.querySelector(".vf-mobile-control"), mobileSlider = root.querySelector(".vf-mobile-slider");
   const presetSelects = root.querySelectorAll("[data-role=preset]");
+  const frameButtons = root.querySelectorAll("[data-role=frame]");
   const helpTitle = root.querySelector(".vf-help b"), helpText = root.querySelector(".vf-help span");
 
   const sample = document.createElement("canvas"); sample.width = 128; sample.height = 80;
@@ -144,7 +161,7 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
   /* El desplegable de ajustes predefinidos muestra el que coincide
      exactamente con el estado, o «Personalizado». */
   const matchPreset = () => {
-    const p = PRESETS.find(p => CONTROLS.every(c => (p.values[c.key] || 0) === state[c.key]));
+    const p = PRESETS.find(p => (p.frame || "") === state.frame && CONTROLS.every(c => (p.values[c.key] || 0) === state[c.key]));
     return p ? p.id : "";
   };
   const showHelp = key => { const item = control(key); helpTitle.textContent = item.label; helpText.textContent = item.help; };
@@ -243,6 +260,8 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
     }
     const id = matchPreset();
     presetSelects.forEach(s => { s.value = id; });
+    const fr = frameById(state.frame);
+    frameButtons.forEach(b => { b.replaceChildren(Object.assign(document.createElement("span"), { textContent: fr ? fr.label : "Sin marco" })); b.classList.toggle("is-on", !!fr); b.title = fr ? `Marco: ${fr.label}` : "Elegir un marco"; });
   };
 
   presetSelects.forEach(sel => sel.addEventListener("change", () => {
@@ -250,6 +269,7 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
     if(!p || accepting) { sync(false); return; }
     remember();
     for(const c of CONTROLS) state[c.key] = p.values[c.key] || 0;
+    state.frame = p.frame || "";
     const first = CONTROLS.find(c => state[c.key] > 0);
     if(first){ activeGroup = first.group; activeKey = first.key; }
     sync(); schedule();
@@ -258,6 +278,76 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
     activeKey = mobileControl.value; activeGroup = control(activeKey).group;
     mobileSlider.innerHTML = field(control(activeKey), true); wireFields(mobileSlider); showHelp(activeKey);
   });
+
+  /* ── Hoja de marcos con miniaturas ──
+     Cada miniatura es la foto reducida con el marco dibujado encima por
+     el mismo código que el resultado (drawFrame en coordenadas de la
+     imagen completa, escaladas). Se generan al hacerse visibles y se
+     guardan mientras no cambie la semilla ni la anchura del marco. */
+  const sheet = root.querySelector(".vf-sheet"), sheetGrid = root.querySelector(".vf-sheet-grid"), sheetCat = root.querySelector(".vf-sheet-cat");
+  const thumbs = new Map(); let thumbKey = "", thumbBase = null, thumbObserver = null;
+  const thumbSize = () => { const k = Math.min(1, 168 / Math.max(source.width, source.height)); return [Math.max(1, Math.round(source.width * k)), Math.max(1, Math.round(source.height * k))]; };
+  const frameThumb = id => {
+    const key = `${state.seed}|${state.frameWidth}`;
+    if(key !== thumbKey){ thumbs.clear(); thumbKey = key; }
+    if(thumbs.has(id)) return thumbs.get(id);
+    const [tw, th] = thumbSize();
+    if(!thumbBase){ thumbBase = document.createElement("canvas"); thumbBase.width = tw; thumbBase.height = th; const b = thumbBase.getContext("2d"); b.imageSmoothingQuality = "high"; b.drawImage(source, 0, 0, tw, th); }
+    const c = document.createElement("canvas"); c.width = tw; c.height = th;
+    const x = c.getContext("2d");
+    x.drawImage(thumbBase, 0, 0);
+    x.setTransform(tw / source.width, 0, 0, th / source.height, 0, 0);
+    try{ drawFrame(x, source.width, source.height, { ...state, frame: id }); }catch(error){ console.warn(error); }
+    const url = c.toDataURL("image/jpeg", 0.85);
+    c.width = c.height = 1;
+    thumbs.set(id, url);
+    return url;
+  };
+  const thumbCard = (id, label) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "vf-thumb" + (id === state.frame ? " on" : ""); b.dataset.frame = id;
+    b.innerHTML = `<span class="vf-thumb-img"></span><span class="vf-thumb-label"></span>`;
+    b.querySelector(".vf-thumb-label").textContent = label;
+    b.addEventListener("click", () => pickFrame(id));
+    return b;
+  };
+  const fillThumb = b => {
+    if(b.dataset.done) return;
+    b.dataset.done = "1";
+    const id = b.dataset.frame, host = b.querySelector(".vf-thumb-img");
+    const img = new Image(); img.alt = ""; img.decoding = "async";
+    img.src = frameThumb(id);
+    host.appendChild(img);
+  };
+  const openFrames = () => {
+    if(accepting || closed) return;
+    sheetGrid.innerHTML = "";
+    sheetCat.innerHTML = FRAME_CATS.map(c => `<option value="${c}">${c} (${FRAMES.filter(f => f.cat === c).length})</option>`).join("");
+    thumbObserver?.disconnect();
+    thumbObserver = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting){ fillThumb(e.target); thumbObserver.unobserve(e.target); } }), { root: sheetGrid, rootMargin: "300px 0px" });
+    const add = el => { sheetGrid.appendChild(el); if(el.classList.contains("vf-thumb")) thumbObserver.observe(el); };
+    add(thumbCard("", "Sin marco"));
+    for(const cat of FRAME_CATS){
+      const h = document.createElement("h4"); h.textContent = cat; h.dataset.cat = cat; add(h);
+      for(const f of FRAMES.filter(f => f.cat === cat)) add(thumbCard(f.id, f.label));
+    }
+    sheet.hidden = false;
+    const cur = frameById(state.frame);
+    if(cur) sheetCat.value = cur.cat;
+    requestAnimationFrame(() => sheetGrid.querySelector(".vf-thumb.on")?.scrollIntoView({ block: "center" }));
+  };
+  const closeFrames = () => { sheet.hidden = true; thumbObserver?.disconnect(); thumbObserver = null; };
+  const pickFrame = id => {
+    closeFrames();
+    if(accepting || closed || id === state.frame) return;
+    remember(); state.frame = id;
+    if(id && state.frameWidth === 0){ activeGroup = "bordes"; activeKey = "frameWidth"; }
+    sync(); schedule();
+  };
+  frameButtons.forEach(b => b.addEventListener("click", openFrames));
+  sheetCat.addEventListener("change", () => sheetGrid.querySelector(`h4[data-cat="${sheetCat.value}"]`)?.scrollIntoView({ block: "start" }));
+  root.querySelector(".vf-sheet-close").addEventListener("click", closeFrames);
+  sheet.addEventListener("click", e => { if(e.target === sheet) closeFrames(); });
 
   root.querySelector(".vf-cancel").addEventListener("click", () => close());
   root.querySelector(".vf-close").addEventListener("click", () => close());
@@ -349,11 +439,13 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
 
   const onKey = e => {
     if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z"){ e.preventDefault(); root.querySelector(e.shiftKey ? "[data-action=redo]" : "[data-action=undo]").click(); }
+    if(e.key === "Escape" && !sheet.hidden){ e.preventDefault(); closeFrames(); return; }
     if(e.key === "Escape" && !accepting) close();
   };
   const close = () => {
     if(closed) return;
-    closed = true; clearTimeout(histogramTimer); renderer.dispose();
+    closed = true; clearTimeout(histogramTimer); renderer.dispose(); thumbObserver?.disconnect(); thumbs.clear();
+    if(thumbBase) thumbBase.width = thumbBase.height = 1;
     document.removeEventListener("keydown", onKey, true); root.remove(); onClose?.();
   };
   document.addEventListener("keydown", onKey, true);

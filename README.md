@@ -81,7 +81,7 @@ nunca falle un resultado.
 <td valign="top">
 
 ### ✨ Creatividad
-Fusión HDR de hasta 11 fotos, panorámicas, 160 estilos, 102 estilos vintage,
+Fusión HDR de hasta 11 fotos, panorámicas, 160 estilos, 215 estilos vintage, 119 marcos,
 LUT `.cube`, recortes en ~60 formas, memes, stickers, collages y publicaciones
 para más de 29 formatos de redes sociales.
 
@@ -368,11 +368,13 @@ datos EXIF. Editor a pantalla completa con zoom real hasta 1:1, comparación,
 histograma y espectro.
 
 ### Filtro Vintage — `vintagefilter/`
-41 parámetros en 7 grupos (virados, color —con blanco y negro ortocromático y
-pancromático—, tono, luz y película, daños, bordes y óptica) y **102 estilos**
-agrupados en décadas, películas en color, blanco y negro, procesos antiguos,
-cámaras y ópticas, creativos y estaciones. Semilla reproducible y capa de
-filtro reeditable. Detalles en [`vintagefilter/README.md`](vintagefilter/README.md).
+42 parámetros en 7 grupos (virados, color —con blanco y negro ortocromático y
+pancromático—, tono, luz y película, daños, bordes y óptica), **215 estilos** en
+19 categorías (décadas, cine clásico, laboratorio, retratos antiguos,
+instantáneas, álbum de familia, noir, pop, tecnología retro, galería y museo…) y
+un desplegable de **119 marcos** en 10 categorías con miniatura sobre la propia
+foto (hoja desde abajo en el móvil). Semilla reproducible y capa de filtro
+reeditable. Detalles en [`vintagefilter/README.md`](vintagefilter/README.md).
 
 ### Estilos y LUT
 - **Estilos**: **160 looks** en 16 categorías (básicos, retrato, paisaje, cine,

@@ -10,6 +10,17 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Filtro Vintage: 119 marcos y 113 estilos nuevos**. Nuevo desplegable **Marco** (escritorio y
+  móvil) que abre una hoja con la miniatura de cada marco sobre la propia foto, en 10 categorías:
+  instantáneas, película (35 mm, 120, súper 8, diapositivas, limados), papel antiguo (barbado,
+  festoneado, albúmina, gabinete, paspartús), marcos de cuadro (dorados, plata, maderas, laca,
+  art déco), postales y sellos, viñetas y formas (óvalos, camafeo, cerradura, corazón…),
+  pantallas y visores (televisor, VHS, videocámara, telémetro…), desgaste (quemado, agua,
+  grunge, moho), decorativos (encaje, greca, neón, azulejo…) y álbum (esquinas, washi, clip).
+  «Anchura del marco» en el grupo Bordes. 215 estilos en 19 categorías; 11 categorías nuevas
+  (laboratorio, cine clásico, viajes y postales, retratos antiguos, instantáneas, álbum de
+  familia, noir, pop y psicodelia, tecnología retro, galería y museo, papel y archivo) y 87
+  estilos que ya traen su marco (`vintagefilter/frames.js`).
 - **Aviso de móvil en horizontal**: en un teléfono (Android o iPhone) girado, un aviso explica
   que Realify está optimizado para el móvil en vertical y que la versión de escritorio es para
   ordenador. Desaparece al volver a vertical; «Seguir en horizontal» lo oculta hasta cerrar la

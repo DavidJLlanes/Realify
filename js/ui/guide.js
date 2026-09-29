@@ -75,8 +75,8 @@ const TOPICS = [
         <li><a data-go="pintura#tool-dodgeburn">Dodge &amp; Burn</a> con vista de la capa gris en
           tiempo real.</li>
         <li><a data-go="especiales#sp-looks">Estilos</a>: 160 acabados en 16 categorías, con buscador.</li>
-        <li><a data-go="especiales#sp-vintage">Filtro Vintage</a>: 102 estilos por categorías y blanco
-          y negro pancromático.</li>
+        <li><a data-go="especiales#sp-vintage">Filtro Vintage</a>: 215 estilos en 19 categorías y
+          119 marcos con miniatura.</li>
         <li><a data-go="ajustes#adj-rangehsl">Color por rangos</a> rehecho como mezclador HSL de
           ocho rangos, y Curvas Lab y Desplazamiento / mínimo / máximo corregidos.</li>
         <li><a data-go="otras#tool-text">Texto</a> con unas 1900 tipografías libres (con buscador) y alineación que no mueve el bloque.</li>
@@ -1216,11 +1216,18 @@ const TOPICS = [
           bocadillos y curvatura; toca un texto para elegirlo, arrástralo, usa su esquina
           para escalar y girar y doble clic para escribir. Si el diseño lo necesita, el
           lienzo se amplía; cada elemento queda en su capa.</li>
-        <li id="sp-vintage"><b>Filtro Vintage…</b> 41 modificadores en siete grupos (virados, color,
-          tono, luz y película, daños, bordes, óptica) y <b>102 estilos</b> agrupados por
+        <li id="sp-vintage"><b>Filtro Vintage…</b> 42 modificadores en siete grupos (virados, color,
+          tono, luz y película, daños, bordes, óptica) y <b>215 estilos</b> en 19 categorías:
           décadas, películas en color, blanco y negro, procesos antiguos, cámaras y ópticas,
-          creativos y estaciones. El dado da una variación nueva del polvo, los arañazos o
-          las fugas de luz. Queda como capa reeditable.</li>
+          creativos, estaciones, laboratorio, cine clásico, viajes y postales, retratos
+          antiguos, instantáneas, álbum de familia, noir, pop y psicodelia, tecnología retro,
+          galería y museo, y papel y archivo (muchos ya traen su marco). El desplegable
+          <b>Marco</b> abre <b>119 marcos</b> en diez categorías (instantáneas, película,
+          papel antiguo, marcos de cuadro, postales y sellos, viñetas y formas, pantallas,
+          desgaste, decorativos y álbum), cada uno con su miniatura sobre tu foto; en el
+          móvil la hoja sube desde abajo. «Anchura del marco» (grupo Bordes) lo ensancha.
+          El dado da una variación nueva del polvo, los arañazos, las fugas de luz y las
+          texturas del marco. Queda como capa reeditable.</li>
         <li><b>PurePixel…</b> Suaviza residuos finos de luminancia y color y añade textura
           controlada; experimental, no garantiza nada frente a un detector.</li>
         <li><b>Unmark…</b> Tres secciones en un panel: <i>marcas visibles</i> (detecta el
