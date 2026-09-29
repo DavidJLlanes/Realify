@@ -6,7 +6,8 @@
    diálogo aparte que obliga a imaginárselo.
    ═══════════════════════════════════════════════════════════════ */
 
-import { view } from "./view.js";
+import { view, panBy } from "./view.js";
+import { followKeyboard } from "../ui/keyboard.js";
 import { doc } from "../core/doc.js";
 import { emit } from "../core/bus.js";
 import { renderTextLayer, fontString, isText } from "./text.js";
@@ -15,6 +16,7 @@ import { record } from "../core/history.js";
 const stage = document.getElementById("stage");
 let editor = null, editing = null, before = null, created = false;
 let refocus = null;
+let stopKb = null, kbShift = 0;   // teclado del móvil (ver startEdit)
 
 export const isEditing = () => !!editing;
 
@@ -67,6 +69,20 @@ export function startEdit(layer, selectAll, isNew = selectAll){
   stage.appendChild(editor);
 
   place();
+  /* Teclado del móvil: si el cuadro en el que se escribe queda debajo
+     del teclado, la imagen sube lo justo para verlo; al cerrarse el
+     teclado vuelve a donde estaba. */
+  kbShift = 0;
+  stopKb = followKeyboard(stage, kb => {
+    if(!editor) return;
+    if(kb){
+      const r = editor.getBoundingClientRect(), limit = innerHeight - kb - 12;
+      if(r.bottom > limit){
+        const dy = Math.min(r.bottom - limit, Math.max(0, r.top - 60));
+        if(dy > 0){ kbShift += dy; panBy(0, -dy); }
+      }
+    } else if(kbShift){ panBy(0, kbShift); kbShift = 0; }
+  });
 
   /* El foco NO se pide dentro del gesto que abre el editor. Cuando
      esto se llama desde un `pointerdown`, el navegador todavía tiene
@@ -252,6 +268,8 @@ export function endEdit(){
   if(!editing) return;
   const layer = editing, prev = before, wasNew = created;
   editing = null; before = null; created = false; refocus = null;
+  stopKb?.(); stopKb = null;
+  if(kbShift){ panBy(0, kbShift); kbShift = 0; }
 
   const val = editor ? editor.value : layer.text.content;
   if(editor){ editor.remove(); editor = null; }

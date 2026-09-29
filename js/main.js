@@ -5,6 +5,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { initLandscapeNotice } from "./ui/landscape.js";
+import { installKeyboardFit } from "./ui/keyboard.js";
 import { on, emit } from "./core/bus.js";
 import { doc, newDoc, addLayer, duplicateLayer, removeLayer,
          mergeDown, activeLayer } from "./core/doc.js";
@@ -1211,6 +1212,7 @@ document.getElementById("zoomCell").addEventListener("click", () => run("view.fi
 /* ═══ arranque ═══ */
 initPWA();
 initLandscapeNotice();
+installKeyboardFit();
 initMenu();
 initPanels();
 import("./ui/histogrampanel.js").then(m => m.initHistogramPanel());
