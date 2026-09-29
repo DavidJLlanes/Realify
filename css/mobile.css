@@ -580,6 +580,11 @@
     visibility:hidden;
   }
   #toolDrawer.open{transform:translateY(0);visibility:visible}
+  /* Buscando con el teclado abierto: el cajón se apoya encima del teclado
+     (bottom y max-height los pone tooldrawer.js) y sin esquinas abajo. */
+  #toolDrawer.td-kb{padding-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45)}
+  /* Tras pulsar «Buscar»: resultados a pantalla completa */
+  #toolDrawer.td-full{max-height:calc(100dvh - env(safe-area-inset-top) - 8px)}
   #toolDrawer:not(.open){transition:transform .22s ease-in,visibility 0s .22s}
 
   .td-grab{

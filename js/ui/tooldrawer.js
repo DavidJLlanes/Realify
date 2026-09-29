@@ -397,6 +397,11 @@ export function openDrawer(){
 export function closeDrawer(){
   if(!openState) return;
   openState = false;
+  // Fuera teclado y vuelta al tamaño normal (elegir una herramienta,
+  // tocar fuera, cerrar…)
+  if(document.activeElement === searchEl) searchEl.blur();
+  drawer.classList.remove("td-kb", "td-full");
+  drawer.style.bottom = drawer.style.maxHeight = "";
   drawer.style.transform = "";
   drawer.classList.remove("open");
   veil.classList.remove("on");
@@ -446,6 +451,44 @@ function wireSwipe(){
   }, { passive:true });
 }
 
+/* ── Buscador y teclado del móvil ──
+   El cajón está pegado al borde inferior y el teclado se abre ENCIMA
+   de la página (no la encoge), así que tapaba el buscador y los
+   resultados. Mientras el buscador tiene el foco, el cajón se apoya
+   sobre el teclado: su borde inferior sube la altura del teclado
+   (visualViewport, Android e iPhone) y su altura máxima es la zona que
+   queda libre. La tecla «Buscar» cierra el teclado y deja los
+   resultados a pantalla completa; al cerrar el teclado sin más, o al
+   elegir una herramienta, el cajón vuelve a su tamaño normal. */
+function keyboardHeight(){
+  const vv = window.visualViewport;
+  if(!vv) return 0;
+  const kb = Math.round(innerHeight - vv.height - vv.offsetTop);
+  return kb > 80 ? kb : 0;   // menos: barras del navegador que aparecen y desaparecen
+}
+function fitToKeyboard(){
+  if(!openState) return;
+  const kb = document.activeElement === searchEl ? keyboardHeight() : 0;
+  drawer.classList.toggle("td-kb", kb > 0);
+  if(kb > 0){
+    drawer.classList.remove("td-full");
+    drawer.style.bottom = `${kb}px`;
+    drawer.style.maxHeight = `${Math.max(160, Math.round(window.visualViewport.height) - 8)}px`;
+  } else {
+    drawer.style.bottom = drawer.style.maxHeight = "";
+  }
+}
+function wireKeyboard(){
+  const vv = window.visualViewport;
+  if(vv){
+    vv.addEventListener("resize", fitToKeyboard);
+    vv.addEventListener("scroll", fitToKeyboard);
+  }
+  // El teclado tarda en abrirse: se vuelve a medir mientras se anima
+  searchEl.addEventListener("focus", () => { drawer.classList.remove("td-full"); for(const ms of [0, 120, 300, 600]) setTimeout(fitToKeyboard, ms); });
+  searchEl.addEventListener("blur", () => setTimeout(fitToKeyboard, 0));
+}
+
 function syncHandle(){
   handle.hidden = !doc.open;
   if(!doc.open) closeDrawer();
@@ -485,13 +528,20 @@ export function initToolDrawer(){
   gridEl = drawer.querySelector(".td-grid");
   searchEl = drawer.querySelector(".td-search input");
   emptyEl = drawer.querySelector(".td-empty");
-  searchEl.addEventListener("input", () => { query = searchEl.value; renderGrid(); });
-  // Intro activa el primer resultado, como en un lanzador.
+  searchEl.addEventListener("input", () => {
+    query = searchEl.value; renderGrid();
+    if(!query) drawer.classList.remove("td-full");
+  });
+  // «Buscar» (Intro) cierra el teclado y deja los resultados a pantalla
+  // completa para elegir con calma.
   searchEl.addEventListener("keydown", e => {
     if(e.key !== "Enter") return;
-    const first = itemsFor(cat).find(isEnabled);
-    if(first){ e.preventDefault(); searchEl.blur(); activate(first); }
+    e.preventDefault();
+    searchEl.blur();
+    drawer.classList.toggle("td-full", !!query.trim());
+    gridEl.scrollTop = 0;
   });
+  wireKeyboard();
 
   handle.addEventListener("click", () => openState ? closeDrawer() : openDrawer());
   veil.addEventListener("click", closeDrawer);

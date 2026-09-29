@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v151-barra-acciones-flotante";
+const VERSION = "realify-v152-cajon-teclado";
 const SHELL = [
   "./",
   "./index.html",

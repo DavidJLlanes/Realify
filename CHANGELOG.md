@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Buscador del cajón de herramientas usable con el teclado del móvil**: al escribir, el cajón
+  sube y se apoya encima del teclado (antes el teclado tapaba los resultados); la tecla
+  «Buscar» cierra el teclado y deja los resultados a pantalla completa; al cerrar el teclado o
+  elegir una herramienta, el cajón vuelve a su tamaño normal. Android e iPhone.
 - **Barra de grabación de acciones flotante**: se arrastra por el asa ⠿ o por el texto a
   cualquier sitio de la pantalla (ratón o dedo) para dejar libre la barra superior; recuerda la
   posición y no se sale de la pantalla al girar el móvil o cambiar el tamaño de la ventana.
