@@ -79,6 +79,10 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- «Editar en lote» (pantalla de inicio) necesitaba dos pulsaciones en el móvil: el selector
+  de fotos se abría después de descargar el código del lote y el navegador ya no lo
+  permitía. Ahora se abre en el mismo toque; igual en Cortar y Recortar en forma sin
+  documento, en Acciones en lote e importar acciones, y al añadir fotos en el HDR.
 - Exportar en JPEG una imagen con zonas transparentes las volvía negras; ahora se rellenan
   con el color de fondo elegido (blanco por defecto).
 - Fusión HDR con horquillados largos (hasta 11 fotos, ±5 EV): la alineación fallaba en

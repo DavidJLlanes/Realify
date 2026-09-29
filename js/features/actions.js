@@ -16,6 +16,7 @@
    sobre muchas fotos, con el resultado en un ZIP.
    ═══════════════════════════════════════════════════════════════ */
 
+import { pickFiles } from "../ui/fsshell.js";
 import { alphaFieldsHTML, wireAlphaFields } from "../io/alpha.js";
 import { onRun, runAsync } from "../ui/commands.js";
 import { dialog, setDialogHooks, promptDlg, confirmDlg } from "../ui/dialog.js";
@@ -163,8 +164,7 @@ async function playOnCurrent(a){
 }
 
 async function playBatch(a){
-  const { pickFiles } = await import("../ui/fsshell.js");
-  const files = await pickFiles();
+  const files = await pickFiles();   // antes de cualquier espera: ver promptStartBatch en io/open.js
   if(!files.length) return;
   const body = document.createElement("div");
   body.innerHTML = `<p class="hint" style="margin:0 0 8px">${files.length} fotos. Cada una se abre, se le aplica «${esc(a.name)}» y se guarda en un ZIP.</p>
@@ -242,7 +242,6 @@ export async function openActions(){
     return;
   }
   if(pick.a === "import"){
-    const { pickFiles } = await import("../ui/fsshell.js");
     const [f] = await pickFiles({ multiple: false, accept: "application/json,.json" });
     if(!f) return;
     try{

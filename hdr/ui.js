@@ -17,6 +17,7 @@
    `schedule`, con un borrador más pequeño durante el gesto).
    ═══════════════════════════════════════════════════════════════ */
 
+import { RAW_EXTENSIONS } from "../raw/formats.js";
 import { createShell, mountControls, stateHistory, decodePhoto, pickFiles, thumbButton } from "../js/ui/fsshell.js";
 import { DEFAULTS, METHODS, PRESETS, presetSettings } from "./presets.js";
 import { readExposure, exposureText } from "./exif.js";
@@ -186,7 +187,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
      galería; sólo cambia algo en Android (ver core/device.js). */
   async function addPhotos(fromFiles = false){
     if(photos.length >= MAX_PHOTOS){ fullNotice(); return; }
-    const { RAW_EXTENSIONS } = await import("../raw/formats.js");
+    // Sin esperas antes del selector (el móvil sólo lo abre en el mismo toque).
     const picked = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff," + [...RAW_EXTENSIONS].map(e => "." + e).join(","), gallery: fromFiles !== true });
     if(!picked.length || closed) return;
     const files = await fitToRoom(picked);

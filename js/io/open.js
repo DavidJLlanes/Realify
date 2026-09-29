@@ -172,6 +172,18 @@ export function initOpen(){
   picker.accept = galleryAccept(picker.accept);
   const stackP = document.getElementById("filePickerStack");
   if(stackP) stackP.accept = galleryAccept(stackP.accept);
+  /* Inicio › Editar en lote: el selector se abre EN EL MISMO toque (ver
+     promptStartBatch) y el código del lote se carga después, con las
+     fotos ya elegidas. */
+  const batchP = document.getElementById("filePickerBatch");
+  if(batchP){
+    batchP.accept = galleryAccept(batchP.accept);
+    batchP.addEventListener("change", e => {
+      const files = [...e.target.files];
+      e.target.value = "";
+      if(files.length) import("../../lote/index.js").then(m => m.startBatch(files));
+    });
+  }
   document.getElementById("filePickerFiles")?.addEventListener("change", e => {
     const files = [...e.target.files].filter(compatibleFile);
     e.target.value = "";
@@ -250,6 +262,23 @@ export function initOpen(){
 export function promptOpen(){ picker.click(); }
 /** RAW, PSD, TIFF y SVG: desde el explorador de archivos (en Android no
     salen en la galería). */
+/** Editar en lote: se abre el selector directamente, sin esperar a cargar
+    nada antes —en el móvil (iPhone sobre todo) el navegador sólo deja
+    abrir un selector de archivos en el mismo instante del toque; si antes
+    se descargaba el código del lote, la primera pulsación no hacía nada—. */
+/** Selector de archivos abierto YA, en el mismo toque (sin esperas antes);
+    `cb(files)` al elegir. Para comandos que, sin documento abierto, piden
+    una foto antes de cargar su propio código (Cortar, Recortar en forma). */
+export function pickNow({ multiple = false, accept = "image/*,.heic,.heif,.tif,.tiff" } = {}, cb){
+  const i = document.createElement("input");
+  i.type = "file"; i.accept = galleryAccept(accept); i.multiple = multiple;
+  i.style.cssText = "position:fixed;left:-9999px;opacity:0";
+  document.body.appendChild(i);
+  i.addEventListener("change", () => { const f = [...i.files]; i.remove(); if(f.length) cb(f); });
+  i.addEventListener("cancel", () => i.remove());
+  i.click();
+}
+export function promptStartBatch(){ document.getElementById("filePickerBatch")?.click(); }
 export function promptOpenFiles(){ document.getElementById("filePickerFiles")?.click(); }
 
 export function promptCamera(){ document.getElementById("cameraPicker")?.click(); }

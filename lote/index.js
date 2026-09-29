@@ -64,10 +64,12 @@ export async function openBatchEdit(){
   });
 }
 
-/** Inicio › Editar en lote: abre varias fotos en pestañas y explica el paso siguiente. */
-export async function startBatch(){
+/** Inicio › Editar en lote: abre varias fotos en pestañas y explica el paso
+    siguiente. Normalmente llegan ya elegidas (`files`, ver
+    js/io/open.js › promptStartBatch); sin ellas, se piden aquí. */
+export async function startBatch(files = null){
   const [{ pickFiles }, { openFileInNewTab }] = await Promise.all([import("../js/ui/fsshell.js"), import("../js/io/open.js")]);
-  const files = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff,.psd" });
+  if(!files) files = await pickFiles({ accept: "image/*,.heic,.heif,.tif,.tiff,.psd" });
   if(!files.length) return;
   for(const f of files) await openFileInNewTab(f);
   if(files.length < 2) return;

@@ -10,14 +10,14 @@
 import { ensureShellStyles, pickFiles, decodePhoto } from "../js/ui/fsshell.js";
 import { toast } from "../js/ui/toast.js";
 
-export async function openCut(){
+export async function openCut(given = null){
   await ensureShellStyles();
   const [{ openCutEditor }, { doc }, { flatten }] = await Promise.all([
     import("./ui.js"), import("../js/core/doc.js"), import("../js/editor/layertree.js")]);
   let source, name, fromDoc = doc.open;
   if(fromDoc){ source = flatten(); name = doc.name || "imagen"; }
   else {
-    const [file] = await pickFiles({ multiple: false });
+    const [file] = given ? [given] : await pickFiles({ multiple: false });
     if(!file) return;
     try{ source = await decodePhoto(file, 8192); }catch(err){ toast(err.message, "err"); return; }
     name = file.name.replace(/\.[^.]+$/, "");

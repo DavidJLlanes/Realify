@@ -15,7 +15,7 @@
 import { ensureShellStyles, pickFiles, decodePhoto, resultToLayer } from "../js/ui/fsshell.js";
 import { toast } from "../js/ui/toast.js";
 
-export async function openShapes(){
+export async function openShapes(given = null){
   await ensureShellStyles();
   const [{ openShapeEditor }, { doc, activeLayer }, { flatten }] = await Promise.all([
     import("./ui.js"), import("../js/core/doc.js"), import("../js/editor/layertree.js")]);
@@ -33,7 +33,7 @@ export async function openShapes(){
     name = srcLayer.name || name;
   }
   else {
-    const [file] = await pickFiles({ multiple: false });
+    const [file] = given ? [given] : await pickFiles({ multiple: false });
     if(!file) return;
     try{ source = await decodePhoto(file, 8192); }catch(err){ toast(err.message, "err"); return; }
     name = file.name.replace(/\.[^.]+$/, "");

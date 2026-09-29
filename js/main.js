@@ -49,7 +49,7 @@ import { initPanels, toggleSheet, renderLayers, renderHistory,
 import { alignLayers, distributeLayers } from "./editor/align.js";
 import { runContentAwareFill } from "./editor/fillcontent.js";
 import { renderOptions } from "./ui/optionsbar.js";
-import { initOpen, promptOpen, promptCamera, promptLoadStack, promptPasteImage, revertToOriginal } from "./io/open.js";
+import { initOpen, promptOpen, promptCamera, promptLoadStack, promptPasteImage, revertToOriginal, promptStartBatch, pickNow } from "./io/open.js";
 import { exportDialog, quickPng } from "./io/export.js?v=82";
 import { initProjects, saveProject, promptOpenProject, openRecentProject } from "./io/project.js";
 import { dialog, confirmDlg, anyDialogOpen, promptDlg } from "./ui/dialog.js";
@@ -110,7 +110,7 @@ registerAll({
   "file.socialPreview": { run: photoTool("socialPreview"), enabled: needsDoc },
   /* Misma edición en varias fotos (lote/) */
   "file.batchEdit":  { run: async () => (await import("../lote/index.js")).openBatchEdit(), enabled: needsDoc },
-  "file.startBatch": async () => (await import("../lote/index.js")).startBatch(),
+  "file.startBatch": () => promptStartBatch(),
   "ai.upscale":     { run: async () => (await import("./features/aitools.js")).aiUpscale(), enabled: needsDoc },
   "ai.colorize":    { run: async () => (await import("./features/aitools.js")).aiColorize(), enabled: needsDoc },
   "ai.expand":      { run: async () => (await import("./features/aitools.js")).aiExpand(), enabled: needsDoc },
@@ -178,9 +178,12 @@ registerAll({
   "image.rotR":   { run: rotateRight, enabled: needsDoc },
   "image.rot180": { run: rotate180,   enabled: needsDoc },
   /* Cortar en partes (cortar/): sin documento, pide una foto */
-  "image.slice":     { run: async () => (await import("../cortar/index.js")).openCut() },
+  // Sin documento, la foto se pide en el mismo toque (ver pickNow).
+  "image.slice":     { run: () => doc.open ? import("../cortar/index.js").then(m => m.openCut())
+                                           : pickNow({}, ([f]) => import("../cortar/index.js").then(m => m.openCut(f))) },
   /* Recortar en forma (formas/): sin documento, pide una foto */
-  "image.shapeCrop": { run: async () => (await import("../formas/index.js")).openShapes() },
+  "image.shapeCrop": { run: () => doc.open ? import("../formas/index.js").then(m => m.openShapes())
+                                           : pickNow({}, ([f]) => import("../formas/index.js").then(m => m.openShapes(f))) },
   /* Plugins a pantalla completa (carpetas hdr/, …): no necesitan documento */
   "image.hdr":       { run: async () => (await import("../hdr/index.js")).openHdr() },
   "image.merge":     { run: async () => (await import("../unir/index.js")).openMerge() },
