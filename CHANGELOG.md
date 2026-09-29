@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Corregido
+- **Más sitios donde el teclado del móvil tapaba lo que escribías**: revisados todos los campos
+  de texto. Estaban tapados el texto de **Memes**, los textos de **Collage / History / Post**,
+  las semillas de **Cámara** (Realify), los campos del grupo Motor del **revelador RAW** y el
+  cuadro de la herramienta **Texto** cuando está en la parte de abajo de la foto. Ahora los
+  editores a pantalla completa terminan donde empieza el teclado (su pie queda a la vista) y,
+  con la herramienta Texto, la imagen sube lo justo para ver el cuadro y vuelve al cerrar el
+  teclado (`js/ui/keyboard.js › installKeyboardFit`).
+
 ### Añadido
 - **Diálogos usables con el teclado del móvil**: al escribir en un diálogo (las medidas de
   «Documento nuevo», un nombre, un número…), la hoja sube y se apoya encima del teclado en vez
