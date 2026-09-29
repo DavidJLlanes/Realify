@@ -10,6 +10,11 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Diálogos usables con el teclado del móvil**: al escribir en un diálogo (las medidas de
+  «Documento nuevo», un nombre, un número…), la hoja sube y se apoya encima del teclado en vez
+  de quedar tapada, y el campo activo se mantiene a la vista; al cerrar el teclado vuelve a su
+  sitio. Mismo arreglo que el buscador del cajón de herramientas, ahora compartido
+  (`js/ui/keyboard.js`).
 - **Cuentagotas de punto blanco** en todo lo que tiene balance de blancos: tocas algo que deba
   ser blanco o gris y la temperatura y el tinte se calculan para dejarlo exactamente neutro.
   - **Revelador RAW / Revelado fotográfico** (normal y Premium 👑): botón sobre la vista

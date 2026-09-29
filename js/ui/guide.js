@@ -1365,7 +1365,9 @@ const TOPICS = [
           erratas. Mientras escribes, el cajón sube y se apoya encima del teclado para que
           veas los resultados; la tecla <b>Buscar</b> cierra el teclado y deja los resultados
           a pantalla completa. Al cerrar el teclado o elegir una herramienta vuelve a su
-          tamaño normal. Desliza a los lados para cambiar de categoría.</li>
+          tamaño normal. Desliza a los lados para cambiar de categoría. Los diálogos en los que
+          se escribe (las medidas de «Documento nuevo», un nombre…) también suben encima del
+          teclado mientras escribes.</li>
         <li><b>Móvil en vertical.</b> Realify está pensado para usarse en el móvil en vertical;
           si giras el teléfono aparece un aviso (la versión de escritorio es para ordenador).
           «Seguir en horizontal» lo oculta hasta que cierres la pestaña. En tabletas y

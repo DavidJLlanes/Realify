@@ -19,6 +19,7 @@ import { on } from "../core/bus.js";
 import { doc } from "../core/doc.js";
 import { TOOLS, current, setTool } from "../editor/tools.js";
 import { haptic } from "../core/device.js";
+import { keyboardHeight } from "./keyboard.js";
 import { MENUS } from "./menu.js";
 import { ICONS } from "./tooldrawer-icons.js";
 import { matchScore, searchable } from "../core/search.js";
@@ -460,12 +461,6 @@ function wireSwipe(){
    queda libre. La tecla «Buscar» cierra el teclado y deja los
    resultados a pantalla completa; al cerrar el teclado sin más, o al
    elegir una herramienta, el cajón vuelve a su tamaño normal. */
-function keyboardHeight(){
-  const vv = window.visualViewport;
-  if(!vv) return 0;
-  const kb = Math.round(innerHeight - vv.height - vv.offsetTop);
-  return kb > 80 ? kb : 0;   // menos: barras del navegador que aparecen y desaparecen
-}
 function fitToKeyboard(){
   if(!openState) return;
   const kb = document.activeElement === searchEl ? keyboardHeight() : 0;

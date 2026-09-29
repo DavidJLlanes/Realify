@@ -9,6 +9,7 @@
 import { attachViewGestures, zoomIn, zoomOut, zoom100, fit } from "../editor/view.js";
 import { isMobile as isPhone, haptic } from "../core/device.js";
 import { autoCompact } from "./compact.js";
+import { followKeyboard } from "./keyboard.js";
 
 /* Enganches del grabador de acciones (features/actions.js):
    · onClose(título, índice del botón o -1, cuerpo) al cerrar;
@@ -134,6 +135,7 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
     const foot = back.querySelector(".modal-foot");
     const close = value => {
       if(hooks?.onClose){ try{ hooks.onClose(title || "", buttons.findIndex(b => (b.value === undefined ? b.label : b.value) === value), bodyEl, value); }catch{} }
+      stopKeyboard?.();
       back.remove();
       openCount--;
       document.removeEventListener("keydown", onKey, true);
@@ -208,6 +210,19 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
       if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
       else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
     };
+
+    /* Teclado del móvil: al escribir (medidas de «Documento nuevo», un
+       nombre, un número…) la hoja se apoya ENCIMA del teclado —el fondo
+       del diálogo termina donde empieza el teclado— y no pasa del alto
+       libre; el campo con el foco se desplaza a la vista. Igual que el
+       buscador del cajón de herramientas. */
+    const card = back.querySelector(".modal-card");
+    let stopKeyboard = followKeyboard(back, (kb, free) => {
+      back.classList.toggle("kb-open", kb > 0);
+      back.style.bottom = kb ? `${kb}px` : "";
+      card.style.maxHeight = kb ? `${Math.max(160, free - 8)}px` : "";
+      if(kb) requestAnimationFrame(() => document.activeElement?.scrollIntoView?.({ block: "nearest" }));
+    });
 
     const prev = document.activeElement;
     document.body.appendChild(back);

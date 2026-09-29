@@ -372,6 +372,9 @@
      y sigue resolviendo su propio margen por dentro, como hasta ahora. */
   .modal{padding:0 0 env(safe-area-inset-bottom);align-items:flex-end}
   .modal:has(.dlg-full){padding-bottom:0}
+  /* Teclado abierto: la hoja ya está encima de él (dialog.js pone el
+     fondo del diálogo a esa altura); sin margen de la barra de gestos. */
+  .modal.kb-open{padding-bottom:0}
   .modal-card{
     max-width:none;width:100%;
     max-height:65dvh;height:auto;

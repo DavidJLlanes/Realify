@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v153-cuentagotas-balance";
+const VERSION = "realify-v154-dialogos-teclado";
 const SHELL = [
   "./",
   "./index.html",
