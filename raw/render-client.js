@@ -9,7 +9,7 @@ export class RenderWorker {
       const job = this.pending.get(data.id);
       if (!job) { data.bitmap?.close(); return; }
       this.pending.delete(data.id);
-      if (data.error) job.reject(new Error(data.error)); else job.resolve(data.bitmap);
+      if (data.error) job.reject(new Error(data.error)); else job.resolve(data.pixels || data.bitmap);
     };
     this.worker.onerror = event => { event.preventDefault(); this.dispose(new Error(event.message || "No se pudo iniciar el procesador de imagen")); };
     this.worker.onmessageerror = () => this.dispose(new Error("No se pudo transferir la imagen"));
@@ -67,6 +67,35 @@ export class RenderWorker {
       }
       return canvas;
     }catch(error){canvas.width=canvas.height=1;throw error;}
+  }
+  /* Premium: por bandas de filas de SALIDA; cada banda se revela a
+     resolución original y se reduce en luz lineal en el worker. */
+  async renderPremium(settings, width, height, onProgress = ()=>{}, outW = width, outH = height) {
+    const canvas=document.createElement('canvas');canvas.width=outW;canvas.height=outH;
+    const ctx=canvas.getContext('2d');
+    if(!ctx)throw new Error('No se pudo crear el lienzo de salida');
+    const rows=Math.max(1,Math.min(256,Math.floor(262144*outH/height/Math.max(1,width))));
+    try{
+      for(let d0=0;d0<outH;d0+=rows){
+        const d1=Math.min(outH,d0+rows);
+        const bitmap=await this.request('premium',{settings,d0,d1,outW,outH,bits:8});
+        try{ctx.drawImage(bitmap,0,d0);}finally{bitmap.close();}
+        onProgress(Math.round(d1/outH*100));
+      }
+      return canvas;
+    }catch(error){canvas.width=canvas.height=1;throw error;}
+  }
+  /* 16 bits por canal a resolución original, RGB entrelazado. */
+  async render16(settings, width, height, onProgress = ()=>{}) {
+    const out=new Uint16Array(width*height*3);
+    const rows=Math.max(1,Math.min(256,Math.floor(262144/Math.max(1,width))));
+    for(let d0=0;d0<height;d0+=rows){
+      const d1=Math.min(height,d0+rows);
+      const px=await this.request('premium',{settings,d0,d1,outW:width,outH:height,bits:16});
+      out.set(px,d0*width*3);
+      onProgress(Math.round(d1/height*100));
+    }
+    return out;
   }
   dispose(error = new Error("Procesador cerrado")) {
     this.closed = true;

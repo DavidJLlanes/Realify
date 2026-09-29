@@ -10,6 +10,14 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Revelado RAW Premium 👑**: interruptor con corona en el revelador (también en Revelado
+  fotográfico). Mismo revelador y mismos mandos, motor de alta calidad: Rec.2020 sin recortar
+  colores, demosaico DHT, luz lineal real en coma flotante, sombras/altas luces/claridad con
+  filtros guiados sin halos, curva fílmica que lleva las luces al blanco sin quemarlas, ruido de
+  color guiado, color en OKLab con ajuste de gama que conserva el tono, tramado, reducción en
+  luz lineal con enfoque de salida y **TIFF de 16 bits**. Vista previa en GPU con la misma
+  matemática que el resultado (ΔE < 0,4). Apagado, el revelador queda exactamente como antes.
+  Componentes reutilizables de corona e interruptor Premium (`js/ui/premium.js`); aún sin pago.
 - **Capas a pantalla completa en el móvil** (cualquier orientación): la imagen lo más grande
   posible, barra superior con cerrar, nueva, duplicar, eliminar, deshacer y rehacer, y una
   lista que deja ver dos capas y se desplaza. Tocar la imagen sólo la mueve o amplía. El botón
@@ -90,6 +98,8 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- Revelador RAW: en el menú del motor, «Rec.2020» y «DCI-P3» estaban intercambiados; la
+  cabecera mostraba «[object Object]» en lugar del objetivo.
 - «Editar en lote» (pantalla de inicio) necesitaba dos pulsaciones en el móvil: el selector
   de fotos se abría después de descargar el código del lote y el navegador ya no lo
   permitía. Ahora se abre en el mismo toque; igual en Cortar y Recortar en forma sin

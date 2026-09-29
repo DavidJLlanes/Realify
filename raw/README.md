@@ -88,3 +88,40 @@ Se ejecuta con Node y `RAW_PLAYWRIGHT` apuntando al `index.mjs` de Playwright;
 `RAW_BROWSER` permite seleccionar el ejecutable Chromium (Edge por defecto).
 Las medidas corresponden al equipo de prueba, no garantizan una tasa de
 fotogramas fija en todos los dispositivos.
+
+## Revelado Premium (`premium/`)
+
+Un interruptor con corona en la barra superior cambia de motor sin cambiar los
+mandos. Apagado, el revelador es exactamente el de siempre. Encendido:
+
+- **Motor LibRaw**: salida Rec.2020 (`outputColor` 8; la etiqueta del menú del
+  motor estaba cambiada con DCI-P3 y se ha corregido), demosaico **DHT**
+  (`userQual` 11) y un paso de margen para las altas luces (`expShift` 0,5, que el
+  revelado devuelve). Si se han cambiado a mano la calidad de interpolación o la
+  exposición del motor, se respetan.
+- **Luz lineal de verdad**: LibRaw-Wasm ignora `gamm` y entrega siempre la curva
+  BT.709 de dcraw (0,18 lineal sale como 0,409). El modo Premium la invierte con la
+  misma fórmula de `gamma_curve()`; el revelado de siempre sigue tratándola como
+  lineal para no cambiar su aspecto.
+- **Flujo de escena en coma flotante** (`core.js` describe cada paso): balance,
+  viñeteado de lente en luz lineal, ruido de luminosidad con filtro guiado fino,
+  ruido de color con filtro guiado sobre R/Y y B/Y, exposición sin techo, neblina
+  por canal mínimo guiado, tono local sobre una base de **filtro guiado rápido**
+  (mapas de 512 px, iguales para vista previa y resultado), curva fílmica
+  logarítmica con hombro suave, saturación/intensidad/tono en **OKLab** y ajuste
+  de gama a sRGB reduciendo sólo el croma. Exposición base de +0,3 EV en RAW.
+- **Salida**: tramado a 8 bits; al abrir en Realify, reducción por área en luz
+  lineal y enfoque de salida proporcional a la reducción; botón **TIFF 16 bits**
+  (RGB, sin compresión, resolución completa).
+- **GPU y CPU**: `gpu.js` (WebGL2 con `EXT_color_buffer_float`) reproduce `cpu.js`.
+  Sin texturas flotantes, la vista previa también se calcula en el worker.
+
+`tests/premium.mjs` genera un DNG en color (`tests/dng-color-fixture.js`) y
+comprueba: Rec.2020 exacto, GPU frente a CPU (ΔE OKLab ×100: medio < 0,05, máximo
+< 1; medido ≈ 0,35), curva monótona, conservación del tono de un verde fuera de
+sRGB (el revelado de siempre lo desvía unos 12°), franjas sin costuras, reducción
+y TIFF de 16 bits. Medido con esta escena sintética: DHT da +7 dB de PSNR en bordes
+de color frente a AHD con un tiempo similar.
+
+Límites honestos: no hay perfiles de objetivo (Lensfun) ni reducción de ruido con
+IA; el editor sigue trabajando en 8 bits por canal después de abrir el revelado.

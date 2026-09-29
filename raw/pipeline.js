@@ -1,6 +1,7 @@
 import { buildToneLUT, toneGain, wbGains, toLinear } from './tone.js';
 import { isLinearSource } from './source.js';
 import { normalize } from './state.js';
+import { renderPremiumCanvas } from './premium/render.js';
 const clamp = value => Math.max(0, Math.min(255, value));
 const srgbToLinear = value => {
   value /= 255; return value <= .04045 ? value / 12.92 : Math.pow((value + .055) / 1.055, 2.4);
@@ -44,6 +45,8 @@ const blur = (data, width, height, radius) => {
 
 export function renderPhoto(source, settings, { preview = false, region = null } = {}) {
   settings=normalize(settings);
+  // Revelado Premium: flujo de escena en coma flotante (raw/premium/)
+  if(settings.premium)return renderPremiumCanvas(source,settings,{region});
   const linear=isLinearSource(source),sw=source.width,sh=source.height;
   if(region&&!linear)throw new Error('El renderizado por franjas requiere datos RAW lineales');
   const ox=region?.x||0,oy=region?.y||0,w=region?.width||sw,h=region?.height||sh;

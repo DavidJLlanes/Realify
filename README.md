@@ -55,7 +55,8 @@ inteligentes y capas de ajuste y de filtro reeditables.
 
 ### 📷 Revelado RAW de 16 bits
 Más de 40 formatos RAW con LibRaw en WebAssembly, flujo lineal de 16 bits y
-vista previa por GPU.
+vista previa por GPU. Modo **Premium 👑**: Rec.2020, demosaico DHT, flujo de
+escena en coma flotante, tono local sin halos y exportación TIFF de 16 bits.
 
 </td>
 </tr>
@@ -352,7 +353,10 @@ Revelador RAW local basado en LibRaw (WebAssembly). Trabaja en RGB lineal de
 blancos, negros, temperatura, tinte, balance automático, vibrance, saturación,
 enfoque, textura, claridad, reducción de ruido de luminosidad y de color, y
 corrección de aberración cromática. También se puede usar sobre cualquier capa
-raster. Detalles en [`raw/README.md`](raw/README.md).
+raster. El interruptor **Premium** (corona) cambia a un motor de alta calidad
+—Rec.2020, demosaico DHT, luz lineal en coma flotante, filtros guiados sin halos,
+curva fílmica, color en OKLab, TIFF de 16 bits— con la misma matemática en GPU
+(vista previa) y CPU (resultado). Detalles en [`raw/README.md`](raw/README.md).
 
 ### Realify — `js/filters/camera/`
 Simulación de cámara en 31 etapas (óptica, sensor, procesador, archivo y

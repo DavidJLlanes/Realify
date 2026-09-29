@@ -10,6 +10,7 @@ import { clearSnapshots } from "../js/core/snapshots.js";
 import { emit } from "../js/core/bus.js";
 import { commitFilter, filterBase } from "../js/editor/filterlayer.js";
 import { docSizeLimit } from "../js/core/device.js";
+import { premiumPref } from "../js/ui/premium.js";
 
 const canvasCopy=source=>{const c=document.createElement("canvas");c.width=source.width;c.height=source.height;c.getContext("2d",{willReadFrequently:true}).drawImage(source,0,0);return c;};
 
@@ -20,8 +21,11 @@ export async function openRawFile(file) {
   if(choice==="cancel"||!choice)return false;
   status(choice==="raw"?"Preparando revelado RAW…":"Extrayendo previsualización…");
   let decoder;
+  // El interruptor Premium se recuerda: si estaba activado, el primer
+  // revelado ya sale del motor Premium (Rec.2020, DHT, margen de luces).
+  const initial={...defaults(),premium:choice==='raw'&&premiumPref.get('raw')};
   try{
-    decoder=await RawDecoder.open(file,defaults(),{thumbnailOnly:choice==='jpeg'});
+    decoder=await RawDecoder.open(file,initial,{thumbnailOnly:choice==='jpeg'});
     if(choice==="jpeg"){
       let thumb;try{thumb=await decoder.thumbnail();}catch{throw new Error("Este RAW no contiene una previsualización JPEG utilizable; elige «Revelar RAW».");}
       decoder.dispose();
@@ -35,7 +39,7 @@ export async function openRawFile(file) {
        colgaba la web. El revelado final ya sale reducido. */
     let limited=false;
     const outputSize=(w,h)=>{const [ow,oh,l]=docSizeLimit(w,h);limited=l;return [ow,oh];};
-    openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial:defaults(),outputSize,onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
+    openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial,outputSize,fileName:file.name.replace(/\.[^.]+$/,""),onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
       const rawMetadata=decoder.metadata;
       /* Liberar el buffer lineal del decodificador antes de que el
          compositor móvil empiece a preparar el documento. En RAW de
@@ -54,7 +58,7 @@ export async function openRawFile(file) {
 export async function openPhotoDevelop(opts={}) {
   const edit=opts.edit||null, layer=edit?filterBase(edit):activeLayer();
   if(!layer){toast("No hay una capa que revelar","err");return;}
-  const source=canvasCopy(layer.canvas), initial=normalize(opts.init);
+  const source=canvasCopy(layer.canvas), initial=normalize(opts.init||{premium:premiumPref.get('raw')});
   openDeveloper({title:"Revelado fotográfico",source,initial,onAccept:async(result,settings)=>{
     commitFilter({base:layer,edit,result,title:"Revelado fotográfico",filter:"photo-develop",params:settings});
     toast(edit?"Revelado fotográfico actualizado":"Revelado fotográfico · capa nueva","ok");

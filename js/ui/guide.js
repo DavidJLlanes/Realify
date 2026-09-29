@@ -1188,6 +1188,16 @@ const TOPICS = [
           el tema «Realify · simulación de captura».</li>
         <li><b>Revelado fotográfico…</b> El revelador no destructivo de la capa activa;
           parámetros, porcentaje, máscara y opacidad se guardan aparte.</li>
+        <li id="sp-premium"><b>Revelado Premium (👑).</b> En el revelador RAW (y en el Revelado
+          fotográfico), el interruptor con la <b>corona</b> de la barra superior cambia al motor de
+          alta calidad con los mismos mandos: en un RAW vuelve a revelar en <b>Rec.2020</b> (los
+          colores intensos ya no se recortan) con el demosaico <b>DHT</b>, y todo se calcula en
+          coma flotante y luz lineal. Sombras, altas luces y claridad trabajan sin halos; la curva
+          fílmica lleva las luces al blanco sin quemarlas; el ruido de color se limpia sin
+          desteñir; los colores conservan su tono. Aparece <b>TIFF 16 bits</b> para guardar el
+          revelado completo a 16 bits por canal, y al abrirlo en Realify se reduce en luz lineal
+          con enfoque de salida. Apágalo y el revelador vuelve a ser exactamente el de antes. El
+          interruptor se recuerda en este navegador.</li>
         <li id="sp-collage"><b>Collage / History / Post…</b> Ver su propio tema en el índice.</li>
         <li id="sp-meme"><b>Crear meme…</b> 26 diseños —clásico, barras negras o blancas arriba y abajo,
           comparación, expectativa vs. realidad, periódico, chat, «Se busca», cómic,

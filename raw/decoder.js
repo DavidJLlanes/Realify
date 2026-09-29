@@ -1,5 +1,6 @@
 import LibRaw from "./vendor/libraw-wasm/dist/index.js";
 import { linearSource } from './source.js';
+import { premiumEngine, PREMIUM_OUTPUT_COLOR, RAW_BASE_EV } from './premium/core.js';
 export { RAW_EXTENSIONS, isRawFile } from "./formats.js";
 
 const drawData = image => {
@@ -30,7 +31,17 @@ const listNumbers=value=>{
   return values.every(Number.isFinite)?values:null;
 };
 const optionalText=value=>typeof value==='string'&&value.trim()?value.trim():null;
-const rawOptions = settings => ({
+/* Premium: Rec.2020, demosaico DHT y margen de altas luces (ver
+   premium/core.js › premiumEngine). */
+const engineSettings = settings => settings.premium ? { ...settings, ...premiumEngine(settings) } : settings;
+const sourceMeta = settings => {
+  const e = engineSettings(settings);
+  return { space: e.outputColor === PREMIUM_OUTPUT_COLOR && settings.premium ? 'rec2020' : 'srgb',
+           gain: settings.premium && e.expCorrec && !settings.expCorrec ? 1 / e.expShift : 1,
+           base: settings.premium ? 2 ** RAW_BASE_EV : 1 };
+};
+const rawOptions = settings => rawOptionsFor(engineSettings(settings));
+const rawOptionsFor = settings => ({
   bright: settings.bright,
   threshold: settings.threshold,
   autoBrightThr: settings.autoBrightThr,
@@ -80,7 +91,7 @@ export class RawDecoder {
       await raw.open(bytes, rawOptions(settings));
       const metadata = await raw.metadata(true);
       if(thumbnailOnly) return new RawDecoder(file, null, raw, metadata || {}, null);
-      const source = linearSource(await raw.imageData());
+      const source = linearSource(await raw.imageData(), sourceMeta(settings));
       raw.dispose();
       return new RawDecoder(file, null, null, metadata || {}, source);
     } catch(error) {
@@ -101,7 +112,7 @@ export class RawDecoder {
       const bytes = new Uint8Array(await this.file.arrayBuffer());
       if(this.closed) throw new Error('Decodificador cerrado');
       await raw.open(bytes, rawOptions(settings));
-      return linearSource(await raw.imageData());
+      return linearSource(await raw.imageData(), sourceMeta(settings));
     } finally {
       raw.dispose();
       if(this.raw === raw) this.raw = null;

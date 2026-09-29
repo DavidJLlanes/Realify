@@ -3,6 +3,8 @@ import { Preview } from "./preview.js";
 import { RenderWorker } from "./render-client.js";
 import { toast } from "../js/ui/toast.js";
 import { autoWhiteBalance } from './tone.js';
+import { premiumSwitch, premiumPref } from "../js/ui/premium.js";
+import { outputSharpen, tiff16 } from "./premium/output.js";
 
 const canvasCopy = source => {
   const canvas=document.createElement("canvas"); canvas.width=source.width; canvas.height=source.height;
@@ -10,13 +12,15 @@ const canvasCopy = source => {
 };
 
 const metaLine = metadata => {
-  const make=metadata?.make || metadata?.model || "RAW";
-  const lens=metadata?.lens?.Lens || metadata?.lens || "";
+  const cam=[metadata?.camera_make||metadata?.make,metadata?.camera_model||metadata?.model].filter(Boolean).join(" ");
+  const make=cam || "RAW";
+  const l=metadata?.lens, lens=typeof l==="string"?l:(l?.Lens||l?.LensModel||l?.lens||"");
+  // (los datos de objetivo de LibRaw son un objeto; antes salía «[object Object]»)
   const iso=metadata?.iso_speed || metadata?.iso || metadata?.common?.real_ISO;
   return [make,lens,iso ? `ISO ${Math.round(iso)}` : ""].filter(Boolean).join(" · ");
 };
 
-export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify" }) {
+export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify", fileName="revelado" }) {
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
   let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;
   state.autoWb=autoWhiteBalance(source);
@@ -26,7 +30,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     <header class="raw-topbar">
       <button class="raw-cancel" type="button">Cancelar</button>
       <div class="raw-title"><b>${title}</b><span>${metaLine(metadata)}</span></div>
-      <div class="raw-actions"><button type="button" data-action="undo" aria-label="Deshacer">↶</button><button type="button" data-action="redo" aria-label="Rehacer">↷</button><button class="primary" type="button" data-action="accept">${acceptLabel}</button></div>
+      <div class="raw-actions"><span class="raw-premium-slot"></span><button type="button" data-action="tiff16" class="raw-tiff" hidden title="Guardar el revelado a resolución completa en TIFF de 16 bits por canal">TIFF 16 bits</button><button type="button" data-action="undo" aria-label="Deshacer">↶</button><button type="button" data-action="redo" aria-label="Rehacer">↷</button><button class="primary" type="button" data-action="accept">${acceptLabel}</button></div>
     </header>
     <main class="raw-workspace">
       <aside class="raw-left">
@@ -62,6 +66,19 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   };
   const renderer=new Preview(preview,source,{onDraw:drawHist,onError:error=>toast(error.message,"err")});
   source=null; // workingSource/renderer own it; don't retain the initial RAW.
+  /* Interruptor Premium (corona): mismo revelador, otro motor. En un
+     RAW vuelve a revelar con LibRaw en Rec.2020, DHT y margen de altas
+     luces; la vista previa cambia al momento con lo que ya hay. */
+  const tiffButton=root.querySelector('[data-action=tiff16]');
+  const premiumUI=()=>{premium.set(state.premium);root.classList.toggle('is-premium',state.premium);tiffButton.hidden=!(state.premium&&workingSource?.linear);};
+  const setPremium=(on,{track=true}={})=>{
+    if(accepting||closed||state.premium===on)return;
+    if(track)remember();
+    state.premium=on;premiumPref.set('raw',on);premiumUI();schedule();
+    engineChange(structuredClone(state),{engine:true,key:'premium'});
+  };
+  const premium=premiumSwitch({checked:state.premium,onChange:on=>setPremium(on)});
+  root.querySelector('.raw-premium-slot').replaceWith(premium);
   const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
   const engineChange=(next,item)=>{
     if(!item.engine||!onSettingChange||closed)return;
@@ -138,8 +155,26 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   mobileGroup.addEventListener("change",()=>{activeGroup=mobileGroup.value;activeKey=controlsFor(activeGroup)[0].key;sync();});
   mobileControl.addEventListener("change",()=>{activeKey=mobileControl.value;mobileOptions();});
   root.querySelector(".raw-cancel").addEventListener("click",()=>close());
-  root.querySelector("[data-action=undo]").addEventListener("click",()=>{const previous=history.pop();if(!previous)return;future.push(structuredClone(state));Object.assign(state,previous);sync();schedule();});
-  root.querySelector("[data-action=redo]").addEventListener("click",()=>{const next=future.pop();if(!next)return;history.push(structuredClone(state));Object.assign(state,next);sync();schedule();});
+  const afterHistory=wasPremium=>{premiumUI();if(wasPremium!==state.premium){premiumPref.set('raw',state.premium);engineChange(structuredClone(state),{engine:true,key:'premium'});}};
+  root.querySelector("[data-action=undo]").addEventListener("click",()=>{const previous=history.pop();if(!previous)return;const was=state.premium;future.push(structuredClone(state));Object.assign(state,previous);sync();schedule();afterHistory(was);});
+  root.querySelector("[data-action=redo]").addEventListener("click",()=>{const next=future.pop();if(!next)return;const was=state.premium;history.push(structuredClone(state));Object.assign(state,next);sync();schedule();afterHistory(was);});
+  tiffButton.addEventListener("click",async()=>{
+    if(accepting||closed||!workingSource?.linear)return;
+    accepting=true;const label=tiffButton.textContent;tiffButton.disabled=true;
+    let worker=null;
+    try{
+      while((engineBusy||enginePending)&&!closed)await new Promise(resolve=>setTimeout(resolve,30));
+      if(closed)return;
+      const settings=structuredClone(state),{width,height}=workingSource;
+      worker=new RenderWorker();
+      await worker.setSource(workingSource);
+      const pixels=await worker.render16(settings,width,height,percent=>{if(!closed)tiffButton.textContent=`TIFF… ${percent} %`;});
+      const { download }=await import("../js/io/export.js");
+      download(tiff16(pixels,width,height),`${fileName}-16bits.tif`);
+      toast(`TIFF de 16 bits guardado (${width} × ${height})`,"ok");
+    }catch(error){if(!closed)toast(error?.message||"No se pudo guardar el TIFF de 16 bits","err");}
+    finally{worker?.dispose();accepting=false;if(!closed){tiffButton.disabled=false;tiffButton.textContent=label;}}
+  });
   root.querySelector("[data-action=accept]").addEventListener("click",async()=>{
     if(accepting||closed)return;accepting=true;
     const button=root.querySelector("[data-action=accept]"),settings=structuredClone(state);
@@ -159,7 +194,11 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
         await finalWorker.setSource(workingSource,{transfer:true});
         workingSource=null;
         const [outW,outH]=outputSize?outputSize(width,height):[width,height];
-        result=await finalWorker.renderToCanvas(settings,width,height,percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;},outW,outH);
+        const progress=percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;};
+        if(settings.premium){
+          result=await finalWorker.renderPremium(settings,width,height,progress,outW,outH);
+          outputSharpen(result,outW/width);
+        }else result=await finalWorker.renderToCanvas(settings,width,height,progress,outW,outH);
       }else{
         await finalWorker.setSource(workingSource);
         bitmap=await finalWorker.render(settings);
@@ -213,6 +252,6 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   rawPreview.addEventListener("pointerup",endPreviewPointer);rawPreview.addEventListener("pointercancel",endPreviewPointer);
   const onKey=event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();root.querySelector(event.shiftKey?"[data-action=redo]":"[data-action=undo]").click();}if(event.key==="Escape")close();if(event.key==="0")root.querySelector(".raw-fit").click();};
   const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);clearTimeout(engineTimer);enginePending=null;workingSource=null;renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
-  document.addEventListener("keydown",onKey,true); sync(); schedule();
+  document.addEventListener("keydown",onKey,true); sync(); premiumUI(); schedule();
   return { close, state, initialState };
 }

@@ -134,7 +134,8 @@ async function renderRaw(file, settings, fit){
       const { width, height } = src;
       await w.setSource(src, { transfer: true });
       const [ow, oh] = fit(width, height);
-      canvas = await w.renderToCanvas(settings, width, height, () => {}, ow, oh);
+      canvas = settings?.premium ? await w.renderPremium(settings, width, height, () => {}, ow, oh)
+                                 : await w.renderToCanvas(settings, width, height, () => {}, ow, oh);
     }else{
       await w.setSource(src);
       const bmp = await w.render(settings);

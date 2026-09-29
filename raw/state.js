@@ -16,7 +16,7 @@ export const CONTROLS = [
   { group:"motor", key:"fourColorRgb", label:"RGB de cuatro colores", type:"toggle", engine:true },
   { group:"motor", key:"highlight", label:"Modo de altas luces RAW", type:"choice", engine:true, options:[[0,"0 · Recortar"],[1,"1 · Clip"],[2,"2 · Blend"],[3,"3 · Reconstruct"],[4,"4 · Reconstruct"],[5,"5 · Reconstruct"],[6,"6 · Reconstruct"],[7,"7 · Reconstruct"],[8,"8 · Reconstruct"],[9,"9 · Reconstruct"]] },
   { group:"motor", key:"useCameraMatrix", label:"Matriz de cámara", type:"choice", engine:true, options:[[0,"Desactivada"],[1,"Si hay balance"],[3,"Siempre"]] },
-  { group:"motor", key:"outputColor", label:"Espacio de salida", type:"choice", engine:true, options:[[0,"RAW"],[1,"sRGB"],[2,"Adobe RGB"],[3,"Wide Gamut"],[4,"ProPhoto"],[5,"XYZ"],[6,"ACES"],[7,"Rec.2020"],[8,"DCI-P3"]] },
+  { group:"motor", key:"outputColor", label:"Espacio de salida", type:"choice", engine:true, options:[[0,"RAW"],[1,"sRGB"],[2,"Adobe RGB"],[3,"Wide Gamut"],[4,"ProPhoto"],[5,"XYZ"],[6,"ACES"],[7,"DCI-P3"],[8,"Rec.2020"]] },
   { group:"motor", key:"outputBps", label:"Bits por canal", type:"choice", engine:true, options:[[8,"8 bits"],[16,"16 bits"]] },
   { group:"motor", key:"outputTiff", label:"Salida TIFF RAW", type:"toggle", engine:true },
   { group:"motor", key:"outputFlags", label:"Flags de salida", type:"range", engine:true, min:0, max:255, step:1, unit:"" },
@@ -80,11 +80,13 @@ export const defaults = () => ({
   outputProfile:"", cameraProfile:"", badPixels:"", darkFrame:"",
   exposure:0, contrast:0, highlights:0, shadows:0, whites:0, blacks:0,
   vibrance:0, saturation:0, hue:0, sharpen:0, noise:0, colorNoise:0,
-  ca:0, lensVignette:0, clarity:0, texture:0, dehaze:0, vignette:0, grain:0
+  ca:0, lensVignette:0, clarity:0, texture:0, dehaze:0, vignette:0, grain:0,
+  premium:false
 });
 
 export const normalize = value => {
   const state={...defaults(),...(value||{}),version:RAW_VERSION};
+  state.premium=!!state.premium;
   if(state.temperature>100)state.temperature=(state.temperature-5500)/65;
   for(const item of CONTROLS){
     if(item.type==='choice'){if(!item.options.some(([key])=>key===state[item.key]))state[item.key]=defaults()[item.key];}
