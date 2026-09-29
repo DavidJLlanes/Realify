@@ -45,6 +45,18 @@ export function renderPremiumCanvas(source, settings, { region = null } = {}){
   return c;
 }
 
+/* Escena en luz lineal (para la fusión HDR Premium), reducida en
+   luz lineal a outW×outH, en Uint16: valor × 16 384 (hasta 4,0). */
+export function renderPremiumLinear(source, settings, d0, d1, outW, outH){
+  const { src, P, maps } = prepare(source, settings), W = src.width, H = src.height;
+  let lin;
+  if(outW === W && outH === H) lin = renderRows(src, P, maps, d0, d1, true);
+  else { const s = outH / H, [y0, y1] = sourceRowsFor(d0, d1, s, H); lin = downscale(renderRows(src, P, maps, y0, y1, true), W, y0, y1 - y0, outW, d0, d1, s); }
+  const out = new Uint16Array(lin.length);
+  for(let i = 0; i < lin.length; i++) out[i] = Math.max(0, Math.min(65535, Math.round(lin[i] * 16384)));
+  return out;
+}
+
 /* Filas de SALIDA [d0, d1) de un resultado outW×outH: se revelan las
    filas de origen correspondientes y se reducen en luz lineal. */
 export function renderPremiumRows(source, settings, d0, d1, outW, outH, bits = 8){

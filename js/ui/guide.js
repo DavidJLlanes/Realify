@@ -380,7 +380,15 @@ const TOPICS = [
           (detalles realzados, fusión de exposición, compresor de tonos o fotográfico) con sus
           mandos, y al final Tono, Color y Detalle. El resultado se abre como una <b>foto nueva</b>, en su
           propia pestaña y con el historial vacío: Comparar muestra el HDR recién creado como
-          «antes».</li>
+          «antes».
+          <br><b>HDR Premium (👑)</b>: el interruptor con la corona de la barra superior cambia al
+          motor de alta calidad con los mismos mandos y estilos. Estima la <b>curva de respuesta de
+          tu cámara</b> con el propio horquillado (o, con RAW y Premium activado <i>antes</i> de
+          añadirlos, fusiona los <b>datos lineales del sensor</b>), pesa cada foto por su ruido
+          (menos ruido en las sombras), alinea con fracción de píxel, detecta el movimiento por zonas
+          y también por el color, y trabaja el tono y el color en OKLab sin cambiar el tono de los
+          colores. Añade <b>TIFF 16 bits</b> y la <b>radiancia .hdr</b> (32 bits) para seguir en otro
+          programa. Apagado, el HDR es exactamente el de siempre.</li>
         <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. <b>Panorámica</b>: fotos
           solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
           iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:

@@ -10,6 +10,13 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Fusión HDR Premium 👑**: interruptor con corona en la ventana del HDR, mismos mandos y
+  estilos. Curva de respuesta de la cámara estimada del horquillado (Robertson + polinomio
+  suave, o sRGB si no mejora), RAW fusionados en luz lineal Rec.2020 con su nivel de recorte,
+  fusión de máxima verosimilitud (menos ruido y sin el sesgo de las sombras profundas),
+  alineación con fracción de píxel (Lucas–Kanade), antifantasmas por zonas que también ve el
+  color, tono y color en OKLab con tramado, y exportación a **TIFF 16 bits** y radiancia
+  **.hdr**. Apagado, el HDR sale idéntico al de antes. Pruebas en `hdr/tests/premium.mjs`.
 - **Revelado RAW Premium 👑**: interruptor con corona en el revelador (también en Revelado
   fotográfico). Mismo revelador y mismos mandos, motor de alta calidad: Rec.2020 sin recortar
   colores, demosaico DHT, luz lineal real en coma flotante, sombras/altas luces/claridad con

@@ -25,7 +25,9 @@ export const DEFAULTS = {
   wContrast: 100, wSat: 100, wExpo: 100, expoWidth: 50,
   // Ajustes finales
   exposure: 0, contrast: 0, black: 5, white: 0, gamma: 0, shadows: 0, highlights: 0,
-  saturation: 0, vibrance: 0, satHi: 0, satLo: 0, temp: 0, tint: 0, sharpen: 0
+  saturation: 0, vibrance: 0, satHi: 0, satLo: 0, temp: 0, tint: 0, sharpen: 0,
+  // Motor Premium (hdr/premium.js), con el interruptor de la corona
+  premium: false
 };
 
 export const PRESETS = [
@@ -51,6 +53,6 @@ export const PRESETS = [
 /** Ajustes completos de un estilo (manteniendo alineación y antifantasmas). */
 export function presetSettings(id, current = DEFAULTS){
   const p = PRESETS.find(x => x[0] === id);
-  const keep = { align: current.align, crop: current.crop, deghost: current.deghost, ghostRef: current.ghostRef };
+  const keep = { align: current.align, crop: current.crop, deghost: current.deghost, ghostRef: current.ghostRef, premium: !!current.premium };
   return { ...DEFAULTS, ...(p ? p[2] : {}), ...keep };
 }

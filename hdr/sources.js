@@ -40,7 +40,7 @@ export function exifFromRaw(m){
  * [{ file, name, canvas, exif }] (los que el usuario no canceló) o null
  * si canceló todo.
  */
-export async function developRaws(files, { fit, busy }){
+export async function developRaws(files, { fit, busy, premium = false }){
   const n = files.length;
   const buttons = [{ label: "Cancelar", value: null }, { label: "Usar el JPEG de todas", value: "jpeg" }];
   if(n > 1) buttons.push({ label: "Revelar una a una", value: "each" });
@@ -70,12 +70,16 @@ export async function developRaws(files, { fit, busy }){
     const f = files[k];
     if(how === "sync" && settings){
       busy(`Revelando con los mismos ajustes · ${k + 1} de ${n}: ${f.name}`);
-      try{ out.push(await renderRaw(f, settings, fit)); }
+      try{ out.push(await renderRaw(f, settings, fit, premium)); }
       catch(err){ toast(`${f.name}: ${err.message}`, "err"); }
       continue;
     }
     busy(`Abriendo el RAW · ${k + 1} de ${n}`);
-    const r = await developOne(f, { k, n, fit, initial: settings, busy, sync: how === "sync" });
+    const r = await developOne(f, { k, n, fit, initial: settings || (premium ? { premium: true } : null), busy, sync: how === "sync" });
+    if(r && premium){
+      busy(`Preparando los datos lineales del RAW · ${k + 1} de ${n}`);
+      try{ Object.assign(r, await linearOf(f, r.settings, fit)); }catch(err){ toast(`${f.name}: ${err.message}`, "err"); }
+    }
     if(r){ out.push(r); settings = r.settings; }
     else if(how === "sync" && !settings){ busy(null); return out.length ? out : null; }   // cancelado el primero: nada que aplicar
   }
@@ -98,7 +102,7 @@ function developOne(file, { k, n, fit, initial, busy, sync = false }){
   return new Promise(async resolve => {
     const [{ RawDecoder }, { defaults }, { openDeveloper }] = await Promise.all([
       import("../raw/decoder.js"), import("../raw/state.js"), import("../raw/ui.js")]);
-    const start = initial || defaults();
+    const start = { ...defaults(), ...(initial || {}) };
     let dec;
     try{ dec = await RawDecoder.open(file, start); }
     catch(err){ busy(null); toast(err.message, "err"); resolve(null); return; }
@@ -122,26 +126,60 @@ function developOne(file, { k, n, fit, initial, busy, sync = false }){
   });
 }
 
-async function renderRaw(file, settings, fit){
+async function renderRaw(file, settings, fit, premium = false){
   const [{ RawDecoder }, { RenderWorker }] = await Promise.all([import("../raw/decoder.js"), import("../raw/render-client.js")]);
   const dec = await RawDecoder.open(file, settings);
   const metadata = dec.metadata, src = dec.source;
   dec.source = null; dec.dispose();
   const w = new RenderWorker();
+  let extra = {};
   try{
     let canvas;
     if(src.linear){
       const { width, height } = src;
+      // El worker se queda con la fuente: si el revelado ya es Premium,
+      // los datos lineales para el HDR salen de la misma decodificación.
+      const meta = { gain: src.gain, base: src.base };
       await w.setSource(src, { transfer: true });
       const [ow, oh] = fit(width, height);
       canvas = settings?.premium ? await w.renderPremium(settings, width, height, () => {}, ow, oh)
                                  : await w.renderToCanvas(settings, width, height, () => {}, ow, oh);
+      if(premium && settings?.premium) extra = await linearFromWorker(w, settings, width, height, ow, oh, meta);
     }else{
       await w.setSource(src);
       const bmp = await w.render(settings);
       canvas = fitCanvas(bmp, fit); bmp.close?.();
     }
-    return { file, name: file.name, canvas, exif: exifFromRaw(metadata) };
+    if(premium && !extra.lin) extra = await linearOf(file, settings, fit);
+    return { file, name: file.name, canvas, exif: exifFromRaw(metadata), ...extra };
+  }finally{ w.dispose(); }
+}
+
+/* ── Datos lineales para la fusión HDR Premium ──────────────────
+   La escena en luz lineal Rec.2020 (balance, óptica, ruido y exposición
+   del revelador aplicados; sin tono), a tamaño de trabajo, en Uint16
+   ×16 384, y el nivel de recorte del sensor en esas unidades por canal
+   (para no fusionar luces quemadas). Siempre con el motor Premium. */
+async function linearFromWorker(w, settings, width, height, ow, oh, meta){
+  const [{ premiumParams }, { wbGains }] = await Promise.all([import("../raw/premium/core.js"), import("../raw/tone.js")]);
+  const lin = await w.renderLinear(settings, width, height, () => {}, ow, oh);
+  const P = premiumParams(settings, wbGains(settings));
+  // El blanco del sensor queda en 1 × exposición base (el margen de
+  // `gain` sólo compensa el paso de menos del motor, no añade techo).
+  const clip = P.wb.map(v => v * P.exposure * (meta.base || 1));
+  return { lin, clip };
+}
+async function linearOf(file, settings, fit){
+  const [{ RawDecoder }, { RenderWorker }] = await Promise.all([import("../raw/decoder.js"), import("../raw/render-client.js")]);
+  const s = { ...settings, premium: true };
+  const dec = await RawDecoder.open(file, s), src = dec.source;
+  dec.source = null; dec.dispose();
+  const w = new RenderWorker();
+  try{
+    const meta = { gain: src.gain, base: src.base }, { width, height } = src;
+    await w.setSource(src, { transfer: true });
+    const [ow, oh] = fit(width, height);
+    return await linearFromWorker(w, s, width, height, ow, oh, meta);
   }finally{ w.dispose(); }
 }
 

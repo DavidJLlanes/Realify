@@ -203,7 +203,10 @@ export function gamutMapLab(L, a, b){
    Revela las filas [y0, y1) de una imagen W×H y devuelve sRGB lineal
    de pantalla (3 floats por píxel), ya dentro de gama y con el
    viñeteado creativo. */
-export function renderRows(src, P, maps, y0, y1){
+/* `sceneOnly`: se para tras la exposición (balance, óptica, ruido y
+   exposición aplicados) y devuelve la escena en luz lineal Rec.2020,
+   sin tono ni color de pantalla. Es lo que usa la fusión HDR Premium. */
+export function renderRows(src, P, maps, y0, y1, sceneOnly = false){
   const W = src.width, H = src.height, read = sourceReader(src);
   const caPad = P.ca ? Math.ceil(Math.abs(P.ca) * Math.max(W, H) / 2) + 2 : 0;
   const a0 = Math.max(0, y0 - HALO), a1 = Math.min(H, y1 + HALO);          // filas trabajadas
@@ -288,6 +291,7 @@ export function renderRows(src, P, maps, y0, y1){
       // 3. exposición
       r *= P.exposure; g *= P.exposure; b *= P.exposure;
       const L = Ld + E;
+      if(sceneOnly){ out[o] = r; out[o+1] = g; out[o+2] = b; continue; }
       // 4. neblina
       if(P.dehaze > 0){
         const h0 = Math.max(0, Math.min(rgb0[i*3], rgb0[i*3+1], rgb0[i*3+2]));

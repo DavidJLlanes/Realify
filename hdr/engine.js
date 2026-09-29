@@ -369,7 +369,57 @@ export function alignPair(ref, img, evRef, evImg){
   const near = [];
   for(let j = -1; j <= 1; j++) for(let i = -1; i <= 1; i++) near.push({ dx: best.dx + i, dy: best.dy + j });
   best = pick(near);
-  return { dx: best.dx, dy: best.dy };
+  // Fracción de píxel (sólo la usa el modo Premium; el modo de siempre
+  // sigue con el desplazamiento entero): Lucas–Kanade sobre el
+  // logaritmo de la luminancia a exposición igualada, partiendo del
+  // desplazamiento entero elegido.
+  let fx = 0, fy = 0;
+  if(useGrad){ const r = refineLK(a, b, best.dx, best.dy); if(r){ fx = r.dx - best.dx; fy = r.dy - best.dy; } }
+  return { dx: best.dx, dy: best.dy, fx, fy };
+}
+
+/* Gauss–Newton de una traslación: minimiza Σ (b(x + d) − a(x))² donde
+   las dos fotos tienen información. b se muestrea con interpolación
+   bilineal; como la exposición ya está igualada en log, basta con restar
+   la diferencia media (un sesgo de exposición no mueve el mínimo). */
+function refineLK(a, b, dx0, dy0){
+  const { w, h } = a;
+  let dx = dx0, dy = dy0;
+  const bil = (m, x, y) => {
+    const x0 = Math.floor(x), y0 = Math.floor(y), tx = x - x0, ty = y - y0, i = y0 * w + x0;
+    return (m[i] * (1 - tx) + m[i + 1] * tx) * (1 - ty) + (m[i + w] * (1 - tx) + m[i + w + 1] * tx) * ty;
+  };
+  const step = Math.max(1, Math.round(Math.sqrt(w * h / 120000)));
+  for(let it = 0; it < 8; it++){
+    let h11 = 0, h12 = 0, h22 = 0, g1 = 0, g2 = 0, n = 0, mean = 0;
+    const res = [];
+    for(let y = 2; y < h - 3; y += step) for(let x = 2; x < w - 3; x += step){
+      const bx = x + dx, by = y + dy;
+      if(bx < 1 || by < 1 || bx >= w - 2 || by >= h - 2) continue;
+      const ia = y * w + x, ib = Math.floor(by) * w + Math.floor(bx);
+      if(!(a.v[ia] & b.v[ib] & b.v[ib + 1] & b.v[ib + w] & b.v[ib + w + 1])) continue;
+      const gx = (bil(b.l, bx + 0.5, by) - bil(b.l, bx - 0.5, by)), gy = (bil(b.l, bx, by + 0.5) - bil(b.l, bx, by - 0.5));
+      if(Math.abs(gx) + Math.abs(gy) < 1e-4) continue;
+      const r = bil(b.l, bx, by) - a.l[ia];
+      res.push(r, gx, gy); mean += r; n++;
+    }
+    if(n < 200) return null;
+    mean /= n;
+    for(let k = 0; k < res.length; k += 3){
+      const r = res[k] - mean, gx = res[k + 1], gy = res[k + 2];
+      // Pesos robustos (Huber): un borde que se mueve no arrastra la solución
+      const wt = Math.abs(r) < 0.15 ? 1 : 0.15 / Math.abs(r);
+      h11 += wt * gx * gx; h12 += wt * gx * gy; h22 += wt * gy * gy; g1 += wt * gx * r; g2 += wt * gy * r;
+    }
+    const det = h11 * h22 - h12 * h12;
+    if(!(det > 1e-12)) return null;
+    const ux = -(h22 * g1 - h12 * g2) / det, uy = -(-h12 * g1 + h11 * g2) / det;
+    dx += Math.max(-0.5, Math.min(0.5, ux)); dy += Math.max(-0.5, Math.min(0.5, uy));
+    if(Math.abs(ux) + Math.abs(uy) < 0.005) break;
+  }
+  // Si se aleja más de 1,5 px del entero, algo no cuadra: se descarta.
+  if(Math.abs(dx - dx0) > 1.5 || Math.abs(dy - dy0) > 1.5) return null;
+  return { dx, dy };
 }
 
 /** Desplazamiento de cada foto respecto a la de referencia (exposición
@@ -378,18 +428,18 @@ export function alignPair(ref, img, evRef, evImg){
 export function alignAll(imgs, evs, onStep = null){
   const order = evs.map((e, i) => [e, i]).sort((a, b) => a[0] - b[0]).map(o => o[1]);
   const mid = (order.length - 1) >> 1, shifts = new Array(imgs.length);
-  shifts[order[mid]] = { dx: 0, dy: 0 };
+  shifts[order[mid]] = { dx: 0, dy: 0, fdx: 0, fdy: 0 };
   let step = 0;
   const tick = () => onStep?.(++step, order.length - 1);
   for(let k = mid + 1; k < order.length; k++){
     tick();
     const prev = order[k - 1], cur = order[k], s = alignPair(imgs[prev], imgs[cur], evs[prev], evs[cur]);
-    shifts[cur] = { dx: shifts[prev].dx + s.dx, dy: shifts[prev].dy + s.dy };
+    shifts[cur] = { dx: shifts[prev].dx + s.dx, dy: shifts[prev].dy + s.dy, fdx: shifts[prev].fdx + s.dx + (s.fx || 0), fdy: shifts[prev].fdy + s.dy + (s.fy || 0) };
   }
   for(let k = mid - 1; k >= 0; k--){
     tick();
     const prev = order[k + 1], cur = order[k], s = alignPair(imgs[prev], imgs[cur], evs[prev], evs[cur]);
-    shifts[cur] = { dx: shifts[prev].dx + s.dx, dy: shifts[prev].dy + s.dy };
+    shifts[cur] = { dx: shifts[prev].dx + s.dx, dy: shifts[prev].dy + s.dy, fdx: shifts[prev].fdx + s.dx + (s.fx || 0), fdy: shifts[prev].fdy + s.dy + (s.fy || 0) };
   }
   // Tope al acumulado de la cadena: una foto que acabara a más del 6 %
   // de la de referencia es un error sumado, no un pulso real; se queda
@@ -514,11 +564,31 @@ function percentile(arr, p){
 
 /* ── Mapeo tonal ─────────────────────────────────────────────
    Todos devuelven Float32 RGB en espacio de pantalla (0-1, sRGB). */
-function lumOf(rad, n){ const Y = new Float32Array(n); for(let i = 0, j = 0; i < n; i++, j += 3) Y[i] = rad[j] * .2126 + rad[j + 1] * .7152 + rad[j + 2] * .0722 + 1e-7; return Y; }
+function lumOf(rad, n, K = LUM709){ const Y = new Float32Array(n); for(let i = 0, j = 0; i < n; i++, j += 3) Y[i] = rad[j] * K[0] + rad[j + 1] * K[1] + rad[j + 2] * K[2] + 1e-7; return Y; }
+const LUM709 = [.2126, .7152, .0722], LUM2020 = [.2627, .6780, .0593];
+/* Salida de los tres métodos de radiancia. Modo de siempre: sRGB
+   codificado, con la saturación como potencia por canal. Premium
+   (R.space === "rec2020"): luz lineal de pantalla con las proporciones
+   RGB intactas —el tono no se mueve—; la saturación y el paso a sRGB
+   los hace premium.js › finishPremium en OKLab. */
+function emit(R, Y, Ld, s){
+  const { w, h, rad } = R, n = w * h, out = new Float32Array(n * 3);
+  if(R.space === "rec2020"){
+    for(let i = 0, j = 0; i < n; i++, j += 3){ const k = Ld(i) / Y[i]; out[j] = rad[j] * k; out[j + 1] = rad[j + 1] * k; out[j + 2] = rad[j + 2] * k; }
+    return { w, h, lin: out, sat: s.sat / 100 };
+  }
+  const sat = s.sat / 100;
+  for(let i = 0, j = 0; i < n; i++, j += 3){
+    const Yd = Ld(i), y = Y[i];
+    out[j] = enc(Yd * Math.pow(rad[j] / y, sat)); out[j + 1] = enc(Yd * Math.pow(rad[j + 1] / y, sat)); out[j + 2] = enc(Yd * Math.pow(rad[j + 2] / y, sat));
+  }
+  return { w, h, px: out };
+}
+const lumFor = R => R.space === "rec2020" ? LUM2020 : LUM709;
 
 /** Detalles realzados (Photomatix «Details Enhancer»). */
 export function tmDetails(R, s){
-  const { w, h, rad } = R, n = w * h, Y = lumOf(rad, n);
+  const { w, h, rad } = R, n = w * h, Y = lumOf(rad, n, lumFor(R));
   const L = new Float32Array(n);
   for(let i = 0; i < n; i++) L[i] = Math.log2(Y[i]);
   // Suavizado de la iluminación: radio grande = natural, pequeño = pictórico/surrealista.
@@ -541,57 +611,38 @@ export function tmDetails(R, s){
   const c = Math.min(1, target / range);
   const dBoost = 1 + (s.detail / 100) * 1.6;
   const lumShift = (s.luminosity / 100) * 1.6;
-  const out = new Float32Array(n * 3), sat = s.sat / 100;
   const smoothHi = s.smoothHi / 100;
-  for(let i = 0, j = 0; i < n; i++, j += 3){
+  return emit(R, Y, i => {
     let lo = (base[i] - bHi) * c + detail[i] * dBoost + lumShift - 0.15;
     // Suavizar luces: en las altas luces se atenúa el detalle ampliado.
     if(smoothHi > 0 && lo > -1.5){ const t = Math.min(1, (lo + 1.5) / 1.5) * smoothHi; lo = lo * (1 - t) + ((base[i] - bHi) * c + lumShift - 0.15) * t; }
-    const Yd = Math.pow(2, lo), y = Y[i];
-    out[j]     = enc(Yd * Math.pow(rad[j] / y, sat));
-    out[j + 1] = enc(Yd * Math.pow(rad[j + 1] / y, sat));
-    out[j + 2] = enc(Yd * Math.pow(rad[j + 2] / y, sat));
-  }
-  return { w, h, px: out };
+    return Math.pow(2, lo);
+  }, s);
 }
 
 /** Compresor de tonos (Reinhard global con punto blanco). */
 export function tmCompressor(R, s){
-  const { w, h, rad } = R, n = w * h, Y = lumOf(rad, n);
+  const { w, h, rad } = R, n = w * h, Y = lumOf(rad, n, lumFor(R));
   let lsum = 0; for(let i = 0; i < n; i++) lsum += Math.log(Y[i]);
   const Lavg = Math.exp(lsum / n);
   const a = 0.18 * Math.pow(2, s.brightness / 50);
   let Lmax = 0; const Ls = new Float32Array(n);
   for(let i = 0; i < n; i++){ Ls[i] = a / Lavg * Y[i]; if(Ls[i] > Lmax) Lmax = Ls[i]; }
   const Lw = Math.max(0.5, percentile(Ls, .999) * (0.35 + 1.3 * (s.whiteCmp / 100)));
-  const Lw2 = Lw * Lw, gam = 1 + s.tcontrast / 100 * 0.8, sat = s.sat / 100;
-  const out = new Float32Array(n * 3);
-  for(let i = 0, j = 0; i < n; i++, j += 3){
-    let Ld = Ls[i] * (1 + Ls[i] / Lw2) / (1 + Ls[i]);
-    Ld = Math.pow(Math.min(1.5, Ld), gam);
-    const y = Y[i];
-    out[j] = enc(Ld * Math.pow(rad[j] / y, sat)); out[j + 1] = enc(Ld * Math.pow(rad[j + 1] / y, sat)); out[j + 2] = enc(Ld * Math.pow(rad[j + 2] / y, sat));
-  }
-  return { w, h, px: out };
+  const Lw2 = Lw * Lw, gam = 1 + s.tcontrast / 100 * 0.8;
+  return emit(R, Y, i => { const Ld = Ls[i] * (1 + Ls[i] / Lw2) / (1 + Ls[i]); return Math.pow(Math.min(1.5, Ld), gam); }, s);
 }
 
 /** Fotográfico (Drago, logarítmico adaptativo). */
 export function tmDrago(R, s){
-  const { w, h, rad } = R, n = w * h, Y = lumOf(rad, n);
+  const { w, h, rad } = R, n = w * h, Y = lumOf(rad, n, lumFor(R));
   let lsum = 0; for(let i = 0; i < n; i++) lsum += Math.log(Y[i]);
   const Lavg = Math.exp(lsum / n);
   const expo = Math.pow(2, s.brightness / 50) / Lavg * 0.18;
   const Lmax = percentile(Y, .999) * expo;
   const bias = 0.5 + 0.45 * (s.bias / 100);
   const lb = Math.log(bias) / Math.log(0.5), denom = Math.log10(Lmax + 1);
-  const sat = s.sat / 100, out = new Float32Array(n * 3);
-  for(let i = 0, j = 0; i < n; i++, j += 3){
-    const Lw = Y[i] * expo;
-    const Ld = Math.log(Lw + 1) / Math.log(2 + 8 * Math.pow(Lw / Lmax, lb)) / denom;
-    const y = Y[i];
-    out[j] = enc(Ld * Math.pow(rad[j] / y, sat)); out[j + 1] = enc(Ld * Math.pow(rad[j + 1] / y, sat)); out[j + 2] = enc(Ld * Math.pow(rad[j + 2] / y, sat));
-  }
-  return { w, h, px: out };
+  return emit(R, Y, i => { const Lw = Y[i] * expo; return Math.log(Lw + 1) / Math.log(2 + 8 * Math.pow(Lw / Lmax, lb)) / denom; }, s);
 }
 
 /* ── Fusión de exposición (Mertens) ──────────────────────────── */
@@ -765,7 +816,7 @@ export function downRadiance(R, maxSide){
     const sx = Math.min(R.w - 1, Math.floor(x / k)), sy = Math.min(R.h - 1, Math.floor(y / k)), i = (sy * R.w + sx) * 3, o = (y * W + x) * 3;
     out[o] = R.rad[i]; out[o + 1] = R.rad[i + 1]; out[o + 2] = R.rad[i + 2];
   }
-  return { w: W, h: H, rad: out };
+  return { w: W, h: H, rad: out, space: R.space };
 }
 
 /** Todo el proceso tras el mapa (o la fusión) según el método. */

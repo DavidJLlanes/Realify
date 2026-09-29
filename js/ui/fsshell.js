@@ -252,6 +252,10 @@ export function createShell({ title, subtitle = "", applyLabel = "Aplicar", cls 
     setUndo(canUndo, canRedo){ $('[data-a="undo"]').disabled = !canUndo; $('[data-a="redo"]').disabled = !canRedo; },
     setApplyEnabled(on){ $('[data-a="apply"]').disabled = !on; },
     setApplyLabel(s){ $('[data-a="apply"]').textContent = s; },
+    /** Un elemento más en la barra de arriba, antes de deshacer (p. ej.
+        el interruptor Premium con la corona, js/ui/premium.js). */
+    addAction(el){ $(".fsp-actions").prepend(el); return el; },
+    setClass(cls, on){ root.classList.toggle(cls, !!on); },
     /** Contenido cuando aún no hay imagen (p. ej. «Añadir fotos»). null lo oculta. */
     setEmpty(html){ emptyEl.hidden = !html; if(html !== null && html !== undefined) emptyEl.innerHTML = html; return emptyEl; },
     close(){

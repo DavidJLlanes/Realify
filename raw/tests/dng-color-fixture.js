@@ -1,12 +1,12 @@
 // DNG Bayer RGGB en color. Espacio de cámara = Rec.2020 lineal (ColorMatrix1 = XYZ→Rec.2020).
 // scene(x,y) devuelve [r,g,b] lineales Rec.2020 (1 = saturación del sensor).
-export function colorDng(w, h, scene, { white = 65535, black = 64, identity = false } = {}){
+export function colorDng(w, h, scene, { white = 65535, black = 64, identity = false, exposureTime = 0 } = {}){
   const entries=[];const tag=(id,type,values)=>entries.push({id,type,values});
   const M=[[1.7166512,-0.3556708,-0.2533663],[-0.6666844,1.6164812,0.0157685],[0.0176399,-0.0427706,0.9421031]]; // XYZ→Rec2020
   const srat=v=>{const d=10000;return [Math.round(v*d),d];};
   tag(254,4,[0]);tag(256,4,[w]);tag(257,4,[h]);tag(258,3,[16]);tag(259,3,[1]);tag(262,3,[32803]);
   tag(271,2,'Realify\0');tag(272,2,'Color camera\0');tag(273,4,[0]);tag(274,3,[1]);tag(277,3,[1]);tag(278,4,[h]);tag(279,4,[w*h*2]);tag(284,3,[1]);
-  tag(33421,3,[2,2]);tag(33422,1,[0,1,1,2]);tag(50706,1,[1,4,0,0]);tag(50707,1,[1,1,0,0]);tag(50708,2,'Realify color RAW\0');
+  tag(33421,3,[2,2]);if(exposureTime){tag(33434,5,[[1,Math.round(1/exposureTime)]]);tag(33437,5,[[8,1]]);tag(34855,3,[100]);}tag(33422,1,[0,1,1,2]);tag(50706,1,[1,4,0,0]);tag(50707,1,[1,1,0,0]);tag(50708,2,'Realify color RAW\0');
   tag(50710,1,[0,1,2]);tag(50711,3,[1]);tag(50713,3,[1,1]);tag(50714,5,[[black,1]]);tag(50717,4,[white]);
   tag(50719,4,[0,0]);tag(50720,4,[w,h]);tag(50721,10,identity?[[1,1],[0,1],[0,1],[0,1],[1,1],[0,1],[0,1],[0,1],[1,1]]:M.flat().map(srat));
   tag(50728,5,[[1,1],[1,1],[1,1]]);tag(50778,3,[21]);tag(50829,4,[0,0,h,w]);

@@ -27,6 +27,7 @@ import { sortable } from "../js/ui/sortable.js";
 import { isRaw, developRaws, exifFromRaw, pickOpenPhotos, chooseUpTo } from "./sources.js";
 import { dialog } from "../js/ui/dialog.js";
 import { isAndroid } from "../js/core/device.js";
+import { premiumSwitch, premiumPref } from "../js/ui/premium.js";
 
 export const MAX_PHOTOS = 11;
 const MOBILE = matchMedia("(max-width:900px)");
@@ -61,8 +62,9 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
   worker.onerror = e => { for(const p of pending.values()) p.reject(new Error(e.message || "El motor HDR se ha detenido (posiblemente por falta de memoria).")); pending.clear(); };
   const call = (msg, transfer) => new Promise((resolve, reject) => { const id = ++req; pending.set(id, { resolve, reject }); worker.postMessage({ ...msg, req: id }, transfer || []); });
 
-  const photos = [];   // { name, thumb (dataURL), exif, proxy (canvas para comparar) }
-  const state = { s: { ...DEFAULTS, ...presetSettings("realista") }, preset: "realista", evs: [], sel: 0, order: [] };
+  const photos = [];   // { name, thumb (dataURL), exif, proxy (canvas para comparar), raw }
+  let applying = false;
+  const state = { s: { ...DEFAULTS, ...presetSettings("realista"), premium: premiumPref.get("hdr") }, preset: "realista", evs: [], sel: 0, order: [] };
   let detected = [], hintShown = false;   // EV detectados al añadir las fotos, para «Pasos entre fotos › Los detectados»
   let evSource = "", size = null, thumbs = new Map(), previewTimer = 0, previewSeq = 0, thumbsSeq = 0, closed = false;
 
@@ -74,9 +76,19 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     onRedo: () => hist.redo()
   });
   const S = state.s;
+  /* Interruptor Premium (corona): mismo HDR, otro motor (hdr/premium.js).
+     Cambiarlo rehace la fusión; entra en el historial. */
+  let premiumKind = "";
+  const premium = sh.addAction(premiumSwitch({ checked: S.premium, title: "Fusión y mapeo tonal de alta calidad (función Premium)", onChange: on => {
+    S.premium = on; premiumPref.set("hdr", on); hist.commit(); premiumUI(); controls.refresh(); schedule(true, true);
+  } }));
+  function premiumUI(){
+    premium.set(S.premium); sh.setClass("is-premium", S.premium);
+    if(S.premium && photos.length) call({ type: "premiumInfo", s: { ...S }, evs: state.evs.slice() }).then(r => { premiumKind = r.kind; controls.refresh(); }).catch(() => {});
+  }
   // Deshacer sustituye `state.s` por una copia: se vuelca en el mismo
   // objeto para que `S` siga siendo el que usan todos los controles.
-  const hist = stateHistory(state, () => { Object.assign(S, state.s); state.s = S; controls.refresh(); renderPhotos(); schedule(false, true); }, sh);
+  const hist = stateHistory(state, () => { Object.assign(S, state.s); state.s = S; premiumUI(); controls.refresh(); renderPhotos(); schedule(true, true); }, sh);
   sh.setApplyEnabled(false);
 
   /* ── Fotos ── */
@@ -99,13 +111,13 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     const rawFlags = await Promise.all(items.map(it => it.file ? isRaw(it.file) : false));
     if(rawFlags.some(Boolean)){
       const raws = items.filter((it, k) => rawFlags[k]);
-      const dev = await developRaws(raws.map(it => it.file), { fit: fitWork, busy: m => sh.setBusy(m) });
+      const dev = await developRaws(raws.map(it => it.file), { fit: fitWork, busy: m => sh.setBusy(m), premium: S.premium });
       if(closed) return;
       const byFile = new Map((dev || []).map(d => [d.file, d]));
       items = items.flatMap((it, k) => {
         if(!rawFlags[k]) return [it];
         const d = byFile.get(it.file);
-        return d ? [{ canvas: d.canvas, name: it.name, exif: d.exif }] : [];
+        return d ? [{ canvas: d.canvas, name: it.name, exif: d.exif, lin: d.lin, clip: d.clip, raw: true }] : [];
       });
       if(!items.length) return;
     }
@@ -135,10 +147,12 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
         // antes de abrir la siguiente (con 11 fotos, retenerlas todas aquí
         // duplicaba la memoria).
         const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
-        await call({ type: "stage", image: { w: canvas.width, h: canvas.height, data: data.buffer, ev: evFromExif(exif) } }, [data.buffer]);
+        // RAW con Premium: además, la escena en luz lineal (hdr/premium.js)
+        const lin = it.lin && it.lin.length === canvas.width * canvas.height * 3 ? it.lin : null;
+        await call({ type: "stage", image: { w: canvas.width, h: canvas.height, data: data.buffer, ev: evFromExif(exif), ...(lin ? { lin: lin.buffer, clip: it.clip } : {}) } }, lin ? [data.buffer, lin.buffer] : [data.buffer]);
         staged = true;
         canvas.width = canvas.height = 1;
-        added.push({ name: it.name, thumb: t.toDataURL("image/jpeg", .8), exif, proxy: pc });
+        added.push({ name: it.name, thumb: t.toDataURL("image/jpeg", .8), exif, proxy: pc, raw: !!it.raw });
       }
       sh.setBusy("Detectando el horquillado y alineando…");
       const r = await call({ type: "add", images: [], previewSide: PREVIEW_SIDE, alignSide: ALIGN_SIDE });
@@ -260,6 +274,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
       if(MOBILE.matches && !hintShown){ hintShown = true; toast("Mantén pulsada una foto y arrástrala para cambiarla de sitio"); }
     }
     thumbs = new Map();
+    premiumUI();
     if(!photos.length){ sh.setView(null); sh.setOriginal(null); return; }
     schedule(true, true);
   }
@@ -436,8 +451,35 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
       R("satHi", "Saturación en luces", -100, 100), R("satLo", "Saturación en sombras", -100, 100),
       R("temp", "Temperatura", -100, 100), R("tint", "Tinte", -100, 100)
     ] },
-    { id: "detail2", label: "Detalle", props: [R("sharpen", "Nitidez", 0, 100)] }
+    { id: "detail2", label: "Detalle", props: [R("sharpen", "Nitidez", 0, 100)] },
+    // Premium: de dónde sale la radiancia y exportaciones de alta precisión
+    { id: "premium", label: "👑 Premium", when: () => S.premium && photos.length > 0,
+      note: () => premiumNote(),
+      props: [
+        { key: "tiff16", label: "Guardar TIFF 16 bits", type: "button", run: () => exportPremium("tiff") },
+        { key: "hdr32", label: "Guardar radiancia .hdr (32 bits)", type: "button", run: () => exportPremium("hdr") }
+      ] }
   ];
+  function premiumNote(){
+    const k = premiumKind === "lineal" ? "Fusión de los datos lineales de los RAW (sin curva que adivinar)."
+      : premiumKind === "estimada" ? "Curva de respuesta de la cámara estimada del propio horquillado."
+      : premiumKind === "srgb" ? (photos.length > 1 ? "La curva sRGB casa mejor que una estimada con estas fotos: se usa ésa." : "Con una sola foto se usa la curva sRGB.") : "";
+    const raw = premiumKind !== "lineal" && photos.some(p => p.raw) ? " Para fusionar los datos lineales de los RAW, activa Premium antes de añadirlos." : "";
+    return `${k} Pesos por ruido, alineación con fracción de píxel, antifantasmas por zonas y color en OKLab con tramado.${raw}`;
+  }
+  async function exportPremium(kind){
+    if(!photos.length || applying) return;
+    applying = true; sh.setBusy(kind === "hdr" ? "Fusionando la radiancia a resolución completa…" : "Fusionando a 16 bits…");
+    try{
+      const r = await call({ type: "final", s: { ...S, premium: true }, evs: state.evs.slice(), bits: 16, hdr: kind === "hdr" });
+      const [{ download }, { tiff16 }] = await Promise.all([import("../js/io/export.js"), import("../raw/premium/output.js")]);
+      const name = "hdr-" + new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+      if(kind === "hdr") download(new Blob([r.file], { type: "image/vnd.radiance" }), name + ".hdr");
+      else download(tiff16(new Uint16Array(r.data16), r.w, r.h), name + "-16bits.tif");
+      toast(kind === "hdr" ? "Radiancia guardada (.hdr, 32 bits)" : `TIFF de 16 bits guardado (${r.w} × ${r.h})`, "ok");
+    }catch(err){ toast("No se pudo exportar: " + err.message, "err"); }
+    finally{ applying = false; sh.setBusy(null); }
+  }
   const controls = mountControls(sh, {
     sections,
     get: k => k === "preset" ? state.preset : k === "evSel" ? (state.evs[state.sel] ?? 0) : k === "evStep" ? currentStep() : S[k],
@@ -502,7 +544,6 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
   }
 
   /* ── Aplicar / cerrar ── */
-  let applying = false;
   async function apply(){
     if(!photos.length || applying) return;
     applying = true;
@@ -527,7 +568,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     sh.close();
   }
 
-  empty(); renderPhotos();
+  empty(); renderPhotos(); premiumUI();
   if(openCount()) sh.setSubtitle(openCount() > 1 ? "Añade fotos o usa las que tienes abiertas" : "Añade fotos o usa la que tienes abierta");
   return { close };
 }

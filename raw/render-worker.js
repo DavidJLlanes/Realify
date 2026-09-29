@@ -1,5 +1,5 @@
 import { renderPhoto } from "./pipeline.js";
-import { renderPremiumRows } from "./premium/render.js";
+import { renderPremiumRows, renderPremiumLinear } from "./premium/render.js";
 
 let source;
 self.onmessage = ({ data }) => {
@@ -15,6 +15,12 @@ self.onmessage = ({ data }) => {
     /* Premium: filas de salida [d0, d1), reducidas en luz lineal si el
        resultado es menor que el original; en 8 bits (ImageBitmap) o 16
        (Uint16Array RGB, para TIFF). */
+    if (type === "linear") {
+      const { d0, d1, outW, outH } = data;
+      const px = renderPremiumLinear(source, settings, d0, d1, outW, outH);
+      self.postMessage({ id, pixels: px }, [px.buffer]);
+      return;
+    }
     if (type === "premium") {
       const { d0, d1, outW, outH, bits } = data;
       const px = renderPremiumRows(source, settings, d0, d1, outW, outH, bits);

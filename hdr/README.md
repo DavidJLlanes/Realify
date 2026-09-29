@@ -77,3 +77,43 @@ cargar 4 fotos o más, se guarda una copia de las pestañas abiertas: si la
 página se cierra por falta de memoria, se recuperan al volver.
 
 Tamaño de trabajo: 4096 px de lado en el ordenador y 2400 px en el móvil.
+
+## Modo Premium (`premium.js`)
+
+Interruptor con corona en la barra superior (`js/ui/premium.js`, se recuerda en
+el navegador). Mismos mandos, estilos y métodos; apagado, el HDR es exactamente el
+de siempre (comprobado: salida idéntica byte a byte con los estilos de prueba).
+Encendido, todo en coma flotante, luz lineal y Rec.2020:
+
+1. **Radiancia exacta**. RAW con Premium activo al añadirlos: el revelador entrega
+   además la escena en luz lineal (balance, óptica, ruido y exposición del revelador;
+   sin tono), con el nivel de recorte del sensor por canal. JPEG/HEIC/PNG: **curva de
+   respuesta** estimada del horquillado (Robertson, Borman y Stevenson, 1999, con todos
+   los píxeles) y una versión polinómica suave (Mitsunaga y Nayar); se queda la que
+   mejor hace casar las fotos, o la sRGB si ninguna la mejora o la escena tiene pocos
+   niveles (casi plana).
+2. **Fusión de máxima verosimilitud**: peso t² / varianza (lectura y fotones en RAW;
+   en 8 bits, la pendiente de la curva por nivel más el ruido); lo quemado pesa 0 y,
+   si todo está quemado, se toma la foto más oscura.
+3. **Alineación con fracción de píxel**: Lucas–Kanade (Gauss–Newton con pesos de
+   Huber) sobre el logaritmo de la luminancia a exposición igualada, desde el
+   desplazamiento entero de siempre; muestreo bilineal.
+4. **Antifantasmas por zonas**: diferencia canal a canal (ve un objeto de otro color
+   con la misma luminancia) a baja resolución, suavizada y ensanchada, como máscara
+   de pesos.
+5. **Tono y color**: los métodos de radiancia conservan las proporciones RGB
+   (`engine.js › emit`); el acabado (`finishPremium`) trabaja en OKLab, ajusta la gama
+   a sRGB reduciendo sólo el croma y trama al pasar a 8 bits.
+6. **Exportar**: TIFF de 16 bits y la radiancia en `.hdr` (RGBE, primarios sRGB).
+
+`tests/premium.mjs` (Node, sin navegador) mide frente a la radiancia real de un
+horquillado sintético de 5 fotos con una cámara de curva en S, ruido y desplazamientos
+de fracción de píxel: sombras profundas con error rms 0,98 → 0,19 EV y sesgo 0,63 →
+0,02 EV; sol 0,32 → 0,20 EV; suelo igual; cielo liso hasta un 10 % peor (las tomas
+largas pesan más y arrastran más error de alineación). Alineación 1,82 → 1,61 px de
+error total. Antifantasmas: 0 % de fantasma con un objeto de la misma luminancia que
+el fondo (el de siempre deja el 50 %).
+
+Límites honestos: la vista previa del HDR sigue calculándose en el worker (CPU), no
+en la GPU; no hay perfiles de objetivo ni reducción de ruido con IA; para fusionar los
+datos lineales de RAW hay que activar Premium antes de añadirlos.

@@ -225,6 +225,9 @@ tiempo real mientras se pinta.
   horquillado detectado por EXIF o por el brillo, alineación, antifantasmas,
   mapa de radiancia o fusión de exposición y mapeo tonal (detalles realzados,
   compresor de tonos, fotográfico) con 17 estilos en miniatura. Se abre como foto nueva.
+  Modo **Premium 👑**: curva de respuesta de la cámara estimada (Robertson), RAW en
+  luz lineal, fusión de máxima verosimilitud, alineación subpíxel (Lucas–Kanade),
+  antifantasmas por zonas, color en OKLab, TIFF de 16 bits y radiancia `.hdr`.
 - **Unir imágenes** (pantalla completa, `unir/`): panorámica automática
   (proyección cilíndrica, solape por correlación de gradientes, exposición
   igualada, costuras suaves y recorte) o unión en fila, columna o cuadrícula.
