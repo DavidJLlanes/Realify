@@ -300,8 +300,9 @@ const TOPICS = [
           de verdad. Sin tocar el marco no hay nada que aplicar, así que salir sin
           querer no deja rastro en el historial.</li>
         <li><b>Reglas, guías y cuadrícula (menú Ver).</b> Arrastra desde cualquier regla
-          para soltar una guía; se puede volver a arrastrar o borrar sobre la marcha
-          igual que en cualquier editor de imagen. Las herramientas de selección
+          para soltar una guía; se puede volver a arrastrar. Para quitar una, arrástrala
+          de vuelta a su regla o haz <b>doble clic o doble toque</b> sobre ella; <b>Ver › Borrar
+          guías</b> (también en Herramientas del móvil) las quita todas. Todo se puede deshacer. Las herramientas de selección
           (rectangular, elíptica) también enganchan sus esquinas a guías, bordes, centros
           de otras capas y a la cuadrícula, igual que Mover. «Mostrar cuadrícula» pinta
           una retícula configurable —«Configurar cuadrícula…» fija el espaciado entre

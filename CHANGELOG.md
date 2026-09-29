@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Borrar guías más fácil**: doble clic o doble toque sobre una guía la borra (antes sólo
+  arrastrándola hasta la estrecha franja de la regla, incómodo con el dedo). «Borrar guías»
+  también en el cajón de Herramientas del móvil, con su icono. Tocar una guía sin moverla ya
+  no deja un paso vacío en el historial.
 - **Fusión HDR Premium 👑**: interruptor con corona en la ventana del HDR, mismos mandos y
   estilos. Curva de respuesta de la cámara estimada del horquillado (Robertson + polinomio
   suave, o sRGB si no mejora), RAW fusionados en luz lineal Rec.2020 con su nivel de recorte,
