@@ -12,7 +12,7 @@
 
    Las funciones que calculan cada efecto son las mismas —y las mismas
    tablas de 256 entradas— que usan los ajustes destructivos de
-   siempre: `buildBC`, `buildLevels`, `curveLut`, `buildWB`, `hslShift`,
+   siempre: `applyBC`, `buildLevels`, `curveLut`, `buildWB`, `hslShift`,
    `buildBandTables`/`applyColorBands`. No hay dos implementaciones de
    «subir el contraste» en la aplicación, sólo dos sitios que llaman a
    la misma.
@@ -22,7 +22,7 @@ import { doc, addLayer } from "../core/doc.js";
 import { record, recordLayers } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { applyLut, identityLut } from "./adjust.js";
-import { buildBC, buildLevels, buildWB, hslShift } from "./adjustments.js";
+import { applyBC, buildLevels, buildWB, hslShift } from "./adjustments.js";
 import { curveLut, curveEditor } from "./curves.js";
 import { slider, pickerGroup } from "./adjust.js";
 import { dialog } from "../ui/dialog.js";
@@ -55,7 +55,7 @@ export const ADJUST_TYPES = {
   bc: {
     name: "Brillo y contraste",
     defaults: () => ({ brightness: 0, contrast: 0 }),
-    apply(data, w, h, p){ const t = buildBC(p); applyLut(data, { r:t, g:t, b:t }); }
+    apply(data, w, h, p){ applyBC(data, p); }
   },
   levels: {
     name: "Niveles",

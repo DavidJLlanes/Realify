@@ -502,7 +502,10 @@ const TOPICS = [
       <h3>Ajustes (menú Ajustes)</h3>
       <ul>
         <li><b>Brillo y contraste.</b> El control más directo: sube o baja la luz
-          general y separa claros de oscuros.</li>
+          general y separa claros de oscuros. Trabaja en coma flotante sobre la
+          luminosidad percibida: el brillo mueve los medios tonos sin tocar el negro ni
+          el blanco, el contraste es una curva en S suave alrededor del gris medio, nada
+          se quema ni se empasta y los colores conservan su tono.</li>
         <li><b>Exposición.</b> Simula lo que hace una cámara: multiplica la luz en
           espacio lineal (un paso completo dobla o parte por dos la luz de toda la
           foto por igual), con Desplazamiento para un empujón fijo —más visible en

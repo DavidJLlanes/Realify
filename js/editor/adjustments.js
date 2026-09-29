@@ -21,10 +21,7 @@ export function brightnessContrast(opts = {}){
   return runAdjust({
     title: "Brillo y contraste",
     asLayer: true, filterId: "bc", filterParams: p, dlgCls: "dlg-compact",
-    compute(data){
-      const lut = buildBC(p);
-      applyLut(data, { r: lut, g: lut, b: lut });
-    },
+    compute(data){ applyBC(data, p); },
     buildBody({ preview }){
       const box = document.createElement("div");
       box.appendChild(pickerGroup([
@@ -34,14 +31,147 @@ export function brightnessContrast(opts = {}){
       const note = document.createElement("p");
       note.className = "hint";
       note.style.marginTop = "10px";
-      note.textContent = "El contraste pivota sobre el gris medio, así que sube las " +
-        "luces y baja las sombras a la vez sin desplazar el punto medio.";
+      note.textContent = "Trabaja sobre la luminosidad percibida, sin quemar luces ni " +
+        "empastar sombras y sin cambiar el tono de los colores. El contraste pivota " +
+        "sobre el gris medio; el brillo mueve los medios tonos y respeta el negro y el blanco.";
       box.appendChild(note);
       return box;
     }
   }, opts);
 }
 
+/* Brillo y contraste de precisión.
+   Antes era una tabla de 8 bits aplicada canal a canal en sRGB: el
+   contraste era una recta con recorte duro (a +50 ya se perdían todas
+   las luces por encima de 215 y las sombras por debajo de 40), el
+   brillo una suma que también recortaba, y al tratar R, G y B por
+   separado los colores cambiaban de tono y de saturación.
+   Ahora, en coma flotante y por píxel:
+   · Se calcula la luminancia RELATIVA real (Y, en luz lineal) y se
+     pasa a luminosidad percibida (L* de CIELAB, 0..1), que es donde
+     «el gris medio» y «un poco más de brillo» significan lo mismo en
+     sombras y en luces.
+   · Contraste positivo: curva en S (ganancia de Schlick) centrada en
+     L* 50. Pendiente `s` (hasta 3) en el centro y 1/s en los extremos, así que el
+     negro y el blanco quedan fijos y nada se recorta: las luces y las
+     sombras se comprimen suavemente en vez de saturarse.
+     Contraste negativo: compresión lineal hacia el gris medio (y del
+     color con ella), de modo que −100 deja la imagen plana, como antes.
+   · Brillo: curva de sesgo de Schlick que lleva L* 50 a L* 50 ± 30 con
+     el negro y el blanco fijos y pendiente finita en ambos extremos
+     (no dispara el ruido de las sombras como una gamma).
+   · El resultado se aplica escalando R, G y B en luz lineal por Y'/Y:
+     conserva el tono y la saturación. Si un color intenso no cabe, se
+     desatura justo lo necesario en OKLab, con la luminosidad y el tono
+     fijos, en vez de recortar un canal (que cambiaría el tono).
+   · Vuelta a sRGB con redondeo exacto (tabla de 65 536 pasos).
+   Los parámetros siguen siendo −100..100, así que proyectos, capas de
+   ajuste, acciones y lotes ya guardados siguen funcionando. */
+const BC_MID = 0.5;                        // L* 50: el gris medio perceptual
+let _toLin = null, _toSrgb = null;
+function bcTables(){
+  if(_toLin) return;
+  _toLin = new Float32Array(256);
+  for(let i = 0; i < 256; i++){
+    const v = i / 255;
+    _toLin[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  }
+  _toSrgb = new Uint8Array(65536);
+  for(let i = 0; i < 65536; i++){
+    const v = i / 65535;
+    const s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+    _toSrgb[i] = Math.round(s * 255);
+  }
+}
+const yToL = y => y <= 216 / 24389 ? y * (24389 / 27) / 100 : (116 * Math.cbrt(y) - 16) / 100;
+const lToY = l => { const L = l * 100; return L <= 8 ? L * 27 / 24389 : Math.pow((L + 16) / 116, 3); };
+// Sesgo de Schlick: fija 0 y 1, lleva 0.5 a `a`, monótona y suave.
+const bias = (x, a) => x / ((1 / a - 2) * (1 - x) + 1);
+
+/* La curva tonal en L* (0..1 → 0..1) y el factor de color. */
+export function bcCurve({ brightness = 0, contrast = 0 } = {}){
+  const c = Math.max(-1, Math.min(1, contrast / 100));
+  const b = Math.max(-1, Math.min(1, brightness / 100));
+  const a = BC_MID + 0.3 * b;                       // brillo: L*50 → L*20..80
+  const s = 1 + 2 * c;                              // contraste +: pendiente central 1..3
+  const g = 1 / (1 + s);                            // ganancia de Schlick con esa pendiente
+  return l => {
+    let v;
+    if(c > 0){
+      v = l < BC_MID ? bias(l / BC_MID, g) * BC_MID
+                     : 1 - bias((1 - l) / (1 - BC_MID), g) * (1 - BC_MID);
+    } else {
+      v = BC_MID + (l - BC_MID) * (1 + c);
+    }
+    return b === 0 ? v : bias(v, a);
+  };
+}
+
+/* Fuera de gama: se reduce el croma en OKLab con la luminosidad y el
+   tono fijos (el método de CSS Color 4) hasta que el color cabe. Bajar
+   el croma en RGB lineal hacia el gris, o recortar un canal, torcería
+   el tono: un naranja intenso que se aclara acabaría amarillento. */
+const _gm = new Float64Array(3);
+function oklabToLin(L, A, B){
+  let l = L + 0.3963377774 * A + 0.2158037573 * B; l = l * l * l;
+  let m = L - 0.1055613458 * A - 0.0638541728 * B; m = m * m * m;
+  let s = L - 0.0894841775 * A - 1.2914855480 * B; s = s * s * s;
+  _gm[0] =  4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  _gm[1] = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  _gm[2] = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+}
+function gamutMap(r, g, b){
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+  if(L >= 1){ _gm[0] = _gm[1] = _gm[2] = 1; return; }
+  const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+  let lo = 0, hi = 1;
+  for(let k = 0; k < 12; k++){                      // precisión 1/4096 del croma (sobra para 8 bits)
+    const t = (lo + hi) / 2;
+    oklabToLin(L, A * t, B * t);
+    const ok = _gm[0] <= 1 && _gm[1] <= 1 && _gm[2] <= 1 && _gm[0] >= 0 && _gm[1] >= 0 && _gm[2] >= 0;
+    if(ok) lo = t; else hi = t;
+  }
+  oklabToLin(L, A * lo, B * lo);
+}
+
+export function applyBC(data, p){
+  if(p && p.useLegacy){ const t = buildBC(p); applyLut(data, { r: t, g: t, b: t }); return; }
+  const brightness = +p.brightness || 0, contrast = +p.contrast || 0;
+  if(!brightness && !contrast) return;
+  bcTables();
+  const curve = bcCurve({ brightness, contrast });
+  const chroma = contrast < 0 ? 1 + Math.max(-1, contrast / 100) : 1;
+  /* Y → Y' tabulada con índice en raíz cuadrada (más densa en las
+     sombras, donde la vista es más sensible) e interpolada: el error
+     frente al cálculo directo queda muy por debajo de 1/65 000. */
+  const N = 8192, yt = new Float64Array(N + 1);
+  for(let i = 0; i <= N; i++){ const q = i / N; yt[i] = lToY(curve(yToL(q * q))); }
+  const toLin = _toLin, toSrgb = _toSrgb;
+  for(let i = 0; i < data.length; i += 4){
+    let r = toLin[data[i]], g = toLin[data[i + 1]], bl = toLin[data[i + 2]];
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+    const f = Math.sqrt(y) * N, k = f | 0;
+    const y2 = k >= N ? yt[N] : yt[k] + (yt[k + 1] - yt[k]) * (f - k);
+    if(y <= 0){ r = g = bl = y2; }
+    else {
+      const m = y2 / y;
+      r *= m; g *= m; bl *= m;
+      if(chroma !== 1){ r = y2 + (r - y2) * chroma; g = y2 + (g - y2) * chroma; bl = y2 + (bl - y2) * chroma; }
+      const mx = r > g ? (r > bl ? r : bl) : (g > bl ? g : bl);
+      if(mx > 1){ gamutMap(r, g, bl); r = _gm[0]; g = _gm[1]; bl = _gm[2]; }
+    }
+    data[i]     = toSrgb[(r <= 0 ? 0 : r >= 1 ? 1 : r) * 65535 + 0.5 | 0];
+    data[i + 1] = toSrgb[(g <= 0 ? 0 : g >= 1 ? 1 : g) * 65535 + 0.5 | 0];
+    data[i + 2] = toSrgb[(bl <= 0 ? 0 : bl >= 1 ? 1 : bl) * 65535 + 0.5 | 0];
+  }
+}
+
+/* La tabla de 8 bits de siempre, canal a canal en sRGB. Sólo para
+   `useLegacy` (el «Usar heredado» de otros editores). */
 export function buildBC({ brightness, contrast }){
   const t = new Uint8ClampedArray(256);
   const b = brightness * 1.28;                 // -128..128

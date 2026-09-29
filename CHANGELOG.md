@@ -72,6 +72,13 @@ que las entradas se agrupan por fecha.
   agota la memoria y la página se recarga, la imagen se recupera.
 
 ### Cambiado
+- **Brillo y contraste de precisión** (filtro y capa de ajuste): cálculo en coma flotante
+  sobre la luminosidad percibida (L*) en lugar de una tabla de 8 bits canal a canal. El
+  contraste es una curva en S alrededor del gris medio que fija el negro y el blanco (antes
+  una recta que, a +50, ya recortaba las luces por encima de 215 y las sombras por debajo
+  de 40); el brillo mueve los medios tonos sin recortar. El color se escala en luz lineal y,
+  si no cabe, se reduce el croma en OKLab: el tono se desvía 0,2° de media (antes 5–9°, y
+  hasta 70°). Los ajustes guardados siguen valiendo (mismos −100..100).
 - **Eliminar fondo** crea una capa nueva con el recorte y oculta la original.
 
 ### Eliminado
