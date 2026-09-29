@@ -16,28 +16,60 @@ const clamp255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
 
 /* ── brillo y contraste ───────────────────────────────────────── */
 export function brightnessContrast(opts = {}){
-  const p = { brightness: 0, contrast: 0, useLegacy: false, ...opts.init };
+  const p = { ...BC_DEFAULTS, ...opts.init };
 
   return runAdjust({
     title: "Brillo y contraste",
     asLayer: true, filterId: "bc", filterParams: p, dlgCls: "dlg-compact",
     compute(data){ applyBC(data, p); },
-    buildBody({ preview }){
-      const box = document.createElement("div");
-      box.appendChild(pickerGroup([
-        { label: "Brillo", node: slider("Brillo", -100, 100, p.brightness, v => { p.brightness = v; preview(); }) },
-        { label: "Contraste", node: slider("Contraste", -100, 100, p.contrast, v => { p.contrast = v; preview(); }) }
-      ]));
-      const note = document.createElement("p");
-      note.className = "hint";
-      note.style.marginTop = "10px";
-      note.textContent = "Trabaja sobre la luminosidad percibida, sin quemar luces ni " +
-        "empastar sombras y sin cambiar el tono de los colores. El contraste pivota " +
-        "sobre el gris medio; el brillo mueve los medios tonos y respeta el negro y el blanco.";
-      box.appendChild(note);
-      return box;
-    }
+    buildBody({ preview }){ return bcControls(p, preview); }
   }, opts);
+}
+
+export const BC_DEFAULTS = { brightness: 0, contrast: 0, protect: 100, pivot: "auto", useLegacy: false };
+
+/* Los mandos, compartidos por el filtro y la capa de ajuste. */
+export function bcControls(p, preview){
+  const box = document.createElement("div");
+  const prot = slider("Protección", 0, 100, p.protect ?? 100,
+    v => { p.protect = v; preview(); }, "%");
+  box.appendChild(pickerGroup([
+    { label: "Brillo", node: slider("Brillo", -100, 100, p.brightness, v => { p.brightness = v; preview(); }) },
+    { label: "Contraste", node: slider("Contraste", -100, 100, p.contrast, v => { p.contrast = v; preview(); }) },
+    { label: "Protección de luces y sombras", node: prot }
+  ]));
+  const piv = document.createElement("div");
+  piv.className = "field";
+  piv.innerHTML = `<label title="Pivote del contraste">Pivote</label>
+    <select class="grow">
+      <option value="auto">Automático (según la foto)</option>
+      <option value="mid">Gris medio</option>
+    </select>`;
+  const sel = piv.querySelector("select");
+  sel.value = p.pivot === "mid" ? "mid" : "auto";
+  sel.addEventListener("change", () => { p.pivot = sel.value; preview(); });
+  box.appendChild(piv);
+  const leg = document.createElement("label");
+  leg.className = "chk";
+  leg.innerHTML = `<input type="checkbox"${p.useLegacy ? " checked" : ""}> Usar heredado (algoritmo antiguo, canal a canal y con recorte)`;
+  const note = document.createElement("p");
+  note.className = "hint";
+  note.style.marginTop = "10px";
+  const sync = () => {
+    const on = !!p.useLegacy;
+    prot.querySelector("input").disabled = on; sel.disabled = on;
+    note.textContent = on
+      ? "Heredado: el cálculo de antes, sobre cada canal en 8 bits. Recorta luces y sombras y puede cambiar el tono de los colores."
+      : "Trabaja sobre la luminosidad percibida y conserva el tono de los colores. " +
+        "Con protección al 100 % nada se quema ni se empasta; al bajarla, el contraste " +
+        "aprieta más los extremos. En automático el contraste pivota sobre la luminosidad " +
+        "media de la foto, así que no la oscurece ni la aclara.";
+  };
+  leg.querySelector("input").addEventListener("change", e => { p.useLegacy = e.target.checked; sync(); preview(); });
+  box.appendChild(leg);
+  sync();
+  box.appendChild(note);
+  return box;
 }
 
 /* Brillo y contraste de precisión.
@@ -65,6 +97,18 @@ export function brightnessContrast(opts = {}){
      desatura justo lo necesario en OKLab, con la luminosidad y el tono
      fijos, en vez de recortar un canal (que cambiaría el tono).
    · Vuelta a sRGB con redondeo exacto (tabla de 65 536 pasos).
+   · Pivote automático: el contraste gira sobre la luminosidad media
+     (L*) de la foto, no sobre un gris fijo, así que en una foto oscura
+     o clara separa luces y sombras sin cambiar su brillo general.
+   · Protección de luces y sombras (0..100 %): mezcla la curva en S con
+     la recta de la misma pendiente central. Al 100 %, nada se recorta;
+     al 0 %, contraste «duro» que sí aprieta los extremos.
+   · Tramado al volver a 8 bits: ruido uniforme de ±½ nivel, fijo para
+     cada píxel (la misma imagen da siempre el mismo resultado). Al
+     estirar tonos quedan niveles sin usar y los cielos y degradados
+     formarían bandas; el tramado las disuelve sin grano visible y
+     conserva el valor medio exacto. Donde el resultado cae justo en un
+     nivel entero (sin cambio) no toca nada.
    Los parámetros siguen siendo −100..100, así que proyectos, capas de
    ajuste, acciones y lotes ya guardados siguen funcionando. */
 const BC_MID = 0.5;                        // L* 50: el gris medio perceptual
@@ -76,11 +120,11 @@ function bcTables(){
     const v = i / 255;
     _toLin[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   }
-  _toSrgb = new Uint8Array(65536);
+  _toSrgb = new Float32Array(65536);               // sRGB 0..255 SIN redondear: el tramado va después
   for(let i = 0; i < 65536; i++){
     const v = i / 65535;
     const s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
-    _toSrgb[i] = Math.round(s * 255);
+    _toSrgb[i] = s * 255;
   }
 }
 const yToL = y => y <= 216 / 24389 ? y * (24389 / 27) / 100 : (116 * Math.cbrt(y) - 16) / 100;
@@ -88,23 +132,45 @@ const lToY = l => { const L = l * 100; return L <= 8 ? L * 27 / 24389 : Math.pow
 // Sesgo de Schlick: fija 0 y 1, lleva 0.5 a `a`, monótona y suave.
 const bias = (x, a) => x / ((1 / a - 2) * (1 - x) + 1);
 
-/* La curva tonal en L* (0..1 → 0..1) y el factor de color. */
-export function bcCurve({ brightness = 0, contrast = 0 } = {}){
+/* La curva tonal en L* (0..1 → 0..1). `pivotL` es el punto fijo del
+   contraste (0.5 = L* 50); `protect` 0..100. */
+export function bcCurve({ brightness = 0, contrast = 0, protect = 100, pivotL = BC_MID } = {}){
   const c = Math.max(-1, Math.min(1, contrast / 100));
   const b = Math.max(-1, Math.min(1, brightness / 100));
+  const k = Math.max(0, Math.min(1, (Number.isFinite(+protect) ? +protect : 100) / 100));
+  const P = Math.max(0.2, Math.min(0.8, +pivotL || BC_MID));
   const a = BC_MID + 0.3 * b;                       // brillo: L*50 → L*20..80
   const s = 1 + 2 * c;                              // contraste +: pendiente central 1..3
   const g = 1 / (1 + s);                            // ganancia de Schlick con esa pendiente
   return l => {
     let v;
     if(c > 0){
-      v = l < BC_MID ? bias(l / BC_MID, g) * BC_MID
-                     : 1 - bias((1 - l) / (1 - BC_MID), g) * (1 - BC_MID);
+      const soft = l < P ? bias(l / P, g) * P
+                         : 1 - bias((1 - l) / (1 - P), g) * (1 - P);
+      if(k < 1){
+        let hard = P + (l - P) * s;
+        hard = hard < 0 ? 0 : hard > 1 ? 1 : hard;
+        v = hard + (soft - hard) * k;
+      } else v = soft;
     } else {
-      v = BC_MID + (l - BC_MID) * (1 + c);
+      v = P + (l - P) * (1 + c);
     }
     return b === 0 ? v : bias(v, a);
   };
+}
+
+/* Luminosidad media percibida (L*, 0..1) de unos píxeles RGBA,
+   ponderada por la opacidad. Con muestreo: sobra con ~250 000 píxeles. */
+export function bcPivot(data){
+  bcTables();
+  const n = data.length >> 2, step = Math.max(1, Math.floor(n / 250000)) * 4;
+  let sum = 0, wsum = 0;
+  for(let i = 0; i < data.length; i += step){
+    const a = data[i + 3]; if(!a) continue;
+    const y = 0.2126 * _toLin[data[i]] + 0.7152 * _toLin[data[i + 1]] + 0.0722 * _toLin[data[i + 2]];
+    sum += yToL(y) * a; wsum += a;
+  }
+  return wsum ? sum / wsum : BC_MID;
 }
 
 /* Fuera de gama: se reduce el croma en OKLab con la luminosidad y el
@@ -143,7 +209,12 @@ export function applyBC(data, p){
   const brightness = +p.brightness || 0, contrast = +p.contrast || 0;
   if(!brightness && !contrast) return;
   bcTables();
-  const curve = bcCurve({ brightness, contrast });
+  /* Pivote: gris medio, el que haya fijado quien llama (las capas de
+     ajuste lo miden una vez sobre toda la imagen, porque aquí pueden
+     llegar sólo trozos) o la media de estos píxeles. */
+  const pivotL = p.pivot === "mid" ? BC_MID
+               : Number.isFinite(p.pivotL) ? p.pivotL : bcPivot(data);
+  const curve = bcCurve({ brightness, contrast, protect: p.protect ?? 100, pivotL });
   const chroma = contrast < 0 ? 1 + Math.max(-1, contrast / 100) : 1;
   /* Y → Y' tabulada con índice en raíz cuadrada (más densa en las
      sombras, donde la vista es más sensible) e interpolada: el error
@@ -164,14 +235,17 @@ export function applyBC(data, p){
       const mx = r > g ? (r > bl ? r : bl) : (g > bl ? g : bl);
       if(mx > 1){ gamutMap(r, g, bl); r = _gm[0]; g = _gm[1]; bl = _gm[2]; }
     }
-    data[i]     = toSrgb[(r <= 0 ? 0 : r >= 1 ? 1 : r) * 65535 + 0.5 | 0];
-    data[i + 1] = toSrgb[(g <= 0 ? 0 : g >= 1 ? 1 : g) * 65535 + 0.5 | 0];
-    data[i + 2] = toSrgb[(bl <= 0 ? 0 : bl >= 1 ? 1 : bl) * 65535 + 0.5 | 0];
+    // Tramado: un hash del índice del píxel da tres ruidos de ±½ nivel.
+    let h = Math.imul((i >> 2) + 0x632be5ab, 0x9e3779b1);
+    h ^= h >>> 15; h = Math.imul(h, 0x85ebca77); h ^= h >>> 13;
+    data[i]     = toSrgb[(r <= 0 ? 0 : r >= 1 ? 1 : r) * 65535 + 0.5 | 0] + ((h & 255) + 0.5) / 256 - 0.5;
+    data[i + 1] = toSrgb[(g <= 0 ? 0 : g >= 1 ? 1 : g) * 65535 + 0.5 | 0] + (((h >>> 8) & 255) + 0.5) / 256 - 0.5;
+    data[i + 2] = toSrgb[(bl <= 0 ? 0 : bl >= 1 ? 1 : bl) * 65535 + 0.5 | 0] + (((h >>> 16) & 255) + 0.5) / 256 - 0.5;
   }
 }
 
 /* La tabla de 8 bits de siempre, canal a canal en sRGB. Sólo para
-   `useLegacy` (el «Usar heredado» de otros editores). */
+   `useLegacy` (la casilla «Usar heredado»). */
 export function buildBC({ brightness, contrast }){
   const t = new Uint8ClampedArray(256);
   const b = brightness * 1.28;                 // -128..128

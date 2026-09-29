@@ -22,10 +22,11 @@ import { doc, addLayer } from "../core/doc.js";
 import { record, recordLayers } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { applyLut, identityLut } from "./adjust.js";
-import { applyBC, buildLevels, buildWB, hslShift } from "./adjustments.js";
+import { applyBC, bcControls, bcPivot, BC_DEFAULTS, buildLevels, buildWB, hslShift } from "./adjustments.js";
 import { curveLut, curveEditor } from "./curves.js";
 import { slider, pickerGroup } from "./adjust.js";
 import { dialog } from "../ui/dialog.js";
+import { flatten } from "./layertree.js";
 import { isMobile } from "../core/device.js";
 import { buildBandTables, applyColorBands } from "./colorbands.js";
 
@@ -54,7 +55,7 @@ function defaultBands(){
 export const ADJUST_TYPES = {
   bc: {
     name: "Brillo y contraste",
-    defaults: () => ({ brightness: 0, contrast: 0 }),
+    defaults: () => ({ ...BC_DEFAULTS }),
     apply(data, w, h, p){ applyBC(data, p); }
   },
   levels: {
@@ -137,6 +138,27 @@ export function applyAdjustLayer(layer, data, w, h){
   return data;
 }
 
+/* Pivote automático de Brillo y contraste en una capa de ajuste. La
+   capa se pinta a veces por teselas, y si cada tesela midiera su propia
+   luminosidad media el contraste cambiaría de una a otra y se verían
+   las costuras: se mide UNA vez sobre todo lo que queda debajo, al
+   abrir sus mandos, y se guarda en los parámetros (`pivotL`). No abre
+   paso de historial: es un dato derivado de la imagen, no una edición. */
+function measureBcPivot(layer){
+  if(layer.adjustType !== "bc") return;
+  try{
+    const idx = doc.layers.indexOf(layer);
+    if(idx < 0) return;
+    const full = flatten(null, doc.layers.slice(0, idx));
+    const k = Math.min(1, 512 / Math.max(full.width, full.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(full.width * k)); c.height = Math.max(1, Math.round(full.height * k));
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.drawImage(full, 0, 0, c.width, c.height);
+    layer.adjustParams = { ...(layer.adjustParams || {}), pivotL: bcPivot(x.getImageData(0, 0, c.width, c.height).data) };
+  }catch(err){ console.warn("[bc] pivote", err); }
+}
+
 /* ── crear y editar ──────────────────────────────────────────── */
 export function addAdjustmentLayer(typeId){
   const t = ADJUST_TYPES[typeId];
@@ -192,14 +214,7 @@ function bodyFor(typeId, p, preview){
     box.appendChild(slider(label, min, max, p[key], v => { p[key] = v; preview(); }, unit || ""));
 
   if(typeId === "bc"){
-    // Prototipo del patrón «un desplegable, un solo mando visible» en
-    // móvil (ver pickerGroup en adjust.js): con sólo dos deslizadores
-    // ya se nota si merece la pena antes de extenderlo al resto de
-    // paneles. En escritorio no cambia nada.
-    box.appendChild(pickerGroup([
-      { label: "Brillo", node: slider("Brillo", -100, 100, p.brightness, v => { p.brightness = v; preview(); }) },
-      { label: "Contraste", node: slider("Contraste", -100, 100, p.contrast, v => { p.contrast = v; preview(); }) }
-    ]));
+    box.appendChild(bcControls(p, preview));
   } else if(typeId === "levels"){
     S("Negro de entrada", "inLow", 0, 254);
     // Gamma se guarda como razón (1 = neutro), pero el deslizador
@@ -293,6 +308,7 @@ export async function openAdjustPanel(layer){
   if(!isAdjustLayer(layer)) return;
   const t = ADJUST_TYPES[layer.adjustType];
   if(!t) return;
+  measureBcPivot(layer);
   const original = layer.adjustParams;
   const p = JSON.parse(JSON.stringify(original));   // copia de trabajo
 
@@ -321,6 +337,7 @@ export function mountAdjustProperties(layer, container){
   if(!isAdjustLayer(layer)) return null;
   const t = ADJUST_TYPES[layer.adjustType];
   if(!t) return null;
+  measureBcPivot(layer);
   const original = layer.adjustParams;
   const p = JSON.parse(JSON.stringify(original));
 

@@ -505,7 +505,11 @@ const TOPICS = [
           general y separa claros de oscuros. Trabaja en coma flotante sobre la
           luminosidad percibida: el brillo mueve los medios tonos sin tocar el negro ni
           el blanco, el contraste es una curva en S suave alrededor del gris medio, nada
-          se quema ni se empasta y los colores conservan su tono.</li>
+          se quema ni se empasta y los colores conservan su tono. <i>Protección</i> decide
+          cuánto se suavizan los extremos (al bajarla, el contraste aprieta más);
+          <i>Pivote</i> en automático gira sobre la luminosidad media de la foto, así
+          que el contraste no la oscurece ni la aclara; «Usar heredado» recupera el
+          cálculo antiguo.</li>
         <li><b>Exposición.</b> Simula lo que hace una cámara: multiplica la luz en
           espacio lineal (un paso completo dobla o parte por dos la luz de toda la
           foto por igual), con Desplazamiento para un empujón fijo —más visible en

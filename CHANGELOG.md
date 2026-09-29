@@ -79,6 +79,10 @@ que las entradas se agrupan por fecha.
   de 40); el brillo mueve los medios tonos sin recortar. El color se escala en luz lineal y,
   si no cabe, se reduce el croma en OKLab: el tono se desvía 0,2° de media (antes 5–9°, y
   hasta 70°). Los ajustes guardados siguen valiendo (mismos −100..100).
+  Además: **tramado** fino y fijo al volver a 8 bits (disuelve las bandas en cielos y
+  degradados), **pivote automático** sobre la luminosidad media de la foto (el contraste
+  ya no oscurece las fotos oscuras ni aclara las claras; opción «Gris medio»), mando de
+  **Protección de luces y sombras** y casilla **Usar heredado** con el cálculo antiguo.
 - **Eliminar fondo** crea una capa nueva con el recorte y oculta la original.
 
 ### Eliminado

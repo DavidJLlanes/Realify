@@ -68,7 +68,11 @@ export function captureEdit(){
       kind, name: l.name, on: l.visible !== false, hasMask: !!l.mask,
       props: { visible: l.visible !== false, opacity: l.opacity ?? 1, blend: l.blend || "source-over", blendIf: clone(l.blendIf || null), clipped: !!l.clipped, styles: clone(l.styles || null) }
     };
-    if(kind === "adjust"){ it.adjustType = l.adjustType; it.adjustParams = clone(l.adjustParams); it.detail = adjustTypeName(l.adjustType); }
+    if(kind === "adjust"){
+      it.adjustType = l.adjustType; it.adjustParams = clone(l.adjustParams); it.detail = adjustTypeName(l.adjustType);
+      // El pivote automático de Brillo y contraste es de ESTA foto: cada destino mide el suyo.
+      if(it.adjustParams) delete it.adjustParams.pivotL;
+    }
     else if(kind === "filter"){ it.filters = clone(l.filters); it.detail = l.filters.map(f => f.name || f.id).join(" → "); }
     else if(kind === "text"){ it.text = clone(l.text); it.detail = String(l.text.content || "").split("\n")[0].slice(0, 30); }
     else {
