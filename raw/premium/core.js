@@ -161,10 +161,11 @@ export const mapsKey = s => [s.wb, s.temperature, s.tint, s.lensVignette, s.colo
    multiplicando por 2. Si el usuario ha cambiado a mano la calidad de
    interpolación o la exposición del motor, se respeta su elección. */
 export const PREMIUM_OUTPUT_COLOR = 8;
-/* Exposición base de los RAW en Premium (+0,3 EV, como el «baseline»
-   de las cámaras y de Lightroom): el gris medio 0,18 de la escena sale
-   hacia 130/255 y no a 117, que se percibe apagado. No se aplica a las
-   fotos normales (Revelado fotográfico), que ya vienen expuestas. */
+/* Exposición base de los RAW (+0,3 EV, como el «baseline» de las
+   cámaras y de Lightroom), en los dos modos: el gris medio 0,18 de la
+   escena sale hacia 130/255 y no a 117, que se percibe apagado. No se
+   aplica a las fotos normales (Revelado fotográfico), que ya vienen
+   expuestas. */
 export const RAW_BASE_EV = 0.3;
 export function premiumEngine(settings){
   const o = { outputColor: PREMIUM_OUTPUT_COLOR };

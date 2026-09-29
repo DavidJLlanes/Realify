@@ -1,5 +1,5 @@
 import { buildToneLUT, toneGain, wbGains, toLinear } from './tone.js';
-import { isLinearSource } from './source.js';
+import { isLinearSource, linearReader } from './source.js';
 import { normalize } from './state.js';
 import { renderPremiumCanvas } from './premium/render.js';
 const clamp = value => Math.max(0, Math.min(255, value));
@@ -58,7 +58,9 @@ export function renderPhoto(source, settings, { preview = false, region = null }
   const input=linear?source.data:new Uint8ClampedArray(data),channels=linear?source.channels:4,scale=source.scale||65535;
   const lut=buildToneLUT(settings),gains=wbGains(settings),sat=1+settings.saturation/100,vibrance=settings.vibrance/100;
   const angle=settings.hue*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle),max=Math.max(sw,sh),ca=settings.ca*.000015;
-  const component=(x,y,k)=>{const i=(y*sw+x)*channels+(channels===1?0:k);return linear?input[i]/scale:LINEAR[input[i]];};
+  // Luz lineal real: los datos de LibRaw llevan la curva BT.709 (ver source.js › linearReader)
+  const read=linear?linearReader(source):null;
+  const component=(x,y,k)=>{const i=(y*sw+x)*channels+(channels===1?0:k);return linear?read(i):LINEAR[input[i]];};
   const sample=(x,y,k)=>{
     x=Math.max(0,Math.min(sw-1,x));y=Math.max(0,Math.min(sh-1,y));
     const x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(sw-1,x0+1),y1=Math.min(sh-1,y0+1),tx=x-x0,ty=y-y0;

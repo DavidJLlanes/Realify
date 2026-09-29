@@ -98,6 +98,15 @@ que las entradas se agrupan por fecha.
   filtro Realify con variaciones; lo sustituye «Editar en lote».
 
 ### Corregido
+- **Revelador RAW, luz lineal real**: el motor (LibRaw-Wasm) entrega los datos con la curva
+  BT.709 aunque se le pida lineal, y el revelado los trataba como lineales: todo salía más
+  claro y los ajustes de exposición, balance y tono trabajaban sobre valores equivocados.
+  Ahora se deshace esa curva exactamente, en la vista previa, el resultado y el balance
+  automático (con +0,3 EV de exposición base, como las cámaras): el gris medio queda en
+  ~130/255, igual que en Premium. Los RAW revelados antes se verán algo más oscuros.
+- Aviso de versión nueva: con el service worker bloqueado (navegación privada, políticas de
+  empresa) lanzaba un error a los 5 s y cada 30 minutos. Era lo que hacía fallar la prueba
+  `raw/tests/editor-transition.mjs`, que ahora pasa.
 - Revelador RAW: en el menú del motor, «Rec.2020» y «DCI-P3» estaban intercambiados; la
   cabecera mostraba «[object Object]» en lugar del objetivo.
 - «Editar en lote» (pantalla de inicio) necesitaba dos pulsaciones en el móvil: el selector

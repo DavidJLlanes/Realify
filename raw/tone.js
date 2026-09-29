@@ -1,3 +1,4 @@
+import { linearReader } from './source.js';
 // Shared tonal model. GPU and export consume the same high precision gain LUT.
 // Contrast acts in perceptual lightness; zone controls smoothly change log odds.
 export const LUT_SIZE=4096;
@@ -43,8 +44,8 @@ export function wbGains(s){
   return gain.map(v=>v/norm);
 }
 export function autoWhiteBalance(source){
-  let pixels,width,height,channels=4,linear=false;
-  if(source.data){({data:pixels,width,height}=source);channels=source.channels||3;linear=true;}
+  let pixels,width,height,channels=4,linear=false,read=null;
+  if(source.data){({data:pixels,width,height}=source);channels=source.channels||3;linear=true;read=linearReader(source);}
   else{
     const c=typeof document==='undefined'?new OffscreenCanvas(64,64):document.createElement('canvas');c.width=c.height=64;
     const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0,64,64);pixels=ctx.getImageData(0,0,64,64).data;width=height=64;
@@ -52,7 +53,7 @@ export function autoWhiteBalance(source){
   const sums=[0,0,0];let count=0;
   for(let y=0;y<64;y++)for(let x=0;x<64;x++){
     const i=(Math.min(height-1,Math.floor((y+.5)*height/64))*width+Math.min(width-1,Math.floor((x+.5)*width/64)))*channels;
-    const rgb=[0,1,2].map(k=>linear?pixels[i+(channels===1?0:k)]/(source.scale||65535):toLinear(pixels[i+k]/255));
+    const rgb=[0,1,2].map(k=>linear?read(i+(channels===1?0:k)):toLinear(pixels[i+k]/255));
     const l=.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];
     if(l<.02||l>.85||Math.max(...rgb)>.98)continue;
     rgb.forEach((v,k)=>sums[k]+=v);count++;

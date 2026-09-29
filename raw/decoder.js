@@ -38,7 +38,7 @@ const sourceMeta = settings => {
   const e = engineSettings(settings);
   return { space: e.outputColor === PREMIUM_OUTPUT_COLOR && settings.premium ? 'rec2020' : 'srgb',
            gain: settings.premium && e.expCorrec && !settings.expCorrec ? 1 / e.expShift : 1,
-           base: settings.premium ? 2 ** RAW_BASE_EV : 1 };
+           base: 2 ** RAW_BASE_EV };
 };
 const rawOptions = settings => rawOptionsFor(engineSettings(settings));
 const rawOptionsFor = settings => ({

@@ -12,6 +12,20 @@ export function linearSource(image,meta={}){
     encoding:'bt709',space:meta.space||'srgb',gain:meta.gain||1,base:meta.base||1};
 }
 const isPremiumSource=source=>source.space==='rec2020'||(source.gain||1)!==1;
+/* Lector de valores en luz lineal, común al revelado de siempre y al
+   Premium. Los datos de LibRaw (encoding "bt709") llevan la curva
+   BT.709 que el motor aplica siempre: se deshace con la tabla exacta y
+   se aplica la exposición base (`base`) y el margen (`gain`). Las
+   fuentes sin `encoding` (vistas previas ya preparadas, pruebas) se
+   leen tal cual, divididas por su escala. */
+export function linearReader(source){
+  const data=source.data;
+  if(source.encoding==='bt709'){
+    const lut=bt709(),mul=(source.scale||65535)===255?256:1,k=(source.gain||1)*(source.base||1);
+    return k===1?(i=>lut[data[i]*mul]):(i=>lut[data[i]*mul]*k);
+  }
+  const scale=source.scale||65535;return i=>data[i]/scale;
+}
 /* Vista previa reducida.
    · target "standard" (el revelado de siempre): interpolación bilineal
      de los valores tal cual. Si la fuente viene del motor Premium
@@ -22,19 +36,19 @@ const isPremiumSource=source=>source.space==='rec2020'||(source.gain||1)!==1;
      el margen de altas luces ya devuelto. */
 export function resizeLinear(source,width,height,target='standard'){
   if(target==='premium')return resizePremium(source,width,height,true);
-  if(isPremiumSource(source))return legacyFromPremium(resizePremium(source,width,height,false));
+  if(isPremiumSource(source))return legacyFromPremium(resizePremium(source,width,height,true));
   return resizeStandard(source,width,height);
 }
 function resizeStandard(source,width,height){
-  const channels=source.channels||3,scale=source.scale||65535,data=new Float32Array(width*height*4);
+  const channels=source.channels||3,read=linearReader(source),data=new Float32Array(width*height*4);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const sx=Math.max(0,(x+.5)*source.width/width-.5),sy=Math.max(0,(y+.5)*source.height/height-.5);
     const x0=Math.min(source.width-1,Math.floor(sx)),y0=Math.min(source.height-1,Math.floor(sy));
     const x1=Math.min(source.width-1,x0+1),y1=Math.min(source.height-1,y0+1),tx=sx-x0,ty=sy-y0;
     const i=(y*width+x)*4;
     for(let c=0;c<3;c++){
-      const k=channels===1?0:c,a=source.data[(y0*source.width+x0)*channels+k],b=source.data[(y0*source.width+x1)*channels+k],d=source.data[(y1*source.width+x0)*channels+k],e=source.data[(y1*source.width+x1)*channels+k];
-      data[i+c]=((a*(1-tx)+b*tx)*(1-ty)+(d*(1-tx)+e*tx)*ty)/scale;
+      const k=channels===1?0:c,a=read((y0*source.width+x0)*channels+k),b=read((y0*source.width+x1)*channels+k),d=read((y1*source.width+x0)*channels+k),e=read((y1*source.width+x1)*channels+k);
+      data[i+c]=(a*(1-tx)+b*tx)*(1-ty)+(d*(1-tx)+e*tx)*ty;
     }
     data[i+3]=1;
   }
@@ -76,12 +90,14 @@ function resizePremium(source,width,height,withBase){
 }
 const W2S=(()=>{const [[a,b,c],[d,e,f],[g,h,i]]=S2W,A=e*i-f*h,B=-(d*i-f*g),C=d*h-e*g,det=a*A+b*B+c*C;
   return [[A/det,-(b*i-c*h)/det,(b*f-c*e)/det],[B/det,(a*i-c*g)/det,-(a*f-c*d)/det],[C/det,-(a*h-b*g)/det,(a*e-b*d)/det]];})();
+/* Vista previa del revelado de siempre a partir de una fuente Premium
+   (mientras LibRaw vuelve a revelar en sRGB): Rec.2020 → sRGB lineal,
+   con los colores fuera de sRGB recortados como hace el motor. */
 function legacyFromPremium(p){
-  const g=bt709().g,enc=v=>{v=Math.max(0,Math.min(1,v));return v<g[3]?v*g[1]:v**g[0]*(1+g[4])-g[4];};
   const d=p.data;
   for(let i=0;i<d.length;i+=4){
     const r=d[i],gg=d[i+1],b=d[i+2];
-    for(let c=0;c<3;c++)d[i+c]=enc(W2S[c][0]*r+W2S[c][1]*gg+W2S[c][2]*b);
+    for(let c=0;c<3;c++)d[i+c]=Math.max(0,W2S[c][0]*r+W2S[c][1]*gg+W2S[c][2]*b);
   }
-  return {...p,encoding:'bt709',space:'srgb'};
+  return {...p,encoding:'linear',space:'srgb'};
 }

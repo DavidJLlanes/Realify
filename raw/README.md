@@ -99,17 +99,19 @@ mandos. Apagado, el revelador es exactamente el de siempre. Encendido:
   (`userQual` 11) y un paso de margen para las altas luces (`expShift` 0,5, que el
   revelado devuelve). Si se han cambiado a mano la calidad de interpolación o la
   exposición del motor, se respetan.
-- **Luz lineal de verdad**: LibRaw-Wasm ignora `gamm` y entrega siempre la curva
-  BT.709 de dcraw (0,18 lineal sale como 0,409). El modo Premium la invierte con la
-  misma fórmula de `gamma_curve()`; el revelado de siempre sigue tratándola como
-  lineal para no cambiar su aspecto.
+- **Luz lineal de verdad** (en los dos modos): LibRaw-Wasm ignora `gamm` y entrega
+  siempre la curva BT.709 de dcraw (0,18 lineal sale como 0,409). Antes el revelado
+  la trataba como si fuera lineal, y todo salía más claro y con los tonos medios
+  desplazados; ahora `source.js › linearReader` la invierte con la misma fórmula de
+  `gamma_curve()` para la vista previa, el resultado y el balance automático, con
+  una exposición base de +0,3 EV: el gris medio sale a ~130/255 en ambos modos.
 - **Flujo de escena en coma flotante** (`core.js` describe cada paso): balance,
   viñeteado de lente en luz lineal, ruido de luminosidad con filtro guiado fino,
   ruido de color con filtro guiado sobre R/Y y B/Y, exposición sin techo, neblina
   por canal mínimo guiado, tono local sobre una base de **filtro guiado rápido**
   (mapas de 512 px, iguales para vista previa y resultado), curva fílmica
   logarítmica con hombro suave, saturación/intensidad/tono en **OKLab** y ajuste
-  de gama a sRGB reduciendo sólo el croma. Exposición base de +0,3 EV en RAW.
+  de gama a sRGB reduciendo sólo el croma.
 - **Salida**: tramado a 8 bits; al abrir en Realify, reducción por área en luz
   lineal y enfoque de salida proporcional a la reducción; botón **TIFF 16 bits**
   (RGB, sin compresión, resolución completa).

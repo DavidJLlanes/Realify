@@ -43,6 +43,11 @@ export function initPWA(){
    controlador, pero eso no es una versión nueva: no se avisa. */
 let updateReady = false, dismissedAt = 0, bar = null;
 function watchUpdates(reg){
+  // Con el service worker bloqueado (navegación privada, políticas de
+  // empresa, pruebas automáticas) `register` puede resolver sin
+  // registro: no hay nada que vigilar. Antes esto lanzaba un error a los
+  // 5 s y cada 30 minutos («Cannot read properties of undefined»).
+  if(!reg || typeof reg.update !== "function") return;
   let hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if(hadController){ updateReady = true; showUpdateBar(); }
