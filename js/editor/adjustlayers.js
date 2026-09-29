@@ -22,7 +22,7 @@ import { doc, addLayer } from "../core/doc.js";
 import { record, recordLayers } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { applyLut, identityLut } from "./adjust.js";
-import { applyBC, bcControls, bcPivot, BC_DEFAULTS, buildLevels, buildWB, hslShift } from "./adjustments.js";
+import { applyBC, bcControls, bcPivot, BC_DEFAULTS, buildLevels, buildWB, hslShift, wbPicker } from "./adjustments.js";
 import { curveLut, curveEditor } from "./curves.js";
 import { slider, pickerGroup } from "./adjust.js";
 import { dialog } from "../ui/dialog.js";
@@ -159,6 +159,22 @@ function measureBcPivot(layer){
   }catch(err){ console.warn("[bc] pivote", err); }
 }
 
+/* Lo que se ve debajo de una capa de ajuste, reducido a 1024 px como
+   mucho: la fuente del cuentagotas de su balance de blancos. */
+function compositeBelow(layer){
+  try{
+    const idx = layer ? doc.layers.indexOf(layer) : -1;
+    if(idx < 0) return null;
+    const full = flatten(null, doc.layers.slice(0, idx));
+    const k = Math.min(1, 1024 / Math.max(full.width, full.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(full.width * k)); c.height = Math.max(1, Math.round(full.height * k));
+    c.getContext("2d").drawImage(full, 0, 0, c.width, c.height);
+    full.width = full.height = 1;
+    return c;
+  }catch(err){ console.warn("[wb] debajo", err); return null; }
+}
+
 /* ── crear y editar ──────────────────────────────────────────── */
 export function addAdjustmentLayer(typeId){
   const t = ADJUST_TYPES[typeId];
@@ -208,7 +224,7 @@ export const isAdjustLayer = l => !!(l && l.type === "adjust");
 const HIST_VACIO = () => ({ r:new Uint32Array(256), g:new Uint32Array(256),
                              b:new Uint32Array(256), l:new Uint32Array(256) });
 
-function bodyFor(typeId, p, preview){
+function bodyFor(typeId, p, preview, layer = null){
   const box = document.createElement("div");
   const S = (label, key, min, max, unit) =>
     box.appendChild(slider(label, min, max, p[key], v => { p[key] = v; preview(); }, unit || ""));
@@ -243,8 +259,15 @@ function bodyFor(typeId, p, preview){
     box.appendChild(slider("Exposición", -3, 3, Math.round((p.ev || 0) * 100) / 100,
       v => { p.ev = v; preview(); }, " EV", 0.05));
   } else if(typeId === "wb"){
-    S("Temperatura", "temp", -100, 100);
-    S("Tinte", "tint", -100, 100);
+    // Cuentagotas sobre lo que queda DEBAJO de la capa (sin este balance)
+    let sTemp, sTint;
+    const pick = wbPicker(compositeBelow(layer), p, () => {
+      sTemp.setValue(p.temp); sTint.setValue(p.tint); preview();
+    });
+    box.appendChild(pick.el);
+    const live = () => { preview(); pick.repaint(); };
+    sTemp = box.appendChild(slider("Temperatura", -100, 100, p.temp, v => { p.temp = v; live(); }));
+    sTint = box.appendChild(slider("Tinte", -100, 100, p.tint, v => { p.tint = v; live(); }));
   } else if(typeId === "hsl"){
     S("Tono", "hue", -180, 180, "°");
     S("Saturación", "sat", -100, 100);
@@ -313,7 +336,7 @@ export async function openAdjustPanel(layer){
   const p = JSON.parse(JSON.stringify(original));   // copia de trabajo
 
   const preview = () => previewAdjustParams(layer, p);
-  const body = bodyFor(layer.adjustType, p, preview);
+  const body = bodyFor(layer.adjustType, p, preview, layer);
 
   const res = await dialog({
     title: t.name, body, wide: layer.adjustType === "curves" || layer.adjustType === "bands",
@@ -342,7 +365,7 @@ export function mountAdjustProperties(layer, container){
   const p = JSON.parse(JSON.stringify(original));
 
   const preview = () => previewAdjustParams(layer, p);
-  const body = bodyFor(layer.adjustType, p, preview);
+  const body = bodyFor(layer.adjustType, p, preview, layer);
   container.appendChild(body);
 
   return {

@@ -10,6 +10,18 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Cuentagotas de punto blanco** en todo lo que tiene balance de blancos: tocas algo que deba
+  ser blanco o gris y la temperatura y el tinte se calculan para dejarlo exactamente neutro.
+  - **Revelador RAW / Revelado fotográfico** (normal y Premium 👑): botón sobre la vista
+    previa; lee la foto en luz lineal antes de revelar, en el espacio donde se aplica el
+    balance (Rec.2020 en Premium) y, si la dominante no cabe en los mandos, elige también el
+    preajuste de balance más cercano.
+  - **Balance de blancos** (plugin) y su **capa de ajuste**: botón «Cuentagotas» visible (antes
+    había que saber que se podía tocar la miniatura), media de 5×5 píxeles en vez de uno, marca
+    en el punto elegido y cálculo exacto (antes quedaba casi, pero no del todo, gris). La capa
+    lee lo que hay debajo de ella.
+  - **Fusión HDR** (normal y Premium): Color › «Cuentagotas de balance de blancos»; se lee la
+    imagen mapeada antes del acabado.
 - **Buscador del cajón de herramientas usable con el teclado del móvil**: al escribir, el cajón
   sube y se apoya encima del teclado (antes el teclado tapaba los resultados); la tecla
   «Buscar» cierra el teclado y deja los resultados a pantalla completa; al cerrar el teclado o

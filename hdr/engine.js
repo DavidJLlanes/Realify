@@ -762,6 +762,18 @@ export function fuseMertens(imgs, shifts, rect, s, { deghost = 0, ref = -1, evs 
   return { w: W, h: H, px: img };
 }
 
+/* Cuentagotas de punto blanco para finish(): temperatura y tinte que
+   dejan neutro `rgb` (imagen mapeada, 0-1). Deshace exactamente
+     r·(1+0,12a) = b·(1−0,12a)  →  a = (b−r) / (0,12·(r+b))
+     g·(1−0,08k) = n = 2rb/(r+b) →  k = (1 − n/g) / 0,08
+   El recorrido de estos mandos es corto (±12 %): `limited` avisa. */
+export function wbNeutral(rgb){
+  const r = Math.max(1e-4, rgb[0]), g = Math.max(1e-4, rgb[1]), b = Math.max(1e-4, rgb[2]);
+  const a = (b - r) / (0.12 * (r + b)), n = 2 * r * b / (r + b), k = (1 - n / g) / 0.08;
+  const c = v => Math.max(-100, Math.min(100, Math.round(v * 100)));
+  return { temp: c(a), tint: c(k), limited: Math.abs(a) > 1.005 || Math.abs(k) > 1.005 };
+}
+
 /* ── Ajustes finales (espacio de pantalla) ───────────────────── */
 export function finish(T, s){
   const { w, h, px } = T, n = w * h, out = new Uint8ClampedArray(n * 4);

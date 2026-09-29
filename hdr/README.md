@@ -64,7 +64,10 @@ la misma escena con distinta exposición.
    *Fotográfico* (Drago).
 5. **Ajustes finales**: exposición, contraste, puntos negro y blanco, gamma,
    sombras, altas luces, saturación, intensidad, saturación en luces y en
-   sombras, temperatura, tinte y nitidez.
+   sombras, temperatura, tinte y nitidez. El cuentagotas de punto blanco
+   (Color) pide al worker `wbSample`: la media de un entorno de la imagen
+   mapeada ANTES del acabado, resuelta con `wbNeutral` (engine.js) o
+   `wbNeutralPremium` (premium.js), las inversas exactas de cada acabado.
 
 Orden de los grupos, el del trabajo: Foto elegida → Fusión de las fotos →
 Estilo → Método → mandos del método → Tono → Color → Detalle. Mientras se

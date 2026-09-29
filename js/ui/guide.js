@@ -558,7 +558,11 @@ const TOPICS = [
           iluminada no se trata como sombra. Radio decide el tamaño de ese entorno;
           Tono, lo ancha que es la transición.</li>
         <li><b>Balance de blancos.</b> Corrige un dominante de color (una foto
-          demasiado azul o demasiado naranja) para que el blanco se vea blanco.</li>
+          demasiado azul o demasiado naranja) para que el blanco se vea blanco. Con el
+          <b>Cuentagotas</b> tocas en la miniatura algo que deba ser blanco o gris (una
+          pared, una camisa, una nube) y calcula la temperatura y el tinte que lo dejan
+          neutro; queda una marca en el punto elegido. La capa de ajuste «Balance de
+          blancos» tiene el mismo cuentagotas, que lee lo que hay debajo de ella.</li>
         <li><b>Tonos (blancos/luces/sombras/negros).</b> Cuatro mandos por zona
           tonal, más simple que Curvas cuando sólo hace falta aclarar sombras o
           recuperar luces.</li>
@@ -1199,6 +1203,13 @@ const TOPICS = [
           el tema «Realify · simulación de captura».</li>
         <li><b>Revelado fotográfico…</b> El revelador no destructivo de la capa activa;
           parámetros, porcentaje, máscara y opacidad se guardan aparte.</li>
+        <li id="sp-wbpick"><b>Cuentagotas de balance de blancos (revelador RAW).</b> El botón con el
+          cuentagotas, junto a «Encajar» sobre la foto: púlsalo y toca un punto que deba ser
+          blanco o gris neutro. Ajusta Temperatura y Matiz para dejarlo neutro, leyendo la foto
+          en luz lineal antes de revelar (también en modo Premium 👑, en su espacio Rec.2020); si
+          la dominante es muy fuerte, cambia además al preajuste de balance más cercano
+          (Tungsteno, Sombra…). En la Fusión HDR está en Color › «Cuentagotas de balance de
+          blancos».</li>
         <li id="sp-premium"><b>Revelado Premium (👑).</b> En el revelador RAW (y en el Revelado
           fotográfico), el interruptor con la <b>corona</b> de la barra superior cambia al motor de
           alta calidad con los mismos mandos: en un RAW vuelve a revelar en <b>Rec.2020</b> (los

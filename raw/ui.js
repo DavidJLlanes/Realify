@@ -2,7 +2,10 @@ import { GROUPS, CONTROLS, control, controlsFor, normalize, valueText } from "./
 import { Preview } from "./preview.js";
 import { RenderWorker } from "./render-client.js";
 import { toast } from "../js/ui/toast.js";
-import { autoWhiteBalance } from './tone.js';
+import { autoWhiteBalance, wbPickNeutral, toLinear } from './tone.js';
+import { isLinearSource, linearReader } from './source.js';
+import { PIPETTE_SVG } from '../js/ui/wbpick.js';
+import { SRGB_TO_2020 } from './premium/core.js';
 import { premiumSwitch, premiumPref } from "../js/ui/premium.js";
 import { outputSharpen, tiff16 } from "./premium/output.js";
 
@@ -37,7 +40,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
         <div class="raw-hist"><span>Histograma</span><canvas width="256" height="76"></canvas></div>
         <div class="raw-meta"><b>Archivo RAW</b><span>${metaLine(metadata) || "Datos de cámara no disponibles"}</span></div>
       </aside>
-      <div class="raw-preview"><canvas></canvas><div class="raw-zoom">100 %</div><button class="raw-fit" type="button" title="Encajar vista">⌗</button></div>
+      <div class="raw-preview"><canvas></canvas><div class="raw-zoom">100 %</div><button class="raw-wbpick" type="button" aria-pressed="false" title="Cuentagotas de balance de blancos: toca un punto que deba ser blanco o gris neutro" aria-label="Cuentagotas de balance de blancos">${PIPETTE_SVG}</button><button class="raw-fit" type="button" title="Encajar vista">⌗</button><div class="raw-wbpick-hint" hidden>Toca un punto blanco o gris neutro</div></div>
       <aside class="raw-controls"><div class="raw-groups"></div><div class="raw-control-list"></div></aside>
     </main>
     <footer class="raw-mobile-controls">
@@ -221,8 +224,58 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   root.querySelector(".raw-fit").addEventListener("click",()=>{zoom=1;previewPan={x:0,y:0};setPreviewZoom(1);});
   root.querySelector(".raw-preview").addEventListener("dblclick",()=>setPreviewZoom(previewZoom===1?1.8:1));
   rawPreview.addEventListener("wheel",event=>{event.preventDefault();setPreviewZoom(previewZoom*(event.deltaY<0?1.12:1/1.12));},{passive:false});
+  /* ── Cuentagotas de punto blanco ──
+     Se lee la vista previa ANTES de revelar (el proxy que recibe el
+     motor, en luz lineal y en el mismo espacio al que se aplican las
+     ganancias: sRGB lineal en el revelado de siempre, Rec.2020 en el
+     Premium), promediando un pequeño entorno para no depender de un
+     píxel con ruido. Se ajustan Temperatura y Matiz para que ese punto
+     quede neutro, sin cambiar el preajuste de balance. */
+  const wbButton=root.querySelector(".raw-wbpick"),wbHint=root.querySelector(".raw-wbpick-hint");
+  let picking=false,pickDown=null;
+  const setPicking=on=>{picking=on;wbButton.classList.toggle("on",on);wbButton.setAttribute("aria-pressed",String(on));wbHint.hidden=!on;rawPreview.classList.toggle("is-picking",on);};
+  wbButton.addEventListener("click",()=>{if(accepting||closed)return;setPicking(!picking);});
+  const sampleNeutral=(clientX,clientY)=>{
+    const proxy=renderer.proxy,rect=renderer.canvas.getBoundingClientRect();
+    if(!proxy||!rect.width||!rect.height)return null;
+    const pw=proxy.width,ph=proxy.height;
+    const u=(clientX-rect.left)/rect.width,v=(clientY-rect.top)/rect.height;
+    if(u<0||v<0||u>1||v>1)return null;
+    const cx=Math.min(pw-1,Math.floor(u*pw)),cy=Math.min(ph-1,Math.floor(v*ph)),rad=Math.max(1,Math.round(Math.max(pw,ph)/300));
+    const sum=[0,0,0];let n=0,clipped=0;
+    if(isLinearSource(proxy)){
+      const read=linearReader(proxy),ch=proxy.channels;
+      for(let y=Math.max(0,cy-rad);y<=Math.min(ph-1,cy+rad);y++)for(let x=Math.max(0,cx-rad);x<=Math.min(pw-1,cx+rad);x++){
+        const i=(y*pw+x)*ch;for(let k=0;k<3;k++)sum[k]+=read(i+(ch===1?0:k));n++;
+      }
+    }else{
+      const x0=Math.max(0,cx-rad),y0=Math.max(0,cy-rad),w=Math.min(pw-1,cx+rad)-x0+1,h=Math.min(ph-1,cy+rad)-y0+1;
+      const d=proxy.getContext("2d",{willReadFrequently:true}).getImageData(x0,y0,w,h).data;
+      for(let i=0;i<d.length;i+=4){for(let k=0;k<3;k++){sum[k]+=toLinear(d[i+k]/255);if(d[i+k]>=250)clipped++;}n++;}
+    }
+    if(!n)return null;
+    let rgb=sum.map(v=>v/n);
+    // El motor Premium aplica el balance en Rec.2020: una foto normal (o
+    // un RAW revelado en sRGB) se pasa a ese espacio antes de resolverlo.
+    if(state.premium&&!(isLinearSource(proxy)&&proxy.space==='rec2020'))rgb=SRGB_TO_2020.map(row=>row[0]*rgb[0]+row[1]*rgb[1]+row[2]*rgb[2]);
+    return {rgb,clipped:clipped>n};
+  };
+  const pickWhite=(clientX,clientY)=>{
+    const s=sampleNeutral(clientX,clientY);
+    if(!s){toast("Toca dentro de la foto");return;}
+    const lum=.2126*s.rgb[0]+.7152*s.rgb[1]+.0722*s.rgb[2];
+    if(lum<.004){toast("Ese punto es casi negro: elige una zona gris o blanca con algo de luz");return;}
+    const r=wbPickNeutral(s.rgb,state),presetChanged=r.wb!==state.wb;
+    remember();state.wb=r.wb;state.temperature=r.temperature;state.tint=r.tint;
+    if(activeGroup!=="perfil"){activeGroup="perfil";activeKey="temperature";}
+    sync();schedule();setPicking(false);
+    if(r.limited)toast("Ese punto tiene un tono muy fuerte: la corrección se ha quedado en el límite");
+    else if(s.clipped)toast("Ese punto está quemado: el balance puede no ser exacto; mejor un gris claro");
+    else toast(`Balance ajustado${presetChanged?` (${control("wb").options.find(o=>o[0]===r.wb)?.[1]||r.wb})`:""}: temperatura ${r.temperature}, matiz ${r.tint}`,"ok");
+  };
   rawPreview.addEventListener("pointerdown",event=>{
     if(event.target.closest("button"))return;
+    if(picking&&event.isPrimary){event.preventDefault();pickDown={id:event.pointerId,x:event.clientX,y:event.clientY};return;}
     if(event.pointerType==="mouse"){
       if(event.button!==0||previewZoom<=1)return;
       event.preventDefault();previewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,px:previewPan.x,py:previewPan.y};rawPreview.classList.add("is-panning");
@@ -236,7 +289,13 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     else if(previewZoom>1){event.preventDefault();previewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,px:previewPan.x,py:previewPan.y};rawPreview.classList.add("is-panning");}
     else{showingOriginal=true;schedule();}
   });
+  rawPreview.addEventListener("pointerup",event=>{
+    if(!picking||pickDown?.id!==event.pointerId)return;
+    const moved=Math.hypot(event.clientX-pickDown.x,event.clientY-pickDown.y);pickDown=null;
+    if(moved<14)pickWhite(event.clientX,event.clientY);
+  });
   rawPreview.addEventListener("pointermove",event=>{
+    if(picking&&pickDown)return;
     if(previewDrag?.id===event.pointerId&&previewPointers.size<2){previewPan={x:previewDrag.px+event.clientX-previewDrag.x,y:previewDrag.py+event.clientY-previewDrag.y};paintPreviewTransform();return;}
     if(event.pointerType!=="touch")return;
     if(previewPointers.has(event.pointerId))previewPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
@@ -250,7 +309,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
     if(!previewPointers.size){previewDrag=null;rawPreview.classList.remove("is-panning");showingOriginal=false;schedule();}
   };
   rawPreview.addEventListener("pointerup",endPreviewPointer);rawPreview.addEventListener("pointercancel",endPreviewPointer);
-  const onKey=event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();root.querySelector(event.shiftKey?"[data-action=redo]":"[data-action=undo]").click();}if(event.key==="Escape")close();if(event.key==="0")root.querySelector(".raw-fit").click();};
+  const onKey=event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="z"){event.preventDefault();root.querySelector(event.shiftKey?"[data-action=redo]":"[data-action=undo]").click();}if(event.key==="Escape"){if(picking){setPicking(false);return;}close();}if(event.key==="0")root.querySelector(".raw-fit").click();};
   const close=()=>{if(closed)return;closed=true;clearTimeout(histogramTimer);clearTimeout(engineTimer);enginePending=null;workingSource=null;renderer.dispose();finalWorker?.dispose();document.removeEventListener("keydown",onKey,true);root.remove();onClose?.();};
   document.addEventListener("keydown",onKey,true); sync(); premiumUI(); schedule();
   return { close, state, initialState };

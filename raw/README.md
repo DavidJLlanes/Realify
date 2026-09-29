@@ -39,6 +39,11 @@ Los ajustes de luminosidad mantienen la proporción RGB; la saturación y el ton
 incluyen compresión de cromaticidad para evitar el recorte independiente de
 canales. El balance automático estima una corrección de gris medio acotada;
 las opciones de iluminación son correcciones relativas al balance inicial.
+El cuentagotas de punto blanco (botón sobre la vista previa) promedia un
+pequeño entorno del proxy de la vista previa en luz lineal —en Rec.2020 si el
+modo Premium está activo— y resuelve `tone.js › wbFromNeutral`, la inversa
+exacta de `wbGains`; si hace falta más de ±100, `wbPickNeutral` prueba los
+demás preajustes y se queda con el que menos corrección necesita.
 
 Enfoque, textura y claridad trabajan sobre el detalle de luminosidad, con
 umbral y límite de halo. La reducción de ruido de luminosidad y de color están

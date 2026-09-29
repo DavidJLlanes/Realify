@@ -149,3 +149,4 @@
   .fsp-actions .premium-switch .ps-label{display:none}
   .fsp.is-premium .fsp-top{box-shadow:none}
 }
+.fsp.is-wbpick .fsp-stage,.fsp.is-wbpick .fsp-stage canvas{cursor:crosshair}

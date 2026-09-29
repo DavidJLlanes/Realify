@@ -325,6 +325,16 @@ const dither = (x, y, c) => {
   return ((h & 1023) + 0.5) / 1024 - 0.5;
 };
 
+/* Cuentagotas de punto blanco para finishPremium(): ganancias en luz
+   lineal Rec.2020, gr = 2^(0,35a), gb = 2^(−0,35a), gg = 2^(−0,2k):
+     a = log2(b/r) / 0,7      k = (log2 g − (log2 r + log2 b)/2) / 0,2 */
+export function wbNeutralPremium(rgb){
+  const L = v => Math.log2(Math.max(v, 1e-6)), lr = L(rgb[0]), lg = L(rgb[1]), lb = L(rgb[2]);
+  const a = (lb - lr) / 0.7, k = (lg - (lr + lb) / 2) / 0.2;
+  const c = v => Math.max(-100, Math.min(100, Math.round(v * 100)));
+  return { temp: c(a), tint: c(k), limited: Math.abs(a) > 1.005 || Math.abs(k) > 1.005 };
+}
+
 /** T: { w, h, lin (pantalla lineal Rec.2020), sat } → 8 bits con tramado
     ({ w, h, data }) o, con bits = 16, { w, h, data16 } RGB. */
 export function finishPremium(T, s, bits = 8){

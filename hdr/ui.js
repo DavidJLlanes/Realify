@@ -449,7 +449,8 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     { id: "color", label: "Color", props: [
       R("saturation", "Saturación", -100, 100), R("vibrance", "Intensidad", -100, 100),
       R("satHi", "Saturación en luces", -100, 100), R("satLo", "Saturación en sombras", -100, 100),
-      R("temp", "Temperatura", -100, 100), R("tint", "Tinte", -100, 100)
+      R("temp", "Temperatura", -100, 100), R("tint", "Tinte", -100, 100),
+      { key: "wbpick", label: "Cuentagotas de balance de blancos", type: "button", run: () => wbPick() }
     ] },
     { id: "detail2", label: "Detalle", props: [R("sharpen", "Nitidez", 0, 100)] },
     // Premium: de dónde sale la radiancia y exportaciones de alta precisión
@@ -494,6 +495,38 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     },
     mobileExtra: () => mobilePhotos()
   });
+
+  /* ── Cuentagotas de punto blanco ──
+     Tras pulsar el botón, el siguiente toque en la foto se usa para
+     ajustar Temperatura y Tinte de modo que ese punto quede neutro. El
+     worker lo lee antes del acabado (donde se aplican) y con el modelo
+     del modo activo, normal o Premium. */
+  let wbPicking = false;
+  function wbPick(){
+    if(!photos.length || applying) return;
+    if(wbPicking){ stopWbPick(); return; }
+    wbPicking = true; sh.setClass("is-wbpick", true);
+    toast("Toca en la foto un punto que deba ser blanco o gris neutro");
+    sh.setInteract((type, p) => {
+      if(type === "down") return true;
+      if(type === "cancel"){ stopWbPick(); return; }
+      if(type === "up"){ stopWbPick(); if(p && out.width) sampleWb(p.x / out.width, p.y / out.height); }
+    });
+  }
+  function stopWbPick(){ wbPicking = false; sh.setClass("is-wbpick", false); sh.setInteract(null); }
+  async function sampleWb(u, v){
+    if(u < 0 || v < 0 || u > 1 || v > 1){ toast("Toca dentro de la foto"); return; }
+    try{
+      const r = await call({ type: "wbSample", s: { ...S }, evs: state.evs.slice(), u, v });
+      if(closed) return;
+      if(r.dark){ toast("Ese punto es casi negro: elige una zona gris o blanca con algo de luz"); return; }
+      S.temp = r.temp; S.tint = r.tint;
+      hist.commit(); controls.refresh(); schedule(false);
+      if(r.limited) toast("Ese punto tiene un tono muy fuerte: la corrección se ha quedado en el límite");
+      else if(r.clipped) toast("Ese punto está quemado: el balance puede no ser exacto; mejor un gris claro");
+      else toast(`Balance ajustado: temperatura ${r.temp}, tinte ${r.tint}`, "ok");
+    }catch(err){ if(!closed) toast(err.message, "err"); }
+  }
 
   /* ── Vista previa ── */
   const out = document.createElement("canvas");

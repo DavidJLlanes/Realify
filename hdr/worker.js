@@ -8,8 +8,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { downscale, estimateEvs, alignAll, commonRect, mergeRadiance, fuseMertens,
-         toneMap, finish, downRadiance } from "./engine.js";
-import { responseCurves, mergePremium, finishPremium, linearFromDisplay, radianceHDR, downscaleLin } from "./premium.js";
+         toneMap, finish, downRadiance, wbNeutral } from "./engine.js";
+import { responseCurves, mergePremium, finishPremium, linearFromDisplay, radianceHDR, downscaleLin, wbNeutralPremium } from "./premium.js";
 
 let orig = [], exifEvs = [], previewSide = 1200, alignSide = 2048, stagedFrom = null;
 let full = [], proxy = [], draft = null, evs = [], shifts = [], cache = null, small = [], curvesCache = null;
@@ -42,6 +42,18 @@ function prepare(imgs, s, k){
   const sh = s.align ? scaleShifts(k) : imgs.map(() => ({ dx: 0, dy: 0, fdx: 0, fdy: 0 }));
   const rect = s.crop && s.align ? commonRect(imgs[0].w, imgs[0].h, sh) : { x: 0, y: 0, w: imgs[0].w, h: imgs[0].h };
   return { sh, rect };
+}
+
+/* Imagen mapeada ANTES del acabado (sin temperatura ni tinte). */
+function mapped(imgs, k, s, radCache){
+  const { sh, rect } = prepare(imgs, s, k);
+  const opts = { deghost: s.deghost, ref: s.ghostRef, evs };
+  if(s.method === "fusion") return fuseMertens(imgs, sh, rect, s, opts);
+  let R = radCache?.();
+  if(!R) R = merge(imgs, sh, rect, s);
+  const T = toneMap(R, s);
+  if(radCache) radCache(R);
+  return T;
 }
 
 function render(imgs, k, s, radCache, bits = 8){
@@ -164,6 +176,29 @@ Object.assign(handlers, {
     const radCache = R => { if(R){ cache = { key: kk, R }; return; } return cache?.key === kk ? cache.R : null; };
     const out = render(proxy, k, s, radCache);
     return { w: out.w, h: out.h, data: out.data.buffer, transfer: [out.data.buffer] };
+  },
+  /* Cuentagotas de punto blanco: media de un pequeño entorno en (u, v)
+     de la vista previa, leída antes del acabado —donde se aplican
+     temperatura y tinte— y resuelta con el modelo del modo activo. */
+  wbSample(m){
+    if(m.evs) evs = m.evs.slice();
+    const s = m.s, k = proxy[0].w / full[0].w, kk = key(s);
+    const radCache = R => { if(R){ cache = { key: kk, R }; return; } return cache?.key === kk ? cache.R : null; };
+    let T = mapped(proxy, k, s, radCache);
+    const premium = !!s.premium;
+    if(premium && !T.lin) T = linearFromDisplay(T);
+    const src = premium ? T.lin : T.px, w = T.w, h = T.h;
+    const cx = Math.min(w - 1, Math.max(0, Math.floor(m.u * w))), cy = Math.min(h - 1, Math.max(0, Math.floor(m.v * h)));
+    const rad = Math.max(1, Math.round(Math.max(w, h) / 300)), sum = [0, 0, 0];
+    let n = 0, clip = 0;
+    for(let y = Math.max(0, cy - rad); y <= Math.min(h - 1, cy + rad); y++)
+      for(let x = Math.max(0, cx - rad); x <= Math.min(w - 1, cx + rad); x++){
+        const j = (y * w + x) * 3;
+        sum[0] += src[j]; sum[1] += src[j + 1]; sum[2] += src[j + 2]; n++;
+        if(!premium && Math.max(src[j], src[j + 1], src[j + 2]) >= 0.985) clip++;
+      }
+    const rgb = sum.map(v => v / n);
+    return { ...(premium ? wbNeutralPremium(rgb) : wbNeutral(rgb)), clipped: clip * 2 > n, dark: Math.max(...rgb) < 0.02 };
   },
   thumbs(m){
     if(m.evs) evs = m.evs.slice();

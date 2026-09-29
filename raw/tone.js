@@ -35,13 +35,47 @@ export function toneGain(luminance,lut){
   const index=Math.sqrt(Math.max(0,Math.min(1,luminance)))*(LUT_SIZE-1),lo=Math.floor(index),t=index-lo;
   return lut[lo]*(1-t)+lut[Math.min(lo+1,LUT_SIZE-1)]*t;
 }
+const WB_PRESETS={camera:[1,1,1],daylight:[1,1,1],cloudy:[1.08,1,.92],shade:[1.16,1,.84],tungsten:[.72,1,1.35],fluorescent:[.92,.92,1.18],flash:[1.04,1,.97]};
+const wbBase=s=>s.wb==='auto'?(s.autoWb||[1,1,1]):(WB_PRESETS[s.wb]||WB_PRESETS.camera);
 export function wbGains(s){
-  const presets={camera:[1,1,1],daylight:[1,1,1],cloudy:[1.08,1,.92],shade:[1.16,1,.84],tungsten:[.72,1,1.35],fluorescent:[.92,.92,1.18],flash:[1.04,1,.97]};
-  const base=s.wb==='auto'?(s.autoWb||[1,1,1]):(presets[s.wb]||presets.camera);
+  const base=wbBase(s);
   const warm=(s.temperature||0)/100,tint=(s.tint||0)/100;
   const gain=[base[0]*2**(warm*.55+tint*.15),base[1]*2**(-tint*.3),base[2]*2**(-warm*.55+tint*.15)];
   const norm=.2126*gain[0]+.7152*gain[1]+.0722*gain[2];
   return gain.map(v=>v/norm);
+}
+/* Cuentagotas de punto blanco: temperatura y matiz que dejan NEUTRO el
+   color `rgb` (luz lineal, el mismo espacio al que se aplican las
+   ganancias: vale para el revelado de siempre y para el Premium), sin
+   tocar el preajuste de balance elegido. Deshace exactamente wbGains:
+     r·base_r·2^(.55w+.15t) = b·base_b·2^(−.55w+.15t)  →  w
+     g·base_g·2^(−.3t) = √(R·B)                         →  t
+   `limited` avisa si hizo falta más de ±100 y se ha recortado. */
+export function wbFromNeutral(rgb,s){
+  const base=wbBase(s),L=v=>Math.log2(Math.max(v,1e-6));
+  const lr=L(rgb[0]*base[0]),lg=L(rgb[1]*base[1]),lb=L(rgb[2]*base[2]);
+  const w=(lb-lr)/1.1,t=(lg-(lr+lb)/2)/.45;
+  const temperature=Math.round(w*100),tint=Math.round(t*100);
+  const clamp=v=>Math.max(-100,Math.min(100,v));
+  return {wb:s.wb,temperature:clamp(temperature),tint:clamp(tint),limited:Math.abs(temperature)>100||Math.abs(tint)>100};
+}
+/* Igual, pero si con el preajuste actual no basta el recorrido de
+   Temperatura/Matiz (una bombilla, una sombra muy azul), prueba los
+   demás preajustes y se queda con el que necesita menos corrección. */
+export function wbPickNeutral(rgb,s){
+  const first=wbFromNeutral(rgb,s);
+  if(!first.limited)return first;
+  let best=first,score=Infinity;
+  for(const wb of ['camera','auto','daylight','cloudy','shade','tungsten','fluorescent','flash']){
+    const r=wbFromNeutral(rgb,{...s,wb}),raw=wbFromNeutralRaw(rgb,{...s,wb}),sc=Math.max(Math.abs(raw[0]),Math.abs(raw[1]));
+    if(sc<score){score=sc;best=r;}
+  }
+  return best;
+}
+function wbFromNeutralRaw(rgb,s){
+  const base=wbBase(s),L=v=>Math.log2(Math.max(v,1e-6));
+  const lr=L(rgb[0]*base[0]),lg=L(rgb[1]*base[1]),lb=L(rgb[2]*base[2]);
+  return [(lb-lr)/1.1*100,(lg-(lr+lb)/2)/.45*100];
 }
 export function autoWhiteBalance(source){
   let pixels,width,height,channels=4,linear=false,read=null;
