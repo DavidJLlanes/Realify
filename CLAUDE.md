@@ -19,8 +19,11 @@ en realify.es con GitHub Actions al subir a `main`.
 - **Interruptor Premium 👑**: en el móvil va en la **misma barra que el botón de
   aplicar/aceptar, alineado a la izquierda** (junto a ✕ en los editores a
   pantalla completa; a la izquierda de Cancelar/Aplicar en los ajustes), sin
-  texto y sin fila propia. Usar `dockPremium` (`js/ui/premium.js`), `addAction`
-  de `fsshell` o `footStart` de `dialog()`/`runAdjust`.
+  fila propia. Usar `dockPremium` (`js/ui/premium.js`), `addAction` de
+  `fsshell` o `footStart` de `dialog()`/`runAdjust`.
+- El interruptor lleva **siempre la palabra «Premium» junto a la corona** y es
+  **idéntico en todos los plugins** (mismo componente `premiumSwitch`, mismo
+  tamaño y estilo; nunca ocultar `.ps-label`).
 - Los desplegables deben aparecer **siempre cerrados** (no dar el foco a un
   `<select>` al abrir: en iOS se despliega).
 - El teclado del móvil nunca debe tapar lo que se escribe (`js/ui/keyboard.js`).

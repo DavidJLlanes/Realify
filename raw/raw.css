@@ -14,7 +14,6 @@
 @media (max-width:900px){
   .raw-actions{gap:6px}
   .raw-actions .premium-switch{min-height:38px;background:#000b;padding:0 9px 0 7px}
-  .raw-actions .premium-switch .ps-label{display:none}
   .raw-actions button.raw-tiff:not([hidden]){display:inline-block;min-height:38px;background:#000b;padding:0 9px;font-size:12px}
   .raw-developer.is-premium .raw-topbar{box-shadow:none}
 }

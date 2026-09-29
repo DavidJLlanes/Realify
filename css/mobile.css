@@ -880,22 +880,19 @@
 
 /* ── Interruptor Premium en el móvil (js/ui/premium.js › dockPremium) ──
    REGLA: la vista previa manda y los plugins son mínimos. El interruptor
-   va en la barra del botón de aplicar, a la izquierda, sin texto (sólo
-   interruptor y corona) y sin fila propia. */
+   va en la barra del botón de aplicar, a la izquierda, sin fila propia,
+   y es IDÉNTICO en todos los plugins: interruptor + corona + «Premium»,
+   con el mismo tamaño en la barra de arriba (HDR, RAW…) y en la de
+   Cancelar/Aplicar de los ajustes. */
 @media (max-width:900px){
-  .premium-switch.ps-docked{margin-right:auto;gap:5px;padding:0 8px 0 6px}
-  .premium-switch.ps-docked .ps-label{display:none}
-  /* Editores a pantalla completa y revelador RAW: junto a ✕, misma altura */
-  .fsp-top .premium-switch.ps-docked,.raw-topbar .premium-switch.ps-docked{min-height:38px;background:#000a}
+  .premium-switch.ps-docked{margin-right:auto;min-height:34px;padding:0 10px 0 7px;gap:6px;font-size:12px}
+  .premium-switch.ps-docked .ps-track{width:28px;height:16px}
+  .premium-switch.ps-docked .ps-thumb{top:2px;left:2px;width:12px;height:12px}
+  .premium-switch.ps-docked input:checked + .ps-track .ps-thumb{transform:translateX(12px)}
+  .premium-switch.ps-docked .crown-icon{width:14px;height:14px}
   .raw-topbar .premium-switch.ps-docked{pointer-events:auto}
-  /* Ajustes (Tono y saturación…): a la izquierda de Cancelar/Aplicar */
   .modal-foot .foot-start{margin:0 auto 0 0}
   /* Hojas de ajuste compactas: menos aire para que la imagen tenga más sitio */
   .dlg-compact .modal-body{padding-top:10px;padding-bottom:8px}
   .dlg-compact .modal-body label.chk{min-height:34px;padding-top:0;padding-bottom:0}
-  .dlg-compact .modal-foot .premium-switch{min-height:28px;padding:0 7px 0 5px;gap:4px}
-  .dlg-compact .modal-foot .premium-switch .ps-track{width:26px;height:15px}
-  .dlg-compact .modal-foot .premium-switch .ps-thumb{top:2px;left:2px;width:11px;height:11px}
-  .dlg-compact .modal-foot .premium-switch input:checked + .ps-track .ps-thumb{transform:translateX(11px)}
-  .dlg-compact .modal-foot .premium-switch .crown-icon{width:13px;height:13px}
 }

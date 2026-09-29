@@ -11,7 +11,8 @@ que las entradas se agrupan por fecha.
 
 ### Cambiado
 - **Interruptor Premium 👑 en el móvil**: ya no ocupa una fila propia. Va en la barra del botón
-  de aplicar, alineado a la izquierda y sin texto: en Tono y saturación, a la izquierda de
+  de aplicar, alineado a la izquierda, siempre con la palabra «Premium» junto a la corona e
+  idéntico (mismo tamaño y estilo) en todos los plugins: en Tono y saturación, a la izquierda de
   Cancelar/Aplicar; en la Fusión HDR y el revelador RAW, arriba a la izquierda junto a ✕. Las
   hojas de ajuste compactas del móvil ocupan menos alto (Tono y saturación: de 227 a 195 px),
   para que la imagen tenga más sitio. En escritorio no cambia nada (`dockPremium` en

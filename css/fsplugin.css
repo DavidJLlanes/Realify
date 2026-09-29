@@ -145,8 +145,6 @@
 .fsp-actions{align-items:center}
 .fsp.is-premium .fsp-top{box-shadow:inset 0 -2px 0 #c9a13b}
 @media (max-width:900px){
-  .fsp-actions .premium-switch{min-height:36px;padding:0 8px 0 6px}
-  .fsp-actions .premium-switch .ps-label{display:none}
   .fsp.is-premium .fsp-top{box-shadow:none}
 }
 .fsp.is-wbpick .fsp-stage,.fsp.is-wbpick .fsp-stage canvas{cursor:crosshair}
