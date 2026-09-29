@@ -221,6 +221,9 @@ export function previewMoveGuide(axis, index, pos){
 
 export function commitMoveGuide(axis, index, fromPos, toPos){
   if(index < 0 || index >= doc.guides[axis].length) return;
+  // Tocarla sin moverla (p. ej. el primer toque de un doble toque) no
+  // es un paso de historial.
+  if(fromPos === toPos) return;
   const before = snapshotGuides();
   before[axis][index] = fromPos;
   const after = snapshotGuides();
@@ -497,12 +500,24 @@ function dragEndOnce(e){
 /* Arrastrar una guía ya puesta: se detecta en el propio lienzo, no en
    la regla, así que se engancha en captura para no robarle el gesto a
    la herramienta activa salvo que de verdad se empiece encima de una
-   guía. */
+   guía. Doble clic o doble toque sobre una guía la borra (arrastrarla
+   hasta la estrecha franja de la regla es incómodo con el dedo). */
+let lastGuideTap = null;
 stage.addEventListener("pointerdown", e => {
   if(!showGuides || !doc.open || drag) return;
   const p = toImage(e.clientX, e.clientY);
   const hit = guideAt(p, isTouch() ? 18 : 8);
   if(!hit) return;
+  const now = performance.now();
+  if(lastGuideTap && lastGuideTap.axis === hit.axis && lastGuideTap.index === hit.index &&
+     now - lastGuideTap.t < 400 && Math.hypot(e.clientX - lastGuideTap.x, e.clientY - lastGuideTap.y) < 30){
+    e.stopImmediatePropagation(); e.preventDefault();
+    lastGuideTap = null;
+    removeGuideAt(hit.axis, hit.index);
+    scheduleOverlay();
+    return;
+  }
+  lastGuideTap = { axis: hit.axis, index: hit.index, t: now, x: e.clientX, y: e.clientY };
   // Este manejador va en fase de CAPTURA (tercer argumento `true` más
   // abajo), así que corre antes que el de la herramienta activa, que
   // está en fase de burbuja normal. `stopImmediatePropagation` para

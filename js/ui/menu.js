@@ -406,7 +406,7 @@ export const MENUS = [
     { sep:true },
     { cmd:"view.rulers",      label:"Mostrar reglas" },
     { cmd:"view.guides",      label:"Mostrar guías" },
-    { cmd:"view.guidesClear", label:"Borrar guías" },
+    { cmd:"view.guidesClear", ic:"guides-clear", label:"Borrar guías", help:"Quita todas las guías (se puede deshacer). Para quitar una sola: doble clic o doble toque sobre ella, o arrástrala a su regla." },
     { sep:true },
     { cmd:"view.grid",        label:"Mostrar cuadrícula" },
     { cmd:"view.gridSnap",    label:"Ajustar a la cuadrícula" },

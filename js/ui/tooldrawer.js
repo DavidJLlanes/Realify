@@ -237,6 +237,7 @@ const ITEMS = [
   { cmd:"an.spectrum",   label:"Espectro",         ic:"radar",        cat:"analizar" },
   { cmd:"view.histogram", label:"Histograma",       ic:"chart-column", cat:"analizar mejorar" },
   { cmd:"view.smartGrid", label:"Cuadrícula inteligente", ic:"grid-3x3", cat:"analizar corregir" },
+  { cmd:"view.guidesClear", label:"Borrar guías", ic:"guides-clear", cat:"analizar corregir" },
   { cmd:"an.palette",    label:"Paleta de colores", ic:"palette",     cat:"analizar color" },
   { cmd:"an.eyedropper", label:"Cuentagotas de pantalla", ic:"pipette", cat:"analizar color" },
   { cmd:"an.exif",       label:"Metadatos EXIF",   ic:"tags",         cat:"analizar" },

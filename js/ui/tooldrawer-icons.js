@@ -121,5 +121,6 @@ export const ICONS = {
   "waves-horizontal": '<path d="M2 12q2.5 2 5 0t5 0 5 0 5 0"/><path d="M2 19q2.5 2 5 0t5 0 5 0 5 0"/><path d="M2 5q2.5 2 5 0t5 0 5 0 5 0"/>',
   "wind": '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
   "x": '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  "guides-clear": '<path d="M3 8h18"/><path d="M8 3v18"/><path d="m14 14 6 6"/><path d="m20 14-6 6"/>',
   "close-all": '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16a2 2 0 0 1-1-1.73V5a2 2 0 0 1 2-2h9.27A2 2 0 0 1 16 4"/><path d="m12 12 5 5"/><path d="m17 12-5 5"/>',
 };
