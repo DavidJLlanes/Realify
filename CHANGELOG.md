@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Aviso de móvil en horizontal**: en un teléfono (Android o iPhone) girado, un aviso explica
+  que Realify está optimizado para el móvil en vertical y que la versión de escritorio es para
+  ordenador. Desaparece al volver a vertical; «Seguir en horizontal» lo oculta hasta cerrar la
+  pestaña. No sale en tabletas ni ordenadores (`js/ui/landscape.js`).
 - **Borrar guías más fácil**: doble clic o doble toque sobre una guía la borra (antes sólo
   arrastrándola hasta la estrecha franja de la regla, incómodo con el dedo). «Borrar guías»
   también en el cajón de Herramientas del móvil, con su icono. Tocar una guía sin moverla ya

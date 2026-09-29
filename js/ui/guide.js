@@ -1344,6 +1344,10 @@ const TOPICS = [
           categoría abierta (en Básicos, en todo), sin importar tildes ni pequeñas
           erratas; Intro abre el primer resultado. Desliza a los lados para cambiar de
           categoría.</li>
+        <li><b>Móvil en vertical.</b> Realify está pensado para usarse en el móvil en vertical;
+          si giras el teléfono aparece un aviso (la versión de escritorio es para ordenador).
+          «Seguir en horizontal» lo oculta hasta que cierres la pestaña. En tabletas y
+          ordenadores no sale.</li>
         <li><b>Capas a pantalla completa.</b> «Capas» se abre a pantalla completa, como el revelado
           RAW: la imagen lo más grande posible (con dos dedos se amplía y se mueve; tocarla no
           pinta nada), arriba cerrar, nueva capa, duplicar, eliminar, deshacer y rehacer, y abajo

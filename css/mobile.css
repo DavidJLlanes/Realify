@@ -858,3 +858,14 @@
     body.layers-fs #layersTop{right:min(360px,46vw)}
   }
 }
+
+/* Aviso de teléfono en horizontal (js/ui/landscape.js) */
+.landscape-notice{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:16px;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  background:rgba(8,10,13,.94);color:#e9edf4;font:15px/1.45 var(--sans,system-ui,sans-serif);text-align:center}
+.landscape-notice[hidden]{display:none}
+.ln-card{max-width:440px}
+.ln-ic{width:56px;height:56px;color:#f0a53a;margin:0 auto 6px;display:block}
+.landscape-notice h2{margin:0 0 8px;font-size:19px}
+.landscape-notice p{margin:0 0 6px;color:#c9d1dc}
+.ln-go{margin-top:12px;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #3b414b;background:#272b31;color:#e9edf4;font:inherit}

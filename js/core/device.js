@@ -25,6 +25,15 @@ export const isMobile = () => matchMedia("(max-width:900px)").matches;
    imágenes (`image/*`); con cualquier extensión añadida (.psd, .tif,
    RAW…) muestra en su lugar «Cámara / Archivos». Ver io/open.js. */
 export const isAndroid = () => navigator.userAgentData?.platform === "Android" || /Android/i.test(navigator.userAgent || "");
+/* Teléfono (Android o iPhone), no tableta ni ordenador: táctil y con el
+   lado corto de la pantalla de teléfono (un iPhone Pro Max tiene 430 px,
+   un iPad mini 744). Se mira la pantalla, no la ventana, para que no
+   cambie al girar. */
+export const isPhone = () => {
+  const ua = navigator.userAgent || "";
+  if(/iPad/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)) return false;
+  return matchMedia("(pointer:coarse)").matches && Math.min(screen.width, screen.height) <= 600;
+};
 /* Selector de fotos: en Android, sólo `image/*` (galería directa). */
 export const galleryAccept = full => isAndroid() ? "image/*" : full;
 
