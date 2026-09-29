@@ -6,9 +6,10 @@
 
 import { doc, activeLayer } from "../core/doc.js";
 import { PIPETTE_SVG, averageRGB } from "../ui/wbpick.js";
+import { toImage } from "./view.js";
 import { toast } from "../ui/toast.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
-         drawHistogram, slider, histogram, pickerGroup } from "./adjust.js";
+         drawHistogram, slider, histogram, pickerGroup, liftImageAbove } from "./adjust.js";
 import { curveEditor, curveLut, curveThumb, CHANNEL_COLORS, CURVE_PRESETS, userCurvePresets, saveUserCurvePresets, applyCurves } from "./curves.js";
 import { curvesFullscreen } from "./curvesfs.js";
 export { CURVE_PRESETS };
@@ -625,107 +626,102 @@ export function whiteBalance(opts = {}){
     },
     buildBody({ preview, source }){
       const box = document.createElement("div");
-      const l = source ? { canvas: source } : activeLayer();
       let sTemp, sTint;
-      const pick = wbPicker(l?.canvas, p, () => {
+      /* Cuentagotas sobre la propia imagen abierta: se lee `source`, la
+         capa TAL CUAL estaba al abrir (sin este balance), porque lo que
+         se ve en el lienzo ya está corregido y cada toque corregiría
+         sobre lo corregido. */
+      const pick = wbEyedropper(sampleCanvas(source), p, () => {
         sTemp.setValue(p.temp); sTint.setValue(p.tint); preview();
       });
-      box.appendChild(pick.el);
-      box.onPreview = pick.repaint;
       sTemp = slider("Temperatura", -100, 100, p.temp, v => { p.temp = v; preview(); });
       sTint = slider("Tinte", -100, 100, p.tint, v => { p.tint = v; preview(); });
       box.appendChild(pickerGroup([
         { label: "Temperatura", node: sTemp },
         { label: "Tinte", node: sTint }
       ]));
+      box.appendChild(pick.el);
+      liftImageAbove(box);
       return box;
     }
   }, opts);
 }
 
-/* ── Cuentagotas de punto blanco (plugin y capa de ajuste) ──
-   Una miniatura de la imagen con el balance puesto y un botón
-   «Cuentagotas»: con él activo, tocar un punto que debería ser blanco o
-   gris neutro calcula la temperatura y el tinte que lo dejan neutro.
-
-     - `srcData` guarda la imagen ORIGINAL (sin este balance) y no se
-       dibuja nunca: es de donde lee el cuentagotas. Si leyera la ya
-       corregida, cada toque corregiría sobre lo corregido.
-     - Se promedia un cuadrado de 5×5 píxeles de la miniatura (1-2 %
-       del ancho): un solo píxel dependía del ruido o de la textura.
-     - Tras elegir, el modo se apaga solo y queda una marca en el punto.
-
-   `onChange()` se llama tras escribir p.temp/p.tint. Devuelve
-   { el, repaint } — repaint() vuelve a pintar con los valores de `p`. */
-export function wbPicker(sourceCanvas, p, onChange){
-  const wrap = document.createElement("div");
-  const thumbW = 300;
-  const sw = sourceCanvas?.width || doc.w || 1, sh = sourceCanvas?.height || doc.h || 1;
-  const thumbH = Math.max(1, Math.round(thumbW * sh / sw));
-
-  const srcThumb = document.createElement("canvas");
-  srcThumb.width = thumbW; srcThumb.height = thumbH;
-  const stx = srcThumb.getContext("2d", { willReadFrequently: true });
-  if(sourceCanvas) stx.drawImage(sourceCanvas, 0, 0, thumbW, thumbH);
-  const srcData = stx.getImageData(0, 0, thumbW, thumbH);
-
-  const stage = document.createElement("div");
-  stage.className = "wb-pick-stage";
-  const thumb = document.createElement("canvas");
-  thumb.width = thumbW; thumb.height = thumbH;
-  thumb.className = "wb-pick-thumb";
-  const mark = document.createElement("span");
-  mark.className = "wb-pick-mark"; mark.hidden = true;
-  stage.append(thumb, mark);
-  const tx = thumb.getContext("2d");
-  const shown = new ImageData(new Uint8ClampedArray(srcData.data.length), thumbW, thumbH);
-  const repaint = () => {
-    shown.data.set(srcData.data);
-    applyLut(shown.data, buildWB(p));
-    tx.putImageData(shown, 0, 0);
+/* Lector de la media de un pequeño entorno de `canvas` (que cubre el
+   documento entero, a cualquier escala) en coordenadas del documento. */
+export function sampleCanvas(canvas){
+  if(!canvas) return () => null;
+  const cx = canvas.getContext("2d", { willReadFrequently: true });
+  return (x, y) => {
+    const sx = canvas.width / doc.w, sy = canvas.height / doc.h;
+    const px = Math.floor(x * sx), py = Math.floor(y * sy);
+    if(px < 0 || py < 0 || px >= canvas.width || py >= canvas.height) return null;
+    const rad = Math.max(2, Math.round(Math.max(canvas.width, canvas.height) / 400));
+    const x0 = Math.max(0, px - rad), y0 = Math.max(0, py - rad);
+    const w = Math.min(canvas.width - 1, px + rad) - x0 + 1, h = Math.min(canvas.height - 1, py + rad) - y0 + 1;
+    const d = cx.getImageData(x0, y0, w, h).data;
+    return averageRGB(d, w, h, px - x0, py - y0, rad);
   };
-  repaint();
+}
 
+/* ── Cuentagotas de punto blanco (plugin y capa de ajuste) ──
+   Un botón «Cuentagotas»: con él activo, el siguiente toque SOBRE LA
+   IMAGEN ABIERTA (el lienzo, alrededor del diálogo o de la hoja) se
+   usa como punto que debería ser blanco o gris neutro, y se calculan la
+   temperatura y el tinte que lo dejan neutro. El ajuste se ve en el
+   propio lienzo, en tiempo real, como el resto de ajustes.
+     - `sampleAt(x, y)` (coordenadas del documento) devuelve la media de
+       un pequeño entorno de la imagen SIN este balance: { rgb, clipped }.
+     - Tras elegir, el modo se apaga solo.
+   `onChange()` se llama tras escribir p.temp/p.tint. */
+export function wbEyedropper(sampleAt, p, onChange){
   const row = document.createElement("div");
   row.className = "wb-pick-row";
   const btn = document.createElement("button");
   btn.type = "button"; btn.className = "wb-pick-btn";
   btn.setAttribute("aria-pressed", "false");
   btn.innerHTML = `${PIPETTE_SVG}<span>Cuentagotas</span>`;
-  btn.title = "Elegir en la imagen un punto que deba ser blanco o gris neutro";
-  const hint = document.createElement("p");
-  hint.className = "hint wb-pick-hint";
-  const idle = "Pulsa Cuentagotas y toca en la miniatura algo que deba ser blanco o gris (una pared, una camisa, una nube).";
-  hint.textContent = idle;
-  row.append(btn);
-  wrap.append(stage, row, hint);
+  btn.title = "Toca en la imagen un punto que deba ser blanco o gris neutro";
+  const hint = document.createElement("span");
+  hint.className = "wb-pick-hint"; hint.hidden = true;
+  hint.textContent = "Toca en la imagen algo blanco o gris";
+  row.append(btn, hint);
 
   let picking = false;
+  const stage = document.getElementById("stage");
+  const onImage = t => (t.classList?.contains("modal") && !t.closest(".modal-card")) || (stage && stage.contains(t));
+  const down = e => {
+    if(!picking || !onImage(e.target) || !doc.open) return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const q = toImage(e.clientX, e.clientY);
+    setPicking(false);
+    const s = sampleAt(q.x, q.y);
+    if(!s){ toast("Toca dentro de la imagen"); return; }
+    if(Math.max(...s.rgb) < 12){ toast("Ese punto es casi negro: elige una zona gris o blanca con algo de luz"); return; }
+    const res = grayPointToWB(...s.rgb);
+    p.temp = res.temp; p.tint = res.tint;
+    onChange();
+    if(res.limited) toast("Ese punto tiene un tono muy fuerte: la corrección se ha quedado en el límite");
+    else if(s.clipped) toast("Ese punto está quemado: el balance puede no ser exacto; mejor un gris claro");
+    else toast(`Balance ajustado: temperatura ${res.temp}, tinte ${res.tint}`, "ok");
+  };
+  // Se traga también el clic que sigue al toque, para que no llegue al
+  // lienzo ni cierre nada.
+  let swallowClick = false;
+  const click = e => { if(swallowClick && onImage(e.target)){ e.preventDefault(); e.stopPropagation(); swallowClick = false; } };
   const setPicking = on => {
     picking = on;
     btn.classList.toggle("on", on); btn.setAttribute("aria-pressed", String(on));
-    stage.classList.toggle("is-picking", on);
-    hint.textContent = on ? "Toca en la miniatura un punto blanco o gris neutro." : idle;
+    hint.hidden = !on;
+    document.body.classList.toggle("wb-picking", on);
+    if(on){ document.addEventListener("pointerdown", down, true); document.addEventListener("click", click, true); }
+    else { document.removeEventListener("pointerdown", down, true); swallowClick = true; setTimeout(() => { swallowClick = false; document.removeEventListener("click", click, true); }, 400); }
   };
   btn.addEventListener("click", () => setPicking(!picking));
-  thumb.addEventListener("click", e => {
-    if(!picking) return;
-    const r = thumb.getBoundingClientRect();
-    const x = Math.max(0, Math.min(thumbW - 1, Math.floor((e.clientX - r.left) / r.width * thumbW)));
-    const y = Math.max(0, Math.min(thumbH - 1, Math.floor((e.clientY - r.top) / r.height * thumbH)));
-    const { rgb, clipped } = averageRGB(srcData.data, thumbW, thumbH, x, y, 2);
-    setPicking(false);
-    if(Math.max(...rgb) < 12){ toast("Ese punto es casi negro: elige una zona gris o blanca con algo de luz"); return; }
-    const res = grayPointToWB(...rgb);
-    p.temp = res.temp; p.tint = res.tint;
-    mark.hidden = false;
-    mark.style.left = `${(x + 0.5) / thumbW * 100}%`; mark.style.top = `${(y + 0.5) / thumbH * 100}%`;
-    onChange();
-    repaint();
-    if(res.limited) toast("Ese punto tiene un tono muy fuerte: la corrección se ha quedado en el límite");
-    else if(clipped) toast("Ese punto está quemado: el balance puede no ser exacto; mejor un gris claro");
-  });
-  return { el: wrap, repaint, setPicking };
+  // Si el diálogo o el panel se cierran con el modo activo, se apaga
+  const obs = new MutationObserver(() => { if(!row.isConnected && picking){ setPicking(false); obs.disconnect(); } });
+  requestAnimationFrame(() => obs.observe(document.body, { childList: true, subtree: true }));
+  return { el: row, setPicking };
 }
 
 /* Modelo multiplicativo sencillo: la temperatura mueve rojo y azul en

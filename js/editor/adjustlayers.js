@@ -22,7 +22,7 @@ import { doc, addLayer } from "../core/doc.js";
 import { record, recordLayers } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { applyLut, identityLut } from "./adjust.js";
-import { applyBC, bcControls, bcPivot, BC_DEFAULTS, buildLevels, buildWB, hslShift, wbPicker } from "./adjustments.js";
+import { applyBC, bcControls, bcPivot, BC_DEFAULTS, buildLevels, buildWB, hslShift, wbEyedropper, sampleCanvas } from "./adjustments.js";
 import { curveLut, curveEditor } from "./curves.js";
 import { slider, pickerGroup } from "./adjust.js";
 import { dialog } from "../ui/dialog.js";
@@ -259,15 +259,15 @@ function bodyFor(typeId, p, preview, layer = null){
     box.appendChild(slider("Exposición", -3, 3, Math.round((p.ev || 0) * 100) / 100,
       v => { p.ev = v; preview(); }, " EV", 0.05));
   } else if(typeId === "wb"){
-    // Cuentagotas sobre lo que queda DEBAJO de la capa (sin este balance)
-    let sTemp, sTint;
-    const pick = wbPicker(compositeBelow(layer), p, () => {
+    // Cuentagotas sobre la imagen abierta; lee lo que queda DEBAJO de
+    // la capa (sin este balance), que es lo que ella corrige.
+    let sTemp, sTint, below = null;
+    const pick = wbEyedropper((x, y) => sampleCanvas(below ||= compositeBelow(layer))(x, y), p, () => {
       sTemp.setValue(p.temp); sTint.setValue(p.tint); preview();
     });
+    sTemp = box.appendChild(slider("Temperatura", -100, 100, p.temp, v => { p.temp = v; preview(); }));
+    sTint = box.appendChild(slider("Tinte", -100, 100, p.tint, v => { p.tint = v; preview(); }));
     box.appendChild(pick.el);
-    const live = () => { preview(); pick.repaint(); };
-    sTemp = box.appendChild(slider("Temperatura", -100, 100, p.temp, v => { p.temp = v; live(); }));
-    sTint = box.appendChild(slider("Tinte", -100, 100, p.tint, v => { p.tint = v; live(); }));
   } else if(typeId === "hsl"){
     S("Tono", "hue", -180, 180, "°");
     S("Saturación", "sat", -100, 100);

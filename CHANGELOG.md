@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Corregido
+- **Balance de blancos sin miniatura**: se quita la vista previa que abría la herramienta (y su
+  capa de ajuste). Actúa sobre la imagen abierta en tiempo real con la misma interfaz mínima
+  que los demás ajustes (en el móvil, un desplegable Temperatura/Tinte y su deslizador), y el
+  **Cuentagotas** se usa tocando directamente la imagen abierta.
 - **Más sitios donde el teclado del móvil tapaba lo que escribías**: revisados todos los campos
   de texto. Estaban tapados el texto de **Memes**, los textos de **Collage / History / Post**,
   las semillas de **Cámara** (Realify), los campos del grupo Motor del **revelador RAW** y el

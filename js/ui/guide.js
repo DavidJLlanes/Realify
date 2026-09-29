@@ -558,11 +558,11 @@ const TOPICS = [
           iluminada no se trata como sombra. Radio decide el tamaño de ese entorno;
           Tono, lo ancha que es la transición.</li>
         <li><b>Balance de blancos.</b> Corrige un dominante de color (una foto
-          demasiado azul o demasiado naranja) para que el blanco se vea blanco. Con el
-          <b>Cuentagotas</b> tocas en la miniatura algo que deba ser blanco o gris (una
-          pared, una camisa, una nube) y calcula la temperatura y el tinte que lo dejan
-          neutro; queda una marca en el punto elegido. La capa de ajuste «Balance de
-          blancos» tiene el mismo cuentagotas, que lee lo que hay debajo de ella.</li>
+          demasiado azul o demasiado naranja) para que el blanco se vea blanco. Actúa sobre la
+          imagen abierta en tiempo real. Con el <b>Cuentagotas</b> tocas en la propia imagen
+          algo que deba ser blanco o gris (una pared, una camisa, una nube) y calcula la
+          temperatura y el tinte que lo dejan neutro. La capa de ajuste «Balance de blancos»
+          tiene el mismo cuentagotas, que lee lo que hay debajo de ella.</li>
         <li><b>Tonos (blancos/luces/sombras/negros).</b> Cuatro mandos por zona
           tonal, más simple que Curvas cuando sólo hace falta aclarar sombras o
           recuperar luces.</li>
