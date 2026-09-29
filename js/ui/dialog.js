@@ -249,8 +249,20 @@ export function dialog({ title, body, buttons = [], wide = false, cls = "", onOp
         }, 120);
       }
     }
-    const f = bodyEl.querySelector(FOCUSABLE) || back.querySelector("[data-close]");
-    if(f) f.focus();
+    /* En pantallas táctiles no se da el foco a ningún mando al abrir: en
+       el iPhone, enfocar un desplegable lo DESPLIEGA solo (la lista de
+       opciones aparecía abierta nada más abrir Tono y saturación) y un
+       campo de texto saca el teclado. Los desplegables siempre aparecen
+       cerrados; el foco va a la propia tarjeta, para el lector de
+       pantalla y la tecla Tab. Con ratón y teclado, como siempre. */
+    if(matchMedia("(pointer: coarse)").matches){
+      const card = back.querySelector(".modal-card");
+      card.tabIndex = -1; card.style.outline = "none";
+      card.focus({ preventScroll: true });
+    } else {
+      const f = bodyEl.querySelector(FOCUSABLE) || back.querySelector("[data-close]");
+      if(f) f.focus();
+    }
   });
 }
 

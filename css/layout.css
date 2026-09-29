@@ -1284,3 +1284,5 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 .wb-pick-hint{font-size:var(--fs-sm);color:var(--tx-dim)}
 .wb-pick-hint[hidden]{display:none}
 body.wb-picking .modal,body.wb-picking #stage,body.wb-picking #stage canvas{cursor:crosshair}
+/* Interruptor Premium dentro de un ajuste (Tono y saturación) */
+.adj-premium{display:flex;width:max-content;margin:0 0 10px}

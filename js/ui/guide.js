@@ -567,7 +567,11 @@ const TOPICS = [
           tonal, más simple que Curvas cuando sólo hace falta aclarar sombras o
           recuperar luces.</li>
         <li><b>Tono y saturación.</b> Matiz, saturación y luminosidad de toda la
-          imagen; «Colorear» la tiñe entera de un solo tono.</li>
+          imagen; «Colorear» la tiñe entera de un solo tono. Con el interruptor
+          <b>Premium 👑</b> trabaja en OKLCh (espacio perceptual) en luz lineal y coma flotante:
+          girar el tono conserva la luminosidad de cada color, la saturación 0 da un gris de
+          la misma luminosidad, los colores que se salen de la gama pierden croma en vez de
+          torcerse y el resultado lleva tramado para que no aparezcan bandas.</li>
         <li><b>Vibrance.</b> Sube la saturación de los colores apagados más que la de
           los que ya son vivos —y protege un poco los tonos de piel—, distinto de la
           saturación llana de Tono y saturación.</li>

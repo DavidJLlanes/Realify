@@ -22,6 +22,7 @@ import { doc, addLayer } from "../core/doc.js";
 import { record, recordLayers } from "../core/history.js";
 import { emit } from "../core/bus.js";
 import { applyLut, identityLut } from "./adjust.js";
+import { hslPremium } from "./hslpremium.js";
 import { applyBC, bcControls, bcPivot, BC_DEFAULTS, buildLevels, buildWB, hslShift, wbEyedropper, sampleCanvas } from "./adjustments.js";
 import { curveLut, curveEditor } from "./curves.js";
 import { slider, pickerGroup } from "./adjust.js";
@@ -79,7 +80,7 @@ export const ADJUST_TYPES = {
   hsl: {
     name: "Tono y saturación",
     defaults: () => ({ hue: 0, sat: 0, light: 0, colorize: false }),
-    apply(data, w, h, p){ hslShift(data, p); }
+    apply(data, w, h, p){ if(p.premium) hslPremium(data, p); else hslShift(data, p); }
   },
   /* Exposición en pasos (EV), en luz lineal como en una cámara: +1 EV
      duplica la luz. La usa también «Aplicar esta edición a otras

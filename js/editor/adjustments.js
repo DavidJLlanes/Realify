@@ -8,6 +8,8 @@ import { doc, activeLayer } from "../core/doc.js";
 import { PIPETTE_SVG, averageRGB } from "../ui/wbpick.js";
 import { toImage } from "./view.js";
 import { toast } from "../ui/toast.js";
+import { premiumSwitch, premiumPref } from "../ui/premium.js";
+import { hslPremium } from "./hslpremium.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
          drawHistogram, slider, histogram, pickerGroup, liftImageAbove } from "./adjust.js";
 import { curveEditor, curveLut, curveThumb, CHANNEL_COLORS, CURVE_PRESETS, userCurvePresets, saveUserCurvePresets, applyCurves } from "./curves.js";
@@ -790,14 +792,23 @@ export function autoLevels(opts = {}){
 
 /* ── tono y saturación ────────────────────────────────────────── */
 export function hueSaturation(opts = {}){
-  const p = { hue: 0, sat: 0, light: 0, colorize: false, ...opts.init };
+  // Una capa ya hecha conserva su motor (sin `premium` guardado = normal);
+  // un ajuste nuevo empieza con la última elección.
+  const p = { hue: 0, sat: 0, light: 0, colorize: false, premium: opts.init ? false : premiumPref.get("hsl"), ...opts.init };
 
   return runAdjust({
     title: "Tono y saturación",
     asLayer: true, filterId: "hsl", filterParams: p,
-    compute(data){ hslShift(data, p); },
+    // Premium 👑: mismo ajuste en OKLCh, coma flotante, gama y tramado
+    // (vista previa reducida → tabla interpolada; resultado final → exacto)
+    previewLimit: 6e5,
+    compute(data, w, h){ if(p.premium) hslPremium(data, p, { fast: w * h < doc.w * doc.h * 0.98 }); else hslShift(data, p); },
     buildBody({ preview }){
       const box = document.createElement("div");
+      const sw = premiumSwitch({ checked: p.premium, title: "Tono y saturación de alta calidad: OKLCh, luz lineal, mapeo de gama y tramado (función Premium)",
+        onChange: on => { p.premium = on; premiumPref.set("hsl", on); preview(); } });
+      sw.classList.add("adj-premium");
+      box.appendChild(sw);
       box.appendChild(pickerGroup([
         { label: "Tono", node: slider("Tono", -180, 180, p.hue, v => { p.hue = v; preview(); }, "°") },
         { label: "Saturación", node: slider("Saturación", -100, 100, p.sat, v => { p.sat = v; preview(); }) },
