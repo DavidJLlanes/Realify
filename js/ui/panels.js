@@ -32,7 +32,7 @@ import { toast } from "./toast.js";
 import { toggleClip, toggleCollapsed } from "../editor/groups.js";
 import { hasEnabledStyle, openLayerStyles } from "../editor/layerstyles.js";
 import { initProperties } from "./properties.js";
-import { fitAbove, view } from "../editor/view.js";
+import { fitAbove, fitInRect, view } from "../editor/view.js";
 
 /* ── selección múltiple de capas ─────────────────────────────────
    Aparte de `doc.activeId` —que sigue siendo "la capa sobre la que
@@ -74,6 +74,8 @@ export function openOnlyPanel(id){
     p.classList.toggle("closed", p.id !== id);
     p.classList.toggle("solo-on", solo && p.id === id);
   });
+  syncFsTop();
+  if(fsOn()) requestAnimationFrame(() => { measureRows(); fsFit(); });
 }
 
 export function initPanels(){
@@ -94,6 +96,7 @@ export function initPanels(){
   mBtn.addEventListener("click", () => toggleSheet());
   veil.addEventListener("click", () => toggleSheet(false));
   initGrip();
+  initFsTop();
 
   renderLayers();
   renderSnapshots();
@@ -149,6 +152,7 @@ panels.addEventListener("transitionend", e => {
 });
 /* Al pasar a escritorio vuelven a verse todos los paneles. */
 matchMedia("(max-width:900px)").addEventListener?.("change", e => {
+  if(!e.matches && fsOn()) setFullscreen(false);
   if(!e.matches){ panels.classList.remove("solo"); document.querySelectorAll(".panel.solo-on").forEach(p => p.classList.remove("solo-on")); }
   else openOnlyPanel("panel-layers");
 });
@@ -160,6 +164,8 @@ matchMedia(SHEET).addEventListener?.("change", () => {
 export function toggleSheet(v){
   const open = v === undefined ? !panels.classList.contains("open") : v;
   const wasOpen = panels.classList.contains("open");
+  // Móvil (cualquier orientación): pantalla completa, ver setFullscreen.
+  if(isMobile()){ setFullscreen(open); if(open && !wasOpen) openOnlyPanel("panel-layers"); return; }
   if(open && !wasOpen && sheetMode()) panels.classList.add("half");
   if(!open){ panels.classList.remove("half", "peek"); dropImage(); }
   /* El botón que abre esta hoja se llama «Capas», así que al abrirla
@@ -209,21 +215,95 @@ function initGrip(){
   grip.addEventListener("pointercancel", end);
 }
 
-/* ── Ver la imagen mientras se arrastra un deslizador (móvil) ──
-   Con el dedo sobre un deslizador de la hoja (opacidad de la capa, los
-   mandos de Propiedades…), la hoja se vuelve transparente y sólo queda
-   a la vista la fila de ese deslizador; al soltar, reaparece. */
-panels.addEventListener("pointerdown", e => {
-  const range = e.target.closest?.('input[type="range"]');
-  if(!range || !matchMedia("(max-width:900px)").matches) return;
-  const keep = range.closest(".field") || range.parentElement;
-  panels.classList.add("peek"); keep.classList.add("peek-keep");
-  const endPeek = () => {
-    panels.classList.remove("peek"); keep.classList.remove("peek-keep");
-    removeEventListener("pointerup", endPeek, true); removeEventListener("pointercancel", endPeek, true);
+/* ── Capas a pantalla completa (móvil) ──────────────────────────────
+   Como el revelado RAW y los demás editores a pantalla completa: fuera
+   todas las barras de la app, la imagen lo más grande posible en el
+   hueco libre y, abajo (a la derecha en horizontal), los mandos de la
+   capa —nueva, duplicar, eliminar, opacidad, fusión— y una lista de la
+   que sólo se ven DOS capas a la vez, desplazable. Arriba, una barra con
+   cerrar, el título y deshacer/rehacer.
+   · Tocar la imagen no pinta ni selecciona nada: sólo se desplaza y,
+     con dos dedos, se amplía (`__panTool`, ver editor/view.js).
+   · El botón fx de una capa abre su editor ENCIMA, sin cerrar Capas.
+   · Ya no hace falta volver transparente la hoja al mover un
+     deslizador (lo hacía la versión en media hoja): la imagen se ve
+     entera y grande todo el rato. */
+const fsTop = document.createElement("header");
+fsTop.id = "layersTop";
+fsTop.innerHTML = `<button type="button" data-lt="back" aria-label="Cerrar">✕</button>
+  <b id="layersTopTitle">Capas</b>
+  <button type="button" data-lt-layer data-cmd="layer.add" aria-label="Nueva capa">＋</button>
+  <button type="button" data-lt-layer data-cmd="layer.duplicate" aria-label="Duplicar capa">⧉</button>
+  <button type="button" data-lt-layer data-cmd="layer.remove" aria-label="Eliminar capa">🗑</button>
+  <button type="button" data-cmd="edit.undo" aria-label="Deshacer">↶</button>
+  <button type="button" data-cmd="edit.redo" aria-label="Rehacer">↷</button>`;
+const fsOn = () => document.body.classList.contains("layers-fs");
+let fsRestore = null, fsRO = null;
+
+function initFsTop(){
+  document.body.appendChild(fsTop);
+  fsTop.querySelector('[data-lt="back"]').addEventListener("click", () => {
+    // Desde Propiedades, Histograma… se vuelve a Capas; desde Capas, se cierra.
+    const cur = document.querySelector(".panel.solo-on");
+    if(cur && cur.id !== "panel-layers") openOnlyPanel("panel-layers");
+    else toggleSheet(false);
+  });
+  const sync = () => {
+    fsTop.querySelector('[data-cmd="edit.undo"]').disabled = !canUndo();
+    fsTop.querySelector('[data-cmd="edit.redo"]').disabled = !canRedo();
   };
-  addEventListener("pointerup", endPeek, true); addEventListener("pointercancel", endPeek, true);
-});
+  on("history:change", sync); sync();
+  on("doc:structure", () => { if(fsOn()) requestAnimationFrame(measureRows); });
+  addEventListener("resize", () => { if(fsOn()) requestAnimationFrame(fsFit); });
+}
+function syncFsTop(){
+  const cur = document.querySelector(".panel.solo-on");
+  const title = cur?.querySelector(".panel-head h3")?.textContent?.trim() || "Capas";
+  const t = fsTop.querySelector("#layersTopTitle"); if(t) t.textContent = title;
+  const back = fsTop.querySelector('[data-lt="back"]');
+  fsTop.classList.toggle("on-layers", !cur || cur.id === "panel-layers");
+  if(back){
+    const sub = cur && cur.id !== "panel-layers";
+    back.textContent = sub ? "‹" : "✕";
+    back.setAttribute("aria-label", sub ? "Volver a Capas" : "Cerrar");
+  }
+}
+/* Alto de una fila de la lista, para dejar a la vista exactamente dos. */
+function measureRows(){
+  const rows = layerList.querySelectorAll(".layer");
+  if(!rows.length) return;
+  const h = rows[1] ? rows[1].offsetTop - rows[0].offsetTop : rows[0].offsetHeight;
+  if(h > 0) panels.style.setProperty("--layer-row", h + "px");
+}
+/* La imagen, encajada en el hueco que dejan la barra y los mandos. */
+function fsFit(){
+  if(!fsOn()) return;
+  const top = fsTop.getBoundingClientRect().bottom, pr = panels.getBoundingClientRect();
+  const side = pr.top < top + 4;       // horizontal: mandos a la derecha
+  const r = fitInRect(side ? { top, right: pr.left } : { top, bottom: pr.top });
+  if(!fsRestore) fsRestore = r;
+}
+function setFullscreen(open){
+  const was = fsOn();
+  if(open === was){ if(open) requestAnimationFrame(fsFit); return; }
+  document.body.classList.toggle("layers-fs", open);
+  panels.classList.toggle("open", open);
+  panels.classList.remove("half", "peek");
+  mBtn.classList.toggle("on", open);
+  veil.classList.remove("on");
+  if(open){
+    // Tocar la imagen sólo desplaza y amplía (nada de pintar sin querer).
+    window.__panTool = true;
+    fsRO = new ResizeObserver(() => requestAnimationFrame(fsFit));
+    fsRO.observe(panels);
+    requestAnimationFrame(() => requestAnimationFrame(() => { measureRows(); fsFit(); }));
+  } else {
+    fsRO?.disconnect(); fsRO = null;
+    import("../editor/tools.js").then(m => { window.__panTool = !!m.current?.pan; });
+    const r = fsRestore; fsRestore = null;
+    requestAnimationFrame(() => r?.());
+  }
+}
 
 /* ── panel de capas ── */
 const layerList = document.getElementById("layerList");
@@ -629,8 +709,8 @@ export function renderLayers(){
            hoja y abrir el panel del efecto, que sube como una hoja
            corta dejando la foto a la vista mientras se ajusta. Sin la
            hoja de capas delante ya no hay nada duplicado. */
+        // Móvil: el editor del efecto se abre ENCIMA de Capas, sin cerrarla.
         const mob = isMobile();
-        if(mob) toggleSheet(false);
         if(fxBtn.dataset.openFx === "adjust"){
           if(mob) openAdjustPanel(l); else revealProperties();
         } else if(!fxEntry || (filterLiveCapable(fxEntry.id) && !mob)){

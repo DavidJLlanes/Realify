@@ -366,7 +366,9 @@ hRuler.style.height = RULER_SIZE + "px"; hRuler.style.borderBottom = "1px solid 
 vRuler.style.top = RULER_SIZE + "px"; vRuler.style.left = "0";
 vRuler.style.height = `calc(100% - ${RULER_SIZE}px)`;
 vRuler.style.width = RULER_SIZE + "px"; vRuler.style.borderRight = "1px solid var(--line,#333)";
+hRuler.className = vRuler.className = "ruler-strip";
 const corner = document.createElement("div");
+corner.className = "ruler-strip";
 corner.style.cssText = `position:absolute;z-index:3;top:0;left:0;width:${RULER_SIZE}px;` +
                        `height:${RULER_SIZE}px;background:var(--s-700,#1c1f23);` +
                        `border-right:1px solid var(--line,#333);border-bottom:1px solid var(--line,#333)`;

@@ -156,6 +156,26 @@ export function fitAbove(bottom){
   return () => { Object.assign(view, prev); apply(); };
 }
 
+/* Encaja el documento en un rectángulo de PANTALLA (coordenadas del
+   viewport: { top, bottom, left, right }), el hueco que dejan libre las
+   barras de un modo a pantalla completa —p. ej. Capas en el móvil—.
+   Devuelve la función que restaura la vista anterior. */
+export function fitInRect({ top, bottom, left, right }){
+  if(!doc.open) return () => {};
+  const prev = { ...view };
+  const r = stage.getBoundingClientRect(), pad = 10;
+  const L = Math.max(r.left, left ?? r.left), R = Math.min(r.right, right ?? r.right);
+  const T = Math.max(r.top, top ?? r.top), B = Math.min(r.bottom, bottom ?? r.bottom);
+  const w = Math.max(40, R - L), h = Math.max(40, B - T);
+  const z = clamp(Math.min((w - pad * 2) / doc.w, (h - pad * 2) / doc.h), ZMIN, 1);
+  view.zoom = z;
+  view.x = (L - r.left) + (w - doc.w * z) / 2;
+  view.y = (T - r.top) + (h - doc.h * z) / 2;
+  view.fitted = false;
+  apply();
+  return () => { Object.assign(view, prev); apply(); };
+}
+
 /* Pantalla → coordenadas de imagen */
 export function toImage(clientX, clientY){
   const r = stage.getBoundingClientRect();

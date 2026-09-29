@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v138-galeria-android";
+const VERSION = "realify-v139-capas-movil";
 const SHELL = [
   "./",
   "./index.html",

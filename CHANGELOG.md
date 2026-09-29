@@ -10,6 +10,11 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Capas a pantalla completa en el móvil** (cualquier orientación): la imagen lo más grande
+  posible, barra superior con cerrar, nueva, duplicar, eliminar, deshacer y rehacer, y una
+  lista que deja ver dos capas y se desplaza. Tocar la imagen sólo la mueve o amplía. El botón
+  fx/adj abre su editor encima sin cerrar Capas. Ya no se vuelve transparente la hoja al
+  mover un deslizador. En escritorio no cambia nada.
 - **Android: «Abrir» va directo a la galería** (el selector pide sólo imágenes; con
   extensiones añadidas, Android mostraba «Cámara / Archivos»). Nuevo **Archivo › Abrir RAW,
   PSD, TIFF o SVG…** (y enlace en la pantalla de inicio) para esos formatos, que no salen en

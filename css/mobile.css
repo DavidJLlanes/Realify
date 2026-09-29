@@ -316,11 +316,6 @@
   #panel-layers>.panel-body>.field select{min-width:0}
   #panel-layers>.panel-body>hr{grid-column:1/-1;margin:8px 0 4px}
   #panel-layers #layerList{grid-column:1/-1;min-height:0;overflow-y:auto;padding-bottom:10px;overscroll-behavior:contain}
-  /* Con el dedo en un deslizador: transparente salvo esa fila */
-  #panels.peek{background-color:transparent;box-shadow:none;border-color:transparent}
-  #panels.peek *{visibility:hidden}
-  #panels.peek .peek-keep,#panels.peek .peek-keep *{visibility:visible}
-  #panels.peek .peek-keep{background:color-mix(in srgb,var(--s-800) 90%,transparent);border-radius:10px;box-shadow:var(--sh-3)}
   #panels.collapsed{width:auto;overflow:visible;border-top:1px solid var(--line-strong)}
 
   #sheetGrip{
@@ -808,4 +803,58 @@
   .lens-adj-val{width:auto;text-align:right;margin-top:-22px;pointer-events:none}
   .lens-adv-foot button{min-height:44px;width:100%}
   .modal-card.dlg-lens{max-height:92dvh}
+}
+
+/* ═══ Capas a pantalla completa (móvil, cualquier orientación) ═══
+   Ver «Capas a pantalla completa» en js/ui/panels.js. La imagen ocupa
+   toda la pantalla (el lienzo pasa a fijo por encima de las barras de
+   la app) y se encaja en el hueco entre la barra de arriba y los
+   mandos; la lista deja ver sólo dos capas y se desplaza. */
+#layersTop{display:none}
+@media (max-width:900px){
+  body.layers-fs #stage{position:fixed;inset:0;z-index:100}
+  body.layers-fs #toolsHandle,body.layers-fs #toolDrawer,body.layers-fs #toolDrawerVeil,
+  body.layers-fs #compareFab,body.layers-fs #zoomPill,body.layers-fs #sheetGrip,
+  body.layers-fs #sheetVeil,body.layers-fs .cookiebar,body.layers-fs .ruler-strip,
+  body.layers-fs .onboard-overlay{display:none !important}
+  body.layers-fs .onboard-highlight{outline:none;z-index:auto}
+  body.layers-fs #layersTop{
+    display:flex;align-items:center;gap:6px;
+    position:fixed;top:0;left:0;right:0;z-index:121;
+    padding:calc(env(safe-area-inset-top) + 6px) calc(env(safe-area-inset-right) + 8px) 6px calc(env(safe-area-inset-left) + 8px);
+    background:color-mix(in srgb,var(--s-800) 92%,transparent);border-bottom:1px solid var(--line);
+  }
+  #layersTop b{flex:1;font-size:15px;font-weight:600;color:var(--tx)}
+  #layersTop button{
+    min-width:40px;min-height:40px;padding:0 8px;border-radius:var(--r);
+    background:var(--s-600);border:1px solid var(--line-strong);color:var(--tx);font-size:18px;line-height:1;
+  }
+  #layersTop button:disabled{opacity:.35}
+  body.layers-fs #panels{
+    height:auto;max-height:62dvh;border-radius:var(--r-lg) var(--r-lg) 0 0;
+    transition:none;z-index:120;
+  }
+  body.layers-fs #panels.solo>.panel.solo-on{flex:0 1 auto;min-height:0}
+  /* Título y botones de capa (nueva, duplicar, eliminar) van en la barra
+     de arriba: la cabecera del panel sobra y así hay más imagen. */
+  body.layers-fs .panel.solo-on>.panel-head{display:none}
+  #layersTop [data-lt-layer]{font-size:15px}
+  body.layers-fs #layersTop:not(.on-layers) [data-lt-layer]{display:none}
+  body.layers-fs #panel-layers>.panel-body{grid-template-rows:auto auto auto;padding:4px 12px 0}
+  /* Sólo dos capas a la vista; el resto, desplazando */
+  body.layers-fs #panel-layers #layerList{
+    max-height:calc(var(--layer-row, 56px) * 2 + 4px);
+    padding-bottom:4px;scroll-snap-type:y proximity;
+  }
+  body.layers-fs #panel-layers #layerList .layer{scroll-snap-align:start}
+  body.layers-fs .panel.solo-on:not(#panel-layers)>.panel-body{max-height:48dvh;overflow-y:auto}
+  /* Horizontal: mandos a la derecha, a toda altura; la imagen, a la izquierda */
+  @media (orientation:landscape){
+    body.layers-fs #panels{
+      top:0;bottom:0;left:auto;right:0;width:min(360px,46vw);height:auto;max-height:none;
+      border-radius:0;border-top:0;border-left:1px solid var(--line-strong);
+      padding-top:env(safe-area-inset-top);padding-right:env(safe-area-inset-right);
+    }
+    body.layers-fs #layersTop{right:min(360px,46vw)}
+  }
 }

@@ -1318,13 +1318,13 @@ const TOPICS = [
           categoría abierta (en Básicos, en todo), sin importar tildes ni pequeñas
           erratas; Intro abre el primer resultado. Desliza a los lados para cambiar de
           categoría.</li>
-        <li><b>Hoja de paneles.</b> Capas, Histograma, Propiedades, Historial e Información
-          suben desde abajo a media pantalla, con la imagen colocada encima para ver en
-          directo lo que cambias. Arrastra el asa hacia arriba para verla alta o hacia abajo
-          para cerrarla. Con el dedo en un deslizador (la opacidad de la capa, por ejemplo),
-          la hoja se vuelve transparente salvo ese deslizador. En el móvil la hoja enseña
-          un solo panel: «Capas» sólo las capas (con la opacidad y la fusión en una
-          fila); el Histograma se abre desde el menú Ver y Propiedades desde el botón fx.</li>
+        <li><b>Capas a pantalla completa.</b> «Capas» se abre a pantalla completa, como el revelado
+          RAW: la imagen lo más grande posible (con dos dedos se amplía y se mueve; tocarla no
+          pinta nada), arriba cerrar, nueva capa, duplicar, eliminar, deshacer y rehacer, y abajo
+          (a la derecha con el móvil en horizontal) la opacidad, la fusión y la lista, de la que se
+          ven dos capas a la vez: desliza para ver el resto. El botón <b>fx</b> o <b>adj</b> de una
+          capa abre su editor encima, sin cerrar Capas. El Histograma (menú Ver) y Propiedades se
+          abren en esta misma pantalla, con ‹ para volver a Capas.</li>
         <li><b>Editores a pantalla completa</b> (Realify, Filtro Vintage, memes, stickers,
           collage): la imagen primero, y abajo un desplegable para elegir el ajuste y un
           deslizador con botones − y + de tamaño cómodo para el pulgar. Dos dedos hacen
