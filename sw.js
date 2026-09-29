@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v149-miniaturas-marcos";
+const VERSION = "realify-v150-sin-cache-vieja";
 const SHELL = [
   "./",
   "./index.html",
@@ -55,8 +55,17 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   if(url.origin !== self.location.origin) return;   // las fuentes de Google, etc., tal cual
 
+  /* `no-cache`: el navegador puede reutilizar su caché HTTP, pero
+     siempre pregunta antes al servidor (un 304 si no ha cambiado). Sin
+     esto, los módulos sin «?v=» (p. ej. vintagefilter/ui.js o su CSS)
+     se servían de la caché HTTP del móvil durante horas tras publicar
+     una versión nueva. Una navegación no admite opciones: se pide por
+     su URL. */
+  const fresh = req.mode === "navigate"
+    ? fetch(req.url, { cache: "no-cache", credentials: "same-origin" })
+    : fetch(req, { cache: "no-cache" });
   e.respondWith(
-    fetch(req).then(res => {
+    fresh.then(res => {
       if(res && res.ok){
         const copy = res.clone();
         caches.open(VERSION).then(cache => cache.put(req, copy));

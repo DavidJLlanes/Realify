@@ -10,6 +10,10 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Corregido
+- **Actualizaciones que no llegaban**: tras publicar, el móvil podía seguir usando durante horas
+  archivos antiguos (p. ej. los del Filtro Vintage) guardados en la caché del navegador. El
+  service worker ahora pregunta siempre al servidor si hay versión nueva antes de usar la copia
+  guardada (sin conexión sigue funcionando igual).
 - **Filtro Vintage · hoja de marcos**: todas las miniaturas del mismo tamaño y alineadas en su
   rejilla (antes algunas se salían de la tarjeta en el móvil), nombres de dos líneas como
   máximo, miniaturas más nítidas en pantallas de alta densidad y el selector de categoría
