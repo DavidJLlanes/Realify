@@ -57,7 +57,7 @@ exactamente igual que antes.
   (`assets/models/faceparsing/`, entrenado con CelebAMask-HQ, uso NO comercial;
   `noncommercial: true` en js/ai/models.js). Si algún día se cobra Premium, hay
   que quitarlo o sustituirlo.
-  - Excepción aceptada por el usuario: Zero-DCE++ (CC BY-NC, uso NO comercial) para iluminar fotos oscuras con IA. Si se cobra Premium, quitarlo o sustituirlo.
+- Excepción aceptada por el usuario: Zero-DCE++ (CC BY-NC, uso NO comercial) para iluminar fotos oscuras con IA. Si se cobra Premium, quitarlo o sustituirlo.
 
 ## Límites
 - No mejorar Unmark (eliminación de marcas de agua).
