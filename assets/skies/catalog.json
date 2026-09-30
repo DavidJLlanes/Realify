@@ -1,0 +1,117 @@
+{
+ "license": "CC0 1.0 · generados para Realify con assets/skies/generate.py",
+ "skies": [
+  {
+   "id": "despejado",
+   "name": "Despejado",
+   "file": "despejado.jpg",
+   "thumb": "despejado-t.jpg",
+   "tone": "day"
+  },
+  {
+   "id": "azul-intenso",
+   "name": "Azul intenso",
+   "file": "azul-intenso.jpg",
+   "thumb": "azul-intenso-t.jpg",
+   "tone": "day"
+  },
+  {
+   "id": "cumulos",
+   "name": "Cúmulos",
+   "file": "cumulos.jpg",
+   "thumb": "cumulos-t.jpg",
+   "tone": "day"
+  },
+  {
+   "id": "cumulos-dispersos",
+   "name": "Nubes dispersas",
+   "file": "cumulos-dispersos.jpg",
+   "thumb": "cumulos-dispersos-t.jpg",
+   "tone": "day"
+  },
+  {
+   "id": "cirros",
+   "name": "Cirros",
+   "file": "cirros.jpg",
+   "thumb": "cirros-t.jpg",
+   "tone": "day"
+  },
+  {
+   "id": "nublado",
+   "name": "Nublado suave",
+   "file": "nublado.jpg",
+   "thumb": "nublado-t.jpg",
+   "tone": "storm"
+  },
+  {
+   "id": "tormenta",
+   "name": "Tormenta",
+   "file": "tormenta.jpg",
+   "thumb": "tormenta-t.jpg",
+   "tone": "storm"
+  },
+  {
+   "id": "dramatico",
+   "name": "Dramático",
+   "file": "dramatico.jpg",
+   "thumb": "dramatico-t.jpg",
+   "tone": "sunset"
+  },
+  {
+   "id": "atardecer-dorado",
+   "name": "Atardecer dorado",
+   "file": "atardecer-dorado.jpg",
+   "thumb": "atardecer-dorado-t.jpg",
+   "tone": "sunset"
+  },
+  {
+   "id": "atardecer-rosa",
+   "name": "Atardecer rosa",
+   "file": "atardecer-rosa.jpg",
+   "thumb": "atardecer-rosa-t.jpg",
+   "tone": "sunset"
+  },
+  {
+   "id": "puesta-nubes",
+   "name": "Puesta con nubes",
+   "file": "puesta-nubes.jpg",
+   "thumb": "puesta-nubes-t.jpg",
+   "tone": "sunset"
+  },
+  {
+   "id": "amanecer",
+   "name": "Amanecer suave",
+   "file": "amanecer.jpg",
+   "thumb": "amanecer-t.jpg",
+   "tone": "sunset"
+  },
+  {
+   "id": "hora-azul",
+   "name": "Hora azul",
+   "file": "hora-azul.jpg",
+   "thumb": "hora-azul-t.jpg",
+   "tone": "night"
+  },
+  {
+   "id": "crepusculo",
+   "name": "Crepúsculo morado",
+   "file": "crepusculo.jpg",
+   "thumb": "crepusculo-t.jpg",
+   "tone": "sunset"
+  },
+  {
+   "id": "noche-estrellada",
+   "name": "Noche estrellada",
+   "file": "noche-estrellada.jpg",
+   "thumb": "noche-estrellada-t.jpg",
+   "tone": "night"
+  },
+  {
+   "id": "noche-luna",
+   "name": "Noche con luna",
+   "file": "noche-luna.jpg",
+   "thumb": "noche-luna-t.jpg",
+   "tone": "night"
+  }
+ ]
+}

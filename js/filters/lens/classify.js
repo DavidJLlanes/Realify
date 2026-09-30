@@ -11,18 +11,16 @@
 
 import { IMAGENET_MAP, CATEGORY_BY_ID } from "./categories.js";
 
+import { runModel } from "../../ai/runtime.js";
+
 const SS_KEY = "realify.lens.model";
-const TF_URL = new URL("../../vendor/tf.min.js", import.meta.url).href;
-const MODEL_URL = new URL("../../../assets/models/mobilenet/model.json", import.meta.url).href;
 const LABELS_URL = new URL("../../../assets/models/mobilenet/labels.json", import.meta.url).href;
 
 /* Umbral por debajo del cual no se da la categoría por buena y se
    ofrecen las tres más probables. */
 export const CONFIDENCE_MIN = 0.6;
 
-let worker = null, readyPromise = null, readyInfo = null;
-let nextId = 1;
-const pending = new Map();
+let readyInfo = null;
 let labels = null;
 
 /* Lo que quedó de la sesión anterior: si el modelo ya se cargó una
@@ -31,51 +29,13 @@ export function cachedModelInfo(){
   try{ return JSON.parse(sessionStorage.getItem(SS_KEY) || "null"); }catch{ return null; }
 }
 
-/* Arranca el worker y carga el modelo. Una sola vez por sesión: las
-   llamadas siguientes devuelven la misma promesa. */
-export function ensureModel(){
-  if(readyPromise) return readyPromise;
-  if(typeof Worker === "undefined") return Promise.reject(new Error("Este navegador no tiene Web Workers."));
-
-  readyPromise = new Promise((resolve, reject) => {
-    try{
-      worker = new Worker(new URL("./worker.js", import.meta.url));
-    }catch(err){ reject(err); return; }
-
-    worker.onmessage = e => {
-      const m = e.data || {};
-      if(m.type === "ready"){
-        readyInfo = { backend: m.backend, cached: m.cached, ms: m.ms, version: m.version };
-        try{ sessionStorage.setItem(SS_KEY, JSON.stringify({ ...readyInfo, when: Date.now() })); }catch{}
-        resolve(readyInfo);
-        return;
-      }
-      if(m.type === "result"){
-        const p = pending.get(m.id);
-        if(p){ pending.delete(m.id); p.resolve(m); }
-        return;
-      }
-      if(m.type === "error"){
-        if(m.id != null){
-          const p = pending.get(m.id);
-          if(p){ pending.delete(m.id); p.reject(new Error(m.message)); }
-        } else {
-          reject(new Error(m.message));
-        }
-      }
-    };
-    worker.onerror = ev => {
-      const err = new Error(ev.message || "El worker de clasificación ha fallado.");
-      reject(err);
-      for(const p of pending.values()) p.reject(err);
-      pending.clear();
-    };
-    worker.postMessage({ type:"init", tfUrl: TF_URL, modelUrl: MODEL_URL });
-  });
-  // Un fallo de carga no debe dejar la promesa envenenada para siempre:
-  // el siguiente intento vuelve a probar.
-  readyPromise.catch(() => { readyPromise = null; worker = null; });
-  return readyPromise;
+/* Antes arrancaba un worker propio con TensorFlow.js; ahora MobileNet
+   es un modelo ONNX del worker de IA común (js/ai/worker.js), que lo
+   carga la primera vez que se clasifica. Esto sólo deja constancia. */
+export async function ensureModel(){
+  if(readyInfo) return readyInfo;
+  readyInfo = { backend: "onnx", cached: true, ms: 0, version: "onnx" };
+  return readyInfo;
 }
 
 export const modelInfo = () => readyInfo;
@@ -210,11 +170,9 @@ export async function classify(src){
   try{
     await ensureModel();
     const image = squareThumb(src, 224);
-    const id = nextId++;
-    const res = await new Promise((resolve, reject) => {
-      pending.set(id, { resolve, reject });
-      worker.postMessage({ type:"classify", id, image }, [image.data.buffer]);
-    });
+    const res = await runModel("classify", "lens", { rgba: image.data }, [image.data.buffer], { quiet: true });
+    readyInfo = { ...readyInfo, backend: res.backend || readyInfo.backend, ms: res.ms };
+    try{ sessionStorage.setItem(SS_KEY, JSON.stringify({ ...readyInfo, when: Date.now() })); }catch{}
     const lab = await loadLabels();
     model = {
       top: res.top.map(([i, p]) => ({ index: i, p, label: (lab[i] || `clase ${i}`).split(",")[0],

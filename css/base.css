@@ -263,3 +263,13 @@ hr{border:0;border-top:1px solid var(--line-soft);margin:11px 0}
 .premium-switch .ps-crown{display:inline-flex;color:#f0c24b}
 .premium-switch:has(input:checked){border-color:#c9a13b;background:#3a2f12;color:#ffe9a8;box-shadow:0 0 0 1px #c9a13b33,0 2px 10px #f0c24b22}
 .crown-icon{display:block}
+
+/* Biblioteca de cielos (Reemplazar cielo): rejilla en escritorio, una
+   fila deslizable en el móvil para no quitar sitio a la foto */
+.sky-lib{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:260px;overflow:auto;margin-bottom:10px}
+.sky-lib.strip{display:flex;overflow-x:auto;overflow-y:hidden;max-height:none;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.sky-lib.strip .sky-thumb{flex:0 0 96px;scroll-snap-align:start}
+.sky-thumb{display:flex;flex-direction:column;gap:3px;padding:3px;border:2px solid transparent;border-radius:7px;background:none;color:inherit;cursor:pointer;font:11px/1.2 var(--sans,system-ui,sans-serif);text-align:center}
+.sky-thumb img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block}
+.sky-thumb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
+.sky-thumb.on{border-color:var(--accent,#e8a33d)}

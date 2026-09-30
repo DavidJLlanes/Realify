@@ -617,6 +617,55 @@ async function faceRestore({ model, id, crops }){
   return { outs };
 }
 
+/* ── Antiguos modelos de TensorFlow.js (ver models.js) ────────────── */
+/* Photo Lens: las 10 clases de ImageNet más probables */
+async function classify({ model, id, rgba }){
+  const { session } = await getSession(id, model);
+  const n = 224 * 224, x = new Float32Array(3 * n);
+  for(let p = 0, i = 0; p < n; p++, i += 4){ x[p * 3] = rgba[i] / 127.5 - 1; x[p * 3 + 1] = rgba[i + 1] / 127.5 - 1; x[p * 3 + 2] = rgba[i + 2] / 127.5 - 1; }
+  const name = session.inputNames[0];
+  const out = await runSession(id, model, { [name]: new ort.Tensor("float32", x, [1, 224, 224, 3]) });
+  const probs = readFloats(out[session.outputNames[0]]);
+  const idx = Array.from(probs.keys()).sort((a, b) => probs[b] - probs[a]).slice(0, 10);
+  return { top: idx.map(i => [i, probs[i]]) };
+}
+
+/* Cielo: probabilidad (0-1) en la rejilla de los logits, recortada a
+   la parte que ocupa la imagen (el grafo la rellena hasta 513) */
+async function segSky({ model, id, rgba, w, h }){
+  const { session } = await getSession(id, model);
+  const x = new Uint8Array(w * h * 3);
+  for(let p = 0, i = 0; p < w * h; p++, i += 4){ x[p * 3] = rgba[i]; x[p * 3 + 1] = rgba[i + 1]; x[p * 3 + 2] = rgba[i + 2]; }
+  const name = session.inputNames[0];
+  const out = await runSession(id, model, { [name]: new ort.Tensor("uint8", x, [1, h, w, 3]) });
+  const t = out[session.outputNames[0]], [, C, GH, GW] = t.dims, v = readFloats(t), N = GH * GW;
+  // Rejilla con esquinas alineadas: la celda r corresponde al píxel r·512/(GH−1)
+  const st = 512 / (GH - 1), rh = Math.min(GH, Math.floor((h - 1) / st) + 1), rw = Math.min(GW, Math.floor((w - 1) / st) + 1);
+  const prob = new Float32Array(rw * rh); let skyN = 0;
+  for(let r = 0; r < rh; r++) for(let c = 0; c < rw; c++){
+    const q = r * GW + c; let mx = -Infinity, arg = 0;
+    for(let k = 0; k < C; k++){ const val = v[k * N + q]; if(val > mx){ mx = val; arg = k; } }
+    let s = 0; for(let k = 0; k < C; k++) s += Math.exp(v[k * N + q] - mx);
+    prob[r * rw + c] = Math.exp(v[3 * N + q] - mx) / s;
+    if(arg === 3) skyN++;
+  }
+  return { prob, w: rw, h: rh, hasSky: skyN > 0 };
+}
+
+/* Persona (BodyPix): probabilidad en la rejilla de salida (stride 16) */
+async function segPerson({ model, id, rgba, w, h }){
+  const { session } = await getSession(id, model);
+  const x = new Float32Array(w * h * 3);
+  for(let p = 0, i = 0; p < w * h; p++, i += 4){ x[p * 3] = rgba[i] / 127.5 - 1; x[p * 3 + 1] = rgba[i + 1] / 127.5 - 1; x[p * 3 + 2] = rgba[i + 2] / 127.5 - 1; }
+  const name = session.inputNames[0];
+  const out = await runSession(id, model, { [name]: new ort.Tensor("float32", x, [1, h, w, 3]) });
+  const key = session.outputNames.find(o => /float_segments/.test(o));
+  const t = out[key], [, GH, GW] = t.dims, v = readFloats(t);
+  const prob = new Float32Array(GH * GW);
+  for(let i = 0; i < prob.length; i++) prob[i] = 1 / (1 + Math.exp(-v[i]));
+  return { prob, w: GW, h: GH };
+}
+
 /* ── Modelos guardados en este navegador (Ayuda › Diagnóstico) ── */
 async function listStored(){
   try{
@@ -635,7 +684,7 @@ async function deleteStored(url){
   }catch{}
 }
 
-const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore };
+const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore, classify, segSky, segPerson };
 
 self.onmessage = async e => {
   const m = e.data || {};
@@ -656,7 +705,7 @@ self.onmessage = async e => {
     const t0 = performance.now();
     const res = await task(m);
     const backend = sessions.get(m.id)?.backend;
-    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer, res.depth?.buffer,
+    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer, res.depth?.buffer, res.prob?.buffer,
                       ...(res.outs || []).map(o => o.buffer),
                       ...Object.values(res.groups || {}).map(g => g.buffer)].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);

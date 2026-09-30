@@ -272,7 +272,10 @@ tiempo real mientras se pinta.
   IA** (SpongeColor, Colorizer, DDColor; el color se aplica a la luminancia
   original) y **Expandir con IA** (LaMa rellena los bordes nuevos del lienzo).
 - **Reemplazar cielo**: detecta el cielo (DeepLab/ADE20K) y lo sustituye por
-  un color, un degradado o una foto propia, en una capa con su máscara.
+  un cielo de la **biblioteca** (16 cielos CC0: despejados, nubes, atardeceres,
+  tormenta, noche…), una foto propia, un degradado o un color, en una capa con
+  su máscara ajustada a los bordes de la foto (sin halo). El horizonte del
+  cielo nuevo se coloca sobre el detectado; «Posición» lo sube o lo baja.
 
 ## 5. Selección y máscaras
 
@@ -503,8 +506,8 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
   (botón «?» de la barra de opciones); asistente de bienvenida.
 - **Diagnóstico** del navegador y del equipo.
 - Aviso legal, política de privacidad y de cookies.
-- Los modelos de IA se ejecutan en local (TensorFlow.js y ONNX Runtime, con
-  WebGPU o WebAssembly). Los modelos grandes (Hugging Face) se descargan la
+- Los modelos de IA se ejecutan en local (ONNX Runtime, con WebGPU o
+  WebAssembly). Los modelos grandes (Hugging Face) se descargan la
   primera vez que se usan y quedan en el navegador; la imagen nunca sale del
   equipo.
 - **Tipografías** servidas desde el propio sitio (`/fonts/`): el navegador no
@@ -579,7 +582,7 @@ y abre `http://localhost:8080`.
 | Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU |
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
-| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++) |
+| IA | [ONNX Runtime Web](https://onnxruntime.ai/) (BodyPix, DeepLab, MobileNet, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any) |
 | App | Service worker, Web App Manifest, IndexedDB |
 

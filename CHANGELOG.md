@@ -10,6 +10,21 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Biblioteca de cielos** en Reemplazar cielo (móvil y escritorio): 16 cielos CC0 generados
+  para Realify (`assets/skies/`, con su generador): despejado, azul intenso, cúmulos, nubes
+  dispersas, cirros, nublado, tormenta, dramático, atardeceres dorado y rosa, puesta con nubes,
+  amanecer, hora azul, crepúsculo, noche estrellada y noche con luna. Miniaturas en rejilla
+  (escritorio) o en una fila deslizable (móvil). El horizonte del cielo se coloca sobre el
+  detectado y «Posición» lo ajusta.
+
+### Cambiado
+- **Sin TensorFlow.js**: BodyPix (Seleccionar sujeto), DeepLab ADE20K (Seleccionar y Reemplazar
+  cielo) y MobileNet (Adaptive Photo Lens) se han convertido a ONNX con tf2onnx (mismos pesos)
+  y corren en el worker de IA común con ONNX Runtime (WebGPU o WebAssembly). Fuera
+  `tf.min.js`, BodyPix y DeepLab (≈ 2 MB de JavaScript) y sus dos workers.
+- Cielo: DeepLab da ahora la probabilidad (no sólo la clase) y el borde de la máscara se ajusta
+  a la foto con un filtro guiado: sin escalones ni halo del cielo antiguo al reemplazarlo.
+
 - **Iluminar con IA Premium 👑** (Inteligencia Artificial › Mejorar y restaurar y cajón), con
   Zero-DCE++ (42 KB, se ejecuta en JavaScript, sin descarga aparte). La red estima a 320 px una
   curva de luz por punto y canal; los mapas se amplían con filtro guiado (sin halos) y las curvas

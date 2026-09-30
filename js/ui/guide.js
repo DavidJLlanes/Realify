@@ -241,7 +241,7 @@ const TOPICS = [
           a la máscara de la capa activa —creándola si no tenía, sustituyendo su
           contenido si ya tenía una—, sin pasar por ningún archivo aparte.</li>
         <li><b>Seleccionar sujeto.</b> Segmentación real, por píxel, con un modelo de IA
-          que se ejecuta en el propio equipo (BodyPix) —nada sale de la foto—: detecta a
+          que se ejecuta en el propio equipo (BodyPix, con ONNX Runtime) —nada sale de la foto—: detecta a
           la persona sin depender de que el fondo sea de un color uniforme. Si no
           encuentra a nadie con confianza suficiente, cae automáticamente al mismo
           heurístico de color de «Eliminar fondo», así que sigue funcionando con objetos
@@ -428,10 +428,15 @@ const TOPICS = [
           «Color de los bordes», el de siempre para fondos lisos. El recorte va a una
           <b>capa nueva</b> con el fondo transparente y la original se oculta, sin borrarla.
           Los modelos se descargan una vez y quedan guardados en el navegador.</li>
-        <li><b>Reemplazar cielo…</b> Detecta el cielo con IA (el mismo modelo que
-          «Seleccionar cielo») y deja el reemplazo —color liso, degradado o una foto
-          propia, con «Desvanecer borde» para que el corte no se note— en una capa
-          nueva con su propia máscara, encima de la original intacta.</li>
+        <li id="sky-replace"><b>Reemplazar cielo…</b> Detecta el cielo con IA (el mismo modelo que
+          «Seleccionar cielo»), ajusta el borde a los contornos reales de la foto (sin halo
+          del cielo antiguo) y deja el reemplazo en una capa nueva con su propia máscara,
+          encima de la original intacta. Eliges: <b>Biblioteca</b> (16 cielos listos:
+          despejados, con nubes, cirros, nublado, tormenta, atardeceres, amanecer, hora
+          azul, crepúsculo y noche; en el móvil, en una fila que se desliza), una foto
+          <b>Propia</b>, un <b>Degradado</b> o un <b>Color</b>. Los cielos de foto se colocan con
+          su horizonte sobre el horizonte detectado; <b>Posición</b> los sube o los baja y
+          «Desvanecer borde» suaviza el corte.</li>
       </ul>` },
 
   { id:"otras", title:"Otras herramientas",
