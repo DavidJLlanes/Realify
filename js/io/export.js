@@ -49,6 +49,7 @@ function pickerTypes(type){
     return [{ description: "WebP", accept: { "image/webp": [".webp"] } }];
   }
   if(type === "image/avif") return [{ description: "AVIF", accept: { "image/avif": [".avif"] } }];
+  if(type === "image/tiff") return [{ description: "TIFF", accept: { "image/tiff": [".tif", ".tiff"] } }];
   if(type === "image/gif") return [{ description: "GIF", accept: { "image/gif": [".gif"] } }];
   if(type === "application/pdf") return [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }];
   return [{ description: "JPEG", accept: { "image/jpeg": [".jpg", ".jpeg"] } }];
@@ -187,6 +188,7 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   /* AVIF y PDF no los genera `toBlob`: ver io/formats.js */
   if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6).catch(() => null);
   if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
+  if(type === "image/tiff") return (await import("./professional-formats.js")).tiffFromCanvas(out);
   return new Promise(res => out.toBlob(res, type, quality));
 }
 /* Página del PDF (la elige el diálogo de exportar) */
@@ -230,6 +232,7 @@ export async function exportDialog(){
         <option value="image/png">PNG</option>
         <option value="image/webp">WebP</option>
         <option value="image/avif">AVIF (más ligero)</option>
+        <option value="image/tiff">TIFF (sin pérdidas, 8 bits)</option>
         <option value="application/pdf">PDF</option>
       </select></div>
     ${alphaFieldsHTML("exA")}
@@ -364,7 +367,8 @@ export async function exportDialog(){
         qRow.style.display = p.type === "image/png" ? "none" : "";
         ext.textContent = "." + extOf(p.type);
         alphaUI?.sync(); syncPdf?.();
-        clean.checked = p.clean; weightRow.hidden = cleanHint.hidden = !p.clean;
+        clean.disabled = p.type === "image/tiff";
+        clean.checked = p.clean && !clean.disabled; weightRow.hidden = cleanHint.hidden = !clean.checked;
         if(p.kb) body.querySelector("#exMaxKB").value = p.kb;
         if(p.clean){ name.value = safeWebFilename(name.value); nameEdited = true; }
         syncPctFromW(); precisionState(); estimate();
@@ -374,6 +378,11 @@ export async function exportDialog(){
         est.textContent = "Calculando…";
         clearTimeout(estTimer);
         estTimer = setTimeout(async () => {
+          if(type.value === "image/tiff"){
+            const mib=((+W.value||1)*(+H.value||1)*4+1024)/1048576;
+            est.textContent=`TIFF sin comprimir: aproximadamente ${mib.toFixed(1)} MB`;
+            return;
+          }
           const b = await renderExport({
             w: +W.value || 1, h: +H.value || 1,
             type: type.value,
@@ -386,7 +395,7 @@ export async function exportDialog(){
         }, 260);
       };
 
-      const extOf = t => ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "application/pdf": "pdf" })[t] || "jpg";
+      const extOf = t => ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/tiff":"tif", "application/pdf": "pdf" })[t] || "jpg";
       const syncDestination = () => {
         const picker = canPickExportFile();
         const share = typeof navigator.canShare === "function" && typeof navigator.share === "function";
@@ -438,7 +447,9 @@ export async function exportDialog(){
       body.querySelector("#exPdfMargin").addEventListener("input", syncPdf);
       type.addEventListener("change", () => {
         syncPdf(); alphaUI.sync();
-        qRow.style.display = type.value === "image/png" ? "none" : "";
+        qRow.style.display = ["image/png","image/tiff"].includes(type.value) ? "none" : "";
+        clean.disabled = type.value === "image/tiff";
+        if(clean.disabled){clean.checked=false;weightRow.hidden=cleanHint.hidden=true;}
         ext.textContent = "." + extOf(type.value);
         precisionState(); estimate();
       });
@@ -483,15 +494,18 @@ export async function exportDialog(){
   const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
 
   status("Exportando…");
-  const cleanResult = clean ? await renderCleanWeb({
-    w, h, type, quality:q,
-    maxBytes:Math.max(50, +wrap.querySelector("#exMaxKB").value || 500) * 1024, ...alphaOpts
-  }) : null;
-  const blob = cleanResult ? cleanResult.blob : await renderExport({
-    w, h, type, quality: type === "image/png" ? undefined : q, precision, dither, ...alphaOpts
-  });
+  let blob, cleanResult;
+  try{
+    cleanResult = clean ? await renderCleanWeb({
+      w, h, type, quality:q,
+      maxBytes:Math.max(50, +wrap.querySelector("#exMaxKB").value || 500) * 1024, ...alphaOpts
+    }) : null;
+    blob = cleanResult ? cleanResult.blob : await renderExport({
+      w, h, type, quality: type === "image/png" ? undefined : q, precision, dither, ...alphaOpts
+    });
+  }catch(err){ status(""); toast("No se pudo exportar: " + (err.message || err), "err"); return; }
   if(!blob){ toast("La exportación ha fallado", "err"); return; }
-  const ext = ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "application/pdf": "pdf" })[type] || "jpg";
+  const ext = ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/tiff":"tif", "application/pdf": "pdf" })[type] || "jpg";
 
   // Si el panel EXIF está activo, el JPEG sale con su cabecera
   let out = blob, named = null;

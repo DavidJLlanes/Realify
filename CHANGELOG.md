@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Exportación profesional
+- Exportar y Exportar como incorporan TIFF RGBA sin pérdidas de 8 bits.
+  Exportar como añade PSD con grupos y capas rasterizadas; el compuesto mantiene
+  la imagen final y una capa de referencia oculta si hay ajustes. El proyecto
+  `.realify` conserva todos los parámetros reeditables.
+
 ### Realify en escritorio
 - Cada una de las 31 etapas muestra un pequeño chevrón para abrir o cerrar sus
   mandos, con su estado accesible por teclado. El botón «S» de aislamiento

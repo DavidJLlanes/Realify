@@ -138,13 +138,13 @@ el pulgar. Instalable y disponible sin conexión.
 
 | Función | Qué hace |
 |---|---|
-| **Abrir imagen** | JPEG, PNG, WebP, BMP, SVG, TIFF, HEIC/HEIF y PSD (con capas). Los archivos RAW se envían al revelador RAW. También se puede arrastrar y soltar o pegar desde el portapapeles. |
+| **Abrir imagen** | Nueve familias explícitas: JPEG, PNG, WebP, BMP, SVG, TIFF, HEIC, HEIF y PSD (con capas). Se reconocen además 40 extensiones RAW que se envían al revelador; otros `image/*` dependen del navegador. También se puede arrastrar y soltar o pegar desde el portapapeles. |
 | **Cargar archivos en pila** | Abre varias imágenes como capas de un mismo documento. |
 | **Documento nuevo** | Lienzo vacío del tamaño elegido. |
 | **Collage / History / Post** | Composiciones para redes creadas como documento nuevo (ver [módulos especiales](#collage--history--post--socialmediapost)). |
 | **Varios documentos** | Cada documento se abre en su propia pestaña. |
 | **Abrir / Guardar proyecto** | Guarda el documento completo (capas, máscaras, capas de ajuste y de filtro, textos) para seguir editándolo más tarde. |
-| **Exportar / Exportar como** | JPEG, PNG, WebP, **AVIF** (mucho más ligero) y **PDF** (tamaño de página y margen), con calidad, tamaño máximo y estimación de peso. Perfiles listos: web optimizada, Instagram, YouTube, marketplace, correo, fondo de pantalla e impresión. **Tramado a 8 bits** opcional para evitar bandas en cielos y degradados. |
+| **Exportar / Exportar como** | Sin capas: JPEG, PNG, WebP, AVIF, PDF y **TIFF RGBA sin pérdidas (8 bits por canal)**. Exportar como también genera **PSD con grupos y capas rasterizadas**. Los ajustes, máscaras, textos y filtros nativos sólo siguen reeditables en el proyecto `.realify`; PSD guarda una vista compuesta exacta y una referencia oculta si hay ajustes. TIFF y PSD no incrustan un perfil ICC. Calidad, escalas y estimación de peso donde procede; perfiles para web e impresión y tramado opcional. |
 | **Exportar PNG rápido** | Descarga inmediata en PNG. |
 | **Prueba para redes sociales** | Muestra cómo quedará la imagen tras la recompresión típica de las redes. |
 | **Exportar GIF animado** | Cada capa visible es un fotograma (sola o acumulada): duración, bucle, ida y vuelta, tamaño y número de colores. |

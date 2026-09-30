@@ -13,15 +13,15 @@
    diálogos de guardado (`alphaFieldsHTML` + `wireAlphaFields`).
    ═══════════════════════════════════════════════════════════════ */
 
-const ALPHA_TYPES = new Set(["image/png", "image/webp", "image/avif", "image/gif"]);
-const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF",
-                jpg: "JPEG", jpeg: "JPEG", pdf: "PDF", png: "PNG", webp: "WebP", avif: "AVIF", gif: "GIF" };
+const ALPHA_TYPES = new Set(["image/png", "image/webp", "image/avif", "image/gif", "image/tiff"]);
+const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/tiff":"TIFF",
+                jpg: "JPEG", jpeg: "JPEG", pdf: "PDF", png: "PNG", webp: "WebP", avif: "AVIF", gif: "GIF", tiff:"TIFF" };
 
 /** ¿El formato (tipo MIME, o «png», «jpg»…) admite transparencia? */
 export function supportsAlpha(type){
   const t = String(type || "").toLowerCase();
   if(ALPHA_TYPES.has(t)) return true;
-  return ["png", "webp", "avif", "gif"].includes(t);
+  return ["png", "webp", "avif", "gif", "tiff"].includes(t);
 }
 
 /** Copia del lienzo sobre un color de fondo (sin transparencia). */
@@ -57,7 +57,7 @@ export function hasTransparency(canvas){
 export function alphaFieldsHTML(id = "ax"){
   return `<div class="alpha-box" id="${id}Box" style="margin:2px 0 9px">
     <label class="chk" style="margin:0 0 5px"><input type="checkbox" id="${id}Alpha" checked>
-      <span><b>Conservar la transparencia</b><br><small class="hint">En PNG, WebP, AVIF y GIF</small></span></label>
+      <span><b>Conservar la transparencia</b><br><small class="hint">En PNG, WebP, AVIF, TIFF y GIF</small></span></label>
     <div class="field" id="${id}BgRow" style="margin:0 0 4px"><label>Fondo</label>
       <input type="color" id="${id}Bg" value="#ffffff"><span class="hint" style="margin-left:8px">para las zonas transparentes</span></div>
     <p class="hint" id="${id}Hint" style="margin:0"></p>

@@ -988,7 +988,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"archivo", title:"Archivo y documentos",
-    desc:"Abrir, guardar, exportar (AVIF, PDF, GIF), hoja de contactos, lotes, acciones, cerrar todas.",
+    desc:"Abrir, guardar, exportar (TIFF, PSD, AVIF, PDF, GIF), hoja de contactos y lotes.",
     html:`
       <h3>Archivo</h3>
       <ul>
@@ -998,17 +998,22 @@ const TOPICS = [
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas
-          (JPEG, PNG, WebP, AVIF, PDF, GIF) es el <b>acoplado de las capas visibles</b>: lo que ves. Si
-          hay zonas transparentes, PNG, WebP, AVIF y GIF las <b>conservan</b> (casilla «Conservar la
+          (JPEG, PNG, WebP, AVIF, TIFF, PDF, GIF) es el <b>acoplado de las capas visibles</b>: lo que ves. Si
+          hay zonas transparentes, PNG, WebP, AVIF, TIFF y GIF las <b>conservan</b> (casilla «Conservar la
           transparencia», marcada por defecto, en Exportar, Exportar como, lotes, acciones y Cortar
           en partes); JPEG y PDF no admiten transparencia y esas zonas se rellenan con el
           <b>color de fondo</b> que elijas (blanco por defecto). Con transparencia, Exportar propone
-          PNG de entrada. Para guardar las capas por separado, usa Guardar proyecto.</li>
+          PNG de entrada. Para conservar todos los mandos de las capas, usa Guardar proyecto.</li>
         <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato (JPEG,
-          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad— o <b>PDF</b>, con tamaño de página y
+          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad—, <b>TIFF</b> sin pérdidas a 8 bits o <b>PDF</b>, con tamaño de página y
           margen), calidad y metadatos EXIF, y <b>«Tramado a 8 bits»</b>: añade un ruido
           imperceptible que evita las bandas en cielos y degradados suaves. El segundo
           entrega un PNG sin preguntar nada.</li>
+        <li><b>Exportar como…</b> También permite un <b>PSD con grupos y capas
+          rasterizadas</b> para otros editores. La vista compuesta recoge el resultado
+          exacto; los ajustes, máscaras y textos de Realify no se convierten en mandos
+          nativos de Photoshop. Guarda un `.realify` para reeditarlos. TIFF y PSD no
+          incrustan perfil ICC.</li>
         <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
           sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
           número de colores.</li>
