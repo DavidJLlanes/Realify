@@ -7,7 +7,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { attachViewGestures, zoomIn, zoomOut, zoom100, fit } from "../editor/view.js";
-import { isMobile as isPhone, haptic } from "../core/device.js";
+import { isMobile, isPhone as isPhoneDevice, haptic } from "../core/device.js";
 import { autoCompact } from "./compact.js";
 import { followKeyboard } from "./keyboard.js";
 
@@ -33,7 +33,9 @@ try{ savedPos = JSON.parse(localStorage.getItem(POS_KEY) || "{}"); }catch{}
    desde donde el navegador lo había puesto. El fondo nunca se oscurece
    (ni en reposo ni arrastrando), así que no hay nada que aclarar aquí. */
 function makeDraggable(card, head, key){
-  if(isPhone()) return;
+  // El ancho de la ventana decide el diseño compacto, no si hay ratón.
+  // Un escritorio estrecho sigue pudiendo arrastrar sus diálogos.
+  if(isPhoneDevice()) return;
   head.style.cursor = "move";
   head.style.touchAction = "none";
   head.style.userSelect = "none";
@@ -86,7 +88,7 @@ function makeDraggable(card, head, key){
    de velocidad+distancia, para que el gesto se sienta idéntico en
    toda la app en vez de que cada hoja invente el suyo. */
 function makeSheetDismissable(card, handle, close){
-  if(!isPhone()) return;
+  if(!isMobile()) return;
   let start = null;
   handle.addEventListener("pointerdown", e => {
     start = { y: e.clientY, t: performance.now() };

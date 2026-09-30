@@ -138,6 +138,7 @@ export async function replaceSky(){
   const p = { mode: "library", color: "#4a90d9", top: "#2f6fb0", bottom: "#dce9f5",
               feather: 2, image: null, skyId: null, offset: 0 };
   const sky = await loadCatalog();
+  const filters = { time: "all", weather: "all", query: "" };
   const horizon = horizonRow(rawMask, w, h);
   if(sky.length){
     p.skyId = sky[0].id;
@@ -206,7 +207,13 @@ export async function replaceSky(){
       p.mode = b.dataset.m;
       // Cada modo de foto conserva la suya
       if(p.mode === "image") p.image = p.own || null;
-      else if(p.mode === "library"){ const e = sky.find(q => q.id === p.skyId); if(e) loadSky(e).then(img => { p.image = img; paint(); }).catch(() => {}); }
+      else if(p.mode === "library"){
+        p.image = null;
+        const e = sky.find(q => q.id === p.skyId);
+        if(e) loadSky(e).then(img => {
+          if(p.mode === "library" && p.skyId === e.id){ p.image = img; paint(); }
+        }).catch(err => toast(err.message, "err"));
+      }
       tabs.querySelectorAll("button").forEach(x => x.classList.remove("on"));
       b.classList.add("on");
       renderMode();
@@ -217,23 +224,96 @@ export async function replaceSky(){
   function renderMode(){
     host.innerHTML = "";
     if(p.mode === "library"){
-      // Miniaturas: rejilla en escritorio, una sola fila deslizable en el móvil
+      // En el móvil, los filtros empiezan plegados para dejar sitio a la foto.
+      const filterWrap = document.createElement("details");
+      filterWrap.className = "sky-filter-wrap";
+      filterWrap.open = !isMobile();
+      const summary = document.createElement("summary");
+      summary.textContent = "Buscar y filtrar cielos";
+      filterWrap.appendChild(summary);
+      const tools = document.createElement("div");
+      tools.className = "sky-tools";
+      tools.innerHTML = `<label>Momento
+        <select data-filter="time">
+          <option value="all">Cualquier hora</option>
+          <option value="sunrise">Amanecer</option>
+          <option value="morning">Mañana</option>
+          <option value="midday">Mediodía</option>
+          <option value="afternoon">Tarde</option>
+          <option value="sunset">Atardecer</option>
+          <option value="dusk">Crepúsculo</option>
+          <option value="night">Noche</option>
+        </select></label>
+        <label>Tiempo
+        <select data-filter="weather">
+          <option value="all">Cualquier tiempo</option>
+          <option value="clear">Despejado</option>
+          <option value="partly_cloudy">Nubes y claros</option>
+          <option value="overcast">Cubierto</option>
+          <option value="fog">Niebla</option>
+          <option value="storm">Tormenta</option>
+          <option value="special">Especial</option>
+        </select></label>
+        <label>Buscar
+        <input type="search" data-filter="query" placeholder="Nombre o característica" autocomplete="off"></label>`;
+      tools.querySelector('[data-filter="time"]').value = filters.time;
+      tools.querySelector('[data-filter="weather"]').value = filters.weather;
+      tools.querySelector('[data-filter="query"]').value = filters.query;
+      filterWrap.appendChild(tools);
+      host.appendChild(filterWrap);
+      const count = document.createElement("p");
+      count.className = "sky-count";
+      host.appendChild(count);
       const grid = document.createElement("div");
       grid.className = "sky-lib" + (isMobile() ? " strip" : "");
-      for(const e of sky){
-        const b = document.createElement("button");
-        b.type = "button"; b.className = "sky-thumb" + (e.id === p.skyId ? " on" : "");
-        b.title = e.name; b.setAttribute("aria-label", e.name);
-        b.innerHTML = `<img alt="" loading="lazy" src="${SKIES + e.thumb}"><span>${e.name}</span>`;
-        b.addEventListener("click", async () => {
-          p.skyId = e.id;
-          grid.querySelectorAll(".sky-thumb").forEach(t => t.classList.toggle("on", t === b));
-          try{ p.image = await loadSky(e); if(p.mode === "library" && p.skyId === e.id) paint(); }
-          catch(err){ toast(err.message, "err"); }
-        });
-        grid.appendChild(b);
-      }
       host.appendChild(grid);
+      const timeNames = { sunrise:"Amanecer", morning:"Mañana", midday:"Mediodía",
+        afternoon:"Tarde", sunset:"Atardecer", dusk:"Crepúsculo", night:"Noche" };
+      const weatherNames = { clear:"Despejado", partly_cloudy:"Nubes y claros",
+        overcast:"Cubierto", fog:"Niebla", storm:"Tormenta", special:"Especial" };
+      const renderSkies = () => {
+        const query = filters.query.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const matches = sky.filter(e =>
+          (filters.time === "all" || e.time === filters.time) &&
+          (filters.weather === "all" || e.weather === filters.weather) &&
+          (!query || [e.name, e.tags, timeNames[e.time], weatherNames[e.weather]]
+            .filter(Boolean).join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(query)));
+        count.textContent = `${matches.length} de ${sky.length} cielos`;
+        grid.replaceChildren();
+        for(const e of matches){
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "sky-thumb" + (e.id === p.skyId ? " on" : "");
+          const provenance = e.kind === "photo" ? "Foto de Poly Haven · CC0" : "Cielo generado";
+          b.title = `${e.name} · ${timeNames[e.time] || ""} · ${weatherNames[e.weather] || ""} · ${provenance}`;
+          b.setAttribute("aria-label", b.title);
+          const img = document.createElement("img");
+          img.alt = ""; img.loading = "lazy"; img.src = SKIES + e.thumb;
+          const label = document.createElement("span");
+          label.textContent = e.name;
+          const source = document.createElement("small");
+          source.textContent = e.kind === "photo" ? "Foto · Poly Haven" : "Generado";
+          b.append(img, label, source);
+          b.addEventListener("click", async () => {
+            p.skyId = e.id;
+            p.image = null;
+            grid.querySelectorAll(".sky-thumb").forEach(t => t.classList.toggle("on", t === b));
+            paint();
+            try{
+              const loaded = await loadSky(e);
+              if(p.mode === "library" && p.skyId === e.id){ p.image = loaded; paint(); }
+            }
+            catch(err){ toast(err.message, "err"); }
+          });
+          grid.appendChild(b);
+        }
+      };
+      for(const input of tools.querySelectorAll("[data-filter]")){
+        input.addEventListener(input.type === "search" ? "input" : "change", () => {
+          filters[input.dataset.filter] = input.value;
+          renderSkies();
+        });
+      }
+      renderSkies();
       host.appendChild(slider("Posición", -50, 50, p.offset, v => { p.offset = v; paint(); }, " %"));
     } else if(p.mode === "color"){
       const row = document.createElement("div");

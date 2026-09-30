@@ -272,8 +272,9 @@ tiempo real mientras se pinta.
   IA** (SpongeColor, Colorizer, DDColor; el color se aplica a la luminancia
   original) y **Expandir con IA** (LaMa rellena los bordes nuevos del lienzo).
 - **Reemplazar cielo**: detecta el cielo (DeepLab/ADE20K) y lo sustituye por
-  un cielo de la **biblioteca** (16 cielos CC0: despejados, nubes, atardeceres,
-  tormenta, noche…), una foto propia, un degradado o un color, en una capa con
+  un cielo de la **biblioteca** (101 cielos: 82 fotografías CC0 de Poly Haven y
+  19 cielos generados; búsqueda y filtros por hora y tiempo), una foto propia,
+  un degradado o un color, en una capa con
   su máscara ajustada a los bordes de la foto (sin halo). El horizonte del
   cielo nuevo se coloca sobre el detectado; «Posición» lo sube o lo baja.
 

@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Biblioteca ampliada
+- Reemplazar cielo ofrece ahora 101 opciones: 82 fotografías CC0 de Poly Haven,
+  16 cielos procedurales anteriores y 3 nuevos generados para Realify. Incluye
+  búsqueda y filtros por momento del día y condiciones del cielo, con procedencia
+  visible en cada miniatura. Las imágenes están alojadas en la propia web.
+- Los diálogos se pueden arrastrar en un escritorio con la ventana estrecha;
+  el gesto de cerrar la hoja en el diseño móvil conserva su comportamiento.
+
 ### Añadido
 - **Biblioteca de cielos** en Reemplazar cielo (móvil y escritorio): 16 cielos CC0 generados
   para Realify (`assets/skies/`, con su generador): despejado, azul intenso, cúmulos, nubes

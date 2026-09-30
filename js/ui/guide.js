@@ -431,9 +431,9 @@ const TOPICS = [
         <li id="sky-replace"><b>Reemplazar cielo…</b> Detecta el cielo con IA (el mismo modelo que
           «Seleccionar cielo»), ajusta el borde a los contornos reales de la foto (sin halo
           del cielo antiguo) y deja el reemplazo en una capa nueva con su propia máscara,
-          encima de la original intacta. Eliges: <b>Biblioteca</b> (16 cielos listos:
-          despejados, con nubes, cirros, nublado, tormenta, atardeceres, amanecer, hora
-          azul, crepúsculo y noche; en el móvil, en una fila que se desliza), una foto
+          encima de la original intacta. Eliges: <b>Biblioteca</b> (101 cielos,
+          con fotografías CC0 de Poly Haven y cielos generados, filtros por hora y tiempo
+          y búsqueda; en el móvil, en una fila que se desliza), una foto
           <b>Propia</b>, un <b>Degradado</b> o un <b>Color</b>. Los cielos de foto se colocan con
           su horizonte sobre el horizonte detectado; <b>Posición</b> los sube o los baja y
           «Desvanecer borde» suaviza el corte.</li>
