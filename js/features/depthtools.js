@@ -129,57 +129,150 @@ function grainOf(px, w, h){
   return Math.min(0.03, 1.4826 * diffs[diffs.length >> 1] * 1.2);
 }
 
-/** Desenfoque por profundidad. `S`: { fx, fy (0-1), amount, dof }. */
-function renderDepthBlur(P, S){
-  const { w, h, n, R, G, B, d, px } = P;
+/* Profundidad del punto enfocado (media de un entorno pequeño) */
+function focusDepth(P, S){
+  const { w, h, d } = P;
   const fi = Math.min(h - 1, Math.round(S.fy * h)) * w + Math.min(w - 1, Math.round(S.fx * w));
-  // Profundidad del punto enfocado: media de un entorno pequeño
   let dF = 0, cnt = 0; const rr = Math.max(1, Math.round(Math.max(w, h) / 200)), cy = fi / w | 0, cx = fi % w;
   for(let y = Math.max(0, cy - rr); y <= Math.min(h - 1, cy + rr); y++) for(let x = Math.max(0, cx - rr); x <= Math.min(w - 1, cx + rr); x++){ dF += d[y * w + x]; cnt++; }
-  dF /= cnt;
+  return dF / cnt;
+}
+
+/** Desenfoque por profundidad. `S`: { fx, fy (0-1), amount, dof }.
+    Los radios son proporcionales al tamaño de la foto: da lo mismo a la
+    resolución de trabajo que a la real. Con `parts`, en vez de la
+    imagen final devuelve { w0, blur }: cuánto queda del original en cada
+    punto (0-1) y la parte desenfocada en luz lineal, para componer a
+    resolución completa (ver depthBlurFull). */
+function renderDepthBlur(P, S, { parts = false } = {}){
+  const { w, h, n, R, G, B, d, px } = P;
+  const dF = focusDepth(P, S);
   const Rmax = Math.max(w, h) * 0.028 * S.amount / 100;
   const dof = 0.02 + 0.3 * S.dof / 100;
-  const coc = new Float32Array(n);
-  for(let i = 0; i < n; i++){ const e = Math.max(0, Math.abs(d[i] - dF) - dof) / Math.max(0.05, 1 - dof); coc[i] = Rmax * Math.min(1, e * 1.6); }
-  const out = new Uint8ClampedArray(n * 4);
-  if(Rmax < 0.6){ out.set(px); return out; }
+  const N = 6;
+  // t: nivel de desenfoque de cada punto (0 = nítido … N = el máximo)
+  const t = new Float32Array(n);
+  for(let i = 0; i < n; i++){ const e = Math.max(0, Math.abs(d[i] - dF) - dof) / Math.max(0.05, 1 - dof); t[i] = N * Math.min(1, e * 1.6); }
+  if(Rmax < 0.6){
+    if(parts) return { w0: new Float32Array(n).fill(1), blur: null };
+    return new Uint8ClampedArray(px);
+  }
   // Luces intensas: se refuerzan antes de desenfocar (bokeh)
   const hR = new Float32Array(n), hG = new Float32Array(n), hB = new Float32Array(n);
   for(let i = 0; i < n; i++){
-    const l = 0.2126 * R[i] + 0.7152 * G[i] + 0.0722 * B[i], s = clamp01((l - 0.72) / 0.28), g = 1 + 3 * s * s;
+    const l = 0.2126 * R[i] + 0.7152 * G[i] + 0.0722 * B[i], sh = clamp01((l - 0.72) / 0.28), g = 1 + 3 * sh * sh;
     hR[i] = R[i] * g; hG[i] = G[i] * g; hB[i] = B[i] * g;
   }
-  // Capas de desenfoque creciente; cada una sólo con los píxeles que
-  // deben estar al menos así de desenfocados (convolución normalizada)
-  const N = 6, levels = [null];
+  /* Capas de desenfoque creciente; cada una sólo con los píxeles que
+     deben estar al menos así de desenfocados (convolución normalizada:
+     lo nítido no se derrama sobre el fondo). Cada capa se SUMA al
+     resultado con su peso (interpolación entre la capa k y la k+1) y
+     se suelta: antes se guardaban las seis a la vez, y a resolución
+     completa eso agotaba la memoria de un móvil. */
+  const aR = new Float32Array(n), aG = new Float32Array(n), aB = new Float32Array(n);
   for(let k = 1; k <= N; k++){
     const r = Rmax * k / N, M = new Float32Array(n);
-    for(let i = 0; i < n; i++) M[i] = clamp01(coc[i] / r * 2 - 0.5);
+    for(let i = 0; i < n; i++) M[i] = clamp01((t[i] / N * Rmax) / r * 2 - 0.5);
     const Mr = new Float32Array(n), Mg = new Float32Array(n), Mb = new Float32Array(n);
     for(let i = 0; i < n; i++){ Mr[i] = hR[i] * M[i]; Mg[i] = hG[i] * M[i]; Mb[i] = hB[i] * M[i]; }
     const [bR, bG, bB, bM] = blurMany([Mr, Mg, Mb, M], w, h, r);
     for(let i = 0; i < n; i++){
+      const wk = Math.max(0, 1 - Math.abs(t[i] - k)) + (k === N && t[i] > N ? 1 : 0);
+      if(wk <= 0) continue;
       const m = bM[i];
-      if(m > 1e-3){ bR[i] /= m; bG[i] /= m; bB[i] /= m; }
-      else { bR[i] = R[i]; bG[i] = G[i]; bB[i] = B[i]; }
-      // Donde casi no hay vecinos desenfocados, se va hacia el original
-      const t = clamp01(m * 4);
-      bR[i] = R[i] + (bR[i] - R[i]) * t; bG[i] = G[i] + (bG[i] - G[i]) * t; bB[i] = B[i] + (bB[i] - B[i]) * t;
+      let cr = R[i], cg = G[i], cb = B[i];
+      if(m > 1e-3){
+        // Donde casi no hay vecinos desenfocados, se va hacia el original
+        const q = clamp01(m * 4);
+        cr += (bR[i] / m - cr) * q; cg += (bG[i] / m - cg) * q; cb += (bB[i] / m - cb) * q;
+      }
+      aR[i] += wk * cr; aG[i] += wk * cg; aB[i] += wk * cb;
     }
-    levels.push([bR, bG, bB]);
   }
+  if(parts){
+    // Parte desenfocada normalizada (sin el original) y peso del original
+    const w0 = new Float32Array(n);
+    for(let i = 0; i < n; i++){
+      const o = Math.max(0, 1 - t[i]), rest = 1 - o; w0[i] = o;
+      if(rest > 1e-4){ aR[i] /= rest; aG[i] /= rest; aB[i] /= rest; } else { aR[i] = R[i]; aG[i] = G[i]; aB[i] = B[i]; }
+    }
+    return { w0, blur: [aR, aG, aB] };
+  }
+  const out = new Uint8ClampedArray(n * 4);
   const grain = grainOf(px, w, h);
   for(let i = 0, j = 0; i < n; i++, j += 4){
-    const t = coc[i] / Rmax * N, k = Math.min(N - 1, t | 0), f = t - k;
-    const a = levels[k], b = levels[k + 1];
-    const r = (a ? a[0][i] : R[i]) * (1 - f) + b[0][i] * f;
-    const g = (a ? a[1][i] : G[i]) * (1 - f) + b[1][i] * f;
-    const bl = (a ? a[2][i] : B[i]) * (1 - f) + b[2][i] * f;
+    const o = Math.max(0, 1 - t[i]);
+    const r = o * R[i] + aR[i], g = o * G[i] + aG[i], bl = o * B[i] + aB[i];
     // Grano original de vuelta donde se ha desenfocado
-    const wgt = Math.min(1, t / 2), nz = (hash(i) + hash(i + 7919) - 1) * grain * 1.7 * wgt * 255;
+    const wgt = Math.min(1, t[i] / 2), nz = (hash(i) + hash(i + 7919) - 1) * grain * 1.7 * wgt * 255;
     out[j] = enc(r) + nz; out[j + 1] = enc(g) + nz; out[j + 2] = enc(bl) + nz; out[j + 3] = 255;
   }
   return out;
+}
+
+/* ── A resolución completa sin agotar la memoria ─────────────────
+   Lo desenfocado no tiene detalle que perder: se calcula a una
+   resolución de trabajo (WORK) y se compone con la foto ORIGINAL a su
+   tamaño real, píxel a píxel y en luz lineal: lo enfocado queda
+   exactamente como el original y el grano se añade a tamaño real.
+   Antes todo se calculaba a tamaño completo (una treintena de matrices
+   de la foto entera): con 12 MP, unos 2 GB, y el móvil cerraba la
+   pestaña. */
+const WORK = () => (matchMedia("(max-width:900px)").matches || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.deviceMemory || 8) <= 4) ? 1600 : 2400;
+
+/* Muestreo bilineal de una matriz w×h en el punto (x, y) de la foto grande */
+function sampler(w, h, W, H){
+  const sx = w / W, sy = h / H;
+  return (arr, X, Y) => {
+    const fx = Math.min(w - 1, Math.max(0, (X + 0.5) * sx - 0.5)), fy = Math.min(h - 1, Math.max(0, (Y + 0.5) * sy - 0.5));
+    const x0 = fx | 0, y0 = fy | 0, x1 = Math.min(w - 1, x0 + 1), y1 = Math.min(h - 1, y0 + 1), tx = fx - x0, ty = fy - y0;
+    const a = arr[y0 * w + x0] + (arr[y0 * w + x1] - arr[y0 * w + x0]) * tx, b = arr[y1 * w + x0] + (arr[y1 * w + x1] - arr[y1 * w + x0]) * tx;
+    return a + (b - a) * ty;
+  };
+}
+/* Grano de la foto grande, medido en un recorte central (sin leerla entera) */
+function grainFull(src){
+  const W = src.width, H = src.height, cw = Math.min(W, 512), ch = Math.min(H, 512);
+  const d = src.getContext("2d", { willReadFrequently: true }).getImageData((W - cw) >> 1, (H - ch) >> 1, cw, ch).data;
+  return grainOf(d, cw, ch);
+}
+
+async function depthBlurFull(src, map, S){
+  const W = src.width, H = src.height;
+  if(Math.max(W, H) <= WORK()){
+    const P = prepare(src, map);
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    c.getContext("2d").putImageData(new ImageData(renderDepthBlur(P, S), W, H), 0, 0);
+    return c;
+  }
+  const small = scaled(src, WORK()), P = prepare(small, map);
+  const { w0, blur } = renderDepthBlur(P, S, { parts: true });
+  const w = P.w, h = P.h;
+  P.R = P.G = P.B = P.d = null;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const cx = c.getContext("2d", { willReadFrequently: true });
+  cx.drawImage(src, 0, 0);
+  if(!blur) return c;
+  const grain = grainFull(src), smp = sampler(w, h, W, H);
+  // Por franjas: la foto grande nunca está entera en coma flotante
+  const band = Math.max(1, Math.floor(4e6 / W));
+  for(let y0 = 0; y0 < H; y0 += band){
+    const bh = Math.min(band, H - y0), img = cx.getImageData(0, y0, W, bh), d = img.data;
+    for(let yy = 0; yy < bh; yy++){
+      const Y = y0 + yy;
+      for(let X = 0; X < W; X++){
+        const o = smp(w0, X, Y);
+        if(o >= 0.999) continue;                    // enfocado: el original tal cual
+        const j = (yy * W + X) * 4, q = 1 - o;
+        const r = DEC[d[j]] * o + smp(blur[0], X, Y) * q, g = DEC[d[j + 1]] * o + smp(blur[1], X, Y) * q, b = DEC[d[j + 2]] * o + smp(blur[2], X, Y) * q;
+        const nz = (hash(Y * W + X) + hash(Y * W + X + 7919) - 1) * grain * 1.7 * Math.min(1, q * 3) * 255;
+        d[j] = enc(r) + nz; d[j + 1] = enc(g) + nz; d[j + 2] = enc(b) + nz;
+      }
+    }
+    cx.putImageData(img, 0, y0);
+    if(y0 % (band * 4) === 0) await new Promise(r => setTimeout(r, 0));
+  }
+  return c;
 }
 
 /* Punto enfocado por defecto: lo que más SOBRESALE de lo que tiene a
@@ -231,9 +324,7 @@ export async function openDepthBlur(){
       sh.setBusy("Desenfocando a resolución completa…");
       await new Promise(r => setTimeout(r, 30));
       try{
-        const full = prepare(src, map);
-        const c = document.createElement("canvas"); c.width = full.w; c.height = full.h;
-        c.getContext("2d").putImageData(new ImageData(renderDepthBlur(full, S), full.w, full.h), 0, 0);
+        const c = await depthBlurFull(src, map, S);
         close(); await toNewLayer(c, "Desenfoque por profundidad");
         toast("Desenfoque aplicado en una capa nueva", "ok");
       } catch(err){ sh.setBusy(""); toast("No se pudo aplicar: " + err.message, "err"); }
@@ -300,6 +391,39 @@ function renderFog(P, S, tint){
   return out;
 }
 
+/* Niebla a resolución completa: la cantidad de niebla sólo depende de
+   la profundidad (suave), que se calcula a la resolución de trabajo; la
+   mezcla con la foto se hace a tamaño real, por franjas, en luz lineal */
+function fogAmount(d, S){
+  const top = 0.92 * S.density / 100, start = 0.85 * S.start / 100;
+  const t = clamp01(((1 - d) - start) / Math.max(0.1, 1 - start)), sm = t * t * (3 - 2 * t);
+  return top * sm * Math.sqrt(sm);
+}
+async function fogFull(src, map, S, tint){
+  const W = src.width, H = src.height;
+  const small = scaled(src, WORK()), w = small.width, h = small.height;
+  const d = depthAt(map, w, h, pixelsOf(small)), f = new Float32Array(w * h);
+  for(let i = 0; i < f.length; i++) f[i] = fogAmount(d[i], S);
+  const smp = sampler(w, h, W, H);
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const cx = c.getContext("2d", { willReadFrequently: true });
+  cx.drawImage(src, 0, 0);
+  const band = Math.max(1, Math.floor(4e6 / W));
+  for(let y0 = 0; y0 < H; y0 += band){
+    const bh = Math.min(band, H - y0), img = cx.getImageData(0, y0, W, bh), px = img.data;
+    for(let yy = 0; yy < bh; yy++) for(let X = 0; X < W; X++){
+      const a = smp(f, X, y0 + yy); if(a <= 0.0005) continue;
+      const j = (yy * W + X) * 4, nz = (hash((y0 + yy) * W + X) - 0.5) * 0.9;
+      px[j] = enc(DEC[px[j]] + (tint[0] - DEC[px[j]]) * a) + nz;
+      px[j + 1] = enc(DEC[px[j + 1]] + (tint[1] - DEC[px[j + 1]]) * a) + nz;
+      px[j + 2] = enc(DEC[px[j + 2]] + (tint[2] - DEC[px[j + 2]]) * a) + nz;
+    }
+    cx.putImageData(img, 0, y0);
+    if(y0 % (band * 4) === 0) await new Promise(r => setTimeout(r, 0));
+  }
+  return c;
+}
+
 let fogOpen = false;
 export async function openDepthFog(){
   if(fogOpen) return;
@@ -328,9 +452,7 @@ export async function openDepthFog(){
       sh.setBusy("Aplicando a resolución completa…");
       await new Promise(r => setTimeout(r, 30));
       try{
-        const full = prepare(src, map);
-        const c = document.createElement("canvas"); c.width = full.w; c.height = full.h;
-        c.getContext("2d").putImageData(new ImageData(renderFog(full, S, tintOf()), full.w, full.h), 0, 0);
+        const c = await fogFull(src, map, S, tintOf());
         close(); await toNewLayer(c, "Niebla por distancia");
         toast("Niebla aplicada en una capa nueva", "ok");
       } catch(err){ sh.setBusy(""); toast("No se pudo aplicar: " + err.message, "err"); }

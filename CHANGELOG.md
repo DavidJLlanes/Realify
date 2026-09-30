@@ -9,6 +9,16 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Desenfoque por profundidad y Niebla por distancia: ya no se cierran al aplicar
+- Al aplicar con una foto grande del móvil (12 MP o más) la pestaña se quedaba sin memoria
+  (unos 2 GB en matrices a tamaño completo) y el navegador cerraba la foto sin aplicar nada.
+- Ahora la profundidad, el desenfoque y la niebla se calculan a una resolución de trabajo
+  (1600 px de lado largo en móvil, 2400 en ordenador) y se componen con la foto ORIGINAL a su
+  tamaño real, por franjas y en luz lineal: lo enfocado queda exactamente como el original y
+  el grano se añade a tamaño real. Las capas de desenfoque se suman una a una en vez de
+  guardarse las seis a la vez. Más rápido (unos 3 s con 12 MP) y el resultado coincide mejor
+  con la vista previa.
+
 ### Restaurar caras en iPhone (memoria)
 - GFPGAN va ahora partido en dos mitades (codificador y generador, fp16; resultado idéntico al
   modelo entero): en móviles se carga una, se ejecuta, se suelta y luego la otra. El pico de
