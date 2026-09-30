@@ -80,13 +80,43 @@ function shrink(d, w, h){
   return { x, ws, hs };
 }
 
-let memo = null;   // { key, A, ws, hs } — la última estimación
+let memo = null;   // { key, A, ws, hs, auto } — la última estimación
+
+/* Automático: la red siempre aclara, también una foto que ya está bien.
+   Se mide la exposición (mediana de la luz, en valores codificados) y
+   se busca, sobre la foto reducida, cuánto de la curva de la IA hace
+   falta para llevar esa mediana a un nivel natural (TARGET). Una foto
+   que ya llega no se toca; una algo oscura se aclara un poco; una muy
+   oscura recibe la curva entera. */
+const TARGET = 0.45;
+const median = a => { const s = Float32Array.from(a).sort(); return s[s.length >> 1]; };
+function autoAmount(x, A, ns){
+  const lum = k => {
+    const y = new Float32Array(ns);
+    for(let p = 0; p < ns; p++){
+      let l = 0;
+      for(let c = 0; c < 3; c++){
+        let v = x[c * ns + p]; const a = Math.max(-1, Math.min(1, A[c * ns + p] * k));
+        for(let t = 0; t < 8; t++) v = v + a * (v * v - v);
+        l += (c === 0 ? 0.2126 : c === 1 ? 0.7152 : 0.0722) * Math.min(1, Math.max(0, v));
+      }
+      y[p] = l;
+    }
+    return median(y);
+  };
+  const m0 = lum(0);
+  if(m0 >= TARGET) return 0;
+  if(lum(1) <= TARGET) return 1;
+  let lo = 0, hi = 1;
+  for(let i = 0; i < 12; i++){ const mid = (lo + hi) / 2; if(lum(mid) < TARGET) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
 const toLin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
 
 function enhance(W, d, w, h, p){
   const { x, ws, hs } = shrink(d, w, h);
   let key = ws * 7 + hs; for(let i = 0; i < x.length; i += 97) key = (key * 31 + Math.round(x[i] * 255)) | 0;
-  if(!memo || memo.key !== key) memo = { key, A: curves(W, x, ws, hs), ws, hs };
+  if(!memo || memo.key !== key){ const A = curves(W, x, ws, hs); memo = { key, A, ws, hs, auto: autoAmount(x, A, ws * hs) }; }
   const { A } = memo, n = w * h, ns = ws * hs;
   // Guía: la luz de la foto a su tamaño
   const Y = new Float32Array(n);
@@ -106,7 +136,10 @@ function enhance(W, d, w, h, p){
     for(let i = 0; i < n; i++) g[i] = g[i] * 2 - 1;
     return g;
   };
-  const k = p.amount / 100, ch = [up(0), up(1), up(2)];
+  // 100 % = automático; la Intensidad lo gradúa (0-150 %)
+  const k = memo.auto * p.amount / 100;
+  if(k <= 0.002) return;
+  const ch = [up(0), up(1), up(2)];
   const R = new Float32Array(n), G = new Float32Array(n), B = new Float32Array(n), gain = new Float32Array(n), out = [R, G, B];
   for(let i = 0, j = 0; i < n; i++, j += 4){
     let yin = 0, yout = 0;

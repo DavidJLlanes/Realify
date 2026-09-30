@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Iluminar con IA, automático
+- **Iluminar con IA Premium 👑** mide la exposición antes de aclarar: busca sobre la foto
+  reducida cuánto de la curva de Zero-DCE++ hace falta para llevar la mediana de la luz a un
+  nivel natural (≈ 45 %). Una foto ya bien expuesta no cambia (antes subía su luz media de 117
+  a 142); una algo oscura se aclara un poco y una muy oscura recibe la curva entera.
+  «Intensidad» sigue graduándolo (100 % = automático).
+
 ### Realify Premium 👑
 - El filtro **Realify** tiene modo Premium con los mismos mandos: interruptor con la corona
   en su barra (móvil: junto a ✕; escritorio: junto a Aplicar) y entrada «Realify Premium 👑»

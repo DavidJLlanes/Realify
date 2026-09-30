@@ -764,7 +764,9 @@ const TOPICS = [
           (Zero-DCE++, diminuta, funciona sin descargas) decide cuánto levantar cada zona y cada color
           con una curva de luz propia, sin inventar nada. Las curvas se ajustan a los bordes de la
           foto (sin halos), el negro vuelve a su sitio y se limpia el ruido de luz y de color que
-          aparece en las sombras. <b>Intensidad</b> de 0 a 150 %. Queda como capa que puedes
+          aparece en las sombras. Es <b>automático</b>: mide la exposición y usa sólo la parte de
+          la curva que hace falta para que la luz media llegue a un nivel natural; una foto que ya
+          está bien expuesta no cambia. <b>Intensidad</b> lo gradúa de 0 a 150 % (100 % = automático). Queda como capa que puedes
           reabrir. (Sin IA, «Iluminar foto oscura» en Ajustes › Automáticos hace algo parecido con
           un método clásico.)</li>
         <li id="ia-depth"><b>Profundidad 👑.</b> La IA (Depth Anything V2) calcula lo cerca o lejos que
