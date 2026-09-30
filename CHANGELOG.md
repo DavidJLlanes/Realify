@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Política de privacidad: registros del servidor web
+- Nueva sección «Registros del servidor web»: qué se anota (IP, fecha y hora, archivo pedido,
+  resultado, página de origen y navegador), para qué (sólo seguridad y diagnóstico de fallos;
+  nada de analítica ni perfiles), base jurídica (interés legítimo, art. 6.1.f y considerando 49
+  del RGPD), conservación (14 días, borrado automático), quién lo ve (sólo el responsable; el
+  proveedor del servidor como encargado) y el registro de errores.
+- Corregidos el resumen y «Tus derechos», que decían que no se guardaba ningún dato personal en
+  servidores propios: ahora explican cómo ejercer los derechos sobre esos registros.
+
 ### La app no arrancaba con algunos bloqueadores de avisos de cookies (Firefox)
 - Los filtros de «avisos de cookies» de algunos bloqueadores (uBlock Origin con EasyList
   Cookie o Annoyances, «I don't care about cookies»…) bloqueaban el archivo `cookiebar.js` por

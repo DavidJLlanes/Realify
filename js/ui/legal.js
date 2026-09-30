@@ -47,10 +47,14 @@ const PRIVACY_BODY = `<div class="guide">
   <h3>Resumen</h3>
   <p class="lead">Realify no tiene servidores propios de procesamiento:
     todo ocurre en tu navegador. No se sube ninguna imagen, no hay
-    analítica, no hacen falta cuentas de usuario y no se recoge ningún
-    dato personal para que la aplicación funcione. Sólo si usas ciertas
-    funciones opcionales de inteligencia artificial, tu navegador descarga
-    un modelo de un servicio de terceros, como se explica más abajo.</p>
+    analítica ni publicidad, no hacen falta cuentas de usuario y no se
+    crean perfiles de nadie. El único dato personal que se trata es
+    técnico: el servidor web que aloja Realify anota cada petición
+    (incluida tu <b>dirección IP</b>) en un registro que se usa sólo para
+    la seguridad y para corregir errores, y que se borra solo a los
+    14 días. Además, si usas ciertas funciones opcionales de inteligencia
+    artificial, tu navegador descarga un modelo de un servicio de
+    terceros. Las dos cosas se explican más abajo.</p>
 
   <h3>Responsable</h3>
   <p>El responsable de este sitio es ${OWNER}, contacto
@@ -60,6 +64,39 @@ const PRIVACY_BODY = `<div class="guide">
   <p>Nada sale de tu equipo. Las imágenes que abres, editas y exportas
     permanecen en la memoria y el almacenamiento de tu propio navegador en
     todo momento.</p>
+
+  <h3>Registros del servidor web</h3>
+  <p>Para enseñarte la aplicación, tu navegador descarga sus archivos
+    (páginas, código, estilos, tipografías y, si los usas, algunos
+    modelos de IA) del servidor de Realify. Como cualquier servidor web,
+    éste anota automáticamente cada petición en un registro de accesos.</p>
+  <ul>
+    <li><b>Qué se anota:</b> tu dirección IP, la fecha y hora, el archivo
+      pedido, si se sirvió bien o hubo error, la página desde la que se
+      pidió y el navegador y sistema operativo que lo anuncian
+      («user agent»). Nada más: ni tus imágenes, ni tus textos, ni lo que
+      haces dentro de la aplicación, que nunca llega al servidor.</li>
+    <li><b>Para qué:</b> exclusivamente para mantener el sitio seguro
+      (detectar y frenar ataques y abusos) y para diagnosticar fallos,
+      por ejemplo averiguar qué archivo no le llega a quien no consigue
+      abrir la aplicación. No se usa para analítica, estadísticas de
+      visitas, publicidad ni para identificar o perfilar a nadie, y no se
+      cruza con ningún otro dato.</li>
+    <li><b>Base jurídica:</b> el interés legítimo en garantizar la
+      seguridad y el funcionamiento del servicio (art. 6.1.f y
+      considerando 49 del RGPD).</li>
+    <li><b>Cuánto tiempo:</b> el registro se rota a diario y se borra
+      automáticamente a los <b>14 días</b>. Sólo se conservaría más tiempo
+      la parte concreta necesaria si hubiera que investigar un ataque o
+      atender un requerimiento legal.</li>
+    <li><b>Quién puede verlo:</b> sólo el responsable de Realify. No se
+      cede ni se vende a nadie, salvo obligación legal. La empresa que
+      proporciona el servidor actúa como encargada del tratamiento
+      (sólo lo aloja).</li>
+    <li><b>Registro de errores del servidor:</b> cuando una petición
+      falla, el servidor también anota el error con la IP de origen, con
+      el mismo fin y la misma conservación.</li>
+  </ul>
 
   <h3>Servicios de terceros (opcionales)</h3>
   <p>Para descargar un recurso de internet, tu navegador tiene que
@@ -107,11 +144,15 @@ const PRIVACY_BODY = `<div class="guide">
     Consulta la Política de cookies para más detalle.</p>
 
   <h3>Tus derechos</h3>
-  <p>Realify no recoge ni almacena ningún dato personal en servidores
-    propios, así que no existen ficheros ni bases de datos sobre los que
-    ejercer derechos de acceso, rectificación o supresión frente a
-    Realify. Puedes borrar todo lo guardado vaciando los datos del sitio
-    en tu navegador. Frente a Hugging Face puedes ejercer tus derechos
+  <p>Realify no tiene cuentas, bases de datos de usuarios ni guarda
+    nada de lo que haces en la aplicación; el único dato personal en sus
+    servidores es la dirección IP de los registros descritos arriba, que
+    se borran solos a los 14 días. Sobre ellos puedes ejercer tus
+    derechos de acceso, supresión, limitación y oposición escribiendo a
+    <code>${CONTACT}</code>: indica tu IP y el día y la hora aproximados
+    de la visita, porque el registro no contiene ningún otro dato que
+    permita encontrarte. Lo que guarda tu navegador puedes borrarlo tú
+    mismo vaciando los datos del sitio. Frente a Hugging Face puedes ejercer tus derechos
     según su propia política. También puedes reclamar ante la
     Agencia Española de Protección de Datos (<code>aepd.es</code>). Si
     tienes cualquier duda sobre privacidad, escribe a
@@ -119,7 +160,8 @@ const PRIVACY_BODY = `<div class="guide">
 
   <h3>Cambios</h3>
   <p>Esta política puede actualizarse si cambia el funcionamiento de la
-    aplicación.</p>
+    aplicación o del servidor. Última actualización: 30 de septiembre
+    de 2026.</p>
 
 </div>`;
 

@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v193-arranque-bloqueadores";
+const VERSION = "realify-v194-privacidad-registros";
 const SHELL = [
   "./",
   "./index.html",
