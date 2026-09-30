@@ -19,7 +19,7 @@ que las entradas se agrupan por fecha.
 - **Automáticos**: el botón «Automático» de Niveles en Premium mide los colores más oscuros y
   más claros de la foto (el 0,1 % de cada extremo) y ajusta los tres canales y los medios de una
   vez (neutraliza dominantes; una foto azulada pasa de 98/110/143 a 110/113/118 de media). Nuevo
-  **«Niveles automáticos Premium 👑»** (Ajustes › Ajustes automáticos y cajón del móvil, con
+  **«Niveles automáticos Premium 👑»** (menú Ajustes, junto a «Niveles automáticos», y cajón del móvil, con
   corona): lo mismo de un toque, como capa de Niveles reeditable. **Curvas** gana un botón
   **«Automático»** («Auto» en el móvil): negro, blanco y medios; en Premium también neutraliza
   las dominantes por canal.
