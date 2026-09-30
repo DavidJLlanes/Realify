@@ -698,7 +698,7 @@ const TOPICS = [
         <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto y Seleccionar cielo.</li>
         <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo, Expandir con IA y
           Reemplazar cielo.</li>
-        <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑 y Ojos rojos 👑.</li>
+        <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑 y Ojos rojos 👑.</li>
         <li><b>Encuadre:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
         <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑 y Foto 3D 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
@@ -742,7 +742,12 @@ const TOPICS = [
           intensidad: la piel se suaviza respetando los bordes y conservando textura (en luz
           lineal), los ojos ganan luz y detalle, los dientes pierden el amarillo (sólo lo claro
           de la boca) y los labios ganan o pierden color sin cambiar de tono; capa nueva (la
-          primera vez descarga el modelo, 53 MB). <b>Ojos rojos</b> busca en cada ojo sólo el rojo
+          primera vez descarga el modelo, 53 MB). <b>Restaurar caras</b>: para caras borrosas,
+          pequeñas, de fotos antiguas o muy comprimidas; la IA (GFPGAN) reconstruye cada cara
+          —alineada por sus ojos, nariz y boca— y se devuelve a la foto con un borde suave, con el
+          color de piel y el grano originales para que no parezca pegada; toca una cara para
+          excluirla y gradúa la <b>Intensidad</b>; capa nueva (la primera vez descarga el modelo,
+          170 MB). <b>Ojos rojos</b> busca en cada ojo sólo el rojo
           conectado con la pupila y se lo quita en luz lineal, sin tocar el reflejo, en una capa
           nueva. <b>Recorte de retrato</b> abre Recortar con el marco ya encuadrado (ojos en el
           tercio superior, cabeza y hombros; 4:5 si el formato era libre): ajústalo y pulsa

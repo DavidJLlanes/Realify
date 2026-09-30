@@ -1,0 +1,9 @@
+gfpgan_1.4_fp16.part0 + gfpgan_1.4_fp16.part1 — GFPGAN v1.4 (Xintao Wang et al.,
+Tencent ARC, https://github.com/TencentARC/GFPGAN), licencia Apache-2.0.
+
+Exportación ONNX de facefusion/facefusion-assets (release models-3.0.0,
+gfpgan_1.4.onnx), convertida a float16 con onnxconverter-common (Resize, Pow,
+Sqrt, ReduceSum y Div se quedan en float32): 170 MB, error medio 0,00036 sobre
+un rango de -1 a 1 frente al original. Se divide en dos trozos porque GitHub no
+admite archivos de más de 100 MB; el worker de IA los descarga y los une
+(ver js/ai/worker.js, `parts`).

@@ -87,17 +87,22 @@ async function fetchModel(id, model){
     const cached = await dbGet(model.url);
     if(cached) return new Uint8Array(await cached.arrayBuffer());
   }
-  const res = await fetch(model.url);
-  if(!res.ok) throw new Error(`No se pudo descargar el modelo (${res.status}).`);
-  const total = +res.headers.get("content-length") || model.size || 0;
-  const reader = res.body.getReader();
-  const chunks = []; let loaded = 0, last = 0;
-  for(;;){
-    const { done, value } = await reader.read();
-    if(done) break;
-    chunks.push(value); loaded += value.length;
-    const now = performance.now();
-    if(now - last > 150){ last = now; post({ type:"download", model:id, loaded, total }); }
+  // `parts`: el archivo viene en trozos (GitHub no admite más de 100 MB
+  // por archivo); se bajan uno tras otro y se guardan unidos con `url`.
+  const urls = model.parts || [model.url];
+  const chunks = []; let loaded = 0, last = 0, total = model.parts ? model.size || 0 : 0;
+  for(const u of urls){
+    const res = await fetch(u);
+    if(!res.ok) throw new Error(`No se pudo descargar el modelo (${res.status}).`);
+    if(!model.parts) total = +res.headers.get("content-length") || model.size || 0;
+    const reader = res.body.getReader();
+    for(;;){
+      const { done, value } = await reader.read();
+      if(done) break;
+      chunks.push(value); loaded += value.length;
+      const now = performance.now();
+      if(now - last > 150){ last = now; post({ type:"download", model:id, loaded, total }); }
+    }
   }
   post({ type:"download", model:id, loaded, total: total || loaded });
   const blob = new Blob(chunks);
@@ -588,6 +593,30 @@ async function depth({ model, id, rgba }){
   return { depth: d, size: S };
 }
 
+/* ── Restaurar caras (GFPGAN v1.4) ───────────────────────────────
+   Entrada: `crops`, las caras ya alineadas a 512×512 (plantilla FFHQ),
+   RGBA; todas en una llamada, así el modelo (170 MB) se carga una vez.
+   El modelo trabaja en RGB -1…1; se devuelven RGBA 512×512 en `outs`. */
+async function faceRestore({ model, id, crops }){
+  const { session } = await getSession(id, model);
+  const S = 512, n = S * S, name = session.inputNames[0], outs = [];
+  post({ type:"stage", model:id, stage:"run" });
+  for(const rgba of crops){
+    const x = new Float32Array(3 * n);
+    for(let p = 0, i = 0; p < n; p++, i += 4){ x[p] = rgba[i] / 127.5 - 1; x[n + p] = rgba[i + 1] / 127.5 - 1; x[2 * n + p] = rgba[i + 2] / 127.5 - 1; }
+    const out = await runSession(id, model, { [name]: makeTensor(inputType(session, name), x, [1, 3, S, S]) });
+    const v = readFloats(out[session.outputNames[0]]), o = new Uint8ClampedArray(4 * n);
+    for(let p = 0, i = 0; p < n; p++, i += 4){
+      o[i] = (Math.max(-1, Math.min(1, v[p])) + 1) * 127.5;
+      o[i + 1] = (Math.max(-1, Math.min(1, v[n + p])) + 1) * 127.5;
+      o[i + 2] = (Math.max(-1, Math.min(1, v[2 * n + p])) + 1) * 127.5;
+      o[i + 3] = 255;
+    }
+    outs.push(o);
+  }
+  return { outs };
+}
+
 /* ── Modelos guardados en este navegador (Ayuda › Diagnóstico) ── */
 async function listStored(){
   try{
@@ -606,7 +635,7 @@ async function deleteStored(url){
   }catch{}
 }
 
-const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth };
+const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore };
 
 self.onmessage = async e => {
   const m = e.data || {};
@@ -628,6 +657,7 @@ self.onmessage = async e => {
     const res = await task(m);
     const backend = sessions.get(m.id)?.backend;
     const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer, res.depth?.buffer,
+                      ...(res.outs || []).map(o => o.buffer),
                       ...Object.values(res.groups || {}).map(g => g.buffer)].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);
     // Un modelo grande no se queda ocupando cientos de MB después de usarlo.

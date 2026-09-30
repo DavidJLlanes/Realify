@@ -96,6 +96,14 @@ export const MODELS = {
   depth:    { url: LOCAL + "depthanything/depth_anything_v2_small_fp16.onnx", size: 49981786, store: true, premium: true,
               label: "Depth Anything V2", license: "Apache-2.0" },
 
+  /* ── Restaurar caras: GFPGAN v1.4 (Apache-2.0), float16. Entrada y
+        salida 1×3×512×512 RGB en -1…1 con la cara alineada a la plantilla
+        FFHQ. 170 MB en dos trozos (GitHub no admite archivos de más de
+        100 MB): el worker los une y guarda el modelo entero en IndexedDB. ── */
+  gfpgan:   { url: LOCAL + "gfpgan/gfpgan_1.4_fp16.onnx", size: 170276379, store: true, premium: true,
+              parts: [LOCAL + "gfpgan/gfpgan_1.4_fp16.part0", LOCAL + "gfpgan/gfpgan_1.4_fp16.part1"],
+              label: "GFPGAN 1.4 (restaurar caras)", license: "Apache-2.0" },
+
   scunet:   { url: HF + "onnx/enhance/scunet/scunet_color-PSNR.onnx", size: 91264256,
               tile: 256, tileGpu: 512, minSide: 256, label: "SCUNet", license: "Apache-2.0" },
   fbcnn:    { url: HF + "onnx/enhance/fbcnn/fbcnn_color_fp16.onnx",   size: 143910675,

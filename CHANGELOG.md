@@ -10,6 +10,15 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Restaurar caras Premium 👑** (Inteligencia Artificial › Caras y cajón), con GFPGAN v1.4
+  (Apache 2.0, convertido a fp16: 170 MB en dos trozos servidos por la web, descargados al
+  usarlo con aviso y guardados unidos en IndexedDB). Cada cara (YuNet) se alinea a la plantilla
+  FFHQ con sus cinco puntos, se restaura a 512 px y se pega en luz lineal con borde suave;
+  si es pequeña, se filtra antes de reducirla; conserva el color de piel y el grano de la foto.
+  Todas las caras en una sola pasada del modelo; toca una para excluirla; intensidad. Capa nueva.
+- El worker de IA admite modelos partidos en trozos (`parts`), para alojar en GitHub archivos
+  de más de 100 MB.
+
 - **Profundidad Premium 👑** (Inteligencia Artificial › Profundidad y cajón), con Depth Anything
   V2 Small (Apache 2.0, convertido a fp16: 50 MB servidos por la web, descargados al usarlo con
   aviso y guardados en IndexedDB). El mapa se amplía y se ajusta a los bordes de la foto con un

@@ -430,3 +430,180 @@ export async function openFaceRetouch(){
   sync();
   render();
 }
+
+/* ── Restaurar caras (GFPGAN) ─────────────────────────────────────
+   Para caras borrosas, pequeñas, de fotos antiguas o muy comprimidas.
+   Cada cara se alinea a la plantilla FFHQ (ojos, nariz y comisuras en
+   su sitio) con una semejanza (giro, escala y desplazamiento), GFPGAN la
+   reconstruye a 512×512 y se devuelve a la foto. Premium:
+     · Bueno: la cara se recorta de la foto a resolución completa y se
+       pega en luz lineal con un borde amplio y suave.
+     · Mejor: si la cara es pequeña, la restauración se filtra antes de
+       reducirla (sin dientes de sierra); se le devuelve el color de piel
+       de la foto (GFPGAN tiende a cambiarlo) y el grano original, para
+       que no parezca una pegatina.
+   Toca una cara para excluirla. El resultado va a una capa nueva. */
+const FFHQ = [[192.98138, 239.94708], [318.90277, 240.1936], [256.63416, 314.01935], [201.26117, 371.41043], [313.08905, 371.15118]];
+
+/* Semejanza que lleva los 5 puntos de la cara a la plantilla:
+   u = a·x − b·y + tx, v = b·x + a·y + ty */
+function alignTo(f){
+  const eyes = [...f.eyes].sort((p, q) => p[0] - q[0]), mouth = [...f.mouth].sort((p, q) => p[0] - q[0]);
+  const P = [eyes[0], eyes[1], f.nose, mouth[0], mouth[1]];
+  let sx = 0, sy = 0, dx = 0, dy = 0;
+  for(let k = 0; k < 5; k++){ sx += P[k][0]; sy += P[k][1]; dx += FFHQ[k][0]; dy += FFHQ[k][1]; }
+  sx /= 5; sy /= 5; dx /= 5; dy /= 5;
+  let num1 = 0, num2 = 0, den = 0;
+  for(let k = 0; k < 5; k++){
+    const xs = P[k][0] - sx, ys = P[k][1] - sy, xd = FFHQ[k][0] - dx, yd = FFHQ[k][1] - dy;
+    num1 += xs * xd + ys * yd; num2 += xs * yd - ys * xd; den += xs * xs + ys * ys;
+  }
+  const a = num1 / den, b = num2 / den;
+  return { a, b, tx: dx - (a * sx - b * sy), ty: dy - (b * sx + a * sy), s: Math.hypot(a, b) };
+}
+
+/* Ruido de la foto en una zona (valores codificados 0-1) */
+function grainAt(rgba, W, x0, y0, w, h){
+  const d = [];
+  for(let y = y0 + 1; y < y0 + h - 1; y += 2) for(let x = x0 + 1; x < x0 + w - 1; x += 2){
+    const i = (y * W + x) * 4, l = v => 0.299 * rgba[v] + 0.587 * rgba[v + 1] + 0.114 * rgba[v + 2];
+    d.push(Math.abs(l(i) - (l(i - 4) + l(i + 4) + l(i - W * 4) + l(i + W * 4)) / 4));
+  }
+  d.sort((p, q) => p - q);
+  return d.length ? Math.min(0.03, 1.4826 * d[d.length >> 1] / 255 * 0.9) : 0;
+}
+
+/* Prepara el pegado de una cara ya restaurada */
+function prepareRestored(M, out512, rgba, W, H){
+  const { a, b, tx, ty, s } = M, n = 512 * 512;
+  // Restauración en luz lineal; filtrada si se va a reducir mucho
+  let ch = [0, 1, 2].map(c => { const o = new Float32Array(n); for(let p = 0; p < n; p++) o[p] = DEC[out512[p * 4 + c]]; return o; });
+  const r = Math.floor(s / 2);
+  if(r >= 1) ch = ch.map(o => boxBlurFloat(boxBlurFloat(o, 512, 512, r), 512, 512, Math.max(1, r >> 1)));
+  // Región de la foto que cubre la plantilla
+  const det = a * a + b * b, inv = (u, v) => [(a * (u - tx) + b * (v - ty)) / det, (-b * (u - tx) + a * (v - ty)) / det];
+  const cs = [inv(0, 0), inv(512, 0), inv(0, 512), inv(512, 512)];
+  const x0 = Math.max(0, Math.floor(Math.min(...cs.map(c => c[0])))), x1 = Math.min(W, Math.ceil(Math.max(...cs.map(c => c[0]))));
+  const y0 = Math.max(0, Math.floor(Math.min(...cs.map(c => c[1])))), y1 = Math.min(H, Math.ceil(Math.max(...cs.map(c => c[1]))));
+  const w = x1 - x0, h = y1 - y0, m = new Float32Array(w * h), col = [new Float32Array(w * h), new Float32Array(w * h), new Float32Array(w * h)];
+  const sum = [0, 0, 0, 0, 0, 0]; let cnt = 0;
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const X = x0 + x + 0.5, Y = y0 + y + 0.5, u = a * X - b * Y + tx - 0.5, v = b * X + a * Y + ty - 0.5;
+    if(u < 0 || v < 0 || u > 511 || v > 511) continue;
+    // Borde suave: 24 px de margen y 64 de fundido (en la plantilla)
+    const e = Math.min(u, v, 511 - u, 511 - v), mk = Math.min(1, Math.max(0, (e - 24) / 64));
+    if(mk <= 0) continue;
+    const u0 = u | 0, v0 = v | 0, u1 = Math.min(511, u0 + 1), v1 = Math.min(511, v0 + 1), fu = u - u0, fv = v - v0, p = y * w + x;
+    for(let c = 0; c < 3; c++){
+      const o = ch[c], t = o[v0 * 512 + u0] + (o[v0 * 512 + u1] - o[v0 * 512 + u0]) * fu, q = o[v1 * 512 + u0] + (o[v1 * 512 + u1] - o[v1 * 512 + u0]) * fu;
+      col[c][p] = t + (q - t) * fv;
+    }
+    m[p] = mk;
+    // Color medio del centro de la cara (restaurado y original)
+    if(mk >= 1 && Math.abs(u - 256) < 110 && Math.abs(v - 300) < 110){
+      const i = ((y0 + y) * W + x0 + x) * 4;
+      for(let c = 0; c < 3; c++){ sum[c] += col[c][p]; sum[3 + c] += DEC[rgba[i + c]]; } cnt++;
+    }
+  }
+  // Mismo color de piel que la foto (ganancia por canal, limitada)
+  const gain = [0, 1, 2].map(c => cnt ? Math.min(1.25, Math.max(0.8, sum[3 + c] / Math.max(1e-5, sum[c]))) : 1);
+  for(let c = 0; c < 3; c++) for(let p = 0; p < w * h; p++) col[c][p] *= gain[c];
+  return { x0, y0, w, h, m, col, grain: grainAt(rgba, W, x0, y0, w, h) };
+}
+
+function composeRestored(R, rgba, W, k, out){
+  const { x0, y0, w, h, m, col, grain } = R;
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const p = y * w + x, a = m[p] * k; if(a <= 0.002) continue;
+    const i = ((y0 + y) * W + x0 + x) * 4, nz = (hash(i) + hash(i + 7919) - 1) * grain * 1.7 * a * 255;
+    for(let c = 0; c < 3; c++){ const o = DEC[rgba[i + c]]; out[i + c] = Math.round(enc(o + (col[c][p] - o) * a) + nz); }
+    out[i + 3] = 255;
+  }
+}
+
+let restoreOpen = false;
+export async function openFaceRestore(){
+  if(restoreOpen) return;
+  const src = await visibleImage(); if(!src) return;
+  const W = src.width, H = src.height;
+  let faces;
+  try{ faces = await findFaces(src); }
+  catch(err){ if(!err.cancelled) toast("No se pudieron buscar caras: " + err.message, "err"); return; }
+  if(!faces.length){ toast("No se han encontrado caras en esta foto"); return; }
+  faces = faces.sort((a, b) => b.w - a.w).slice(0, 10);
+  restoreOpen = true;
+  const rgba = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  // Caras alineadas a 512×512 y restauradas todas en una llamada
+  const Ms = faces.map(alignTo), crops = Ms.map(M => {
+    const c = document.createElement("canvas"); c.width = c.height = 512;
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.fillStyle = "rgb(135,133,132)"; x.fillRect(0, 0, 512, 512);
+    x.imageSmoothingQuality = "high";
+    x.setTransform(M.a, M.b, -M.b, M.a, M.tx, M.ty); x.drawImage(src, 0, 0);
+    return x.getImageData(0, 0, 512, 512).data;
+  });
+  let prepared;
+  try{
+    const { runModel } = await import("../ai/runtime.js");
+    const r = await runModel("faceRestore", "gfpgan", { crops }, crops.map(c => c.buffer), { title: faces.length === 1 ? "Restaurando la cara con IA" : `Restaurando ${faces.length} caras con IA` });
+    prepared = r.outs.map((o, i) => prepareRestored(Ms[i], o, rgba, W, H));
+  }catch(err){ restoreOpen = false; if(!err.cancelled && !/cancelad/.test(err.message)) toast("No se pudieron restaurar las caras: " + err.message, "err"); return; }
+  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  await ensureShellStyles();
+  const S = { amount: 80, on: faces.map(() => true) };
+  const view = document.createElement("canvas"); view.width = W; view.height = H;
+  const vx = view.getContext("2d"), tmp = document.createElement("canvas"); tmp.width = W; tmp.height = H;
+  let out = null, frame = 0;
+  const render = () => {
+    frame = 0;
+    out = new Uint8ClampedArray(W * H * 4);
+    prepared.forEach((R, i) => { if(S.on[i]) composeRestored(R, rgba, W, S.amount / 100, out); });
+    tmp.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0);
+    vx.clearRect(0, 0, W, H); vx.drawImage(src, 0, 0); vx.drawImage(tmp, 0, 0);
+    sh.setView(view); sh.setApplyEnabled(S.on.some(Boolean) && S.amount > 0);
+    sh.setSubtitle(faces.length === 1 ? "Premium 👑 · 1 cara" : `Premium 👑 · ${S.on.filter(Boolean).length} de ${faces.length} caras · toca una para quitarla o ponerla`);
+  };
+  const schedule = () => { if(!frame) frame = requestAnimationFrame(render); };
+  const close = () => { restoreOpen = false; sh.close(); };
+  const sh = createShell({
+    title: "Restaurar caras", applyLabel: "Aplicar", cls: "face-tool",
+    onCancel: close,
+    onApply: async () => { const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0); close(); await toNewLayer(c, "Caras restauradas"); toast("Caras restauradas en una capa nueva", "ok"); }
+  });
+  sh.setOriginal(src);
+  const box = f => ({ cx: f.x + f.w / 2, cy: f.y + f.h / 2, rx: f.w * 0.6, ry: f.h * 0.65 });
+  sh.setOverlay((cx, t) => {
+    if(faces.length < 2) return;
+    faces.forEach((f, i) => {
+      const o = box(f);
+      cx.setLineDash(S.on[i] ? [] : [6 * t.dpr, 5 * t.dpr]);
+      cx.lineWidth = 2 * t.dpr; cx.strokeStyle = S.on[i] ? "#e8a33d" : "#ffffffaa";
+      cx.beginPath(); cx.ellipse(t.ox + o.cx * t.k, t.oy + o.cy * t.k, o.rx * t.k, o.ry * t.k, 0, 0, Math.PI * 2); cx.stroke();
+    });
+  });
+  let down = null;
+  sh.setInteract((type, p, e) => {
+    if(type === "down"){
+      const i = faces.findIndex(f => { const o = box(f); return Math.hypot((p.x - o.cx) / o.rx, (p.y - o.cy) / o.ry) <= 1; });
+      if(i < 0 || faces.length < 2) return false;
+      down = { i, x: e.clientX, y: e.clientY }; return true;
+    }
+    if(type === "up" && down){
+      if(Math.hypot(e.clientX - down.x, e.clientY - down.y) < 10){ S.on[down.i] = !S.on[down.i]; schedule(); }
+      down = null;
+    }
+    return false;
+  });
+  // Un solo mando: intensidad
+  const controls = () => {
+    const el = document.createElement("div");
+    el.className = "face-ctl";
+    el.innerHTML = `<span>Intensidad</span><input type="range" min="0" max="100" aria-label="Intensidad">`;
+    const rng = el.querySelector("input"); rng.value = S.amount;
+    rng.addEventListener("input", () => { S.amount = +rng.value; sh.root.querySelectorAll(".face-ctl input").forEach(x => { if(x !== rng) x.value = S.amount; }); schedule(); });
+    return el;
+  };
+  sh.mobile.appendChild(controls());
+  sh.right.appendChild(controls());
+  render();
+}
