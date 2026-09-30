@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Realify en escritorio
+- Cada una de las 31 etapas muestra un pequeño chevrón para abrir o cerrar sus
+  mandos, con su estado accesible por teclado. El botón «S» de aislamiento
+  muestra un icono de ojo; el selector móvil conserva su disposición.
+
 ### Recorte
 - El selector de proporciones incorpora formatos numéricos para redes sociales,
   pantallas de móviles y monitores de PC, agrupados por uso. Se pueden girar los

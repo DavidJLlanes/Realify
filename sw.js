@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v181-recorte-proporciones";
+const VERSION = "realify-v182-realify-etapas";
 const SHELL = [
   "./",
   "./index.html",

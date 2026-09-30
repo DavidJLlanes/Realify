@@ -286,19 +286,33 @@ export function openRealifyEditor({ source, state, title = "Realify", editing = 
       onUp: () => engine.invalidateCache()
     });
   }
+  const openStages = new Set();
   function stageHead(s, i, flat = false){
     const st = state.stages[s.id];
     const head = document.createElement("div");
     head.className = "rf-stage-head";
-    head.innerHTML = `<span class="rf-num">${i + 1}</span><span class="rf-name">${esc(s.name)}</span>
-      <button type="button" class="rf-solo${state.solo === s.id ? " on" : ""}" title="Aislar esta etapa: ver sólo su efecto">S</button>
+    head.innerHTML = `<span class="rf-num">${i + 1}</span>
+      ${flat ? "" : `<button type="button" class="rf-stage-toggle" aria-label="${openStages.has(s.id) ? "Contraer" : "Desplegar"} ${esc(s.name)}" aria-expanded="${openStages.has(s.id)}" aria-controls="rf-stage-body-${esc(s.id)}" title="${openStages.has(s.id) ? "Contraer" : "Desplegar"} ${esc(s.name)}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 5 5 5-5 5"/></svg></button>`}
+      <span class="rf-name">${esc(s.name)}</span>
+      <button type="button" class="rf-solo${state.solo === s.id ? " on" : ""}" title="Aislar esta etapa: ver sólo su efecto" aria-label="Aislar ${esc(s.name)}: ver sólo su efecto" aria-pressed="${state.solo === s.id}">${flat ? "S" : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>`}</button>
       <label class="rf-switch" title="Activar o desactivar"><input type="checkbox"${st.on ? " checked" : ""} aria-label="Activar ${esc(s.name)}"><i></i></label>`;
     head.querySelector("input").addEventListener("change", e => { remember(); st.on = e.target.checked; engine.invalidateCache(); syncAll(); schedule(); });
     head.querySelector(".rf-solo").addEventListener("click", e => { e.stopPropagation(); state.solo = state.solo === s.id ? null : s.id; engine.invalidateCache(); syncAll(); schedule(); });
-    if(!flat) head.addEventListener("click", e => { if(e.target.closest("input,button,label")) return; head.parentElement.classList.toggle("open"); });
+    if(!flat){
+      const toggle = head.querySelector(".rf-stage-toggle");
+      toggle.addEventListener("click", e => {
+        e.stopPropagation();
+        const open = !openStages.has(s.id);
+        if(open) openStages.add(s.id); else openStages.delete(s.id);
+        head.parentElement.classList.toggle("open", open);
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.setAttribute("aria-label", `${open ? "Contraer" : "Desplegar"} ${s.name}`);
+        toggle.title = `${open ? "Contraer" : "Desplegar"} ${s.name}`;
+      });
+      head.addEventListener("click", e => { if(!e.target.closest("input,button,label")) toggle.click(); });
+    }
     return head;
   }
-  const openStages = new Set();
   function buildStages(){
     const host = $(".rf-stages"); host.innerHTML = "";
     CHAIN.forEach((s, i) => {
@@ -306,11 +320,10 @@ export function openRealifyEditor({ source, state, title = "Realify", editing = 
       const sec = document.createElement("section");
       sec.className = "rf-stage" + (state.stages[s.id].on ? " on" : "") + (openStages.has(s.id) ? " open" : "");
       sec.appendChild(stageHead(s, i));
-      const body = document.createElement("div"); body.className = "rf-stage-body";
+      const body = document.createElement("div"); body.className = "rf-stage-body"; body.id = `rf-stage-body-${s.id}`;
       body.innerHTML = `<p class="rf-note">${esc(s.note)}</p>`;
       for(const pr of s.params) body.appendChild(paramControl(s, pr));
       sec.appendChild(body);
-      new MutationObserver(() => { if(sec.classList.contains("open")) openStages.add(s.id); else openStages.delete(s.id); }).observe(sec, { attributes: true, attributeFilter: ["class"] });
       host.appendChild(sec);
     });
     if(!host.children.length) host.innerHTML = `<p class="rf-hint">No hay etapas activas.</p>`;

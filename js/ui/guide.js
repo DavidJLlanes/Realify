@@ -1352,7 +1352,8 @@ const TOPICS = [
         un desplegable y un deslizador con botones − y + abajo.</p>
       <ul>
         <li id="sp-realify"><b>Realify…</b> La simulación de cámara completa (31 etapas, de la óptica al
-          archivo), con zoom real hasta 1:1, comparación, histograma y espectro. Detalle en
+          archivo), con zoom real hasta 1:1, comparación, histograma y espectro. En escritorio,
+          el chevrón de cada etapa despliega sus mandos y el ojo aísla su efecto en la vista previa. Detalle en
           el tema «Realify · simulación de captura».</li>
         <li><b>Revelado fotográfico…</b> El revelador no destructivo de la capa activa;
           parámetros, porcentaje, máscara y opacidad se guardan aparte.</li>
