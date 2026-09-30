@@ -633,7 +633,7 @@ const TOPICS = [
           rango y realza el detalle local), <i>Contraste tonal</i> (micro, medio y
           macrocontraste por separado), <i>Densidad neutra graduada / radial</i> (exposición,
           contraste y temperatura sólo en una parte de la foto). <i>Tono / Color
-          automático</i> está, con los demás automáticos, en <b>Ajustes › Automáticos</b>; tiene interruptor <b>Premium 👑</b>: con los mismos mandos, el
+          automático</i> está, con los demás automáticos, en <b>Ajustes › Automáticos</b> (también como «Tono / Color automático Premium 👑», que lo abre con el interruptor ya encendido); tiene interruptor <b>Premium 👑</b>: con los mismos mandos, el
           estiramiento y los medios se aplican a la intensidad de cada color (el tono y la
           saturación no cambian) y «Ajustar colores neutros» corrige la dominante como un
           balance de blancos en luz lineal, sin teñir los negros; con mapeo de gama y tramado.</li>
@@ -1389,7 +1389,7 @@ const TOPICS = [
           contraste con Brillo y contraste Premium (conserva la textura). Los dos quedan como
           capa de filtro (también en Ajustes › Automáticos). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
-          Tono y color, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
+          Tono y color, Tono y color Premium 👑, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
           demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la

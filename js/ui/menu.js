@@ -235,6 +235,7 @@ export const MENUS = [
       { sep:true },
       { cmd:"adj.autoToneColor",      ic:"wand",          label:"Tono / Color automático…",
         help:"Con interruptor Premium 👑 en el propio ajuste." },
+      { cmd:"adj.autoToneColorPremium", ic:"wand",       label:"Tono / Color automático Premium 👑…" },
       { cmd:"adj.auto",               ic:"contrast",      label:"Contraste automático" },
       { cmd:"adj.autoPremium",        ic:"contrast",      label:"Contraste automático Premium 👑" },
       { cmd:"adj.autoLevels",         ic:"chart-column",  label:"Niveles automáticos" },

@@ -318,7 +318,7 @@ luminosidad, color por canales, equilibrio de color, corrección selectiva,
 mezclador de canales y mapa de degradado.
 
 **Automáticos** (primer submenú de Ajustes): mejora automática y su versión
-Premium 👑, tono/color automático (con interruptor Premium), contraste
+Premium 👑, tono/color automático (y su entrada Premium 👑), contraste
 automático, niveles automáticos y sus versiones Premium 👑.
 
 **Tono avanzado**: quitar neblina, tono HDR, contraste tonal y densidad neutra

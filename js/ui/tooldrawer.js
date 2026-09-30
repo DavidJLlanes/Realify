@@ -83,6 +83,7 @@ const ITEMS = [
   { cmd:"adj.tonalContrast",     label:"Contraste tonal",      ic:"circle-gauge",          cat:"mejorar" },
   { cmd:"adj.graduatedFilter",   label:"Graduado y radial",    ic:"sunset",                cat:"mejorar" },
   { cmd:"adj.autoToneColor",     label:"Tono y color auto.",   ic:"wand",                  cat:"auto mejorar color" },
+  { cmd:"adj.autoToneColorPremium", label:"Tono y color auto. Premium", ic:"wand", premium:true, cat:"auto mejorar color" },
   { cmd:"adj.auto",              label:"Contraste auto.",      ic:"contrast",              cat:"auto mejorar" },
   { cmd:"adj.autoPremium",       label:"Contraste auto. Premium", ic:"contrast", premium:true, cat:"auto mejorar" },
   { cmd:"adj.autoLevels",        label:"Niveles auto.",        ic:"chart-column",          cat:"auto mejorar" },

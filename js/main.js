@@ -716,6 +716,7 @@ registerAll({
   "adj.equalize": { run: async () => (await import("./editor/advanced-color.js")).equalize(), enabled: needsDoc },
   "adj.desaturate": { run: async () => (await import("./editor/advanced-color.js")).desaturate(), enabled: needsDoc },
   "adj.autoToneColor": { run: async () => (await import("./editor/advanced-color.js")).autoToneColor(), enabled: needsDoc },
+  "adj.autoToneColorPremium": { run: async () => (await import("./editor/advanced-color.js")).autoToneColorPremium(), enabled: needsDoc },
   "adj.hdrTone": { run: async () => (await import("./editor/advanced-color.js")).hdrTone(), enabled: needsDoc },
   "adj.tonalContrast": { run: async () => (await import("./editor/advanced-color.js")).tonalContrast(), enabled: needsDoc },
   "adj.graduatedFilter": { run: async () => (await import("./editor/advanced-color.js")).graduatedFilter(), enabled: needsDoc },

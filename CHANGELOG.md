@@ -10,6 +10,9 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **«Tono y color auto. Premium 👑»** en el cajón del móvil (pestañas Automáticos, Mejorar y
+  Color, con corona) y **«Tono / Color automático Premium 👑…»** en Ajustes › Automáticos
+  (escritorio y móvil): abre Tono / Color automático con el interruptor Premium ya encendido.
 - **Submenú Ajustes › Automáticos** (primero de Ajustes, igual en escritorio y móvil, con iconos):
   reúne los siete ajustes automáticos, que antes estaban repartidos entre «Tono avanzado» y el
   final de Ajustes: Mejora automática (y Premium 👑), Tono / Color automático, Contraste
