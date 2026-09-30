@@ -156,3 +156,8 @@
 .fsp-right .sam-seg{margin:14px 0 8px}
 .sam-hint{margin:0;color:#9aa4b2;font-size:12px;line-height:1.45}
 .sam-tool .fsp-stage canvas{cursor:crosshair}
+/* Difuminar caras (js/features/facetools.js): estilo e intensidad */
+.face-ctl{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.face-ctl select{height:40px;border-radius:7px;border:1px solid #3f4855;background:#222831;color:#eef3ff;padding:0 8px;font:14px var(--sans,system-ui,sans-serif)}
+.face-ctl input[type=range]{width:100%}
+.fsp-right .face-ctl{margin:14px 0;grid-template-columns:1fr}

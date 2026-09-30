@@ -674,7 +674,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"ia", title:"Inteligencia Artificial (menú)",
-    desc:"Selección con un toque y Borrador mágico 👑, fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
+    desc:"Selección con un toque, Borrador mágico y caras 👑, fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
     html:`
       <h3>Inteligencia Artificial (menú Inteligencia Artificial)</h3>
       <p>Todas las herramientas de IA están juntas en este menú (tras Filtro) y, en el móvil,
@@ -684,6 +684,7 @@ const TOPICS = [
         <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto y Seleccionar cielo.</li>
         <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo, Expandir con IA y
           Reemplazar cielo.</li>
+        <li><b>Caras:</b> Difuminar caras 👑, Ojos rojos 👑 y Recorte de retrato 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
           artefactos JPEG con IA, Colorear con IA y Adaptive Photo Lens.</li>
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
@@ -708,6 +709,17 @@ const TOPICS = [
           agranda un poco para llevarse el halo del objeto, la costura se funde en luz lineal y
           se devuelve al relleno el grano de la foto. El resultado va a una <b>capa nueva</b>; la
           foto original queda intacta.</li>
+        <li id="ia-faces"><b>Caras 👑.</b> Las tres herramientas encuentran las caras con YuNet (incluido en la
+          web, funciona sin conexión) en lo que se ve de la imagen; en Premium la foto se analiza
+          a dos escalas para encontrar también las caras pequeñas de un grupo.
+          <b>Difuminar caras</b> las marca con un óvalo (toca una para excluirla o volver a
+          incluirla) y las difumina, pixela o tapa con la intensidad que elijas, en una capa nueva;
+          el desenfoque se hace en luz lineal sobre un pixelado previo y con algo de ruido, así no
+          se puede «desenfocar al revés». <b>Ojos rojos</b> busca en cada ojo sólo el rojo
+          conectado con la pupila y se lo quita en luz lineal, sin tocar el reflejo, en una capa
+          nueva. <b>Recorte de retrato</b> abre Recortar con el marco ya encuadrado (ojos en el
+          tercio superior, cabeza y hombros; 4:5 si el formato era libre): ajústalo y pulsa
+          Aplicar.</li>
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",

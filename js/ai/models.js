@@ -77,6 +77,12 @@ export const MODELS = {
   sam_dec:  { url: LOCAL + "mobilesam/sam_decoder.onnx",       size: 16509322, store: true, group: "sam", premium: true,
               label: "SAM (máscaras)", license: "Apache-2.0" },
 
+  /* ── Caras: YuNet 2023mar (OpenCV Zoo, Shiqi Yu et al., MIT), 232 KB,
+        incluido en la web. Entrada BGR 0-255 de tamaño libre (múltiplo
+        de 32); cajas y 5 puntos de la cara. ── */
+  yunet:    { url: LOCAL + "yunet/face_detection_yunet_2023mar.onnx", size: 232589, premium: true,
+              label: "YuNet (caras)", license: "MIT" },
+
   scunet:   { url: HF + "onnx/enhance/scunet/scunet_color-PSNR.onnx", size: 91264256,
               tile: 256, tileGpu: 512, minSide: 256, label: "SCUNet", license: "Apache-2.0" },
   fbcnn:    { url: HF + "onnx/enhance/fbcnn/fbcnn_color_fp16.onnx",   size: 143910675,

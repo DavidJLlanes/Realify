@@ -10,6 +10,18 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Caras Premium 👑** (Inteligencia Artificial › Caras y su pestaña del cajón), con YuNet
+  (OpenCV Zoo, MIT, 232 KB, incluido en la web). Las caras se buscan en la imagen visible; en
+  Premium, a dos escalas (640 px y teselas a 1280 px) para encontrar también las pequeñas:
+  - **Difuminar caras**: óvalo ajustado a cada cara (toca una para excluirla), desenfoque,
+    pixelado o relleno con intensidad; el desenfoque, en luz lineal sobre un pixelado previo y
+    con ruido, no se puede revertir. Capa nueva.
+  - **Ojos rojos**: sólo el rojo conectado con la pupila, corregido en luz lineal sin tocar el
+    reflejo. Capa nueva.
+  - **Recorte de retrato**: abre Recortar con el marco encuadrado en la cara (ojos en el
+    tercio superior, cabeza y hombros; 4:5 si el formato era libre).
+
+### Añadido
 - **Selección con un toque Premium 👑** (menú Inteligencia Artificial › Seleccionar y su
   pestaña del cajón): toca un objeto y la IA (Segment Anything: MobileSAM + decodificador de
   SAM) lo selecciona entero; más toques añaden partes y «Quitar» (o Alt / Mayús + clic)
