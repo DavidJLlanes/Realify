@@ -645,16 +645,32 @@ const TOPICS = [
           inspirado en una manera distinta de revelar en blanco y negro —de un
           filtro rojo clásico a una simulación de infrarrojo o un cartel de alto
           contraste sin grano—.</li>
-        <li><b>Invertir, Contraste automático, Niveles automáticos.</b> Un solo clic,
-          sin panel: invierte los colores, o estira el contraste/los niveles hasta los
-          percentiles 0,2 % más oscuro y más claro del histograma de la propia imagen
-          —«Contraste automático» mira sólo el brillo y deja el balance de color
-          intacto; «Niveles automáticos» estira cada canal R, G y B por separado, así
-          que además neutraliza una dominante de color—. Cuanto más plana o con más
-          neblina esté la foto, más se nota: es justo el caso para el que existen.
-          <b>Contraste automático Premium 👑</b> (Ajustes › Automáticos y cajón) hace el mismo recorte pero
-          estira la intensidad de cada color en coma flotante, sin sobresaturar ni cambiar el
-          tono, y queda como capa de Niveles que puedes reabrir para afinarla.</li>
+        <li><b>Invertir.</b> Un solo clic, sin panel.</li>
+        <li id="adj-auto"><b>Ajustes automáticos</b> (Ajustes › Automáticos). Antes de corregir,
+          <b>diagnostican</b> la foto como lo haría un retocador:
+          <ul>
+            <li><b>Dominante de color</b>: se estima el color de la luz con los bordes (casi
+              siempre neutros, y no se dejan engañar por una pared naranja enorme) y con los
+              píxeles grises que aparecen al ir corrigiendo, y se mezclan según la confianza.
+              Verde/magenta y azul frío se corrigen casi del todo; un tono cálido, sólo en parte
+              (la luz del atardecer o de interior es parte de la foto); si la escena está
+              dominada por un color intenso (atardecer, bosque), mucho menos.</li>
+            <li><b>Luces y sombras</b>: punto negro y blanco sin estirar lo que ya está quemado,
+              sin tomar un brillo aislado (sol, reflejo) como «blanco» y con la ganancia limitada
+              para no subir el ruido.</li>
+            <li><b>Exposición</b>: sólo se corrige si está claramente mal; una escena clara u
+              oscura a propósito (nieve, fondo blanco, noche) se respeta.</li>
+            <li><b>Colores extremos</b>: el color más oscuro y el más claro neutralizan sombras y
+              luces sólo si son casi grises; una lámpara amarilla o un mar azul no se «corrigen».</li>
+          </ul>
+          <b>Contraste automático</b> corrige sólo la luz (negro, blanco y medios), sin tocar el
+          color. <b>Niveles automáticos</b> corrige además el color: negro y blanco de cada canal
+          y medios neutros. <b>Tono / Color automático</b> hace lo mismo con mandos (modo, recorte,
+          medios, neutros) y equilibra los neutros como un balance de blancos en luz lineal. Las
+          versiones <b>Premium 👑</b> usan el mismo diagnóstico con el motor Premium: coma flotante,
+          la luz aplicada a la intensidad de cada color (sin sobresaturar ni cambiar el tono),
+          mapeo de gama y tramado. Contraste y Niveles Premium quedan como capa de Niveles que
+          puedes reabrir para afinarla.</li>
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",
@@ -1384,9 +1400,12 @@ const TOPICS = [
         <li><b>Cajón de herramientas.</b> Se abre en <b>Básicos</b>: lo que más se usa
           para editar una foto (recortar, luz, color, nitidez, estilos, quitamanchas,
           texto, stickers…), en el orden en que suele hacerse. Los dos primeros, resaltados,
-          son la mejora de un toque: <b>Automático</b> y <b>Auto Premium 👑</b>, que equilibra
-          el blanco en luz lineal, sube el color apagado sin quemar el intenso y ajusta luz y
-          contraste con Brillo y contraste Premium (conserva la textura). Los dos quedan como
+          son la mejora de un toque: <b>Automático</b> (Tono / Color automático en modo color) y
+          <b>Auto Premium 👑</b>, que con el diagnóstico de los automáticos equilibra el blanco en
+          luz lineal, fija el negro y el blanco, abre las sombras de un contraluz y recupera las
+          luces con detalle (Sombras / Iluminaciones Premium), corrige la exposición sólo si hace
+          falta, sube el color apagado sin tocar la piel ni el color intenso, y ajusta el
+          contraste sólo si la foto está plana. Los dos quedan como
           capa de filtro (también en Ajustes › Automáticos). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
           Tono y color, Tono y color Premium 👑, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las

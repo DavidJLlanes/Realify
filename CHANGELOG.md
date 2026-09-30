@@ -9,7 +9,28 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
-### Añadido
+### Mejorado
+- **Los ajustes automáticos diagnostican la foto antes de corregirla** (nuevo
+  `js/editor/autoanalysis.js`, común a Contraste, Niveles, Tono / Color y Mejora automática,
+  normales y Premium 👑):
+  - Dominante de color estimada con los bordes (gray-edge) y con grises iterativos, mezclados
+    según la confianza. Verde/magenta y azul frío se corrigen casi del todo, el cálido sólo en
+    parte, y mucho menos si la escena está dominada por un color intenso.
+  - Negro y blanco sin estirar lo ya quemado, sin tomar brillos aislados como «blanco» y con
+    la ganancia limitada (ruido); un fondo blanco teñido sí se neutraliza.
+  - Exposición corregida sólo si está claramente mal (mediana fuera de L* 38-62); las escenas
+    claras u oscuras a propósito se respetan.
+  - Colores extremos («buscar colores oscuros y claros») y medios neutros por canal, sólo
+    cuando esos extremos son casi grises (medido tras quitar la dominante general).
+  - **Mejora automática Premium**: además fija negro y blanco, abre sombras de contraluz y
+    recupera luces con detalle (Sombras / Iluminaciones Premium), no oscurece fondos blancos y
+    protege la piel al subir el color.
+  - En pruebas con 13 fotos degradadas (dominantes, subexpuestas, niebla…), el resultado desde
+    la foto estropeada se parece mucho más al de la foto buena. Mejora automática Premium en
+    subexpuestas: ΔE 10,4 → 1,6; con niebla: 5,8 → 3,7. Tono / Color en subexpuestas
+    con dominante fría: 4,97 → 2,76. Y las fotos buenas se tocan menos: Niveles 5,8 → 4,7; Mejora automática
+    5,9 → 5,3.
+
 - **«Tono y color auto. Premium 👑»** en el cajón del móvil (pestañas Automáticos, Mejorar y
   Color, con corona) y **«Tono / Color automático Premium 👑…»** en Ajustes › Automáticos
   (escritorio y móvil): abre Tono / Color automático con el interruptor Premium ya encendido.

@@ -317,9 +317,12 @@ no afecta a grises), reemplazar color, igualar color, curvas Lab y de
 luminosidad, color por canales, equilibrio de color, corrección selectiva,
 mezclador de canales y mapa de degradado.
 
-**Automáticos** (primer submenú de Ajustes): mejora automática y su versión
-Premium 👑, tono/color automático (y su entrada Premium 👑), contraste
-automático, niveles automáticos y sus versiones Premium 👑.
+**Automáticos** (primer submenú de Ajustes): mejora automática, tono/color,
+contraste y niveles automáticos, cada uno con su versión Premium 👑. Antes de
+corregir diagnostican la foto (dominante de color con confianza, luces ya
+quemadas, brillos aislados, exposición fuera de rango, colores extremos
+neutros) y respetan lo que es intencionado: la luz cálida, una escena de un
+solo color, un fondo blanco o una foto nocturna.
 
 **Tono avanzado**: quitar neblina, tono HDR, contraste tonal y densidad neutra
 graduada o radial.

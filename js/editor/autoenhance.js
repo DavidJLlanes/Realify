@@ -33,65 +33,86 @@ export async function autoEnhance(){
    MEJORA AUTOMÁTICA PREMIUM 👑
    Un toque, con los motores Premium en vez de «Tono / Color automático»:
 
-     1. Balance de blancos en luz lineal: se estima el gris de la escena
-        con los píxeles casi neutros (croma OKLab bajo, sin quemar ni
-        negros); si hay pocos, con «shades of gray» (media de potencia
-        6). Se corrige sólo el 75 % (en escala logarítmica) y con topes,
-        para no borrar una luz cálida que forma parte de la foto.
+     Diagnóstico común (autoanalysis.js) y, en este orden:
+     1. Balance de blancos en luz lineal con la dominante estimada
+        (gray-edge + grises iterativos, con confianza; el cálido y los
+        colores dominantes de la escena se respetan en parte).
      2. Color: el croma sube más cuanto más apagado está el color y nada
-        en los que ya son intensos (como Vibrance), en OKLab, con mapeo
-        de gama y tramado (premiumcolor.js).
-     3. Luz: Brillo y contraste Premium (curva sobre la base, textura
-        conservada) con brillo y contraste calculados de los percentiles
-        de L*: la mediana hacia L* 48 y el rango hasta ~0,86 si la foto
-        está plana.
+        en los que ya son intensos (como Vibrance), menos si hay piel,
+        en OKLab, con mapeo de gama y tramado (premiumcolor.js).
+     3. Negro y blanco (Niveles maestros Premium), sin estirar lo ya
+        quemado y con la ganancia limitada.
+     4. Sombras / Iluminaciones Premium si hace falta: contraluz o mucha
+        foto en negro; luces claras CON detalle (el blanco puro de un
+        fondo no se «recupera»).
+     5. Brillo y contraste Premium: exposición sólo fuera de la franja
+        correcta (L* 36-64 en la mediana; la clave alta no se oscurece y
+        la baja se aclara menos) y contraste sólo si la foto está plana.
    Los valores medidos se guardan en la capa de filtro («auto-premium»):
    volver a calcularla (aplicación parcial, cambios debajo) da siempre
    el mismo resultado; el doble clic en su «fx» vuelve a medir.
    ═══════════════════════════════════════════════════════════════ */
 import { applyColorMap, toLab, toRgb, DEC } from "./premiumcolor.js";
-import { applyBCPremium } from "./adjustments.js";
+import { applyBCPremium, applyShadowsHighlightsPremium } from "./adjustments.js";
+import { sampleImage, estimateCast, lstar, toneStats, tonePlan, encF, decF } from "./autoanalysis.js";
+import { applyLevelsPremium } from "./tonepremium.js";
 
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
-const yToLs = y => y <= 216 / 24389 ? y * (24389 / 27) / 100 : (116 * Math.cbrt(y) - 16) / 100;
 
-/* Mide sobre una copia de ≤ 600 px */
-function measurePremium(data, w, h){
-  const step = Math.max(1, Math.round(Math.sqrt(w * h / 360000)));
-  const lab = [0, 0, 0];
-  let nr = 0, ng = 0, nb = 0, nn = 0, pr = 0, pg = 0, pb = 0, pn = 0;
-  for(let y = 0; y < h; y += step) for(let x = 0; x < w; x += step){
-    const i = (y * w + x) * 4; if(data[i + 3] < 128) continue;
-    const r = DEC[data[i]], g = DEC[data[i + 1]], b = DEC[data[i + 2]];
-    const Y = 0.2126 * r + 0.7152 * g + 0.0722 * b, mx = Math.max(data[i], data[i + 1], data[i + 2]);
-    if(Y < 0.02 || mx > 245) continue;
-    pr += r ** 6; pg += g ** 6; pb += b ** 6; pn++;
+/* Diagnóstico (autoanalysis.js) y valores de cada paso */
+export function measurePremium(data, w, h){
+  const S = sampleImage(data, w, h, 200000), cast = estimateCast(S), gains = cast.gains;
+  // Punto negro y blanco (sin tocar lo ya quemado; ganancia limitada)
+  const TP = tonePlan(toneStats(S, gains), { clip: 0.1, mid: 0 });
+  const bk = TP.black, wt = TP.white, stretch = Y => decF(clampN((encF(Y) - bk) / Math.max(1e-3, wt - bk), 0, 1));
+  const lab = [0, 0, 0], Ls = [];
+  let cSum = 0, cN = 0, skin = 0, dark = 0, bright = 0, tot = 0;
+  for(let i = 0; i < S.n; i++){
+    if(!S.ok[i]) continue;
+    let r = Math.min(1, S.R[i] * gains[0]), g = Math.min(1, S.G[i] * gains[1]), b = Math.min(1, S.B[i] * gains[2]);
+    const Y0 = 0.2126 * r + 0.7152 * g + 0.0722 * b, Y = stretch(Y0), m = Y0 > 0 ? Y / Y0 : 1;
+    r = Math.min(1, r * m); g = Math.min(1, g * m); b = Math.min(1, b * m);
+    const L = lstar(Y);
+    Ls.push(L); tot++;
+    if(L < 0.2) dark++;
+    if(L > 0.85 && L < 0.97 && !S.hi[i]) bright++;   // luces con detalle (no el blanco puro)
+    if(i % 2) continue;
     toLab(r, g, b, lab);
-    if(Math.hypot(lab[1], lab[2]) < 0.04){ nr += r; ng += g; nb += b; nn++; }
-  }
-  let est = nn > pn * 0.02 && nn > 50 ? [nr / nn, ng / nn, nb / nn]
-          : pn ? [(pr / pn) ** (1 / 6), (pg / pn) ** (1 / 6), (pb / pn) ** (1 / 6)] : [1, 1, 1];
-  const m = (est[0] + est[1] + est[2]) / 3 || 1;
-  let gains = est.map(v => clampN(Math.pow(m / Math.max(v, 1e-6), 0.75), 0.8, 1.25));
-  const k = 0.2126 * gains[0] + 0.7152 * gains[1] + 0.0722 * gains[2];
-  gains = gains.map(v => +(v / k).toFixed(4));
-  // Tras el balance: L* y croma
-  const Ls = [], Cs = [];
-  for(let y = 0; y < h; y += step) for(let x = 0; x < w; x += step){
-    const i = (y * w + x) * 4; if(data[i + 3] < 128) continue;
-    const r = DEC[data[i]] * gains[0], g = DEC[data[i + 1]] * gains[1], b = DEC[data[i + 2]] * gains[2];
-    Ls.push(yToLs(Math.min(1, 0.2126 * r + 0.7152 * g + 0.0722 * b)));
-    toLab(Math.min(1, r), Math.min(1, g), Math.min(1, b), lab);
-    if(lab[0] > 0.25 && lab[0] < 0.9) Cs.push(Math.hypot(lab[1], lab[2]));
+    const C = Math.hypot(lab[1], lab[2]);
+    if(lab[0] > 0.25 && lab[0] < 0.9){ cSum += C; cN++; }
+    // Piel (cualquier tono de piel cae en esta franja de tono de OKLab)
+    const hue = Math.atan2(lab[2], lab[1]) * 180 / Math.PI;
+    if(hue > 20 && hue < 80 && C > 0.03 && C < 0.16 && lab[0] > 0.4 && lab[0] < 0.88) skin++;
   }
   Ls.sort((a, b) => a - b);
   const q = f => Ls.length ? Ls[Math.min(Ls.length - 1, Math.floor(f * Ls.length))] : 0.5;
   const p1 = q(0.01), p50 = q(0.5), p99 = q(0.99), spread = p99 - p1;
-  const brightness = Math.round(clampN((0.48 - p50) / 0.3 * 100 * 0.8, -40, 40));
-  const contrast = Math.round(spread < 0.86 ? clampN((0.86 - spread) / 0.86 * 120, 0, 45) : 0);
-  const cMean = Cs.length ? Cs.reduce((a, b) => a + b, 0) / Cs.length : 0.06;
-  const vib = +clampN((0.07 - cMean) / 0.07 * 0.45, 0, 0.3).toFixed(3);
-  return { gains, brightness, contrast, vib };
+  tot = Math.max(1, tot);
+  const darkFrac = dark / tot, brightFrac = bright / tot, clipFrac = S.hi.reduce((a, v) => a + v, 0) / S.valid;
+  const skinFrac = skin / Math.max(1, tot / 2);
+  // Exposición: sólo si está claramente mal (fuera de L* 36-64 en la
+  // mediana), acercándola al borde de esa franja. Clave baja con luces
+  // propias (noche, contraluz): aclarar menos y abrir sombras. Clave
+  // alta (fondo blanco, nieve, producto): no se oscurece.
+  const lowKey = p50 < 0.36 && (brightFrac + clipFrac) > 0.04;
+  const highKey = p50 > 0.64 && (clipFrac > 0.01 || q(0.25) > 0.6);
+  let brightness = 0;
+  if(p50 < 0.36) brightness = clampN((0.42 - p50) / 0.3 * 100, 0, 55) * (lowKey ? 0.45 : 1);
+  else if(p50 > 0.64 && !highKey) brightness = -clampN((p50 - 0.58) / 0.3 * 100, 0, 30);
+  // Sombras: mucha foto en negro con algo de luz (contraluz, interiores)
+  let shadows = darkFrac > 0.15 && p99 > 0.6 ? clampN((darkFrac - 0.15) / 0.35 * 50, 0, 40) : 0;
+  if(lowKey) shadows = Math.max(shadows, 18);
+  if(brightness > 20) shadows *= 0.6;
+  // Luces: sólo si hay bastante zona clara CON detalle y la foto no es de clave alta
+  const highlights = !highKey && brightFrac > 0.08 ? clampN((brightFrac - 0.08) / 0.25 * 45, 0, 35) : 0;
+  // Contraste: sólo si la foto está plana (rango de tonos corto)
+  let contrast = spread < 0.78 ? clampN((0.8 - spread) / 0.8 * 100, 0, 35) : 0;
+  if(shadows || highlights) contrast = Math.min(35, contrast + (shadows + highlights) * 0.1);   // devolver el contraste local que se pierde
+  const cMean = cN ? cSum / cN : 0.06;
+  let vib = clampN((0.07 - cMean) / 0.07 * 0.45, 0, 0.3);
+  vib *= 1 - clampN((skinFrac - 0.05) * 3, 0, 0.6);           // la piel no se satura
+  return { gains, black: +(bk * 255).toFixed(1), white: +(wt * 255).toFixed(1), brightness: Math.round(brightness), contrast: Math.round(contrast), vib: +vib.toFixed(3),
+           shadows: Math.round(shadows), highlights: Math.round(highlights) };
 }
 
 function applyPremiumAuto(data, w, h, P, fast = false){
@@ -110,6 +131,14 @@ function applyPremiumAuto(data, w, h, P, fast = false){
       return Y;
     }, { fast });
   }
+  // Punto negro y blanco (Niveles maestros Premium: sobre la intensidad de cada color)
+  if(P.black > 0 || (P.white && P.white < 255)){
+    const id = { inLow: 0, inHigh: 255, gamma: 1, outLow: 0, outHigh: 255 };
+    applyLevelsPremium(data, { ch: { rgb: { ...id, inLow: P.black || 0, inHigh: P.white || 255 }, r: id, g: id, b: id } }, { fast });
+  }
+  // Sombras / Iluminaciones Premium con un entorno relativo al tamaño de la foto
+  if(P.shadows || P.highlights)
+    applyShadowsHighlightsPremium(data, w, h, { shadows: P.shadows || 0, highlights: P.highlights || 0, radius: Math.max(6, 0.035 * Math.max(w, h)), tone: 50 }, 1);
   if(P.brightness || P.contrast) applyBCPremium(data, w, h, { brightness: P.brightness, contrast: P.contrast, protect: 100, pivot: "auto" });
 }
 

@@ -11,7 +11,7 @@ import { toast } from "../ui/toast.js";
 import { isMobile } from "../core/device.js";
 import { premiumSwitch, premiumPref } from "../ui/premium.js";
 import { hslPremium } from "./hslpremium.js";
-import { applyLevelsPremium, applyCurvesPremium, autoLevelsState, autoCurvePoints, autoContrastState } from "./tonepremium.js";
+import { applyLevelsPremium, applyCurvesPremium, autoLevelsState, autoCurvePoints, autoContrastState, levelsLuts } from "./tonepremium.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
          drawHistogram, slider, histogram, pickerGroup, liftImageAbove } from "./adjust.js";
 import { curveEditor, curveLut, curveThumb, CHANNEL_COLORS, CURVE_PRESETS, userCurvePresets, saveUserCurvePresets, applyCurves } from "./curves.js";
@@ -997,29 +997,19 @@ function grayPointToWB(r, g, b){
 const clamp1 = v => Math.max(-1, Math.min(1, v));
 
 /* ── niveles automáticos ──────────────────────────────────────────
-   Distinto del contraste automático: éste estira cada canal R, G y B
-   por separado. Si la imagen tiene una dominante de color, esto la
-   neutraliza sola; el contraste automático (más arriba) sólo mira el
-   brillo y por diseño no toca el balance de color. */
+   Distinto del contraste automático: éste corrige también el color.
+   Diagnóstico (autoanalysis.js › tonepremium.js › autoLevelsState):
+   negro y blanco de cada canal con los colores más oscuros y más claros
+   de verdad —sólo si son casi neutros; una lámpara amarilla o un mar
+   azul profundo no se «corrigen»—, gamma de cada canal para que los
+   medios neutros queden grises (con la confianza de la dominante
+   detectada) y gamma maestra para la exposición. Sin estirar lo ya
+   quemado y con la ganancia limitada. El normal lo aplica con tablas
+   de 8 bits; el Premium, con el motor Premium. */
 export function autoLevels(opts = {}){
   return applyDirect("Niveles automáticos", (data, w, h) => {
-    const cut = w * h * 0.005;
-    const stretchOf = ch => {
-      const hist = new Uint32Array(256);
-      for(let i = ch; i < data.length; i += 4) hist[data[i]]++;
-      let acc = 0, lo = 0, hi = 255;
-      for(let i = 0; i < 256; i++){ acc += hist[i]; if(acc > cut){ lo = i; break; } }
-      acc = 0;
-      for(let i = 255; i >= 0; i--){ acc += hist[i]; if(acc > cut){ hi = i; break; } }
-      // Mismo criterio que en autoContrast: sólo rendirse si el canal
-      // es de verdad plano (hi===lo), no simplemente estrecho.
-      if(hi <= lo) return identityLut();
-      const span = 255 / (hi - lo);
-      const t = new Uint8ClampedArray(256);
-      for(let i = 0; i < 256; i++) t[i] = clamp255((i - lo) * span);
-      return t;
-    };
-    applyLut(data, { r: stretchOf(0), g: stretchOf(1), b: stretchOf(2) });
+    const [r, g, b] = levelsLuts(autoLevelsState(data, w, h));
+    applyLut(data, { r, g, b });
   }, { asLayer: true, filterId: "autoLevels" }, opts);
 }
 
@@ -1275,31 +1265,15 @@ export function invert(opts = {}){
   }, { asLayer: true, filterId: "invert" }, opts);
 }
 
+/* Contraste automático: sólo la luminancia, los tres canales por igual
+   (no toca el balance de color). Diagnóstico en autoanalysis.js: negro y
+   blanco por percentiles sin estirar lo que ya está quemado ni contar
+   los brillos aislados (sol, reflejos), ganancia limitada para no
+   amplificar el ruido y medios hacia el gris medio con la mitad de
+   fuerza (respetando la clave baja). */
 export function autoContrast(opts = {}){
   return applyDirect("Contraste automático", (data, w, h) => {
-    const hist = new Uint32Array(256);
-    for(let i = 0; i < data.length; i += 4)
-      hist[(data[i]*0.2126 + data[i+1]*0.7152 + data[i+2]*0.0722) | 0]++;
-    const total = w * h;
-    const cut = total * 0.002;
-    let acc = 0, lo = 0, hi = 255;
-    for(let i = 0; i < 256; i++){ acc += hist[i]; if(acc > cut){ lo = i; break; } }
-    acc = 0;
-    for(let i = 255; i >= 0; i--){ acc += hist[i]; if(acc > cut){ hi = i; break; } }
-    /* Ojo con la lectura de este corte: un hi-lo PEQUEÑO es justo lo
-       contrario de "ya ocupa todo el rango" —significa que casi todos
-       los píxeles están apretados en una banda estrecha de luminancia,
-       el caso típico de una foto plana o con neblina, que es EXACTAMENTE
-       para lo que se usa este ajuste—. Sólo hace falta rendirse cuando
-       hi===lo de verdad (un tono totalmente plano, sin nada que
-       estirar); cualquier otra cosa, por estrecha que sea la banda,
-       tiene contraste real que recuperar. Un umbral más alto aquí
-       dejaba el ajuste sin hacer nada justo en las fotos que más lo
-       necesitaban. */
-    if(hi <= lo) return;
-    const span = 255 / (hi - lo);
-    const t = new Uint8ClampedArray(256);
-    for(let i = 0; i < 256; i++) t[i] = clamp255((i - lo) * span);
+    const [t] = levelsLuts(autoContrastState(data, w, h));
     applyLut(data, { r:t, g:t, b:t });
   }, { asLayer: true, filterId: "autoContrast" }, opts);
 }
