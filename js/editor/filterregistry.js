@@ -180,6 +180,7 @@ export const FILTERS = {
   "desaturate": { load: mod("./advanced-color.js"), fn: "desaturate",
                    scale: (p, t) => ({ ...p, amount: (p.amount ?? 100) * t }) },
   "auto-tone-color": { load: mod("./advanced-color.js"), fn: "autoToneColor", scale: () => null },
+  "auto-premium":    { load: mod("./autoenhance.js"), fn: "autoEnhancePremium", scale: () => null },
   "hdr-tone": { load: mod("./advanced-color.js"), fn: "hdrTone",
                  scale: (p, t) => toward(p, t, zeros("compression", "detail", "glow")) },
   "tonal-contrast": { load: mod("./advanced-color.js"), fn: "tonalContrast",

@@ -1367,7 +1367,11 @@ const TOPICS = [
           Rehacer, Comparar y el Menú con todos los menús de escritorio en una lista.</li>
         <li><b>Cajón de herramientas.</b> Se abre en <b>Básicos</b>: lo que más se usa
           para editar una foto (recortar, luz, color, nitidez, estilos, quitamanchas,
-          texto, stickers…), en el orden en que suele hacerse. En <b>Todos</b> y en las
+          texto, stickers…), en el orden en que suele hacerse. Los dos primeros, resaltados,
+          son la mejora de un toque: <b>Automático</b> y <b>Auto Premium 👑</b>, que equilibra
+          el blanco en luz lineal, sube el color apagado sin quemar el intenso y ajusta luz y
+          contraste con Brillo y contraste Premium (conserva la textura). Los dos quedan como
+          capa de filtro (también en Ajustes › Tono avanzado). En <b>Todos</b> y en las
           demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la

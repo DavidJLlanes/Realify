@@ -22,6 +22,7 @@ import { haptic } from "../core/device.js";
 import { keyboardHeight } from "./keyboard.js";
 import { MENUS } from "./menu.js";
 import { ICONS } from "./tooldrawer-icons.js";
+import { crownIcon } from "./premium.js";
 import { matchScore, searchable } from "../core/search.js";
 
 const CATS = [
@@ -46,7 +47,7 @@ const CATS = [
    las demás pestañas. Cada clave es el `cmd` o el `tool` de su entrada
    de ITEMS («auto» para Automático). */
 const BASICS = [
-  "auto",
+  "auto", "auto-premium",
   "crop", "image.rotR",
   "adj.brightness", "adj.exposure", "adj.shadowsHighlights",
   "adj.whiteBalance", "adj.vibrance", "adj.hsl",
@@ -62,7 +63,8 @@ const BASICS = [
    tooldrawer-icons.js; si falta, se usa el de la herramienta o el del
    menú) y `cat` (una o varias pestañas, separadas por espacios). */
 const ITEMS = [
-  { auto:true, label:"Automático", ic:"wand-sparkles", cat:"mejorar" },
+  { auto:true, cmd:"adj.autoEnhance", label:"Automático", ic:"wand-sparkles", cat:"mejorar" },
+  { auto:"premium", cmd:"adj.autoEnhancePremium", label:"Auto Premium", ic:"wand-sparkles", cat:"mejorar" },
 
   /* ── Ajustes ── */
   { cmd:"adj.brightness",        label:"Brillo y contraste",   ic:"sun-medium",            cat:"mejorar" },
@@ -313,7 +315,7 @@ const searchTextOf = it => {
    coincide DENTRO de la pestaña activa: primero lo que contiene las
    palabras tal cual y después lo que se les parece (erratas). */
 const byLabel = (a, b) => a.label.localeCompare(b.label, "es");
-const keyOf = it => it.auto ? "auto" : it.cmd || it.tool;
+const keyOf = it => it.auto === "premium" ? "auto-premium" : it.auto ? "auto" : it.cmd || it.tool;
 function itemsFor(c){
   /* Básicos va en su orden propio; con algo escrito en el buscador se
      busca en todo, porque quien busca algo concreto no tiene por qué
@@ -354,10 +356,10 @@ function renderGrid(){
   for(const it of items){
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "td-item" + (it.auto ? " td-auto" : "");
+    b.className = "td-item" + (it.auto === "premium" ? " td-auto td-auto-premium" : it.auto ? " td-auto" : "");
     b.disabled = !isEnabled(it);
     if(it.tool && !it.cmd && current && current.id === it.tool) b.classList.add("on");
-    b.innerHTML = `<span class="td-ic" aria-hidden="true">${iconFor(it)}</span><span class="td-label">${it.label}</span>`;
+    b.innerHTML = `<span class="td-ic" aria-hidden="true">${iconFor(it)}${it.auto === "premium" ? `<span class="td-crown">${crownIcon(13)}</span>` : ""}</span><span class="td-label">${it.label}</span>`;
     b.addEventListener("click", () => activate(it));
     gridEl.appendChild(b);
   }
@@ -375,6 +377,7 @@ function setCat(id){
 
 function activate(it){
   closeDrawer();
+  if(it.auto === "premium"){ run("adj.autoEnhancePremium"); return; }
   if(it.auto){ run("adj.autoEnhance"); return; }
   if(it.cmd){ run(it.cmd); return; }
   if(it.tool) setTool(it.tool);
@@ -502,7 +505,6 @@ export function initToolDrawer(){
     <div class="td-grab" aria-hidden="true"></div>
     <div class="td-head">
       <h2>Herramientas</h2>
-      <button type="button" class="td-autobtn primary">${svgWrap(ICONS["wand-sparkles"])}<span>Automático</span></button>
       <button type="button" class="td-close icon ghost" aria-label="Cerrar">${svgWrap(ICONS["x"])}</button>
     </div>
     <nav class="td-tabs" role="tablist" aria-label="Categorías"></nav>
@@ -541,7 +543,6 @@ export function initToolDrawer(){
   handle.addEventListener("click", () => openState ? closeDrawer() : openDrawer());
   veil.addEventListener("click", closeDrawer);
   drawer.querySelector(".td-close").addEventListener("click", closeDrawer);
-  drawer.querySelector(".td-autobtn").addEventListener("click", () => activate(ITEMS[0]));
   addEventListener("keydown", e => { if(e.key === "Escape") closeDrawer(); });
   wireGrab(drawer.querySelector(".td-grab"));
   wireSwipe();

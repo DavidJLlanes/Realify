@@ -672,6 +672,8 @@ registerAll({
                       enabled: needsDoc },
   "adj.autoEnhance": { run: async () => (await import("./editor/autoenhance.js")).autoEnhance(),
                       enabled: needsDoc },
+  "adj.autoEnhancePremium": { run: async () => (await import("./editor/autoenhance.js")).autoEnhancePremium(),
+                      enabled: needsDoc },
   "adj.whiteBalance": { run: async () => (await import("./editor/adjustments.js")).whiteBalance(),
                       enabled: needsDoc },
   "adj.tone":       { run: async () => (await import("./editor/tone.js")).toneRegions(),

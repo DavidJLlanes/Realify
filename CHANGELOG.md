@@ -10,6 +10,21 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Auto Premium 👑** en el cajón de herramientas del móvil (y en Ajustes › Tono avanzado ›
+  «Mejora automática Premium»): mejora de un toque con los motores Premium. Balance de blancos
+  en luz lineal estimado con los píxeles casi neutros (o «shades of gray»), corregido al 75 % y
+  con topes para no borrar una luz cálida buscada; color con más croma cuanto más apagado (sin
+  tocar los colores ya intensos), en OKLab con mapeo de gama y tramado; y luz con Brillo y
+  contraste Premium a partir de los percentiles de L*. Los valores medidos se guardan en su capa
+  de filtro («auto-premium»), así que volver a calcularla da el mismo resultado.
+
+### Cambiado
+- **Cajón de herramientas (móvil)**: se quita el botón grande «Automático» de la cabecera. En su
+  lugar, «Automático» y el nuevo «Auto Premium» (dorado y con la corona) van primero en la
+  rejilla y resaltados: fondo y borde de color e icono dentro de un círculo. «Mejora automática»
+  también en Ajustes › Tono avanzado, para que el menú sea el mismo en móvil y escritorio.
+
+### Añadido
 - **Brillo y contraste Premium 👑**: la curva se aplica a la base de la imagen (filtro guiado
   rápido, que suaviza sin cruzar bordes) y la textura se conserva con al menos su amplitud
   original. Con contraste +80 la textura de las luces quedaba al 59 % en el modo normal; en

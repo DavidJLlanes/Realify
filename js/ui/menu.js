@@ -260,7 +260,9 @@ export const MENUS = [
       { cmd:"adj.hdrTone",         label:"Tono HDR…" },
       { cmd:"adj.tonalContrast",   label:"Contraste tonal…" },
       { cmd:"adj.graduatedFilter", label:"Densidad neutra graduada / radial…" },
-      { cmd:"adj.autoToneColor",   label:"Tono / Color automático…" }
+      { cmd:"adj.autoToneColor",   label:"Tono / Color automático…" },
+      { cmd:"adj.autoEnhance",     label:"Mejora automática" },
+      { cmd:"adj.autoEnhancePremium", label:"Mejora automática Premium 👑" }
     ]},
     { label:"Mapa tonal y gráfico", submenu:[
       { cmd:"adj.threshold",  label:"Umbral…" },
