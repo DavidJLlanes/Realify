@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Recorte
+- El selector de proporciones incorpora formatos numéricos para redes sociales,
+  pantallas de móviles y monitores de PC, agrupados por uso. Se pueden girar los
+  formatos fijos con ⇄; «A medida» conserva los campos de ancho y alto.
+
 ### Previsualización de cielos
 - Las miniaturas de Poly Haven y las anteriores mantienen el mismo tamaño en
   Reemplazar cielo. En móviles, la fila adapta el ancho de las tarjetas al

@@ -290,8 +290,11 @@ const TOPICS = [
           mano, del borde o centro de cualquier otra capa, o de la cuadrícula (con
           «Ajustar a la cuadrícula» activo). Las flechas del teclado la desplazan 1
           píxel, y <kbd>Alt</kbd> + flecha, 10 píxeles, sin tocar el ratón.</li>
-        <li id="tool-crop"><b>Recortar (C).</b> Arrastra el marco o elige una proporción fija (1:1,
-          16:9…) en el panel de opciones. «Guía» superpone una ayuda de
+        <li id="tool-crop"><b>Recortar (C).</b> Arrastra el marco o elige una proporción
+          numérica en el panel de opciones: fotos, publicaciones de redes, pantallas
+          de móviles o monitores de PC. El botón ⇄ cambia entre vertical y horizontal;
+          «A medida…» permite escribir ancho:alto. Las proporciones fijan el encuadre,
+          no cambian por sí solas la resolución de salida. «Guía» superpone una ayuda de
           composición sobre el marco mientras se ajusta: «Tercios» (la retícula clásica)
           o «Áurea» (las mismas dos líneas por eje, pero a la proporción del rectángulo
           áureo en vez de a un tercio exacto). Con el marco ya movido, cambiar a

@@ -146,14 +146,20 @@ function buildControl(o){
     // se guarda uno nuevo, y la barra se reconstruye entera en cada
     // tool:options—.
     const items = typeof o.items === "function" ? o.items() : o.items;
-    for(const [val, label] of items){
-      const op = document.createElement("option");
-      op.value = val; op.textContent = label;
-      if(val === FONT_SEPARATOR){ op.disabled = true; s.appendChild(op); continue; }
-      // Ver la fuente en la propia lista ahorra el ensayo y error
-      if(o.key === "fontFamily") op.style.fontFamily = val;
-      s.appendChild(op);
+    for(const item of items){
+      const group = item.group ? document.createElement("optgroup") : null;
+      if(group) group.label = item.group;
+      for(const [val, label] of group ? item.items : [item]){
+        const op = document.createElement("option");
+        op.value = val; op.textContent = label;
+        if(val === FONT_SEPARATOR) op.disabled = true;
+        // Ver la fuente en la propia lista ahorra el ensayo y error
+        if(o.key === "fontFamily") op.style.fontFamily = val;
+        (group || s).appendChild(op);
+      }
+      if(group) s.appendChild(group);
     }
+    if(o.key === "cropRatio") s.style.maxWidth = "min(48vw,260px)";
     if(o.key === "fontFamily"){
       s.style.minWidth = "128px";
       for(const [v, l] of [[GOOGLE_OTHER, MORE_FONTS_LABEL], [LOAD_FONT, "Cargar fuente desde archivo…"]]){

@@ -493,8 +493,31 @@ export const TOOLS = [
     cursor:"crosshair",
     options:[
       {type:"select", key:"cropRatio", label:"Proporción", rerender:true, items:[
-        ["free","Libre"],["orig","Original"],["1:1","1:1"],["4:3","4:3"],
-        ["3:2","3:2"],["16:9","16:9"],["9:16","9:16"],["2:3","2:3"],
+        ["free","Libre"],["orig","Original"],
+        {group:"Clásicas",items:[
+          ["1:1","1:1 · cuadrado"],["4:3","4:3 · foto / monitor"],
+          ["3:2","3:2 · fotografía / portátil"],["16:9","16:9 · vídeo / pantalla"],
+          ["9:16","9:16 · historia / vídeo vertical"],["2:3","2:3 · Pinterest / foto"]
+        ]},
+        {group:"Redes sociales",items:[
+          ["4:5","4:5 · Instagram vertical"],["3:4","3:4 · publicación vertical"],
+          ["191:100","1,91:1 · enlace horizontal"],["5:4","5:4 · publicación horizontal"],
+          ["2:1","2:1 · cabecera / X"],["3:1","3:1 · portada / banner"],
+          ["4:1","4:1 · banner panorámico"]
+        ]},
+        {group:"Móviles (ancho:alto)",items:[
+          ["9:18","9:18 · pantalla clásica"],["9:19","9:19 · pantalla alta"],
+          ["18:39","9:19,5 · pantalla alta"],["9:20","9:20 · pantalla actual"],
+          ["18:41","9:20,5 · pantalla larga"],["9:21","9:21 · pantalla larga"],
+          ["9:22","9:22 · pantalla extralarga"],
+          ["1179:2556","1179:2556 · iPhone 16"],
+          ["1080:2340","1080:2340 · Galaxy S25"],
+          ["1080:2424","1080:2424 · Pixel 9"]
+        ]},
+        {group:"Pantallas de PC",items:[
+          ["16:10","16:10 · portátil"],["17:9","17:9 · cine digital"],
+          ["21:9","21:9 · ultrapanorámica"],["32:9","32:9 · superultrapanorámica"]
+        ]},
         ["custom","A medida…"]
       ]},
       {type:"number", key:"cropW", label:"", min:1, max:9999, width:52,
@@ -503,7 +526,7 @@ export const TOOLS = [
       {type:"number", key:"cropH", label:"", min:1, max:9999, width:52,
        showIf:() => state.cropRatio === "custom"},
       {type:"button", label:"⇄", title:"Girar la proporción", cmd:"crop.swap",
-       showIf:() => state.cropRatio === "custom"},
+       showIf:() => state.cropRatio !== "free" && state.cropRatio !== "orig"},
       {type:"select", key:"cropGuide", label:"Guía", items:[
         ["thirds","Tercios"],["golden","Áurea"],["none","Ninguna"]
       ]},

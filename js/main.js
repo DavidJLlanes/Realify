@@ -397,6 +397,11 @@ registerAll({
   "pen.undoPoint": { run: () => penUndoPoint(), enabled: () => current.id === "pen" },
   "pen.cancel": { run: () => setTool("move", { auto:true }), enabled: () => current.id === "pen" },
   "crop.swap":   { run: () => {
+      if(toolState.cropRatio !== "custom"){
+        const [w, h] = toolState.cropRatio.split(":").map(Number);
+        toolState.cropW = w; toolState.cropH = h;
+        toolState.cropRatio = "custom";
+      }
       const w = toolState.cropW; toolState.cropW = toolState.cropH; toolState.cropH = w;
       emit("tool:options");
       reflowCrop();
