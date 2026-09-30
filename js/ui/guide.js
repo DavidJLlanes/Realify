@@ -677,10 +677,18 @@ const TOPICS = [
           la luz aplicada a la intensidad de cada color (sin sobresaturar ni cambiar el tono),
           mapeo de gama y tramado. Contraste y Niveles Premium quedan como capa de Niveles que
           puedes reabrir para afinarla.</li>
+        <li id="adj-lowlight"><b>Iluminar foto oscura</b> (Ajustes › Automáticos y cajón). Para fotos
+          subexpuestas o de interior: calcula cuánta luz llega a cada zona y levanta cada una según
+          la suya, así las sombras se abren y lo que ya estaba bien iluminado apenas cambia (en una
+          foto bien expuesta no hace nada). La cantidad es automática; <b>Intensidad</b> la gradúa
+          (60 % = automático). Con <b>Premium 👑</b> se hace en luz lineal sin virar los colores, con
+          el mapa de luz ajustado a los bordes (sin halos), el negro devuelto a su sitio para que
+          no quede lavado, el ruido de color de las sombras limpiado y tramado. Queda como capa
+          que puedes reabrir.</li>
       </ul>` },
 
   { id:"ia", title:"Inteligencia Artificial (menú)",
-    desc:"Selección con un toque, Borrador mágico y caras 👑, fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
+    desc:"Selección con un toque, Borrador mágico, caras y profundidad 👑, fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
     html:`
       <h3>Inteligencia Artificial (menú Inteligencia Artificial)</h3>
       <p>Todas las herramientas de IA están juntas en este menú (tras Filtro) y, en el móvil,
@@ -692,6 +700,7 @@ const TOPICS = [
           Reemplazar cielo.</li>
         <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑 y Ojos rojos 👑.</li>
         <li><b>Encuadre:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
+        <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑 y Foto 3D 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
           artefactos JPEG con IA, Colorear con IA y Adaptive Photo Lens.</li>
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
@@ -738,6 +747,19 @@ const TOPICS = [
           nueva. <b>Recorte de retrato</b> abre Recortar con el marco ya encuadrado (ojos en el
           tercio superior, cabeza y hombros; 4:5 si el formato era libre): ajústalo y pulsa
           Aplicar.</li>
+        <li id="ia-depth"><b>Profundidad 👑.</b> La IA (Depth Anything V2) calcula lo cerca o lejos que
+          está cada punto de la foto y ajusta ese mapa a los bordes reales de la imagen (la
+          primera vez descarga el modelo, 50 MB). <b>Desenfoque por profundidad</b>: toca donde
+          quieres enfocar (de entrada, el sujeto que sobresale del fondo); lo que está más cerca o
+          más lejos se desenfoca según su distancia, como con un objetivo luminoso. Mandos:
+          Desenfoque y Zona nítida. Se hace por capas de distancia en luz lineal sin que lo
+          nítido se derrame sobre el fondo (sin halos alrededor de las personas), las luces
+          intensas se abren en «bokeh» y se devuelve el grano de la foto; capa nueva.
+          <b>Niebla por distancia</b>: bruma que crece con la distancia (Densidad, Empieza a,
+          Color: automático —el de lo más lejano—, blanca, cálida o fría), tramada para que no
+          haga escalones en el cielo; capa nueva. <b>Foto 3D</b>: anima la foto con paralaje (lo
+          cercano se mueve más que lo lejano) en círculo, de lado o acercándose, rellenando lo
+          que se destapa con el fondo, y la guarda como <b>GIF</b>.</li>
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",
@@ -1477,7 +1499,7 @@ const TOPICS = [
           contraste sólo si la foto está plana. Los dos quedan como
           capa de filtro (también en Ajustes › Automáticos). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
-          Tono y color, Tono y color Premium 👑, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
+          Tono y color, Tono y color Premium 👑, Contraste, Contraste Premium 👑, Niveles, Niveles Premium 👑, Iluminar foto oscura e Iluminar Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
           demás categorías (Inteligencia Artificial, Mejorar, Corregir, Color, Estilo, Efectos, Retoque,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la

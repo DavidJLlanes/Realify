@@ -10,6 +10,21 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Profundidad Premium 👑** (Inteligencia Artificial › Profundidad y cajón), con Depth Anything
+  V2 Small (Apache 2.0, convertido a fp16: 50 MB servidos por la web, descargados al usarlo con
+  aviso y guardados en IndexedDB). El mapa se amplía y se ajusta a los bordes de la foto con un
+  filtro guiado:
+  - **Desenfoque por profundidad**: toca dónde enfocar (por defecto, el sujeto que sobresale del
+    fondo); 6 capas de desenfoque en luz lineal con convolución normalizada (sin halos),
+    bokeh en las luces intensas y el grano original devuelto. Capa nueva.
+  - **Niebla por distancia**: densidad, inicio y color (automático, blanca, cálida, fría), en
+    luz lineal y tramada. Capa nueva.
+  - **Foto 3D**: paralaje en círculo, lateral o acercándose, con los huecos rellenos con el
+    fondo; se guarda como GIF (30 fotogramas, 720 px).
+- **Iluminar foto oscura** (Ajustes › Automáticos y cajón), con versión Premium 👑: mapa de
+  iluminación tipo LIME/Retinex con cantidad automática; Premium en luz lineal conservando la
+  proporción de canales, mapa con filtro guiado, punto negro recuperado, ruido de color de las
+  sombras limpiado y tramado. Capa de filtro que se reabre.
 - **Enderezar automáticamente** (menú Imagen y cajón › Corregir): mide todas las líneas casi
   horizontales y casi verticales (nitidez de la proyección a 1024 px, cada 0,1°, afinado con
   parábola), exige que las dos familias coincidan o que una domine con claridad y que haya

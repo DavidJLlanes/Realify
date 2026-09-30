@@ -256,6 +256,11 @@ tiempo real mientras se pinta.
   cara), **Retoque de cara** (piel, ojos, dientes y labios por separado, con
   BiSeNet), **Ojos rojos** automático y **Recorte de retrato** (Recortar con el
   marco ya encuadrado en la cara).
+- **Profundidad 👑** (Premium, Inteligencia Artificial › Profundidad, con Depth
+  Anything V2 Small, Apache 2.0, 50 MB que se descargan al usarlo):
+  **Desenfoque por profundidad** (toca dónde enfocar; por capas de distancia,
+  sin halos y con bokeh en las luces), **Niebla por distancia** y **Foto 3D**
+  (animación con paralaje guardada como GIF).
 - **Eliminar fondo** con IA local (U²-Net rápido, MODNet para retratos, ISNet
   de máxima calidad) o por color de los bordes: el recorte va a una capa nueva
   y la original se oculta.
@@ -333,7 +338,8 @@ luminosidad, color por canales, equilibrio de color, corrección selectiva,
 mezclador de canales y mapa de degradado.
 
 **Automáticos** (primer submenú de Ajustes): mejora automática, tono/color,
-contraste y niveles automáticos, cada uno con su versión Premium 👑. Antes de
+contraste y niveles automáticos e **Iluminar foto oscura** (abre las sombras
+según la luz de cada zona, tipo LIME/Retinex), cada uno con su versión Premium 👑. Antes de
 corregir diagnostican la foto (dominante de color con confianza, luces ya
 quemadas, brillos aislados, exposición fuera de rango, colores extremos
 neutros) y respetan lo que es intencionado: la luz cálida, una escena de un
@@ -569,7 +575,7 @@ y abre `http://localhost:8080`.
 | Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU |
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
-| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet) |
+| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any) |
 | App | Service worker, Web App Manifest, IndexedDB |
 
