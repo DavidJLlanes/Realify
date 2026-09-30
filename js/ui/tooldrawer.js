@@ -84,6 +84,7 @@ const ITEMS = [
   { cmd:"adj.autoToneColor",     label:"Tono y color auto.",   ic:"wand",                  cat:"mejorar color" },
   { cmd:"adj.auto",              label:"Contraste auto.",      ic:"contrast",              cat:"mejorar" },
   { cmd:"adj.autoLevels",        label:"Niveles auto.",        ic:"chart-column",          cat:"mejorar" },
+  { cmd:"adj.autoLevelsPremium", label:"Niveles auto. Premium", ic:"chart-column", premium:true, cat:"mejorar" },
   { cmd:"adj.colorGrading",      label:"Gradación de color",   ic:"palette",               cat:"color estilo" },
   { cmd:"adj.splitToning",       label:"Virado dividido",      ic:"blend",                 cat:"color estilo" },
   { cmd:"adj.photoFilter",       label:"Filtro fotográfico",   ic:"funnel",                cat:"color estilo" },
@@ -356,10 +357,10 @@ function renderGrid(){
   for(const it of items){
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "td-item" + (it.auto === "premium" ? " td-auto td-auto-premium" : it.auto ? " td-auto" : "");
+    b.className = "td-item" + (it.auto === "premium" ? " td-auto td-auto-premium" : it.auto ? " td-auto" : "") + (it.premium ? " td-premium" : "");
     b.disabled = !isEnabled(it);
     if(it.tool && !it.cmd && current && current.id === it.tool) b.classList.add("on");
-    b.innerHTML = `<span class="td-ic" aria-hidden="true">${iconFor(it)}${it.auto === "premium" ? `<span class="td-crown">${crownIcon(13)}</span>` : ""}</span><span class="td-label">${it.label}</span>`;
+    b.innerHTML = `<span class="td-ic" aria-hidden="true">${iconFor(it)}${it.auto === "premium" || it.premium ? `<span class="td-crown">${crownIcon(13)}</span>` : ""}</span><span class="td-label">${it.label}</span>`;
     b.addEventListener("click", () => activate(it));
     gridEl.appendChild(b);
   }

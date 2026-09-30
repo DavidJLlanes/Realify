@@ -11,6 +11,7 @@ import { toast } from "../ui/toast.js";
 import { isMobile } from "../core/device.js";
 import { premiumSwitch, premiumPref } from "../ui/premium.js";
 import { hslPremium } from "./hslpremium.js";
+import { applyLevelsPremium, applyCurvesPremium, autoLevelsState, autoCurvePoints } from "./tonepremium.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
          drawHistogram, slider, histogram, pickerGroup, liftImageAbove } from "./adjust.js";
 import { curveEditor, curveLut, curveThumb, CHANNEL_COLORS, CURVE_PRESETS, userCurvePresets, saveUserCurvePresets, applyCurves } from "./curves.js";
@@ -502,18 +503,21 @@ export function buildBC({ brightness, contrast }){
 const mkLevelState = () => ({ inLow:0, inHigh:255, gamma:1, outLow:0, outHigh:255 });
 
 export function levels(opts = {}){
-  const state = { channel:"rgb", ch: { rgb:mkLevelState(), r:mkLevelState(), g:mkLevelState(), b:mkLevelState() } };
+  // Una capa ya hecha conserva su motor; un ajuste nuevo, la última elección
+  const state = { channel:"rgb", premium: opts.init ? !!opts.init.premium : premiumPref.get("levels"),
+                  ch: { rgb:mkLevelState(), r:mkLevelState(), g:mkLevelState(), b:mkLevelState() } };
   if(opts.init?.ch) for(const k of ["rgb","r","g","b"]) Object.assign(state.ch[k], opts.init.ch[k] || {});
 
   return runAdjust({
     title: "Niveles",
     wide: true,
     asLayer: true, filterId: "levels", filterParams: state,
-    compute(data){
+    compute(data, w, h){
+      if(state.premium){ applyLevelsPremium(data, state, { fast: w * h < doc.w * doc.h * 0.98 }); return; }
       const lut = buildLevelsByChannel(state);
       applyLut(data, lut);
     },
-    buildBody({ hist, preview }){
+    buildBody({ hist, preview, source }){
       const box = document.createElement("div");
       box.innerHTML = `
         <div class="field"><label>Canal</label>
@@ -574,7 +578,19 @@ export function levels(opts = {}){
          luminancia general, incluso ajustando Rojo o Azul). Sin ese
          recorte, un solo píxel perdido a negro o a blanco anula el
          ajuste entero. */
+      /* Premium: el automático mide los colores más oscuros y más claros
+         de la foto y ajusta los tres canales y los medios de una vez
+         (tonepremium.js › autoLevelsState). */
       box.querySelector("#lvAuto").addEventListener("click", () => {
+        if(state.premium && source){
+          const k = Math.min(1, 800 / Math.max(source.width, source.height)), c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(source.width * k)); c.height = Math.max(1, Math.round(source.height * k));
+          const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(source, 0, 0, c.width, c.height);
+          const auto = autoLevelsState(x.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+          for(const ch of ["rgb", "r", "g", "b"]) Object.assign(state.ch[ch], auto.ch[ch]);
+          syncControls(); preview();
+          return;
+        }
         const arr = state.channel === "rgb" ? hist.l : hist[state.channel];
         let total = 0;
         for(let i = 0; i < 256; i++) total += arr[i];
@@ -589,6 +605,10 @@ export function levels(opts = {}){
         preview();
       });
 
+      const sw = premiumSwitch({ checked: state.premium, title: "Niveles de alta calidad: coma flotante sin bandas, maestro sin cambiar el tono, automático que neutraliza dominantes (función Premium)",
+        onChange: on => { state.premium = on; premiumPref.set("levels", on); preview(); } });
+      sw.classList.add("adj-premium");
+      if(isMobile()){ sw.classList.add("ps-docked"); box.footStart = sw; } else box.prepend(sw);
       return box;
     }
   }, opts);
@@ -667,7 +687,9 @@ export function curves(opts = {}){
     link: false,      // luminosidad y color vinculadas
     mix: 50,          // reparto con vínculo: 0 = sólo color, 100 = sólo luminosidad
     view: "one",      // "one" (un editor) o "rgb3" (tres paneles R · G · B)
-    preset: null      // último estilo aplicado sin retocar después (sólo informativo)
+    preset: null,     // último estilo aplicado sin retocar después (sólo informativo)
+    // Premium 👑: una capa ya hecha conserva su motor; uno nuevo, la última elección
+    premium: opts.init ? !!opts.init.premium : premiumPref.get("curves")
   };
   if(opts.init?.points) for(const k of CH)
     if(Array.isArray(opts.init.points[k])) state.points[k] = opts.init.points[k].map(pt => [pt[0], pt[1]]);
@@ -686,7 +708,7 @@ export function curves(opts = {}){
     wide: true,
     asLayer: true, filterId: "curves", filterParams: state,
     fullscreen,
-    compute(data){ applyCurves(data, state); },
+    compute(data, w, h){ if(state.premium) applyCurvesPremium(data, state, { fast: w * h < doc.w * doc.h * 0.98 }); else applyCurves(data, state); },
     buildBody({ hist, preview, source }){
       if(fullscreen) return curvesFullscreen({ state, hist, preview, source, title: "Curvas", edit: !!opts.edit });
       const box = document.createElement("div");
@@ -999,6 +1021,20 @@ export function autoLevels(opts = {}){
     };
     applyLut(data, { r: stretchOf(0), g: stretchOf(1), b: stretchOf(2) });
   }, { asLayer: true, filterId: "autoLevels" }, opts);
+}
+
+/* Niveles automáticos Premium 👑: mide la foto (tonepremium.js), aplica
+   Niveles con el motor Premium y lo deja como una capa de filtro
+   «Niveles» normal, así que el doble clic en su «fx» abre Niveles con
+   esos valores para afinarlos. */
+export function autoLevelsPremium(opts = {}){
+  let state = null;
+  const params = {};
+  return applyDirect("Niveles automáticos Premium", (data, w, h) => {
+    state = autoLevelsState(data, w, h);
+    Object.assign(params, state);
+    applyLevelsPremium(data, state);
+  }, { asLayer: true, filterId: "levels", filterParams: params }, opts);
 }
 
 /* ── tono y saturación ────────────────────────────────────────── */

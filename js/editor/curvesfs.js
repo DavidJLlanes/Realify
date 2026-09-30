@@ -20,6 +20,8 @@
 import { curveEditor, curveThumb, CHANNEL_COLORS, CURVE_PRESETS, userCurvePresets, saveUserCurvePresets, applyCurves } from "./curves.js";
 import { anyDialogOpen, promptDlg } from "../ui/dialog.js";
 import { toast } from "../ui/toast.js";
+import { premiumSwitch, premiumPref, dockPremium } from "../ui/premium.js";
+import { autoCurvePoints } from "./tonepremium.js";
 
 const MOBILE = "(max-width:900px)";
 const CH = ["rgb", "r", "g", "b", "lum"];
@@ -33,8 +35,13 @@ const copyPts = p => p.map(q => [q[0], q[1]]);
 export function curvesFullscreen({ state, hist, preview, source, title = "Curvas", edit = false }){
   let resolve = null, closed = false, comparing = false, frame = 0, layer = null;
 
+  /* Interruptor Premium 👑 (móvil: arriba a la izquierda, junto a ✕;
+     se coloca al presentar el editor, ver present()) */
+  const premium = premiumSwitch({ checked: !!state.premium, title: "Curvas de alta calidad: coma flotante sin bandas, curva maestra sin cambiar el tono ni sobresaturar (función Premium)",
+    onChange: on => { state.premium = on; premiumPref.set("curves", on); commit(); preview(); } });
+
   /* ── Deshacer / rehacer propios del editor ── */
-  const snap = () => JSON.stringify({ points: state.points, link: state.link, mix: state.mix, preset: state.preset });
+  const snap = () => JSON.stringify({ points: state.points, link: state.link, mix: state.mix, preset: state.preset, premium: !!state.premium });
   let last = snap();
   const past = [], future = [];
   const commit = () => {
@@ -47,6 +54,7 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
     const o = JSON.parse(json);
     for(const k of CH) state.points[k] = o.points[k] ? copyPts(o.points[k]) : ID();
     state.link = o.link; state.mix = o.mix; state.preset = o.preset;
+    if(state.premium !== !!o.premium){ state.premium = !!o.premium; premiumPref.set("curves", state.premium); premium?.set(state.premium); }
     last = json; refreshAll(); preview();
   };
   const undo = () => { if(!past.length) return; future.push(snap()); restoreSnap(past.pop()); syncActions(); };
@@ -129,13 +137,14 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
         <div class="cvf-slot-host"></div>
         <div class="cvf-seg cvf-view"><button type="button" data-view="one">Un panel</button><button type="button" data-view="rgb3">R · G · B a la vez</button></div>
         <div class="cvf-slot-link"></div>
-        <div class="cvf-seg cvf-resets"><button type="button" data-a="reset">Restablecer canal</button><button type="button" data-a="resetAll">Restablecer todo</button></div>
+        <div class="cvf-seg cvf-resets"><button type="button" data-a="auto" title="Calcula una curva para esta foto (negro, blanco y medios; con Premium, también neutraliza las dominantes)">Automático</button><button type="button" data-a="reset">Restablecer canal</button><button type="button" data-a="resetAll">Restablecer todo</button></div>
         <p class="cvf-note">Clic para añadir un punto y arrastrar para moverlo. Para quitarlo: clic derecho, doble clic o arrastrarlo fuera del cuadro. Las demás curvas se ven en tenue y el histograma de la imagen, detrás.</p>
       </aside>
     </main>
     <footer class="cvf-mobile">
       <div class="cvf-row">
         <div class="cvf-pick"><select aria-hidden="true" tabindex="-1"><option></option></select><button type="button" class="cvf-pick-hit" aria-haspopup="dialog"></button></div>
+        <button type="button" class="cvf-icon cvf-auto" data-a="auto" aria-label="Curva automática" title="Curva automática">Auto</button>
         <button type="button" class="cvf-icon" data-a="reset" aria-label="Restablecer canal">⟲</button>
       </div>
       <div class="cvf-mslot-channels"></div>
@@ -249,6 +258,20 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
     state.preset = id;
     commit(); refreshAll(); preview();
   };
+  /* Automático: curva calculada para la foto (tonepremium.js). Normal:
+     sólo la maestra; Premium: además, cada canal (neutraliza dominantes). */
+  const autoCurve = () => {
+    if(!source) return;
+    const k = Math.min(1, 800 / Math.max(source.width, source.height)), c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(source.width * k)); c.height = Math.max(1, Math.round(source.height * k));
+    const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(source, 0, 0, c.width, c.height);
+    const pts = autoCurvePoints(x.getImageData(0, 0, c.width, c.height).data, c.width, c.height, !!state.premium);
+    for(const ch of CH) state.points[ch] = copyPts(pts[ch]);
+    if(state.link) state.points.lum = copyPts(state.points.rgb);
+    state.preset = null;
+    commit(); refreshAll(); preview();
+    toast(state.premium ? "Curva automática Premium" : "Curva automática", "ok");
+  };
   const deletePreset = id => {
     saveUserCurvePresets(userCurvePresets().filter(u => u.id !== id));
     if(state.preset === id) state.preset = null;
@@ -325,6 +348,7 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
     if(a === "undo") undo();
     else if(a === "redo") redo();
     else if(a === "accept") finish("go");
+    else if(a === "auto") autoCurve();
     else if(a === "reset"){ setPts(state.channel, ID()); commit(); refreshAll(); }
     else if(a === "resetAll"){ for(const k of CH) state.points[k] = ID(); state.preset = null; commit(); refreshAll(); preview(); }
     else if(a === "save") savePreset();
@@ -452,6 +476,7 @@ export function curvesFullscreen({ state, hist, preview, source, title = "Curvas
       layer = l;
       $(".cvf-sub").textContent = l?.name ? `Capa: ${l.name}` : "";
       document.body.appendChild(root);
+      dockPremium(premium, { mobile: sw => root.querySelector(".cvf-close").after(sw), desktop: sw => root.querySelector(".cvf-actions").prepend(sw) });
       document.addEventListener("keydown", onKey, true);
       mq.addEventListener?.("change", onMq);
       observer.observe(stage);

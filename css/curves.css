@@ -76,7 +76,8 @@
   .cvf-stage{position:absolute;inset:0;background:#050608}
   .cvf-compare{left:10px;bottom:10px;min-height:38px;background:#000a}
   .cvf-mobile{display:grid;gap:8px;padding:9px 12px max(9px,env(safe-area-inset-bottom));background:#13161a;border-top:1px solid #343a43}
-  .cvf-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .cvf-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px}
+  .cvf-auto{font-size:14px!important;font-weight:700;padding:0 10px!important}
   .cvf-pick{position:relative;min-width:0}
   .cvf-pick select{width:100%;height:42px;box-sizing:border-box;border-radius:7px;border:1px solid #3f4855;background:#222831;color:#eef3ff;padding:0 10px;font:14px var(--sans,system-ui,sans-serif)}
   .cvf-pick-hit{position:absolute;inset:0;width:100%;padding:0;background:transparent;border:0;border-radius:7px;cursor:pointer;-webkit-tap-highlight-color:transparent}

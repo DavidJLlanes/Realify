@@ -694,6 +694,9 @@
   }
   .td-item.td-auto-premium .td-ic{background:linear-gradient(135deg,#b8860b,#f0c24b);color:#241a05}
   .td-item.td-auto-premium .td-label{color:#ffe9a8}
+  /* Otras funciones Premium de la rejilla: corona sobre el icono */
+  .td-item.td-premium .td-ic{position:relative}
+  .td-item.td-premium .td-label{color:#ffe9a8}
   .td-crown{
     position:absolute;top:-7px;right:-9px;display:flex;
     padding:2px;border-radius:50%;background:#241f14;color:#f0c24b;

@@ -10,6 +10,23 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Curvas y Niveles Premium 👑** (`js/editor/tonepremium.js`): coma flotante sin los redondeos
+  intermedios de las tablas de 8 bits; la curva o los niveles MAESTROS (RGB) se aplican a la
+  intensidad de cada color y no canal a canal, así que una curva en S ya no cambia el tono (de
+  2-4° en el modo normal a 0-0,2°) ni sobresatura; curva de Luminosidad en luz lineal; mapeo de
+  gama y tramado. Los de cada canal siguen siendo canal a canal. Vista previa con tabla de 33³
+  colores; el resultado final, exacto.
+- **Automáticos**: el botón «Automático» de Niveles en Premium mide los colores más oscuros y
+  más claros de la foto (el 0,1 % de cada extremo) y ajusta los tres canales y los medios de una
+  vez (neutraliza dominantes; una foto azulada pasa de 98/110/143 a 110/113/118 de media). Nuevo
+  **«Niveles automáticos Premium 👑»** (Ajustes › Ajustes automáticos y cajón del móvil, con
+  corona): lo mismo de un toque, como capa de Niveles reeditable. **Curvas** gana un botón
+  **«Automático»** («Auto» en el móvil): negro, blanco y medios; en Premium también neutraliza
+  las dominantes por canal.
+- En Curvas el interruptor Premium va arriba a la izquierda, junto a ✕; en Niveles, a la
+  izquierda de Cancelar/Aplicar.
+
+### Añadido
 - **Sombras / Iluminaciones Premium 👑** (con Radio y Tono): el entorno de cada píxel se mide
   con un filtro guiado sobre L* que no cruza los bordes, así que una silueta oscura contra un
   cielo claro ya no queda con una banda oscura arriba y una neblina abajo, como en el modo

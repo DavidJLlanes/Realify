@@ -530,10 +530,17 @@ const TOPICS = [
           histograma; es lo primero que conviene tocar en una foto plana. Cada canal
           (RGB, Rojo, Verde, Azul) guarda sus propios valores por separado —cambiar de
           canal en el desplegable no pierde lo ya ajustado en el anterior—, y el
-          maestro RGB se aplica encima de los tres, igual que en Curvas.</li>
+          maestro RGB se aplica encima de los tres, igual que en Curvas. Con <b>Premium 👑</b>
+          todo se calcula en coma flotante, el maestro RGB ya no cambia el tono ni sobresatura
+          (se aplica a la intensidad de cada color, no canal a canal) y <b>Automático</b> busca
+          los colores más oscuros y más claros de la foto para neutralizar las dominantes y
+          ajusta los medios. «Niveles automáticos Premium 👑» (Ajustes y cajón) hace lo mismo de
+          un toque y deja una capa de Niveles que puedes afinar.</li>
         <li id="adj-curves"><b>Curvas</b> (<kbd>Ctrl</kbd>+<kbd>M</kbd>). Control punto a punto de toda
           la gama tonal. Clic añade un punto, arrastrar lo mueve, clic derecho o doble clic
-          lo quita.
+          lo quita. <b>Automático</b> (o «Auto» en el móvil) calcula una curva para la foto:
+          negro, blanco y medios; con <b>Premium 👑</b> también neutraliza las dominantes. En
+          Premium la curva RGB no cambia el tono ni sobresatura y todo va en coma flotante.
           <ul>
             <li><b>Cinco curvas:</b> RGB (color), Rojo, Verde, Azul y <b>Luminosidad</b>. La
               de luminosidad cambia sólo el brillo, sin tocar tono ni saturación: una curva

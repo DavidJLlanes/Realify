@@ -670,6 +670,8 @@ registerAll({
                       enabled: needsDoc },
   "adj.autoLevels": { run: async () => (await import("./editor/adjustments.js")).autoLevels(),
                       enabled: needsDoc },
+  "adj.autoLevelsPremium": { run: async () => (await import("./editor/adjustments.js")).autoLevelsPremium(),
+                      enabled: needsDoc },
   "adj.autoEnhance": { run: async () => (await import("./editor/autoenhance.js")).autoEnhance(),
                       enabled: needsDoc },
   "adj.autoEnhancePremium": { run: async () => (await import("./editor/autoenhance.js")).autoEnhancePremium(),

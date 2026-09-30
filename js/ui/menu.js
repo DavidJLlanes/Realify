@@ -274,7 +274,8 @@ export const MENUS = [
     { cmd:"adj.grayscale",  label:"Blanco y negro" },
     { cmd:"adj.invert",     label:"Invertir" },
     { cmd:"adj.auto",       label:"Contraste automático" },
-    { cmd:"adj.autoLevels", label:"Niveles automáticos" }
+    { cmd:"adj.autoLevels", label:"Niveles automáticos" },
+    { cmd:"adj.autoLevelsPremium", label:"Niveles automáticos Premium 👑" }
   ]},
   { label:"Filtro", items:[
     { label:"Especiales", submenu:[
