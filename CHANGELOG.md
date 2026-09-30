@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Realify Premium 👑
+- El filtro **Realify** tiene modo Premium con los mismos mandos: interruptor con la corona
+  en su barra (móvil: junto a ✕; escritorio: junto a Aplicar) y entrada «Realify Premium 👑»
+  en el menú Inteligencia Artificial y en el cajón. Bueno: toda la cadena en coma flotante de
+  32 bits (antes 16) y luces con hombro suave que conserva la proporción entre canales. Mejor:
+  tinte y saturación en OKLab con mapeo de gama por croma (sin virar ni recortar colores) y
+  tramado triangular al pasar a 8 bits. Se guarda en la capa de filtro, entra en
+  deshacer/rehacer y se usa también al recalcular sin ventana. Apagado, idéntico a antes.
+
 ### Corrección de carga
 - La guía de exportación vuelve a inicializarse sin interrumpir el arranque
   de la aplicación.

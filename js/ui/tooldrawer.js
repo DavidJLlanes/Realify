@@ -111,6 +111,7 @@ const ITEMS = [
 
   /* ── Filtro: especiales ── */
   { cmd:"filter.camera",    label:"Realify",          cat:"ia" },
+  { cmd:"filter.cameraPremium", label:"Realify Premium", premium:true, cat:"ia" },
   { cmd:"filter.photoDevelop", label:"Revelado fotográfico", ic:"sliders-horizontal", cat:"mejorar color" },
   { cmd:"filter.vintage",   label:"Filtro Vintage",   ic:"camera",             cat:"estilo efectos" },
   { cmd:"filter.purepixel", label:"PurePixel",        cat:"ia" },

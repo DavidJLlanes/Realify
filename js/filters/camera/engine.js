@@ -12,7 +12,7 @@
 import { VS, PRE, SH } from "./shaders.js";
 import { CHAIN, CHAIN_BY_ID } from "./chain.js";
 
-let gl = null, glCanvas = null, floatOK = false;
+let gl = null, glCanvas = null, floatOK = false, float32OK = false, premium = false;
 let PROG = {}, quadVAO = null, srcTex = null;
 let fbFull = [], fbHalf = [], fbQ = [], fbE = [], fbCache = null;
 let fbWork = [], fbResample = null, sourceCanvas = null;
@@ -26,6 +26,21 @@ export function available(){
 export function lastError(){ return initError; }
 export function hasFloat(){ return floatOK; }
 
+/* Motor Premium 👑 («el bueno y el mejor»), con los mismos mandos:
+     · Bueno: toda la cadena en coma flotante de 32 bits (en vez de 16)
+       y luces con hombro suave que conserva el tono.
+     · Mejor: tinte y saturación en OKLab con mapeo de gama (sin virar
+       ni recortar colores) y tramado al pasar a 8 bits.
+   Apagado, el filtro queda exactamente igual que antes. */
+export function setPremium(on){
+  on = !!on;
+  if(on === premium) return;
+  premium = on;
+  if(gl && W && H) allocate(W, H);
+  invalidateCache();
+}
+export const isPremium = () => premium;
+
 function ensure(){
   if(ready) return;
   ready = true;
@@ -34,6 +49,8 @@ function ensure(){
   if(!gl){ initError = "Este navegador no expone WebGL2."; return; }
   floatOK = !!gl.getExtension("EXT_color_buffer_float") ||
             !!gl.getExtension("EXT_color_buffer_half_float");
+  // Premium: intermedios de 32 bits si se pueden pintar y filtrar
+  float32OK = !!gl.getExtension("EXT_color_buffer_float") && !!gl.getExtension("OES_texture_float_linear");
   try{ initGL(); }
   catch(err){ initError = String(err.message || err); }
 
@@ -86,8 +103,9 @@ function initGL(){
 function makeFBO(w, h){
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
-  const internal = floatOK ? gl.RGBA16F : gl.RGBA8;
-  const type     = floatOK ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE;
+  const f32 = premium && float32OK;
+  const internal = f32 ? gl.RGBA32F : floatOK ? gl.RGBA16F : gl.RGBA8;
+  const type     = f32 ? gl.FLOAT : floatOK ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE;
   gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, gl.RGBA, type, null);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -101,7 +119,7 @@ function makeFBO(w, h){
 }
 
 export function vramEstimate(w, h){
-  const bpp = floatOK ? 8 : 4;
+  const bpp = premium && float32OK ? 16 : floatOK ? 8 : 4;
   // Cota superior: incluye los buffers opcionales de remuestreo y ondículas.
   return w * h * bpp * (7 + 2*0.25 + 2*0.0625 + 2*0.015625);
 }
@@ -160,6 +178,7 @@ function pass(name, target, inTex, uniforms, extraTex, thirdTex){
   gl.uniform2f(gl.getUniformLocation(p, "uRes"), res[0], res[1]);
   gl.uniform1f(gl.getUniformLocation(p, "uSeed"), seedValue);
   gl.uniform1f(gl.getUniformLocation(p, "uCamSeed"), camSeedValue);
+  gl.uniform1f(gl.getUniformLocation(p, "uPremium"), premium ? 1 : 0);
 
   for(const k in uniforms || {}){
     const loc = gl.getUniformLocation(p, k);
@@ -532,7 +551,7 @@ export function renderTo(ctx2d, stages, { dose = 1, solo = null, stable = false 
   }
   const from = (cacheValid && cacheIdx > 0) ? cacheIdx : 0;
   const cur = runChain(stages, dose, solo, from, STEPS.length);
-  pass("copy", null, cur.tex);
+  pass(premium ? "outDither" : "copy", null, cur.tex);
   if(stable && ctx2d.canvas.width===W && ctx2d.canvas.height===H){
     // La lectura explícita fija los bytes antes de medir/exportar; evita
     // diferencias de redondeo entre superficies Canvas aceleradas y de CPU.

@@ -402,7 +402,9 @@ curva fílmica, color en OKLab, TIFF de 16 bits— con la misma matemática en G
 Simulación de cámara en 31 etapas (óptica, sensor, procesador, archivo y
 metadatos) con presets, recomendaciones según la imagen y ajuste a partir de los
 datos EXIF. Editor a pantalla completa con zoom real hasta 1:1, comparación,
-histograma y espectro.
+histograma y espectro. Interruptor **Premium 👑** (y entrada «Realify Premium 👑»):
+los mismos mandos con la cadena en coma flotante de 32 bits, luces con hombro que
+conserva el tono, tinte y saturación en OKLab con mapeo de gama y tramado a 8 bits.
 
 ### Filtro Vintage — `vintagefilter/`
 42 parámetros en 7 grupos (virados, color —con blanco y negro ortocromático y

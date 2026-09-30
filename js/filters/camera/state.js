@@ -4,7 +4,7 @@ export function normalizeState(saved){
   /* `camSeed` identifica el sensor simulado y `seed` el disparo. Son
      dos cosas distintas a propósito: el patrón fijo del sensor debe
      repetirse en todas las fotos de esa cámara, y el grano no. */
-  const state = { stages: defaultStages(), seed: 1000, camSeed: 1000, dose: 100, solo: null };
+  const state = { stages: defaultStages(), seed: 1000, camSeed: 1000, dose: 100, solo: null, premium: false };
   if(!saved || typeof saved !== "object") return state;
   for(const s of CHAIN){
     const src = saved.stages?.[s.id], dst = state.stages[s.id];
@@ -22,6 +22,7 @@ export function normalizeState(saved){
   if(Number.isFinite(saved.seed)) state.seed = Math.round(Math.max(0, Math.min(99999, saved.seed)));
   if(Number.isFinite(saved.camSeed)) state.camSeed = Math.round(Math.max(0, Math.min(99999, saved.camSeed)));
   if(Number.isFinite(saved.dose)) state.dose = Math.max(0, Math.min(100, saved.dose));
+  if(typeof saved.premium === "boolean") state.premium = saved.premium;
   return state;
 }
 

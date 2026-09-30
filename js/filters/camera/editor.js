@@ -25,6 +25,7 @@ import { applyCpuStages, cpuStagesActive } from "./cpustages.js";
 import { spectrum } from "../../analysis/fft.js";
 import { toast } from "../../ui/toast.js";
 import * as engine from "./engine.js";
+import { premiumSwitch, premiumPref, dockPremium } from "../../ui/premium.js";
 
 const MOBILE = "(max-width:900px)";
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -41,9 +42,9 @@ export function openRealifyEditor({ source, state, title = "Realify", editing = 
   const wctx = work.getContext("2d", { willReadFrequently: true });
   let closed = false, accepting = false, showOriginal = false, onlyActive = false, memory = null, report = "";
   const history = [], future = [];
-  const snap = () => JSON.stringify({ stages: state.stages, seed: state.seed, camSeed: state.camSeed, dose: state.dose });
+  const snap = () => JSON.stringify({ stages: state.stages, seed: state.seed, camSeed: state.camSeed, dose: state.dose, premium: !!state.premium });
   const remember = () => { history.push(snap()); if(history.length > 60) history.shift(); future.length = 0; syncActions(); };
-  const restoreSnap = s => { Object.assign(state, normalizeState(JSON.parse(s))); state.solo = null; engine.invalidateCache(); syncAll(); schedule(); };
+  const restoreSnap = s => { Object.assign(state, normalizeState(JSON.parse(s))); state.solo = null; engine.setPremium(state.premium); premiumSw?.set(state.premium); engine.invalidateCache(); syncAll(); schedule(); };
 
   const presetOptions = () => `<option value="">Valores actuales</option><option value="${REC}">✦ Ajuste recomendado para esta foto</option>` +
     Object.keys(PRESETS).map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
@@ -100,6 +101,15 @@ export function openRealifyEditor({ source, state, title = "Realify", editing = 
     </footer>`;
   document.body.appendChild(root);
   const $ = s => root.querySelector(s);
+
+  /* Interruptor Premium 👑: mismos mandos con el motor de más calidad
+     (ver engine.setPremium). Móvil: junto a ✕; escritorio: junto a
+     Aplicar. */
+  engine.setPremium(!!state.premium);
+  const premiumSw = premiumSwitch({ checked: !!state.premium,
+    title: "Realify de alta calidad: cadena en coma flotante de 32 bits, luces sin virar, color en OKLab con mapeo de gama y tramado (función Premium)",
+    onChange: on => { remember(); state.premium = on; premiumPref.set("realify", on); engine.setPremium(on); schedule(); } });
+  dockPremium(premiumSw, { mobile: sw => $(".rf-close").after(sw), desktop: sw => $(".rf-actions").prepend(sw) });
   const stageCanvas = $(".rf-preview canvas"), sctx = stageCanvas.getContext("2d");
   const preview = $(".rf-preview");
 

@@ -566,6 +566,7 @@ registerAll({
       const m = await import("./filters/camera/ui.js");
       await m.openCamera();
     }, enabled: needsDoc },
+  "filter.cameraPremium": { run: async () => (await import("./filters/camera/ui.js")).openCamera({ premium: true }), enabled: needsDoc },
   "filter.photoDevelop": { run: async () => (await import("../raw/index.js")).openPhotoDevelop(),
     enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
   "filter.vintage": { run: async () => (await import("../vintagefilter/index.js")).openVintageFilter(),

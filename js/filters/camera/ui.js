@@ -36,7 +36,7 @@ try{
 function save(){
   try{ localStorage.setItem(LS_KEY, JSON.stringify({
     stages: filterState.stages, seed: filterState.seed,
-    camSeed: filterState.camSeed, dose: filterState.dose
+    camSeed: filterState.camSeed, dose: filterState.dose, premium: !!filterState.premium
   })); }catch{}
 }
 
@@ -390,6 +390,7 @@ async function renderHeadless(src, params){
   engine.invalidateCache();
   engine.setSeed(st.seed);
   engine.setCameraSeed(st.camSeed);
+  engine.setPremium(st.premium);
   if(!engine.setSource(src)) throw new Error("No se pudo preparar la GPU");
   engine.renderTo(cx, st.stages, { dose: st.dose / 100, stable: true });
   await applyCpuStages(c, st.stages, st.dose / 100, () => {});
@@ -409,7 +410,10 @@ export async function openCamera(opts = {}){
     const st = normalizeState(opts.init);
     filterState.stages = st.stages; filterState.seed = st.seed;
     filterState.camSeed = st.camSeed; filterState.dose = st.dose;
+    filterState.premium = st.premium;
   }
+  // «Realify Premium 👑» del menú y del cajón abre con el motor Premium
+  if(opts.premium) filterState.premium = true;
 
   if(!engine.available()){
     await dialog({
@@ -451,7 +455,7 @@ export async function openCamera(opts = {}){
       commitFilter({
         base, edit, result, title: "Realify", filter: "realify",
         params: { stages: filterState.stages, seed: filterState.seed,
-                   camSeed: filterState.camSeed, dose: filterState.dose }
+                   camSeed: filterState.camSeed, dose: filterState.dose, premium: !!filterState.premium }
       });
       save();
       toast(edit ? "Realify · actualizado" : "Realify · capa nueva", "ok");

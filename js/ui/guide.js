@@ -1077,7 +1077,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"realify", title:"Realify · simulación de captura",
-    desc:"La simulación de cámara completa: 31 etapas, EXIF, análisis de plausibilidad.",
+    desc:"La simulación de cámara completa: 31 etapas, motor Premium 👑, EXIF, análisis de plausibilidad.",
     sub: [
       { id:"orden", title:"El orden importa",
         desc:"Por qué el orden de las 31 etapas cambia el resultado, y qué bloque es cada una.",
@@ -1358,8 +1358,13 @@ const TOPICS = [
       <ul>
         <li id="sp-realify"><b>Realify…</b> La simulación de cámara completa (31 etapas, de la óptica al
           archivo), con zoom real hasta 1:1, comparación, histograma y espectro. En escritorio,
-          el chevrón de cada etapa despliega sus mandos y el ojo aísla su efecto en la vista previa. Detalle en
-          el tema «Realify · simulación de captura».</li>
+          el chevrón de cada etapa despliega sus mandos y el ojo aísla su efecto en la vista previa. Con el
+          interruptor <b>Premium 👑</b> de la barra superior (en el móvil, junto a ✕; también «Realify
+          Premium 👑» en el menú y el cajón) usa el motor de alta calidad con los mismos mandos: toda la
+          cadena en coma flotante de 32 bits, luces que se comprimen sin virar de color, tinte y
+          saturación en OKLab con mapeo de gama (los colores intensos no se recortan) y tramado al
+          pasar a 8 bits (sin escalones en cielos y degradados). Apagado, queda igual que siempre.
+          Detalle en el tema «Realify · simulación de captura».</li>
         <li><b>Revelado fotográfico…</b> El revelador no destructivo de la capa activa;
           parámetros, porcentaje, máscara y opacidad se guardan aparte.</li>
         <li id="sp-wbpick"><b>Cuentagotas de balance de blancos (revelador RAW).</b> El botón con el

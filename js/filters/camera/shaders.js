@@ -24,6 +24,9 @@ uniform float uSeed;
    igual en todas las imágenes de un lote. Distinta de uSeed, que es
    la del disparo concreto. */
 uniform float uCamSeed;
+/* Motor Premium 👑 (1 = encendido): lo leen las etapas que tienen una
+   versión de más calidad (tono) y la salida con tramado. */
+uniform float uPremium;
 in vec2 vUV;
 out vec4 fragColor;
 const vec3 LUM = vec3(0.2126,0.7152,0.0722);
@@ -781,14 +784,71 @@ vec3 l2s(vec3 c){
   c = max(c,0.0);
   return mix(c*12.92, 1.055*pow(c, vec3(1.0/2.4))-0.055, step(vec3(0.0031308),c));
 }
+vec3 s2l(vec3 c){ return mix(c/12.92, pow((max(c,0.0)+0.055)/1.055, vec3(2.4)), step(vec3(0.04045),c)); }
+/* OKLab (Björn Ottosson), sobre luz lineal */
+vec3 toLab(vec3 c){
+  vec3 lms = vec3(0.4122214708*c.r+0.5363325363*c.g+0.0514459929*c.b,
+                  0.2119034982*c.r+0.6806995451*c.g+0.1073969566*c.b,
+                  0.0883024619*c.r+0.2817188376*c.g+0.6299787005*c.b);
+  lms = sign(lms)*pow(abs(lms), vec3(1.0/3.0));
+  return vec3(0.2104542553*lms.x+0.7936177850*lms.y-0.0040720468*lms.z,
+              1.9779984951*lms.x-2.4285922050*lms.y+0.4505937099*lms.z,
+              0.0259040371*lms.x+0.7827717662*lms.y-0.8086757660*lms.z);
+}
+vec3 fromLab(vec3 L){
+  vec3 lms = vec3(L.x+0.3963377774*L.y+0.2158037573*L.z,
+                  L.x-0.1055613458*L.y-0.0638541728*L.z,
+                  L.x-0.0894841775*L.y-1.2914855480*L.z);
+  lms = lms*lms*lms;
+  return vec3( 4.0767416621*lms.x-3.3077115913*lms.y+0.2309699292*lms.z,
+              -1.2684380046*lms.x+2.6097574011*lms.y-0.3413193965*lms.z,
+              -0.0041960863*lms.x-0.7034186147*lms.y+1.7076147010*lms.z);
+}
 void main(){
   vec3 c = texture(uTex,vUV).rgb * uWb * uExp;
-  c = l2s(clamp(c,0.0,1.0));
+  if(uPremium < 0.5){
+    c = l2s(clamp(c,0.0,1.0));
+    c = mix(c, c*c*(3.0-2.0*c), uS);
+    float l = dot(c,LUM);
+    vec3 d = (c - vec3(l)) * vec3(1.0+0.18*uSat, 1.0, 1.0-0.07*uSat);
+    c = vec3(l) + d*(1.0+uSat*0.55);
+    fragColor = vec4(clamp(c,0.0,1.0),1.0);
+    return;
+  }
+  /* Premium: mismos mandos, más calidad.
+     · Luces con hombro suave que conserva la proporción entre canales
+       (un cielo claro no vira a cian al recortar un canal) y que, muy
+       por encima del blanco, se abre hacia blanco como una película.
+     · Curva S igual; tinte y saturación en OKLab (el tono no se mueve).
+     · Mapeo de gama: si un color no cabe, se le baja el croma en OKLab
+       en vez de recortar cada canal. */
+  c = max(c, 0.0);
+  float m = max(c.r, max(c.g, c.b));
+  if(m > 0.95){
+    // Rodilla en el 95 %: dentro del rango casi no cambia (1,0 → 0,988);
+    // lo que se sale se comprime en vez de recortarse
+    float mm = 0.95 + 0.05*tanh((m-0.95)/0.05);
+    c *= mm/m;
+    c = mix(c, vec3(mm), clamp((m-1.0)/3.0, 0.0, 1.0)*0.7);
+  }
+  c = l2s(c);
   c = mix(c, c*c*(3.0-2.0*c), uS);
   float l = dot(c,LUM);
-  vec3 d = (c - vec3(l)) * vec3(1.0+0.18*uSat, 1.0, 1.0-0.07*uSat);
-  c = vec3(l) + d*(1.0+uSat*0.55);
-  fragColor = vec4(clamp(c,0.0,1.0),1.0);
+  c = vec3(l) + (c - vec3(l)) * vec3(1.0+0.18*uSat, 1.0, 1.0-0.07*uSat);
+  vec3 lab = toLab(s2l(c));
+  lab.yz *= 1.0 + uSat*0.55;
+  vec3 lin = fromLab(lab);
+  // Mapeo de gama: bisección sobre el croma (el tono y la luz se quedan)
+  if(any(lessThan(lin, vec3(-1e-4))) || any(greaterThan(lin, vec3(1.0001)))){
+    float lo = 0.0, hi = 1.0;
+    for(int i = 0; i < 12; i++){
+      float mid = 0.5*(lo+hi);
+      vec3 t = fromLab(vec3(lab.x, lab.yz*mid));
+      if(any(lessThan(t, vec3(-1e-4))) || any(greaterThan(t, vec3(1.0001)))) hi = mid; else lo = mid;
+    }
+    lin = fromLab(vec3(clamp(lab.x, 0.0, 1.0), lab.yz*lo));
+  }
+  fragColor = vec4(clamp(l2s(clamp(lin, 0.0, 1.0)),0.0,1.0),1.0);
 }`;
 
 /* Gradación por zonas (split-toning): un tinte para las sombras y otro
@@ -1056,3 +1116,14 @@ void main(){
 
 SH.copy = PRE + `
 void main(){ fragColor = vec4(texture(uTex,vUV).rgb,1.0); }`;
+
+/* Salida Premium: tramado triangular (TPDF) de ±1 nivel al pasar la
+   cadena en coma flotante a 8 bits: los degradados suaves (cielos,
+   viñeta, bokeh) no hacen escalones. */
+SH.outDither = PRE + `
+void main(){
+  vec3 c = texture(uTex,vUV).rgb;
+  vec2 p = gl_FragCoord.xy;
+  float n = hash13(vec3(p, uSeed*0.37+1.0)) - hash13(vec3(p+17.31, uSeed*0.61+7.0));
+  fragColor = vec4(clamp(c + n/255.0, 0.0, 1.0),1.0);
+}`;
