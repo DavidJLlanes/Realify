@@ -11,7 +11,7 @@ import { toast } from "../ui/toast.js";
 import { isMobile } from "../core/device.js";
 import { premiumSwitch, premiumPref } from "../ui/premium.js";
 import { hslPremium } from "./hslpremium.js";
-import { applyLevelsPremium, applyCurvesPremium, autoLevelsState, autoCurvePoints } from "./tonepremium.js";
+import { applyLevelsPremium, applyCurvesPremium, autoLevelsState, autoCurvePoints, autoContrastState } from "./tonepremium.js";
 import { runAdjust, applyDirect, applyLut, identityLut,
          drawHistogram, slider, histogram, pickerGroup, liftImageAbove } from "./adjust.js";
 import { curveEditor, curveLut, curveThumb, CHANNEL_COLORS, CURVE_PRESETS, userCurvePresets, saveUserCurvePresets, applyCurves } from "./curves.js";
@@ -1302,4 +1302,17 @@ export function autoContrast(opts = {}){
     for(let i = 0; i < 256; i++) t[i] = clamp255((i - lo) * span);
     applyLut(data, { r:t, g:t, b:t });
   }, { asLayer: true, filterId: "autoContrast" }, opts);
+}
+
+/* Contraste automático Premium 👑: el mismo recorte de la luminancia,
+   aplicado como Niveles maestros Premium (tonepremium.js): estira la
+   intensidad de cada color sin cambiar su tono ni su saturación. Queda
+   como capa de filtro «Niveles» reeditable. */
+export function autoContrastPremium(opts = {}){
+  const params = {};
+  return applyDirect("Contraste automático Premium", (data, w, h) => {
+    const state = autoContrastState(data, w, h);
+    Object.assign(params, state);
+    applyLevelsPremium(data, state);
+  }, { asLayer: true, filterId: "levels", filterParams: params }, opts);
 }

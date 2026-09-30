@@ -10,6 +10,17 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Contraste automático Premium 👑** (menú Ajustes, junto a «Contraste automático», y cajón
+  del móvil, en «Automáticos» y «Mejorar», con corona): el mismo recorte del 0,2 % de la
+  luminancia, pero aplicado como Niveles maestros Premium: estira la intensidad de cada color en
+  coma flotante, sin sobresaturar ni cambiar el tono, con gama y tramado. Queda como capa de
+  Niveles reeditable.
+- **Tono / Color automático Premium 👑** (interruptor en el propio ajuste, mismos mandos): en
+  modo Tono el estiramiento y los medios van a la intensidad de cada color (un naranja ya no se
+  quema a 248/89/0); en modo Color cada canal se sigue estirando por separado. «Ajustar colores
+  neutros» mide los grises ya ajustados en luz lineal y corrige con una ganancia por canal
+  (balance de blancos, 75 %, con topes) en vez de sumar un desplazamiento que teñía los negros.
+
 - **Pestaña «Automáticos» en el cajón de herramientas** (móvil), la segunda tras «Básicos»: reúne
   todos los ajustes automáticos (Automático, Auto Premium 👑, Tono y color auto., Contraste auto.,
   Niveles auto. y Niveles auto. Premium 👑), que siguen también en «Mejorar».

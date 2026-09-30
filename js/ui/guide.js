@@ -633,7 +633,10 @@ const TOPICS = [
           rango y realza el detalle local), <i>Contraste tonal</i> (micro, medio y
           macrocontraste por separado), <i>Densidad neutra graduada / radial</i> (exposición,
           contraste y temperatura sólo en una parte de la foto) y <i>Tono / Color
-          automático</i>.</li>
+          automático</i>. Éste tiene interruptor <b>Premium 👑</b>: con los mismos mandos, el
+          estiramiento y los medios se aplican a la intensidad de cada color (el tono y la
+          saturación no cambian) y «Ajustar colores neutros» corrige la dominante como un
+          balance de blancos en luz lineal, sin teñir los negros; con mapeo de gama y tramado.</li>
         <li><b>Umbral, Posterizar, Ecualizar, Desaturar.</b> Blanco y negro puro por un
           corte, reducir a pocos niveles, repartir el histograma y quitar color en
           parte o del todo.</li>
@@ -648,7 +651,10 @@ const TOPICS = [
           —«Contraste automático» mira sólo el brillo y deja el balance de color
           intacto; «Niveles automáticos» estira cada canal R, G y B por separado, así
           que además neutraliza una dominante de color—. Cuanto más plana o con más
-          neblina esté la foto, más se nota: es justo el caso para el que existen.</li>
+          neblina esté la foto, más se nota: es justo el caso para el que existen.
+          <b>Contraste automático Premium 👑</b> (Ajustes y cajón) hace el mismo recorte pero
+          estira la intensidad de cada color en coma flotante, sin sobresaturar ni cambiar el
+          tono, y queda como capa de Niveles que puedes reabrir para afinarla.</li>
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",
@@ -1383,7 +1389,7 @@ const TOPICS = [
           contraste con Brillo y contraste Premium (conserva la textura). Los dos quedan como
           capa de filtro (también en Ajustes › Tono avanzado). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
-          Tono y color, Contraste, Niveles y Niveles Premium 👑. En <b>Todos</b> y en las
+          Tono y color, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑. En <b>Todos</b> y en las
           demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la

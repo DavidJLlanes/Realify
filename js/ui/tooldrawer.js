@@ -84,6 +84,7 @@ const ITEMS = [
   { cmd:"adj.graduatedFilter",   label:"Graduado y radial",    ic:"sunset",                cat:"mejorar" },
   { cmd:"adj.autoToneColor",     label:"Tono y color auto.",   ic:"wand",                  cat:"auto mejorar color" },
   { cmd:"adj.auto",              label:"Contraste auto.",      ic:"contrast",              cat:"auto mejorar" },
+  { cmd:"adj.autoPremium",       label:"Contraste auto. Premium", ic:"contrast", premium:true, cat:"auto mejorar" },
   { cmd:"adj.autoLevels",        label:"Niveles auto.",        ic:"chart-column",          cat:"auto mejorar" },
   { cmd:"adj.autoLevelsPremium", label:"Niveles auto. Premium", ic:"chart-column", premium:true, cat:"auto mejorar" },
   { cmd:"adj.colorGrading",      label:"Gradación de color",   ic:"palette",               cat:"color estilo" },
