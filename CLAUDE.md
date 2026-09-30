@@ -53,6 +53,10 @@ exactamente igual que antes.
 - **De momento sin pago**: cualquiera puede usarlas.
 - Sus modelos sólo se descargan al usarlas (avisando antes del tamaño) y se
   guardan en IndexedDB; licencias que permitan uso comercial (MIT, Apache…).
+- **Excepción aceptada por el usuario**: «Retoque de cara» usa BiSeNet
+  (`assets/models/faceparsing/`, entrenado con CelebAMask-HQ, uso NO comercial;
+  `noncommercial: true` en js/ai/models.js). Si algún día se cobra Premium, hay
+  que quitarlo o sustituirlo.
 
 ## Límites
 - No mejorar Unmark (eliminación de marcas de agua).

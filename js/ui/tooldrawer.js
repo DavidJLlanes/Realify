@@ -184,6 +184,7 @@ const ITEMS = [
   { cmd:"ai.tapSelect",  label:"Selección con un toque", ic:"mouse-pointer-click", premium:true, cat:"ia" },
   { cmd:"ai.magicErase", label:"Borrador mágico",      ic:"eraser",              premium:true, cat:"ia" },
   { cmd:"ai.faceBlur",   label:"Difuminar caras",      ic:"scan-face",           premium:true, cat:"ia" },
+  { cmd:"ai.faceRetouch", label:"Retoque de cara",      ic:"sparkles",            premium:true, cat:"ia" },
   { cmd:"ai.redEye",     label:"Ojos rojos",           ic:"scan-eye",            premium:true, cat:"ia" },
   { cmd:"ai.faceCrop",   label:"Recorte de retrato",   ic:"frame",               premium:true, cat:"ia" },
   { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia" },

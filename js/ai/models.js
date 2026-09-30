@@ -83,6 +83,13 @@ export const MODELS = {
   yunet:    { url: LOCAL + "yunet/face_detection_yunet_2023mar.onnx", size: 232589, premium: true,
               label: "YuNet (caras)", license: "MIT" },
 
+  /* ── Zonas de la cara: BiSeNet ResNet-18 (yakhyo/face-parsing, código
+        MIT). OJO: entrenado con CelebAMask-HQ, cuyo uso es sólo para
+        investigación no comercial: si algún día Premium es de pago, hay
+        que quitarlo o sustituirlo (ver CLAUDE.md y ATTRIBUTIONS.md). ── */
+  faceparse: { url: LOCAL + "faceparsing/resnet18.onnx", size: 53205364, store: true, premium: true, noncommercial: true,
+               label: "BiSeNet (zonas de la cara)", license: "MIT (datos CelebAMask-HQ: no comercial)" },
+
   scunet:   { url: HF + "onnx/enhance/scunet/scunet_color-PSNR.onnx", size: 91264256,
               tile: 256, tileGpu: 512, minSide: 256, label: "SCUNet", license: "Apache-2.0" },
   fbcnn:    { url: HF + "onnx/enhance/fbcnn/fbcnn_color_fp16.onnx",   size: 143910675,

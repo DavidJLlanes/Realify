@@ -248,7 +248,8 @@ tiempo real mientras se pinta.
   capa nueva, con costura en luz lineal y el grano de la foto.
 - **Caras 👑** (Premium, Inteligencia Artificial › Caras, con YuNet incluido):
   **Difuminar caras** (desenfoque irreversible, pixelado o relleno, cara a
-  cara), **Ojos rojos** automático y **Recorte de retrato** (Recortar con el
+  cara), **Retoque de cara** (piel, ojos, dientes y labios por separado, con
+  BiSeNet), **Ojos rojos** automático y **Recorte de retrato** (Recortar con el
   marco ya encuadrado en la cara).
 - **Eliminar fondo** con IA local (U²-Net rápido, MODNet para retratos, ISNet
   de máxima calidad) o por color de los bordes: el recorte va a una capa nueva
@@ -563,7 +564,7 @@ y abre `http://localhost:8080`.
 | Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU |
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
-| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet) |
+| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any) |
 | App | Service worker, Web App Manifest, IndexedDB |
 

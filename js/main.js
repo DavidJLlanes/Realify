@@ -116,6 +116,7 @@ registerAll({
   "ai.tapSelect":   { run: async () => (await import("./features/samtools.js")).openSamTool("select"), enabled: needsDoc },
   "ai.magicErase":  { run: async () => (await import("./features/samtools.js")).openSamTool("erase"), enabled: needsDoc },
   "ai.faceBlur":    { run: async () => (await import("./features/facetools.js")).openFaceBlur(), enabled: needsDoc },
+  "ai.faceRetouch": { run: async () => (await import("./features/facetools.js")).openFaceRetouch(), enabled: needsDoc },
   "ai.redEye":      { run: async () => (await import("./features/facetools.js")).fixRedEyes(), enabled: needsDoc },
   "ai.faceCrop":    { run: async () => (await import("./features/facetools.js")).faceCrop(), enabled: needsDoc },
   "ai.upscale":     { run: async () => (await import("./features/aitools.js")).aiUpscale(), enabled: needsDoc },

@@ -16,6 +16,11 @@ que las entradas se agrupan por fecha.
   - **Difuminar caras**: óvalo ajustado a cada cara (toca una para excluirla), desenfoque,
     pixelado o relleno con intensidad; el desenfoque, en luz lineal sobre un pixelado previo y
     con ruido, no se puede revertir. Capa nueva.
+  - **Retoque de cara**: BiSeNet (face parsing) separa piel, ojos, dientes y labios con bordes
+    suaves; zona + intensidad: piel suavizada respetando bordes y con textura (luz lineal),
+    ojos con más luz y detalle, dientes sin amarillo, labios con más o menos color (OKLab).
+    Capa nueva. Modelo de 53 MB servido por la web y guardado en IndexedDB; entrenado con
+    datos de uso no comercial (anotado para retirarlo si Premium pasa a ser de pago).
   - **Ojos rojos**: sólo el rojo conectado con la pupila, corregido en luz lineal sin tocar el
     reflejo. Capa nueva.
   - **Recorte de retrato**: abre Recortar con el marco encuadrado en la cara (ojos en el

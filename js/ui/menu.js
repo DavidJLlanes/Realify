@@ -381,6 +381,8 @@ export const MENUS = [
     { header:"Caras" },
     { cmd:"ai.faceBlur", ic:"scan-face", label:"Difuminar caras Premium 👑…", premium:true,
       help:"Encuentra las caras (YuNet) y las difumina, pixela o tapa para proteger la privacidad; toca una para excluirla. Capa nueva." },
+    { cmd:"ai.faceRetouch", ic:"sparkles", label:"Retoque de cara Premium 👑…", premium:true,
+      help:"La IA separa piel, ojos, dientes y labios en cada cara: suaviza la piel conservando la textura, da luz a los ojos, blanquea los dientes y ajusta el color de los labios. Capa nueva." },
     { cmd:"ai.redEye", ic:"scan-eye", label:"Ojos rojos Premium 👑", premium:true,
       help:"Encuentra los ojos y les quita el rojo del flash sin tocar el reflejo. Capa nueva." },
     { cmd:"ai.faceCrop", ic:"frame", label:"Recorte de retrato Premium 👑", premium:true,

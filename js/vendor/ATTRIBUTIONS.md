@@ -14,6 +14,7 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
   - Descargados bajo demanda y guardados en IndexedDB: MODNet (Apache-2.0), ISNet general-use (Apache-2.0), LaMa (Apache-2.0), SCUNet (Apache-2.0) y FBCNN (Apache-2.0).
 - `assets/models/mobilesam/` (servidos por la propia web, descargados bajo demanda y guardados en IndexedDB): codificador de MobileSAM (Zhang et al., Apache-2.0) y decodificador de Segment Anything ViT-H (Meta AI, Apache-2.0), en las exportaciones ONNX del paquete npm @geti-ui/smart-tools 1.6.0 (Intel Geti, Apache-2.0). Ver su LICENSE.txt. Los usan Selección con un toque y Borrador mágico (Premium).
 - `assets/models/yunet/face_detection_yunet_2023mar.onnx` (incluido, 232 KB): YuNet, detector de caras del OpenCV Zoo (Shiqi Yu et al.), licencia MIT. Lo usan Difuminar caras, Ojos rojos y Recorte de retrato (Premium).
+- `assets/models/faceparsing/resnet18.onnx` (servido por la propia web, descargado bajo demanda y guardado en IndexedDB): BiSeNet ResNet-18 de face parsing (yakhyo/face-parsing, código y pesos MIT). **Entrenado con CelebAMask-HQ, de uso sólo para investigación no comercial**: se usa en Retoque de cara (Premium gratuito) y habrá que quitarlo o sustituirlo si Premium pasa a ser de pago. Ver su LICENSE.txt.
 
 # Codificadores de exportación
 

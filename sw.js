@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v172-caras-ia";
+const VERSION = "realify-v173-retoque-cara";
 const SHELL = [
   "./",
   "./index.html",
@@ -57,7 +57,7 @@ self.addEventListener("fetch", e => {
   // Modelos de IA grandes servidos por la propia web (SAM…): el worker
   // de IA los guarda en IndexedDB; copiarlos también aquí duplicaría
   // decenas de MB en cada versión.
-  if(url.pathname.includes("/assets/models/mobilesam/")) return;
+  if(/\/assets\/models\/(mobilesam|faceparsing)\//.test(url.pathname)) return;
 
   /* `no-cache`: el navegador puede reutilizar su caché HTTP, pero
      siempre pregunta antes al servidor (un 304 si no ha cambiado). Sin

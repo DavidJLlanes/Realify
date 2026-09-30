@@ -278,3 +278,155 @@ export async function faceCrop(){
   emit("tool:options");
   toast("Encuadre centrado en la cara: ajústalo si quieres y pulsa Aplicar", "ok");
 }
+
+/* ── Retoque por zonas de la cara ─────────────────────────────────
+   BiSeNet (face parsing) separa en cada cara piel, ojos, boca y labios
+   con probabilidades suaves (bordes finos, sin recortes duros). Premium:
+     · Piel: suavizado que respeta los bordes (filtro guiado de la propia
+       foto, en luz lineal) que conserva parte de la textura: se ve piel,
+       no plástico.
+     · Ojos: más luz y más claridad (detalle local) en el iris y el blanco.
+     · Dientes: sin amarillo y algo más claros, en OKLab, sólo en lo
+       claro de la boca (no en la lengua ni en la sombra).
+     · Labios: más o menos color, en OKLab (tono intacto).
+   El resultado va a una capa nueva. OJO: el modelo se entrenó con datos
+   de uso no comercial (ver js/ai/models.js › faceparse). */
+const ZONES = [["skin", "Piel", 0, 100, 35], ["eyes", "Ojos", 0, 100, 20], ["teeth", "Dientes", 0, 100, 0], ["lips", "Labios", -100, 100, 0]];
+
+function toLabF(r, g, b, o){
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b), s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  o[0] = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s; o[1] = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s; o[2] = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+}
+function fromLabF(L, a, b, o){
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3, m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3, s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  o[0] = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s; o[1] = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s; o[2] = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s;
+}
+
+/* Prepara una cara: recorte, zonas a su resolución y el «bajo» de la piel */
+async function prepareFace(src, rgba, W, H, f){
+  const side = Math.max(f.w, f.h) * 2, cx = f.x + f.w / 2, cy = f.y + f.h * 0.45;
+  const sx = cx - side / 2, sy = cy - side / 2;
+  const c = document.createElement("canvas"); c.width = c.height = 512;
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.fillStyle = "#808080"; x.fillRect(0, 0, 512, 512);
+  x.imageSmoothingQuality = "high";
+  x.drawImage(src, sx, sy, side, side, 0, 0, 512, 512);
+  const { runModel } = await import("../ai/runtime.js");
+  const r = await runModel("parse", "faceparse", { rgba: x.getImageData(0, 0, 512, 512).data }, [], { title: "Analizando la cara con IA" });
+  // Región de la foto (recortada a sus bordes)
+  const x0 = Math.max(0, Math.floor(sx)), y0 = Math.max(0, Math.floor(sy));
+  const x1 = Math.min(W, Math.ceil(sx + side)), y1 = Math.min(H, Math.ceil(sy + side));
+  const w = x1 - x0, h = y1 - y0, n = w * h, k = 512 / side;
+  // Zonas ampliadas con interpolación bilineal (bordes suaves)
+  const up = g => {
+    const o = new Float32Array(n);
+    for(let y = 0; y < h; y++){
+      const fy = Math.min(511, Math.max(0, (y0 + y + 0.5 - sy) * k - 0.5)), a0 = fy | 0, a1 = Math.min(511, a0 + 1), ty = fy - a0;
+      for(let xx = 0; xx < w; xx++){
+        const fx = Math.min(511, Math.max(0, (x0 + xx + 0.5 - sx) * k - 0.5)), b0 = fx | 0, b1 = Math.min(511, b0 + 1), tx = fx - b0;
+        const t = g[a0 * 512 + b0] + (g[a0 * 512 + b1] - g[a0 * 512 + b0]) * tx, u = g[a1 * 512 + b0] + (g[a1 * 512 + b1] - g[a1 * 512 + b0]) * tx;
+        o[y * w + xx] = (t + (u - t) * ty) / 255;
+      }
+    }
+    return o;
+  };
+  const m = { skin: up(r.groups.skin), eyes: up(r.groups.eyes), mouth: up(r.groups.mouth), lips: up(r.groups.lips) };
+  // Ojos: un poco agrandados (el borde del iris cuenta)
+  m.eyes = boxBlurFloat(m.eyes, w, h, Math.max(1, Math.round(f.w * 0.01))).map(v => Math.min(1, v * 1.6));
+  // Luz lineal de la región y su «bajo» (suavizado que respeta bordes)
+  const lin = [new Float32Array(n), new Float32Array(n), new Float32Array(n)];
+  for(let y = 0; y < h; y++) for(let xx = 0; xx < w; xx++){ const i = ((y0 + y) * W + x0 + xx) * 4, p = y * w + xx; lin[0][p] = DEC[rgba[i]]; lin[1][p] = DEC[rgba[i + 1]]; lin[2][p] = DEC[rgba[i + 2]]; }
+  const { guidedFilterAlpha } = await import("../editor/refineedge-math.js");
+  const rad = Math.max(2, Math.round(f.w * 0.03));
+  const low = lin.map(ch => guidedFilterAlpha(ch, ch, w, h, rad, 0.0012));
+  // Luminancia de la boca para separar los dientes (lo claro)
+  let ms = 0, mn = 0;
+  for(let p = 0; p < n; p++) if(m.mouth[p] > 0.5){ ms += 0.2126 * lin[0][p] + 0.7152 * lin[1][p] + 0.0722 * lin[2][p]; mn++; }
+  return { x0, y0, w, h, m, lin, low, mouthY: mn ? ms / mn : 0.1 };
+}
+
+function retouchFace(F, V, out, W){
+  const { x0, y0, w, h, m, lin, low } = F, ks = V.skin / 100, ke = V.eyes / 100, kt = V.teeth / 100, kl = V.lips / 100;
+  const lab = [0, 0, 0], rgb = [0, 0, 0];
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const p = y * w + x;
+    let r = lin[0][p], g = lin[1][p], b = lin[2][p], wgt = 0;
+    // Piel: quita el 80 % del detalle fino como máximo (queda textura)
+    const s = m.skin[p] * ks;
+    if(s > 0.002){ const q = 0.8 * s; r -= (r - low[0][p]) * q; g -= (g - low[1][p]) * q; b -= (b - low[2][p]) * q; wgt = Math.max(wgt, m.skin[p]); }
+    // Ojos: más luz y más detalle local
+    const e = m.eyes[p] * ke;
+    if(e > 0.002){ const gain = 1 + 0.35 * e; r = (r + (lin[0][p] - low[0][p]) * 0.8 * e) * gain; g = (g + (lin[1][p] - low[1][p]) * 0.8 * e) * gain; b = (b + (lin[2][p] - low[2][p]) * 0.8 * e) * gain; wgt = Math.max(wgt, m.eyes[p]); }
+    // Dientes: en lo claro de la boca, sin amarillo y algo más claros
+    if(kt > 0 && m.mouth[p] > 0.02){
+      const Y = 0.2126 * r + 0.7152 * g + 0.0722 * b, gate = Math.min(1, Math.max(0, (Y / Math.max(1e-4, F.mouthY) - 0.9) / 0.6));
+      const t = m.mouth[p] * gate * kt;
+      if(t > 0.002){ toLabF(Math.max(0, r), Math.max(0, g), Math.max(0, b), lab); lab[0] = Math.min(0.99, lab[0] * (1 + 0.08 * t)); if(lab[2] > 0) lab[2] *= 1 - 0.85 * t; lab[1] *= 1 - 0.4 * t; fromLabF(lab[0], lab[1], lab[2], rgb); [r, g, b] = rgb; wgt = Math.max(wgt, m.mouth[p]); }
+    }
+    // Labios: croma en OKLab (el tono no cambia)
+    const l = m.lips[p] * kl;
+    if(Math.abs(l) > 0.002){ toLabF(Math.max(0, r), Math.max(0, g), Math.max(0, b), lab); const c = 1 + 0.6 * l; lab[1] *= c; lab[2] *= c; fromLabF(lab[0], lab[1], lab[2], rgb); [r, g, b] = rgb; wgt = Math.max(wgt, m.lips[p]); }
+    if(wgt <= 0.002) continue;
+    const i = ((y0 + y) * W + x0 + x) * 4;
+    out[i] = Math.round(enc(r)); out[i + 1] = Math.round(enc(g)); out[i + 2] = Math.round(enc(b));
+    out[i + 3] = Math.max(out[i + 3], Math.round(Math.min(1, wgt * 1.2) * 255));
+  }
+}
+
+let retouchOpen = false;
+export async function openFaceRetouch(){
+  if(retouchOpen) return;
+  const src = await visibleImage(); if(!src) return;
+  const W = src.width, H = src.height;
+  let faces;
+  try{ faces = await findFaces(src); }
+  catch(err){ if(!err.cancelled) toast("No se pudieron buscar caras: " + err.message, "err"); return; }
+  if(!faces.length){ toast("No se han encontrado caras en esta foto"); return; }
+  faces = faces.sort((a, b) => b.w - a.w).slice(0, 8);
+  retouchOpen = true;
+  const rgba = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  let prepared = [];
+  try{ for(const f of faces) prepared.push(await prepareFace(src, rgba, W, H, f)); }
+  catch(err){ retouchOpen = false; if(!err.cancelled && !/cancelad/.test(err.message)) toast("No se pudo analizar la cara: " + err.message, "err"); return; }
+  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  await ensureShellStyles();
+  const V = Object.fromEntries(ZONES.map(z => [z[0], z[4]]));
+  let zone = "skin", out = null, frame = 0;
+  const view = document.createElement("canvas"); view.width = W; view.height = H;
+  const vx = view.getContext("2d");
+  const tmp = document.createElement("canvas"); tmp.width = W; tmp.height = H;
+  const render = () => {
+    frame = 0;
+    out = new Uint8ClampedArray(W * H * 4);
+    for(const F of prepared) retouchFace(F, V, out, W);
+    tmp.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0);
+    vx.clearRect(0, 0, W, H); vx.drawImage(src, 0, 0); vx.drawImage(tmp, 0, 0);
+    sh.setView(view);
+  };
+  const schedule = () => { if(!frame) frame = requestAnimationFrame(render); };
+  const close = () => { retouchOpen = false; sh.close(); };
+  const sh = createShell({
+    title: "Retoque de cara", subtitle: `Premium 👑 · ${faces.length === 1 ? "1 cara" : faces.length + " caras"}`, applyLabel: "Aplicar", cls: "face-tool",
+    onCancel: close,
+    onApply: async () => { const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0); close(); await toNewLayer(c, "Retoque de cara"); toast("Retoque de cara en una capa nueva", "ok"); }
+  });
+  sh.setOriginal(src);
+  // Mandos mínimos: zona e intensidad (desplegable cerrado)
+  const controls = () => {
+    const el = document.createElement("div");
+    el.className = "face-ctl";
+    el.innerHTML = `<select aria-label="Zona">${ZONES.map(z => `<option value="${z[0]}">${z[1]}</option>`).join("")}</select><input type="range" aria-label="Intensidad">`;
+    const sel = el.querySelector("select"), rng = el.querySelector("input");
+    sel.addEventListener("change", () => { zone = sel.value; sync(); });
+    rng.addEventListener("input", () => { V[zone] = +rng.value; sync(); schedule(); });
+    return el;
+  };
+  const sync = () => sh.root.querySelectorAll(".face-ctl").forEach(el => {
+    const z = ZONES.find(q => q[0] === zone), rng = el.querySelector("input");
+    el.querySelector("select").value = zone; rng.min = z[2]; rng.max = z[3]; rng.value = V[zone];
+  });
+  sh.mobile.appendChild(controls());
+  sh.right.appendChild(controls());
+  sync();
+  render();
+}

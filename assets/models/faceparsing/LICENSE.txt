@@ -1,0 +1,9 @@
+resnet18.onnx — BiSeNet (face parsing) con ResNet-18, de
+https://github.com/yakhyo/face-parsing (release v0.0.1), sin modificar.
+Código y pesos publicados con licencia MIT (Copyright (c) 2024 Yakhyokhuja
+Valikhujaev).
+
+ATENCIÓN: el modelo está entrenado con CelebAMask-HQ, un conjunto de datos
+cuyo uso está limitado a investigación NO COMERCIAL. Realify lo usa en
+«Retoque de cara» (Premium, gratuito). Si Premium pasa a ser de pago, hay que
+quitar este modelo o sustituirlo por uno con datos de uso comercial.
