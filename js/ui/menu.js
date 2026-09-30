@@ -357,27 +357,36 @@ export const MENUS = [
     ]}
   ]},
   { label:"Inteligencia Artificial", items:[
-    /* Todas las herramientas de IA juntas (en el móvil, la pestaña
-       «Inteligencia Artificial» del cajón). Las que usan un modelo de IA
-       y, aparte, las que trabajan CON imágenes generadas por IA. */
-    { header:"Herramientas con IA" },
-    { cmd:"image.removeBackground", ic:"image-minus", label:"Eliminar fondo…" },
-    { cmd:"ai.upscale", ic:"scaling", label:"Ampliar con IA…",
-      help:"Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva." },
-    { cmd:"ai.colorize", ic:"colorize", label:"Colorear con IA…",
-      help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
-    { cmd:"ai.expand", ic:"expand", label:"Expandir con IA…",
-      help:"Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva." },
-    { cmd:"sky.replace", ic:"cloud-sun", label:"Reemplazar cielo…",
-      help:"Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara." },
+    /* Todas las herramientas de IA juntas, ordenadas por lo que hacen. El
+       cajón del móvil (pestaña «Inteligencia Artificial») toma de aquí el
+       orden y los títulos de sección, así que los dos coinciden siempre.
+       Las funciones de IA nuevas son sólo Premium 👑 (ver CLAUDE.md). */
+    { header:"Seleccionar" },
+    { cmd:"ai.tapSelect", ic:"mouse-pointer-click", label:"Selección con un toque Premium 👑…", premium:true,
+      help:"Toca un objeto y la IA (Segment Anything) lo selecciona entero; toca más para añadir o quitar partes. Borde afinado a la resolución de la foto." },
     { cmd:"sel.subject", ic:"user-round", label:"Seleccionar sujeto",
       help:"Detecta a la persona con IA (BodyPix); si no encuentra a nadie, cae al fondo por color conectado a los bordes." },
     { cmd:"sel.sky", ic:"cloud",     label:"Seleccionar cielo",
       help:"Detecta el cielo con IA (DeepLab/ADE20K)." },
+    { sep:true },
+    { header:"Borrar y rellenar" },
+    { cmd:"ai.magicErase", ic:"eraser", label:"Borrador mágico Premium 👑…", premium:true,
+      help:"Toca lo que quieras quitar (personas, cables, objetos): la IA lo selecciona y LaMa rellena el hueco. El resultado va a una capa nueva." },
+    { cmd:"image.removeBackground", ic:"image-minus", label:"Eliminar fondo…" },
+    { cmd:"ai.expand", ic:"expand", label:"Expandir con IA…",
+      help:"Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva." },
+    { cmd:"sky.replace", ic:"cloud-sun", label:"Reemplazar cielo…",
+      help:"Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara." },
+    { sep:true },
+    { header:"Mejorar y restaurar" },
+    { cmd:"ai.upscale", ic:"scaling", label:"Ampliar con IA…",
+      help:"Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva." },
     { cmd:"filter.aiDenoise", ic:"denoise-ai", label:"Reducción de ruido con IA…",
       help:"SCUNet (modelo de ImageToolbox): quita el ruido real de cámara conservando el detalle. La primera vez descarga el modelo (91 MB)." },
     { cmd:"filter.aiDejpeg", ic:"file-image", label:"Quitar artefactos JPEG con IA…",
       help:"FBCNN (modelo de ImageToolbox): elimina bloques y halos de compresión. La primera vez descarga el modelo (144 MB)." },
+    { cmd:"ai.colorize", ic:"colorize", label:"Colorear con IA…",
+      help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
     { cmd:"filter.lens",    label:"Adaptive Photo Lens…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21"/><path d="M5.6 5.6l2.5 2.5M15.9 15.9l2.5 2.5"/></svg>',
       help:"Reconoce el tipo de foto con un modelo local y aplica el revelado que le va" },

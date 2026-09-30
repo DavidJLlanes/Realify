@@ -60,7 +60,7 @@ function cancelAll(){
   hideBusy();
 }
 
-const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA" };
+const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA", samEncode: "Analizando la foto con IA" };
 
 /* ── Red de seguridad para modelos pesados ──────────────────────
    Un modelo grande (ISNet, LaMa…) puede agotar la memoria de la
@@ -182,6 +182,12 @@ export async function runModel(type, id, payload, transfer, opts = {}){
   const model = MODELS[id];
   if(!model) throw new Error("Modelo desconocido: " + id);
   await confirmDownload(id);
+  // `opts.quiet`: llamadas rapidísimas y repetidas (cada toque con SAM):
+  // sin aviso, progreso ni barra de estado.
+  if(opts.quiet){
+    try{ return await call({ type, id, model, ...payload }, transfer); }
+    catch(err){ if(/bad_alloc|out of memory|memory access out of bounds/i.test(err.message)) err.message = "no hay memoria suficiente en este dispositivo"; throw err; }
+  }
   // `opts.noGuard`: pasadas 2ª y siguientes de una misma operación (la
   // copia de seguridad ya se hizo en la primera). `opts.title`: aviso.
   const heavy = model.size > HEAVY && !opts.noGuard;
@@ -210,29 +216,38 @@ export async function runModel(type, id, payload, transfer, opts = {}){
    Face la primera vez. Antes empezaba la descarga sin decir nada: en
    datos móviles o sin conexión eso era una sorpresa (o un fallo sin
    explicación). Ahora se avisa del tamaño y del origen y se pide
-   permiso una sola vez por modelo; si ya está en el equipo, nada. */
+   permiso una sola vez por modelo; si ya está en el equipo, nada. Los
+   modelos de un mismo `group` (codificador y decodificador de SAM) se
+   piden juntos, con un solo aviso y el tamaño total. */
 const approved = new Set();
+const isLocal = m => new URL(m.url).origin === location.origin && !m.store;
 async function confirmDownload(id){
   const m = MODELS[id];
-  if(new URL(m.url).origin === location.origin || approved.has(id)) return;
-  if(await isModelCached(id)){ approved.add(id); return; }
+  if(isLocal(m) || approved.has(id)) return;
+  const ids = m.group ? Object.keys(MODELS).filter(k => MODELS[k].group === m.group) : [id];
+  const missing = [];
+  for(const k of ids) if(!approved.has(k) && !(await isModelCached(k))) missing.push(k);
+  if(!missing.length){ ids.forEach(k => approved.add(k)); return; }
+  const total = missing.reduce((a, k) => a + MODELS[k].size, 0);
+  const names = missing.map(k => MODELS[k].label).join(" + ");
+  const from = new URL(m.url).origin === location.origin ? "realify.es" : "Hugging Face";
   if(typeof navigator !== "undefined" && navigator.onLine === false)
-    throw new Error(`hace falta conexión para descargar una vez el modelo ${m.label} (${mb(m.size)})`);
+    throw new Error(`hace falta conexión para descargar una vez el modelo ${names} (${mb(total)})`);
   const ok = await confirmDlg("Descargar modelo de IA",
-    `Para esto hace falta el modelo <b>${m.label}</b>, de <b>${mb(m.size)}</b>. Se descarga
-     una sola vez desde Hugging Face y se guarda en este navegador para las
+    `Para esto hace falta el modelo <b>${names}</b>, de <b>${mb(total)}</b>. Se descarga
+     una sola vez desde ${from} y se guarda en este navegador para las
      siguientes veces, también sin conexión. Tu imagen no se envía a ningún
      sitio: se procesa en tu equipo. Si usas datos móviles, mejor con wifi.`,
     "Descargar");
   if(!ok) throw new Error("descarga del modelo cancelada");
-  approved.add(id);
+  ids.forEach(k => approved.add(k));
 }
 
 /** ¿Está el modelo ya en el equipo? (local o descargado antes). */
 export function isModelCached(id){
   const model = MODELS[id];
   if(!model) return Promise.resolve(false);
-  return call({ type:"cached", url: model.url }).then(m => !!m.cached).catch(() => false);
+  return call({ type:"cached", url: model.url, store: !!model.store }).then(m => !!m.cached).catch(() => false);
 }
 
 /** Texto corto para las opciones de un selector: «incluido» si viaja
@@ -240,6 +255,22 @@ export function isModelCached(id){
     no. Consulta IndexedDB, de ahí que sea asíncrona. */
 export async function sizeNote(id){
   const m = MODELS[id];
-  if(new URL(m.url).origin === location.origin) return "incluido";
+  if(isLocal(m)) return "incluido";
   return await isModelCached(id) ? "descargado" : "descarga " + mb(m.size);
+}
+
+/** Modelos descargados en este navegador (Ayuda › Diagnóstico):
+    [{ id, label, size, premium }], con lo que ocupan de verdad. */
+export async function storedModels(){
+  const { list } = await call({ type:"stored" });
+  return list.map(({ url, size }) => {
+    const id = Object.keys(MODELS).find(k => MODELS[k].url === url);
+    const m = id ? MODELS[id] : null;
+    return { url, id, size, label: m ? m.label : url.split("/").pop(), premium: !!m?.premium };
+  });
+}
+/** Borra un modelo descargado (o todos, sin `url`). */
+export async function forgetModel(url){
+  await call({ type:"forget", url });
+  approved.clear();
 }

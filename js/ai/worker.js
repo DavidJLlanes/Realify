@@ -80,7 +80,9 @@ async function dbHas(key){
 }
 
 async function fetchModel(id, model){
-  const local = new URL(model.url).origin === self.location.origin;
+  // `store`: modelo grande servido por la propia web (SAM…); se guarda en
+  // IndexedDB igual que los de Hugging Face, para no volver a bajarlo.
+  const local = new URL(model.url).origin === self.location.origin && !model.store;
   if(!local){
     const cached = await dbGet(model.url);
     if(cached) return new Uint8Array(await cached.arrayBuffer());
@@ -113,8 +115,12 @@ const gpuFailed = new Set();
 async function getSession(id, model){
   if(sessions.has(id)) return sessions.get(id);
   // Un solo modelo en memoria a la vez: dos de 200 MB juntos tumban
-  // la pestaña en un móvil.
-  for(const [k, s] of sessions){ try{ await s.session.release(); }catch{} sessions.delete(k); }
+  // la pestaña en un móvil. Salvo los de un mismo `group`, que trabajan
+  // juntos (codificador y decodificador de SAM).
+  for(const [k, s] of sessions){
+    if(model.group && s.group === model.group) continue;
+    try{ await s.session.release(); }catch{} sessions.delete(k);
+  }
 
   const bytes = await fetchModel(id, model);
   post({ type:"stage", model:id, stage:"load" });
@@ -137,7 +143,7 @@ async function getSession(id, model){
   if(!session) session = await ort.InferenceSession.create(bytes, { ...opts,
     executionProviders: ["wasm"], enableCpuMemArena: false, enableMemPattern: false,
     ...(big ? { extra: { session: { disable_prepacking: "1" } } } : {}) });
-  const entry = { session, backend };
+  const entry = { session, backend, group: model.group || null };
   sessions.set(id, entry);
   return entry;
 }
@@ -444,13 +450,88 @@ async function probe({ model, id }){
            outputs: session.outputMetadata || session.outputNames };
 }
 
-const TASKS = { matte, inpaint, restore, upscale, colorize, probe };
+/* ── Segment Anything (MobileSAM + decodificador de SAM) ──────────
+   El codificador analiza la foto UNA vez (lado mayor a 1024, normalizada
+   como ImageNet, rellena abajo/derecha hasta 1024×1024) y su resultado
+   se queda aquí; cada toque sólo ejecuta el decodificador, que tarda
+   milisegundos. `key` identifica la foto codificada. */
+let samCache = null;
+async function samEncode({ model, id, rgba, w, h, key }){
+  const { session } = await getSession(id, model);
+  const S = 1024, n = S * S, x = new Float32Array(3 * n);
+  const mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
+  for(let c = 0; c < 3; c++) x.fill(-mean[c] / std[c], c * n, (c + 1) * n);
+  for(let y = 0; y < h; y++) for(let xx = 0; xx < w; xx++){
+    const i = (y * w + xx) * 4, p = y * S + xx;
+    x[p] = (rgba[i] / 255 - mean[0]) / std[0];
+    x[n + p] = (rgba[i + 1] / 255 - mean[1]) / std[1];
+    x[2 * n + p] = (rgba[i + 2] / 255 - mean[2]) / std[2];
+  }
+  const name = session.inputNames[0];
+  post({ type:"stage", model:id, stage:"run" });
+  const out = await runSession(id, model, { [name]: makeTensor(inputType(session, name), x, [1, 3, S, S]) });
+  const t = out[session.outputNames[0]];
+  samCache = { key, data: readFloats(t), dims: t.dims.slice() };
+  return { ok: true };
+}
+async function samDecode({ model, id, key, coords, labels, w, h, maskInput }){
+  if(!samCache || samCache.key !== key) throw new Error("la foto no está analizada (vuelve a abrir la herramienta)");
+  const { session } = await getSession(id, model);
+  const np = labels.length;
+  const hasMask = !!maskInput;
+  const feeds = {
+    image_embeddings: new ort.Tensor("float32", samCache.data, samCache.dims),
+    point_coords: new ort.Tensor("float32", Float32Array.from(coords), [1, np, 2]),
+    point_labels: new ort.Tensor("float32", Float32Array.from(labels), [1, np]),
+    mask_input: new ort.Tensor("float32", hasMask ? maskInput : new Float32Array(256 * 256), [1, 1, 256, 256]),
+    has_mask_input: new ort.Tensor("float32", new Float32Array([hasMask ? 1 : 0]), [1]),
+    orig_im_size: new ort.Tensor("float32", new Float32Array([h, w]), [2])
+  };
+  const out = await runSession(id, model, feeds);
+  const masks = out.masks, iou = readFloats(out.iou_predictions), low = out.low_res_masks;
+  const K = masks.dims[1], mh = masks.dims[2], mw = masks.dims[3], plane = mh * mw;
+  const all = readFloats(masks), lowAll = readFloats(low);
+  // La de más calidad según el propio modelo; con un solo punto, SAM da
+  // varias candidatas (parte, objeto, todo) y ésta suele ser el objeto.
+  let best = 0;
+  for(let k = 1; k < K; k++) if(iou[k] > iou[best]) best = k;
+  const logits = all.slice(best * plane, (best + 1) * plane);
+  const lowRes = lowAll.slice(best * 65536, (best + 1) * 65536);
+  return { logits, lowRes, mw, mh, score: iou[best] };
+}
+
+/* ── Modelos guardados en este navegador (Ayuda › Diagnóstico) ── */
+async function listStored(){
+  try{
+    const db = await openDb();
+    return await new Promise(resolve => {
+      const out = [], r = db.transaction(STORE).objectStore(STORE).openCursor();
+      r.onsuccess = () => { const c = r.result; if(!c){ resolve(out); return; } out.push({ url: c.key, size: c.value?.size || 0 }); c.continue(); };
+      r.onerror = () => resolve(out);
+    });
+  }catch{ return []; }
+}
+async function deleteStored(url){
+  try{
+    const db = await openDb();
+    await new Promise(resolve => { const tx = db.transaction(STORE, "readwrite"); url ? tx.objectStore(STORE).delete(url) : tx.objectStore(STORE).clear(); tx.oncomplete = tx.onerror = () => resolve(); });
+  }catch{}
+}
+
+const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode };
 
 self.onmessage = async e => {
   const m = e.data || {};
   if(m.type === "cached"){
-    post({ type:"cached", req: m.req, cached: new URL(m.url).origin === self.location.origin || await dbHas(m.url) });
+    post({ type:"cached", req: m.req, cached: (new URL(m.url).origin === self.location.origin && !m.store) || await dbHas(m.url) });
     return;
+  }
+  if(m.type === "stored"){ post({ type:"stored", req: m.req, list: await listStored() }); return; }
+  if(m.type === "forget"){
+    await deleteStored(m.url);
+    for(const [k, s] of sessions){ try{ await s.session.release(); }catch{} sessions.delete(k); }
+    samCache = null;
+    post({ type:"forgot", req: m.req }); return;
   }
   const task = TASKS[m.type];
   if(!task) return;
@@ -458,7 +539,7 @@ self.onmessage = async e => {
     const t0 = performance.now();
     const res = await task(m);
     const backend = sessions.get(m.id)?.backend;
-    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer].filter(Boolean);
+    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);
     // Un modelo grande no se queda ocupando cientos de MB después de usarlo.
     if((m.model?.size || 0) > 100e6 && sessions.has(m.id)){

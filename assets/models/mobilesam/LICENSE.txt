@@ -1,0 +1,12 @@
+Modelos de «Segment Anything» usados por Realify (Selección con un toque y
+Borrador mágico, funciones Premium).
+
+- mobilesam_encoder.onnx — codificador de MobileSAM (Zhang et al., 2023),
+  https://github.com/ChaoningZhang/MobileSAM — licencia Apache-2.0.
+- sam_decoder.onnx — decodificador de máscaras de Segment Anything (ViT-H,
+  checkpoint sam_vit_h_4b8939), Meta AI, https://github.com/facebookresearch/segment-anything
+  — licencia Apache-2.0. MobileSAM conserva este mismo decodificador.
+
+Exportaciones a ONNX tomadas del paquete npm @geti-ui/smart-tools 1.6.0
+(Intel Geti, licencia Apache-2.0), dist/esm/mobile_sam.encoder.onnx y
+dist/esm/sam_vit_h_4b8939.decoder.onnx, sin modificar.

@@ -148,3 +148,11 @@
   .fsp.is-premium .fsp-top{box-shadow:none}
 }
 .fsp.is-wbpick .fsp-stage,.fsp.is-wbpick .fsp-stage canvas{cursor:crosshair}
+
+/* ── Selección con un toque / Borrador mágico (js/features/samtools.js) ── */
+.sam-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sam-seg button{min-height:40px;border-radius:7px;border:1px solid #3f4855;background:#222831;color:#eef3ff;font:600 14px var(--sans,system-ui,sans-serif);cursor:pointer}
+.sam-seg button.on{background:#e8a33d;border-color:#e8a33d;color:#20180a}
+.fsp-right .sam-seg{margin:14px 0 8px}
+.sam-hint{margin:0;color:#9aa4b2;font-size:12px;line-height:1.45}
+.sam-tool .fsp-stage canvas{cursor:crosshair}

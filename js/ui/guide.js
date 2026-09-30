@@ -674,21 +674,41 @@ const TOPICS = [
       </ul>` },
 
   { id:"ia", title:"Inteligencia Artificial (menú)",
-    desc:"Todas las herramientas de IA en un sitio: fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
+    desc:"Selección con un toque y Borrador mágico 👑, fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
     html:`
       <h3>Inteligencia Artificial (menú Inteligencia Artificial)</h3>
       <p>Todas las herramientas de IA están juntas en este menú (tras Filtro) y, en el móvil,
         en la pestaña <b>Inteligencia Artificial</b> del cajón (la tercera, tras Básicos y
-        Automáticos). Hay dos secciones:</p>
+        Automáticos), con las mismas secciones y en el mismo orden:</p>
       <ul>
-        <li><b>Herramientas con IA</b> (usan un modelo de IA que funciona en tu equipo; los
-          grandes se descargan la primera vez): Eliminar fondo, Ampliar, Colorear y Expandir con
-          IA, Reemplazar cielo, Seleccionar sujeto, Seleccionar cielo, Reducción de ruido con IA,
-          Quitar artefactos JPEG con IA y Adaptive Photo Lens.</li>
+        <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto y Seleccionar cielo.</li>
+        <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo, Expandir con IA y
+          Reemplazar cielo.</li>
+        <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
+          artefactos JPEG con IA, Colorear con IA y Adaptive Photo Lens.</li>
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
           PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
       </ul>
-      <p>Las funciones de IA nuevas que se añadan serán <b>Premium 👑</b>.</p>` },
+      <p>Los modelos funcionan en tu equipo (WebGPU si el navegador la tiene; si no, en la CPU)
+        y los grandes se descargan la primera vez, avisando antes del tamaño; en
+        <b>Ayuda › Diagnóstico</b> ves los que tienes guardados y puedes borrarlos.</p>
+      <p id="ia-premium"><b>Funciones de IA Premium 👑.</b> Las nuevas funciones de IA son Premium:
+        siempre usan el procesado de más calidad, sin versión básica.</p>
+      <ul>
+        <li id="ia-tapselect"><b>Selección con un toque 👑.</b> Toca un objeto y la IA (Segment Anything:
+          MobileSAM + el decodificador de SAM) lo selecciona entero; cada toque más añade partes y
+          con <b>Quitar</b> (o Alt / Mayús + clic) excluyes lo que no quieras. Deshacer y rehacer van
+          por puntos. La primera vez analiza la foto unos segundos; después cada toque es casi
+          inmediato. Al aplicar, el borde se afina a la resolución completa de la foto: la
+          máscara de la IA se amplía con suavidad, se quitan manchas sueltas y agujeros pequeños y
+          el borde se ajusta a los contornos reales con un filtro guiado. Queda como selección
+          activa.</li>
+        <li id="ia-magicerase"><b>Borrador mágico 👑.</b> Igual, pero para quitar: toca a la persona, el
+          cable o el objeto y la IA LaMa rellena el hueco con lo que habría detrás. La zona se
+          agranda un poco para llevarse el halo del objeto, la costura se funde en luz lineal y
+          se devuelve al relleno el grano de la foto. El resultado va a una <b>capa nueva</b>; la
+          foto original queda intacta.</li>
+      </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",
     desc:"Desenfoques, enfoque, ruido con IA, retoque de retrato, frecuencias, texturas, distorsión…",

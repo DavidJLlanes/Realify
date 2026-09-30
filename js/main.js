@@ -113,6 +113,8 @@ registerAll({
   /* Misma edición en varias fotos (lote/) */
   "file.batchEdit":  { run: async () => (await import("../lote/index.js")).openBatchEdit(), enabled: needsDoc },
   "file.startBatch": () => promptStartBatch(),
+  "ai.tapSelect":   { run: async () => (await import("./features/samtools.js")).openSamTool("select"), enabled: needsDoc },
+  "ai.magicErase":  { run: async () => (await import("./features/samtools.js")).openSamTool("erase"), enabled: needsDoc },
   "ai.upscale":     { run: async () => (await import("./features/aitools.js")).aiUpscale(), enabled: needsDoc },
   "ai.colorize":    { run: async () => (await import("./features/aitools.js")).aiColorize(), enabled: needsDoc },
   "ai.expand":      { run: async () => (await import("./features/aitools.js")).aiExpand(), enabled: needsDoc },
@@ -751,10 +753,8 @@ registerAll({
         `<div class="field"><label style="width:150px">${ok ? "✓" : "✗"} ${name}</label>
          <span class="hint" style="margin:0;color:${ok ? "var(--tx-dim)" : "var(--bad)"}">${detail}</span></div>`;
       const bad = Object.entries(d.shaders).filter(([, v]) => v !== true);
-      dialog({
-        title: "Diagnóstico",
-        wide: true,
-        body:
+      const body = document.createElement("div");
+      body.innerHTML =
           row(d.webgl2, "WebGL2", d.webgl2 ? "disponible" : (d.error || "no disponible")) +
           (d.renderer ? row(true, "GPU", d.renderer.slice(0, 70)) : "") +
           (d.webgl2 ? row(d.float, "Buffer flotante",
@@ -766,9 +766,29 @@ registerAll({
           row(typeof createImageBitmap === "function", "createImageBitmap",
               typeof createImageBitmap === "function" ? "sí" : "no: el análisis ELA no funcionará") +
           row((() => { try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }catch{ return false; } })(),
-              "Almacenamiento local", "para presets y ajustes"),
-        buttons:[{ label:"Cerrar", primary:true }]
-      });
+              "Almacenamiento local", "para presets y ajustes") +
+          row(!!navigator.gpu, "WebGPU", navigator.gpu ? "sí: la IA usa la GPU" : "no: la IA funciona en la CPU (WebAssembly), más despacio") +
+          `<div class="section-label" style="margin-top:12px">Modelos de IA descargados</div><div class="diag-models hint" style="margin:0">Comprobando…</div>`;
+      // Modelos guardados en este navegador: lo que ocupan y cómo borrarlos
+      const listEl = body.querySelector(".diag-models");
+      const fill = async () => {
+        const { storedModels, forgetModel } = await import("./ai/runtime.js");
+        const { mb } = await import("./ai/models.js");
+        const list = await storedModels().catch(() => []);
+        if(!list.length){ listEl.textContent = "Ninguno: se descargan la primera vez que se usan."; return; }
+        const total = list.reduce((a, m) => a + m.size, 0);
+        listEl.innerHTML = list.map((m, i) => `<div class="field"><label style="width:auto;flex:1">${m.label}${m.premium ? " 👑" : ""}</label>
+          <span class="unit mono">${mb(m.size)}</span><button type="button" data-i="${i}">Borrar</button></div>`).join("") +
+          `<div class="field"><label style="width:auto;flex:1"><b>Total</b></label><span class="unit mono">${mb(total)}</span>
+          <button type="button" data-all="1">Borrar todos</button></div>`;
+        listEl.querySelectorAll("button").forEach(b => b.addEventListener("click", async () => {
+          b.disabled = true;
+          await forgetModel(b.dataset.all ? undefined : list[+b.dataset.i].url);
+          fill();
+        }));
+      };
+      fill();
+      dialog({ title: "Diagnóstico", wide: true, body, buttons:[{ label:"Cerrar", primary:true }] });
     }
 });
 

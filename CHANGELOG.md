@@ -9,6 +9,26 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Añadido
+- **Selección con un toque Premium 👑** (menú Inteligencia Artificial › Seleccionar y su
+  pestaña del cajón): toca un objeto y la IA (Segment Anything: MobileSAM + decodificador de
+  SAM) lo selecciona entero; más toques añaden partes y «Quitar» (o Alt / Mayús + clic)
+  las excluye; deshacer y rehacer por puntos. Procesado Premium al aplicar: máscara de la IA
+  ampliada con suavidad a la resolución de la foto, sin manchas sueltas ni agujeros pequeños
+  y con el borde ajustado a los contornos reales (filtro guiado).
+- **Borrador mágico Premium 👑** (Inteligencia Artificial › Borrar y rellenar): toca lo que
+  quieras quitar y LaMa rellena el hueco en una capa nueva; la zona se agranda para llevarse
+  el halo, la costura se funde en luz lineal y se devuelve el grano de la foto al relleno.
+- **Base para modelos de IA**: los modelos grandes servidos por la propia web (SAM, 45 MB)
+  también avisan del tamaño antes de bajarse y se guardan en IndexedDB; los que trabajan
+  juntos se piden con un solo aviso y conviven en memoria. **Ayuda › Diagnóstico** muestra si
+  hay WebGPU y los modelos descargados, con lo que ocupan y un botón para borrarlos.
+
+### Cambiado
+- **Menú y pestaña «Inteligencia Artificial» ordenados por finalidad**: Seleccionar, Borrar y
+  rellenar, Mejorar y restaurar, y Para imágenes de IA. El cajón toma del menú el orden y los
+  títulos, así que coinciden siempre en móvil y escritorio.
+
 ### Cambiado
 - **Menú «Inteligencia Artificial»** (escritorio, tras Filtro; también en el menú del móvil) y
   **pestaña «Inteligencia Artificial»** en el cajón del móvil (la tercera, tras Básicos y

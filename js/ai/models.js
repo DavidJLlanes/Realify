@@ -66,6 +66,17 @@ export const MODELS = {
   /* ── Restauración por teselas, entrada dinámica múltiplo de 8.
         FBCNN lleva además `qf_input` (1×1): 0 = suave, 1 = máximo,
         equivale a 1 − calidad JPEG/100. ── */
+  /* ── Segment Anything (Premium 👑): MobileSAM codifica la foto una vez
+        (1×3×1024×1024) y el decodificador de SAM saca la máscara de cada
+        toque en milisegundos. Viajan con la web (assets/models/mobilesam,
+        Apache-2.0, ver su LICENSE.txt) pero son grandes: `store` los
+        guarda en IndexedDB y se avisa antes de bajarlos, como los de
+        Hugging Face; `group` permite tener los dos a la vez en memoria. ── */
+  sam_enc:  { url: LOCAL + "mobilesam/mobilesam_encoder.onnx", size: 28106856, store: true, group: "sam", premium: true,
+              label: "MobileSAM", license: "Apache-2.0" },
+  sam_dec:  { url: LOCAL + "mobilesam/sam_decoder.onnx",       size: 16509322, store: true, group: "sam", premium: true,
+              label: "SAM (máscaras)", license: "Apache-2.0" },
+
   scunet:   { url: HF + "onnx/enhance/scunet/scunet_color-PSNR.onnx", size: 91264256,
               tile: 256, tileGpu: 512, minSide: 256, label: "SCUNet", license: "Apache-2.0" },
   fbcnn:    { url: HF + "onnx/enhance/fbcnn/fbcnn_color_fp16.onnx",   size: 143910675,
