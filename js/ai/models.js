@@ -100,9 +100,14 @@ export const MODELS = {
         salida 1×3×512×512 RGB en -1…1 con la cara alineada a la plantilla
         FFHQ. 170 MB en dos trozos (GitHub no admite archivos de más de
         100 MB): el worker los une y guarda el modelo entero en IndexedDB. ── */
-  gfpgan:   { url: LOCAL + "gfpgan/gfpgan_1.4_fp16.onnx", size: 170276379, store: true, premium: true,
-              parts: [LOCAL + "gfpgan/gfpgan_1.4_fp16.part0", LOCAL + "gfpgan/gfpgan_1.4_fp16.part1"],
-              label: "GFPGAN 1.4 (restaurar caras)", license: "Apache-2.0" },
+  /* Partido en dos mitades (codificador y decodificador) para que en un
+     móvil quepa cada una sola en memoria; ver faceRestore en worker.js.
+     Mismo grupo: una sola descarga y un solo aviso (170 MB en total). */
+  gfpgan_enc: { url: LOCAL + "gfpgan/gfpgan_enc_fp16.onnx", size: 112420987, store: true, premium: true, group: "gfpgan",
+              parts: [LOCAL + "gfpgan/gfpgan_enc_fp16.part0", LOCAL + "gfpgan/gfpgan_enc_fp16.part1"],
+              label: "GFPGAN 1.4 · codificador", license: "Apache-2.0" },
+  gfpgan_dec: { url: LOCAL + "gfpgan/gfpgan_dec_fp16.onnx", size: 57870819, store: true, premium: true, group: "gfpgan",
+              label: "GFPGAN 1.4 · generador", license: "Apache-2.0" },
 
   /* ── Antiguos modelos de TensorFlow.js, convertidos a ONNX con tf2onnx
         (mismos pesos, sin TF.js): viajan con la web y funcionan sin

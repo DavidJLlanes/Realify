@@ -9,6 +9,19 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Restaurar caras en iPhone (memoria)
+- GFPGAN va ahora partido en dos mitades (codificador y generador, fp16; resultado idéntico al
+  modelo entero): en móviles se carga una, se ejecuta, se suelta y luego la otra. El pico de
+  memoria baja de ~1 GB a ~600 MB. Mismos 170 MB de descarga; el modelo entero antiguo se borra
+  del navegador.
+- La descarga de modelos ya no tiene el archivo tres veces en memoria a la vez (trozos, Blob y
+  copia): cada trozo se copia a un único búfer.
+
+### Foto 3D: guardar bien en cada sistema
+- iPhone/iPad: en dos pasos («Crear GIF» y, cuando está listo, «Guardar»), porque Safari sólo
+  abre la hoja del sistema justo tras un toque; allí «Guardar imagen» la deja en Fotos.
+- Android: se descarga (Descargas, se ve en la galería). Ordenador: se descarga.
+
 ### Porcentaje de aplicación en las capas de IA
 - Las herramientas de IA que dejan una capa del mismo tamaño que la foto tienen ahora el
   deslizador de **porcentaje de aplicación** de la capa («mezcla»), como los filtros: Difuminar

@@ -90,7 +90,12 @@ async function fetchModel(id, model){
   // `parts`: el archivo viene en trozos (GitHub no admite más de 100 MB
   // por archivo); se bajan uno tras otro y se guardan unidos con `url`.
   const urls = model.parts || [model.url];
-  const chunks = []; let loaded = 0, last = 0, total = model.parts ? model.size || 0 : 0;
+  let chunks = [], loaded = 0, last = 0, total = model.parts ? model.size || 0 : 0;
+  /* Memoria: si se sabe el tamaño exacto (`model.size`), cada trozo se
+     copia al momento a UN búfer final y se suelta; antes se juntaban
+     todos, luego un Blob y luego otra copia: tres veces el modelo a la
+     vez, lo que en un iPhone bastaba para quedarse sin memoria. */
+  let buf = model.size ? new Uint8Array(model.size) : null;
   for(const u of urls){
     const res = await fetch(u);
     if(!res.ok) throw new Error(`No se pudo descargar el modelo (${res.status}).`);
@@ -99,18 +104,24 @@ async function fetchModel(id, model){
     for(;;){
       const { done, value } = await reader.read();
       if(done) break;
-      chunks.push(value); loaded += value.length;
+      if(buf && loaded + value.length <= buf.length) buf.set(value, loaded);
+      else{
+        if(buf){ chunks.push(buf.subarray(0, loaded)); buf = null; }   // el tamaño no cuadraba
+        chunks.push(value);
+      }
+      loaded += value.length;
       const now = performance.now();
       if(now - last > 150){ last = now; post({ type:"download", model:id, loaded, total }); }
     }
   }
   post({ type:"download", model:id, loaded, total: total || loaded });
-  const blob = new Blob(chunks);
-  // Los trozos ya están en el Blob: fuera de memoria cuanto antes (con
-  // ISNet son 180 MB que, si no, se tienen dos y tres veces a la vez).
-  chunks.length = 0;
-  if(!local) await dbPut(model.url, blob);
-  return new Uint8Array(await blob.arrayBuffer());
+  let bytes;
+  if(buf && loaded === buf.length) bytes = buf;
+  else if(buf) bytes = buf.subarray(0, loaded);
+  else{ const b = new Blob(chunks); chunks = null; bytes = new Uint8Array(await b.arrayBuffer()); }
+  chunks = null; buf = null;
+  if(!local) await dbPut(model.url, new Blob([bytes]));
+  return bytes;
 }
 
 /* Modelos que ya fallaron en WebGPU durante esta sesión (p. ej. «Too
@@ -593,19 +604,37 @@ async function depth({ model, id, rgba }){
   return { depth: d, size: S };
 }
 
-/* ── Restaurar caras (GFPGAN v1.4) ───────────────────────────────
-   Entrada: `crops`, las caras ya alineadas a 512×512 (plantilla FFHQ),
-   RGBA; todas en una llamada, así el modelo (170 MB) se carga una vez.
-   El modelo trabaja en RGB -1…1; se devuelven RGBA 512×512 en `outs`. */
-async function faceRestore({ model, id, crops }){
-  const { session } = await getSession(id, model);
-  const S = 512, n = S * S, name = session.inputNames[0], outs = [];
+/* ── Restaurar caras (GFPGAN v1.4, en dos mitades) ────────────────
+   El modelo va partido en codificador (la cara → código latente y las
+   15 «condiciones» que guían al generador) y decodificador (StyleGAN,
+   que pinta la cara de 512×512): el mismo resultado exacto que el
+   modelo entero, pero cada mitad cabe sola en memoria. Con `lowMem`
+   (móviles) se suelta cada mitad antes de cargar la otra: el pico baja
+   de ~1 GB a ~600 MB y un iPhone ya no se queda sin memoria.
+   Entrada: `crops`, caras alineadas a 512×512 (plantilla FFHQ), RGBA.
+   Salida: `outs`, RGBA 512×512. */
+async function release(id){
+  const e = sessions.get(id);
+  if(!e) return;
+  try{ await e.session.release(); }catch{}
+  sessions.delete(id);
+}
+async function faceRestore({ model, id, crops, dec, decId, lowMem }){
+  const S = 512, n = S * S, outs = [];
   post({ type:"stage", model:id, stage:"run" });
   for(const rgba of crops){
     const x = new Float32Array(3 * n);
     for(let p = 0, i = 0; p < n; p++, i += 4){ x[p] = rgba[i] / 127.5 - 1; x[n + p] = rgba[i + 1] / 127.5 - 1; x[2 * n + p] = rgba[i + 2] / 127.5 - 1; }
-    const out = await runSession(id, model, { [name]: makeTensor(inputType(session, name), x, [1, 3, S, S]) });
-    const v = readFloats(out[session.outputNames[0]]), o = new Uint8ClampedArray(4 * n);
+    const enc = (await getSession(id, model)).session;
+    const mid = await runSession(id, model, { [enc.inputNames[0]]: makeTensor(inputType(enc, enc.inputNames[0]), x, [1, 3, S, S]) });
+    if(lowMem) await release(id);
+    const d = (await getSession(decId, dec)).session;
+    const feeds = {};
+    for(const name of d.inputNames) feeds[name] = mid[name];
+    const out = await runSession(decId, dec, feeds);
+    for(const k in mid){ try{ mid[k].dispose?.(); }catch{} }
+    if(lowMem) await release(decId);
+    const v = readFloats(out[d.outputNames[0]]), o = new Uint8ClampedArray(4 * n);
     for(let p = 0, i = 0; p < n; p++, i += 4){
       o[i] = (Math.max(-1, Math.min(1, v[p])) + 1) * 127.5;
       o[i + 1] = (Math.max(-1, Math.min(1, v[n + p])) + 1) * 127.5;
@@ -614,6 +643,7 @@ async function faceRestore({ model, id, crops }){
     }
     outs.push(o);
   }
+  if(lowMem){ await release(id); await release(decId); }
   return { outs };
 }
 
@@ -683,6 +713,11 @@ async function deleteStored(url){
     await new Promise(resolve => { const tx = db.transaction(STORE, "readwrite"); url ? tx.objectStore(STORE).delete(url) : tx.objectStore(STORE).clear(); tx.oncomplete = tx.onerror = () => resolve(); });
   }catch{}
 }
+
+/* Modelos sustituidos por otros: se borran de IndexedDB para no dejar
+   cientos de MB huérfanos (GFPGAN entero → GFPGAN en dos mitades). */
+const OBSOLETE = ["gfpgan/gfpgan_1.4_fp16.onnx"].map(p => new URL("../../assets/models/" + p, import.meta.url).href);
+setTimeout(() => { for(const u of OBSOLETE) deleteStored(u).catch?.(() => {}); }, 3000);
 
 const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore, classify, segSky, segPerson };
 

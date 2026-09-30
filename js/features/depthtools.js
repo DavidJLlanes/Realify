@@ -421,10 +421,28 @@ export async function openPhoto3D(){
     f = (f + 1) % FRAMES;
   }, 70);
   const close = () => { d3Open = false; clearInterval(timer); sh.close(); };
+  /* Guardar como corresponde en cada sistema:
+       · iPhone/iPad: la hoja del sistema («Guardar imagen» → Fotos).
+         Safari sólo la abre justo tras un toque: crear el GIF tarda, así
+         que va en dos pasos («Crear GIF» y, ya listo, «Guardar»).
+       · Android: descarga (Descargas, se ve en la galería).
+       · Ordenador: descarga. */
+  const { isAndroid } = await import("../core/device.js");
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform || "") && navigator.maxTouchPoints > 1);
+  const baseName = (doc.name || "foto").replace(/\.[^.]+$/, "") + "-3d.gif";
+  let ready = null;   // el GIF ya creado (iPhone, a la espera del toque de Guardar)
+  const saveGif = async blob => {
+    const { saveOrShare } = await import("../io/export.js");
+    const how = await saveOrShare(blob, baseName, ios ? "share" : isAndroid() ? "download" : "auto");
+    if(how === "cancelled"){ toast("No se ha guardado: pulsa Guardar otra vez cuando quieras"); return false; }
+    toast(how === "shared" ? "Foto 3D lista: elige «Guardar imagen» para tenerla en Fotos" : "Foto 3D guardada como GIF (Descargas)", "ok");
+    return true;
+  };
   const { sh, mountControls } = await openShell({
-    title: "Foto 3D", subtitle: "Premium 👑 · se guarda como GIF animado", applyLabel: "Guardar GIF",
+    title: "Foto 3D", subtitle: "Premium 👑 · se guarda como GIF animado", applyLabel: ios ? "Crear GIF" : "Guardar GIF",
     onCancel: close,
     onApply: async () => {
+      if(ready){ if(await saveGif(ready)) close(); return; }
       sh.setBusy("Creando el GIF…");
       await new Promise(r => setTimeout(r, 30));
       try{
@@ -435,11 +453,17 @@ export async function openPhoto3D(){
           c.getContext("2d", { willReadFrequently: true }).putImageData(new ImageData(b, P.w, P.h), 0, 0);
           frames.push(c);
         }
-        const [{ gifFromCanvases }, { download }] = await Promise.all([import("../io/formats.js"), import("../io/export.js")]);
+        const { gifFromCanvases } = await import("../io/formats.js");
         const blob = await gifFromCanvases(frames, { delay: 70, loop: 0, onProgress: p => sh.setBusy(`Creando el GIF… ${Math.round(p * 100)} %`) });
-        const base = (doc.name || "foto").replace(/\.[^.]+$/, "");
-        download(blob, base + "-3d.gif");
-        close(); toast("Foto 3D guardada como GIF", "ok");
+        sh.setBusy("");
+        if(ios){
+          // Segundo paso: un toque nuevo para que Safari abra la hoja
+          ready = blob;
+          sh.setApplyLabel("Guardar");
+          sh.setSubtitle("GIF listo · pulsa Guardar");
+          return;
+        }
+        if(await saveGif(blob)) close();
       } catch(err){ sh.setBusy(""); toast("No se pudo crear el GIF: " + err.message, "err"); }
     }
   });
@@ -449,6 +473,10 @@ export async function openPhoto3D(){
       { key: "amount", label: "Movimiento", type: "range", min: 10, max: 100, def: 50 },
       { key: "path", label: "Recorrido", type: "select", options: [["circle", "Círculo"], ["horizontal", "Lateral"], ["zoom", "Acercar"]] }
     ] }],
-    get: k => S[k], set: (k, v) => { S[k] = v; }
+    get: k => S[k], set: (k, v) => {
+      S[k] = v;
+      // Otro movimiento: el GIF creado ya no vale
+      if(ready){ ready = null; sh.setApplyLabel("Crear GIF"); sh.setSubtitle("Premium 👑 · se guarda como GIF animado"); }
+    }
   });
 }

@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v190-mezcla-capas-ia";
+const VERSION = "realify-v191-caras-iphone-foto3d";
 const SHELL = [
   "./",
   "./index.html",

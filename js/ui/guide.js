@@ -786,7 +786,9 @@ const TOPICS = [
           Color: automático —el de lo más lejano—, blanca, cálida o fría), tramada para que no
           haga escalones en el cielo; capa nueva. <b>Foto 3D</b>: anima la foto con paralaje (lo
           cercano se mueve más que lo lejano) en círculo, de lado o acercándose, rellenando lo
-          que se destapa con el fondo, y la guarda como <b>GIF</b>.</li>
+          que se destapa con el fondo, y la guarda como <b>GIF</b>: en el iPhone, «Crear GIF» y luego
+          «Guardar» (en la hoja del sistema, «Guardar imagen» la deja en Fotos); en Android y en el
+          ordenador se descarga.</li>
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",

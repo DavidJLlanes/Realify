@@ -547,7 +547,12 @@ export async function openFaceRestore(){
   let prepared;
   try{
     const { runModel } = await import("../ai/runtime.js");
-    const r = await runModel("faceRestore", "gfpgan", { crops }, crops.map(c => c.buffer), { title: faces.length === 1 ? "Restaurando la cara con IA" : `Restaurando ${faces.length} caras con IA` });
+    const { MODELS } = await import("../ai/models.js");
+    const { isMobile } = await import("../core/device.js");
+    // Móviles o poca memoria: cada mitad del modelo se suelta antes de cargar la otra
+    const lowMem = isMobile() || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.deviceMemory || 8) <= 4;
+    const r = await runModel("faceRestore", "gfpgan_enc", { crops, dec: MODELS.gfpgan_dec, decId: "gfpgan_dec", lowMem }, crops.map(c => c.buffer),
+      { title: faces.length === 1 ? "Restaurando la cara con IA" : `Restaurando ${faces.length} caras con IA` });
     prepared = r.outs.map((o, i) => prepareRestored(Ms[i], o, rgba, W, H));
   }catch(err){ restoreOpen = false; if(!err.cancelled && !/cancelad/.test(err.message)) toast("No se pudieron restaurar las caras: " + err.message, "err"); return; }
   const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
