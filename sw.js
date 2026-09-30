@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v169-automaticos-diagnostico";
+const VERSION = "realify-v170-menu-inteligencia-artificial";
 const SHELL = [
   "./",
   "./index.html",

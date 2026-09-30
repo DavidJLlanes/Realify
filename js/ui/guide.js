@@ -673,6 +673,23 @@ const TOPICS = [
           puedes reabrir para afinarla.</li>
       </ul>` },
 
+  { id:"ia", title:"Inteligencia Artificial (menú)",
+    desc:"Todas las herramientas de IA en un sitio: fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
+    html:`
+      <h3>Inteligencia Artificial (menú Inteligencia Artificial)</h3>
+      <p>Todas las herramientas de IA están juntas en este menú (tras Filtro) y, en el móvil,
+        en la pestaña <b>Inteligencia Artificial</b> del cajón (la tercera, tras Básicos y
+        Automáticos). Hay dos secciones:</p>
+      <ul>
+        <li><b>Herramientas con IA</b> (usan un modelo de IA que funciona en tu equipo; los
+          grandes se descargan la primera vez): Eliminar fondo, Ampliar, Colorear y Expandir con
+          IA, Reemplazar cielo, Seleccionar sujeto, Seleccionar cielo, Reducción de ruido con IA,
+          Quitar artefactos JPEG con IA y Adaptive Photo Lens.</li>
+        <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
+          PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
+      </ul>
+      <p>Las funciones de IA nuevas que se añadan serán <b>Premium 👑</b>.</p>` },
+
   { id:"filtros", title:"Filtros (menú Filtro)",
     desc:"Desenfoques, enfoque, ruido con IA, retoque de retrato, frecuencias, texturas, distorsión…",
     html:`
@@ -753,7 +770,7 @@ const TOPICS = [
           el lienzo, como siempre; esto es para tocar su aspecto sin entrar a escribir.</li>
         <li><b>Capa con máscara.</b> Densidad (dosifica el efecto entero de la máscara) y
           Desvanecer (difumina sus bordes), más «Seleccionar sujeto» y «Seleccionar
-          cielo» —la misma detección por IA del menú Selección—, útiles
+          cielo» —la misma detección del menú Inteligencia Artificial—, útiles
           para repetir el intento sobre la máscara ya puesta si el primero no convenció.</li>
         <li><b>Capa fx (filtro reeditable).</b> Los parámetros del filtro, inline, con la
           misma vista previa en baja resolución mientras se arrastra y a resolución
@@ -1235,6 +1252,8 @@ const TOPICS = [
     desc:"Realify, revelado, Collage / History / Post, memes, Filtro Vintage, Estilos, Unmark, LUT…",
     html:`
       <h3>Filtros especiales (Filtro › Especiales)</h3>
+      <p>Realify, PurePixel, Unmark y Adaptive Photo Lens están ahora en el menú
+        <b>Inteligencia Artificial</b> (y en esa pestaña del cajón del móvil).</p>
       <p>Los más grandes se abren a <b>pantalla completa</b> con la misma estructura:
         Cancelar, deshacer y rehacer propios y Aplicar arriba; en escritorio, columnas a los
         lados de la vista previa; en el móvil, la imagen ocupa la pantalla y los mandos son
@@ -1409,7 +1428,7 @@ const TOPICS = [
           capa de filtro (también en Ajustes › Automáticos). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
           Tono y color, Tono y color Premium 👑, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
-          demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
+          demás categorías (Inteligencia Artificial, Mejorar, Corregir, Color, Estilo, Efectos, Retoque,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la
           categoría abierta (en Básicos, en todo), sin importar tildes ni pequeñas

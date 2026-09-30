@@ -355,7 +355,8 @@ capa de filtro reeditable.
 ## 10. Módulos especiales
 
 Se abren desde **Filtro › Especiales** (y en móvil desde el cajón de
-herramientas). Cada uno es un editor a pantalla completa con vista previa.
+herramientas); Realify, PurePixel, Unmark y Adaptive Photo Lens, desde el menú
+**Inteligencia Artificial** (pestaña del mismo nombre en el cajón). Cada uno es un editor a pantalla completa con vista previa.
 
 ### Revelado fotográfico (RAW) — `raw/`
 Revelador RAW local basado en LibRaw (WebAssembly). Trabaja en RGB lineal de

@@ -28,6 +28,7 @@ import { matchScore, searchable } from "../core/search.js";
 const CATS = [
   ["basicos",   "Básicos"],
   ["auto",      "Automáticos"],   // todos los ajustes automáticos juntos
+  ["ia",        "Inteligencia Artificial"],   // todas las herramientas de IA, en dos secciones
   ["todos",     "Todos"],
   ["mejorar",   "Mejorar"],
   ["corregir",  "Corregir"],
@@ -35,7 +36,6 @@ const CATS = [
   ["estilo",    "Estilo"],
   ["efectos",   "Efectos"],
   ["retoque",   "Retoque"],
-  ["ia",        "IA"],
   ["seleccion", "Selección"],
   ["pintar",    "Pintar"],
   ["analizar",  "Analizar"]
@@ -108,13 +108,13 @@ const ITEMS = [
   { cmd:"adj.invert",            label:"Invertir",             ic:"circle-slash-2",        cat:"color" },
 
   /* ── Filtro: especiales ── */
-  { cmd:"filter.camera",    label:"Realify",          cat:"estilo ia" },
+  { cmd:"filter.camera",    label:"Realify",          cat:"ia", ia:"imagen" },
   { cmd:"filter.photoDevelop", label:"Revelado fotográfico", ic:"sliders-horizontal", cat:"mejorar color" },
   { cmd:"filter.vintage",   label:"Filtro Vintage",   ic:"camera",             cat:"estilo efectos" },
-  { cmd:"filter.purepixel", label:"PurePixel",        cat:"ia" },
-  { cmd:"filter.unmark",    label:"Unmark",           cat:"ia corregir" },
+  { cmd:"filter.purepixel", label:"PurePixel",        cat:"ia", ia:"imagen" },
+  { cmd:"filter.unmark",    label:"Unmark",           cat:"ia", ia:"imagen" },
   { cmd:"filter.looks",     label:"Estilos",          cat:"estilo" },
-  { cmd:"filter.lens",      label:"Photo Lens",       cat:"ia mejorar" },
+  { cmd:"filter.lens",      label:"Photo Lens",       cat:"ia", ia:"modelo" },
   { cmd:"filter.lut",       label:"Tabla de color",   ic:"clapperboard",       cat:"estilo color" },
 
   /* ── Filtro: desenfoques ── */
@@ -143,8 +143,8 @@ const ITEMS = [
   { cmd:"filter.clarity",        label:"Detalle",          ic:"gem",            cat:"mejorar" },
   { cmd:"filter.vignette",       label:"Viñeteado",        ic:"circle-dot-dashed", cat:"estilo" },
   { cmd:"filter.denoise",        label:"Reducir ruido",    ic:"audio-waveform", cat:"corregir mejorar" },
-  { cmd:"filter.aiDenoise",      label:"Ruido con IA",     ic:"denoise-ai",   cat:"corregir ia" },
-  { cmd:"filter.aiDejpeg",       label:"Quitar JPEG con IA", ic:"file-image",   cat:"corregir ia" },
+  { cmd:"filter.aiDenoise",      label:"Ruido con IA",     ic:"denoise-ai",   cat:"ia", ia:"modelo" },
+  { cmd:"filter.aiDejpeg",       label:"Quitar JPEG con IA", ic:"file-image",   cat:"ia", ia:"modelo" },
   { cmd:"filter.channelDenoise", label:"Ruido por canal",  ic:"signal",         cat:"corregir" },
   { cmd:"filter.noise",          label:"Añadir ruido",     ic:"grip",           cat:"estilo efectos" },
 
@@ -180,11 +180,11 @@ const ITEMS = [
   { cmd:"image.merge",     label:"Unir imágenes",       ic:"merge-images",      cat:"corregir estilo" },
   { cmd:"image.slice",     label:"Cortar en partes",    ic:"layout-grid",       cat:"corregir estilo" },
   { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"shapes",            cat:"corregir estilo" },
-  { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia retoque" },
-  { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia mejorar" },
-  { cmd:"ai.colorize",  label:"Colorear con IA",      ic:"colorize",          cat:"ia color" },
-  { cmd:"ai.expand",    label:"Expandir con IA",      ic:"expand",            cat:"ia corregir" },
-  { cmd:"sky.replace",  label:"Reemplazar cielo",     ic:"cloud-sun",         cat:"ia estilo" },
+  { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia", ia:"modelo" },
+  { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia", ia:"modelo" },
+  { cmd:"ai.colorize",  label:"Colorear con IA",      ic:"colorize",          cat:"ia", ia:"modelo" },
+  { cmd:"ai.expand",    label:"Expandir con IA",      ic:"expand",            cat:"ia", ia:"modelo" },
+  { cmd:"sky.replace",  label:"Reemplazar cielo",     ic:"cloud-sun",         cat:"ia", ia:"modelo" },
 
   /* ── Herramientas de la antigua fila ── */
   { tool:"crop",        label:"Recortar",      cat:"corregir" },
@@ -203,8 +203,8 @@ const ITEMS = [
   { tool:"select-lasso",   label:"Lazo",        cat:"seleccion" },
   { tool:"select-wand",    label:"Varita mágica", cat:"seleccion" },
   { tool:"pen",            label:"Pluma",       cat:"seleccion" },
-  { cmd:"sel.subject",   label:"Seleccionar sujeto", ic:"user-round",        cat:"seleccion ia" },
-  { cmd:"sel.sky",       label:"Seleccionar cielo",  ic:"cloud",             cat:"seleccion ia" },
+  { cmd:"sel.subject",   label:"Seleccionar sujeto", ic:"user-round",        cat:"ia", ia:"modelo" },
+  { cmd:"sel.sky",       label:"Seleccionar cielo",  ic:"cloud",             cat:"ia", ia:"modelo" },
   { cmd:"sel.all",       label:"Seleccionar todo",   ic:"square-dashed",     cat:"seleccion" },
   { cmd:"sel.invert",    label:"Invertir selección", ic:"refresh-ccw-dot",   cat:"seleccion" },
   { cmd:"sel.none",      label:"Deseleccionar",      ic:"square-dashed-x",   cat:"seleccion" },
@@ -239,8 +239,8 @@ const ITEMS = [
   { tool:"compare",      label:"Comparar",     cat:"analizar" },
   { tool:"zoom",         label:"Zoom",         cat:"analizar" },
   { tool:"pan",          label:"Mano",         cat:"analizar" },
-  { cmd:"an.metrics",    label:"Plausibilidad",    ic:"gauge",        cat:"analizar" },
-  { cmd:"an.forensics",  label:"Segunda opinión",  ic:"microscope",   cat:"analizar" },
+  { cmd:"an.metrics",    label:"Plausibilidad",    ic:"gauge",        cat:"ia", ia:"imagen" },
+  { cmd:"an.forensics",  label:"Segunda opinión",  ic:"microscope",   cat:"ia", ia:"imagen" },
   { cmd:"an.spectrum",   label:"Espectro",         ic:"radar",        cat:"analizar" },
   { cmd:"view.histogram", label:"Histograma",       ic:"chart-column", cat:"analizar mejorar" },
   { cmd:"view.smartGrid", label:"Cuadrícula inteligente", ic:"grid-3x3", cat:"analizar corregir" },
@@ -248,7 +248,7 @@ const ITEMS = [
   { cmd:"an.palette",    label:"Paleta de colores", ic:"palette",     cat:"analizar color" },
   { cmd:"an.eyedropper", label:"Cuentagotas de pantalla", ic:"pipette", cat:"analizar color" },
   { cmd:"an.exif",       label:"Metadatos EXIF",   ic:"tags",         cat:"analizar" },
-  { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"analizar ia" }
+  { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"ia", ia:"imagen" }
 ];
 
 const KEY = "realify.drawer.cat";
@@ -291,7 +291,7 @@ function checkCoverage(){
     if(it.submenu) walk(it.submenu);
     else if(it.cmd && !it.desktopOnly && !have.has(it.cmd)) missing.push(it.cmd);
   } };
-  for(const m of MENUS) if(m.label === "Ajustes" || m.label === "Filtro") walk(m.items);
+  for(const m of MENUS) if(m.label === "Ajustes" || m.label === "Filtro" || m.label === "Inteligencia Artificial") walk(m.items);
   if(missing.length) console.warn("[cajón] comandos sin entrada:", missing.join(", "));
 }
 
@@ -328,6 +328,9 @@ function itemsFor(c){
   if(c === "basicos") c = "todos";
   const list = c === "todos" ? ITEMS.slice() : ITEMS.filter(i => i.cat.split(" ").includes(c));
   const auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto).sort(byLabel);
+  // Inteligencia Artificial: las que usan un modelo de IA y, después, las
+  // que trabajan con imágenes generadas por IA (renderGrid pone los títulos)
+  if(c === "ia") rest.sort((a, b) => (a.ia === "imagen") - (b.ia === "imagen"));
   if(!query.trim()) return [...auto, ...rest];
   const scored = [...auto, ...rest].map(it => [it, matchScore(query, searchTextOf(it))]).filter(([, s]) => s > 0);
   return [...scored.filter(([, s]) => s === 2), ...scored.filter(([, s]) => s === 1)].map(([it]) => it);
@@ -357,7 +360,15 @@ function renderGrid(){
     emptyEl.textContent = cat === "todos" || cat === "basicos" ? `Nada coincide con «${query.trim()}».`
       : `Nada coincide con «${query.trim()}» en ${label}.`;
   }
+  let lastGroup = null;
   for(const it of items){
+    if(cat === "ia" && !query.trim() && it.ia && it.ia !== lastGroup){
+      lastGroup = it.ia;
+      const h = document.createElement("div");
+      h.className = "td-sec";
+      h.textContent = it.ia === "modelo" ? "Herramientas con IA" : "Para imágenes de IA";
+      gridEl.appendChild(h);
+    }
     const b = document.createElement("button");
     b.type = "button";
     b.className = "td-item" + (it.auto === "premium" ? " td-auto td-auto-premium" : it.auto ? " td-auto" : "") + (it.premium ? " td-premium" : "");

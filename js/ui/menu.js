@@ -109,26 +109,11 @@ export const MENUS = [
     { cmd:"image.shapeCrop", label:"Recortar en forma…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
       help:"Pantalla completa: recorta la foto con una de unas 60 formas (círculo, polígonos y estrellas configurables, corazón, flores, nube, bocadillos, engranaje, anillo, marco, flechas…) que se mueve, escala y gira sobre la imagen, con borde suave y contorno. Recorta sólo la capa activa: crea una capa con la forma y transparencia fuera y oculta las demás, lista para guardar en PNG, WebP o AVIF." },
-    { sep:true },
-    { cmd:"image.removeBackground", ic:"image-minus", label:"Eliminar fondo…" },
-    { cmd:"ai.upscale", ic:"scaling", label:"Ampliar con IA…",
-      help:"Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva." },
-    { cmd:"ai.colorize", ic:"colorize", label:"Colorear con IA…",
-      help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
-    { cmd:"ai.expand", ic:"expand", label:"Expandir con IA…",
-      help:"Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva." },
-    { cmd:"sky.replace", label:"Reemplazar cielo…",
-      help:"Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara." }
   ]},
   { label:"Selección", items:[
     { cmd:"sel.all",     label:"Seleccionar todo" },
     { cmd:"sel.none",    label:"Deseleccionar" },
     { cmd:"sel.invert",  label:"Invertir selección" },
-    { sep:true },
-    { cmd:"sel.subject", label:"Seleccionar sujeto",
-      help:"Detecta a la persona con IA (BodyPix); si no encuentra a nadie, cae al fondo por color conectado a los bordes." },
-    { cmd:"sel.sky",     label:"Seleccionar cielo",
-      help:"Detecta el cielo con IA (DeepLab/ADE20K)." },
     { sep:true },
     { cmd:"pen.start",   label:"Pluma (A)",
       help:"Trazados Bézier a mano: clic pone un ancla de esquina, clic y arrastre la vuelve curva con tiradores. Clic sobre la primera ancla cierra el trazado." },
@@ -287,9 +272,6 @@ export const MENUS = [
   ]},
   { label:"Filtro", items:[
     { label:"Especiales", submenu:[
-    { cmd:"filter.camera",  label:"Realify…",
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.4-2h5.2L16 7h2.5A1.5 1.5 0 0 1 20 8.5V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><circle cx="12" cy="13" r="3.5"/><path d="M17 10.5h.01"/></svg>',
-      help:"Simula óptica, sensor y compresión de una cámara. Abre un panel con controles avanzados." },
     { cmd:"filter.photoDevelop", label:"Revelado fotográfico…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h16v11H4z"/><path d="M7 4.5h10M8 11h8M8 15h5"/><circle cx="17" cy="15" r="1.5"/></svg>',
       help:"Abre el revelador no destructivo sobre la capa activa. Sus parámetros, porcentaje de filtro, máscara y opacidad se guardan por separado." },
@@ -302,18 +284,9 @@ export const MENUS = [
     { cmd:"filter.vintage", label:"Filtro Vintage…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 8h18M3 16h18"/><path d="M6 5v3M10 5v3M14 5v3M18 5v3M6 16v3M10 16v3M14 16v3M18 16v3" opacity=".6"/><circle cx="12" cy="12" r="1.6"/></svg>',
       help:"Da aspecto antiguo a la foto: virados, películas clásicas, grano, fugas de luz, polvo, bordes y ópticas de época. Crea una capa de filtro reeditable." },
-    { cmd:"filter.purepixel", label:"PurePixel…",
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M15 4v16M4 9h16M4 15h16" opacity=".55"/><path d="M9 9h6v6H9z" fill="currentColor" stroke="none" opacity=".85"/></svg>',
-      help:"Aplica cambios sutiles a los píxeles de la capa activa. Función experimental." },
-    { cmd:"filter.unmark",  label:"Unmark…",
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 15.5h4.5M16.5 13v5" opacity=".9"/><path d="M4 20 20 4"/></svg>',
-      help:"Elimina la marca visible del generador, perturba las marcas invisibles de los píxeles y limpia la procedencia del archivo (C2PA, XMP, EXIF). Panel por secciones con vista previa." },
     { cmd:"filter.looks",   label:"Estilos…",
       help:"160 acabados de un clic en 16 categorías —retrato, paisaje, cine, películas, urbano, comida, moda, redes sociales, blanco y negro, noche, pastel, duotonos, vintage…— con buscador e intensidad.",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c-4.7 0-8.5 3.4-8.5 7.6 0 3.9 3.2 6.2 5.3 6.2 1.4 0 1.6-.9 1.6-1.6 0-.9-.6-1.4-.6-2.3 0-1.1.9-1.9 2.1-1.9h1.8c3.1 0 5.3-2 5.3-4.6 0-2.1-3-3.4-7-3.4z"/><circle cx="7.8" cy="10.2" r="1" fill="currentColor" stroke="none"/><circle cx="10.8" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="14.8" cy="7.2" r="1" fill="currentColor" stroke="none"/></svg>' },
-    { cmd:"filter.lens",    label:"Adaptive Photo Lens…",
-      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21"/><path d="M5.6 5.6l2.5 2.5M15.9 15.9l2.5 2.5"/></svg>',
-      help:"Reconoce el tipo de foto con un modelo local y aplica el revelado que le va" },
     { cmd:"filter.lut",     label:"Tabla de color (LUT)…", help:"Carga un archivo .cube de etalonaje y lo aplica en una capa nueva." }
     ]},
     { label:"Desenfoques", submenu:[
@@ -347,10 +320,6 @@ export const MENUS = [
     ]},
     { label:"Ruido", submenu:[
       { cmd:"filter.denoise", label:"Reducción de ruido…" },
-      { cmd:"filter.aiDenoise", ic:"denoise-ai", label:"Reducción de ruido con IA…",
-        help:"SCUNet (modelo de ImageToolbox): quita el ruido real de cámara conservando el detalle. La primera vez descarga el modelo (91 MB)." },
-      { cmd:"filter.aiDejpeg", label:"Quitar artefactos JPEG con IA…",
-        help:"FBCNN (modelo de ImageToolbox): elimina bloques y halos de compresión. La primera vez descarga el modelo (144 MB)." },
       { cmd:"filter.channelDenoise", label:"Reducción de ruido por canal…" },
       { cmd:"filter.noise", label:"Añadir ruido…" }
     ]},
@@ -387,14 +356,52 @@ export const MENUS = [
       { cmd:"filter.patch", label:"Parche / tampón de clonar" }
     ]}
   ]},
+  { label:"Inteligencia Artificial", items:[
+    /* Todas las herramientas de IA juntas (en el móvil, la pestaña
+       «Inteligencia Artificial» del cajón). Las que usan un modelo de IA
+       y, aparte, las que trabajan CON imágenes generadas por IA. */
+    { header:"Herramientas con IA" },
+    { cmd:"image.removeBackground", ic:"image-minus", label:"Eliminar fondo…" },
+    { cmd:"ai.upscale", ic:"scaling", label:"Ampliar con IA…",
+      help:"Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva." },
+    { cmd:"ai.colorize", ic:"colorize", label:"Colorear con IA…",
+      help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
+    { cmd:"ai.expand", ic:"expand", label:"Expandir con IA…",
+      help:"Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva." },
+    { cmd:"sky.replace", ic:"cloud-sun", label:"Reemplazar cielo…",
+      help:"Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara." },
+    { cmd:"sel.subject", ic:"user-round", label:"Seleccionar sujeto",
+      help:"Detecta a la persona con IA (BodyPix); si no encuentra a nadie, cae al fondo por color conectado a los bordes." },
+    { cmd:"sel.sky", ic:"cloud",     label:"Seleccionar cielo",
+      help:"Detecta el cielo con IA (DeepLab/ADE20K)." },
+    { cmd:"filter.aiDenoise", ic:"denoise-ai", label:"Reducción de ruido con IA…",
+      help:"SCUNet (modelo de ImageToolbox): quita el ruido real de cámara conservando el detalle. La primera vez descarga el modelo (91 MB)." },
+    { cmd:"filter.aiDejpeg", ic:"file-image", label:"Quitar artefactos JPEG con IA…",
+      help:"FBCNN (modelo de ImageToolbox): elimina bloques y halos de compresión. La primera vez descarga el modelo (144 MB)." },
+    { cmd:"filter.lens",    label:"Adaptive Photo Lens…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21"/><path d="M5.6 5.6l2.5 2.5M15.9 15.9l2.5 2.5"/></svg>',
+      help:"Reconoce el tipo de foto con un modelo local y aplica el revelado que le va" },
+    { sep:true },
+    { header:"Para imágenes de IA" },
+    { cmd:"filter.camera",  label:"Realify…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.4-2h5.2L16 7h2.5A1.5 1.5 0 0 1 20 8.5V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><circle cx="12" cy="13" r="3.5"/><path d="M17 10.5h.01"/></svg>',
+      help:"Simula óptica, sensor y compresión de una cámara. Abre un panel con controles avanzados." },
+    { cmd:"filter.purepixel", label:"PurePixel…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M15 4v16M4 9h16M4 15h16" opacity=".55"/><path d="M9 9h6v6H9z" fill="currentColor" stroke="none" opacity=".85"/></svg>',
+      help:"Aplica cambios sutiles a los píxeles de la capa activa. Función experimental." },
+    { cmd:"filter.unmark",  label:"Unmark…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 15.5h4.5M16.5 13v5" opacity=".9"/><path d="M4 20 20 4"/></svg>',
+      help:"Elimina la marca visible del generador, perturba las marcas invisibles de los píxeles y limpia la procedencia del archivo (C2PA, XMP, EXIF). Panel por secciones con vista previa." },
+    { cmd:"an.metrics", ic:"gauge",   label:"Plausibilidad…" },
+    { cmd:"an.forensics", ic:"microscope", label:"Segunda opinión…" },
+    { cmd:"an.strip", ic:"shield-check",     label:"Limpiar metadatos de un archivo…" }
+  ]},
   { label:"Análisis", items:[
     { cmd:"an.palette", ic:"palette", label:"Paleta de colores…",
       help:"Los colores dominantes de la imagen: tocar uno lo copia y lo pone como color frontal; se puede crear como capa, descargar o copiar." },
     { cmd:"an.eyedropper", ic:"pipette", label:"Cuentagotas de pantalla",
       help:"Coge un color de cualquier parte de la pantalla, fuera de la imagen también (Chrome y Edge de escritorio)." },
     { sep:true },
-    { cmd:"an.metrics",   label:"Plausibilidad…" },
-    { cmd:"an.forensics", label:"Segunda opinión…" },
     { cmd:"an.spectrum",  label:"Espectro de frecuencia…" },
     { cmd:"view.histogram", label:"Histograma interactivo",
       help:"Panel con el histograma RGB en vivo: toca una zona para ajustar sólo esos tonos." },
@@ -402,7 +409,6 @@ export const MENUS = [
       help:"Analiza sujeto, horizonte y rostros y dibuja tercios, proporción áurea, espiral y diagonales adaptadas; propone recorte y enderezado." },
     { sep:true },
     { cmd:"an.exif",      label:"Metadatos EXIF…", help:"Permite revisar o escribir datos de cámara en exportaciones JPEG." },
-    { cmd:"an.strip",     label:"Limpiar metadatos de un archivo…" }
   ]},
   { label:"Ver", items:[
     { cmd:"view.fit",     label:"Ajustar a la ventana" },
@@ -583,6 +589,14 @@ function buildPop(menu, anchor, fullWidth){
       const s = document.createElement("div");
       s.className = "menu-sep";
       pop.appendChild(s);
+      continue;
+    }
+    if(it.header){
+      // Título de sección (p. ej. en «Inteligencia Artificial»)
+      const h = document.createElement("div");
+      h.className = "menu-head";
+      h.textContent = it.header;
+      pop.appendChild(h);
       continue;
     }
     if(it.submenu){

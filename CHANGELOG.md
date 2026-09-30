@@ -9,6 +9,21 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Cambiado
+- **Menú «Inteligencia Artificial»** (escritorio, tras Filtro; también en el menú del móvil) y
+  **pestaña «Inteligencia Artificial»** en el cajón del móvil (la tercera, tras Básicos y
+  Automáticos). Reúnen todas las herramientas de IA, en dos secciones:
+  - **Herramientas con IA:** Eliminar fondo, Ampliar, Colorear y Expandir con IA, Reemplazar
+    cielo, Seleccionar sujeto y cielo, Reducción de ruido con IA, Quitar artefactos JPEG con IA
+    y Adaptive Photo Lens.
+  - **Para imágenes de IA:** Realify, PurePixel, Unmark, Plausibilidad, Segunda opinión y
+    Limpiar metadatos.
+
+  Salen de Imagen, Selección, Filtro (Especiales y Ruido) y Análisis, y de las demás pestañas
+  del cajón (siguen en «Todos» y en el buscador).
+- La barra de menús de escritorio se aprieta un poco por debajo de 1100 px de ancho para que
+  los once menús quepan.
+
 ### Mejorado
 - **Los ajustes automáticos diagnostican la foto antes de corregirla** (nuevo
   `js/editor/autoanalysis.js`, común a Contraste, Niveles, Tono / Color y Mejora automática,
