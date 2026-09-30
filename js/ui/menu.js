@@ -228,6 +228,19 @@ export const MENUS = [
     { cmd:"layer.watermark", label:"Añadir marca de agua…" }
   ]},
   { label:"Ajustes", items:[
+    // Todos los ajustes automáticos juntos (como la pestaña «Automáticos» del cajón)
+    { label:"Automáticos", ic:"wand-sparkles", submenu:[
+      { cmd:"adj.autoEnhance",        ic:"wand-sparkles", label:"Mejora automática" },
+      { cmd:"adj.autoEnhancePremium", ic:"wand-sparkles", label:"Mejora automática Premium 👑" },
+      { sep:true },
+      { cmd:"adj.autoToneColor",      ic:"wand",          label:"Tono / Color automático…",
+        help:"Con interruptor Premium 👑 en el propio ajuste." },
+      { cmd:"adj.auto",               ic:"contrast",      label:"Contraste automático" },
+      { cmd:"adj.autoPremium",        ic:"contrast",      label:"Contraste automático Premium 👑" },
+      { cmd:"adj.autoLevels",         ic:"chart-column",  label:"Niveles automáticos" },
+      { cmd:"adj.autoLevelsPremium",  ic:"chart-column",  label:"Niveles automáticos Premium 👑" }
+    ]},
+    { sep:true },
     { cmd:"adj.brightness", label:"Brillo y contraste…" },
     { cmd:"adj.exposure",   label:"Exposición…" },
     { cmd:"adj.levels",     label:"Niveles…" },
@@ -259,10 +272,7 @@ export const MENUS = [
       { cmd:"adj.dehaze",          label:"Quitar neblina…" },
       { cmd:"adj.hdrTone",         label:"Tono HDR…" },
       { cmd:"adj.tonalContrast",   label:"Contraste tonal…" },
-      { cmd:"adj.graduatedFilter", label:"Densidad neutra graduada / radial…" },
-      { cmd:"adj.autoToneColor",   label:"Tono / Color automático…" },
-      { cmd:"adj.autoEnhance",     label:"Mejora automática" },
-      { cmd:"adj.autoEnhancePremium", label:"Mejora automática Premium 👑" }
+      { cmd:"adj.graduatedFilter", label:"Densidad neutra graduada / radial…" }
     ]},
     { label:"Mapa tonal y gráfico", submenu:[
       { cmd:"adj.threshold",  label:"Umbral…" },
@@ -272,11 +282,7 @@ export const MENUS = [
     ]},
     { sep:true },
     { cmd:"adj.grayscale",  label:"Blanco y negro" },
-    { cmd:"adj.invert",     label:"Invertir" },
-    { cmd:"adj.auto",       label:"Contraste automático" },
-    { cmd:"adj.autoPremium", label:"Contraste automático Premium 👑" },
-    { cmd:"adj.autoLevels", label:"Niveles automáticos" },
-    { cmd:"adj.autoLevelsPremium", label:"Niveles automáticos Premium 👑" }
+    { cmd:"adj.invert",     label:"Invertir" }
   ]},
   { label:"Filtro", items:[
     { label:"Especiales", submenu:[
@@ -511,7 +517,7 @@ function submenuParentRow(it, onCmd){
   b.className = "menu-item menu-item-parent";
   b.setAttribute("role", "menuitem");
   b.setAttribute("aria-haspopup", "true");
-  b.innerHTML = `<span>${it.label}</span><span class="submenu-arrow" aria-hidden="true">›</span>`;
+  b.innerHTML = iconHtml(it) + `<span>${it.label}</span><span class="submenu-arrow" aria-hidden="true">›</span>`;
   let hoverTimer = null;
   const open = () => { clearTimeout(hoverTimer); buildSubPop(it.submenu, b, onCmd); };
   b.addEventListener("mouseenter", () => {

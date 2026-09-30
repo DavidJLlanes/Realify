@@ -534,7 +534,7 @@ const TOPICS = [
           todo se calcula en coma flotante, el maestro RGB ya no cambia el tono ni sobresatura
           (se aplica a la intensidad de cada color, no canal a canal) y <b>Automático</b> busca
           los colores más oscuros y más claros de la foto para neutralizar las dominantes y
-          ajusta los medios. «Niveles automáticos Premium 👑» (Ajustes y cajón) hace lo mismo de
+          ajusta los medios. «Niveles automáticos Premium 👑» (Ajustes › Automáticos y cajón) hace lo mismo de
           un toque y deja una capa de Niveles que puedes afinar.</li>
         <li id="adj-curves"><b>Curvas</b> (<kbd>Ctrl</kbd>+<kbd>M</kbd>). Control punto a punto de toda
           la gama tonal. Clic añade un punto, arrastrar lo mueve, clic derecho o doble clic
@@ -632,8 +632,8 @@ const TOPICS = [
           color en fotos veladas, o añade niebla en negativo), <i>Tono HDR</i> (comprime el
           rango y realza el detalle local), <i>Contraste tonal</i> (micro, medio y
           macrocontraste por separado), <i>Densidad neutra graduada / radial</i> (exposición,
-          contraste y temperatura sólo en una parte de la foto) y <i>Tono / Color
-          automático</i>. Éste tiene interruptor <b>Premium 👑</b>: con los mismos mandos, el
+          contraste y temperatura sólo en una parte de la foto). <i>Tono / Color
+          automático</i> está, con los demás automáticos, en <b>Ajustes › Automáticos</b>; tiene interruptor <b>Premium 👑</b>: con los mismos mandos, el
           estiramiento y los medios se aplican a la intensidad de cada color (el tono y la
           saturación no cambian) y «Ajustar colores neutros» corrige la dominante como un
           balance de blancos en luz lineal, sin teñir los negros; con mapeo de gama y tramado.</li>
@@ -652,7 +652,7 @@ const TOPICS = [
           intacto; «Niveles automáticos» estira cada canal R, G y B por separado, así
           que además neutraliza una dominante de color—. Cuanto más plana o con más
           neblina esté la foto, más se nota: es justo el caso para el que existen.
-          <b>Contraste automático Premium 👑</b> (Ajustes y cajón) hace el mismo recorte pero
+          <b>Contraste automático Premium 👑</b> (Ajustes › Automáticos y cajón) hace el mismo recorte pero
           estira la intensidad de cada color en coma flotante, sin sobresaturar ni cambiar el
           tono, y queda como capa de Niveles que puedes reabrir para afinarla.</li>
       </ul>` },
@@ -1387,9 +1387,9 @@ const TOPICS = [
           son la mejora de un toque: <b>Automático</b> y <b>Auto Premium 👑</b>, que equilibra
           el blanco en luz lineal, sube el color apagado sin quemar el intenso y ajusta luz y
           contraste con Brillo y contraste Premium (conserva la textura). Los dos quedan como
-          capa de filtro (también en Ajustes › Tono avanzado). La segunda pestaña,
+          capa de filtro (también en Ajustes › Automáticos). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
-          Tono y color, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑. En <b>Todos</b> y en las
+          Tono y color, Contraste, Contraste Premium 👑, Niveles y Niveles Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
           demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la

@@ -10,7 +10,11 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
-- **Contraste automático Premium 👑** (menú Ajustes, junto a «Contraste automático», y cajón
+- **Submenú Ajustes › Automáticos** (primero de Ajustes, igual en escritorio y móvil, con iconos):
+  reúne los siete ajustes automáticos, que antes estaban repartidos entre «Tono avanzado» y el
+  final de Ajustes: Mejora automática (y Premium 👑), Tono / Color automático, Contraste
+  automático (y Premium 👑) y Niveles automáticos (y Premium 👑).
+- **Contraste automático Premium 👑** (menú Ajustes › Automáticos y cajón
   del móvil, en «Automáticos» y «Mejorar», con corona): el mismo recorte del 0,2 % de la
   luminancia, pero aplicado como Niveles maestros Premium: estira la intensidad de cada color en
   coma flotante, sin sobresaturar ni cambiar el tono, con gama y tramado. Queda como capa de
