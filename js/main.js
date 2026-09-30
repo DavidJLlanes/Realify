@@ -42,7 +42,6 @@ import { initRulers, guidesVisible, setGuidesVisible,
          gridConfig, setGridConfig } from "./editor/rulers.js";
 import "./editor/selection-overlay.js";
 import "./core/viewport-lock.js";
-import { initCookieBar } from "./ui/cookiebar.js";
 import { initColorSwatch } from "./ui/colorswatch.js";
 import { registerAll, bind, run } from "./ui/commands.js";
 import { initMenu } from "./ui/menu.js";
@@ -1279,7 +1278,12 @@ try{ if(localStorage.getItem("realify.hdrRunning")) import("../hdr/index.js").th
 initMobileBar();
 initToolDrawer();
 initRulers();
-initCookieBar();
+/* Aviso informativo de cookies. Se importa aparte y sin bloquear: los
+   filtros de «avisos de cookies» de algunos bloqueadores (uBlock con
+   EasyList Cookie, «I don't care about cookies»…) bloqueaban el archivo
+   cuando se llamaba cookiebar.js, y al ser un import estático Firefox no
+   llegaba a arrancar la app. Si lo bloquean, la app funciona sin él. */
+import("./ui/prefsnote.js").then(m => m.initPrefsNote()).catch(() => {});
 buildTools();
 initColorSwatch(document.getElementById("tools"));
 renderOptions();

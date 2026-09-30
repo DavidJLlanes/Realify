@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### La app no arrancaba con algunos bloqueadores de avisos de cookies (Firefox)
+- Los filtros de «avisos de cookies» de algunos bloqueadores (uBlock Origin con EasyList
+  Cookie o Annoyances, «I don't care about cookies»…) bloqueaban el archivo `cookiebar.js` por
+  el nombre. Como se importaba al arrancar, sin él no arrancaba nada («No se pudo cargar
+  main.js»). Confirmado con los registros del servidor: fue el único archivo que no se pidió.
+- El archivo se llama ahora `prefsnote.js` y se carga aparte y sin bloquear: si un bloqueador lo
+  quita, la app funciona igual, sólo que sin la barra informativa (la política sigue en Ayuda ›
+  Cookies). Revisados los demás archivos de arranque: ninguno tiene nombres de ese tipo.
+
 ### Desenfoque por profundidad y Niebla por distancia: ya no se cierran al aplicar
 - Al aplicar con una foto grande del móvil (12 MP o más) la pestaña se quedaba sin memoria
   (unos 2 GB en matrices a tamaño completo) y el navegador cerraba la foto sin aplicar nada.

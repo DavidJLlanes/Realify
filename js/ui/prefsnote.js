@@ -6,6 +6,8 @@
    para darse por enterado. El enlace "Más información" ya funciona
    solo, porque cualquier elemento con data-cmd se cablea solo
    (ver ui/commands.js).
+   El archivo no se llama «cookiebar.js» a propósito: los bloqueadores
+   de avisos de cookies lo bloqueaban por el nombre (ver main.js).
    ═══════════════════════════════════════════════════════════════ */
 
 const KEY = "realify.cookieConsent";
@@ -13,7 +15,7 @@ const KEY = "realify.cookieConsent";
 const accepted = () => { try{ return localStorage.getItem(KEY) === "1"; }catch{ return false; } };
 const markAccepted = () => { try{ localStorage.setItem(KEY, "1"); }catch{} };
 
-export function initCookieBar(){
+export function initPrefsNote(){
   const bar = document.getElementById("cookieBar");
   if(!bar || accepted()) return;
   bar.hidden = false;
