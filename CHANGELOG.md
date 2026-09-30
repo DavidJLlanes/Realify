@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Añadido
+- **Sombras / Iluminaciones Premium 👑** (con Radio y Tono): el entorno de cada píxel se mide
+  con un filtro guiado sobre L* que no cruza los bordes, así que una silueta oscura contra un
+  cielo claro ya no queda con una banda oscura arriba y una neblina abajo, como en el modo
+  normal; radio relativo al tamaño de la imagen (la vista previa reducida y el resultado final
+  coinciden); la corrección va a la base y la textura se conserva y refuerza hasta un 35 % donde
+  se abren sombras o se recuperan luces; transiciones en S; color en luz lineal con mapeo de
+  gama y tramado. En el móvil, el interruptor a la izquierda de Cancelar/Aplicar.
+
 ### Cambiado
 - **Brillo y contraste Premium, rehecho**: el anterior se distinguía poco del normal y, cuando
   se notaba, parecía artificial (textura realzada, aspecto «HDR»). Ahora la curva se aplica a la

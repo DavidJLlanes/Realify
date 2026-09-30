@@ -18,17 +18,24 @@
 
 import { runAdjust, slider, pickerGroup } from "./adjust.js";
 import { blurred } from "../filters/basic.js";
+import { applyShadowsHighlightsPremium } from "./adjustments.js";
+import { premiumSwitch, premiumPref } from "../ui/premium.js";
+import { isMobile } from "../core/device.js";
+import { doc } from "../core/doc.js";
 
 const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
 
 export function shadowsHighlights(opts = {}){
-  const p = { shadows: 0, highlights: 0, radius: 60, tone: 50, ...opts.init };
+  // Una capa ya hecha conserva su motor; un ajuste nuevo, la última elección
+  const p = { shadows: 0, highlights: 0, radius: 60, tone: 50, premium: opts.init ? false : premiumPref.get("shadowsHighlights"), ...opts.init };
 
   return runAdjust({
     title: "Sombras / Iluminaciones",
     asLayer: true, filterId: "shadowsHighlights", filterParams: p,
     previewLimit: 6e5,
     compute(data, w, h){
+      // Premium 👑: radio relativo a la imagen completa (vista previa = resultado)
+      if(p.premium){ applyShadowsHighlightsPremium(data, w, h, p, doc.w ? w / doc.w : 1); return; }
       const shadowsAmt = p.shadows / 100, highlightsAmt = p.highlights / 100;
       if(!shadowsAmt && !highlightsAmt) return;
 
@@ -75,6 +82,10 @@ export function shadowsHighlights(opts = {}){
         "oscurece las claras —como recuperar un contraluz—. El radio decide qué tamaño de " +
         "zona cuenta como «entorno»; el tono, qué tan ancha es la transición.";
       box.appendChild(hint);
+      const sw = premiumSwitch({ checked: p.premium, title: "Sombras / Iluminaciones de alta calidad: entorno sin halos, textura conservada, color intacto (función Premium)",
+        onChange: on => { p.premium = on; premiumPref.set("shadowsHighlights", on); preview(); } });
+      sw.classList.add("adj-premium");
+      if(isMobile()){ sw.classList.add("ps-docked"); box.footStart = sw; } else box.prepend(sw);
       return box;
     }
   }, opts);

@@ -559,7 +559,10 @@ const TOPICS = [
           corrige según el brillo MEDIO de su alrededor, no el suyo propio, así que un
           contraluz se abre sin aplanar el resto de la foto y un ojo oscuro en una cara
           iluminada no se trata como sombra. Radio decide el tamaño de ese entorno;
-          Tono, lo ancha que es la transición.</li>
+          Tono, lo ancha que es la transición. Con <b>Premium 👑</b> el entorno se mide sin
+          cruzar los bordes (no aparece un halo alrededor de una silueta contra el cielo), el
+          radio es relativo a la foto (la vista previa y el resultado coinciden), la textura de
+          lo que se recupera no queda plana y los colores no se recortan.</li>
         <li><b>Balance de blancos.</b> Corrige un dominante de color (una foto
           demasiado azul o demasiado naranja) para que el blanco se vea blanco. Actúa sobre la
           imagen abierta en tiempo real. Con el <b>Cuentagotas</b> tocas en la propia imagen

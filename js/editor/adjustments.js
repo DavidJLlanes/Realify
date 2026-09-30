@@ -398,6 +398,68 @@ export function applyBCPremium(data, w, h, p){
   }
 }
 
+/* ── Sombras / Iluminaciones Premium 👑 (shadowshighlights.js) ──
+   Mismos mandos (Sombras, Iluminaciones, Radio, Tono), otro motor:
+   · El «entorno» de cada píxel se mide con un filtro guiado sobre la
+     luminosidad percibida (L*), que suaviza SIN cruzar los bordes: una
+     silueta oscura contra un cielo claro no se rodea de un halo, como
+     pasa con el desenfoque normal.
+   · El radio es relativo al tamaño de la imagen (px de la imagen
+     completa), así que la vista previa reducida y el resultado final se
+     ven igual.
+   · La corrección se aplica a la BASE (el entorno) y la textura se
+     conserva e incluso se refuerza un poco donde se abren las sombras o
+     se recuperan las luces: lo que se recupera no queda plano.
+   · Transiciones suaves (curva en S) en vez de rampas.
+   · Color: R, G y B se escalan por igual en luz lineal (tono y
+     saturación intactos); si un color no cabe, mapeo de gama en OKLab
+     en vez de recortar un canal; tramado al volver a 8 bits. */
+export function applyShadowsHighlightsPremium(data, w, h, p, scale = 1){
+  const sa = (+p.shadows || 0) / 100, ha = (+p.highlights || 0) / 100;
+  if(!sa && !ha) return;
+  bcTables();
+  const n = w * h, toLin = _toLin, toSrgb = _toSrgb;
+  const NT = 8192, YL = new Float32Array(NT + 1), LY = new Float32Array(NT + 1);
+  for(let i = 0; i <= NT; i++){ const q = i / NT; YL[i] = yToL(q * q); LY[i] = lToY(q); }
+  const y2l = y => { const f = Math.sqrt(y < 0 ? 0 : y > 1 ? 1 : y) * NT, k = f | 0; return k >= NT ? YL[NT] : YL[k] + (YL[k + 1] - YL[k]) * (f - k); };
+  const l2y = l => { const f = (l < 0 ? 0 : l > 1 ? 1 : l) * NT, k = f | 0; return k >= NT ? LY[NT] : LY[k] + (LY[k + 1] - LY[k]) * (f - k); };
+  // Luminancia (no la norma del color): así «sombra» y «luz» significan
+  // lo mismo que en el modo normal y un cielo azul no cuenta como más claro.
+  const Ns = new Float32Array(n), Ls = new Float32Array(n);
+  for(let i = 0, j = 0; j < n; i += 4, j++){
+    const Y = 0.2126 * toLin[data[i]] + 0.7152 * toLin[data[i + 1]] + 0.0722 * toLin[data[i + 2]];
+    Ns[j] = Y; Ls[j] = y2l(Y);
+  }
+  const rad = Math.max(2, Math.round((+p.radius || 60) * scale));
+  const base = guidedSelf(Ls, w, h, rad, 0.01);
+  const tw = 0.12 + ((p.tone ?? 50) / 100) * 0.38;
+  const S = x => { x = x < 0 ? 0 : x > 1 ? 1 : x; return x * x * (3 - 2 * x); };
+  for(let i = 0, j = 0; j < n; i += 4, j++){
+    const L = Ls[j], bL = base[j] < 0 ? 0 : base[j] > 1 ? 1 : base[j];
+    const sw = S(1 - bL / tw), hw = S((bL - (1 - tw)) / tw);
+    if(sw <= 0 && hw <= 0) continue;
+    const delta = sa * sw * 0.85 - ha * hw * 0.85;
+    const b2 = delta >= 0 ? bL + (1 - bL) * delta : bL * (1 + delta);
+    // textura: se conserva y se refuerza hasta un 35 % donde se corrige
+    const k = 1 + 0.35 * (sa * sw + ha * hw);
+    let L2 = b2 + (L - bL) * k;
+    L2 = L2 < 0 ? 0 : L2 > 1 ? 1 : L2;
+    const N = Ns[j], N2 = l2y(L2);
+    let rr = toLin[data[i]], gg = toLin[data[i + 1]], bb = toLin[data[i + 2]];
+    if(N <= 1e-7){ rr = gg = bb = N2; }
+    else {
+      const m = N2 / N; rr *= m; gg *= m; bb *= m;
+      const mx = rr > gg ? (rr > bb ? rr : bb) : (gg > bb ? gg : bb);
+      if(mx > 1){ gamutMap(rr, gg, bb); rr = _gm[0]; gg = _gm[1]; bb = _gm[2]; }
+    }
+    let hh = Math.imul(j + 0x632be5ab, 0x9e3779b1);
+    hh ^= hh >>> 15; hh = Math.imul(hh, 0x85ebca77); hh ^= hh >>> 13;
+    data[i]     = toSrgb[(rr <= 0 ? 0 : rr >= 1 ? 1 : rr) * 65535 + 0.5 | 0] + ((hh & 255) + 0.5) / 256 - 0.5;
+    data[i + 1] = toSrgb[(gg <= 0 ? 0 : gg >= 1 ? 1 : gg) * 65535 + 0.5 | 0] + (((hh >>> 8) & 255) + 0.5) / 256 - 0.5;
+    data[i + 2] = toSrgb[(bb <= 0 ? 0 : bb >= 1 ? 1 : bb) * 65535 + 0.5 | 0] + (((hh >>> 16) & 255) + 0.5) / 256 - 0.5;
+  }
+}
+
 /* La tabla de 8 bits de siempre, canal a canal en sRGB. Sólo para
    `useLegacy` (la casilla «Usar heredado»). */
 export function buildBC({ brightness, contrast }){
