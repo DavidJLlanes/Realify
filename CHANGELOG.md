@@ -20,6 +20,8 @@ que las entradas se agrupan por fecha.
   quema a 248/89/0); en modo Color cada canal se sigue estirando por separado. «Ajustar colores
   neutros» mide los grises ya ajustados en luz lineal y corrige con una ganancia por canal
   (balance de blancos, 75 %, con topes) en vez de sumar un desplazamiento que teñía los negros.
+- Curvas (escritorio): «Automático» va en su propia fila y «Restablecer canal» y «Restablecer
+  todo» ya no salen cortados.
 
 - **Pestaña «Automáticos» en el cajón de herramientas** (móvil), la segunda tras «Básicos»: reúne
   todos los ajustes automáticos (Automático, Auto Premium 👑, Tono y color auto., Contraste auto.,

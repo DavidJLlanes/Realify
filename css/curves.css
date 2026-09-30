@@ -44,6 +44,9 @@
 .cvf-seg button{min-height:32px;padding:0 4px;background:#20252b;color:#dfe5ee;border:1px solid #30353d;border-radius:5px;font:inherit;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cvf-seg button:hover,.cvf-channels button:hover{background:#262d36}
 .cvf-seg button.on{background:#293b60;border-color:#547bbd;color:#fff}
+/* «Automático» en su propia fila: los dos «Restablecer…» caben enteros */
+.cvf-seg.cvf-resets{grid-auto-flow:row;grid-template-columns:1fr 1fr}
+.cvf-resets [data-a="auto"]{grid-column:1 / -1}
 .cvf-linkbox{display:grid;gap:8px;margin:8px 0}
 .cvf-toggle{display:flex;align-items:center;gap:10px;color:#cad1dc;cursor:pointer}
 .cvf-toggle input{width:18px;height:18px;margin:0;accent-color:#7fa6ff}
