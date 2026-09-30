@@ -43,5 +43,13 @@ lineal, coma flotante, espacios perceptuales como OKLab, mapeo de gama, tramado,
 GPU si hace falta) tras el interruptor con corona; apagado, el plugin queda
 exactamente igual que antes.
 
+### Funciones nuevas de IA
+- **Todas las funciones de IA nuevas son sólo Premium 👑**, sin versión básica ni
+  interruptor: siempre usan el procesado Premium (el bueno y el mejor). En el menú
+  y en el cajón llevan «Premium 👑» / la corona.
+- **De momento sin pago**: cualquiera puede usarlas.
+- Sus modelos sólo se descargan al usarlas (avisando antes del tamaño) y se
+  guardan en IndexedDB; licencias que permitan uso comercial (MIT, Apache…).
+
 ## Límites
 - No mejorar Unmark (eliminación de marcas de agua).
