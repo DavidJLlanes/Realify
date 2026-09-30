@@ -1583,7 +1583,10 @@ const TOPICS = [
         nada y lo exportado sale mal), que hay WebGL2 y que puede guardar datos. Si algo falla,
         una barra abajo explica qué pasa y cómo arreglarlo paso a paso. Y si la app no llega a
         arrancar (una extensión que bloquea scripts, un navegador muy antiguo), en unos segundos
-        aparece un panel con el error y el botón «Copiar diagnóstico».</p>` },
+        aparece un panel con el error y el botón «Copiar diagnóstico». Antes de eso, si el fallo
+        viene de archivos viejos guardados en el navegador (una versión mezclada con otra tras una
+        actualización), la app se repara sola una vez: borra su caché, vuelve a descargar su
+        código y recarga («Actualizando Realify a la última versión…»).</p>` },
 
   { id:"atajos", title:"Atajos de teclado",
     desc:"Todo el teclado que no sea la letra de cada herramienta.",

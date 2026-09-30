@@ -66,10 +66,14 @@
   ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType application/font-woff "access plus 1 year"
 
-  # Cache de 30 días para CSS y JS
-  ExpiresByType text/css "access plus 30 days"
-  ExpiresByType application/javascript "access plus 30 days"
-  ExpiresByType text/javascript "access plus 30 days"
+  # CSS y JS: SIEMPRE se revalidan (antes, 30 días). Los módulos ES se
+  # importan sin «?v=»: con caché larga, un navegador podía mezclar un
+  # main.js nuevo con módulos viejos («does not provide an export
+  # named…») y la app no arrancaba (visto en Firefox). Revalidar cuesta
+  # un 304 vacío por archivo si no ha cambiado.
+  ExpiresByType text/css "access plus 0 seconds"
+  ExpiresByType application/javascript "access plus 0 seconds"
+  ExpiresByType text/javascript "access plus 0 seconds"
 
   # Sin caché para HTML (permite updates frecuentes)
   ExpiresByType text/html "access plus 0 seconds"
@@ -77,6 +81,19 @@
 
   # Cache por defecto
   ExpiresDefault "access plus 2 days"
+</IfModule>
+
+# Código, páginas y datos: «no-cache» = el navegador guarda, pero
+# pregunta al servidor antes de usar (Last-Modified → 304). El service
+# worker, además, nunca desde caché (para que las versiones nuevas se
+# detecten siempre).
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|mjs|css|json|webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "^sw\.js$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
 </IfModule>
 
 # ============================================

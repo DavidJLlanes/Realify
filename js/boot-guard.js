@@ -9,6 +9,15 @@
      · Si la app no avisa de que ha arrancado (window.__realifyReady)
        en unos segundos, enseña un panel con lo que ha fallado y un
        botón «Copiar diagnóstico» para mandarlo por correo o WhatsApp.
+     · Autorreparación: los módulos ES se importan sin «?v=», y un
+       navegador con archivos viejos en caché (caché HTTP larga, service
+       worker antiguo) puede mezclar un main.js nuevo con módulos de otra
+       versión («does not provide an export named…», «import not
+       found», «error loading dynamically imported module»): la app no
+       arranca. Si pasa, UNA vez por sesión se borran el service worker y
+       la caché de la app, se vuelven a pedir TODOS los módulos y hojas
+       de estilo saltándose la caché (así se reescribe la caché HTTP) y
+       se recarga. Si ni así arranca, el panel.
      · window.__realifyDiag() devuelve ese diagnóstico en texto; lo usan
        también el aviso de compatibilidad (js/core/compat.js) y Ayuda ›
        Diagnóstico.
@@ -43,7 +52,8 @@
       "Navegador: " + navigator.userAgent,
       "Idioma: " + (navigator.language || "?") + " · Pantalla: " + screen.width + "×" + screen.height + " @" + (window.devicePixelRatio || 1),
       "Versión de la app: " + (function(){ var s = document.querySelector('script[src*="main.js"]'); return s ? s.getAttribute("src") : "?"; })(),
-      "Arrancada: " + (window.__realifyReady ? "sí" : "NO") + " · segundos desde la carga: " + Math.round((Date.now() - started) / 1000),
+      "Arrancada: " + (window.__realifyReady ? "sí" : "NO") + " · segundos desde la carga: " + Math.round((Date.now() - started) / 1000) +
+        " · autorreparación: " + (function(){ try{ return sessionStorage.getItem("realify.repaired") === "1" ? "hecha" : "no"; }catch(e){ return "?"; } })(),
       feature("Módulos ES", function(){ return "noModule" in document.createElement("script"); }),
       feature("WebGL2", function(){ return !!document.createElement("canvas").getContext("webgl2"); }),
       feature("WebGPU", function(){ return !!navigator.gpu; }),
@@ -94,11 +104,66 @@
     box.querySelector('[data-a="reload"]').addEventListener("click", function(){ location.reload(); });
     (document.body || document.documentElement).appendChild(box);
   }
-  // 15 s de margen: en un móvil lento la primera carga puede tardar.
-  // Si ya hay errores graves y han pasado 6 s, no hace falta esperar más.
+  /* ── Autorreparación ─────────────────────────────────────────── */
+  var MODULE_ERR = /import|export|module|MIME|dynamically|SyntaxError|Failed to fetch|NetworkError|No se pudo cargar/i;
+  function repairedBefore(){
+    try{ return sessionStorage.getItem("realify.repaired") === "1"; }catch(e){ return true; }   // sin sessionStorage, nunca (evita bucles)
+  }
+  function markRepaired(){ try{ sessionStorage.setItem("realify.repaired", "1"); return true; }catch(e){ return false; } }
+  /* Pide de nuevo (cache: "reload") cada módulo que se importa desde
+     `url`, siguiendo los import estáticos y dinámicos del propio código */
+  function refreshModules(){
+    var seen = {}, queue = [], active = 0, count = 0;
+    var RE = /(?:import|export)\s[^'";]*?from\s*['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]\s*\)|import\s*['"]([^'"]+)['"]/g;
+    function add(u){
+      try{ var abs = new URL(u, location.href); }catch(e){ return; }
+      if(abs.origin !== location.origin || !/\.(m?js|css)$/.test(abs.pathname)) return;
+      var key = abs.href; if(seen[key] || count > 900) return;
+      seen[key] = 1; count++; queue.push(key);
+    }
+    var mainEl = document.querySelector('script[src*="main.js"]');
+    if(mainEl) add(mainEl.getAttribute("src"));
+    var links = document.querySelectorAll('link[rel="stylesheet"][href], script[src]');
+    for(var i = 0; i < links.length; i++) add(links[i].getAttribute("href") || links[i].getAttribute("src"));
+    return new Promise(function(resolve){
+      function next(){
+        if(!queue.length && !active){ resolve(count); return; }
+        while(active < 8 && queue.length){
+          var u = queue.shift(); active++;
+          fetch(u, { cache: "reload", credentials: "same-origin" }).then(function(r){ return /\.m?js(\?|$)/.test(r.url) ? r.text().then(function(t){ return [r.url, t]; }) : [r.url, ""]; })
+            .then(function(res){ var m; RE.lastIndex = 0; while((m = RE.exec(res[1]))) add(new URL(m[1] || m[2] || m[3], res[0]).href); })
+            .catch(function(){})
+            .then(function(){ active--; next(); });
+        }
+      }
+      next();
+    });
+  }
+  function repair(){
+    if(!markRepaired()) return false;
+    var box = document.createElement("div");
+    box.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#0f1216;color:#e9edf4;font:15px system-ui,sans-serif;text-align:center;padding:16px";
+    box.textContent = "Actualizando Realify a la última versión…";
+    (document.body || document.documentElement).appendChild(box);
+    var steps = [];
+    try{ if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations) steps.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }catch(e){}
+    try{ if(window.caches && caches.keys) steps.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }catch(e){}
+    Promise.all(steps.map(function(p){ return p.catch(function(){}); }))
+      .then(refreshModules)
+      .then(function(){ location.reload(); }, function(){ location.reload(); });
+    return true;
+  }
+
+  // Errores de módulos: se repara a los 3 s. Sin arrancar ni errores:
+  // 15 s de margen (un móvil lento puede tardar) y también se repara.
+  // Si ya se reparó en esta sesión, el panel.
   var timer = setInterval(function(){
     if(window.__realifyReady){ clearInterval(timer); return; }
-    var t = Date.now() - started;
-    if(t > 15000 || (errors.length && t > 6000)){ clearInterval(timer); showPanel(); }
+    var t = Date.now() - started, modErr = errors.some(function(e){ return MODULE_ERR.test(e); });
+    if((modErr && t > 3000) || t > 15000 || (errors.length && t > 6000)){
+      clearInterval(timer);
+      if(!repairedBefore() && repair()) return;
+      showPanel();
+    }
   }, 1000);
 })();

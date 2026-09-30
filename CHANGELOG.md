@@ -9,6 +9,19 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Caché y versiones (la app no arrancaba en algunos Firefox)
+- Causa: los módulos ES se importan sin «?v=» y `.htaccess` daba 30 días de caché a JS y CSS;
+  un navegador podía mezclar un `main.js` nuevo con módulos viejos («does not provide an export
+  named…») y la app no arrancaba.
+- `.htaccess`: HTML, JS, CSS, JSON y manifiesto con `Cache-Control: no-cache` (revalidar
+  siempre, un 304 si no cambió); `sw.js` nunca desde caché. Imágenes, fuentes y modelos siguen
+  con caché larga. (El ejemplo de nginx ya lo hacía con `expires -1`; anotado.)
+- **Autorreparación** en el vigilante de arranque: si la app no arranca por un error de módulos
+  (o no arranca sin más), una vez por sesión borra el service worker y la caché de la app,
+  vuelve a pedir todos los módulos y hojas de estilo saltándose la caché y recarga. Si ni así,
+  el panel con «Copiar diagnóstico».
+- El service worker precachea `main.js?v=N`, la misma URL que carga `index.html`.
+
 ### Compatibilidad (Firefox y otros)
 - **Aviso automático** al arrancar (móvil y escritorio) si el navegador bloquea o altera la
   lectura del lienzo (protección contra huellas de Firefox en modo estricto,

@@ -49,6 +49,11 @@
             application/json          json;
             application/manifest+json webmanifest;
         }
+        # «expires -1» envía «Cache-Control: no-cache» (revalidar siempre):
+        # también para sw.js. Los módulos ES se importan sin «?v=», así
+        # que con caché larga se mezclaban versiones y la app no
+        # arrancaba (visto en Firefox). No añadir add_header aquí: anula
+        # las del bloque server (ver arriba).
         expires -1;
     }
 

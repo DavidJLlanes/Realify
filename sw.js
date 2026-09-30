@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v187-compatibilidad";
+const VERSION = "realify-v188-cache-coherente";
 const SHELL = [
   "./",
   "./index.html",
@@ -26,7 +26,9 @@ const SHELL = [
   "./css/layout.css",
   "./css/mobile.css",
   "./css/curves.css",
-  "./js/main.js",
+  // La MISMA URL que carga index.html (main.js?v=N), para que sin
+  // conexión se sirva el que toca; N sale de VERSION.
+  "./js/main.js?v=" + VERSION.match(/v(\d+)/)[1],
   "./js/core/viewport-lock.js"
   ,"./js/vendor/ag-psd.js"
   ,"./js/vendor/utif.js"
