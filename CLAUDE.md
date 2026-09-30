@@ -11,6 +11,12 @@ en realify.es con GitHub Actions al subir a `main`.
   actualizar `CHANGELOG.md`, la guía (`js/ui/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
 
+## Móvil y escritorio
+- **Todo cambio se hace en las dos versiones, móvil y escritorio**, respetando el
+  diseño actual de cada modo (p. ej. lo que va al cajón «Herramientas» del móvil
+  va también al menú de escritorio; un ajuste de interfaz se revisa en ambos).
+  Probar siempre los dos modos antes de dar algo por terminado.
+
 ## Interfaz (móvil)
 - **La vista previa de la imagen es prioritaria.** Las interfaces de los plugins
   deben ser siempre **mínimas**: pocas filas, sin miniaturas ni vistas previas
