@@ -74,7 +74,7 @@ async function getDepth(src){
 /* Capa nueva encima de la activa, un paso de deshacer */
 async function toNewLayer(canvas, name){
   const { resultToLayer } = await import("../ui/fsshell.js");
-  await resultToLayer(canvas, { name });
+  await resultToLayer(canvas, { name, mix: true });
 }
 
 /* Ventana a pantalla completa común: vista, comparar y mandos */

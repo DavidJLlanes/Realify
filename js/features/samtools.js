@@ -281,6 +281,8 @@ export async function eraseToLayer(layer, fm, rgba, inpaint = null){
   const l = addLayer({ name: "Borrador mágico" });
   l.ctx.drawImage(outLayer, 0, 0);
   l.thumbDirty = true;
+  // Porcentaje de aplicación (mezcla con la capa de debajo)
+  (await import("../editor/filterlayer.js")).markMixLayer(l, "Borrador mágico");
   const nextLayers = doc.layers.slice(), nextActive = l.id;
   const put = (layers, active) => { doc.layers = layers.slice(); doc.activeId = active; emit("doc:structure"); emit("doc:change"); };
   record("Borrador mágico", () => put(prevLayers, prevActive), () => put(nextLayers, nextActive));

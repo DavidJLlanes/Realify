@@ -9,6 +9,16 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Porcentaje de aplicación en las capas de IA
+- Las herramientas de IA que dejan una capa del mismo tamaño que la foto tienen ahora el
+  deslizador de **porcentaje de aplicación** de la capa («mezcla»), como los filtros: Difuminar
+  caras, Retoque de cara, Restaurar caras, Ojos rojos, Borrador mágico, Desenfoque por
+  profundidad, Niebla por distancia, Colorear con IA, Reemplazar cielo, Reducción de ruido con
+  IA y Quitar artefactos JPEG con IA. 100 % = el resultado de la IA, 0 % = el original; no se
+  vuelve a ejecutar la IA (instantáneo). En los parches con transparencia (caras, ojos…) se
+  escala su intensidad, así se funde bien con lo que haya debajo aunque se apilen varias capas.
+- Las que cambian el tamaño de la imagen (Ampliar, Expandir) no lo llevan.
+
 ### Cajón del móvil: pestañas a la primera
 - A veces había que tocar dos veces una pestaña del cajón (Básicos → Estilo…): si la fila de
   pestañas aún se deslizaba por la inercia de un gesto anterior, el navegador usaba el toque

@@ -412,8 +412,15 @@ export function renderLayers(){
     // el interruptor y el porcentaje de cada fila (ver `.fxchain`
     // más abajo), no reabriendo ningún panel.
     const fxEditable = !!(fxEntry && knownFilter(fxEntry.id) && i > 0 && l.type !== "text" && !isAdjustLayer(l) && !isGroup && !fxChained);
-    const fxAmt = fxEditable ? filterAmount(l) : 100;
-    const fxMode = fxEditable ? amountMode(l) : "scale";
+    /* Efectos que no se pueden recalcular (herramientas de IA, efectos
+       de Fotografía): también llevan porcentaje, como mezcla con la
+       capa de debajo, siempre que sea del mismo tamaño. */
+    const fxBase = fxEntry && !fxEditable && !fxChained && i > 0 ? doc.layers[i - 1] : null;
+    const fxMixOnly = !!(fxBase && l.type !== "text" && !isAdjustLayer(l) && !isGroup && fxBase.canvas && l.canvas &&
+      fxBase.canvas.width === l.canvas.width && fxBase.canvas.height === l.canvas.height);
+    const fxSlider = fxEditable || fxMixOnly;
+    const fxAmt = fxSlider ? filterAmount(l) : 100;
+    const fxMode = fxMixOnly ? "mix" : fxEditable ? amountMode(l) : "scale";
     const styled = hasEnabledStyle(l.styles);
     const maskLabel = isGroup ? "grupo" : "capa";
     const maskHtml = l.mask
@@ -458,7 +465,9 @@ export function renderLayers(){
            : `<span class="fx" title="${escapeHtml(l.filters.map(f => f.name || f.id).join(" · "))}${
                fxChained ? " — " + l.filters.length + " filtros encadenados" : ""}">fx${
                fxChained ? "·" + l.filters.length : ""}</span>`) : ""}
-       ${fxEditable ? `<div class="fxrow" title="${fxMode === "mix"
+       ${fxSlider ? `<div class="fxrow" title="${fxMixOnly
+           ? "Aplicación del efecto: mezcla el resultado con el original de la capa de debajo (100 % = el efecto entero, 0 % = el original), sin volver a calcularlo"
+           : fxMode === "mix"
            ? "Aplicación del filtro: este filtro no tiene mandos de intensidad, así que el porcentaje mezcla el resultado con el original"
            : "Aplicación del filtro: vuelve a calcularlo con sus valores escalados a este porcentaje (no es la opacidad)"}">
            <span class="fxlab">${fxMode === "mix" ? "mezcla" : "filtro"}</span>
@@ -485,7 +494,7 @@ export function renderLayers(){
       });
     }
 
-    if(fxEditable){
+    if(fxSlider){
       const row = el.querySelector(".fxrow");
       const range = row.querySelector(".fxamt");
       const val = row.querySelector(".fxval");

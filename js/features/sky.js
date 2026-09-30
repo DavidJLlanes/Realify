@@ -371,6 +371,8 @@ export async function replaceSky(){
     return;
   }
 
+  // Porcentaje de aplicación: mezcla el cielo nuevo con el original
+  (await import("../editor/filterlayer.js")).markMixLayer(layer, "Cielo reemplazado");
   const at = doc.layers.indexOf(layer);
   record("Reemplazar cielo",
     () => dropLayer(layer),

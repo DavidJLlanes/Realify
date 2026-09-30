@@ -84,6 +84,19 @@ export function addFilterLayer({ base, result, title, filter, params = {} }){
   return layer;
 }
 
+/* Capa de efecto «sólo mezcla»: el resultado de una herramienta que no
+   se puede recalcular (la IA: caras, borrador mágico, profundidad,
+   cielo…). Tiene su porcentaje de aplicación como cualquier capa de
+   filtro, que aquí MEZCLA el resultado con la capa de debajo (100 % =
+   el resultado, 0 % = el original), sin volver a ejecutar nada; la
+   insignia fx no reabre ningún panel. Ver panels.js y filteramount.js. */
+export function markMixLayer(layer, name){
+  if(!layer) return layer;
+  layer.filters = [{ id: "mix:" + name, name, params: {}, amount: 100, enabled: true, mix: true }];
+  layer._fxFull = null;
+  return layer;
+}
+
 /* Lo que produjo una capa, si lo produjo un filtro. Sirve para
    reabrir el diálogo con los ajustes que se usaron en vez de con los
    de fábrica. */

@@ -48,6 +48,8 @@ async function toNewLayer(canvas, name){
   const l = addLayer({ name });
   l.ctx.drawImage(canvas, 0, 0);
   l.thumbDirty = true;
+  // Porcentaje de aplicación (mezcla con la capa de debajo)
+  (await import("../editor/filterlayer.js")).markMixLayer(l, name);
   const nextLayers = doc.layers.slice(), nextActive = l.id;
   const put = (layers, active) => { doc.layers = layers.slice(); doc.activeId = active; emit("doc:structure"); emit("doc:change"); };
   record(name, () => put(prevLayers, prevActive), () => put(nextLayers, nextActive));

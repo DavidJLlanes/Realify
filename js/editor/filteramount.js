@@ -88,6 +88,32 @@ function fullResult(layer, base){
   return cur;
 }
 
+/* Capas «sólo mezcla» (markMixLayer: herramientas de IA). Son a menudo
+   parches con transparencia (caras, ojos, borrador…) y pueden estar
+   apiladas: mezclar su color con la capa de debajo oscurecería lo
+   transparente. Lo exacto es escalar su propia intensidad (alfa): el
+   efecto se funde con lo que se VE debajo, sea lo que sea. */
+function mixFull(layer){
+  if(layer._fxFull && layer._fxFull.width === layer.canvas.width) return layer._fxFull;
+  const a = filterAmount(layer) / 100, cur = snapshot(layer.canvas);
+  if(a >= 0.995){ layer._fxFull = cur; return cur; }
+  if(a <= 0.005) return null;
+  const d = dataOf(cur), c = d.data;
+  for(let i = 3; i < c.length; i += 4) c[i] = Math.min(255, Math.round(c[i] / a));
+  cur.getContext("2d").putImageData(d, 0, 0);
+  layer._fxFull = cur;
+  return cur;
+}
+function alphaScaled(fullC, t, w, h){
+  const out = document.createElement("canvas");
+  out.width = w || fullC.width; out.height = h || fullC.height;
+  const x = out.getContext("2d");
+  x.imageSmoothingQuality = "high";
+  x.globalAlpha = t;
+  x.drawImage(fullC, 0, 0, out.width, out.height);
+  return out;
+}
+
 function mixCanvas(baseC, fullC, t){
   const out = document.createElement("canvas");
   out.width = baseC.width; out.height = baseC.height;
@@ -121,6 +147,7 @@ export async function setFilterAmount(layer, amount, { preview = false } = {}){
   // Mientras hay un cálculo en marcha, la vista previa sólo recuerda
   // el último valor pedido y se ejecuta al terminar; la final espera.
   if(preview && busy.has(layer)){ pendingPreview.set(layer, amount); return true; }
+  if(entry.mix) return setMixAmount(layer, entry, amount, preview);
   busy.add(layer);
   const ticket = (tickets.get(layer) || 0) + 1;
   tickets.set(layer, ticket);
@@ -193,4 +220,29 @@ export async function setFilterAmount(layer, amount, { preview = false } = {}){
       if(tickets.get(layer) === ticket) setFilterAmount(layer, next, { preview: true });
     }
   }
+}
+
+/* Porcentaje de una capa «sólo mezcla»: el resultado al 100 % con su
+   intensidad escalada; la vista previa, sobre una copia reducida. */
+function setMixAmount(layer, entry, amount, preview){
+  const full = mixFull(layer);
+  if(!full) return false;
+  const t = amount / 100;
+  const before = preview ? null : snapshot(layer.canvas);
+  const prevAmount = entry.amount ?? 100;
+  const out = alphaScaled(preview ? proxyOf(full) : full, t);
+  writeInto(layer, out);
+  emit("doc:change");
+  if(!preview){
+    const after = snapshot(layer.canvas);
+    entry.amount = amount;
+    const put = (snap, a) => {
+      writeInto(layer, snap);
+      const f = filterOf(layer); if(f) f.amount = a;
+      emit("doc:structure"); emit("doc:change");
+    };
+    record(`${entry.name || "Efecto"} · ${amount} %`, () => put(before, prevAmount), () => put(after, amount));
+    emit("doc:structure");
+  }
+  return true;
 }

@@ -717,6 +717,11 @@ const TOPICS = [
       <p>Los modelos funcionan en tu equipo (WebGPU si el navegador la tiene; si no, en la CPU)
         y los grandes se descargan la primera vez, avisando antes del tamaño; en
         <b>Ayuda › Diagnóstico</b> ves los que tienes guardados y puedes borrarlos.</p>
+      <p id="ia-mezcla"><b>Porcentaje de aplicación.</b> Las herramientas de IA que dejan una capa del
+        mismo tamaño que la foto (caras, borrador mágico, profundidad, colorear, cielo, ruido y JPEG con
+        IA…) llevan en su fila del panel de capas el deslizador «mezcla»: 100 % es el resultado de la IA
+        y 0 % la foto original, sin volver a ejecutar la IA. Las que cambian el tamaño (Ampliar,
+        Expandir) no lo llevan.</p>
       <p id="ia-premium"><b>Funciones de IA Premium 👑.</b> Las nuevas funciones de IA son Premium:
         siempre usan el procesado de más calidad, sin versión básica.</p>
       <ul>

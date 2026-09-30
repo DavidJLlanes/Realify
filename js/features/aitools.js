@@ -108,7 +108,7 @@ export async function aiColorize(){
     const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(out, 0, 0);
     const { resultToLayer } = await import("../ui/fsshell.js");
     if(tabId != null) switchTo(tabId, { force: true });   // el documento donde se empezó
-    await resultToLayer(c, { name: `Coloreada · ${MODELS[id].label}` });
+    await resultToLayer(c, { name: `Coloreada · ${MODELS[id].label}`, mix: true });
     toast("Foto coloreada en una capa nueva", "ok");
   }catch(err){ failed("Colorear con IA", err); }
 }

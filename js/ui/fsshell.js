@@ -532,7 +532,7 @@ export function pickFiles({ multiple = true, accept = "image/*,.heic,.heif,.tif,
    de la activa (centrado y, si es mayor que el lienzo, reducido para
    caber). Sin documento —o si `newDocument`— se abre en una pestaña
    nueva con el resultado como capa. Un solo paso de deshacer. */
-export async function resultToLayer(canvas, { name, docName, newDocument = false } = {}){
+export async function resultToLayer(canvas, { name, docName, newDocument = false, mix = false } = {}){
   const [{ doc, addLayer, newDoc }, { record, clear: clearHistory }, { emit }, { openAsNewTab }, { fit }, { clearSnapshots }] = await Promise.all([
     import("../core/doc.js"), import("../core/history.js"), import("../core/bus.js"),
     import("../core/documents.js"), import("../editor/view.js"), import("../core/snapshots.js")]);
@@ -560,6 +560,12 @@ export async function resultToLayer(canvas, { name, docName, newDocument = false
   l.ctx.imageSmoothingQuality = "high";
   l.ctx.drawImage(canvas, (doc.w - w) / 2, (doc.h - h) / 2, w, h);
   l.thumbDirty = true;
+  // `mix`: efecto del mismo tamaño que la foto → porcentaje de aplicación
+  // (mezcla con la capa de debajo). No si se ha tenido que reducir.
+  if(mix && k === 1 && canvas.width === doc.w && canvas.height === doc.h){
+    const { markMixLayer } = await import("../editor/filterlayer.js");
+    markMixLayer(l, name);
+  }
   const nextLayers = doc.layers.slice(), nextActive = l.id;
   const put = (layers, active) => { doc.layers = layers.slice(); doc.activeId = active; emit("doc:structure"); emit("doc:change"); };
   record(name, () => put(prevLayers, prevActive), () => put(nextLayers, nextActive));
