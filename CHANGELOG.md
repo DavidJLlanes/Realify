@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Cambiado
+- **Brillo y contraste Premium, rehecho**: el anterior se distinguía poco del normal y, cuando
+  se notaba, parecía artificial (textura realzada, aspecto «HDR»). Ahora la curva se aplica a la
+  intensidad de cada color (media de potencias de R, G y B) en vez de a la luminancia, y los tres
+  canales se escalan por igual: los colores intensos no se desaturan al aclararse y el cielo
+  sigue azul donde el modo normal lo lleva casi a blanco. La textura sólo se recupera en parte
+  (la mitad de lo que la curva aplanaría, nunca más que la original, base de filtro guiado ancho)
+  y nada al bajar el contraste; los bordes duros quedan limpios (±2 niveles).
+
 ### Añadido
 - **Auto Premium 👑** en el cajón de herramientas del móvil (y en Ajustes › Tono avanzado ›
   «Mejora automática Premium»): mejora de un toque con los motores Premium. Balance de blancos

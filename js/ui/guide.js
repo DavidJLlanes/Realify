@@ -518,10 +518,10 @@ const TOPICS = [
           cuánto se suavizan los extremos (al bajarla, el contraste aprieta más);
           <i>Pivote</i> en automático gira sobre la luminosidad media de la foto, así
           que el contraste no la oscurece ni la aclara; «Usar heredado» recupera el
-          cálculo antiguo. Con <b>Premium 👑</b>, la curva se aplica a la «base» de la imagen
-          (un filtro que suaviza sin cruzar bordes) y la textura se conserva: con mucho
-          contraste o mucho brillo, nubes, piel y pelo no se aplanan en las luces ni en las
-          sombras, y sin halos.</li>
+          cálculo antiguo. Con <b>Premium 👑</b> los colores conservan su saturación al
+          aclararse (el cielo sigue azul en vez de palidecer hacia el blanco) y, donde la curva
+          aplana las luces y las sombras, se recupera parte de la textura (nubes, piel, hierba)
+          sin aspecto «HDR».</li>
         <li><b>Exposición.</b> Simula lo que hace una cámara: multiplica la luz en
           espacio lineal (un paso completo dobla o parte por dos la luz de toda la
           foto por igual), con Desplazamiento para un empujón fijo —más visible en

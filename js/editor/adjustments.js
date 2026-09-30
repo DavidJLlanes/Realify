@@ -259,20 +259,22 @@ export function applyBC(data, p){
 }
 
 /* ── Brillo y contraste Premium 👑 ──
-   El motor normal ya trabaja en luz lineal y L*, conserva el tono, mapea
-   la gama y trama. Lo que le falta es propio de cualquier curva global:
-   donde la curva en S se aplana (luces y sombras con contraste alto, o
-   las luces al subir el brillo) aplana también la TEXTURA —nubes, piel,
-   pelo— y la foto pierde detalle justo ahí.
-   Premium separa la luminosidad en base + textura con un filtro guiado
-   (suaviza sin cruzar bordes, así que no hay halos): la curva se aplica
-   a la base y la textura se suma después, con al menos su amplitud
-   original (y la ganancia de la curva donde ésta la aumenta). Al bajar
-   el contraste, la textura se atenúa como la base, para que −100 siga
-   dejando la imagen plana. Todo lo demás es el motor de siempre: tono
-   conservado, mapeo de gama en OKLab y tramado.
-   El radio es relativo al tamaño (1,2 % del lado corto), así que la
-   vista previa reducida y el resultado final coinciden. */
+   Mismos mandos y la misma curva (bcCurve), con dos diferencias que se
+   ven:
+   · La curva no se aplica a la luminancia sino a la «norma» de cada
+     color (media de potencias de R, G y B, entre la luminancia y el
+     canal máximo) y los tres canales se escalan por igual. Con la
+     luminancia, un color intenso que se aclara tiene que desaturarse
+     para caber: el cielo azul palidecía hacia el blanco al subir el
+     contraste o el brillo. Así conserva su color.
+   · Donde la curva se aplana (luces y sombras con contraste alto, luces
+     al subir el brillo) se recupera la mitad de la textura que se
+     perdería —nubes, piel, hierba—, medida contra una base de filtro
+     guiado ancho. Nunca más que la original ni donde la curva ya la
+     aumenta, así que no hay aspecto «HDR» ni grano realzado; al bajar el
+     contraste no se recupera nada (−100 sigue dejando la imagen plana).
+   El resto, como el motor normal: coma flotante, mapeo de gama en OKLab
+   y tramado. */
 function boxBlur(src, w, h, r){
   const tmp = new Float32Array(w * h), out = new Float32Array(w * h), n = 2 * r + 1;
   for(let y = 0; y < h; y++){
@@ -330,40 +332,61 @@ export function applyBCPremium(data, w, h, p){
   const brightness = +p.brightness || 0, contrast = +p.contrast || 0;
   if(!brightness && !contrast) return;
   bcTables();
-  const pivotL = p.pivot === "mid" ? BC_MID
-               : Number.isFinite(p.pivotL) ? p.pivotL : bcPivot(data);
-  const curve = bcCurve({ brightness, contrast, protect: p.protect ?? 100, pivotL });
-  const chroma = contrast < 0 ? 1 + Math.max(-1, contrast / 100) : 1;
-  const n = w * h, toLin = _toLin, toSrgb = _toSrgb, Ls = new Float32Array(n), Ys = new Float32Array(n);
-  // Y→L* y L*→Y tabuladas (Y con índice en raíz, más denso en sombras)
+  const n = w * h, toLin = _toLin, toSrgb = _toSrgb;
+  /* «Norma» de cada color: media de potencias (Σc³/Σc²), entre la
+     luminancia y el canal máximo. La curva se aplica a ella y R, G y B
+     se escalan por igual: se conservan tono Y saturación, y un color
+     intenso nunca tiene que desaturarse para caber (el cielo azul sigue
+     azul al subir el contraste o el brillo, en vez de palidecer). */
   const NT = 8192, YL = new Float32Array(NT + 1), LY = new Float32Array(NT + 1);
   for(let i = 0; i <= NT; i++){ const q = i / NT; YL[i] = yToL(q * q); LY[i] = lToY(q); }
-  const y2l = y => { const f = Math.sqrt(y) * NT, k = f | 0; return k >= NT ? YL[NT] : YL[k] + (YL[k + 1] - YL[k]) * (f - k); };
-  const l2y = l => { const f = l * NT, k = f | 0; return k >= NT ? LY[NT] : LY[k] + (LY[k + 1] - LY[k]) * (f - k); };
+  const y2l = y => { const f = Math.sqrt(y < 0 ? 0 : y > 1 ? 1 : y) * NT, k = f | 0; return k >= NT ? YL[NT] : YL[k] + (YL[k + 1] - YL[k]) * (f - k); };
+  const l2y = l => { const f = (l < 0 ? 0 : l > 1 ? 1 : l) * NT, k = f | 0; return k >= NT ? LY[NT] : LY[k] + (LY[k + 1] - LY[k]) * (f - k); };
+  const Ns = new Float32Array(n), Ls = new Float32Array(n);
+  let psum = 0, pn = 0;
   for(let i = 0, j = 0; j < n; i += 4, j++){
-    const y = 0.2126 * toLin[data[i]] + 0.7152 * toLin[data[i + 1]] + 0.0722 * toLin[data[i + 2]];
-    Ys[j] = y; Ls[j] = y2l(y);
+    const r = toLin[data[i]], g = toLin[data[i + 1]], b = toLin[data[i + 2]];
+    const q2 = r * r + g * g + b * b;
+    const N = q2 > 0 ? (r * r * r + g * g * g + b * b * b) / q2 : 0;
+    Ns[j] = N; const L = y2l(N); Ls[j] = L;
+    if(data[i + 3] && !(j & 3)){ psum += L; pn++; }
   }
-  const r = Math.max(2, Math.round(Math.min(w, h) * 0.012));
-  const base = guidedSelf(Ls, w, h, r, 0.0005);
-  // Curva y su pendiente, tabuladas en L (0..1)
-  const N = 2048, cv = new Float32Array(N + 1), sl = new Float32Array(N + 1);
-  for(let i = 0; i <= N; i++) cv[i] = curve(i / N);
-  for(let i = 0; i <= N; i++){ const a = Math.max(0, i - 1), b = Math.min(N, i + 1); sl[i] = (cv[b] - cv[a]) / ((b - a) / N); }
-  const lookup = (T, x) => { const f = (x < 0 ? 0 : x > 1 ? 1 : x) * N, k = f | 0; return k >= N ? T[N] : T[k] + (T[k + 1] - T[k]) * (f - k); };
+  const pivotL = p.pivot === "mid" ? BC_MID : Number.isFinite(p.pivotL) ? p.pivotL : (pn ? psum / pn : BC_MID);
+  const curve = bcCurve({ brightness, contrast, protect: p.protect ?? 100, pivotL });
+  const chroma = contrast < 0 ? 1 + Math.max(-1, contrast / 100) : 1;
+  /* Textura: donde la curva se aplana (luces y sombras con contraste
+     alto, luces al subir el brillo) recupera la MITAD de la textura que
+     se perdería, nunca más que la original y nunca donde la curva ya
+     la aumenta: sin aspecto «HDR». La base es un filtro guiado ancho
+     (2,5 % del lado corto). Como nunca pasa de la textura original, el
+     grano no se realza. Al BAJAR el contraste no se recupera nada: −100
+     tiene que seguir dejando la imagen plana. */
+  const r = Math.max(3, Math.round(Math.min(w, h) * 0.025));
+  const base = guidedSelf(Ls, w, h, r, 0.002);
+  const keepTexture = contrast >= 0;
+  const NC = 2048, cv = new Float32Array(NC + 1), sl = new Float32Array(NC + 1);
+  for(let i = 0; i <= NC; i++) cv[i] = curve(i / NC);
+  for(let i = 0; i <= NC; i++){ const a = Math.max(0, i - 1), b = Math.min(NC, i + 1); sl[i] = (cv[b] - cv[a]) / ((b - a) / NC); }
+  const look = (T, x) => { const f = (x < 0 ? 0 : x > 1 ? 1 : x) * NC, k = f | 0; return k >= NC ? T[NC] : T[k] + (T[k + 1] - T[k]) * (f - k); };
   for(let i = 0, j = 0; j < n; i += 4, j++){
-    const bL = base[j], d = Ls[j] - bL;
-    const slope = lookup(sl, bL);
-    const gain = contrast >= 0 ? Math.max(1, slope) : slope;
-    let L2 = lookup(cv, bL) + d * gain;
+    const L = Ls[j], bL = base[j];
+    let L2 = look(cv, L);
+    const slope = look(sl, bL);
+    if(keepTexture && slope < 1){
+      // la mitad de la textura que la curva aplanaría
+      L2 += (L - bL) * (1 - slope) * 0.5;
+    }
     L2 = L2 < 0 ? 0 : L2 > 1 ? 1 : L2;
-    const y = Ys[j], y2 = l2y(L2);
+    const N = Ns[j], N2 = l2y(L2);
     let rr = toLin[data[i]], gg = toLin[data[i + 1]], bb = toLin[data[i + 2]];
-    if(y <= 0){ rr = gg = bb = y2; }
+    if(N <= 1e-7){ rr = gg = bb = N2; }
     else {
-      const m = y2 / y;
+      const m = N2 / N;
       rr *= m; gg *= m; bb *= m;
-      if(chroma !== 1){ rr = y2 + (rr - y2) * chroma; gg = y2 + (gg - y2) * chroma; bb = y2 + (bb - y2) * chroma; }
+      if(chroma !== 1){
+        const y = 0.2126 * rr + 0.7152 * gg + 0.0722 * bb;
+        rr = y + (rr - y) * chroma; gg = y + (gg - y) * chroma; bb = y + (bb - y) * chroma;
+      }
       const mx = rr > gg ? (rr > bb ? rr : bb) : (gg > bb ? gg : bb);
       if(mx > 1){ gamutMap(rr, gg, bb); rr = _gm[0]; gg = _gm[1]; bb = _gm[2]; }
     }
