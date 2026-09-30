@@ -246,6 +246,11 @@ tiempo real mientras se pinta.
   MobileSAM + decodificador de SAM) lo selecciona entero, con borde afinado a
   la resolución de la foto; el borrador lo quita y LaMa rellena el hueco en una
   capa nueva, con costura en luz lineal y el grano de la foto.
+- **Enderezar automáticamente** (Imagen): busca todas las líneas rectas de la
+  foto, propone el ángulo y deja afinarlo con vista previa antes de aplicar.
+- **Recorte inteligente para redes 👑** (Premium, Inteligencia Artificial ›
+  Encuadre): el mejor encuadre para cada formato de red social según el sujeto
+  y las caras, sin cortar cabezas.
 - **Caras 👑** (Premium, Inteligencia Artificial › Caras, con YuNet incluido):
   **Difuminar caras** (desenfoque irreversible, pixelado o relleno, cara a
   cara), **Retoque de cara** (piel, ojos, dientes y labios por separado, con

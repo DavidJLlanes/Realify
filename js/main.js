@@ -118,6 +118,7 @@ registerAll({
   "ai.faceBlur":    { run: async () => (await import("./features/facetools.js")).openFaceBlur(), enabled: needsDoc },
   "ai.faceRetouch": { run: async () => (await import("./features/facetools.js")).openFaceRetouch(), enabled: needsDoc },
   "ai.redEye":      { run: async () => (await import("./features/facetools.js")).fixRedEyes(), enabled: needsDoc },
+  "ai.smartCrop":   { run: async () => (await import("./features/smartcrop.js")).openSmartCrop(), enabled: needsDoc },
   "ai.faceCrop":    { run: async () => (await import("./features/facetools.js")).faceCrop(), enabled: needsDoc },
   "ai.upscale":     { run: async () => (await import("./features/aitools.js")).aiUpscale(), enabled: needsDoc },
   "ai.colorize":    { run: async () => (await import("./features/aitools.js")).aiColorize(), enabled: needsDoc },
@@ -184,6 +185,7 @@ registerAll({
   "image.crop":   { run: () => setTool("crop"), enabled: needsDoc },
   "image.rotL":   { run: rotateLeft,  enabled: needsDoc },
   "image.rotR":   { run: rotateRight, enabled: needsDoc },
+  "image.autoStraighten": { run: async () => (await import("./features/autostraighten.js")).autoStraighten(), enabled: needsDoc },
   "image.rot180": { run: rotate180,   enabled: needsDoc },
   /* Cortar en partes (cortar/): sin documento, pide una foto */
   // Sin documento, la foto se pide en el mismo toque (ver pickNow).

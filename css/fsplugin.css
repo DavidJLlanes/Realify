@@ -161,3 +161,5 @@
 .face-ctl select{height:40px;border-radius:7px;border:1px solid #3f4855;background:#222831;color:#eef3ff;padding:0 8px;font:14px var(--sans,system-ui,sans-serif)}
 .face-ctl input[type=range]{width:100%}
 .fsp-right .face-ctl{margin:14px 0;grid-template-columns:1fr}
+.smartcrop-ctl{grid-template-columns:1fr}
+.straighten-val{min-width:54px;text-align:center;color:#eef3ff;font-size:14px}

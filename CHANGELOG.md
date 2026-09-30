@@ -10,6 +10,21 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Enderezar automáticamente** (menú Imagen y cajón › Corregir): mide todas las líneas casi
+  horizontales y casi verticales (nitidez de la proyección a 1024 px, cada 0,1°, afinado con
+  parábola), exige que las dos familias coincidan o que una domine con claridad y que haya
+  tramos rectos continuos (no texturas); si no está claro, no propone nada. Vista previa con
+  cuadrícula y deslizador para afinar antes de aplicar; sin esquinas vacías.
+- **Recorte inteligente para redes Premium 👑** (Inteligencia Artificial › Encuadre): 7 formatos
+  (Instagram 1:1 y 4:5, historias 9:16, YouTube/X 16:9, Facebook/LinkedIn 1,91:1, Pinterest 2:3,
+  retrato 3:4); mapa de importancia con U²-Net y YuNet; gana el recorte que conserva más, no
+  corta caras ni el sujeto, deja el sujeto en los tercios y es el mayor posible. Se arrastra
+  para afinar.
+
+### Cambiado
+- Inteligencia Artificial: nueva sección **Encuadre** (Recorte inteligente y Recorte de retrato).
+
+### Añadido
 - **Caras Premium 👑** (Inteligencia Artificial › Caras y su pestaña del cajón), con YuNet
   (OpenCV Zoo, MIT, 232 KB, incluido en la web). Las caras se buscan en la imagen visible; en
   Premium, a dos escalas (640 px y teselas a 1280 px) para encontrar también las pequeñas:

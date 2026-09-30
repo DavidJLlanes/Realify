@@ -171,6 +171,7 @@ const ITEMS = [
   /* ── Imagen ── */
   { cmd:"image.rotL",   label:"Girar a la izquierda", ic:"rotate-ccw-square", cat:"corregir" },
   { cmd:"image.rotR",   label:"Girar a la derecha",   ic:"rotate-cw-square",  cat:"corregir" },
+  { cmd:"image.autoStraighten", label:"Enderezar",   ic:"ruler",             cat:"corregir mejorar" },
   { cmd:"image.flipH",  label:"Voltear horizontal",   ic:"move-horizontal",   cat:"corregir" },
   { cmd:"image.flipV",  label:"Voltear vertical",     ic:"move-vertical",     cat:"corregir" },
   { cmd:"image.resize", label:"Tamaño de imagen",     ic:"scaling",           cat:"corregir" },
@@ -186,6 +187,7 @@ const ITEMS = [
   { cmd:"ai.faceBlur",   label:"Difuminar caras",      ic:"scan-face",           premium:true, cat:"ia" },
   { cmd:"ai.faceRetouch", label:"Retoque de cara",      ic:"sparkles",            premium:true, cat:"ia" },
   { cmd:"ai.redEye",     label:"Ojos rojos",           ic:"scan-eye",            premium:true, cat:"ia" },
+  { cmd:"ai.smartCrop",  label:"Recorte para redes",   ic:"scan",                premium:true, cat:"ia" },
   { cmd:"ai.faceCrop",   label:"Recorte de retrato",   ic:"frame",               premium:true, cat:"ia" },
   { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia" },
   { cmd:"ai.colorize",  label:"Colorear con IA",      ic:"colorize",          cat:"ia" },

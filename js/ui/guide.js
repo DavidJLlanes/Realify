@@ -362,6 +362,12 @@ const TOPICS = [
           transformar».</li>
         <li><b>Girar 90° / 180° y Voltear.</b> Afectan a todo el documento, máscaras
           incluidas.</li>
+        <li id="img-straighten"><b>Enderezar automáticamente…</b> Busca TODAS las líneas rectas de la
+          foto —horizonte, cornisas, ventanas, marcos, el borde de una mesa— y propone el ángulo
+          que las pone a nivel (hasta ±10°, con precisión de décimas). Se abre una vista previa con
+          cuadrícula y un deslizador para afinarlo antes de aplicar; si no hay líneas claras (o la
+          perspectiva confunde), no se inventa nada y lo ajustas a mano. Gira todas las capas sin
+          dejar esquinas vacías, en un solo paso de deshacer.</li>
         <li id="img-hdr"><b>Fusión HDR…</b> Pantalla completa. Añade de 2 a 11 fotos de la misma
           escena con distinta exposición (o una sola, para un HDR simulado): del dispositivo
           —JPEG, HEIC, <b>RAW</b>…— o <b>las fotos que ya tienes abiertas</b>, tal como las estás
@@ -684,7 +690,8 @@ const TOPICS = [
         <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto y Seleccionar cielo.</li>
         <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo, Expandir con IA y
           Reemplazar cielo.</li>
-        <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑, Ojos rojos 👑 y Recorte de retrato 👑.</li>
+        <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑 y Ojos rojos 👑.</li>
+        <li><b>Encuadre:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
           artefactos JPEG con IA, Colorear con IA y Adaptive Photo Lens.</li>
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
@@ -709,6 +716,12 @@ const TOPICS = [
           agranda un poco para llevarse el halo del objeto, la costura se funde en luz lineal y
           se devuelve al relleno el grano de la foto. El resultado va a una <b>capa nueva</b>; la
           foto original queda intacta.</li>
+        <li id="ia-smartcrop"><b>Recorte inteligente para redes 👑.</b> Eliges el formato (Instagram cuadrado o
+          vertical, historias/Reels/TikTok, YouTube/X, Facebook/LinkedIn, Pinterest, retrato) y la
+          IA propone el mejor encuadre: un mapa de lo importante con el sujeto (U²-Net) y las caras
+          (YuNet, que pesan más), y entre todos los recortes posibles el que conserva más, no corta
+          caras ni el sujeto por el borde, deja el sujeto en los tercios y es lo más grande posible.
+          Arrastra el marco para afinarlo y pulsa Recortar.</li>
         <li id="ia-faces"><b>Caras 👑.</b> Las tres herramientas encuentran las caras con YuNet (incluido en la
           web, funciona sin conexión) en lo que se ve de la imagen; en Premium la foto se analiza
           a dos escalas para encontrar también las caras pequeñas de un grupo.
