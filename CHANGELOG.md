@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Previsualización de cielos
+- Las miniaturas de Poly Haven y las anteriores mantienen el mismo tamaño en
+  Reemplazar cielo. En móviles, la fila adapta el ancho de las tarjetas al
+  espacio disponible sin que los textos largos ensanchen las nuevas.
+
 ### Biblioteca ampliada
 - Reemplazar cielo ofrece ahora 101 opciones: 82 fotografías CC0 de Poly Haven,
   16 cielos procedurales anteriores y 3 nuevos generados para Realify. Incluye

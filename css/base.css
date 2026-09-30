@@ -271,13 +271,14 @@ hr{border:0;border-top:1px solid var(--line-soft);margin:11px 0}
 .sky-tools label{display:flex;flex:1 1 150px;flex-direction:column;gap:3px;font-size:11px;color:var(--tx-off)}
 .sky-tools select,.sky-tools input{width:100%;min-width:0}
 .sky-count{margin:0 0 6px;color:var(--tx-off);font-size:11px}
-.sky-lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;max-height:min(44vh,380px);overflow:auto;margin-bottom:10px}
+.sky-lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(120px,100%),1fr));gap:6px;max-height:min(44vh,380px);overflow:auto;margin-bottom:10px;min-width:0}
 .sky-lib.strip{display:flex;overflow-x:auto;overflow-y:hidden;max-height:none;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
-.sky-lib.strip .sky-thumb{flex:0 0 96px;scroll-snap-align:start}
-.sky-thumb{display:flex;flex-direction:column;gap:3px;padding:3px;border:2px solid transparent;border-radius:7px;background:none;color:inherit;cursor:pointer;font:11px/1.2 var(--sans,system-ui,sans-serif);text-align:center}
-.sky-thumb img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block}
-.sky-thumb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
-.sky-thumb small{font-size:10px;opacity:.65;white-space:nowrap}
+.sky-lib.strip .sky-thumb{flex:0 0 clamp(96px,calc((100% - 12px)/3),132px);scroll-snap-align:start}
+.sky-thumb{display:flex;flex-direction:column;gap:3px;box-sizing:border-box;width:100%;min-width:0;max-width:100%;overflow:hidden;padding:3px;border:2px solid transparent;border-radius:7px;background:none;color:inherit;cursor:pointer;font:11px/1.2 var(--sans,system-ui,sans-serif);text-align:center}
+.sky-thumb img{width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block;flex:none}
+.sky-thumb span,.sky-thumb small{display:block;width:100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sky-thumb span{opacity:.85}
+.sky-thumb small{font-size:10px;opacity:.65}
 .sky-thumb.on{border-color:var(--accent,#e8a33d)}
 @media(max-width:900px){
   .sky-tools label{flex-basis:100%}
