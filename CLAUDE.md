@@ -38,6 +38,9 @@ en realify.es con GitHub Actions al subir a `main`.
 - Los resultados van a una capa nueva cuando se pueda.
 
 ## Modo Premium
+Premium = aplicar SIEMPRE los dos modos de procesado de calidad, **el bueno y el
+mejor**, ambos superiores al básico (en las funciones de IA también: modelo de
+más calidad + refinado de bordes, resolución completa, luz lineal, tramado…).
 «Activa el modo premium en X» = mismos mandos con un motor de más calidad (luz
 lineal, coma flotante, espacios perceptuales como OKLab, mapeo de gama, tramado,
 GPU si hace falta) tras el interruptor con corona; apagado, el plugin queda
