@@ -415,6 +415,8 @@ export const MENUS = [
       help:"SCUNet (modelo de ImageToolbox): quita el ruido real de cámara conservando el detalle. La primera vez descarga el modelo (91 MB)." },
     { cmd:"filter.aiDejpeg", ic:"file-image", label:"Quitar artefactos JPEG con IA…",
       help:"FBCNN (modelo de ImageToolbox): elimina bloques y halos de compresión. La primera vez descarga el modelo (144 MB)." },
+    { cmd:"ai.lowLight", ic:"lightbulb", label:"Iluminar con IA Premium 👑…", premium:true,
+      help:"Para fotos oscuras o a contraluz: la IA (Zero-DCE++) decide cuánto levantar cada zona y cada color, sin halos, limpiando el ruido que aparece en las sombras. Capa que se reabre." },
     { cmd:"ai.colorize", ic:"colorize", label:"Colorear con IA…",
       help:"Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva." },
     { cmd:"filter.lens",    label:"Adaptive Photo Lens…",

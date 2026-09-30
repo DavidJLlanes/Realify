@@ -702,7 +702,7 @@ const TOPICS = [
         <li><b>Encuadre:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
         <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑 y Foto 3D 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
-          artefactos JPEG con IA, Colorear con IA y Adaptive Photo Lens.</li>
+          artefactos JPEG con IA, Iluminar con IA 👑, Colorear con IA y Adaptive Photo Lens.</li>
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
           PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
       </ul>
@@ -752,6 +752,13 @@ const TOPICS = [
           nueva. <b>Recorte de retrato</b> abre Recortar con el marco ya encuadrado (ojos en el
           tercio superior, cabeza y hombros; 4:5 si el formato era libre): ajústalo y pulsa
           Aplicar.</li>
+        <li id="ia-lowlight"><b>Iluminar con IA 👑.</b> Para fotos oscuras o a contraluz: la IA
+          (Zero-DCE++, diminuta, funciona sin descargas) decide cuánto levantar cada zona y cada color
+          con una curva de luz propia, sin inventar nada. Las curvas se ajustan a los bordes de la
+          foto (sin halos), el negro vuelve a su sitio y se limpia el ruido de luz y de color que
+          aparece en las sombras. <b>Intensidad</b> de 0 a 150 %. Queda como capa que puedes
+          reabrir. (Sin IA, «Iluminar foto oscura» en Ajustes › Automáticos hace algo parecido con
+          un método clásico.)</li>
         <li id="ia-depth"><b>Profundidad 👑.</b> La IA (Depth Anything V2) calcula lo cerca o lejos que
           está cada punto de la foto y ajusta ese mapa a los bordes reales de la imagen (la
           primera vez descarga el modelo, 50 MB). <b>Desenfoque por profundidad</b>: toca donde

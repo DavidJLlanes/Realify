@@ -196,6 +196,7 @@ const ITEMS = [
   { cmd:"ai.depthFog",   label:"Niebla por distancia", ic:"cloud-fog",           premium:true, cat:"ia" },
   { cmd:"ai.photo3d",    label:"Foto 3D",              ic:"move-3d",             premium:true, cat:"ia" },
   { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia" },
+  { cmd:"ai.lowLight",   label:"Iluminar con IA",      ic:"lightbulb",           premium:true, cat:"ia" },
   { cmd:"ai.colorize",  label:"Colorear con IA",      ic:"colorize",          cat:"ia" },
   { cmd:"ai.expand",    label:"Expandir con IA",      ic:"expand",            cat:"ia" },
   { cmd:"sky.replace",  label:"Reemplazar cielo",     ic:"cloud-sun",         cat:"ia" },

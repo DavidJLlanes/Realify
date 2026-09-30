@@ -257,6 +257,9 @@ tiempo real mientras se pinta.
   BiSeNet), **Restaurar caras** (GFPGAN: reconstruye caras borrosas, antiguas
   o comprimidas conservando el color de piel y el grano), **Ojos rojos** automático y **Recorte de retrato** (Recortar con el
   marco ya encuadrado en la cara).
+- **Iluminar con IA 👑** (Premium, Inteligencia Artificial › Mejorar y
+  restaurar): Zero-DCE++ estima una curva de luz por zona y color para fotos
+  oscuras, con mapas ajustados a los bordes y limpieza del ruido de las sombras.
 - **Profundidad 👑** (Premium, Inteligencia Artificial › Profundidad, con Depth
   Anything V2 Small, Apache 2.0, 50 MB que se descargan al usarlo):
   **Desenfoque por profundidad** (toca dónde enfocar; por capas de distancia,
@@ -576,7 +579,7 @@ y abre `http://localhost:8080`.
 | Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU |
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
-| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN) |
+| IA | [ONNX Runtime Web](https://onnxruntime.ai/) y [TensorFlow.js](https://www.tensorflow.org/js) (BodyPix, DeepLab, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any) |
 | App | Service worker, Web App Manifest, IndexedDB |
 

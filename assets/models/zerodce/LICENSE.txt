@@ -1,0 +1,11 @@
+zerodce_pp.bin — pesos de Zero-DCE++ (Chongyi Li, Chunle Guo, Chen Change Loy,
+«Learning to Enhance Low-Light Image via Zero-Reference Deep Curve Estimation»,
+TPAMI 2021, https://github.com/Li-Chongyi/Zero-DCE_extension, Epoch99.pth).
+
+LICENCIA: Creative Commons Attribution-NonCommercial 4.0 (CC BY-NC 4.0), uso
+NO comercial. Aceptado por el usuario mientras Realify sea gratuito: si algún
+día se cobra Premium, hay que quitarlo o sustituirlo (ver CLAUDE.md).
+
+Formato: float32 contiguos, en el orden de js/ai/zerodce.js (LAYERS): para
+cada bloque e_conv1…7, depth_conv.weight, depth_conv.bias, point_conv.weight,
+point_conv.bias.

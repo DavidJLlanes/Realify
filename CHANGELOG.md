@@ -10,6 +10,12 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Iluminar con IA Premium 👑** (Inteligencia Artificial › Mejorar y restaurar y cajón), con
+  Zero-DCE++ (42 KB, se ejecuta en JavaScript, sin descarga aparte). La red estima a 320 px una
+  curva de luz por punto y canal; los mapas se amplían con filtro guiado (sin halos) y las curvas
+  se aplican en coma flotante; después, punto negro, limpieza del ruido de luz y de color de las
+  sombras según lo aclarado, y tramado. Intensidad de 0 a 150 %. Capa de filtro que se reabre.
+  Licencia CC BY-NC 4.0 (uso no comercial), aceptada mientras Premium sea gratuito.
 - **Restaurar caras Premium 👑** (Inteligencia Artificial › Caras y cajón), con GFPGAN v1.4
   (Apache 2.0, convertido a fp16: 170 MB en dos trozos servidos por la web, descargados al
   usarlo con aviso y guardados unidos en IndexedDB). Cada cara (YuNet) se alinea a la plantilla

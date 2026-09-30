@@ -181,6 +181,8 @@ export const FILTERS = {
                    scale: (p, t) => ({ ...p, amount: (p.amount ?? 100) * t }) },
   "auto-tone-color": { load: mod("./advanced-color.js"), fn: "autoToneColor", scale: () => null },
   "auto-premium":    { load: mod("./autoenhance.js"), fn: "autoEnhancePremium", scale: () => null },
+  "ai-low-light":    { load: () => import("../ai/zerodce.js"), fn: "aiLowLight",
+                       scale: (p, t) => ({ ...p, amount: (p.amount ?? 100) * t }) },
   "low-light":       { load: mod("./lowlight.js"), fn: "lowLight",
                        scale: (p, t) => ({ ...p, amount: (p.amount ?? 60) * t }) },
   "hdr-tone": { load: mod("./advanced-color.js"), fn: "hdrTone",

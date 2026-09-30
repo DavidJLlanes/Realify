@@ -117,6 +117,7 @@ registerAll({
   "ai.magicErase":  { run: async () => (await import("./features/samtools.js")).openSamTool("erase"), enabled: needsDoc },
   "ai.faceBlur":    { run: async () => (await import("./features/facetools.js")).openFaceBlur(), enabled: needsDoc },
   "ai.faceRetouch": { run: async () => (await import("./features/facetools.js")).openFaceRetouch(), enabled: needsDoc },
+  "ai.lowLight":    { run: async () => (await import("./ai/zerodce.js")).aiLowLight(), enabled: needsDoc },
   "ai.faceRestore": { run: async () => (await import("./features/facetools.js")).openFaceRestore(), enabled: needsDoc },
   "ai.redEye":      { run: async () => (await import("./features/facetools.js")).fixRedEyes(), enabled: needsDoc },
   "ai.smartCrop":   { run: async () => (await import("./features/smartcrop.js")).openSmartCrop(), enabled: needsDoc },

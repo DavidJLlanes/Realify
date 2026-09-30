@@ -83,6 +83,17 @@ function premium(d, w, h, p){
     if(m > 1){ const k = 1 / m, soft = (m - 1) / m; rr = rr * k + (1 - rr * k) * soft * 0.35; gg = gg * k + (1 - gg * k) * soft * 0.35; bb = bb * k + (1 - bb * k) * soft * 0.35; }
     R[i] = rr; G[i] = gg; B[i] = bb;
   }
+  finishLifted(d, w, h, R, G, B, gain);
+}
+
+/** Final común de las versiones Premium que levantan sombras (también
+    «Iluminar con IA»): punto negro, ruido de color (y, con
+    `lumaDenoise`, de luz) según lo que se ha aclarado cada punto, algo
+    de viveza y tramado. R, G, B: resultado en luz lineal; `gain`:
+    cuánto se ha aclarado cada punto (1 = nada); `d`: la foto original,
+    donde se escribe el resultado. */
+export function finishLifted(d, w, h, R, G, B, gain, { lumaDenoise = 0 } = {}){
+  const n = w * h;
   // Punto negro: al levantar las sombras el negro se vuelve gris; se
   // devuelve al nivel que tenía la foto (contraste sin lavar)
   const p0 = [], p1 = [];
@@ -95,6 +106,12 @@ function premium(d, w, h, p){
   const cr = Math.max(1, Math.round(Math.max(w, h) / 600));
   const Yl = new Float32Array(n), Cb = new Float32Array(n), Cr = new Float32Array(n);
   for(let i = 0; i < n; i++){ Yl[i] = 0.2126 * R[i] + 0.7152 * G[i] + 0.0722 * B[i]; Cb[i] = B[i] - Yl[i]; Cr[i] = R[i] - Yl[i]; }
+  // Ruido de luz (sólo si se pide): filtro guiado de la propia luz, que
+  // alisa el grano sin borrar bordes, según lo aclarado
+  if(lumaDenoise > 0){
+    const Ys = guidedFilterAlpha(Yl, Yl, w, h, Math.max(1, Math.round(Math.max(w, h) / 500)), 0.0004);
+    for(let i = 0; i < n; i++){ const a = lumaDenoise * Math.min(1, Math.max(0, (gain[i] - 1.2) / 3)); const y2 = Yl[i] + (Ys[i] - Yl[i]) * a; Yl[i] = y2; }
+  }
   let sCb = Cb, sCr = Cr;
   for(let t = 0; t < 2; t++){ sCb = boxBlurFloat(sCb, w, h, cr); sCr = boxBlurFloat(sCr, w, h, cr); }
   for(let i = 0, j = 0; i < n; i++, j += 4){
