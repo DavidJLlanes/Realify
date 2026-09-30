@@ -1575,7 +1575,15 @@ const TOPICS = [
       <p>Si algo se ve raro o no responde, esto comprueba una por una las piezas
         de las que depende la página: WebGL2, la precisión del buffer, la
         compilación de cada shader por separado, y las funciones del navegador
-        que usan la exportación y el análisis.</p>` },
+        que usan la exportación y el análisis. <b>Copiar diagnóstico</b> copia un informe
+        (navegador, funciones disponibles y errores) para enviarlo si algo falla.</p>
+      <p id="diag-compat"><b>Avisos automáticos.</b> Al arrancar, la app comprueba que el
+        navegador le deja leer los píxeles del lienzo (Firefox con la protección estricta contra
+        rastreo, LibreWolf o Mullvad los bloquean o los alteran, y entonces los filtros no hacen
+        nada y lo exportado sale mal), que hay WebGL2 y que puede guardar datos. Si algo falla,
+        una barra abajo explica qué pasa y cómo arreglarlo paso a paso. Y si la app no llega a
+        arrancar (una extensión que bloquea scripts, un navegador muy antiguo), en unos segundos
+        aparece un panel con el error y el botón «Copiar diagnóstico».</p>` },
 
   { id:"atajos", title:"Atajos de teclado",
     desc:"Todo el teclado que no sea la letra de cada herramienta.",

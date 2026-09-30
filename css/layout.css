@@ -1295,3 +1295,17 @@ body:has(.mm-editor,.sp-editor,.st-editor,.vf-editor,.rf-editor,.raw-developer,.
 body.wb-picking .modal,body.wb-picking #stage,body.wb-picking #stage canvas{cursor:crosshair}
 /* Interruptor Premium dentro de un ajuste (Tono y saturación) */
 .adj-premium{display:flex;width:max-content;margin:0 0 10px}
+
+/* Aviso de compatibilidad (js/core/compat.js): abajo, sin tapar la
+   barra de herramientas; en el móvil ocupa el ancho con 16 px de margen */
+.compat-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9000;width:min(560px,calc(100vw - 32px));max-height:70vh;overflow:auto;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#1d2127;border:1px solid #4a5260;color:#e9edf4;font:13px/1.45 var(--sans,system-ui,sans-serif);box-shadow:0 8px 28px #0008}
+.compat-bar.grave{border-color:#d9a13b}
+.compat-head{display:flex;align-items:flex-start;gap:8px}
+.compat-head b{flex:1}
+.compat-head b span{opacity:.7;font-weight:400}
+.compat-close{background:none;border:0;color:inherit;font-size:15px;cursor:pointer;padding:0 4px}
+.compat-bar details{margin-top:6px}
+.compat-bar summary{cursor:pointer;color:#9fc0ff}
+.compat-bar ol{margin:4px 0 8px;padding-left:20px}
+.compat-bar p{margin:8px 0 2px}
+.compat-copy{margin-top:4px;padding:6px 12px;border-radius:6px;border:1px solid #4b5563;background:#262b33;color:#e9edf4;font:inherit;cursor:pointer}

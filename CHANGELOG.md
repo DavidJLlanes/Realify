@@ -9,6 +9,17 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Compatibilidad (Firefox y otros)
+- **Aviso automático** al arrancar (móvil y escritorio) si el navegador bloquea o altera la
+  lectura del lienzo (protección contra huellas de Firefox en modo estricto,
+  resistFingerprinting, LibreWolf, Mullvad…), si no hay WebGL2 o si no deja guardar datos:
+  una barra explica qué pasa y cómo arreglarlo, con pasos propios para Firefox.
+- **Vigilante de arranque** (`js/boot-guard.js`, script clásico que se carga antes que la app):
+  recoge los errores desde el primer momento y, si la app no arranca, muestra un panel con el
+  error y «Copiar diagnóstico». El mismo botón está en Ayuda › Diagnóstico.
+- El registro del service worker ya no puede lanzar un error en ventanas privadas o con el
+  service worker desactivado.
+
 ### Iluminar con IA, automático
 - **Iluminar con IA Premium 👑** mide la exposición antes de aclarar: busca sobre la foto
   reducida cuánto de la curva de Zero-DCE++ hace falta para llevar la mediana de la luz a un

@@ -22,12 +22,17 @@ addEventListener("appinstalled", () => {
 });
 
 export function initPWA(){
-  if(!("serviceWorker" in navigator)) return;
+  // En Firefox (ventana privada, «borrar datos al cerrar», políticas de
+  // empresa) `serviceWorker` puede existir pero valer undefined, o
+  // `register` lanzar al instante en vez de rechazar: todo protegido.
+  if(!navigator.serviceWorker || typeof navigator.serviceWorker.register !== "function") return;
   addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").then(watchUpdates).catch(() => {
-      // Sin service worker la app sigue funcionando igual, sólo que
-      // no se cachea para uso sin conexión; no hace falta molestar.
-    });
+    try{
+      navigator.serviceWorker.register("./sw.js").then(watchUpdates).catch(() => {
+        // Sin service worker la app sigue funcionando igual, sólo que
+        // no se cachea para uso sin conexión; no hace falta molestar.
+      });
+    }catch{}
   });
 }
 

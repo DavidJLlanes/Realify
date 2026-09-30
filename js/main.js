@@ -768,6 +768,7 @@ registerAll({
   "help.diag":      async () => {
       const { diagnose } = await import("./filters/camera/engine.js");
       const d = diagnose();
+      const compatRows = (await import("./core/compat.js")).checkCompat();
       const row = (ok, name, detail) =>
         `<div class="field"><label style="width:150px">${ok ? "✓" : "✗"} ${name}</label>
          <span class="hint" style="margin:0;color:${ok ? "var(--tx-dim)" : "var(--bad)"}">${detail}</span></div>`;
@@ -787,7 +788,13 @@ registerAll({
           row((() => { try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }catch{ return false; } })(),
               "Almacenamiento local", "para presets y ajustes") +
           row(!!navigator.gpu, "WebGPU", navigator.gpu ? "sí: la IA usa la GPU" : "no: la IA funciona en la CPU (WebAssembly), más despacio") +
+          compatRows.map(p => row(false, p.title.split(" ").slice(0, 3).join(" "), p.title)).join("") +
+          `<div class="field"><button type="button" class="diag-copy">Copiar diagnóstico</button><span class="hint" style="margin:0">para enviarlo si algo no funciona</span></div>` +
           `<div class="section-label" style="margin-top:12px">Modelos de IA descargados</div><div class="diag-models hint" style="margin:0">Comprobando…</div>`;
+      body.querySelector(".diag-copy").addEventListener("click", e =>
+        window.__realifyCopyDiag?.(window.__realifyDiag?.([
+          "WebGL2: " + (d.webgl2 ? "sí" : "no") + (d.renderer ? " · " + d.renderer : ""),
+          ...compatRows.map(p => "Aviso: " + p.title)]) || "", e.currentTarget));
       // Modelos guardados en este navegador: lo que ocupan y cómo borrarlos
       const listEl = body.querySelector(".diag-models");
       const fill = async () => {
@@ -1297,3 +1304,8 @@ on("doc:new", () => setTimeout(maybeShowOnboarding, 500));
 on("doc:structure", () => empty.classList.toggle("hide", doc.open));
 
 console.info("Realify · listo");
+/* Arrancada: el vigilante (js/boot-guard.js) deja de esperar; y un
+   aviso si el navegador bloquea algo que el editor necesita (lectura
+   del lienzo, WebGL2, almacenamiento). */
+window.__realifyReady = true;
+setTimeout(() => import("./core/compat.js").then(m => m.showCompatNotice()).catch(() => {}), 800);
