@@ -90,6 +90,12 @@ export const MODELS = {
   faceparse: { url: LOCAL + "faceparsing/resnet18.onnx", size: 53205364, store: true, premium: true, noncommercial: true,
                label: "BiSeNet (zonas de la cara)", license: "MIT (datos CelebAMask-HQ: no comercial)" },
 
+  /* ── Profundidad: Depth Anything V2 Small (Apache-2.0), convertido a
+        float16 (50 MB, 0,02 % de diferencia con el original). Viaja con la
+        web, se guarda en IndexedDB y se avisa antes de bajarlo. ── */
+  depth:    { url: LOCAL + "depthanything/depth_anything_v2_small_fp16.onnx", size: 49981786, store: true, premium: true,
+              label: "Depth Anything V2", license: "Apache-2.0" },
+
   scunet:   { url: HF + "onnx/enhance/scunet/scunet_color-PSNR.onnx", size: 91264256,
               tile: 256, tileGpu: 512, minSide: 256, label: "SCUNet", license: "Apache-2.0" },
   fbcnn:    { url: HF + "onnx/enhance/fbcnn/fbcnn_color_fp16.onnx",   size: 143910675,

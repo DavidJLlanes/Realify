@@ -567,6 +567,27 @@ async function parse({ model, id, rgba }){
   return { groups };
 }
 
+/* ── Profundidad (Depth Anything V2 Small) ──────────────────────
+   Entrada 1×3×518×518 RGB normalizado como ImageNet; salida 1×518×518
+   de profundidad relativa INVERSA (mayor = más cerca). Se devuelve
+   normalizada a 0-1 (1 = lo más cercano). */
+async function depth({ model, id, rgba }){
+  const { session } = await getSession(id, model);
+  const S = 518, n = S * S, x = new Float32Array(3 * n), mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
+  for(let p = 0, i = 0; p < n; p++, i += 4){
+    x[p] = (rgba[i] / 255 - mean[0]) / std[0]; x[n + p] = (rgba[i + 1] / 255 - mean[1]) / std[1]; x[2 * n + p] = (rgba[i + 2] / 255 - mean[2]) / std[2];
+  }
+  const name = session.inputNames[0];
+  post({ type:"stage", model:id, stage:"run" });
+  const out = await runSession(id, model, { [name]: makeTensor(inputType(session, name), x, [1, 3, S, S]) });
+  const v = readFloats(out[session.outputNames[0]]);
+  let lo = Infinity, hi = -Infinity;
+  for(let i = 0; i < n; i++){ if(v[i] < lo) lo = v[i]; if(v[i] > hi) hi = v[i]; }
+  const d = new Float32Array(n), span = Math.max(1e-6, hi - lo);
+  for(let i = 0; i < n; i++) d[i] = (v[i] - lo) / span;
+  return { depth: d, size: S };
+}
+
 /* ── Modelos guardados en este navegador (Ayuda › Diagnóstico) ── */
 async function listStored(){
   try{
@@ -585,7 +606,7 @@ async function deleteStored(url){
   }catch{}
 }
 
-const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse };
+const TASKS = { matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth };
 
 self.onmessage = async e => {
   const m = e.data || {};
@@ -606,7 +627,7 @@ self.onmessage = async e => {
     const t0 = performance.now();
     const res = await task(m);
     const backend = sessions.get(m.id)?.backend;
-    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer,
+    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer, res.depth?.buffer,
                       ...Object.values(res.groups || {}).map(g => g.buffer)].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);
     // Un modelo grande no se queda ocupando cientos de MB después de usarlo.
