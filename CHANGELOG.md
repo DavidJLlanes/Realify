@@ -9,6 +9,21 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Añadido
+- **Brillo y contraste Premium 👑**: la curva se aplica a la base de la imagen (filtro guiado
+  rápido, que suaviza sin cruzar bordes) y la textura se conserva con al menos su amplitud
+  original. Con contraste +80 la textura de las luces quedaba al 59 % en el modo normal; en
+  Premium se conserva entera (con brillo +60, del 57 % al 100 %). Sin halos apreciables (2-4
+  niveles en el píxel pegado a un borde duro) y −100 sigue dejando la imagen plana. El resto,
+  como el motor normal: tono conservado, mapeo de gama en OKLab y tramado.
+- **Equilibrio de color Premium 👑**: zonas por luminosidad percibida (OKLab), cada mando empuja
+  hacia su primario en el plano de color de OKLab (calibrado para empujar lo mismo que el modo
+  normal), «Conservar la luminosidad» exacta (±0,002 en L), negros sin manchar, mapeo de gama y
+  tramado.
+- Motor de color Premium común para los ajustes que transforman cada color por separado
+  (`js/editor/premiumcolor.js`, lo usan Tono y saturación y Equilibrio de color). En ambos
+  ajustes el interruptor va, en el móvil, a la izquierda de Cancelar/Aplicar.
+
 ### Cambiado
 - **Interruptor Premium 👑 en el móvil**: ya no ocupa una fila propia. Va en la barra del botón
   de aplicar, alineado a la izquierda, siempre con la palabra «Premium» junto a la corona e

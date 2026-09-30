@@ -518,7 +518,10 @@ const TOPICS = [
           cuánto se suavizan los extremos (al bajarla, el contraste aprieta más);
           <i>Pivote</i> en automático gira sobre la luminosidad media de la foto, así
           que el contraste no la oscurece ni la aclara; «Usar heredado» recupera el
-          cálculo antiguo.</li>
+          cálculo antiguo. Con <b>Premium 👑</b>, la curva se aplica a la «base» de la imagen
+          (un filtro que suaviza sin cruzar bordes) y la textura se conserva: con mucho
+          contraste o mucho brillo, nubes, piel y pelo no se aplanan en las luces ni en las
+          sombras, y sin halos.</li>
         <li><b>Exposición.</b> Simula lo que hace una cámara: multiplica la luz en
           espacio lineal (un paso completo dobla o parte por dos la luz de toda la
           foto por igual), con Desplazamiento para un empujón fijo —más visible en
@@ -600,7 +603,10 @@ const TOPICS = [
               matiz, saturación y luminosidad, más un maestro para toda la foto.</li>
             <li><b>Equilibrio de color.</b> Cian-Rojo, Magenta-Verde y Amarillo-Azul
               por separado en Sombras, Medios e Iluminaciones, con «Conservar la
-              luminosidad» para que el tinte no aclare ni oscurezca la foto de paso.</li>
+              luminosidad» para que el tinte no aclare ni oscurezca la foto de paso. Con
+              <b>Premium 👑</b> las zonas siguen la luminosidad percibida, cada mando empuja el
+              color hacia su primario en OKLab (sin torcer el tono), la luminosidad se
+              conserva exactamente y hay mapeo de gama y tramado.</li>
             <li><b>Corrección selectiva.</b> Cian/Magenta/Amarillo/Negro por rango de
               color —seis de matiz más Blancos/Neutros/Negros por brillo—, en método
               relativo: subir una tinta nunca «quema» de golpe un color ya muy puro.</li>

@@ -22,13 +22,21 @@ const clamp255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
 
 /* ── brillo y contraste ───────────────────────────────────────── */
 export function brightnessContrast(opts = {}){
-  const p = { ...BC_DEFAULTS, ...opts.init };
+  // Una capa ya hecha conserva su motor; un ajuste nuevo, la última elección
+  const p = { ...BC_DEFAULTS, premium: opts.init ? false : premiumPref.get("bc"), ...opts.init };
 
   return runAdjust({
     title: "Brillo y contraste",
     asLayer: true, filterId: "bc", filterParams: p, dlgCls: "dlg-compact",
-    compute(data){ applyBC(data, p); },
-    buildBody({ preview }){ return bcControls(p, preview); }
+    compute(data, w, h){ if(p.premium) applyBCPremium(data, w, h, p); else applyBC(data, p); },
+    buildBody({ preview }){
+      const box = bcControls(p, preview);
+      const sw = premiumSwitch({ checked: p.premium, title: "Brillo y contraste de alta calidad: curva sobre la base y textura conservada, sin halos (función Premium)",
+        onChange: on => { p.premium = on; premiumPref.set("bc", on); preview(); } });
+      sw.classList.add("adj-premium");
+      if(isMobile()){ sw.classList.add("ps-docked"); box.footStart = sw; } else box.prepend(sw);
+      return box;
+    }
   }, opts);
 }
 
@@ -247,6 +255,123 @@ export function applyBC(data, p){
     data[i]     = toSrgb[(r <= 0 ? 0 : r >= 1 ? 1 : r) * 65535 + 0.5 | 0] + ((h & 255) + 0.5) / 256 - 0.5;
     data[i + 1] = toSrgb[(g <= 0 ? 0 : g >= 1 ? 1 : g) * 65535 + 0.5 | 0] + (((h >>> 8) & 255) + 0.5) / 256 - 0.5;
     data[i + 2] = toSrgb[(bl <= 0 ? 0 : bl >= 1 ? 1 : bl) * 65535 + 0.5 | 0] + (((h >>> 16) & 255) + 0.5) / 256 - 0.5;
+  }
+}
+
+/* ── Brillo y contraste Premium 👑 ──
+   El motor normal ya trabaja en luz lineal y L*, conserva el tono, mapea
+   la gama y trama. Lo que le falta es propio de cualquier curva global:
+   donde la curva en S se aplana (luces y sombras con contraste alto, o
+   las luces al subir el brillo) aplana también la TEXTURA —nubes, piel,
+   pelo— y la foto pierde detalle justo ahí.
+   Premium separa la luminosidad en base + textura con un filtro guiado
+   (suaviza sin cruzar bordes, así que no hay halos): la curva se aplica
+   a la base y la textura se suma después, con al menos su amplitud
+   original (y la ganancia de la curva donde ésta la aumenta). Al bajar
+   el contraste, la textura se atenúa como la base, para que −100 siga
+   dejando la imagen plana. Todo lo demás es el motor de siempre: tono
+   conservado, mapeo de gama en OKLab y tramado.
+   El radio es relativo al tamaño (1,2 % del lado corto), así que la
+   vista previa reducida y el resultado final coinciden. */
+function boxBlur(src, w, h, r){
+  const tmp = new Float32Array(w * h), out = new Float32Array(w * h), n = 2 * r + 1;
+  for(let y = 0; y < h; y++){
+    const o = y * w; let s = 0;
+    for(let x = -r; x <= r; x++) s += src[o + (x < 0 ? 0 : x >= w ? w - 1 : x)];
+    for(let x = 0; x < w; x++){
+      tmp[o + x] = s / n;
+      const xa = x + r + 1, xr = x - r;
+      s += src[o + (xa >= w ? w - 1 : xa)] - src[o + (xr < 0 ? 0 : xr)];
+    }
+  }
+  for(let x = 0; x < w; x++){
+    let s = 0;
+    for(let y = -r; y <= r; y++) s += tmp[(y < 0 ? 0 : y >= h ? h - 1 : y) * w + x];
+    for(let y = 0; y < h; y++){
+      out[y * w + x] = s / n;
+      const ya = y + r + 1, yr = y - r;
+      s += tmp[(ya >= h ? h - 1 : ya) * w + x] - tmp[(yr < 0 ? 0 : yr) * w + x];
+    }
+  }
+  return out;
+}
+/* Filtro guiado «rápido» (He y Sun, 2015): los coeficientes a y b se
+   calculan sobre una copia reducida `s` veces y se amplían con
+   interpolación bilineal; la salida q = a·I + b se evalúa con la imagen
+   a resolución completa, así que los bordes siguen igual de nítidos. */
+function guidedSelf(I, w, h, r, eps){
+  const s = Math.max(1, Math.min(4, Math.floor(r / 2)));
+  const sw = Math.max(1, Math.ceil(w / s)), sh = Math.max(1, Math.ceil(h / s)), m = sw * sh;
+  const lo = new Float32Array(m);
+  for(let y = 0; y < sh; y++) for(let x = 0; x < sw; x++){
+    let sum = 0, c = 0;
+    for(let yy = y * s; yy < Math.min(h, y * s + s); yy++) for(let xx = x * s; xx < Math.min(w, x * s + s); xx++){ sum += I[yy * w + xx]; c++; }
+    lo[y * sw + x] = sum / c;
+  }
+  const rs = Math.max(1, Math.round(r / s)), II = new Float32Array(m);
+  for(let i = 0; i < m; i++) II[i] = lo[i] * lo[i];
+  const mI = boxBlur(lo, sw, sh, rs), mII = boxBlur(II, sw, sh, rs);
+  const A = new Float32Array(m), B = new Float32Array(m);
+  for(let i = 0; i < m; i++){ const v = Math.max(0, mII[i] - mI[i] * mI[i]); A[i] = v / (v + eps); B[i] = mI[i] - A[i] * mI[i]; }
+  const mA = boxBlur(A, sw, sh, rs), mB = boxBlur(B, sw, sh, rs), q = new Float32Array(w * h);
+  for(let y = 0; y < h; y++){
+    const fy = Math.min(sh - 1, Math.max(0, (y + 0.5) / s - 0.5)), y0 = fy | 0, y1 = Math.min(sh - 1, y0 + 1), ty = fy - y0;
+    for(let x = 0; x < w; x++){
+      const fx = Math.min(sw - 1, Math.max(0, (x + 0.5) / s - 0.5)), x0 = fx | 0, x1 = Math.min(sw - 1, x0 + 1), tx = fx - x0;
+      const i00 = y0 * sw + x0, i01 = y0 * sw + x1, i10 = y1 * sw + x0, i11 = y1 * sw + x1;
+      const a = (mA[i00] * (1 - tx) + mA[i01] * tx) * (1 - ty) + (mA[i10] * (1 - tx) + mA[i11] * tx) * ty;
+      const b = (mB[i00] * (1 - tx) + mB[i01] * tx) * (1 - ty) + (mB[i10] * (1 - tx) + mB[i11] * tx) * ty;
+      q[y * w + x] = a * I[y * w + x] + b;
+    }
+  }
+  return q;
+}
+export function applyBCPremium(data, w, h, p){
+  const brightness = +p.brightness || 0, contrast = +p.contrast || 0;
+  if(!brightness && !contrast) return;
+  bcTables();
+  const pivotL = p.pivot === "mid" ? BC_MID
+               : Number.isFinite(p.pivotL) ? p.pivotL : bcPivot(data);
+  const curve = bcCurve({ brightness, contrast, protect: p.protect ?? 100, pivotL });
+  const chroma = contrast < 0 ? 1 + Math.max(-1, contrast / 100) : 1;
+  const n = w * h, toLin = _toLin, toSrgb = _toSrgb, Ls = new Float32Array(n), Ys = new Float32Array(n);
+  // Y→L* y L*→Y tabuladas (Y con índice en raíz, más denso en sombras)
+  const NT = 8192, YL = new Float32Array(NT + 1), LY = new Float32Array(NT + 1);
+  for(let i = 0; i <= NT; i++){ const q = i / NT; YL[i] = yToL(q * q); LY[i] = lToY(q); }
+  const y2l = y => { const f = Math.sqrt(y) * NT, k = f | 0; return k >= NT ? YL[NT] : YL[k] + (YL[k + 1] - YL[k]) * (f - k); };
+  const l2y = l => { const f = l * NT, k = f | 0; return k >= NT ? LY[NT] : LY[k] + (LY[k + 1] - LY[k]) * (f - k); };
+  for(let i = 0, j = 0; j < n; i += 4, j++){
+    const y = 0.2126 * toLin[data[i]] + 0.7152 * toLin[data[i + 1]] + 0.0722 * toLin[data[i + 2]];
+    Ys[j] = y; Ls[j] = y2l(y);
+  }
+  const r = Math.max(2, Math.round(Math.min(w, h) * 0.012));
+  const base = guidedSelf(Ls, w, h, r, 0.0005);
+  // Curva y su pendiente, tabuladas en L (0..1)
+  const N = 2048, cv = new Float32Array(N + 1), sl = new Float32Array(N + 1);
+  for(let i = 0; i <= N; i++) cv[i] = curve(i / N);
+  for(let i = 0; i <= N; i++){ const a = Math.max(0, i - 1), b = Math.min(N, i + 1); sl[i] = (cv[b] - cv[a]) / ((b - a) / N); }
+  const lookup = (T, x) => { const f = (x < 0 ? 0 : x > 1 ? 1 : x) * N, k = f | 0; return k >= N ? T[N] : T[k] + (T[k + 1] - T[k]) * (f - k); };
+  for(let i = 0, j = 0; j < n; i += 4, j++){
+    const bL = base[j], d = Ls[j] - bL;
+    const slope = lookup(sl, bL);
+    const gain = contrast >= 0 ? Math.max(1, slope) : slope;
+    let L2 = lookup(cv, bL) + d * gain;
+    L2 = L2 < 0 ? 0 : L2 > 1 ? 1 : L2;
+    const y = Ys[j], y2 = l2y(L2);
+    let rr = toLin[data[i]], gg = toLin[data[i + 1]], bb = toLin[data[i + 2]];
+    if(y <= 0){ rr = gg = bb = y2; }
+    else {
+      const m = y2 / y;
+      rr *= m; gg *= m; bb *= m;
+      if(chroma !== 1){ rr = y2 + (rr - y2) * chroma; gg = y2 + (gg - y2) * chroma; bb = y2 + (bb - y2) * chroma; }
+      const mx = rr > gg ? (rr > bb ? rr : bb) : (gg > bb ? gg : bb);
+      if(mx > 1){ gamutMap(rr, gg, bb); rr = _gm[0]; gg = _gm[1]; bb = _gm[2]; }
+    }
+    let hh = Math.imul(j + 0x632be5ab, 0x9e3779b1);
+    hh ^= hh >>> 15; hh = Math.imul(hh, 0x85ebca77); hh ^= hh >>> 13;
+    data[i]     = toSrgb[(rr <= 0 ? 0 : rr >= 1 ? 1 : rr) * 65535 + 0.5 | 0] + ((hh & 255) + 0.5) / 256 - 0.5;
+    data[i + 1] = toSrgb[(gg <= 0 ? 0 : gg >= 1 ? 1 : gg) * 65535 + 0.5 | 0] + (((hh >>> 8) & 255) + 0.5) / 256 - 0.5;
+    data[i + 2] = toSrgb[(bb <= 0 ? 0 : bb >= 1 ? 1 : bb) * 65535 + 0.5 | 0] + (((hh >>> 16) & 255) + 0.5) / 256 - 0.5;
   }
 }
 
