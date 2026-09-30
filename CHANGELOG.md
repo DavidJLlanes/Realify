@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Corrección de carga
+- La guía de exportación vuelve a inicializarse sin interrumpir el arranque
+  de la aplicación.
+
 ### Exportación profesional
 - Exportar y Exportar como incorporan TIFF RGBA sin pérdidas de 8 bits.
   Exportar como añade PSD con grupos y capas rasterizadas; el compuesto mantiene

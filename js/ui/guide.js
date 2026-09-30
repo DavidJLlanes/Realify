@@ -1012,7 +1012,7 @@ const TOPICS = [
         <li><b>Exportar como…</b> También permite un <b>PSD con grupos y capas
           rasterizadas</b> para otros editores. La vista compuesta recoge el resultado
           exacto; los ajustes, máscaras y textos de Realify no se convierten en mandos
-          nativos de Photoshop. Guarda un `.realify` para reeditarlos. TIFF y PSD no
+          nativos de Photoshop. Guarda un <code>.realify</code> para reeditarlos. TIFF y PSD no
           incrustan perfil ICC.</li>
         <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
           sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
