@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Cajón del móvil: pestañas a la primera
+- A veces había que tocar dos veces una pestaña del cajón (Básicos → Estilo…): si la fila de
+  pestañas aún se deslizaba por la inercia de un gesto anterior, el navegador usaba el toque
+  para frenarla y no pulsaba. Ahora la pestaña se activa al levantar el dedo si apenas se ha
+  movido, aunque la fila estuviera en movimiento; sin el «click» posterior, que al cambiar el
+  cajón de alto podía caer en el velo y cerrarlo.
+- La pestaña activa se centra desplazando sólo la fila (antes `scrollIntoView`, que en iPhone
+  podía mover la página unos píxeles y desviar el siguiente toque).
+
 ### Caché y versiones (la app no arrancaba en algunos Firefox)
 - Causa: los módulos ES se importan sin «?v=» y `.htaccess` daba 30 días de caché a JS y CSS;
   un navegador podía mezclar un `main.js` nuevo con módulos viejos («does not provide an export

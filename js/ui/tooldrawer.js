@@ -372,10 +372,52 @@ function renderTabs(){
     b.setAttribute("role", "tab");
     b.setAttribute("aria-selected", id === cat ? "true" : "false");
     b.textContent = label;
-    b.addEventListener("click", () => setCat(id));
+    b.dataset.cat = id;
+    // Ratón y teclado; el dedo va por wireTabTaps (ver abajo)
+    b.addEventListener("click", () => { if(Date.now() - lastTabTap > 600) setCat(id); });
     tabsEl.appendChild(b);
   }
-  tabsEl.querySelector(".on")?.scrollIntoView({ block:"nearest", inline:"center" });
+  centerActiveTab();
+}
+
+/* Centra la pestaña activa desplazando SÓLO la fila. scrollIntoView
+   desplazaba también los contenedores de fuera (en iPhone, la propia
+   página unos píxeles), y el toque siguiente caía desviado. */
+function centerActiveTab(){
+  const on = tabsEl.querySelector(".on"); if(!on) return;
+  const left = on.offsetLeft - (tabsEl.clientWidth - on.offsetWidth) / 2;
+  tabsEl.scrollLeft = Math.max(0, Math.min(tabsEl.scrollWidth - tabsEl.clientWidth, left));
+}
+
+/* Toques en las pestañas: si la fila aún se desliza por la inercia de
+   un gesto anterior, el navegador usa el toque para frenarla y NO
+   genera «click»: había que tocar dos veces. Se activa al levantar el
+   dedo si apenas se ha movido (un deslizamiento de la fila no cuenta). */
+let lastTabTap = 0;
+function wireTabTaps(){
+  let start = null;
+  tabsEl.addEventListener("touchstart", e => {
+    const t = e.touches[0], tab = e.target.closest?.(".td-tab");
+    start = e.touches.length === 1 && tab ? { x: t.clientX, y: t.clientY, cat: tab.dataset.cat } : null;
+  }, { passive:true });
+  tabsEl.addEventListener("touchmove", e => {
+    if(!start) return;
+    const t = e.touches[0];
+    if(Math.abs(t.clientX - start.x) > 10 || Math.abs(t.clientY - start.y) > 10) start = null;
+  }, { passive:true });
+  tabsEl.addEventListener("touchend", e => {
+    if(!start) return;
+    const t = e.changedTouches[0], s0 = start; start = null;
+    if(Math.abs(t.clientX - s0.x) > 10 || Math.abs(t.clientY - s0.y) > 10) return;
+    // Cuenta la pestaña que se tocó al posar el dedo (posarlo frena la
+    // fila). Sin el «click» que el navegador generaría después: al
+    // cambiar de pestaña el cajón cambia de alto, y ese click caía en el
+    // velo de fuera y cerraba el cajón.
+    if(e.cancelable) e.preventDefault();
+    lastTabTap = Date.now();
+    setCat(s0.cat);
+  }, { passive:false });
+  tabsEl.addEventListener("touchcancel", () => { start = null; }, { passive:true });
 }
 
 function renderGrid(){
@@ -589,6 +631,7 @@ export function initToolDrawer(){
   addEventListener("keydown", e => { if(e.key === "Escape") closeDrawer(); });
   wireGrab(drawer.querySelector(".td-grab"));
   wireSwipe();
+  wireTabTaps();
 
   on("doc:structure", syncHandle);
   on("tool:change", () => { if(openState) renderGrid(); });
