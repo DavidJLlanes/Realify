@@ -102,8 +102,8 @@ el pulgar. Instalable y disponible sin conexión.
 - **Privado por diseño**: el procesado es local; los modelos de IA se
   descargan, las imágenes nunca se suben.
 - **Escritorio y móvil**: menús clásicos en escritorio; en móvil, barra
-  inferior y un cajón de herramientas ordenado por objetivo (mejorar,
-  corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
+  inferior y un cajón de herramientas ordenado por objetivo (básicos,
+  automáticos, mejorar, corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
   editores grandes se abren a pantalla completa, con la imagen primero y
   mandos pensados para el pulgar.
 - **Sin dependencias ni compilación**: HTML, CSS y JavaScript con módulos ES.

@@ -27,6 +27,7 @@ import { matchScore, searchable } from "../core/search.js";
 
 const CATS = [
   ["basicos",   "Básicos"],
+  ["auto",      "Automáticos"],   // todos los ajustes automáticos juntos
   ["todos",     "Todos"],
   ["mejorar",   "Mejorar"],
   ["corregir",  "Corregir"],
@@ -63,8 +64,8 @@ const BASICS = [
    tooldrawer-icons.js; si falta, se usa el de la herramienta o el del
    menú) y `cat` (una o varias pestañas, separadas por espacios). */
 const ITEMS = [
-  { auto:true, cmd:"adj.autoEnhance", label:"Automático", ic:"wand-sparkles", cat:"mejorar" },
-  { auto:"premium", cmd:"adj.autoEnhancePremium", label:"Auto Premium", ic:"wand-sparkles", cat:"mejorar" },
+  { auto:true, cmd:"adj.autoEnhance", label:"Automático", ic:"wand-sparkles", cat:"auto mejorar" },
+  { auto:"premium", cmd:"adj.autoEnhancePremium", label:"Auto Premium", ic:"wand-sparkles", cat:"auto mejorar" },
 
   /* ── Ajustes ── */
   { cmd:"adj.brightness",        label:"Brillo y contraste",   ic:"sun-medium",            cat:"mejorar" },
@@ -81,10 +82,10 @@ const ITEMS = [
   { cmd:"adj.hdrTone",           label:"Tono HDR",             ic:"mountain-snow",         cat:"mejorar estilo" },
   { cmd:"adj.tonalContrast",     label:"Contraste tonal",      ic:"circle-gauge",          cat:"mejorar" },
   { cmd:"adj.graduatedFilter",   label:"Graduado y radial",    ic:"sunset",                cat:"mejorar" },
-  { cmd:"adj.autoToneColor",     label:"Tono y color auto.",   ic:"wand",                  cat:"mejorar color" },
-  { cmd:"adj.auto",              label:"Contraste auto.",      ic:"contrast",              cat:"mejorar" },
-  { cmd:"adj.autoLevels",        label:"Niveles auto.",        ic:"chart-column",          cat:"mejorar" },
-  { cmd:"adj.autoLevelsPremium", label:"Niveles auto. Premium", ic:"chart-column", premium:true, cat:"mejorar" },
+  { cmd:"adj.autoToneColor",     label:"Tono y color auto.",   ic:"wand",                  cat:"auto mejorar color" },
+  { cmd:"adj.auto",              label:"Contraste auto.",      ic:"contrast",              cat:"auto mejorar" },
+  { cmd:"adj.autoLevels",        label:"Niveles auto.",        ic:"chart-column",          cat:"auto mejorar" },
+  { cmd:"adj.autoLevelsPremium", label:"Niveles auto. Premium", ic:"chart-column", premium:true, cat:"auto mejorar" },
   { cmd:"adj.colorGrading",      label:"Gradación de color",   ic:"palette",               cat:"color estilo" },
   { cmd:"adj.splitToning",       label:"Virado dividido",      ic:"blend",                 cat:"color estilo" },
   { cmd:"adj.photoFilter",       label:"Filtro fotográfico",   ic:"funnel",                cat:"color estilo" },

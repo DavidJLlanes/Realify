@@ -1381,7 +1381,9 @@ const TOPICS = [
           son la mejora de un toque: <b>Automático</b> y <b>Auto Premium 👑</b>, que equilibra
           el blanco en luz lineal, sube el color apagado sin quemar el intenso y ajusta luz y
           contraste con Brillo y contraste Premium (conserva la textura). Los dos quedan como
-          capa de filtro (también en Ajustes › Tono avanzado). En <b>Todos</b> y en las
+          capa de filtro (también en Ajustes › Tono avanzado). La segunda pestaña,
+          <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
+          Tono y color, Contraste, Niveles y Niveles Premium 👑. En <b>Todos</b> y en las
           demás categorías (Mejorar, Corregir, Color, Estilo, Efectos, Retoque, IA,
           Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la

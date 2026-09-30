@@ -10,6 +10,9 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Añadido
+- **Pestaña «Automáticos» en el cajón de herramientas** (móvil), la segunda tras «Básicos»: reúne
+  todos los ajustes automáticos (Automático, Auto Premium 👑, Tono y color auto., Contraste auto.,
+  Niveles auto. y Niveles auto. Premium 👑), que siguen también en «Mejorar».
 - **Curvas y Niveles Premium 👑** (`js/editor/tonepremium.js`): coma flotante sin los redondeos
   intermedios de las tablas de 8 bits; la curva o los niveles MAESTROS (RGB) se aplican a la
   intensidad de cada color y no canal a canal, así que una curva en S ya no cambia el tono (de
