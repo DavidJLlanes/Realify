@@ -14,7 +14,8 @@ resolver la memoria con procesado por bloques.
    Hoy cada capa y cada ajuste se guarda en 8 bits: al apilar ajustes se pierden niveles
    (bandas en cielos y degradados, sombras empastadas). El modo Premium calcula en coma
    flotante pero vuelve a 8 bits en cada capa. Es la mayor pérdida sistemática; coste muy
-   alto (núcleo del editor): planificarlo aparte y por fases.
+   alto (núcleo del editor): planificarlo aparte y por fases. Detalle en
+   «Alta precisión: estado y fases», más abajo.
 2. **Gestión de color con perfiles ICC (Display P3, Adobe RGB).** Las fotos de iPhone y
    muchos Android vienen en P3: leer el perfil, trabajar en espacio amplio y exportar con
    el perfil incrustado (canvas `colorSpace: "display-p3"` donde exista). Comprobar
@@ -52,6 +53,50 @@ sólo si un modelo concreto lo exige (evitar dos motores de inferencia).
 
 Licencias: los modelos de IA nuevos deben permitir uso comercial (normas del proyecto),
 aunque el código de Realify sea PolyForm Noncommercial.
+
+## Alta precisión: estado y fases (punto 1 de la hoja de ruta)
+
+### Ya hecho
+- **Exportación**: el paso final (remuestreo y codificación) se hace en RGB lineal Float32
+  con tramado a 8 bits (`js/core/high-precision-next.js`, usado por `js/io/export.js` y
+  `js/io/professional-export.js`). Limitado a 8 MP; por encima, motor compatible.
+- **Revelador RAW Premium** (`raw/premium/`): coma flotante de principio a fin y
+  exportación TIFF de 16 bits.
+- **Filtro Realify Premium** (`js/filters/camera/`): texturas RGBA32F/RGBA16F en GPU y
+  tramado de salida.
+- **Herramientas Premium** (Tono/Color, Niveles, profundidad, Iluminar…): calculan en
+  coma flotante y luz lineal, con tramado al escribir el resultado.
+
+### Falta (de más a menos beneficio)
+1. **Pila de ajustes y fusión en 8 bits.** Cada capa de ajuste trabaja sobre el
+   resultado ya cuantizado de la anterior. `renderPrecisionAdjustmentStack` existe pero
+   devuelve siempre `null`: implementarla para que al exportar la pila de ajustes y los
+   modos de fusión se recalculen en Float32 desde las capas de píxeles. Mayor beneficio
+   con coste moderado.
+2. **Entrada de 16 bits perdida.** «Abrir en Realify» desde el revelador RAW, TIFF y PNG
+   de 16 bits y AVIF de 10 bits se convierten a 8 bits al entrar: conservar una fuente de
+   alta precisión para la capa base.
+3. **Salida de alta profundidad desde el editor**: PNG y TIFF de 16 bits (luego AVIF
+   10/12 bits, JPEG XL, OpenEXR; ver punto 4 de la hoja de ruta). Hoy sólo el revelador
+   RAW exporta TIFF de 16 bits.
+4. **Límite de 8 MP** del motor Float32 de exportación: procesar por franjas o bloques
+   para fotos de 12–48 MP sin agotar memoria.
+5. **Ajustes y filtros (~90) leen y escriben Uint8**: interfaz en coma flotante y
+   migración por fases (primero los ajustes, que son tablas y curvas).
+6. **Compositor de la vista previa** (Canvas 2D, 8 bits): pasar a GPU en coma flotante
+   (WebGL2 RGBA16F o WebGPU). Mejora lo que se ve al editar; el archivo final ya mejora
+   con 1, 2 y 4.
+7. **Capas, máscaras, historial y proyectos en 16 bits/float.** Lo más costoso: ×2–×4 de
+   memoria (12 MP: ~48 MB por capa → 96–192 MB); en móvil exige trabajar por bloques.
+8. **PSD en 8 bits por canal** (ag-psd escribe 16 bits con limitaciones).
+
+### Fases
+- **Fase 1**: implementar `renderPrecisionAdjustmentStack` (1), quitar el límite de 8 MP
+  (4) y exportar PNG/TIFF de 16 bits (3). Exportaciones sin bandas aunque se apilen
+  ajustes, sin rehacer el núcleo. **Empezar por aquí.**
+- **Fase 2**: conservar los 16 bits de RAW/TIFF/PNG al abrir (2).
+- **Fase 3**: compositor GPU en coma flotante para la vista previa (6).
+- **Fases 4–5**: migrar filtros a coma flotante (5) y capas en alta precisión (7, 8).
 
 ## Informe de errores en Ayuda (con Postfix del VPS)
 
