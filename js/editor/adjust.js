@@ -172,7 +172,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
      eso el tope es amplio, y si un recálculo real tarda demasiado, no
      se repite en esta sesión. */
   let refineTimer = 0, lastMs = 0, refineOff = false;
-  const REFINE_EST_MS = 3000, REFINE_REAL_MS = 900;
+  const REFINE_EST_MS = 3000, REFINE_REAL_MS = 700;
   const refine = () => {
     refineTimer = 0;
     const t0 = performance.now();

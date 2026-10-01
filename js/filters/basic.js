@@ -99,10 +99,12 @@ export async function runFilter({ title, build, apply, wide = false, id, params 
   const before = snapshot(layer);
   const source = edit ? snapshot(base) : before;
   const clipRef = edit ? before : source;
-  /* Al dejar de mover un mando, si el filtro es rápido, se recalcula a
-     resolución completa (los filtros CPU caros trabajan sobre una
-     copia reducida mientras se arrastra): mismo criterio que
-     runAdjust en editor/adjust.js. */
+  /* En el panel de Propiedades (sin botón Aplicar), al dejar de mover
+     un mando se recalcula a resolución completa si el filtro es rápido
+     (los filtros CPU caros trabajan sobre una copia reducida mientras
+     se arrastra): si no, la capa quedaba con la copia ampliada hasta
+     cambiar de capa. En el diálogo no hace falta, porque Aplicar ya
+     recalcula, y así nunca congela la app al soltar un mando. */
   const px = layer.canvas.width * layer.canvas.height;
   let queued = false, refineTimer = 0, lastMs = 0, refineOff = false, gen = 0;
   const refine = async () => {
@@ -128,7 +130,7 @@ export async function runFilter({ title, build, apply, wide = false, id, params 
       clipToSelection(layer, clipRef);
       layer.thumbDirty = true;
       emit("doc:change");
-      if(px > FILTER_PREVIEW_LIMIT && !refineOff && lastMs * px / FILTER_PREVIEW_LIMIT < 3000)
+      if(opts.container && px > FILTER_PREVIEW_LIMIT && !refineOff && lastMs * px / FILTER_PREVIEW_LIMIT < 1500)
         refineTimer = setTimeout(refine, 450);
     });
   };
