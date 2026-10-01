@@ -8,7 +8,16 @@
  * se calculan en Canvas conservan su resultado antes de entrar aquí.
  */
 
-const MAX_PIXELS = 8_000_000;
+/* El motor de exportación de alta precisión (core/precision-stack.js)
+ * trabaja por franjas y guarda 8 bytes por píxel: el límite depende de
+ * la memoria del dispositivo. `renderHighPrecisionCanvas`, más abajo, es
+ * el remuestreador antiguo (16 bytes por píxel) y conserva su tope. */
+const LEGACY_MAX_PIXELS = 8_000_000;
+function maxPixels(){
+  const mem = globalThis.navigator?.deviceMemory || 8;
+  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+  return (coarse || mem <= 4) ? 16e6 : 32e6;
+}
 const srgbToLinear = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
 const linearToSrgb = v => {
   v = Math.max(0, Math.min(1, v));
@@ -26,10 +35,10 @@ export function highPrecisionCapabilities(){
     usable: typeof document !== "undefined",
     wasm: typeof WebAssembly !== "undefined",
     webgpu: !!globalThis.navigator?.gpu,
-    maxPixels: MAX_PIXELS,
+    maxPixels: maxPixels(),
     spatialMaxPixels: 0,
     spatialDualMaxPixels: 0,
-    reason: "Exportación RGB lineal Float32; los filtros no migrados conservan la composición compatible."
+    reason: "Capas y ajustes recompuestos en coma flotante y remuestreo en RGB lineal."
   };
 }
 
@@ -37,8 +46,9 @@ export function highPrecisionAvailableFor(a, b){
   const { w, h } = dimensions(a, b);
   if(typeof document === "undefined") return { ok:false, reason:"El motor Float32 sólo está disponible en el navegador." };
   if(!Number.isFinite(w) || !Number.isFinite(h) || w < 1 || h < 1) return { ok:false, reason:"Tamaño de exportación no válido." };
-  if(w * h > MAX_PIXELS) return { ok:false, reason:`La exportación Float32 está limitada a ${Math.floor(MAX_PIXELS / 1e6)} MP para proteger la memoria del dispositivo.` };
-  return { ok:true, reason:"RGB lineal Float32 para el remuestreo final." };
+  const max = maxPixels();
+  if(w * h > max) return { ok:false, reason:`La alta precisión está limitada a ${Math.floor(max / 1e6)} MP en este dispositivo para proteger la memoria.` };
+  return { ok:true, reason:"Capas y ajustes en coma flotante y remuestreo en RGB lineal." };
 }
 
 function makeCanvas(w, h){
@@ -68,8 +78,8 @@ export function renderHighPrecisionCanvas(source, requestedW, requestedH, option
   if(!source?.width || !source?.height) return { canvas:null, mode:"compatible", reason:"No hay un lienzo compuesto para exportar." };
   const w = Math.max(1, Math.round(requestedW || source.width));
   const h = Math.max(1, Math.round(requestedH || source.height));
-  const available = highPrecisionAvailableFor(w, h);
-  if(!available.ok) return { canvas:null, mode:"compatible", reason:available.reason };
+  if(w * h > LEGACY_MAX_PIXELS || source.width * source.height > LEGACY_MAX_PIXELS)
+    return { canvas:null, mode:"compatible", reason:`El remuestreo Float32 directo está limitado a ${LEGACY_MAX_PIXELS / 1e6} MP.` };
   try{
     const input = makeCanvas(source.width, source.height);
     const ictx = input.getContext("2d", { willReadFrequently:true, colorSpace:"srgb" });
@@ -109,6 +119,18 @@ export function renderHighPrecisionCanvas(source, requestedW, requestedH, option
   }
 }
 
-/* La pila de ajustes aún no se interpreta aquí: devolver null hace que la
- * exportación entregue el compuesto real al motor Float32 de arriba. */
-export function renderPrecisionAdjustmentStack(){ return null; }
+/* Recompone la pila de capas y ajustes en coma flotante (fase 1 de
+ * PENDIENTE.md, ver core/precision-stack.js) y la remuestrea en RGB
+ * lineal. Asíncrona: el motor se carga sólo al exportar. Devuelve null
+ * si el documento usa algo que ese motor aún no reproduce (estilos de
+ * capa, «Fusionar si»): entonces se usa el compuesto de 8 bits.
+ * `options`: { dither, bits16, alpha, background, layersOnly }. */
+export async function renderPrecisionAdjustmentStack(w, h, options = {}){
+  try{
+    const m = await import("./precision-stack.js?v=1");
+    return await m.renderPrecise({ w, h, layersOnly: true, ...options });
+  }catch(error){
+    console.warn("[alta precisión]", error);
+    return null;
+  }
+}

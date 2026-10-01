@@ -9,7 +9,7 @@ import { isMobile } from "../core/device.js";
 import { saveOrShare, sanitizeFilename, stamp } from "./export.js";
 import { buildZip, crc32 } from "./zip.js";
 import { prepareForType, hasTransparency, alphaFieldsHTML, wireAlphaFields } from "./alpha.js";
-import { highPrecisionAvailableFor, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=3";
+import { highPrecisionAvailableFor, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 
 const enc=new TextEncoder();
 const cleanName=sanitizeFilename;
@@ -131,7 +131,7 @@ export async function professionalExport(){
   const result=await dialog({title:"Exportar como",body,wide:true,cls:isMobile()?"dlg-compact":"dlg-export-pro",buttons:[{label:"Cancelar",value:null},{label:"Exportar",primary:true,value:"go"}],onOpen(host){
     const f=host.querySelector("#pxFormat"),q=host.querySelector("#pxQuality"),qv=host.querySelector("#pxQualityV"),row=host.querySelector("#pxQualityRow");
     const precision=host.querySelector("#pxPrecision"),hint=host.querySelector("#pxPrecisionHint");
-    const precisionState=()=>{const biggest=Math.max(...[...host.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale),1),ok=highPrecisionAvailableFor(doc.w*biggest,doc.h*biggest);precision.disabled=!ok.ok||f.value==="psd";hint.textContent=f.value==="psd"?"PSD conserva píxeles de 8 bits por canal y capas rasterizadas.":ok.ok?"RGB lineal Float32 al generar los archivos; la previsualización sigue siendo rápida.":`Se usará el motor compatible: ${ok.reason}.`;};
+    const precisionState=()=>{const biggest=Math.max(...[...host.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale),1),ok=highPrecisionAvailableFor(doc.w*biggest,doc.h*biggest);precision.disabled=!ok.ok||f.value==="psd";hint.textContent=f.value==="psd"?"PSD conserva píxeles de 8 bits por canal y capas rasterizadas.":ok.ok?"Capas y ajustes en coma flotante y remuestreo en RGB lineal al generar los archivos; la previsualización sigue siendo rápida.":`Se usará el motor compatible: ${ok.reason}.`;};
     if(hasAlpha&&f.value==="jpg"){f.value="png";row.hidden=true;}
     alphaUI=wireAlphaFields(host,{id:"pxA",getType:()=>f.value,hasAlpha,onChange:update,switchTo:()=>{f.value="png";f.dispatchEvent(new Event("change"));}});
     f.addEventListener("change",()=>{
@@ -157,7 +157,7 @@ export async function professionalExport(){
     /* La ruta Float32 completa se puede usar para el documento, donde
        conocemos la pila de filtros. Las salidas de capa/grupo conservan
        su compositor actual hasta que cada tipo de capa se migre. */
-    const precise=precision&&scope==="document"&&format!=="psd"?renderPrecisionAdjustmentStack(item.canvas.width*scale,item.canvas.height*scale):null;
+    const precise=precision&&scope==="document"&&format!=="psd"?await renderPrecisionAdjustmentStack(item.canvas.width*scale,item.canvas.height*scale,{layersOnly:false}):null;
     const c=format==="psd"?null:precise?.canvas||resizeForExport(item.canvas,item.canvas.width*scale,item.canvas.height*scale,precision);
     const blob=format==="psd"?(await import("./professional-formats.js")).layeredPsd(scale):await encodeCanvas(c,format,quality,profile,alphaOpts);
     if(!blob){status("");toast(`${format.toUpperCase()} no está disponible en este navegador`,"err");return;}

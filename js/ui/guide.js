@@ -1014,9 +1014,13 @@ const TOPICS = [
           <b>color de fondo</b> que elijas (blanco por defecto). Con transparencia, Exportar propone
           PNG de entrada. Para conservar todos los mandos de las capas, usa Guardar proyecto.</li>
         <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato (JPEG,
-          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad—, <b>TIFF</b> sin pérdidas a 8 bits o <b>PDF</b>, con tamaño de página y
-          margen), calidad y metadatos EXIF, y <b>«Tramado a 8 bits»</b>: añade un ruido
-          imperceptible que evita las bandas en cielos y degradados suaves. El segundo
+          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad—, <b>TIFF</b> sin pérdidas a 8 bits,
+          <b>PNG 16 bits</b> o <b>TIFF 16 bits</b> —máxima calidad— o <b>PDF</b>, con tamaño de página y
+          margen), calidad y metadatos EXIF. Con <b>«Alta precisión al exportar»</b> (y siempre en
+          16 bits) las capas, las capas de ajuste y los modos de fusión se recalculan en coma
+          flotante: apilar varios ajustes ya no deja bandas en cielos y degradados, y al cambiar
+          el tamaño se promedia en luz lineal. <b>«Tramado a 8 bits»</b> añade un ruido
+          imperceptible que reparte los tonos intermedios al guardar en 8 bits. El segundo
           entrega un PNG sin preguntar nada.</li>
         <li><b>Exportar como…</b> También permite un <b>PSD con grupos y capas
           rasterizadas</b> para otros editores. La vista compuesta recoge el resultado

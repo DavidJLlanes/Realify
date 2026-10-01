@@ -38,14 +38,13 @@ propuestas que empeoran la calidad (ver «Descartado»).
 
 ---
 
-## Fase 1 · Exportación sin bandas
-Lo que más mejora el archivo final sin rehacer el núcleo del editor. Hoy cada capa de
-ajuste trabaja sobre el resultado ya reducido a 8 bits de la anterior.
-- [ ] Implementar `renderPrecisionAdjustmentStack` (`js/core/high-precision-next.js`, hoy
-      devuelve `null`): al exportar, recalcular la pila de ajustes y los modos de fusión
-      en Float32 desde las capas de píxeles.
-- [ ] Quitar el límite de 8 MP del motor Float32 de exportación, procesando por franjas.
-- [ ] Exportar PNG y TIFF de 16 bits desde el editor (hoy sólo el revelador RAW).
+## Fase 1 · Exportación sin bandas ✅ (v199)
+- [x] `renderPrecisionAdjustmentStack` implementada (motor en `js/core/precision-stack.js`):
+      capas, las 10 capas de ajuste, los 27 modos de fusión, máscaras, recortes y grupos en
+      coma flotante; verificado contra el compositor normal. (v199)
+- [x] Sin límite de 8 MP: por franjas, almacén de 16 bits; 32 MP en ordenador, 16 MP en
+      móvil; reducción por áreas en luz lineal. (v199)
+- [x] Exportar PNG y TIFF de 16 bits desde el editor (móvil y escritorio). (v199)
 
 ## Fase 2 · Color de gama amplia (ICC / Display P3)
 Las fotos de iPhone y de muchos Android vienen en P3; hoy todos los lienzos son sRGB.
@@ -118,6 +117,8 @@ Hoy los ~90 ajustes y filtros leen y escriben píxeles de 8 bits.
 ## Fase 13 · Compositor de la vista previa en GPU de coma flotante
 - [ ] Fusión de capas, opacidad y modos de fusión en WebGL2 RGBA16F (o WebGPU).
 - [ ] Tramado al mostrar en pantalla.
+- [ ] Estilos de capa y «Fusionar si» también en el motor de coma flotante de exportación
+      (hoy, si se usan, se parte del compuesto de 8 bits; ver fase 1).
 
 ## Fase 14 · Documento en alta precisión
 Lo más costoso: ×2–×4 de memoria (12 MP: ~48 MB por capa → 96–192 MB).

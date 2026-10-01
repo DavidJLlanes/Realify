@@ -8,7 +8,7 @@ import { prepareForType, hasTransparency, alphaFieldsHTML, wireAlphaFields } fro
 import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
-import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=3";
+import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 export { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 
 export function download(blob, name){
@@ -144,6 +144,9 @@ export function stamp(){
 }
 
 let lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
+const is16 = t => /;16$/.test(t);
+const extOfType = t => ({ "image/png": "png", "image/png;16": "png", "image/webp": "webp", "image/avif": "avif",
+  "image/tiff": "tif", "image/tiff;16": "tif", "application/pdf": "pdf" })[t] || "jpg";
 export const exportPrecisionInfo=()=>({...lastPrecisionInfo});
 
 /* `alpha`: conservar la transparencia si el formato la admite (PNG, WebP,
@@ -152,13 +155,24 @@ export const exportPrecisionInfo=()=>({...lastPrecisionInfo});
    guarda es siempre el acoplado de las capas visibles. */
 export async function renderExport({ w, h, type, quality, precision = false, dither = false, alpha = true, background = "#ffffff" }){
   let flat = null, out = null;
+  /* «image/png;16» y «image/tiff;16»: 16 bits por canal, siempre con el
+     motor de alta precisión (core/precision-stack.js). */
+  const bits16 = /;16$/.test(type);
+  if(bits16){
+    const precise = await renderPrecisionAdjustmentStack(w, h, { bits16: true, alpha, background, layersOnly: false });
+    if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de 16 bits");
+    lastPrecisionInfo = { mode: precise.mode, reason: precise.reason };
+    const f16 = await import("./formats16.js");
+    return type.startsWith("image/png") ? f16.png16(precise.data16) : f16.tiff16(precise.data16);
+  }
   if(precision){
-    /* Primero se intenta recalcular la cadena compatible de ajustes en
-       Float32. Si la pila tiene elementos que aún no han sido migrados,
-       no se fuerza una interpretación incompleta: se conserva la
-       composición de Canvas y se mejora sólo su remuestreo final. */
-    const stack=renderPrecisionAdjustmentStack(w,h);
-    const precise=stack||renderHighPrecisionCanvas(flat=flatten(),w,h,{dither});
+    /* Primero, la pila completa recompuesta en coma flotante (capas,
+       ajustes, fusión y remuestreo lineal). Si el documento usa algo
+       que ese motor aún no reproduce, el compuesto de 8 bits con
+       remuestreo de alta precisión; y si no cabe en memoria, el motor
+       compatible de siempre. */
+    let precise = await renderPrecisionAdjustmentStack(w, h, { dither, layersOnly: false });
+    if(!precise?.canvas) precise = renderHighPrecisionCanvas(flat = flatten(), w, h, { dither });
     lastPrecisionInfo={mode:precise.mode,reason:precise.reason};
     if(precise.canvas)out=precise.canvas;
   }
@@ -233,6 +247,8 @@ export async function exportDialog(){
         <option value="image/webp">WebP</option>
         <option value="image/avif">AVIF (más ligero)</option>
         <option value="image/tiff">TIFF (sin pérdidas, 8 bits)</option>
+        <option value="image/png;16">PNG 16 bits (máxima calidad)</option>
+        <option value="image/tiff;16">TIFF 16 bits (máxima calidad)</option>
         <option value="application/pdf">PDF</option>
       </select></div>
     ${alphaFieldsHTML("exA")}
@@ -256,7 +272,7 @@ export async function exportDialog(){
     <p class="hint" id="exDestHint" style="margin:-2px 0 9px"></p>
     <div class="compat-note" id="exCompat"></div>
     <label class="chk" style="margin:0 0 7px"><input type="checkbox" id="exPrecision">
-      <b>Alta precisión al exportar</b> · remuestreo final en RGB lineal Float32</label>
+      <b>Alta precisión al exportar</b> · capas y ajustes en coma flotante, sin bandas</label>
     <p class="hint" id="exPrecisionHint" style="margin:-3px 0 9px"></p>
     <label class="chk" style="margin:0 0 7px"><input type="checkbox" id="exDither">
       <b>Tramado a 8 bits</b> · evita bandas en cielos y degradados</label>
@@ -331,8 +347,16 @@ export async function exportDialog(){
       const pctV = body.querySelector("#exPctV");
       const ar = doc.w / doc.h;
       compat.innerHTML = `<strong>${compatibilityInfo().device}:</strong> ${compatibilityInfo().message}`;
+      // PNG de 16 bits necesita la compresión nativa del navegador
+      if(typeof CompressionStream !== "function") type.querySelector('option[value="image/png;16"]')?.remove();
       const precisionState=()=>{
         const possible=highPrecisionAvailableFor(+W.value||doc.w,+H.value||doc.h),cap=highPrecisionCapabilities();
+        /* 16 bits: siempre alta precisión y sin tramado (no hace falta) */
+        if(is16(type.value)){
+          precision.checked=true;precision.disabled=true;dither.disabled=true;
+          precisionHint.textContent=possible.ok?"16 bits por canal: capas y ajustes recompuestos en coma flotante, sin redondear a 8 bits.":`No disponible: ${possible.reason}.`;
+          return;
+        }
         precision.disabled=!possible.ok||clean.checked;
         // El tramado sólo tiene sentido con datos de más de 8 bits, que
         // aquí sólo existen en el motor Float32.
@@ -378,9 +402,14 @@ export async function exportDialog(){
         est.textContent = "Calculando…";
         clearTimeout(estTimer);
         estTimer = setTimeout(async () => {
-          if(type.value === "image/tiff"){
-            const mib=((+W.value||1)*(+H.value||1)*4+1024)/1048576;
+          if(type.value === "image/tiff" || type.value === "image/tiff;16"){
+            const keep=alphaUI?.values().alpha, bytes=type.value === "image/tiff" ? 4 : keep ? 8 : 6;
+            const mib=((+W.value||1)*(+H.value||1)*bytes+1024)/1048576;
             est.textContent=`TIFF sin comprimir: aproximadamente ${mib.toFixed(1)} MB`;
+            return;
+          }
+          if(type.value === "image/png;16"){
+            est.textContent="PNG de 16 bits: sin pérdidas; suele ocupar entre 2 y 3 veces un PNG normal.";
             return;
           }
           const b = await renderExport({
@@ -395,7 +424,7 @@ export async function exportDialog(){
         }, 260);
       };
 
-      const extOf = t => ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/tiff":"tif", "application/pdf": "pdf" })[t] || "jpg";
+      const extOf = extOfType;
       const syncDestination = () => {
         const picker = canPickExportFile();
         const share = typeof navigator.canShare === "function" && typeof navigator.share === "function";
@@ -447,8 +476,8 @@ export async function exportDialog(){
       body.querySelector("#exPdfMargin").addEventListener("input", syncPdf);
       type.addEventListener("change", () => {
         syncPdf(); alphaUI.sync();
-        qRow.style.display = ["image/png","image/tiff"].includes(type.value) ? "none" : "";
-        clean.disabled = type.value === "image/tiff";
+        qRow.style.display = ["image/png","image/tiff","image/png;16","image/tiff;16"].includes(type.value) ? "none" : "";
+        clean.disabled = type.value.startsWith("image/tiff") || is16(type.value);
         if(clean.disabled){clean.checked=false;weightRow.hidden=cleanHint.hidden=true;}
         ext.textContent = "." + extOf(type.value);
         precisionState(); estimate();
@@ -489,7 +518,7 @@ export async function exportDialog(){
   const h    = Math.max(1, +wrap.querySelector("#exH").value);
   const dest = wrap.querySelector("#exDest").value;
   const clean = wrap.querySelector("#exClean").checked;
-  const precision = wrap.querySelector("#exPrecision").checked && !clean;
+  const precision = (wrap.querySelector("#exPrecision").checked || is16(type)) && !clean;
   const dither = precision && wrap.querySelector("#exDither").checked;
   const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
 
@@ -501,11 +530,11 @@ export async function exportDialog(){
       maxBytes:Math.max(50, +wrap.querySelector("#exMaxKB").value || 500) * 1024, ...alphaOpts
     }) : null;
     blob = cleanResult ? cleanResult.blob : await renderExport({
-      w, h, type, quality: type === "image/png" ? undefined : q, precision, dither, ...alphaOpts
+      w, h, type, quality: type.startsWith("image/png") ? undefined : q, precision, dither, ...alphaOpts
     });
   }catch(err){ status(""); toast("No se pudo exportar: " + (err.message || err), "err"); return; }
   if(!blob){ toast("La exportación ha fallado", "err"); return; }
-  const ext = ({ "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/tiff":"tif", "application/pdf": "pdf" })[type] || "jpg";
+  const ext = extOfType(type);
 
   // Si el panel EXIF está activo, el JPEG sale con su cabecera
   let out = blob, named = null;
@@ -534,7 +563,7 @@ export async function exportDialog(){
              : result === "picked" ? "Guardado"
              : "Exportado";
   const finalW = cleanResult?.w || w, finalH = cleanResult?.h || h;
-  const precisionText=precision&&exportPrecisionInfo().mode==="high-precision"?" · alta precisión":precision?" · modo compatible":"";
+  const precisionText=is16(type)?" · 16 bits":precision&&exportPrecisionInfo().mode==="high-precision"?" · alta precisión":precision?" · modo compatible":"";
   toast(`${verb} ${finalW} × ${finalH} · ` +
         `${(out.size / 1024).toFixed(0)} KB` + (clean ? " · limpio · sRGB" : out !== blob ? " · con EXIF" : "") + precisionText, "ok");
 }

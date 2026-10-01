@@ -89,14 +89,9 @@ export const ADJUST_TYPES = {
     name: "Exposición",
     defaults: () => ({ ev: 0 }),
     apply(data, w, h, p){
-      const k = Math.pow(2, p.ev || 0);
-      if(k === 1) return;
-      const t = new Uint8ClampedArray(256);
-      for(let i = 0; i < 256; i++){
-        let v = i / 255; v = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-        v = Math.min(1, v * k);
-        t[i] = Math.round((v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055) * 255);
-      }
+      if(!(p.ev || 0)) return;
+      const f = exposureFunction(p), t = new Uint8ClampedArray(256);
+      for(let i = 0; i < 256; i++) t[i] = Math.round(f(i));
       applyLut(data, { r: t, g: t, b: t });
     }
   },
@@ -123,6 +118,17 @@ export const ADJUST_TYPES = {
     }
   }
 };
+
+/* Exposición como función continua de 0..255 (admite decimales): la
+   usan la tabla de arriba y la exportación de alta precisión. */
+export function exposureFunction(p){
+  const k = Math.pow(2, p.ev || 0);
+  return i => {
+    let v = i / 255; v = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    v = Math.min(1, v * k);
+    return (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055) * 255;
+  };
+}
 
 export const adjustTypeIds = () => Object.keys(ADJUST_TYPES);
 export const adjustTypeName = id => (ADJUST_TYPES[id] && ADJUST_TYPES[id].name) || id;

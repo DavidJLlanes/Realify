@@ -617,15 +617,27 @@ export function levels(opts = {}){
 /* Tabla de 256 entradas para un único canal (negro/blanco de entrada
    y salida, gamma). */
 function levelLut(p){
-  const t = new Uint8ClampedArray(256);
+  const f = levelFunction(p), t = new Uint8ClampedArray(256);
+  for(let i = 0; i < 256; i++) t[i] = clamp255(f(i));
+  return t;
+}
+/* Niveles como función continua de 0..255 (admite decimales): la tabla
+   de arriba la muestrea en los enteros; la exportación de alta precisión
+   (core/precision-stack.js) la evalúa sin redondear. */
+export function levelFunction(p){
   const span = Math.max(1, p.inHigh - p.inLow);
   const inv = 1 / p.gamma;
-  for(let i = 0; i < 256; i++){
+  return i => {
     let v = (i - p.inLow) / span;
     v = v <= 0 ? 0 : v >= 1 ? 1 : Math.pow(v, inv);
-    t[i] = clamp255(p.outLow + v * (p.outHigh - p.outLow));
-  }
-  return t;
+    return p.outLow + v * (p.outHigh - p.outLow);
+  };
+}
+/* { r, g, b } en coma flotante, con la misma regla de canal que buildLevels */
+export function levelsFunctions(p){
+  const f = levelFunction(p), id = v => v;
+  if(p.channel === "rgb") return { r:f, g:f, b:f };
+  return { r: p.channel === "r" ? f : id, g: p.channel === "g" ? f : id, b: p.channel === "b" ? f : id };
 }
 
 /* Versión con memoria por canal, usada sólo por el diálogo «Niveles…»
@@ -965,11 +977,14 @@ export function wbEyedropper(sampleAt, p, onChange){
    pero para corregir un tono dominante es más que suficiente y es
    trivialmente invertible, que es lo que hace falta para el
    cuentagotas de abajo. */
-export function buildWB({ temp, tint }){
+/* Ganancias de cada canal del balance de blancos (también las usa la
+   exportación de alta precisión, sin redondear). */
+export function wbGains({ temp, tint }){
   const t = temp / 100, g = tint / 100;
-  const rGain = 1 + t * 0.4;
-  const bGain = 1 - t * 0.4;
-  const gGain = 1 - g * 0.25;
+  return { r: 1 + t * 0.4, g: 1 - g * 0.25, b: 1 - t * 0.4 };
+}
+export function buildWB({ temp, tint }){
+  const { r: rGain, g: gGain, b: bGain } = wbGains({ temp, tint });
   const mk = gain => { const a = new Uint8ClampedArray(256);
     for(let i = 0; i < 256; i++) a[i] = clamp255(i * gain); return a; };
   return { r: mk(rGain), g: mk(gGain), b: mk(bGain) };

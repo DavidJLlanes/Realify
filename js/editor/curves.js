@@ -13,11 +13,19 @@ const clamp255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
    rango entre puntos muy juntos y crea inversiones de tono visibles
    como bandas de color. */
 export function curveLut(points){
+  const f = curveFunction(points), t = new Uint8ClampedArray(256);
+  for(let x = 0; x < 256; x++) t[x] = clamp255(f(x));
+  return t;
+}
+
+/* La curva como función continua de 0..255 (admite decimales): la
+   tabla de 8 bits de arriba la muestrea en los enteros, y la exportación
+   de alta precisión (core/precision-stack.js) la evalúa sin redondear. */
+export function curveFunction(points){
   const pts = points.slice().sort((a, b) => a[0] - b[0]);
-  const t = new Uint8ClampedArray(256);
   const n = pts.length;
-  if(n === 0){ for(let i = 0; i < 256; i++) t[i] = i; return t; }
-  if(n === 1){ for(let i = 0; i < 256; i++) t[i] = clamp255(pts[0][1]); return t; }
+  if(n === 0) return x => x;
+  if(n === 1) return () => pts[0][1];
 
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const d = [], m = [];
@@ -38,21 +46,19 @@ export function curveLut(points){
     if(s > 9){ const f = 3 / Math.sqrt(s); m[i] = f*a*d[i]; m[i+1] = f*b*d[i]; }
   }
 
-  for(let x = 0; x < 256; x++){
-    if(x <= xs[0]){ t[x] = clamp255(ys[0]); continue; }
-    if(x >= xs[n-1]){ t[x] = clamp255(ys[n-1]); continue; }
+  return x => {
+    if(x <= xs[0]) return ys[0];
+    if(x >= xs[n-1]) return ys[n-1];
     let i = 0;
     while(i < n - 2 && x > xs[i+1]) i++;
     const h = xs[i+1] - xs[i];
     const u = (x - xs[i]) / h;
     const u2 = u*u, u3 = u2*u;
-    t[x] = clamp255(
-      (2*u3 - 3*u2 + 1) * ys[i] +
+    return (2*u3 - 3*u2 + 1) * ys[i] +
       (u3 - 2*u2 + u) * h * m[i] +
       (-2*u3 + 3*u2) * ys[i+1] +
-      (u3 - u2) * h * m[i+1]);
-  }
-  return t;
+      (u3 - u2) * h * m[i+1];
+  };
 }
 
 

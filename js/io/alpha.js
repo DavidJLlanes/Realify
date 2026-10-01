@@ -19,7 +19,7 @@ const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PN
 
 /** ¿El formato (tipo MIME, o «png», «jpg»…) admite transparencia? */
 export function supportsAlpha(type){
-  const t = String(type || "").toLowerCase();
+  const t = String(type || "").toLowerCase().replace(/;16$/, "");   // «image/png;16»: PNG de 16 bits
   if(ALPHA_TYPES.has(t)) return true;
   return ["png", "webp", "avif", "gif", "tiff"].includes(t);
 }
@@ -74,7 +74,7 @@ export function wireAlphaFields(root, { id = "ax", getType, hasAlpha = false, on
   const box = root.querySelector(`#${id}Box`), chk = root.querySelector(`#${id}Alpha`);
   const bgRow = root.querySelector(`#${id}BgRow`), bg = root.querySelector(`#${id}Bg`), hint = root.querySelector(`#${id}Hint`);
   const sync = () => {
-    const t = getType(), ok = supportsAlpha(t), name = NAMES[t] || String(t).toUpperCase();
+    const t = String(getType()).replace(/;16$/, ""), ok = supportsAlpha(t), name = NAMES[t] || String(t).toUpperCase();
     chk.disabled = !ok;
     chk.closest("label").style.opacity = ok ? "" : ".55";
     bgRow.hidden = ok && chk.checked;

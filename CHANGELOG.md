@@ -9,6 +9,26 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Exportación sin bandas: capas y ajustes en coma flotante, PNG y TIFF de 16 bits
+- **Alta precisión al exportar** recalcula ahora todo el documento en coma flotante
+  (`js/core/precision-stack.js`): capas, capas de ajuste (las diez), los 27 modos de fusión,
+  opacidad, máscaras, recortes y grupos, sin redondear a 8 bits entre capa y capa. Antes cada
+  capa de ajuste partía del resultado ya redondeado de la anterior: con una pila que comprime y
+  vuelve a estirar los tonos, un degradado quedaba en 40 niveles con saltos de 9 (bandas); ahora
+  conserva sus 197 niveles con saltos de 1. Verificado contra el compositor de siempre: misma
+  imagen salvo ese redondeo (diferencia media de 0,05 a 0,6 niveles).
+- Curvas, Niveles, Balance de blancos y Exposición exponen su fórmula continua
+  (`curveFunction`, `levelFunction`, `wbGains`, `exposureFunction`); las tablas de 8 bits de
+  siempre salen de esas mismas funciones (2100 tablas comparadas: idénticas).
+- **Sin el límite de 8 MP**: se trabaja por franjas y se guarda en 16 bits por canal; hasta
+  32 MP en ordenador y 16 MP en móvil. Al reducir, cada píxel promedia en luz lineal la zona
+  que cubre; al ampliar, bilineal. La interfaz sigue respondiendo mientras se exporta.
+- **Nuevos formatos: PNG 16 bits y TIFF 16 bits (máxima calidad)** en Exportar (móvil y
+  escritorio), siempre con alta precisión; PNG con etiqueta sRGB y transparencia; TIFF RGB o
+  RGBA.
+- Con estilos de capa o «Fusionar si» (aún no reproducidos en coma flotante) se parte del
+  compuesto normal y sólo el remuestreo y la salida son de alta precisión; el motivo se indica.
+
 ### Documentos legales: cambios sin previo aviso
 - Aviso legal, Política de privacidad y Política de cookies indican que el titular puede
   modificarlos (y la aplicación) en cualquier momento y sin previo aviso, que los cambios se

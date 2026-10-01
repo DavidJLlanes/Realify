@@ -6,4 +6,4 @@ export {
   highPrecisionAvailableFor,
   renderHighPrecisionCanvas,
   renderPrecisionAdjustmentStack
-} from "./high-precision-next.js?v=1";
+} from "./high-precision-next.js?v=3";
