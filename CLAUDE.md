@@ -10,6 +10,7 @@ en realify.es con GitHub Actions al subir a `main`.
 - En cada versión: subir `VERSION` en `sw.js` y `main.js?v=` en `index.html`, y
   actualizar `CHANGELOG.md`, la guía (`js/ui/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
+- Al modificar una herramienta, comprobar sólo esa con `node tests/calidad-herramienta.mjs <comando>` (móvil y escritorio); no publicar con FALLO.
 
 ## Móvil y escritorio
 - **Todo cambio se hace en las dos versiones, móvil y escritorio**, respetando el
