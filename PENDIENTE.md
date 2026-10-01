@@ -5,6 +5,29 @@ Ideas acordadas para más adelante (no hechas todavía). Criterio que manda en t
 de cuantizar modelos a INT8/Q4 (con GFPGAN, INT8 bajó a 27 dB), seguir con fp16/fp32 y
 resolver la memoria procesando por bloques.
 
+## ⚠️ MÁXIMA PRIORIDAD: ningún efecto puede pixelar la imagen
+
+Mantener la calidad de la imagen está por encima de todo lo demás. En la v194, 58 de las 90
+herramientas de Ajustes y Filtro dejaban la capa pixelada (corregido en la v195). Para que
+no vuelva a pasar, en **todo** efecto, ajuste, filtro, función de IA o plugin, nuevo o
+modificado:
+- **El resultado se calcula siempre a resolución completa.** Una vista previa reducida es
+  aceptable mientras se mueve un mando, pero nunca puede quedarse en la capa ni llegar al
+  resultado aplicado ni a la exportación.
+- Al soltar un mando, recalcular a resolución completa si el cálculo es rápido
+  (`runAdjust` en `js/editor/adjust.js` y `runFilter` en `js/filters/basic.js` ya lo hacen).
+- Al reabrir o montar los mandos de una capa (panel de Propiedades), **no repintarla** con
+  la vista previa: ya tiene el resultado bueno.
+- Los cálculos a menor resolución de trabajo (profundidad, máscaras, desenfoques) se
+  **componen con la foto original a tamaño real** (como Desenfoque por profundidad en la
+  v192): lo que debe quedar nítido sale idéntico al original.
+- Nunca reducir la imagen al abrirla ni al exportarla salvo que el usuario lo pida.
+- **Antes de publicar cualquier cambio en efectos**: probar con una imagen de detalle fino
+  (≥ 3000 × 2000, ruido de 1 px y tablero de 2 px) en móvil y escritorio, y comparar la capa
+  resultante con el cálculo a resolución completa (detalle entre píxeles vecinos y
+  diferencia media). Es el barrido que encontró las 58 herramientas: conviene guardarlo en
+  el repositorio como prueba automática.
+
 Índice:
 1. Hoja de ruta de calidad de imagen (orden de prioridad)
 2. Alta precisión: estado y fases
