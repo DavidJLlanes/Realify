@@ -9,6 +9,16 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Ajustes y filtros: la imagen ya no queda pixelada
+- Al aplicar «Tono / Color automático» (y cualquier ajuste o filtro que deja una capa
+  reeditable) en una foto grande, la capa quedaba pixelada: el panel de Propiedades, al montar
+  sus mandos, repintaba la capa con la vista previa reducida (~630 px ampliados) en vez de
+  dejar el resultado a resolución completa, y así se veía y se exportaba hasta cambiar de capa.
+  Ahora la capa conserva el resultado completo.
+- Además, al dejar de mover un mando (en el panel de Propiedades o en el diálogo, móvil y
+  escritorio), la imagen se recalcula a resolución completa en menos de un segundo si el filtro
+  es rápido; mientras se mueve se sigue viendo la copia rápida.
+
 ### Política de privacidad: registros del servidor web
 - Nueva sección «Registros del servidor web»: qué se anota (IP, fecha y hora, archivo pedido,
   resultado, página de origen y navegador), para qué (sólo seguridad y diagnóstico de fallos;

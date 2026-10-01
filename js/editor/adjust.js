@@ -160,15 +160,48 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
   const src0 = big ? small : full;
   const work = new ImageData(new Uint8ClampedArray(src0.data.length), src0.width, src0.height);
 
+  /* Vista previa nítida al soltar: en imágenes grandes lo que se ve
+     mientras se mueve un mando es la copia reducida ampliada. Al dejar
+     de moverlo, si el filtro es rápido (estimado por lo que tardó la
+     copia reducida), se recalcula a resolución completa sin anotar
+     nada en el historial. Sobre todo para el panel de Propiedades, que
+     no tiene botón Aplicar: sin esto la capa quedaba pixelada hasta
+     cambiar de capa activa (y así se exportaba). La estimación (tiempo
+     de la copia reducida × proporción de píxeles) es pesimista —parte
+     del cálculo, como analizar la foto, no crece con el tamaño—; por
+     eso el tope es amplio, y si un recálculo real tarda demasiado, no
+     se repite en esta sesión. */
+  let refineTimer = 0, lastMs = 0, refineOff = false;
+  const REFINE_EST_MS = 3000, REFINE_REAL_MS = 900;
+  const refine = () => {
+    refineTimer = 0;
+    const t0 = performance.now();
+    const out = new ImageData(new Uint8ClampedArray(full.data), full.width, full.height);
+    compute(out.data, out.width, out.height);
+    if(doc.selection) blendBySelection(out.data, full.data, doc.selection, out.width, out.height);
+    layer.ctx.putImageData(out, 0, 0);
+    layer.thumbDirty = true;
+    emit("doc:change");
+    if(performance.now() - t0 > REFINE_REAL_MS) refineOff = true;
+  };
+  const scheduleRefine = () => {
+    clearTimeout(refineTimer); refineTimer = 0;
+    if(!big || refineOff || lastMs * (full.width * full.height) / (small.width * small.height) > REFINE_EST_MS) return;
+    refineTimer = setTimeout(refine, 450);
+  };
+
   let queued = false, body = null;
   const preview = () => {
     if(queued) return;
     queued = true;
+    clearTimeout(refineTimer); refineTimer = 0;
     requestAnimationFrame(() => {
       queued = false;
       const src = big ? small : full;
       work.data.set(src.data);
+      const t0 = performance.now();
       compute(work.data, work.width, work.height);
+      lastMs = performance.now() - t0;
       if(doc.selection) blendBySelection(work.data, src.data, doc.selection, work.width, work.height);
       if(big){
         smallCanvas.getContext("2d").putImageData(work, 0, 0);
@@ -184,6 +217,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
       }
       layer.thumbDirty = true;
       emit("doc:change");
+      scheduleRefine();
       // El cuerpo del diálogo puede querer repintar algo suyo con el
       // resultado —una miniatura, un histograma—: se le avisa aquí en
       // vez de que tenga que envolver `preview` por su cuenta.
@@ -194,7 +228,16 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
   };
 
   body = buildBody({ hist, preview, source });
-  if(edit) preview();
+  /* Al reabrir una capa de filtro, la capa YA tiene el resultado a
+     resolución completa: no se repinta con la vista previa. Antes se
+     llamaba a preview(), y en imágenes grandes eso cambiaba el
+     resultado bueno por la copia reducida (~630 px) ampliada: al crear
+     la capa, el panel de Propiedades monta estos mandos y la capa se
+     quedaba pixelada mientras siguiera seleccionada (y así se
+     exportaba). El cuerpo sí recibe su aviso, por si pinta algo suyo. */
+  if(edit && body && body.onPreview){
+    try{ body.onPreview(); }catch(err){ console.error("[onPreview]", err); }
+  }
 
   /* Recalcula a resolución completa —aunque la vista previa fuera
      reducida, lo que se ve es una aproximación, lo que se guarda no
@@ -203,6 +246,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
      Compartida por las dos vías de salida de abajo: el diálogo modal
      de siempre y el panel de propiedades en vivo. */
   const finish = async commit => {
+    clearTimeout(refineTimer); refineTimer = 0;
     if(!commit){ restore(layer, before); return; }
     if(big) status("Aplicando…");
     const out = new ImageData(new Uint8ClampedArray(full.data), full.width, full.height);
