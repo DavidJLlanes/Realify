@@ -1,226 +1,174 @@
 # Pendiente
 
-Ideas acordadas para más adelante (no hechas todavía). Criterio que manda en todo:
-**máxima calidad de los resultados**. Nunca se cambia calidad por memoria o velocidad: nada
-de cuantizar modelos a INT8/Q4 (con GFPGAN, INT8 bajó a 27 dB), seguir con fp16/fp32 y
-resolver la memoria procesando por bloques.
+Trabajo acordado para más adelante, organizado en **fases numeradas** que se hacen en orden.
+Cada fase es corta y se publica sola. Al terminar una tarea se marca `[x]` con la versión
+(p. ej. `[x] … (v199)`); al terminar una fase, se marca como hecha en su título.
 
-## ⚠️ MÁXIMA PRIORIDAD: ningún efecto puede pixelar la imagen
+Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 
-Mantener la calidad de la imagen está por encima de todo lo demás. En la v194, 58 de las 90
-herramientas de Ajustes y Filtro dejaban la capa pixelada (corregido en la v195). Para que
-no vuelva a pasar, en **todo** efecto, ajuste, filtro, función de IA o plugin, nuevo o
-modificado:
-- **El resultado se calcula siempre a resolución completa.** Una vista previa reducida es
-  aceptable mientras se mueve un mando, pero nunca puede quedarse en la capa ni llegar al
-  resultado aplicado ni a la exportación.
-- Al soltar un mando, recalcular a resolución completa si el cálculo es rápido
-  (`runAdjust` en `js/editor/adjust.js` y `runFilter` en `js/filters/basic.js` ya lo hacen).
-- Al reabrir o montar los mandos de una capa (panel de Propiedades), **no repintarla** con
-  la vista previa: ya tiene el resultado bueno.
-- Los cálculos a menor resolución de trabajo (profundidad, máscaras, desenfoques) se
-  **componen con la foto original a tamaño real** (como Desenfoque por profundidad en la
-  v192): lo que debe quedar nítido sale idéntico al original.
-- Nunca reducir la imagen al abrirla ni al exportarla salvo que el usuario lo pida.
-- **Cada vez que se modifique una herramienta, comprobar ESA herramienta (una a una, no
-  todas)** con `node tests/calidad-herramienta.mjs <comando>` (el comando de su entrada de
-  menú, p. ej. `adj.hsl`). Abre una imagen de detalle fino de 3000 × 2000 (ruido de 1 px y
-  tablero de 2 px), aplica la herramienta en móvil y escritorio y compara la capa con el
-  cálculo a resolución completa. Resultado APTO / APTO* (aviso) / FALLO; no publicar con
-  FALLO. Es la misma comprobación que encontró las 58 herramientas pixeladas de la v194
-  (verificado: con el código de la v194 da FALLO).
+## Reglas que mandan en todas las fases
 
-Índice:
-1. Hoja de ruta de calidad de imagen (orden de prioridad)
-2. Alta precisión: estado y fases
-3. Visión clásica, apilado y profundidad (OpenCV.js, Depth Anything)
-4. Formatos, metadatos y exportación
-5. Infraestructura (sin efecto directo en la calidad)
-6. Descartado y por qué
-7. Informe de errores en Ayuda
+1. **⚠️ Máxima prioridad: ningún efecto puede pixelar la imagen.** Mantener la calidad está
+   por encima de todo. En la v194, 58 de las 90 herramientas de Ajustes y Filtro dejaban la
+   capa pixelada (corregido en la v195). En todo efecto, ajuste, filtro, función de IA o
+   plugin, nuevo o modificado:
+   - El resultado se calcula siempre a **resolución completa**. La vista previa reducida
+     sólo vale mientras se mueve un mando; nunca puede quedarse en la capa, en el resultado
+     aplicado ni en la exportación.
+   - Al soltar un mando, recalcular a resolución completa si el cálculo es rápido
+     (`runAdjust` en `js/editor/adjust.js` y `runFilter` en `js/filters/basic.js`).
+   - Al montar los mandos de una capa (panel de Propiedades) no repintarla con la vista
+     previa: ya tiene el resultado bueno.
+   - Lo que se calcule a menor resolución (profundidad, máscaras, desenfoques) se compone
+     con la foto original a tamaño real (como Desenfoque por profundidad, v192).
+   - Nunca reducir la imagen al abrirla ni al exportarla salvo que el usuario lo pida.
+2. **Comprobar cada herramienta que se modifique, una a una** (no todas):
+   `node tests/calidad-herramienta.mjs <comando>` (el de su entrada de menú, p. ej.
+   `adj.hsl`). Prueba en móvil y escritorio con una imagen de detalle fino de 3000 × 2000.
+   Resultado APTO / APTO* (aviso) / FALLO; **no publicar con FALLO**.
+3. **Nunca cambiar calidad por memoria o velocidad**: nada de cuantizar modelos a INT8/Q4
+   (con GFPGAN, INT8 bajó a 27 dB); fp16/fp32 y la memoria se resuelve por bloques.
+4. **Licencias**: los modelos de IA y bibliotecas nuevos deben permitir uso comercial
+   (normas del proyecto), aunque el código de Realify sea PolyForm Noncommercial. LGPL y
+   MPL sólo como módulos separados y sin modificar.
 
-Origen de las secciones 1, 3, 4, 5 y 6: auditoría técnica externa (octubre de 2026,
-«Informe_Auditoria_Tecnica_Realify.pdf») revisada contra el estado real del código; se han
-quitado sus propuestas que empeoran la calidad.
+Origen: auditoría técnica externa (octubre de 2026, «Informe_Auditoria_Tecnica_Realify.pdf»)
+revisada contra el código real, más lo hablado en las sesiones. Se han quitado las
+propuestas que empeoran la calidad (ver «Descartado»).
 
-## 1. Hoja de ruta de calidad de imagen (orden de prioridad)
+---
 
-Ordenada por cuánto mejora los píxeles que entrega Realify. Licencias: los modelos de IA
-nuevos deben permitir uso comercial (normas del proyecto), aunque el código de Realify sea
-PolyForm Noncommercial.
+## Fase 1 · Exportación sin bandas
+Lo que más mejora el archivo final sin rehacer el núcleo del editor. Hoy cada capa de
+ajuste trabaja sobre el resultado ya reducido a 8 bits de la anterior.
+- [ ] Implementar `renderPrecisionAdjustmentStack` (`js/core/high-precision-next.js`, hoy
+      devuelve `null`): al exportar, recalcular la pila de ajustes y los modos de fusión
+      en Float32 desde las capas de píxeles.
+- [ ] Quitar el límite de 8 MP del motor Float32 de exportación, procesando por franjas.
+- [ ] Exportar PNG y TIFF de 16 bits desde el editor (hoy sólo el revelador RAW).
 
-1. **Procesado en alta precisión en todo el documento (16 bits o coma flotante).** Hoy cada
-   capa y cada ajuste se guarda en 8 bits: al apilar ajustes se pierden niveles (bandas en
-   cielos y degradados, sombras empastadas). Coste muy alto; por fases. Ver sección 2.
-2. **Gestión de color con perfiles ICC (Display P3, Adobe RGB).** Las fotos de iPhone y
-   muchos Android vienen en P3: leer el perfil, trabajar en espacio amplio y exportar con
-   el perfil incrustado. Hoy todos los lienzos se crean con `colorSpace: "srgb"`
-   explícito; comprobar qué se pierde al abrir. Coste medio. **Empezar por aquí.**
-3. **IA a resolución completa por bloques en todos los modelos.** Ampliar y colorear ya
-   van por bloques; la profundidad (518 px), las máscaras de cielo y persona y la cara de
-   GFPGAN se calculan a baja resolución y se amplían. Bloques con solape configurable y
-   fundido, tamaño según memoria del dispositivo, backend y modelo. Coste medio.
-   **Empezar por aquí (junto con el 2).** Aplica también a restauración, deblur y
-   cualquier modelo imagen-a-imagen nuevo.
-4. **Exportación de alta profundidad**: PNG y TIFF de 16 bits, AVIF 10/12 bits, JPEG XL
-   (fotografía, HDR, alta profundidad) y OpenEXR (valores HDR de escena sin comprimir el
-   rango; encaja con el pipeline Premium en coma flotante y Rec.2020). Cargar cada códec
-   sólo al usarlo. Depende de la sección 2.
-5. **Apilado de fotos**: reducción de ruido por varias tomas (image stacking) y focus
-   stacking, con alineación subpíxel. Ver sección 3.
-6. **Corrección de lente con perfiles reales** (distorsión, viñeteo y aberración por
-   modelo de objetivo). Vigilar la licencia de la base de datos de perfiles.
-7. **Selección por texto** («persona», «cielo», «pelo», «coche rojo»): máscaras más
-   precisas para ajustes locales. Modelos grandes: revisar licencia (uso comercial) y
-   tamaño; integrarlos en el motor ONNX común (ver sección 6 sobre Transformers.js).
-8. **Seleccionar / enmascarar por profundidad.** Ver sección 3.
-9. **Exportar HEIC** (libheif). Ver sección 4.
-10. **Mejoras PSD y PSB.** Ver sección 4.
-11. **EXIF/IPTC/XMP/ICC y privacidad de metadatos.** Ver sección 4.
-12. **PDF profesional, miniaturas con Pica, respaldo WASM con Photon**: no mejoran el
-    resultado; secciones 4 y 5.
+## Fase 2 · Color de gama amplia (ICC / Display P3)
+Las fotos de iPhone y de muchos Android vienen en P3; hoy todos los lienzos son sRGB.
+- [ ] Diagnosticar qué se pierde al abrir y exportar una foto P3 o Adobe RGB.
+- [ ] Leer el perfil ICC al abrir y trabajar en espacio amplio donde el navegador lo
+      permita (`colorSpace: "display-p3"`).
+- [ ] Exportar con el perfil incrustado (JPEG, PNG, AVIF, TIFF).
 
-## 2. Alta precisión: estado y fases (punto 1 de la hoja de ruta)
+## Fase 3 · IA a resolución completa por bloques
+Ampliar y colorear ya van por bloques; el resto se calcula reducido y se amplía.
+- [ ] Motor común de bloques: solape configurable, fundido, tamaño según memoria,
+      backend y modelo.
+- [ ] Profundidad (hoy 518 px) y máscaras de cielo y persona por bloques.
+- [ ] Caras (GFPGAN, retoque) a la resolución real del rostro.
+- [ ] Cancelar tareas de IA y progreso uniforme (mismos archivos; sin efecto en calidad).
 
-### Ya hecho
-- **Exportación**: el paso final (remuestreo y codificación) se hace en RGB lineal Float32
-  con tramado a 8 bits (`js/core/high-precision-next.js`, usado por `js/io/export.js` y
-  `js/io/professional-export.js`). Limitado a 8 MP; por encima, motor compatible.
-- **Revelador RAW Premium** (`raw/premium/`): coma flotante de principio a fin y
-  exportación TIFF de 16 bits.
-- **Filtro Realify Premium** (`js/filters/camera/`): texturas RGBA32F/RGBA16F en GPU y
-  tramado de salida.
-- **Herramientas Premium** (Tono/Color, Niveles, profundidad, Iluminar…): calculan en
-  coma flotante y luz lineal, con tramado al escribir el resultado.
+## Fase 4 · Entrada de alta profundidad
+- [ ] «Abrir en Realify» desde el revelador RAW sin bajar a 8 bits.
+- [ ] Conservar los 16 bits de TIFF y PNG, y los 10 bits de AVIF, como fuente de la capa
+      base.
 
-### Falta (de más a menos beneficio)
-1. **Pila de ajustes y fusión en 8 bits.** Cada capa de ajuste trabaja sobre el
-   resultado ya cuantizado de la anterior. `renderPrecisionAdjustmentStack` existe pero
-   devuelve siempre `null`: implementarla para que al exportar la pila de ajustes y los
-   modos de fusión se recalculen en Float32 desde las capas de píxeles. Mayor beneficio
-   con coste moderado.
-2. **Entrada de 16 bits perdida.** «Abrir en Realify» desde el revelador RAW, TIFF y PNG
-   de 16 bits y AVIF de 10 bits se convierten a 8 bits al entrar: conservar una fuente de
-   alta precisión para la capa base.
-3. **Salida de alta profundidad desde el editor**: PNG y TIFF de 16 bits (luego AVIF
-   10/12 bits, JPEG XL, OpenEXR; ver punto 4 de la hoja de ruta). Hoy sólo el revelador
-   RAW exporta TIFF de 16 bits.
-4. **Límite de 8 MP** del motor Float32 de exportación: procesar por franjas o bloques
-   para fotos de 12–48 MP sin agotar memoria.
-5. **Ajustes y filtros (~90) leen y escriben Uint8**: interfaz en coma flotante y
-   migración por fases (primero los ajustes, que son tablas y curvas).
-6. **Compositor de la vista previa** (Canvas 2D, 8 bits): pasar a GPU en coma flotante
-   (WebGL2 RGBA16F o WebGPU). Mejora lo que se ve al editar; el archivo final ya mejora
-   con 1, 2 y 4.
-7. **Capas, máscaras, historial y proyectos en 16 bits/float.** Lo más costoso: ×2–×4 de
-   memoria (12 MP: ~48 MB por capa → 96–192 MB); en móvil exige trabajar por bloques.
-8. **PSD en 8 bits por canal** (ag-psd escribe 16 bits con limitaciones).
+## Fase 5 · Profundidad como herramienta
+Reutiliza Depth Anything V2 (ya están Desenfoque por profundidad, Niebla y Foto 3D).
+- [ ] Seleccionar por profundidad: primer plano, plano medio, fondo o intervalo manual,
+      como máscara editable.
+- [ ] Máscaras por distancia para cualquier ajuste local.
+- [ ] Iluminación dependiente de la profundidad y separación de planos en capas.
 
-### Fases
-- **Fase 1**: implementar `renderPrecisionAdjustmentStack` (1), quitar el límite de 8 MP
-  (4) y exportar PNG/TIFF de 16 bits (3). Exportaciones sin bandas aunque se apilen
-  ajustes, sin rehacer el núcleo. **Empezar por aquí.**
-- **Fase 2**: conservar los 16 bits de RAW/TIFF/PNG al abrir (2).
-- **Fase 3**: compositor GPU en coma flotante para la vista previa (6).
-- **Fases 4–5**: migrar filtros a coma flotante (5) y capas en alta precisión (7, 8).
+## Fase 6 · Formatos modernos de alta calidad
+- [ ] Gestor de códecs WASM (cada uno se carga al elegir el formato) con estimación de
+      peso y calidad antes de exportar.
+- [ ] AVIF de 10/12 bits.
+- [ ] JPEG XL.
+- [ ] OpenEXR (valores HDR de escena; encaja con el pipeline Premium en coma flotante).
 
-## 3. Visión clásica, apilado y profundidad
+## Fase 7 · Apilado de fotos (OpenCV.js, parte 1)
+OpenCV.js (Apache-2.0, ~8–10 MB) sólo bajo demanda y como motor Premium; no sustituye lo
+que ya funciona.
+- [ ] Carga bajo demanda de OpenCV.js.
+- [ ] Alineación subpíxel (homografías, optical flow) para HDR y panorámicas, también con
+      movimiento.
+- [ ] Reducción de ruido con varias tomas (image stacking).
+- [ ] Focus stacking.
 
-### OpenCV.js como motor especializado (Premium)
-Apache-2.0, ~8–10 MB: cargar sólo bajo demanda. No sustituye lo que ya funciona (HDR,
-Unir imágenes, Perspectiva propios); se usa donde mejore el resultado o evite
-reimplementar algoritmos complejos:
-- Alineación HDR y de panorámicas más precisa: homografías, registro subpíxel, optical
-  flow (fantasmas en HDR con movimiento).
-- **Image stacking** (reducción de ruido con varias tomas) y **focus stacking**.
-- Corrección de perspectiva y detección de horizonte automáticas.
-- CLAHE (contraste local adaptativo), morfología, detección de bordes y contornos.
-- Análisis de nitidez (elegir la mejor toma, mapas de enfoque).
-- Detección automática de documentos (recorte y enderezado).
+## Fase 8 · Visión clásica (OpenCV.js, parte 2)
+- [ ] Corrección de perspectiva y detección de horizonte automáticas.
+- [ ] CLAHE (contraste local adaptativo).
+- [ ] Análisis de nitidez (elegir la mejor toma, mapa de enfoque).
+- [ ] Detección y enderezado automático de documentos.
 
-### Profundidad (Depth Anything V2 ya integrado)
-Ya hecho: Desenfoque por profundidad, Niebla por distancia y Foto 3D. Pendiente:
-- **Seleccionar por profundidad**: primer plano, plano medio, fondo o intervalo manual,
-  como máscara editable.
-- **Máscaras por distancia** para cualquier ajuste local.
-- **Iluminación dependiente de la profundidad** y **separación de planos** en capas.
-- Calcular la profundidad a resolución completa por bloques (sección 1, punto 3).
+## Fase 9 · Corrección de lente con perfiles reales
+- [ ] Base de perfiles por objetivo (distorsión, viñeteo y aberración); revisar su
+      licencia.
+- [ ] Aplicación automática según los datos EXIF de cámara y objetivo.
 
-## 4. Formatos, metadatos y exportación
+## Fase 10 · Selección por texto
+- [ ] Elegir modelo («persona», «cielo», «pelo», «coche rojo»…) con licencia comercial y
+      tamaño razonable; integrarlo en el motor ONNX común.
+- [ ] Máscara editable resultante, a resolución completa (por bloques, fase 3).
 
-### Formatos
-- **Gestor de códecs WASM** (filosofía de Squoosh, que ya se usa para AVIF): cada
-  codificador se carga sólo al elegir el formato; estimación de peso y calidad antes de
-  exportar (AVIF/WebP).
-- **HEIC/HEIF**: exportar HEIC con libheif (interesa sobre todo en móviles). LGPL: módulo
-  WASM separado y sin modificar; revisar las obligaciones de las bibliotecas enlazadas.
-- **JPEG XL** y **OpenEXR** (sección 1, punto 4).
-- **PSD**: Realify ya usa ag-psd; comparar capacidades y completar grupos, máscaras,
-  modos de fusión, metadatos, efectos de capa y objetos inteligentes. ag-psd tiene
-  límites con PSB y escritura de 16 bits.
-- **PSB** (documentos grandes de Photoshop): extender gradualmente la infraestructura PSD
-  propia; coste alto.
+## Fase 11 · Ajustes en coma flotante
+Hoy los ~90 ajustes y filtros leen y escriben píxeles de 8 bits.
+- [ ] Interfaz de cálculo en coma flotante para `runAdjust` (convive con la actual).
+- [ ] Migrar los ajustes (son tablas y curvas: lo más sencillo).
 
-### Metadatos (ExifReader, MPL-2.0: usar como módulo sin modificar)
-- Leer EXIF, IPTC, XMP, ICC, MPF, metadatos de Photoshop, MakerNotes y miniaturas
-  incrustadas en el inspector de imagen. Revisar antes qué hace ya el módulo EXIF actual.
-- Controles de privacidad al exportar: quitar GPS, conservar copyright, conservar o quitar
-  fecha y cámara, limpiar todos los metadatos y **conservar el perfil ICC** cuando el
-  formato lo permita (enlaza con la sección 1, punto 2).
+## Fase 12 · Filtros en coma flotante
+- [ ] Migrar los filtros de `runFilter` y `photo-tools`.
+- [ ] Migrar los plugins con motor propio que aún escriban 8 bits.
 
-### PDF profesional (pdf-lib, MIT)
-- Documentos multipágina, A4/A3/Carta, márgenes, sangrado, resolución objetivo, portada,
-  numeración, varias imágenes por página, fuentes y metadatos; importar/copiar páginas.
-- Exportar siempre las imágenes a la resolución objetivo sin recomprimir de más.
+## Fase 13 · Compositor de la vista previa en GPU de coma flotante
+- [ ] Fusión de capas, opacidad y modos de fusión en WebGL2 RGBA16F (o WebGPU).
+- [ ] Tramado al mostrar en pantalla.
 
-## 5. Infraestructura (sin efecto directo en la calidad)
+## Fase 14 · Documento en alta precisión
+Lo más costoso: ×2–×4 de memoria (12 MP: ~48 MB por capa → 96–192 MB).
+- [ ] Capas y máscaras en 16 bits/float, por bloques en el móvil.
+- [ ] Historial y proyectos en alta precisión.
+- [ ] Procesado «lazy» por bloques inspirado en libvips: la edición como grafo de
+      operaciones y cálculo sólo de los bloques necesarios para la vista o la exportación.
 
-El motor común de IA ya existe (`js/ai/worker.js`: WebGPU→WASM, caché en IndexedDB,
-descarga bajo demanda con aviso de tamaño, grupos de sesión que se liberan, modelos
-partidos, fp16). Falta:
-- **Cancelar** tareas de IA y progreso uniforme en todas.
-- Límites de memoria por dispositivo y liberación de tensores más fina (al servicio del
-  procesado por bloques, nunca bajando la precisión).
-- **Pipeline «lazy» por bloques inspirado en libvips**: representar la edición como un
-  grafo de operaciones y calcular sólo los bloques necesarios para la vista o la
-  exportación. Es la evolución más potente para imágenes enormes y edición no
-  destructiva, y la más costosa; encaja con las fases 4–5 de la sección 2.
-- **Pica** para miniaturas de interfaz (capas, cielos, LUT, filtros, estilos, stickers,
-  marcos): nunca para el remuestreo final, que ya es de mayor calidad.
-- **Photon (Rust/WASM)** como respaldo de CPU cuando no haya WebGPU/WebGL2
-  (convoluciones, Sobel, desenfoque, enfoque, tramado). Jerarquía WebGPU → WebGL2 → WASM →
-  JavaScript. Sólo si las pruebas demuestran el mismo resultado y mejor tiempo.
-- **image-js** sólo como fuente de algoritmos concretos.
+## Fase 15 · Metadatos y privacidad
+ExifReader (MPL-2.0, sin modificar). Revisar antes qué hace ya el módulo EXIF actual.
+- [ ] Leer EXIF, IPTC, XMP, ICC, MPF, Photoshop, MakerNotes y miniaturas en el inspector.
+- [ ] Al exportar: quitar GPS, conservar copyright, conservar o quitar fecha y cámara,
+      limpiar todo, conservar el perfil ICC.
 
-## 6. Descartado y por qué
+## Fase 16 · HEIC, PSD y PSB
+- [ ] Exportar HEIC con libheif (LGPL: módulo WASM separado y sin modificar).
+- [ ] PSD (ag-psd ya integrado): completar grupos, máscaras, modos de fusión, metadatos,
+      efectos de capa y objetos inteligentes; escritura de 16 bits si es posible.
+- [ ] PSB (documentos grandes), extendiendo la infraestructura PSD propia.
 
-- **Cuantizar modelos a INT8/Q4** («política de cuantización» del informe): empeora la
-  calidad. Seguir con fp16/fp32.
-- **Fabric.js, TOAST UI Image Editor u otro editor completo**: crearían un segundo modelo
-  de capas y lienzo; Realify ya supera su alcance.
-- **Transformers.js como segundo motor de inferencia**: sólo para experimentar con un
-  modelo concreto (segmentación, profundidad, clasificación, detección de objetos); lo que
-  se adopte va al motor ONNX común.
-- **image-js como sustituto del pipeline**, y **libvips completo en el navegador**
-  (inspira la arquitectura de la sección 5, no se integra).
+## Fase 17 · PDF profesional
+pdf-lib (MIT).
+- [ ] Multipágina, A4/A3/Carta, márgenes, sangrado, resolución objetivo, portada y
+      numeración; varias imágenes por página; fuentes y metadatos.
+- [ ] Imágenes a la resolución objetivo sin recomprimir de más.
 
-## 7. Informe de errores en Ayuda (con Postfix del VPS)
+## Fase 18 · Informe de errores en Ayuda
+- [ ] Diagnóstico: anotar qué archivo no se pudo cargar y con qué código (la
+      autorreparación de `js/boot-guard.js` ya pide todos los módulos uno a uno).
+- [ ] Entrada «Informar de un error» en Ayuda (móvil y escritorio): qué ha pasado, correo
+      opcional y casilla «Adjuntar diagnóstico»; nunca la foto salvo que se pida.
+- [ ] En el VPS: `/api/informe` en nginx → script corto → `sendmail` de Postfix.
+      Destinatario fijo, `limit_req`, tamaño máximo, campo trampa, cabeceras limpias,
+      correo del usuario sólo en `Reply-To`; SPF y DKIM en realify.es. Añadir la sección
+      correspondiente a la Política de privacidad.
+- [ ] Opcional: ofrecer «¿Enviar informe?» si la app no arranca (siempre preguntando).
 
-- Entrada «Informar de un error» en el menú Ayuda (móvil y escritorio): qué ha pasado,
-  correo opcional para responder y casilla «Adjuntar diagnóstico» (`__realifyDiag`). Sin la
-  foto salvo que se pida expresamente.
-- En el VPS: ruta `/api/informe` en nginx → script corto (PHP-FPM, Python o Node, según lo
-  que haya) → `sendmail` de Postfix.
-- Seguridad: destinatario fijo en el servidor, `limit_req` por IP, tamaño máximo, campo
-  trampa contra bots, sin saltos de línea en asunto/cabeceras, correo del usuario sólo en
-  `Reply-To` y validado. SPF y DKIM en realify.es para no caer en spam.
-- Opcional: si la app no arranca o salta un error grave, ofrecer «¿Enviar informe?» con el
-  diagnóstico relleno (siempre preguntando).
+## Fase 19 · Extras de infraestructura
+No mejoran el resultado; sólo si sobra tiempo.
+- [ ] Pica para miniaturas de interfaz (capas, cielos, LUT, filtros, stickers, marcos);
+      nunca para el remuestreo final.
+- [ ] Photon (Rust/WASM) como respaldo de CPU sin WebGPU/WebGL2, sólo si las pruebas dan
+      el mismo resultado y mejor tiempo.
 
-### Mejora del diagnóstico: qué archivo no se pudo cargar
+---
 
-Cuando Firefox (u otro navegador) no arranca con «No se pudo cargar: js/main.js?v=…», el
-diagnóstico no dice cuál de los módulos falló. La autorreparación de `js/boot-guard.js` ya pide
-todos los módulos uno a uno (`refreshModules`): anotar los que no devuelven 200 (URL + código
-HTTP, o «bloqueado / error de red» si el `fetch` falla) y añadirlos a `__realifyDiag`. Así el
-informe diría directamente, por ejemplo, «falla /js/xxx.js con 503» o «bloqueado».
+## Descartado y por qué
+- **Cuantizar modelos a INT8/Q4**: empeora la calidad.
+- **Fabric.js, TOAST UI Image Editor u otro editor completo**: crearían un segundo modelo de
+  capas y lienzo; Realify ya supera su alcance.
+- **Transformers.js como segundo motor de inferencia**: sólo para experimentar con un modelo
+  concreto; lo que se adopte va al motor ONNX común.
+- **image-js como sustituto del pipeline** (sí como fuente de algoritmos concretos) y
+  **libvips completo en el navegador** (inspira la fase 14, no se integra).
