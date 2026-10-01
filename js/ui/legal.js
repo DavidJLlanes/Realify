@@ -7,6 +7,9 @@ import { dialog } from "./dialog.js";
 
 const CONTACT = "djl@djl.red";
 const OWNER = "David";
+/* Fecha que se enseña al final de los tres documentos: cambiarla en
+   cada modificación de cualquiera de ellos. */
+const UPDATED = "1 de octubre de 2026";
 
 const LEGAL_BODY = `<div class="guide">
 
@@ -47,9 +50,20 @@ const LEGAL_BODY = `<div class="guide">
     ni de idoneidad para un uso concreto. El uso de sus filtros y ajustes
     es responsabilidad de quien los aplica.</p>
 
+  <h3>Cambios en estas condiciones</h3>
+  <p>El titular puede modificar en cualquier momento y sin previo aviso
+    este aviso legal, las condiciones de uso y de licencia, la Política de
+    privacidad y la Política de cookies, así como la propia aplicación y
+    sus funciones. Los cambios se reflejarán siempre en estos documentos,
+    disponibles en el menú Ayuda, y se aplican desde su publicación; la
+    fecha de la última actualización figura al final de cada uno. Te
+    recomendamos revisarlos de vez en cuando. Seguir usando Realify tras
+    un cambio supone aceptar la versión vigente.</p>
+
   <h3>Contacto</h3>
   <p>Para cualquier consulta relacionada con este aviso legal, escribe a
     <code>${CONTACT}</code>.</p>
+  <p><small>Última actualización: ${UPDATED}.</small></p>
 
 </div>`;
 
@@ -170,9 +184,13 @@ const PRIVACY_BODY = `<div class="guide">
     <code>${CONTACT}</code>.</p>
 
   <h3>Cambios</h3>
-  <p>Esta política puede actualizarse si cambia el funcionamiento de la
-    aplicación o del servidor. Última actualización: 30 de septiembre
-    de 2026.</p>
+  <p>Esta política puede modificarse en cualquier momento y sin previo
+    aviso, por ejemplo si cambia el funcionamiento de la aplicación o del
+    servidor o la normativa. Los cambios se reflejarán siempre en este
+    documento, disponible en Ayuda › Política de privacidad, y se aplican
+    desde su publicación. Si un cambio supusiera tratar tus datos con un
+    fin nuevo, se indicará aquí antes de hacerlo.</p>
+  <p><small>Última actualización: ${UPDATED}.</small></p>
 
 </div>`;
 
@@ -202,9 +220,17 @@ const COOKIES_BODY = `<div class="guide">
     ningún servidor. Puedes borrarlo cuando quieras desde los ajustes de
     tu navegador («borrar datos del sitio»).</p>
 
+  <h3>Cambios</h3>
+  <p>Esta política puede modificarse en cualquier momento y sin previo
+    aviso. Los cambios se reflejarán siempre en este documento, disponible
+    en Ayuda › Política de cookies, y se aplican desde su publicación. Si
+    algún día se usaran cookies que requieran tu consentimiento, se te
+    pediría antes de instalarlas.</p>
+
   <h3>Contacto</h3>
   <p>Si tienes dudas sobre esta política, escribe a
     <code>${CONTACT}</code>.</p>
+  <p><small>Última actualización: ${UPDATED}.</small></p>
 
 </div>`;
 

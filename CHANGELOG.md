@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Documentos legales: cambios sin previo aviso
+- Aviso legal, Política de privacidad y Política de cookies indican que el titular puede
+  modificarlos (y la aplicación) en cualquier momento y sin previo aviso, que los cambios se
+  reflejan siempre en esos documentos y se aplican desde su publicación. Cada uno muestra la
+  fecha de su última actualización.
+
 ### Licencia: uso libre de la web
 - El código pasa a la licencia PolyForm Noncommercial 1.0.0. El Aviso legal de la app y el
   README aclaran que esa limitación es para el código: usar la aplicación en realify.es está
