@@ -1,7 +1,8 @@
 /* Galería de desenfoque, restauración, enfoque y deformación clásicos.
    Todos pasan por runFilter: vista previa, capa independiente y parámetros reeditables. */
 import { grabPx, drawPx } from "../editor/grab.js";
-import { runFilter } from "./basic.js";
+import { runFilter, FILTER_PREVIEW_LIMIT } from "./basic.js";
+import { sharpenRGBA, sharpenMargin } from "./sharpen-engine.js";
 import { slider, pickerGroup } from "../editor/adjust.js";
 import { activeLayer } from "../core/doc.js";
 
@@ -29,7 +30,71 @@ export function utilityBlur(opts={}){const p={mode:"box",radius:5,threshold:22,s
 
 export function restoration(opts={}){const p={mode:"median",radius:2,threshold:28,strength:70,...opts.init};return runFilter({title:"Restauración de escaneados",id:"restoration",params:p,build(preview){const b=controls([{label:"Radio",node:slider("Radio",1,6,p.radius,v=>{p.radius=v;preview();}," px")},{label:"Umbral",node:slider("Umbral",0,100,p.threshold,v=>{p.threshold=v;preview();})},{label:"Fuerza",node:slider("Fuerza",0,100,p.strength,v=>{p.strength=v;preview();},"%")}]);b.prepend(selectRow("Proceso",p.mode,[["median","Mediana"],["dust","Polvo y rascaduras"],["descreen","Destramar"]],v=>{p.mode=v;preview();}));return b;},apply(layer,src,final){const q=proxy(src,final),im=image(q.c),d=im.data,a=p.strength/100;if(p.mode==="descreen"){const b=boxBlur(d,q.w,q.h,Math.max(1,p.radius*q.s));for(let i=0;i<d.length;i+=4)for(let k=0;k<3;k++)d[i+k]+= (b[i+k]-d[i+k])*a*.75;}else{const m=median(d,q.w,q.h,Math.max(1,p.radius*q.s));for(let i=0;i<d.length;i+=4){const diff=Math.abs(.2126*(d[i]-m[i])+.7152*(d[i+1]-m[i+1])+.0722*(d[i+2]-m[i+2]));const f=p.mode==="median"?a:(diff>p.threshold?a:0);for(let k=0;k<3;k++)d[i+k]+= (m[i+k]-d[i+k])*f;}}put(layer,q.c,im);}},opts);}
 
-export function advancedSharpen(opts={}){const p={mode:"unsharp",amount:110,radius:1.5,threshold:4,edge:55,halo:45,angle:0,...opts.init};return runFilter({title:"Enfoque avanzado / estabilizador",id:"advanced-sharpen",params:p,build(preview){const b=controls([{label:"Cantidad",node:slider("Cantidad",0,300,p.amount,v=>{p.amount=v;preview();},"%")},{label:"Radio",node:slider("Radio",.5,8,p.radius,v=>{p.radius=v;preview();}," px",.5)},{label:"Umbral",node:slider("Umbral",0,40,p.threshold,v=>{p.threshold=v;preview();})},{label:"Proteger bordes",node:slider("Proteger bordes",0,100,p.edge,v=>{p.edge=v;preview();},"%")},{label:"Reducir halos",node:slider("Reducir halos",0,100,p.halo,v=>{p.halo=v;preview();},"%")},{label:"Ángulo movimiento",node:slider("Ángulo",-180,180,p.angle,v=>{p.angle=v;preview();},"°")}]);b.prepend(selectRow("Método",p.mode,[["unsharp","Máscara de enfoque"],["focus","Deconvolución de foco"],["motion","Estabilizador de movimiento"]],v=>{p.mode=v;preview();}));return b;},apply(layer,src,final){const q=proxy(src,final),im=image(q.c),d=im.data,base=p.mode==="motion"?new Uint8ClampedArray(d.length):image(nativeBlur(q.c,p.radius*q.s)).data;if(p.mode==="motion"){const a=p.angle*Math.PI/180,dx=Math.cos(a)*p.radius*q.s,dy=Math.sin(a)*p.radius*q.s;for(let y=0;y<q.h;y++)for(let x=0;x<q.w;x++)for(let k=0;k<4;k++)base[(y*q.w+x)*4+k]=(bilinear(d,q.w,q.h,x-dx,y-dy,k)+bilinear(d,q.w,q.h,x+dx,y+dy,k))/2;}const amt=p.amount/100,limit=255-p.halo*2.1;for(let y=1;y<q.h-1;y++)for(let x=1;x<q.w-1;x++){const i=(y*q.w+x)*4,edge=Math.abs(d[i]-d[i-4])+Math.abs(d[i]-d[i+4])+Math.abs(d[i]-d[i-q.w*4])+Math.abs(d[i]-d[i+q.w*4]),protect=1-(p.edge/100)*clamp(edge/255,0,1);for(let k=0;k<3;k++){let diff=d[i+k]-base[i+k];if(p.mode!=="unsharp")diff*=1.45;if(Math.abs(diff)>p.threshold)d[i+k]=clamp(d[i+k]+clamp(diff*amt*protect,-limit,limit));}}put(layer,q.c,im);}},opts);}
+/* Enfoque avanzado / estabilizador: motor en coma flotante sobre la
+   luminancia (sharpen-engine.js). La vista previa en vivo usa una copia
+   reducida sólo mientras se mueve un mando; al soltar, la versión
+   completa sustituye a la copia (runFilter con `asyncRefine`), en el
+   diálogo y en el panel. Todo se calcula en un worker: la interfaz no
+   se congela ni con la deconvolución de movimiento en fotos grandes. */
+/* Varios workers (uno por núcleo, hasta 4), cada uno con una franja
+   horizontal y un margen que cubre el alcance de todas las pasadas: el
+   resultado es idéntico al de calcularlo de una vez. */
+const sharpPool=[],sharpJobs=new Map(),sharpTickets=new WeakMap();let sharpSeq=0,sharpBusy=false,sharpNext=null;
+function sharpWorker(k){
+  if(sharpPool[k])return sharpPool[k];
+  const wk=new Worker(new URL("./sharpen-worker.js",import.meta.url),{type:"module"});
+  wk.onmessage=e=>{const j=sharpJobs.get(e.data.id);if(!j)return;sharpJobs.delete(e.data.id);e.data.error?j.reject(new Error(e.data.error)):j.resolve(new Uint8ClampedArray(e.data.data));};
+  wk.onerror=()=>{for(const [id,j] of sharpJobs)if(j.k===k){sharpJobs.delete(id);j.fallback();}sharpPool[k]=null;};
+  return sharpPool[k]=wk;
+}
+function sharpStrip(k,data,w,h,p,scale){
+  const id=++sharpSeq,copy=data.slice();
+  return new Promise((resolve,reject)=>{
+    sharpJobs.set(id,{k,resolve,reject,fallback:()=>resolve(sharpenRGBA(data.slice(),w,h,p,scale))});
+    sharpWorker(k).postMessage({id,data:copy.buffer,w,h,p:{...p},scale},[copy.buffer]);
+  });
+}
+async function sharpenAsync(data,w,h,p,scale=1){
+  if(typeof Worker==="undefined")return sharpenRGBA(data,w,h,p,scale);
+  try{
+    const m=sharpenMargin(p,scale),cores=Math.max(1,Math.min(4,(navigator.hardwareConcurrency||2)-1));
+    const n=Math.max(1,Math.min(cores,Math.floor(h/Math.max(64,2*m))));
+    const out=new Uint8ClampedArray(data.length),row=w*4,jobs=[];
+    for(let k=0;k<n;k++){
+      const y0=Math.round(h*k/n),y1=Math.round(h*(k+1)/n),a=Math.max(0,y0-m),b=Math.min(h,y1+m);
+      jobs.push(sharpStrip(k,data.subarray(a*row,b*row),w,b-a,p,scale).then(r=>out.set(r.subarray((y0-a)*row,(y1-a)*row),y0*row)));
+    }
+    await Promise.all(jobs);
+    return out;
+  }catch{return sharpenRGBA(data,w,h,p,scale);}
+}
+export function advancedSharpen(opts={}){const p={mode:"unsharp",amount:110,radius:1.5,threshold:4,edge:55,halo:45,angle:0,...opts.init};return runFilter({title:"Enfoque avanzado / estabilizador",id:"advanced-sharpen",params:p,asyncRefine:true,build(preview){const b=controls([{label:"Cantidad",node:slider("Cantidad",0,300,p.amount,v=>{p.amount=v;preview();},"%")},{label:"Radio",node:slider("Radio",.5,8,p.radius,v=>{p.radius=v;preview();}," px",.5)},{label:"Umbral",node:slider("Umbral",0,40,p.threshold,v=>{p.threshold=v;preview();})},{label:"Proteger bordes",node:slider("Proteger bordes",0,100,p.edge,v=>{p.edge=v;preview();},"%")},{label:"Reducir halos",node:slider("Reducir halos",0,100,p.halo,v=>{p.halo=v;preview();},"%")},{label:"Ángulo movimiento",node:slider("Ángulo",-180,180,p.angle,v=>{p.angle=v;preview();},"°")}]);b.prepend(selectRow("Método",p.mode,[["unsharp","Máscara de enfoque"],["focus","Deconvolución de foco"],["motion","Estabilizador de movimiento"]],v=>{p.mode=v;preview();}));return b;},
+  async apply(layer,src,final){return sharpApply(p,layer,src,final);}},opts);}
+async function sharpApply(p,layer,src,final){
+    /* Cada llamada saca un número por capa: si al volver del worker ya
+       hay otra más reciente (se movió un mando), su resultado no se pinta. */
+    const ticket=(sharpTickets.get(layer)||0)+1,w=src.width,h=src.height;sharpTickets.set(layer,ticket);
+    if(final)sharpNext=null;            // lo pendiente de la vista previa ya no vale
+    if(final||w*h<=FILTER_PREVIEW_LIMIT){
+      const data=src.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
+      const out=await sharpenAsync(data,w,h,p);
+      if(ticket!==sharpTickets.get(layer))return;
+      layer.ctx.putImageData(new ImageData(out,w,h),0,0);
+      return;
+    }
+    /* Vista previa: un solo trabajo en el worker a la vez; si llegan
+       más mientras tanto, sólo se calcula el último (no se acumula
+       retraso al arrastrar). */
+    if(sharpBusy){sharpNext=()=>sharpApply(p,layer,src,false);return;}
+    sharpBusy=true;
+    try{
+    const s=Math.sqrt(FILTER_PREVIEW_LIMIT/(w*h)),W=Math.max(1,Math.round(w*s)),H=Math.max(1,Math.round(h*s)),c=document.createElement("canvas");c.width=W;c.height=H;
+    const cx=c.getContext("2d",{willReadFrequently:true});cx.imageSmoothingQuality="high";cx.drawImage(src,0,0,W,H);
+    const out=await sharpenAsync(cx.getImageData(0,0,W,H).data,W,H,p,W/w);
+    if(ticket!==sharpTickets.get(layer))return;
+    put(layer,c,new ImageData(out,W,H));
+    }finally{sharpBusy=false;const next=sharpNext;sharpNext=null;if(next)next();}
+}
 
 export function classicDistort(opts={}){const p={mode:"wave",amount:30,size:35,angle:0,centerX:50,centerY:50,...opts.init};return runFilter({title:"Distorsionar clásico",id:"classic-distort",params:p,build(preview){const b=controls([{label:"Cantidad",node:slider("Cantidad",-100,100,p.amount,v=>{p.amount=v;preview();},"%")},{label:"Tamaño",node:slider("Tamaño",2,100,p.size,v=>{p.size=v;preview();})},{label:"Ángulo",node:slider("Ángulo",-180,180,p.angle,v=>{p.angle=v;preview();},"°")},{label:"Centro X",node:slider("Centro X",0,100,p.centerX,v=>{p.centerX=v;preview();},"%")},{label:"Centro Y",node:slider("Centro Y",0,100,p.centerY,v=>{p.centerY=v;preview();},"%")}]);b.prepend(selectRow("Tipo",p.mode,[["wave","Ondas"],["ripple","Rizo"],["twirl","Molinete"],["pinch","Encoger / hinchar"],["glass","Cristal"],["displace","Desplazar por mapa"],["polar","Coordenadas polares"],["sphere","Esferizar"],["shear","Cizalla"]],v=>{p.mode=v;preview();}));return b;},apply(layer,src,final){const q=proxy(src,final),im=image(q.c),d=im.data,out=new Uint8ClampedArray(d.length),cx=q.w*p.centerX/100,cy=q.h*p.centerY/100,A=p.amount/100,S=Math.max(2,p.size*q.s),ang=p.angle*Math.PI/180;for(let y=0;y<q.h;y++)for(let x=0;x<q.w;x++){let sx=x,sy=y,dx=x-cx,dy=y-cy,r=Math.hypot(dx,dy),th=Math.atan2(dy,dx);if(p.mode==="wave"){sx+=Math.sin(y/S*Math.PI*2)*A*S;sy+=Math.sin(x/S*Math.PI*2)*A*S;}else if(p.mode==="ripple"){const rr=r+Math.sin(r/S*Math.PI*2)*A*S*.35;sx=cx+Math.cos(th)*rr;sy=cy+Math.sin(th)*rr;}else if(p.mode==="twirl"){const t=th+A*Math.max(0,1-r/Math.max(q.w,q.h))*Math.PI;sx=cx+Math.cos(t)*r;sy=cy+Math.sin(t)*r;}else if(p.mode==="pinch"||p.mode==="sphere"){const max=Math.min(q.w,q.h)/2,n=r/max,f=n<1?Math.pow(n,1+(p.mode==="sphere"?-A:A)):n;sx=cx+Math.cos(th)*f*max;sy=cy+Math.sin(th)*f*max;}else if(p.mode==="glass"){sx+=Math.sin(y*.17)*A*S*.25;sy+=Math.sin(x*.19)*A*S*.25;}else if(p.mode==="displace"){sx+=Math.sin((x+y)/S)*A*S*.4;sy+=Math.cos((x-y)/S)*A*S*.4;}else if(p.mode==="polar"){const a=x/q.w*Math.PI*2-Math.PI,rr=(1-y/q.h)*Math.min(q.w,q.h)/2;sx=cx+Math.cos(a)*rr;sy=cy+Math.sin(a)*rr;}else if(p.mode==="shear")sx=x+(y/q.h-.5)*A*q.w*.5*Math.cos(ang);const i=(y*q.w+x)*4;for(let k=0;k<4;k++)out[i+k]=bilinear(d,q.w,q.h,sx,sy,k);}im.data.set(out);put(layer,q.c,im);}},opts);}
 

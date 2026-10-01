@@ -69,7 +69,7 @@ function clipToSelection(layer, beforeCanvas){
    deslizador y sólo recalcular a resolución completa cuando de verdad
    hace falta guardar el resultado; los demás (el desenfoque nativo,
    que ya va por GPU) la ignoran sin más. */
-export async function runFilter({ title, build, apply, wide = false, id, params }, opts = {}){
+export async function runFilter({ title, build, apply, wide = false, id, params, asyncRefine = false }, opts = {}){
   /* Modo sin diálogo: el registro de filtros pide el resultado para
      un lienzo cualquiera (deslizador de aplicación de la capa). */
   if(opts.render){
@@ -104,7 +104,12 @@ export async function runFilter({ title, build, apply, wide = false, id, params 
      (los filtros CPU caros trabajan sobre una copia reducida mientras
      se arrastra): si no, la capa quedaba con la copia ampliada hasta
      cambiar de capa. En el diálogo no hace falta, porque Aplicar ya
-     recalcula, y así nunca congela la app al soltar un mando. */
+     recalcula, y así nunca congela la app al soltar un mando.
+     `asyncRefine`: el filtro calcula la versión completa en un worker
+     (no congela nada), así que se recalcula también en el diálogo y sin
+     límite de tiempo; es para los filtros cuya copia reducida no sirve
+     para juzgar el resultado (los de enfoque: el detalle fino es justo
+     lo que la reducción se come). */
   const px = layer.canvas.width * layer.canvas.height;
   let queued = false, refineTimer = 0, lastMs = 0, refineOff = false, gen = 0;
   const refine = async () => {
@@ -130,8 +135,9 @@ export async function runFilter({ title, build, apply, wide = false, id, params 
       clipToSelection(layer, clipRef);
       layer.thumbDirty = true;
       emit("doc:change");
-      if(opts.container && px > FILTER_PREVIEW_LIMIT && !refineOff && lastMs * px / FILTER_PREVIEW_LIMIT < 1500)
-        refineTimer = setTimeout(refine, 450);
+      if(asyncRefine ? px > FILTER_PREVIEW_LIMIT
+         : opts.container && px > FILTER_PREVIEW_LIMIT && !refineOff && lastMs * px / FILTER_PREVIEW_LIMIT < 1500)
+        refineTimer = setTimeout(refine, asyncRefine ? 250 : 450);
     });
   };
 
@@ -173,7 +179,7 @@ export async function runFilter({ title, build, apply, wide = false, id, params 
    archivo (Enfocar, Detalle y estructura): mismo criterio que
    editor/adjust.js y features/photo-tools.js, más estricto en
    `pointer:coarse`. Sólo se usa mientras NO es la llamada final. */
-const FILTER_PREVIEW_LIMIT = COARSE ? 4e5 : 1.2e6;
+export const FILTER_PREVIEW_LIMIT = COARSE ? 4e5 : 1.2e6;
 
 /* Reduce `src` a una copia de como mucho `FILTER_PREVIEW_LIMIT`
    píxeles si hace falta, y devuelve también el factor de escala —para

@@ -9,6 +9,27 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Enfoque avanzado / estabilizador: sin pixelar y con deconvolución real
+- **La vista previa ya no se queda pixelada**: se calculaba sobre una copia de 0,4 MP
+  ampliada y así seguía hasta pulsar Aplicar. Ahora la copia reducida sólo se ve mientras se
+  mueve un mando; al soltarlo se calcula a resolución completa, en el diálogo y en el panel
+  de Propiedades, en móvil y escritorio.
+- **Todo el cálculo va en workers**, repartido por franjas entre los núcleos del equipo
+  (resultado idéntico al de una sola pasada): la interfaz no se congela con fotos grandes.
+- **Motor nuevo en coma flotante sobre la luminancia** (`js/filters/sharpen-engine.js`): el
+  detalle se suma por igual a R, G y B, así que el enfoque ya no tiñe los bordes ni realza el
+  ruido de color.
+  - **Deconvolución de foco**: antes era la máscara de enfoque multiplicada por 1,45; ahora es
+    deconvolución de verdad (Van Cittert con PSF gaussiana).
+  - **Estabilizador de movimiento**: antes la foto movida quedaba peor (−2 dB); ahora es una
+    deconvolución Landweber con PSF en línea (+2,3 dB con el ángulo correcto).
+  - **Reducir halos** limita de verdad lo que el resultado se pasa de sus vecinos (antes
+    apenas actuaba).
+  - **Umbral** con transición suave, **Proteger bordes** calculado sobre la luminancia y la
+    franja de 1 px del borde de la imagen ahora también se enfoca.
+- La prueba `tests/calidad-herramienta.mjs` mueve el deslizador del diálogo abierto (antes
+  podía mover el de opacidad del panel Capas).
+
 ### Color de gama amplia: fotos Display P3 sin perder saturación
 - **Diagnóstico**: las fotos de iPhone y de muchos Android vienen en Display P3. Todos los
   lienzos eran sRGB, así que al abrirlas el navegador recortaba los colores fuera de sRGB

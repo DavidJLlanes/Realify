@@ -101,7 +101,11 @@ for(const cmd of cmds) for(const mobile of [false, true]){
 
     const apply = page.locator("button:visible", { hasText: /^(Aplicar|Aceptar|Abrir en Realify)$/ }).or(page.locator('[data-a="apply"]:visible'));
     if(await apply.count()){
-      const r = page.locator("input[type=range]:visible").first();
+      /* El deslizador de la herramienta: primero el del diálogo o editor
+         abierto; si no, el primero visible (no el de opacidad de Capas). */
+      let r = page.locator(".modal-card input[type=range]:visible").first();
+      if(!(await r.count())) r = page.locator("input[type=range]:visible:not(.panel input)").first();
+      if(!(await r.count())) r = page.locator("input[type=range]:visible").first();
       if(await r.count()){
         try{ await r.focus({ timeout: 1000 }); await page.keyboard.press("ArrowRight"); await page.keyboard.press("ArrowRight"); info.moved = true; }catch{}
       }

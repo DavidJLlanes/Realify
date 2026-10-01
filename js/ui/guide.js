@@ -807,6 +807,12 @@ const TOPICS = [
           se cancele ni se pierdan sus valores.</li>
         <li><b>Desenfoque gaussiano / Enfocar / Enfoque selectivo.</b> Suavizar,
           endurecer o endurecer sólo el detalle fino sin tocar las zonas planas.</li>
+        <li><b>Máscara de enfoque / estabilizador.</b> Tres métodos sobre la luminancia
+          (sin bordes de color): <b>máscara de enfoque</b>, <b>deconvolución de foco</b> para
+          fotos algo desenfocadas y <b>estabilizador de movimiento</b> para fotos movidas
+          (elige el <b>ángulo</b> del trazo y su largo con <b>Radio</b>). <b>Reducir halos</b>
+          evita los bordes claros u oscuros alrededor de los contornos. Mientras mueves un
+          mando ves una copia rápida; al soltarlo, el resultado a resolución completa.</li>
         <li><b>Desenfoques (submenú).</b> Gaussiano, galería de desenfoque (campo, iris,
           inclinación), caja/forma/promedio/inteligente, movimiento, lente (con forma del
           diafragma), radial/zoom y de superficie (suaviza sin cruzar bordes).</li>

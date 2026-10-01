@@ -364,7 +364,7 @@ recetas) e invertir.
 | Grupo | Filtros |
 |---|---|
 | **Desenfoques** | Gaussiano, galería de desenfoque, caja/forma/promedio/inteligente, movimiento, lente, radial/zoom y superficie. |
-| **Enfoque y restauración** | Enfocar, máscara de enfoque/estabilizador, enfoque selectivo, nitidez inteligente, paso alto y mediana/polvo/destramar. |
+| **Enfoque y restauración** | Enfocar, máscara de enfoque/estabilizador (luminancia en coma flotante; deconvolución de foco Van Cittert y de movimiento Landweber, en workers por franjas), enfoque selectivo, nitidez inteligente, paso alto y mediana/polvo/destramar. |
 | **Fotografía y detalle** | Corrección de lente, retoque de retrato, **separación de frecuencias**, Dodge & Burn, detalle y estructura, viñeteado. |
 | **Ruido** | **Reducción de ruido con IA** (denoise, detección automática de nivel), reducción normal, por canal, **quitar artefactos JPEG con IA** y añadir ruido. |
 | **Pixelizar** | Mosaico, cristalizar, puntillismo y semitono. |
