@@ -9,7 +9,7 @@
 **Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor.**
 
 [![Web](https://img.shields.io/badge/web-realify.es-f5b82e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://realify.es)
-[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-3b82f6?style=for-the-badge)](LICENSE)
+[![Licencia no comercial](https://img.shields.io/badge/licencia-PolyForm%20Noncommercial-3b82f6?style=for-the-badge)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-instalable-5a0fc8?style=for-the-badge&logo=pwa&logoColor=white)](https://realify.es)
 
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES_modules-f7df1e?logo=javascript&logoColor=black)
@@ -615,12 +615,26 @@ Los cambios de cada versión se recogen en el [CHANGELOG](CHANGELOG.md).
 
 ## 19. Licencias
 
-Código de Realify bajo licencia [MIT](LICENSE). Los componentes de terceros
-conservan sus licencias:
+El código propio de Realify se distribuye bajo la [PolyForm Noncommercial License 1.0.0](LICENSE).
+
+**Realify puede usarse, estudiarse, modificarse y redistribuirse únicamente para fines no comerciales.** Cualquier uso con finalidad económica o comercial requiere autorización expresa del titular de los derechos.
+
+Sin autorización expresa, no está permitido, entre otros usos:
+
+- vender Realify o una versión modificada;
+- cobrar por el acceso a una copia, fork o adaptación de Realify;
+- integrar el código de Realify en un producto, aplicación o servicio comercial;
+- ofrecer Realify o una adaptación como SaaS o servicio de pago;
+- monetizar una copia o adaptación mediante publicidad, suscripciones, licencias u otros ingresos;
+- revender o redistribuir comercialmente Realify bajo otra marca.
+
+Los componentes de terceros conservan sus propias licencias y no quedan relicenciados por esta licencia:
 
 - LibRaw-Wasm (ISC) y LibRaw (LGPL-2.1 / CDDL-1.0): ver `raw/NOTICES.md`.
 - Fluent Emoji (MIT): ver `stickers/emoji/LICENSE`.
 - Resto de librerías: ver `js/vendor/ATTRIBUTIONS.md`.
+
+Para solicitar autorización para un uso comercial de Realify, es necesario obtener una licencia o permiso independiente del titular de los derechos.
 
 ---
 
