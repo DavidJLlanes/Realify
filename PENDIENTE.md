@@ -22,11 +22,13 @@ modificado:
   **componen con la foto original a tamaño real** (como Desenfoque por profundidad en la
   v192): lo que debe quedar nítido sale idéntico al original.
 - Nunca reducir la imagen al abrirla ni al exportarla salvo que el usuario lo pida.
-- **Antes de publicar cualquier cambio en efectos**: probar con una imagen de detalle fino
-  (≥ 3000 × 2000, ruido de 1 px y tablero de 2 px) en móvil y escritorio, y comparar la capa
-  resultante con el cálculo a resolución completa (detalle entre píxeles vecinos y
-  diferencia media). Es el barrido que encontró las 58 herramientas: conviene guardarlo en
-  el repositorio como prueba automática.
+- **Cada vez que se modifique una herramienta, comprobar ESA herramienta (una a una, no
+  todas)** con `node tests/calidad-herramienta.mjs <comando>` (el comando de su entrada de
+  menú, p. ej. `adj.hsl`). Abre una imagen de detalle fino de 3000 × 2000 (ruido de 1 px y
+  tablero de 2 px), aplica la herramienta en móvil y escritorio y compara la capa con el
+  cálculo a resolución completa. Resultado APTO / APTO* (aviso) / FALLO; no publicar con
+  FALLO. Es la misma comprobación que encontró las 58 herramientas pixeladas de la v194
+  (verificado: con el código de la v194 da FALLO).
 
 Índice:
 1. Hoja de ruta de calidad de imagen (orden de prioridad)
