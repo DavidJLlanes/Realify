@@ -99,26 +99,50 @@ export async function runFilter({ title, build, apply, wide = false, id, params 
   const before = snapshot(layer);
   const source = edit ? snapshot(base) : before;
   const clipRef = edit ? before : source;
-  let queued = false;
+  /* Al dejar de mover un mando, si el filtro es rápido, se recalcula a
+     resolución completa (los filtros CPU caros trabajan sobre una
+     copia reducida mientras se arrastra): mismo criterio que
+     runAdjust en editor/adjust.js. */
+  const px = layer.canvas.width * layer.canvas.height;
+  let queued = false, refineTimer = 0, lastMs = 0, refineOff = false, gen = 0;
+  const refine = async () => {
+    refineTimer = 0;
+    const my = gen, t0 = performance.now();
+    await Promise.resolve(apply(layer, source, true));
+    if(my !== gen) return;          // se movió un mando mientras tanto
+    clipToSelection(layer, clipRef);
+    layer.thumbDirty = true;
+    emit("doc:change");
+    if(performance.now() - t0 > 900) refineOff = true;
+  };
   const preview = () => {
     if(queued) return;
     queued = true;
+    gen++;
+    clearTimeout(refineTimer); refineTimer = 0;
     requestAnimationFrame(async () => {
       queued = false;
+      const t0 = performance.now();
       await Promise.resolve(apply(layer, source, false));
+      lastMs = performance.now() - t0;
       clipToSelection(layer, clipRef);
       layer.thumbDirty = true;
       emit("doc:change");
+      if(px > FILTER_PREVIEW_LIMIT && !refineOff && lastMs * px / FILTER_PREVIEW_LIMIT < 3000)
+        refineTimer = setTimeout(refine, 450);
     });
   };
 
   const body = build(preview);
-  if(edit) preview();
+  /* Al reabrir, la capa ya tiene el resultado a resolución completa:
+     no se repinta con la vista previa (en fotos grandes la dejaba con
+     la copia reducida mientras siguiera seleccionada). */
 
   /* Compartido por las dos salidas: el diálogo modal de siempre y el
      panel de propiedades en vivo (ver editor/adjust.js, que sigue el
      mismo patrón para los ajustes). */
   const finish = async commit => {
+    gen++; clearTimeout(refineTimer); refineTimer = 0;
     if(!commit){ restore(layer, before); return; }
     await Promise.resolve(apply(layer, source, true));
     clipToSelection(layer, clipRef);

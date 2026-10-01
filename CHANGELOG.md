@@ -10,8 +10,9 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Ajustes y filtros: la imagen ya no queda pixelada
-- Al aplicar «Tono / Color automático» (y cualquier ajuste o filtro que deja una capa
-  reeditable) en una foto grande, la capa quedaba pixelada: el panel de Propiedades, al montar
+- Al aplicar «Tono / Color automático», «Tono y saturación» (y cualquier ajuste o filtro que
+  deja una capa reeditable: Niveles, Enfocar, Detalle y estructura…) en una foto grande, la
+  capa quedaba pixelada: el panel de Propiedades, al montar
   sus mandos, repintaba la capa con la vista previa reducida (~630 px ampliados) en vez de
   dejar el resultado a resolución completa, y así se veía y se exportaba hasta cambiar de capa.
   Ahora la capa conserva el resultado completo.
