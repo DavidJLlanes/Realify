@@ -46,12 +46,20 @@ propuestas que empeoran la calidad (ver «Descartado»).
       móvil; reducción por áreas en luz lineal. (v199)
 - [x] Exportar PNG y TIFF de 16 bits desde el editor (móvil y escritorio). (v199)
 
-## Fase 2 · Color de gama amplia (ICC / Display P3)
-Las fotos de iPhone y de muchos Android vienen en P3; hoy todos los lienzos son sRGB.
-- [ ] Diagnosticar qué se pierde al abrir y exportar una foto P3 o Adobe RGB.
-- [ ] Leer el perfil ICC al abrir y trabajar en espacio amplio donde el navegador lo
-      permita (`colorSpace: "display-p3"`).
-- [ ] Exportar con el perfil incrustado (JPEG, PNG, AVIF, TIFF).
+## Fase 2 · Color de gama amplia (ICC / Display P3) ✅ (v200)
+Las fotos de iPhone y de muchos Android vienen en P3; hasta la v199 todos los lienzos eran sRGB.
+- [x] Diagnóstico: el navegador recortaba a sRGB al abrir (rojo P3 puro → 234, 51, 35) y se
+      exportaba recortado y sin perfil. Adobe RGB: el navegador lo convierte al decodificar
+      y se trabaja en P3, que abarca casi toda su gama (salvo algunos verdes y cianes). (v200)
+- [x] Detectar al abrir los colores fuera de sRGB y trabajar en Display P3 si el navegador
+      lo permite (`js/core/colorspace.js`); proyecto y pestañas guardan el espacio. (v200)
+- [x] Exportar con el perfil incrustado: JPEG, PNG, PNG 16 y TIFF 16 en P3, o sRGB a
+      elección; el resto se convierte a sRGB. (v200)
+- [ ] Pendiente: AVIF y WebP con perfil o etiqueta P3 (con el códec propio, fase 6) y TIFF
+      de 8 bits con perfil.
+- [ ] Pendiente: herramientas WebGL en P3 (hoy recortan a sRGB; con la fase 13) y color de
+      pintura en P3 (selector y cuentagotas fuera de sRGB).
+- [ ] Pendiente: «Abrir en Realify» desde el revelador RAW en P3 (con la fase 4).
 
 ## Fase 3 · IA a resolución completa por bloques
 Ampliar y colorear ya van por bloques; el resto se calcula reducido y se amplía.

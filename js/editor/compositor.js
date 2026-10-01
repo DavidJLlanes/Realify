@@ -18,6 +18,7 @@ import { drawWithBlend, drawWithBlendAccelerated, CUSTOM_BLENDS } from "./blend.
 import { isBlendIfActive, buildBlendIfAlphaCanvas } from "./blendif.js";
 import { hasEnabledStyle } from "./layerstyles.js";
 import { isAdjustLayer, applyAdjustLayer } from "./adjustlayers.js";
+import { workSpace } from "../core/colorspace.js";
 import { LARGE_DOCUMENT_PIXELS, TILE_SIZE, clampRect, unionRect, tileRectsFor,
          visibleDocumentRect, cachedLayerTile, invalidateLayerCache,
          invalidateAllLayerCaches } from "../core/performance.js";
@@ -26,8 +27,23 @@ export { blendAdjustResult };
 const board = document.getElementById("board");
 const stage = document.getElementById("stage");
 
-const cv = document.createElement("canvas");
-const cx = cv.getContext("2d", { colorSpace:"srgb" });
+let cv = document.createElement("canvas");
+let cx = cv.getContext("2d", { colorSpace:"srgb" });
+/* El lienzo visible trabaja en el espacio del documento: en P3 (fotos
+   de gama amplia, ver core/colorspace.js) una pantalla P3 enseña los
+   colores sin recortar. El espacio de un lienzo no se puede cambiar una
+   vez creado su contexto, así que se sustituye por uno nuevo. */
+let viewSpace = "srgb";
+function ensureViewSpace(){
+  const want = workSpace();
+  if(want === viewSpace) return;
+  viewSpace = want;
+  const n = document.createElement("canvas");
+  n.className = cv.className; n.style.cssText = cv.style.cssText;
+  cv.replaceWith(n); cv = n;
+  cx = cv.getContext("2d", { colorSpace: want });
+  if(cpuCv){ cpuCv.width = cpuCv.height = 0; cpuCv = null; cpuCx = null; }
+}
 let cpuCv = null, cpuCx = null;   // ver compose(): sólo con modos de fusión a mano
 board.appendChild(cv);
 const tileHost=document.createElement("div");
@@ -301,6 +317,7 @@ function composeTiled(dirty){
 }
 
 export function compose(dirty=null){
+  ensureViewSpace();
   if(!doc.open){ cv.width = cv.height = 0;tileHost.innerHTML="";liveTiles.clear(); return; }
   const layer=viewportLayer();
   if(layer){composeViewport(layer);return;}
@@ -381,10 +398,12 @@ export const canvasEl = () => {
 export function pickColor(x, y){
   x = Math.floor(x); y = Math.floor(y);
   if(x<0||y<0||x>=doc.w||y>=doc.h)return null;
-  let d;
-  if(viewportMode)d=doc.layers[0].ctx.getImageData(x,y,1,1).data;
-  else if(tiledMode){const key=`${Math.floor(x/TILE_SIZE)}:${Math.floor(y/TILE_SIZE)}`,c=liveTiles.get(key);if(!c)return null;const scale=+c.dataset.scale||1;d=c.getContext("2d").getImageData(Math.max(0,Math.min(c.width-1,Math.floor((x-(+c.style.left.replace("px","")))*scale))),Math.max(0,Math.min(c.height-1,Math.floor((y-(+c.style.top.replace("px","")))*scale))),1,1).data;}
-  else d=cx.getImageData(x,y,1,1).data;
+  /* Siempre en sRGB: el color se usa como «#rrggbb», que el lienzo
+     interpreta como sRGB (en documentos P3 se convierte al leer). */
+  const SRGB={colorSpace:"srgb"};let d;
+  if(viewportMode)d=doc.layers[0].ctx.getImageData(x,y,1,1,SRGB).data;
+  else if(tiledMode){const key=`${Math.floor(x/TILE_SIZE)}:${Math.floor(y/TILE_SIZE)}`,c=liveTiles.get(key);if(!c)return null;const scale=+c.dataset.scale||1;d=c.getContext("2d").getImageData(Math.max(0,Math.min(c.width-1,Math.floor((x-(+c.style.left.replace("px","")))*scale))),Math.max(0,Math.min(c.height-1,Math.floor((y-(+c.style.top.replace("px","")))*scale))),1,1,SRGB).data;}
+  else d=cx.getImageData(x,y,1,1,SRGB).data;
   return { r: d[0], g: d[1], b: d[2], a: d[3] };
 }
 

@@ -4,6 +4,7 @@
    Todo lo demás vive en su módulo y se comunica por el bus.
    ═══════════════════════════════════════════════════════════════ */
 
+import { installColorSpace } from "./core/colorspace.js";
 import { initLandscapeNotice } from "./ui/landscape.js";
 import { installKeyboardFit } from "./ui/keyboard.js";
 import { on, emit } from "./core/bus.js";
@@ -72,6 +73,10 @@ import { groupLayers, ungroupLayers, removeGroupAndContents, duplicateGroup,
 import { openLayerStyles } from "./editor/layerstyles.js";
 import { convertToSmart, rasterizeSmart, canConvertToSmart } from "./editor/smartobject.js";
 import { penFinishOpen, penToSelection, penToMask, penUndoPoint, penHasPath } from "./editor/pentool.js";
+
+// Espacio de color del documento (P3 en fotos de gama amplia): antes de
+// que se cree ningún lienzo de documento. Ver core/colorspace.js.
+installColorSpace();
 
 const stage = document.getElementById("stage");
 const empty = document.getElementById("empty");

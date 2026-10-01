@@ -15,6 +15,10 @@ let seq = 0;
 export const doc = {
   open: false,
   w: 0, h: 0,
+  /* Espacio de color de trabajo: "srgb" o "display-p3" si la foto tiene
+     colores fuera de sRGB y el navegador sabe trabajar en P3 (ver
+     core/colorspace.js). */
+  colorSpace: "srgb",
   name: "Sin título",
   layers: [],        // de abajo (índice 0) a arriba
   activeId: null,
@@ -136,6 +140,8 @@ export function makeLayer(opts = {}){
 }
 
 export function newDoc(w, h, opts = {}){
+  // Antes de crear ninguna capa: sus lienzos nacen en este espacio
+  doc.colorSpace = opts.colorSpace === "display-p3" ? "display-p3" : "srgb";
   doc.w = Math.max(1, Math.round(w));
   doc.h = Math.max(1, Math.round(h));
   doc.name = opts.name || "Sin título";

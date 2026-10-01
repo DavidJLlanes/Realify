@@ -87,7 +87,8 @@ function snapshotLive(){
   return {
     doc: {
       open: doc.open, w: doc.w, h: doc.h, name: doc.name, layers: doc.layers,
-      activeId: doc.activeId, source: doc.source, selection: doc.selection, guides: doc.guides
+      activeId: doc.activeId, source: doc.source, selection: doc.selection, guides: doc.guides,
+      colorSpace: doc.colorSpace || "srgb"
     },
     view: { zoom: view.zoom, x: view.x, y: view.y, fitted: view.fitted },
     history: history.exportState(),
@@ -97,7 +98,7 @@ function snapshotLive(){
 }
 
 function loadSnapshot(snap){
-  Object.assign(doc, snap.doc);
+  Object.assign(doc, { colorSpace: "srgb" }, snap.doc);
   Object.assign(view, snap.view);
   history.importState(snap.history);
   snapshots.importState(snap.snapshots);

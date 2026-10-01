@@ -7,7 +7,8 @@ import { buildLayerTree, flatten } from "../editor/layertree.js";
 export function tiffFromCanvas(canvas){
   const U = globalThis.UTIF;
   if(!U?.encodeImage) throw new Error("El codificador TIFF no está disponible");
-  const rgba = canvas.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  // TIFF de 8 bits sin perfil: siempre en sRGB (en documentos P3 el navegador convierte)
+  const rgba = canvas.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, canvas.width, canvas.height, { colorSpace:"srgb" }).data;
   return new Blob([U.encodeImage(rgba, canvas.width, canvas.height)], { type:"image/tiff" });
 }
 
@@ -41,10 +42,10 @@ export function layeredPsd(scale = 1){
     const raster = flatten(null, [{ ...l, groupId:null, visible:true,
       opacity:1, blend:"source-over", clipped:false }], doc.w, doc.h);
     return [{ ...common, clipping:!!l.clipped, imageData:resize(raster)
-      .getContext("2d", { willReadFrequently:true }).getImageData(0, 0, width, height) }];
+      .getContext("2d", { willReadFrequently:true }).getImageData(0, 0, width, height, { colorSpace:"srgb" }) }];
   });
   const composite = resize(flatten());
-  const psd = { width, height, imageData:composite.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, width, height),
+  const psd = { width, height, imageData:composite.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, width, height, { colorSpace:"srgb" }),
     children:nodes(buildLayerTree(doc.layers)) };
   // Una copia oculta facilita comparar la apariencia final si un ajuste,
   // máscara de grupo o modo propio de Realify no se traduce a PSD.

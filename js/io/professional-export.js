@@ -9,6 +9,7 @@ import { isMobile } from "../core/device.js";
 import { saveOrShare, sanitizeFilename, stamp } from "./export.js";
 import { buildZip, crc32 } from "./zip.js";
 import { prepareForType, hasTransparency, alphaFieldsHTML, wireAlphaFields } from "./alpha.js";
+import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
 import { highPrecisionAvailableFor, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 
 const enc=new TextEncoder();
@@ -76,6 +77,10 @@ async function tagPngSRGB(blob){
 
 /* `opts`: { alpha, background } — ver io/alpha.js. */
 async function encodeCanvas(canvas,format,quality,profile=true,opts={}){
+  /* Documento en Display P3: PNG y JPEG lo conservan con su perfil; el
+     resto de formatos (sin perfil) se guarda en sRGB. */
+  const keepP3=isP3Doc()&&(format==="png"||format==="jpg");
+  if(isP3Doc()&&!keepP3)canvas=toSrgbCanvas(canvas);
   canvas=prepareForType(canvas,mimeOf(format),opts);
   if(format==="tiff") return (await import("./professional-formats.js")).tiffFromCanvas(canvas);
   if(format==="pdf"){
@@ -83,6 +88,7 @@ async function encodeCanvas(canvas,format,quality,profile=true,opts={}){
     return pdfFromJpeg(await jpg.arrayBuffer(),canvas.width,canvas.height);
   }
   const blob=await blobOf(canvas,mimeOf(format),quality);
+  if(keepP3)return (await import("./icc-embed.js")).ensureIcc(blob,"display-p3");
   return profile&&format==="png"&&blob?tagPngSRGB(blob):blob;
 }
 

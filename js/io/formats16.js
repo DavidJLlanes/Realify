@@ -8,10 +8,14 @@
        zlib del propio navegador (CompressionStream), con fragmento sRGB.
      · TIFF: RGB o RGBA de 16 bits sin comprimir, intel (little-endian),
        una sola tira; con alfa, «ExtraSamples = alfa sin asociar».
-   `img`: { data: Uint16Array (sRGB codificado), channels: 3|4, w, h }.
+   `img`: { data: Uint16Array (codificado), channels: 3|4, w, h, space }.
+   Con `space: "display-p3"` se incrusta el perfil Display P3 (iCCP en
+   PNG, etiqueta 34675 en TIFF) en vez de la etiqueta sRGB.
    ═══════════════════════════════════════════════════════════════ */
 
 import { crc32 } from "./zip.js";
+import { profileFor } from "../core/icc.js";
+import { pngIccpChunk } from "./icc-embed.js";
 
 export const png16Supported = () => typeof CompressionStream === "function";
 
@@ -46,7 +50,8 @@ export async function png16(img){
   ihdr[8] = 16;                    // profundidad
   ihdr[9] = ch === 4 ? 6 : 2;      // RGBA o RGB
   const sig = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
-  return new Blob([sig, chunk("IHDR", ihdr), chunk("sRGB", new Uint8Array([0])),
+  const color = img.space === "display-p3" ? await pngIccpChunk("display-p3") : chunk("sRGB", new Uint8Array([0]));
+  return new Blob([sig, chunk("IHDR", ihdr), color,
     chunk("IDAT", zipped), chunk("IEND", new Uint8Array(0))], { type: "image/png" });
 }
 
@@ -54,9 +59,11 @@ export function tiff16(img){
   const { data, channels: ch, w, h } = img;
   const tags = [];
   const tag = (id, type, count, value) => tags.push({ id, type, count, value });
-  const nTags = ch === 4 ? 15 : 14;
+  const icc = img.space === "display-p3" ? profileFor("display-p3") : null;
+  const nTags = (ch === 4 ? 15 : 14) + (icc ? 1 : 0);
   const ifd = 8, ifdSize = 2 + nTags * 12 + 4;
-  const bpsOff = ifd + ifdSize, resOff = bpsOff + ch * 2, dataOff = (resOff + 16 + 1) & ~1;
+  const bpsOff = ifd + ifdSize, resOff = bpsOff + ch * 2, iccOff = resOff + 16;
+  const dataOff = (iccOff + (icc ? icc.length : 0) + 1) & ~1;
   const bytes = w * h * ch * 2;
   tag(256, 4, 1, w);                       // ImageWidth
   tag(257, 4, 1, h);                       // ImageLength
@@ -73,6 +80,7 @@ export function tiff16(img){
   tag(284, 3, 1, 1);                       // PlanarConfiguration contigua
   tag(296, 3, 1, 2);                       // pulgadas
   if(ch === 4) tag(338, 3, 1, 2);          // ExtraSamples: alfa sin asociar
+  if(icc) tag(34675, 7, icc.length, iccOff); // perfil ICC (Display P3)
   const buf = new ArrayBuffer(dataOff + bytes), v = new DataView(buf);
   v.setUint16(0, 0x4949); v.setUint16(2, 42, true); v.setUint32(4, ifd, true);
   v.setUint16(ifd, tags.length, true);
@@ -85,6 +93,7 @@ export function tiff16(img){
   for(let k = 0; k < ch; k++) v.setUint16(bpsOff + k * 2, 16, true);
   v.setUint32(resOff, 72, true); v.setUint32(resOff + 4, 1, true);
   v.setUint32(resOff + 8, 72, true); v.setUint32(resOff + 12, 1, true);
+  if(icc) new Uint8Array(buf, iccOff, icc.length).set(icc);
   new Uint16Array(buf, dataOff, w * h * ch).set(data);   // little-endian, como el resto del archivo
   return new Blob([buf], { type: "image/tiff" });
 }

@@ -8,6 +8,7 @@ import { prepareForType, hasTransparency, alphaFieldsHTML, wireAlphaFields } fro
 import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
+import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
 import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 export { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 
@@ -153,13 +154,18 @@ export const exportPrecisionInfo=()=>({...lastPrecisionInfo});
    AVIF). Si no la admite —JPEG, PDF— o no se quiere, las zonas
    transparentes se rellenan con `background` (ver io/alpha.js). Lo que se
    guarda es siempre el acoplado de las capas visibles. */
-export async function renderExport({ w, h, type, quality, precision = false, dither = false, alpha = true, background = "#ffffff" }){
+export async function renderExport({ w, h, type, quality, precision = false, dither = false, alpha = true, background = "#ffffff", colorSpace = "auto" }){
   let flat = null, out = null;
   /* «image/png;16» y «image/tiff;16»: 16 bits por canal, siempre con el
      motor de alta precisión (core/precision-stack.js). */
   const bits16 = /;16$/.test(type);
+  /* Documento en Display P3 (core/colorspace.js): JPEG, PNG y los de
+     16 bits se guardan en P3 con su perfil incrustado; el resto de
+     formatos (sin perfil) y quien pida sRGB, convertidos a sRGB. */
+  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || type === "image/jpeg" || type === "image/png");
+  const toSrgb = isP3Doc() && !keepP3;
   if(bits16){
-    const precise = await renderPrecisionAdjustmentStack(w, h, { bits16: true, alpha, background, layersOnly: false });
+    const precise = await renderPrecisionAdjustmentStack(w, h, { bits16: true, alpha, background, layersOnly: false, srgb: toSrgb });
     if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de 16 bits");
     lastPrecisionInfo = { mode: precise.mode, reason: precise.reason };
     const f16 = await import("./formats16.js");
@@ -198,12 +204,14 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
     x.drawImage(src, 0, 0, w, h);
   }
   if(!precision)lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
+  if(toSrgb) out = toSrgbCanvas(out);
   out = prepareForType(out, type, { alpha, background });
   /* AVIF y PDF no los genera `toBlob`: ver io/formats.js */
   if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6).catch(() => null);
   if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
   if(type === "image/tiff") return (await import("./professional-formats.js")).tiffFromCanvas(out);
-  return new Promise(res => out.toBlob(res, type, quality));
+  const blob = await new Promise(res => out.toBlob(res, type, quality));
+  return keepP3 ? (await import("./icc-embed.js")).ensureIcc(blob, "display-p3") : blob;
 }
 /* Página del PDF (la elige el diálogo de exportar) */
 let pdfOptions = { page: "image", orientation: "auto", margin: 0 };
@@ -214,7 +222,8 @@ let pdfOptions = { page: "image", orientation: "auto", margin: 0 };
 export async function renderCleanWeb({ w, h, type, quality = .82, maxBytes = 500 * 1024, alpha = true, background = "#ffffff" }){
   let cw = Math.max(1, Math.round(w)), ch = Math.max(1, Math.round(h));
   let q = type === "image/png" ? undefined : Math.max(.45, Math.min(.92, quality));
-  let blob = await renderExport({ w:cw, h:ch, type, quality:q, alpha, background });
+  // «Limpio para web»: siempre sRGB, lo que mejor entiende cualquier web
+  let blob = await renderExport({ w:cw, h:ch, type, quality:q, alpha, background, colorSpace:"srgb" });
   for(let attempt = 0; blob && blob.size > maxBytes && attempt < 12; attempt++){
     if(q !== undefined && q > .54){
       q = Math.max(.52, q - .07);
@@ -223,7 +232,7 @@ export async function renderCleanWeb({ w, h, type, quality = .82, maxBytes = 500
       cw = Math.max(1, Math.round(cw * scale));
       ch = Math.max(1, Math.round(ch * scale));
     }
-    blob = await renderExport({ w:cw, h:ch, type, quality:q, alpha, background });
+    blob = await renderExport({ w:cw, h:ch, type, quality:q, alpha, background, colorSpace:"srgb" });
   }
   return { blob, w:cw, h:ch, quality:q };
 }
@@ -276,7 +285,13 @@ export async function exportDialog(){
     <p class="hint" id="exPrecisionHint" style="margin:-3px 0 9px"></p>
     <label class="chk" style="margin:0 0 7px"><input type="checkbox" id="exDither">
       <b>Tramado a 8 bits</b> · evita bandas en cielos y degradados</label>
-    <p class="hint" style="margin:-1px 0 9px">Color: <b>sRGB</b> para mantener una apariencia consistente entre navegadores.</p>
+    ${isP3Doc() ? `<div class="field"><label>Color</label>
+      <select id="exColor" class="grow">
+        <option value="display-p3">Display P3 · gama amplia</option>
+        <option value="srgb">sRGB · máxima compatibilidad</option>
+      </select></div>
+    <p class="hint" id="exColorHint" style="margin:-3px 0 9px"></p>`
+    : `<p class="hint" style="margin:-1px 0 9px">Color: <b>sRGB</b> para mantener una apariencia consistente entre navegadores.</p>`}
     <label class="chk" style="margin-bottom:9px"><input type="checkbox" id="exClean">
       <b>Limpio para web</b> · sin metadatos, nombre seguro y peso controlado</label>
     <div class="field" id="exWeightRow" hidden><label>Peso máximo</label>
@@ -349,7 +364,22 @@ export async function exportDialog(){
       compat.innerHTML = `<strong>${compatibilityInfo().device}:</strong> ${compatibilityInfo().message}`;
       // PNG de 16 bits necesita la compresión nativa del navegador
       if(typeof CompressionStream !== "function") type.querySelector('option[value="image/png;16"]')?.remove();
+      /* Color en documentos P3: P3 con perfil en JPEG, PNG y 16 bits;
+         el resto de formatos no lleva perfil y se guarda en sRGB. */
+      const colorSel = body.querySelector("#exColor"), colorHint = body.querySelector("#exColorHint");
+      let colorChoice = "display-p3";   // lo elegido por el usuario, para volver a ello
+      const syncColor = () => {
+        if(!colorSel) return;
+        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16"].includes(type.value) && !clean.checked;
+        colorSel.disabled = !ok;
+        colorSel.value = ok ? colorChoice : "srgb";
+        colorHint.textContent = !ok ? (clean.checked ? "«Limpio para web» guarda en sRGB." : "Este formato no lleva perfil de color: se guarda en sRGB.")
+          : colorSel.value === "display-p3" ? "Conserva los colores más saturados de la foto; el archivo lleva su perfil Display P3."
+          : "Convierte a sRGB: los colores fuera de sRGB se ajustan al más cercano.";
+      };
+      colorSel?.addEventListener("change", () => { colorChoice = colorSel.value; syncColor(); });
       const precisionState=()=>{
+        syncColor();
         const possible=highPrecisionAvailableFor(+W.value||doc.w,+H.value||doc.h),cap=highPrecisionCapabilities();
         /* 16 bits: siempre alta precisión y sin tramado (no hace falta) */
         if(is16(type.value)){
@@ -530,7 +560,8 @@ export async function exportDialog(){
       maxBytes:Math.max(50, +wrap.querySelector("#exMaxKB").value || 500) * 1024, ...alphaOpts
     }) : null;
     blob = cleanResult ? cleanResult.blob : await renderExport({
-      w, h, type, quality: type.startsWith("image/png") ? undefined : q, precision, dither, ...alphaOpts
+      w, h, type, quality: type.startsWith("image/png") ? undefined : q, precision, dither, ...alphaOpts,
+      colorSpace: wrap.querySelector("#exColor")?.value || "auto"
     });
   }catch(err){ status(""); toast("No se pudo exportar: " + (err.message || err), "err"); return; }
   if(!blob){ toast("La exportación ha fallado", "err"); return; }

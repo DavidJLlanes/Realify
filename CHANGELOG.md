@@ -9,6 +9,27 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Color de gama amplia: fotos Display P3 sin perder saturación
+- **Diagnóstico**: las fotos de iPhone y de muchos Android vienen en Display P3. Todos los
+  lienzos eran sRGB, así que al abrirlas el navegador recortaba los colores fuera de sRGB
+  (un rojo P3 puro quedaba en 234, 51, 35 en lugar de 255, 0, 0) y al exportar se guardaban
+  ya recortados y sin perfil.
+- **Al abrir**, se compara la foto decodificada en P3 y en sRGB: si una parte apreciable no
+  cabe en sRGB y el navegador sabe trabajar en P3, el documento entero pasa a **Display P3**
+  (`js/core/colorspace.js`): capas, vista, herramientas y ajustes trabajan con los números P3.
+  Se avisa al abrir. Las fotos sRGB no cambian en absoluto.
+- **Al exportar**, nueva opción **Color** en documentos P3 (móvil y escritorio):
+  **Display P3** con el perfil incrustado en JPEG (APP2), PNG (iCCP), PNG 16 bits (iCCP) y
+  TIFF 16 bits (etiqueta 34675), o **sRGB** para la máxima compatibilidad (también en el
+  motor de alta precisión, con la conversión en luz lineal). WebP, AVIF, TIFF de 8 bits, GIF,
+  PDF, PSD y «Limpio para web» se guardan en sRGB, convertidos correctamente.
+- Perfil ICC «Display P3» propio (`js/core/icc.js`), verificado con LittleCMS.
+- El proyecto `.realify` y las pestañas recuerdan el espacio de color de cada documento.
+- Límites conocidos: las herramientas que usan la GPU (WebGL) recortan a la gama sRGB; el
+  color de pintura sigue siendo sRGB (el cuentagotas convierte bien, pero recorta los colores
+  fuera de sRGB); «Abrir en Realify» desde el revelador RAW
+  sigue en sRGB (fase 4).
+
 ### Exportación sin bandas: capas y ajustes en coma flotante, PNG y TIFF de 16 bits
 - **Alta precisión al exportar** recalcula ahora todo el documento en coma flotante
   (`js/core/precision-stack.js`): capas, capas de ajuste (las diez), los 27 modos de fusión,

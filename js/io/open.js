@@ -1,5 +1,6 @@
 /* Apertura de imágenes: selector, arrastre y pegado. */
 
+import { hasWideGamut } from "../core/colorspace.js";
 import { newDoc, doc, addLayer } from "../core/doc.js";
 import { clear as clearHistory, recordLayers, record } from "../core/history.js";
 import { clearSnapshots } from "../core/snapshots.js";
@@ -59,7 +60,11 @@ export async function openFile(file){
     const bmp = await decodeImage(file);
     const exif = await readExifIdentity(file);
     const [w, h, limited] = limitFor(bmp.width, bmp.height);
+    /* ¿Tiene colores fuera de sRGB (Display P3, Adobe RGB…)? Entonces el
+       documento trabaja en P3 para no recortarlos (core/colorspace.js). */
+    const wide = hasWideGamut(bmp);
     newDoc(w, h, {
+      colorSpace: wide ? "display-p3" : "srgb",
       image: bmp,
       name: file.name.replace(/\.[^.]+$/, ""),
       layerName: "Fondo",
@@ -73,9 +78,9 @@ export async function openFile(file){
     clearHistory();
     clearSnapshots();
     empty.classList.add("hide");
-    toast(limited
+    toast((limited
       ? `Abierta a ${w} × ${h} (reducida para esta pantalla)`
-      : `${file.name} · ${w} × ${h}`);
+      : `${file.name} · ${w} × ${h}`) + (wide ? " · color de gama amplia (Display P3)" : ""));
   }catch(err){
     console.error(err);
     toast("No se pudo leer ese archivo" + (err?.message ? ": " + err.message : ""), "err");

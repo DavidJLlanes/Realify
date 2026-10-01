@@ -20,7 +20,8 @@ async function avif(){
 export async function avifFromCanvas(canvas, quality = .6){
   const m = await avif();
   const { width, height } = canvas;
-  const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height).data;
+  // AVIF sin perfil: los píxeles, siempre en sRGB (en documentos P3 el navegador convierte)
+  const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height, { colorSpace: "srgb" }).data;
   const out = m.encode(new Uint8Array(data.buffer), width, height, {
     quality: Math.round(quality * 100), qualityAlpha: -1, denoiseLevel: 0, tileColsLog2: 0, tileRowsLog2: 0,
     speed: 6, subsample: 1, chromaDeltaQ: false, sharpness: 0, tune: 0, enableSharpYUV: false, bitDepth: 8, lossless: false
@@ -47,7 +48,8 @@ export async function pdfFromCanvases(canvases, { page = "image", orientation = 
   for(const cv of canvases){
     // Imagen sobre fondo blanco (el JPEG no tiene alfa)
     const flat = document.createElement("canvas"); flat.width = cv.width; flat.height = cv.height;
-    const fx = flat.getContext("2d"); fx.fillStyle = "#fff"; fx.fillRect(0, 0, cv.width, cv.height); fx.drawImage(cv, 0, 0);
+    // PDF guarda el JPEG como RGB sin perfil: siempre en sRGB
+    const fx = flat.getContext("2d", { colorSpace: "srgb", forceSrgb: true }); fx.fillStyle = "#fff"; fx.fillRect(0, 0, cv.width, cv.height); fx.drawImage(cv, 0, 0);
     const jpg = await jpegBytes(flat, quality);
     let pw, ph;
     if(PAGE_SIZES[page]){
@@ -89,7 +91,7 @@ export async function gifFromCanvases(frames, { delay = 500, loop = 0, colors = 
   const gif = GIFEncoder();
   const { width, height } = frames[0];
   for(let i = 0; i < frames.length; i++){
-    const data = frames[i].getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height).data;
+    const data = frames[i].getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height, { colorSpace: "srgb" }).data;
     const hasAlpha = data.some((v, j) => j % 4 === 3 && v < 128);
     const palette = quantize(data, colors, { format: hasAlpha ? "rgba4444" : "rgb565", oneBitAlpha: hasAlpha });
     const index = applyPalette(data, palette, hasAlpha ? "rgba4444" : "rgb565");

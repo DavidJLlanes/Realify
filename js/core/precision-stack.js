@@ -33,6 +33,8 @@ import { levelsFunctions, wbGains } from "../editor/adjustments.js";
 import { curveFunction } from "../editor/curves.js";
 import { hasEnabledStyle } from "../editor/layerstyles.js";
 import { isBlendIfActive } from "../editor/blendif.js";
+import { workSpace } from "./colorspace.js";
+import { rgbMatrix } from "./icc.js";
 
 /* ── límites de memoria ─────────────────────────────────────────
    El almacén ocupa 8 bytes por píxel (RGBA de 16 bits). */
@@ -488,10 +490,19 @@ async function toCanvas(src, w, h, dither){
 
 /* 16 bits por canal: RGBA Uint16 (o RGB sobre `background` si no se
    conserva la transparencia), color sRGB codificado. */
-async function toUint16(src, w, h, { alpha = true, background = "#ffffff" } = {}){
+async function toUint16(src, w, h, { alpha = true, background = "#ffffff", srgb = false } = {}){
   const bg = [1, 3, 5].map(k => parseInt(background.slice(k, k + 2), 16) / 255);
   const ch = alpha ? 4 : 3, data = new Uint16Array(w * h * ch);
+  /* Documento en P3 que se guarda en sRGB: matriz P3 → sRGB en luz
+     lineal y recorte a la gama (lo que hace el navegador al convertir). */
+  const M = srgb ? rgbMatrix("display-p3", "srgb") : null;
   await produce(src, w, h, (y, row) => {
+    if(M) for(let i = 0; i < row.length; i += 4){
+      const r = toLinear(row[i]), g = toLinear(row[i + 1]), b = toLinear(row[i + 2]);
+      row[i] = toSrgb(M[0][0] * r + M[0][1] * g + M[0][2] * b);
+      row[i + 1] = toSrgb(M[1][0] * r + M[1][1] * g + M[1][2] * b);
+      row[i + 2] = toSrgb(M[2][0] * r + M[2][1] * g + M[2][2] * b);
+    }
     let o = y * w * ch;
     for(let i = 0; i < row.length; i += 4, o += ch){
       const a = row[i + 3];
@@ -501,14 +512,14 @@ async function toUint16(src, w, h, { alpha = true, background = "#ffffff" } = {}
       } else for(let c = 0; c < 3; c++) data[o + c] = Math.round((row[i + c] * a + bg[c] * (1 - a)) * 65535);
     }
   });
-  return { data, channels: ch, w, h };
+  return { data, channels: ch, w, h, space: M ? "srgb" : workSpace() };
 }
 
 /** Exportación de alta precisión. Devuelve
     { canvas | data16, mode: "high-precision", reason, source } o, si no
     cabe en memoria, { canvas: null, mode: "compatible", reason }.
     `layersOnly`: no recurrir al aplanado de 8 bits (devuelve null). */
-export async function renderPrecise({ w, h, dither = false, bits16 = false, alpha = true, background = "#ffffff", layersOnly = false }){
+export async function renderPrecise({ w, h, dither = false, bits16 = false, alpha = true, background = "#ffffff", layersOnly = false, srgb = false }){
   w = Math.max(1, Math.round(w || doc.w)); h = Math.max(1, Math.round(h || doc.h));
   const max = precisionMaxPixels();
   if(doc.w * doc.h > max || w * h > max)
@@ -522,7 +533,7 @@ export async function renderPrecise({ w, h, dither = false, bits16 = false, alph
   const reason = src.mode === "layers"
     ? "Capas y ajustes recompuestos en coma flotante" + (w !== doc.w || h !== doc.h ? "; remuestreo en RGB lineal" : "")
     : `Composición de 8 bits (por ${why}); remuestreo en RGB lineal`;
-  if(bits16) return { data16: await toUint16(src, w, h, { alpha, background }), mode: "high-precision", reason: reason + " · 16 bits por canal", source: src.mode };
+  if(bits16) return { data16: await toUint16(src, w, h, { alpha, background, srgb: srgb && workSpace() === "display-p3" }), mode: "high-precision", reason: reason + " · 16 bits por canal", source: src.mode };
   return { canvas: await toCanvas(src, w, h, dither), mode: "high-precision", reason: reason + (dither ? " · tramado a 8 bits" : ""), source: src.mode };
 }
 

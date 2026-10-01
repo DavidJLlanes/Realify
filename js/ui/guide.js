@@ -1003,7 +1003,10 @@ const TOPICS = [
       <ul>
         <li><b>Abrir imagen / Abrir proyecto / Guardar proyecto.</b> Un proyecto
           guarda todas las capas, máscaras e historial tal cual, para seguir editando
-          otro día; una imagen abierta directamente empieza como una sola capa.</li>
+          otro día; una imagen abierta directamente empieza como una sola capa. Si la foto trae
+          colores de <b>gama amplia</b> (Display P3, como las de iPhone y muchos Android) y el
+          navegador lo permite, el documento trabaja en <b>Display P3</b> para no perder esos rojos,
+          verdes y naranjas intensos; se avisa al abrirla.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas
@@ -1021,7 +1024,10 @@ const TOPICS = [
           flotante: apilar varios ajustes ya no deja bandas en cielos y degradados, y al cambiar
           el tamaño se promedia en luz lineal. <b>«Tramado a 8 bits»</b> añade un ruido
           imperceptible que reparte los tonos intermedios al guardar en 8 bits. El segundo
-          entrega un PNG sin preguntar nada.</li>
+          entrega un PNG sin preguntar nada. En documentos Display P3 aparece <b>Color</b>:
+          <b>Display P3</b> (JPEG, PNG y 16 bits, con su perfil incrustado) o <b>sRGB</b> para la
+          máxima compatibilidad; WebP, AVIF, TIFF de 8 bits, PDF y «Limpio para web» se guardan
+          siempre en sRGB.</li>
         <li><b>Exportar como…</b> También permite un <b>PSD con grupos y capas
           rasterizadas</b> para otros editores. La vista compuesta recoge el resultado
           exacto; los ajustes, máscaras y textos de Realify no se convierten en mandos

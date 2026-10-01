@@ -119,6 +119,7 @@ export async function serializeProject(){
     format:"realify-project", version:PROJECT_VERSION, savedAt:new Date().toISOString(),
     document:{
       name:doc.name, width:doc.w, height:doc.h, activeId:doc.activeId,
+      colorSpace:doc.colorSpace || "srgb",
       thumbnail:projectThumbnail(),
       source:doc.source ? { w:doc.source.w, h:doc.source.h, type:doc.source.type,
                             size:doc.source.size, name:doc.source.name } : null,
@@ -143,6 +144,8 @@ export function validateProject(data){
 export async function restoreProject(data){
   if(!validateProject(data)) throw new Error("El archivo no es un proyecto Realify compatible");
   const d = data.document, idMap = new Map(), layers = [];
+  // Antes de crear las capas: sus lienzos nacen en el espacio del proyecto
+  doc.colorSpace = d.colorSpace === "display-p3" ? "display-p3" : "srgb";
   for(const saved of d.layers){
     const layer = makeLayer({ name:saved.name || "Capa", w:d.width, h:d.height, type:saved.type });
     idMap.set(saved.id, layer.id);
