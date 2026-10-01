@@ -430,13 +430,18 @@ export function handlePointerUp(e){
 let lastTap = 0;
 export function handleDoubleTap(e){
   if(e.pointerType !== "touch" || !window.__panTool) return false;
+  /* El segundo dedo de un pellizco NO es un doble toque: los dos dedos
+     se apoyan casi a la vez (menos de 300 ms), y antes eso saltaba a
+     100 % y el pellizco ni empezaba (con Capas abiertas en el móvil,
+     donde tocar la imagen siempre es «mano», pellizcar no funcionaba). */
+  if(pointers.size > 0){ lastTap = 0; return false; }
   const t = performance.now();
   const isDouble = t - lastTap < 300;
   lastTap = t;
   if(!isDouble) return false;
   lastTap = 0;
   haptic(10);
-  if(Math.abs(view.zoom - 1) < 0.01) fit();
+  if(Math.abs(view.zoom - 1) < 0.01){ if(!window.__fitView?.()) fit(); }
   else zoomAt(1, e.clientX, e.clientY);
   return true;
 }

@@ -283,6 +283,9 @@ function fsFit(){
   const r = fitInRect(side ? { top, right: pr.left } : { top, bottom: pr.top });
   if(!fsRestore) fsRestore = r;
 }
+/* «Ajustar» con Capas abiertas (doble toque en la imagen): en el hueco
+   libre, no en toda la pantalla, que deja media foto bajo los mandos. */
+window.__fitView = () => { if(!fsOn()) return false; fsFit(); return true; };
 function setFullscreen(open){
   const was = fsOn();
   if(open === was){ if(open) requestAnimationFrame(fsFit); return; }

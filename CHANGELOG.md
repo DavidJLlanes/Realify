@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Móvil: el zoom con dos dedos falla con Capas abiertas
+- Con Capas abiertas (y con la herramienta Mano), tocar la imagen sólo desplaza y amplía, y el
+  doble toque alterna entre ajustar y 100 %. Los dos dedos de un pellizco se apoyan casi a la vez,
+  así que el segundo contaba como doble toque: la imagen saltaba a 100 % y el pellizco no llegaba
+  a empezar. Ahora un toque con otro dedo apoyado nunca es doble toque.
+- El doble toque para «ajustar» con Capas abiertas encaja la imagen en el hueco libre (antes
+  usaba toda la pantalla y dejaba parte de la foto bajo los mandos).
+
 ### Ajustes y filtros: la imagen ya no queda pixelada
 - En fotos grandes, **58 herramientas** dejaban la capa pixelada al aplicarlas (revisión
   automática de los 90 ajustes y filtros, en móvil y escritorio): casi todos los Ajustes
