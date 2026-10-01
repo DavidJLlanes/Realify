@@ -248,7 +248,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
   const finish = async commit => {
     clearTimeout(refineTimer); refineTimer = 0;
     if(!commit){ restore(layer, before); return; }
-    if(big) status("Aplicando…");
+    if(big){ status("Aplicando…"); await new Promise(resolve => requestAnimationFrame(resolve)); }
     const out = new ImageData(new Uint8ClampedArray(full.data), full.width, full.height);
     compute(out.data, out.width, out.height);
     if(doc.selection) blendBySelection(out.data, full.data, doc.selection, out.width, out.height);

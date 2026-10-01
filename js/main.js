@@ -217,6 +217,16 @@ registerAll({
                          if(l && l.type === "group") duplicateGroup(l.id);
                          else recordLayers("Duplicar capa", () => duplicateLayer());
                        }, enabled: needsDoc },
+  "layer.rename": { run: async () => {
+                       const l = activeLayer(); if(!l) return;
+                       const name = await promptDlg("Renombrar capa", "Nombre", l.name);
+                       if(name === null) return;
+                       const before = l.name, after = name.trim().slice(0, 80) || before;
+                       if(after === before) return;
+                       l.name = after;
+                       record("Renombrar capa", () => { l.name = before; emit("doc:structure"); }, () => { l.name = after; emit("doc:structure"); });
+                       emit("doc:structure");
+                     }, enabled: needsDoc },
   "layer.remove":    { run: () => {
                          const l = activeLayer();
                          if(l && l.type === "group"){
@@ -241,6 +251,19 @@ registerAll({
                          // requirePaintable() en editor/tools.js—.
                          const i = doc.layers.findIndex(l => l.id === doc.activeId);
                          const below = i > 0 ? doc.layers[i - 1] : null;
+                         if(below && (!below.visible || below.opacity !== 1 || below.blend !== "source-over" || below.clipped || below.mask || below.maskRef || below.styles || below.blendIf)){
+                           toast(`«${below.name}» tiene máscara, opacidad, fusión o efectos propios; aplícales una composición segura antes de combinar.`, "err");
+                           return;
+                         }
+                         const top = i >= 0 ? doc.layers[i] : null;
+                         if(top && below && top.groupId !== below.groupId){
+                           toast("No se pueden combinar capas de grupos distintos; desagrupa o elige una capa del mismo grupo.", "err");
+                           return;
+                         }
+                         if(top && (top.clipped || top.styles || top.blendIf || top.filters?.length)){
+                           toast(`«${top.name}» tiene recorte, estilos, filtros o Fusionar si; aplícalos antes de combinar.`, "err");
+                           return;
+                         }
                          if(below && (canRasterize(below))){
                            toast(`«${below.name}» es una capa de relleno o de forma: rasterízala primero (menú Capa) para poder combinar sobre ella.`, "err");
                            return;
@@ -270,7 +293,7 @@ registerAll({
                            () => put(pixBefore, prevLayers, prevActive),
                            () => put(pixAfter, nextLayers, nextActive));
                        },
-                       enabled: () => { const l = activeLayer(); return needsDoc() && l && l.type !== "group"; } },
+                       enabled: () => { const l = activeLayer(); return needsDoc() && l && l.type !== "group" && l.type !== "adjust"; } },
   "layer.mergeVisible": { run: mergeVisible,
                           enabled: () => doc.open && doc.layers.filter(l => l.groupId == null && l.visible).length > 1 },
   "layer.flatten":   { run: flattenImage, enabled: () => doc.open && doc.layers.length > 1 },
@@ -1106,6 +1129,7 @@ on("tool:change", () => {
 
 /* ═══ gestos sobre el lienzo ═══ */
 let drawing = false;
+let brushResize = null;
 
 /* Si un segundo dedo llega para pellizcar o panear mientras había un
    trazo a medias, ese trazo se cancela primero: sin esto se queda un
@@ -1176,6 +1200,16 @@ stage.addEventListener("pointerdown", e => {
   // más abajo secuestra el puntero y el click nativo del botón nunca
   // llega a dispararse.
   if(e.target.closest("button, input, select, textarea, a")) return;
+  // Photoshop: Alt + botón derecho y arrastrar. Horizontal cambia el
+  // diámetro; vertical, la dureza. Todas las herramientas que declaran
+  // una opción `size` comparten state.size, por lo que el mismo gesto
+  // sirve para pincel, borrador, clonar, correctores y similares.
+  if(e.altKey && e.button === 2 && current.options?.some(o => o.key === "size")){
+    e.preventDefault();
+    brushResize = { x:e.clientX, y:e.clientY, size:toolState.size, hardness:toolState.hardness };
+    stage.setPointerCapture(e.pointerId);
+    return;
+  }
   // Con un texto en edición, tocar fuera lo confirma
   if(isEditing() && !e.target.closest(".text-edit")) endEdit();
   if(handleDoubleTap(e)) return;
@@ -1194,6 +1228,17 @@ stage.addEventListener("pointerdown", e => {
 
 stage.addEventListener("pointermove", e => {
   if(!doc.open) return;
+  if(brushResize){
+    e.preventDefault();
+    toolState.size = Math.max(1, Math.min(400, Math.round(brushResize.size + e.clientX - brushResize.x)));
+    toolState.hardness = Math.max(0, Math.min(100, Math.round(brushResize.hardness - (e.clientY - brushResize.y) / 2)));
+    for(const [key, value] of [["size", toolState.size], ["hardness", toolState.hardness]]){
+      const input = document.querySelector(`#optsbar input[data-option-key="${key}"]`);
+      if(input){ input.value = value; const label = input.parentElement.querySelector(".mono"); if(label) label.textContent = value + (key === "size" ? "px" : "%"); }
+      emit("tool:paramchange", key);
+    }
+    return;
+  }
   const p = toImage(e.clientX, e.clientY);
   updatePos(p);
   if(current.cursor === "none") setCursorPos(p);
@@ -1206,6 +1251,7 @@ stage.addEventListener("pointermove", e => {
 });
 
 const endStroke = e => {
+  if(brushResize){ brushResize = null; return; }
   stopAutoScroll();
   // El botón derecho vale sólo para el trazo que lo usó: suelto el
   // ratón, «state.color» vuelve a mirar al frontal, que es el que

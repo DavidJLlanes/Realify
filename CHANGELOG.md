@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Capas, gestos y rendimiento
+- **Capas**: doble clic en el nombre o clic derecho en la fila para renombrarla (con deshacer/rehacer). En escritorio siguen funcionando Ctrl/Cmd+clic y Mayús+clic; el botón de selección múltiple añade un modo táctil para marcar capas con toques y agruparlas desde la cabecera.
+- **Combinar con la de abajo** ahora respeta la máscara de la capa superior y la composición alfa de los modos personalizados. Se evita combinar sobre capas inferiores cuyo estado (visibilidad, opacidad, fusión, máscara o efectos) haría que el resultado cambiase de aspecto.
+- **Pinceles y herramientas de retoque**: Alt + botón derecho y arrastrar horizontal cambia el tamaño; arrastrar vertical ajusta dureza, al estilo Photoshop.
+- **Ventanas**: el arrastre de la cabecera funciona también al salir de ella y sigue el modo de escritorio/móvil de la interfaz, no el tipo físico del dispositivo. Reemplazar cielo usa el mismo diálogo movible que el resto.
+- **Iluminar con IA Premium**: se sustituyó la ordenación de millones de muestras para estimar el punto negro por un histograma de precisión fina. Reduce el trabajo y la memoria en imágenes grandes; el cálculo final sigue siendo a resolución completa.
+
 ### Máscaras de capa: pintar en negro ya oculta
 - **El Pincel no ocultaba nada al pintar la máscara**: pintaba gris opaco y la máscara guarda
   la visibilidad en su canal alfa, así que el negro seguía «viéndose». Ahora el trazo se

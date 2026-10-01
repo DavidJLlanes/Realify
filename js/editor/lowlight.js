@@ -95,11 +95,24 @@ function premium(d, w, h, p){
 export function finishLifted(d, w, h, R, G, B, gain, { lumaDenoise = 0 } = {}){
   const n = w * h;
   // Punto negro: al levantar las sombras el negro se vuelve gris; se
-  // devuelve al nivel que tenía la foto (contraste sin lavar)
-  const p0 = [], p1 = [];
-  for(let i = 0, j = 0; i < n; i += 7, j += 28){ p0.push(0.2126 * DEC[d[j]] + 0.7152 * DEC[d[j + 1]] + 0.0722 * DEC[d[j + 2]]); p1.push(0.2126 * R[i] + 0.7152 * G[i] + 0.0722 * B[i]); }
-  p0.sort((a, b) => a - b); p1.sort((a, b) => a - b);
-  const q = Math.max(0, (p0.length * 0.005) | 0), bl = Math.max(0, p1[q] - p0[q]);
+  // devuelve al nivel que tenía la foto (contraste sin lavar). Antes
+  // se ordenaban dos arrays de Float32 con un valor por cada 7 píxeles:
+  // en una foto de 24 MP eso eran ~6,8 millones de elementos y una
+  // ordenación O(n log n) en el hilo principal. Un histograma de 4096
+  // cubetas estima el mismo percentil del 0,5 % con error inferior a
+  // 1/4095, memoria fija y una sola pasada lineal.
+  const bins=4096,h0=new Uint32Array(bins),h1=new Uint32Array(bins);
+  let samples=0;
+  for(let i=0,j=0;i<n;i+=7,j+=28){
+    const y0=0.2126*DEC[d[j]]+0.7152*DEC[d[j+1]]+0.0722*DEC[d[j+2]],
+          y1=0.2126*R[i]+0.7152*G[i]+0.0722*B[i];
+    h0[Math.min(bins-1,Math.max(0,Math.floor(y0*(bins-1))))]++;
+    h1[Math.min(bins-1,Math.max(0,Math.floor(y1*(bins-1))))]++;
+    samples++;
+  }
+  const q=Math.max(1,Math.floor(samples*.005)+1);
+  const percentile=hist=>{let sum=0;for(let i=0;i<bins;i++){sum+=hist[i];if(sum>=q)return i/(bins-1);}return 1;};
+  const bl=Math.max(0,percentile(h1)-percentile(h0));
   if(bl > 0) for(let i = 0; i < n; i++){ R[i] = Math.max(0, (R[i] - bl) / (1 - bl)); G[i] = Math.max(0, (G[i] - bl) / (1 - bl)); B[i] = Math.max(0, (B[i] - bl) / (1 - bl)); }
   // Ruido de color en las sombras levantadas: se suaviza la crominancia
   // según lo que se ha aclarado cada punto (la luminancia no se toca)

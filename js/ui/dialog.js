@@ -7,7 +7,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { attachViewGestures, zoomIn, zoomOut, zoom100, fit } from "../editor/view.js";
-import { isMobile, isPhone as isPhoneDevice, haptic } from "../core/device.js";
+import { isMobile, haptic } from "../core/device.js";
 import { autoCompact } from "./compact.js";
 import { followKeyboard } from "./keyboard.js";
 
@@ -35,7 +35,7 @@ try{ savedPos = JSON.parse(localStorage.getItem(POS_KEY) || "{}"); }catch{}
 function makeDraggable(card, head, key){
   // El ancho de la ventana decide el diseño compacto, no si hay ratón.
   // Un escritorio estrecho sigue pudiendo arrastrar sus diálogos.
-  if(isPhoneDevice()) return;
+  if(isMobile()) return;
   head.style.cursor = "move";
   head.style.touchAction = "none";
   head.style.userSelect = "none";
@@ -59,28 +59,35 @@ function makeDraggable(card, head, key){
   });
   place();
 
-  head.addEventListener("pointerdown", e => {
-    if(e.target.closest("button")) return;      // la ✕ y demás siguen siendo botones
-    drag = { x: e.clientX, y: e.clientY, dx, dy };
-    head.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-  head.addEventListener("pointermove", e => {
+  const move = e => {
     if(!drag) return;
     dx = drag.dx + (e.clientX - drag.x);
     dy = drag.dy + (e.clientY - drag.y);
     place();
-  });
+  };
   const stop = () => {
     if(!drag) return;
     drag = null;
+    card.classList.remove("dragging");
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", stop);
+    window.removeEventListener("pointercancel", stop);
     if(key){
       savedPos[key] = { x: dx, y: dy };
       try{ localStorage.setItem(POS_KEY, JSON.stringify(savedPos)); }catch{}
     }
   };
-  head.addEventListener("pointerup", stop);
-  head.addEventListener("pointercancel", stop);
+  head.addEventListener("pointerdown", e => {
+    if(e.button !== 0 || e.target.closest("button, input, select, a")) return;
+    drag = { x: e.clientX, y: e.clientY, dx, dy };
+    card.classList.add("dragging");
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    e.preventDefault();
+  });
+  // Escuchar en window evita perder el arrastre si el puntero sale de
+  // la cabecera (o cruza contenido interno que captura eventos).
 }
 
 /* Arrastrar el asa de la hoja hacia abajo la cierra, igual que la

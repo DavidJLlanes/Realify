@@ -94,7 +94,10 @@ const TOPICS = [
         <li id="tool-brush"><b>Pincel (B).</b> Pinta con el color, tamaño, dureza y opacidad del panel.
           «Pinceles…» abre las puntas —incluidas imágenes y archivos ABR—, flujo,
           espaciado, dispersión, ángulo, suavizado, simetría y las dinámicas por presión,
-          velocidad o dirección. Si la capa activa tiene una máscara seleccionada como
+          velocidad o dirección. En escritorio, <kbd>Alt</kbd>+botón derecho y arrastrar
+          horizontal cambia el tamaño; vertical cambia la dureza, como en Photoshop.
+          El gesto vale también para borrador, clonar y herramientas de retoque compatibles.
+          Si la capa activa tiene una máscara seleccionada como
           destino, pinta en la máscara en vez de en el color.</li>
         <li id="tool-brush-special"><b>Pinceles especiales</b> (barra de opciones del Pincel, o menú
           Editar › Pinceles especiales). Tres modos que se combinan entre sí:
@@ -940,7 +943,9 @@ const TOPICS = [
           igual.</li>
         <li><b>Combinar con la de abajo / Combinar visibles / Acoplar imagen.</b> Van
           fundiendo capas: la primera sólo dos, la segunda todas las visibles, la
-          tercera el documento entero en una sola capa.</li>
+          tercera el documento entero en una sola capa. La primera aplica la máscara
+          de la capa superior. Si la inferior tiene máscara, efectos, opacidad o una
+          fusión especial que cambiaría el resultado, avisa y no altera las capas.</li>
         <li><b>Transformar capa…</b> Escala, rotación y dos inclinaciones (X, Y),
           más volteo horizontal/vertical, con valores exactos en vez de arrastrar a
           mano; distinta de la herramienta Mover (V), que sólo desplaza.</li>
@@ -951,7 +956,9 @@ const TOPICS = [
           que se pliega o despliega con la flecha de su fila —plegarlo sólo afecta
           al panel, el lienzo sigue mostrando su contenido igual—. Un grupo se
           puede agrupar dentro de otro grupo, y «Subir»/«Bajar» lo mueven entero,
-          con todo su contenido, en vez de sólo la cabecera.</li>
+          con todo su contenido, en vez de sólo la cabecera. Para marcar varias en
+          móvil, activa ☷ en la cabecera de Capas y toca cada fila; pulsa el botón
+          otra vez para salir del modo.</li>
         <li><b>Recortar a la capa de abajo.</b> <kbd>Alt</kbd>+clic en la miniatura
           de una capa la recorta a la forma (el canal alfa) de la capa —o
           grupo— no recortada más próxima por debajo, en su mismo nivel; vuelve a
