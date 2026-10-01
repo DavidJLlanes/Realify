@@ -40,7 +40,7 @@ import { penBegin, penEnd, penDown, penMove, penUp, penCancel, penUndoPoint,
          penFinishOpen, penToSelection, penToMask, penArmed, penHasPath,
          drawPenOverlay } from "./pentool.js";
 import { brushSourceLayerFor } from "../core/snapshots.js";
-import { getMaskTarget, paintMaskDab, cloneMask, paintMaskGradient } from "./masks.js";
+import { getMaskTarget, paintMaskDab, cloneMask, paintMaskGradient, beginMaskStroke, applyMaskStroke } from "./masks.js";
 import { snapValue, snapCandidatesX, snapCandidatesY, snapRange,
          gridStep, snapToGridEnabled } from "./rulers.js";
 import { makeGrid, resetGrid, isIdentityGrid, applyStroke, relaxGrid, renderLiquify } from "./liquify.js";
@@ -605,8 +605,10 @@ export const TOOLS = [
       if(getMaskTarget() === l.id && l.mask){
         const dirty=professionalSegmentBounds(p,p,state.size,doc);
         beginPixels("Pintar máscara", l, true, {sparse:true,rect:dirty});
-        const g=grayLevel(state.color),color=`rgb(${g},${g},${g})`;
-        this._carry=paintProfessionalSegment(l.mask.ctx,p,p,{event:e,color,size:state.size,hardness:state.hardness,opacity:state.opacity,velocity:0,carry:0,doc,seed:this._seed});
+        // Negro oculta, blanco revela, gris a medias (ver beginMaskStroke)
+        this._mask=beginMaskStroke(l.mask,grayLevel(state.color));
+        this._carry=paintProfessionalSegment(this._mask.ctx,p,p,{event:e,color:"#ffffff",size:state.size,hardness:state.hardness,opacity:state.opacity,velocity:0,carry:0,doc,seed:this._seed});
+        applyMaskStroke(this._mask,dirty);
         l.thumbDirty = true;
         scheduleCompose({rect:dirty,layer:l,transient:true});
         return;
@@ -623,10 +625,10 @@ export const TOOLS = [
       this._raw=p;this._smooth=smooth;this._lastTime=now;
       const l = activeLayer();
       const dirty=professionalSegmentBounds(this._last,smooth,state.size,doc);
-      if(l && getMaskTarget() === l.id && l.mask){
-        const g=grayLevel(state.color),color=`rgb(${g},${g},${g})`;
+      if(l && getMaskTarget() === l.id && l.mask && this._mask){
         expandPendingPixels(dirty);
-        this._carry=paintProfessionalSegment(l.mask.ctx,this._last,smooth,{event:e,color,size:state.size,hardness:state.hardness,opacity:state.opacity,velocity,carry:this._carry,doc,seed:this._seed++});
+        this._carry=paintProfessionalSegment(this._mask.ctx,this._last,smooth,{event:e,color:"#ffffff",size:state.size,hardness:state.hardness,opacity:state.opacity,velocity,carry:this._carry,doc,seed:this._seed++});
+        applyMaskStroke(this._mask,dirty);
         this._last=smooth;
         l.thumbDirty = true;
         scheduleCompose({rect:dirty,layer:l,transient:true});
@@ -639,7 +641,7 @@ export const TOOLS = [
     },
     up(){
       if(!this._last) return;
-      this._last = null;this._raw=null;this._smooth=null;this._carry=0;
+      this._last = null;this._raw=null;this._smooth=null;this._carry=0;this._mask=null;
       const l = activeLayer();
       if(l && getMaskTarget() === l.id && l.mask){
         commitPixels();
@@ -652,7 +654,7 @@ export const TOOLS = [
     },
     cancel(){
       if(!this._last) return;
-      this._last = null;this._raw=null;this._smooth=null;this._carry=0;
+      this._last = null;this._raw=null;this._smooth=null;this._carry=0;this._mask=null;
       const l = activeLayer();
       if(l && getMaskTarget() === l.id && l.mask){ abortPixels(); return; }
       discardScratch();

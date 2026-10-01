@@ -992,7 +992,13 @@ const TOPICS = [
           y <kbd>Ctrl</kbd>+<kbd>M</kbd> se redirigen a la máscara en vez de a la
           imagen en cuanto su miniatura está seleccionada como destino—, además de
           <b>Suavizar máscara…</b> (desenfoque) y <b>Propiedades…</b> (densidad y
-          desvanecido, sin repintar nada a mano).</li>
+          desvanecido, sin repintar nada a mano). <b>Pintarla:</b> toca su miniatura (queda
+          enmarcada) y pinta con el Pincel en negro para ocultar, en blanco para mostrar o en
+          gris para dejarla a medias; el Borrador y el Degradado también trabajan sobre ella.
+          <b>Ver y pintar sólo la máscara:</b> en el ordenador, <kbd>Alt</kbd>+clic en su
+          miniatura (o clic derecho › «Ver y pintar sólo la máscara»; también el botón «Ver
+          máscara» de Propiedades); en el móvil, un segundo toque sobre la máscara ya elegida
+          abre su menú con esa opción. Repite el gesto para volver a la vista normal.</li>
         <li><b>Máscara degradada…</b> Crea una máscara ya rellena con un degradado
           lineal o radial en vez de partir de blanco u ocultar todo; con opción de
           invertir el sentido y ajustar el tamaño, para transiciones suaves sin tener

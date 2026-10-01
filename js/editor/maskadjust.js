@@ -13,14 +13,14 @@
    una imagen en gris como cualquier otra—, y al terminar hace el
    camino de vuelta: el resultado en rojo pasa a ser el nuevo alfa. */
 
-import { runMaskDialog, cloneMask } from "./masks.js";
+import { runMaskDialog, cloneMask, getIsolateView, toggleIsolateView } from "./masks.js";
 import { applyLut, drawHistogram, slider, histogram } from "./adjust.js";
 import { curveLut, curveEditor } from "./curves.js";
 import { blurred } from "../filters/basic.js";
 import { backgroundMask } from "../features/photo-tools.js";
 import { featherMask } from "./selection.js";
 import { record } from "../core/history.js";
-import { emit } from "../core/bus.js";
+import { emit, on } from "../core/bus.js";
 import { toast } from "../ui/toast.js";
 
 /* Exportadas para poder probarlas con números de verdad, sin canvas:
@@ -312,7 +312,7 @@ export async function selectSkyMask(layer){
    activa—, con el mismo criterio que el resto de secciones del panel. */
 export function mountMaskProperties(layer, container){
   if(!layer || !layer.mask) return null;
-  const backup = cloneMask(layer.mask);
+  let backup = cloneMask(layer.mask);
   const { ctx, canvas } = layer.mask;
   const w = canvas.width, h = canvas.height;
   const p = { density: 100, feather: 0 };
@@ -326,6 +326,12 @@ export function mountMaskProperties(layer, container){
   };
 
   const box = document.createElement("div");
+  /* Si se ha pintado la máscara con el panel abierto, la copia de
+     partida se renueva antes de mover un mando (si no, Densidad o
+     Desvanecer devolverían la máscara a como estaba al abrir el panel). */
+  const refresh = () => { if(p.density === 100 && p.feather === 0) backup = cloneMask(layer.mask); };
+  box.addEventListener("pointerdown", refresh, true);
+  box.addEventListener("focusin", refresh, true);
   box.appendChild(slider("Densidad", 0, 100, 100, v => { p.density = v; preview(); }, "%"));
   box.appendChild(slider("Desvanecer", 0, 250, 0, v => { p.feather = v; preview(); }, " px"));
   const row = document.createElement("div");
@@ -376,7 +382,20 @@ export function mountMaskProperties(layer, container){
     import("./refineedge.js").then(m => m.refineEdge({ type:"mask", layer }));
   });
 
-  row.append(subjBtn, skyBtn, refineBtn);
+  /* Ver y pintar sólo la máscara: el Alt+clic en la miniatura del
+     escritorio, para el móvil (y para quien no lo conozca). */
+  const viewBtn = document.createElement("button");
+  const syncView = () => { viewBtn.textContent = getIsolateView() === layer.id ? "Vista normal" : "Ver máscara"; };
+  viewBtn.title = "Enseña sólo la máscara en grises y pinta sobre ella: negro oculta, blanco muestra";
+  viewBtn.addEventListener("click", () => {
+    const on = toggleIsolateView(layer.id);
+    syncView();
+    if(on) toast("Máscara a la vista: pinta en negro para ocultar y en blanco para mostrar");
+  });
+  syncView();
+  on("mask:isolate", syncView);
+
+  row.append(viewBtn, subjBtn, skyBtn, refineBtn);
   box.appendChild(row);
   container.appendChild(box);
 

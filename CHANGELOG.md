@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Máscaras de capa: pintar en negro ya oculta
+- **El Pincel no ocultaba nada al pintar la máscara**: pintaba gris opaco y la máscara guarda
+  la visibilidad en su canal alfa, así que el negro seguía «viéndose». Ahora el trazo se
+  pinta aparte (punta, dureza, opacidad y dinámica de siempre) y su cobertura lleva la
+  máscara hacia el gris elegido: negro oculta, blanco muestra, gris a medias; repasar dentro
+  del mismo trazo no pasa de la opacidad elegida. Mismo arreglo para «Suprimir» con la
+  máscara elegida.
+- **Alt+clic en la miniatura de la máscara** enseña sólo la máscara y ahora también pinta
+  sobre ella (antes sólo cambiaba la vista y se pintaba la imagen). Cambiar de capa o tocar
+  la miniatura de la imagen vuelve a la vista normal.
+- **Móvil**: un segundo toque sobre la máscara ya elegida abre su menú (ver y pintar sólo la
+  máscara, volver a pintar la imagen, activar, aplicar, eliminar); en el ordenador el mismo
+  menú sale con clic derecho, y Propiedades de la máscara trae el botón «Ver máscara».
+- Propiedades de la máscara ya no deshace lo pintado con el panel abierto al mover Densidad
+  o Desvanecer.
+
 ### Entrada de alta profundidad: los bits de la foto llegan a la exportación
 - **La capa de fondo guarda los bits reales de la foto** cuando trae más de 8 por canal
   (`js/core/hisrc.js`); el lienzo sigue siendo de 8 bits y la exportación en coma flotante

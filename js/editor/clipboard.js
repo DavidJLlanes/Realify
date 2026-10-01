@@ -104,9 +104,9 @@ function eraseMask(layer, box){
     for(let x = 0; x < box.w; x++){
       const f = sel ? sel.mask[(box.y + y) * sel.w + (box.x + x)] / 255 : 1;
       const i = (y * box.w + x) * 4;
-      d[i]     = Math.round(d[i]     * (1 - f));
-      d[i + 1] = Math.round(d[i + 1] * (1 - f));
-      d[i + 2] = Math.round(d[i + 2] * (1 - f));
+      // El dato de la máscara vive en el alfa (ver editor/masks.js)
+      d[i] = d[i + 1] = d[i + 2] = 255;
+      d[i + 3] = Math.round(d[i + 3] * (1 - f));
     }
   }
   ctx.putImageData(img, box.x, box.y);

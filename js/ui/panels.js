@@ -12,7 +12,7 @@ import { list as historyList, jumpTo, canUndo, canRedo } from "../core/history.j
 import { record } from "../core/history.js";
 import { getMaskTarget, setMaskTarget, clearMaskTarget, addMask,
          toggleMask, maskAlphaAsSelectionMask,
-         getIsolateView, toggleIsolateView, removeMask,
+         getIsolateView, setIsolateView, toggleIsolateView, removeMask,
          copyMask, moveMask, linkMask } from "../editor/masks.js";
 import { isAdjustLayer, adjustTypeName, openAdjustPanel } from "../editor/adjustlayers.js";
 import { isFillLayer, isShapeLayer, fillKindName, SHAPE_KIND_NAME } from "../editor/layercontent.js";
@@ -428,7 +428,7 @@ export function renderLayers(){
     const maskLabel = isGroup ? "grupo" : "capa";
     const maskHtml = l.mask
       ? `<div class="thumb mask-thumb${maskOn ? " on" : ""}${l.maskEnabled ? "" : " off"}"
-          title="Máscara de ${maskLabel} — clic: pintarla · doble clic: propiedades · Mayús+clic: activar o desactivar · Ctrl+clic: cargar como selección · Alt+clic: ver sólo la máscara · clic derecho: más opciones"
+          title="Máscara de ${maskLabel} — clic: pintarla (negro oculta, blanco muestra) · doble clic: propiedades · Mayús+clic: activar o desactivar · Ctrl+clic: cargar como selección · Alt+clic: ver y pintar sólo la máscara · clic derecho: más opciones"
           data-mask="1">⬚</div>`
       : `<button type="button" class="thumb add-mask" data-add-mask="1"
           title="Añadir máscara de ${maskLabel}${isGroup ? "" : " — Alt+clic: máscara negra u ocultar selección"}"
@@ -657,11 +657,19 @@ export function renderLayers(){
       emit("doc:change");
     });
 
-    el.addEventListener("contextmenu", e => {
-      if(e.target.closest("[data-mask]")){
-        e.preventDefault();
+    /* Menú de la máscara: clic derecho en el escritorio, y en el móvil
+       (sin Alt ni clic derecho) un segundo toque sobre la máscara ya
+       elegida. */
+    const maskMenu = (x, y) => {
         setActive(l.id);
         openContextMenu([
+          { label: getIsolateView() === l.id ? "Volver a la vista normal" : "Ver y pintar sólo la máscara",
+            onClick: () => {
+              const on = toggleIsolateView(l.id); renderLayers();
+              if(on) toast("Máscara a la vista: pinta en negro para ocultar y en blanco para mostrar");
+            } },
+          ...(getMaskTarget() === l.id ? [{ label: "Pintar la imagen (no la máscara)",
+            onClick: () => { setMaskTarget(null); if(getIsolateView() !== null) setIsolateView(null); renderLayers(); } }] : []),
           { label: l.maskEnabled ? "Deshabilitar máscara de capa" : "Habilitar máscara de capa",
             onClick: () => toggleMask(l) },
           { sep: true },
@@ -677,7 +685,12 @@ export function renderLayers(){
                 removeMask(l, false);
               }
             } }
-        ], e.clientX, e.clientY);
+        ], x, y);
+    };
+    el.addEventListener("contextmenu", e => {
+      if(e.target.closest("[data-mask]")){
+        e.preventDefault();
+        maskMenu(e.clientX, e.clientY);
         return;
       }
       // En cualquier otro punto de la fila: copiar esta capa a otro
@@ -753,14 +766,23 @@ export function renderLayers(){
           const alpha = maskAlphaAsSelectionMask(l.mask, doc.w, doc.h);
           commitSelection(alpha, "new");
         } else if(e.altKey){
-          // Alt+clic: el lienzo enseña sólo la máscara en gris hasta
-          // que se repite el gesto.
-          toggleIsolateView(l.id);
+          // Alt+clic: el lienzo enseña sólo la máscara en gris, y se
+          // pinta sobre ella, hasta que se repite el gesto.
+          const on = toggleIsolateView(l.id);
+          toast(on ? "Máscara a la vista: pinta en negro para ocultar y en blanco para mostrar · Alt+clic de nuevo para volver" : "Vista normal");
+        } else if(isMobile() && getMaskTarget() === l.id){
+          // Móvil: segundo toque sobre la máscara ya elegida → su menú
+          // (ver sólo la máscara, volver a la imagen, aplicar…).
+          const r = e.target.closest("[data-mask]").getBoundingClientRect();
+          // Tras este mismo clic (el «clic fuera» del menú lo cerraría)
+          setTimeout(() => maskMenu(r.left, r.bottom), 0);
+          return;
         } else {
           // Un segundo clic sobre la misma máscara vuelve a pintar la
           // capa; es el mismo gesto que alternar entre las dos
           // miniaturas en cualquier editor con capas.
           setMaskTarget(getMaskTarget() === l.id ? null : l.id);
+          if(getMaskTarget() === null && getIsolateView() === l.id) setIsolateView(null);
         }
         renderLayers();
         return;
@@ -788,9 +810,11 @@ export function renderLayers(){
       }
       if(e.target.closest("[data-img]") && !e.ctrlKey && !e.metaKey && !e.shiftKey){
         // Clic en la miniatura de la imagen: el foco vuelve a ella
-        // aunque la máscara de esta misma capa lo tuviera puesto.
+        // aunque la máscara de esta misma capa lo tuviera puesto (y se
+        // sale de la vista de sólo la máscara).
         setActive(l.id);
         setMaskTarget(null);
+        if(getIsolateView() !== null) setIsolateView(null);
         renderLayers();
         return;
       }
@@ -969,6 +993,8 @@ on("doc:structure", () => {
 });
 on("doc:active",    () => {
   if(getMaskTarget() !== null && getMaskTarget() !== doc.activeId) clearMaskTarget();
+  // Ver sólo la máscara es de la capa activa: al cambiar de capa, vista normal
+  if(getIsolateView() !== null && getIsolateView() !== doc.activeId) setIsolateView(null);
   renderLayers(); renderInfo();
 });
 on("doc:resize",    renderInfo);

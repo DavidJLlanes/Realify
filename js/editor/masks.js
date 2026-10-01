@@ -237,6 +237,49 @@ export function paintMaskDab(ctx, a, b, radius, hardness, opacity, gray){
   ctx.putImageData(img, minX, minY);
 }
 
+/* ── trazo del pincel sobre la máscara ──────────────────────────
+   El motor de pinceles (brushes.js) pinta COLOR con `source-over`, y
+   en una máscara el dato vive en el alfa: pintar negro sobre la máscara
+   blanca dejaba el alfa en 255 —negro opaco, que «se ve entero»— y no
+   ocultaba nada. Ahora el trazo se pinta en blanco en un lienzo aparte,
+   que guarda sólo su COBERTURA (con la punta, la dureza, la opacidad y
+   la dinámica de siempre), y la máscara se recalcula en la zona tocada:
+   alfa = alfa_inicial + (gris − alfa_inicial) · cobertura. Con el
+   alfa de partida guardado al empezar, repasar dentro del mismo trazo
+   no acumula más allá de la opacidad elegida, como en Photoshop. */
+let strokeScratch = null;
+export function beginMaskStroke(mask, gray){
+  const w = mask.canvas.width, h = mask.canvas.height;
+  if(!strokeScratch || strokeScratch.width !== w || strokeScratch.height !== h){
+    strokeScratch = document.createElement("canvas"); strokeScratch.width = w; strokeScratch.height = h;
+  }
+  const sctx = strokeScratch.getContext("2d", { willReadFrequently: true });
+  sctx.clearRect(0, 0, w, h);
+  const all = mask.ctx.getImageData(0, 0, w, h).data, base = new Uint8Array(w * h);
+  for(let i = 0; i < base.length; i++) base[i] = all[i * 4 + 3];
+  return { mask, gray: Math.max(0, Math.min(255, gray)), base, ctx: sctx, w, h };
+}
+/** Vuelca a la máscara la cobertura del trazo dentro de `rect`. */
+export function applyMaskStroke(st, rect){
+  const x0 = Math.max(0, Math.floor(rect.x)), y0 = Math.max(0, Math.floor(rect.y));
+  const x1 = Math.min(st.w, Math.ceil(rect.x + rect.w)), y1 = Math.min(st.h, Math.ceil(rect.y + rect.h));
+  const w = x1 - x0, h = y1 - y0;
+  if(w <= 0 || h <= 0) return;
+  const cov = st.ctx.getImageData(x0, y0, w, h).data;
+  const img = st.mask.ctx.getImageData(x0, y0, w, h), d = img.data, g = st.gray;
+  for(let y = 0; y < h; y++){
+    const row = (y0 + y) * st.w + x0;
+    for(let x = 0; x < w; x++){
+      const p = (y * w + x) * 4, c = cov[p + 3];
+      if(!c) continue;
+      const a0 = st.base[row + x];
+      d[p] = d[p + 1] = d[p + 2] = 255;
+      d[p + 3] = Math.round(a0 + (g - a0) * c / 255);
+    }
+  }
+  st.mask.ctx.putImageData(img, x0, y0);
+}
+
 /* ── degradado en la máscara ──────────────────────────────────────
    Igual idea que un degradado normal, pero el color no pinta nada
    por sí mismo —otra vez, el dato vive en el alfa—: lo que interesa
@@ -387,8 +430,13 @@ export function setIsolateView(layerId){
   isolateLayerId = layerId;
   emit("mask:isolate", isolateLayerId);
 }
+/* Al verla sola se pinta sobre ella (como Alt+clic en Photoshop): el
+   pincel, el borrador y el degradado van a la máscara, en gris. */
 export function toggleIsolateView(layerId){
-  setIsolateView(isolateLayerId === layerId ? null : layerId);
+  const on = isolateLayerId !== layerId;
+  if(on) setMaskTarget(layerId);
+  setIsolateView(on ? layerId : null);
+  return on;
 }
 
 /* ── vincular/mover/copiar máscaras arrastrando ──────────────────────
