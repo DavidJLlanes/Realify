@@ -1,60 +1,61 @@
 # Pendiente
 
-Ideas acordadas para más adelante (no hechas todavía).
+Ideas acordadas para más adelante (no hechas todavía). Criterio que manda en todo:
+**máxima calidad de los resultados**. Nunca se cambia calidad por memoria o velocidad: nada
+de cuantizar modelos a INT8/Q4 (con GFPGAN, INT8 bajó a 27 dB), seguir con fp16/fp32 y
+resolver la memoria procesando por bloques.
 
-## Hoja de ruta de calidad de imagen (prioridad: máxima calidad de resultados)
+Índice:
+1. Hoja de ruta de calidad de imagen (orden de prioridad)
+2. Alta precisión: estado y fases
+3. Visión clásica, apilado y profundidad (OpenCV.js, Depth Anything)
+4. Formatos, metadatos y exportación
+5. Infraestructura (sin efecto directo en la calidad)
+6. Descartado y por qué
+7. Informe de errores en Ayuda
 
-Ordenada por cuánto mejora los píxeles que entrega Realify, no por comodidad ni
-rendimiento. Origen: auditoría técnica externa (octubre de 2026) revisada contra el
-estado real del código. Regla general: **nunca cambiar calidad por memoria**; nada de
-cuantizar modelos a INT8/Q4 (con GFPGAN, INT8 bajó a 27 dB), seguir con fp16/fp32 y
-resolver la memoria con procesado por bloques.
+Origen de las secciones 1, 3, 4, 5 y 6: auditoría técnica externa (octubre de 2026,
+«Informe_Auditoria_Tecnica_Realify.pdf») revisada contra el estado real del código; se han
+quitado sus propuestas que empeoran la calidad.
 
-1. **Procesado en alta precisión en todo el documento (16 bits o coma flotante).**
-   Hoy cada capa y cada ajuste se guarda en 8 bits: al apilar ajustes se pierden niveles
-   (bandas en cielos y degradados, sombras empastadas). El modo Premium calcula en coma
-   flotante pero vuelve a 8 bits en cada capa. Es la mayor pérdida sistemática; coste muy
-   alto (núcleo del editor): planificarlo aparte y por fases. Detalle en
-   «Alta precisión: estado y fases», más abajo.
+## 1. Hoja de ruta de calidad de imagen (orden de prioridad)
+
+Ordenada por cuánto mejora los píxeles que entrega Realify. Licencias: los modelos de IA
+nuevos deben permitir uso comercial (normas del proyecto), aunque el código de Realify sea
+PolyForm Noncommercial.
+
+1. **Procesado en alta precisión en todo el documento (16 bits o coma flotante).** Hoy cada
+   capa y cada ajuste se guarda en 8 bits: al apilar ajustes se pierden niveles (bandas en
+   cielos y degradados, sombras empastadas). Coste muy alto; por fases. Ver sección 2.
 2. **Gestión de color con perfiles ICC (Display P3, Adobe RGB).** Las fotos de iPhone y
    muchos Android vienen en P3: leer el perfil, trabajar en espacio amplio y exportar con
-   el perfil incrustado (canvas `colorSpace: "display-p3"` donde exista). Comprobar
-   primero qué hace hoy Realify al abrir y exportar. Coste medio. **Empezar por aquí.**
+   el perfil incrustado. Hoy todos los lienzos se crean con `colorSpace: "srgb"`
+   explícito; comprobar qué se pierde al abrir. Coste medio. **Empezar por aquí.**
 3. **IA a resolución completa por bloques en todos los modelos.** Ampliar y colorear ya
    van por bloques; la profundidad (518 px), las máscaras de cielo y persona y la cara de
-   GFPGAN se calculan a baja resolución y se amplían. Por bloques con solape y fundido,
-   bordes y detalle fino más precisos; tamaño de bloque según memoria del dispositivo.
-   Coste medio. **Empezar por aquí (junto con el 2).**
-4. **Exportación de alta profundidad**: AVIF 10/12 bits, JPEG XL, PNG y TIFF de 16 bits,
-   OpenEXR, cargados sólo al usarlos. Conserva lo ganado con 1 y 2 hasta el archivo final
-   (depende del 1).
-5. **Apilado de fotos**: reducción de ruido por varias tomas y focus stacking, con
-   alineación subpíxel (OpenCV.js bajo demanda, Apache-2.0, ~8-10 MB, como motor
-   Premium). Mejora también la alineación de HDR y panorámicas.
+   GFPGAN se calculan a baja resolución y se amplían. Bloques con solape configurable y
+   fundido, tamaño según memoria del dispositivo, backend y modelo. Coste medio.
+   **Empezar por aquí (junto con el 2).** Aplica también a restauración, deblur y
+   cualquier modelo imagen-a-imagen nuevo.
+4. **Exportación de alta profundidad**: PNG y TIFF de 16 bits, AVIF 10/12 bits, JPEG XL
+   (fotografía, HDR, alta profundidad) y OpenEXR (valores HDR de escena sin comprimir el
+   rango; encaja con el pipeline Premium en coma flotante y Rec.2020). Cargar cada códec
+   sólo al usarlo. Depende de la sección 2.
+5. **Apilado de fotos**: reducción de ruido por varias tomas (image stacking) y focus
+   stacking, con alineación subpíxel. Ver sección 3.
 6. **Corrección de lente con perfiles reales** (distorsión, viñeteo y aberración por
    modelo de objetivo). Vigilar la licencia de la base de datos de perfiles.
-7. **Selección por texto** («cielo», «pelo», «coche rojo»): máscaras más precisas para
-   ajustes locales. Modelos grandes: revisar licencias (uso comercial) y tamaño.
-8. **Seleccionar / enmascarar por profundidad** (primer plano, plano medio, fondo o
-   intervalo), reutilizando Depth Anything V2.
-9. **Exportar HEIC** (libheif, LGPL: como módulo WASM separado y sin modificar).
-10. **Mejoras PSD/PSB** (Realify ya usa ag-psd: completar grupos, máscaras, efectos).
-11. **EXIF/IPTC/XMP y privacidad** (ExifReader, MPL-2.0): quitar GPS, conservar
-    copyright, limpiar metadatos. Revisar antes qué hace ya el módulo EXIF actual.
-12. **PDF profesional, Pica para miniaturas, Photon como respaldo WASM**: no mejoran el
-    resultado; sólo si sobra tiempo.
+7. **Selección por texto** («persona», «cielo», «pelo», «coche rojo»): máscaras más
+   precisas para ajustes locales. Modelos grandes: revisar licencia (uso comercial) y
+   tamaño; integrarlos en el motor ONNX común (ver sección 6 sobre Transformers.js).
+8. **Seleccionar / enmascarar por profundidad.** Ver sección 3.
+9. **Exportar HEIC** (libheif). Ver sección 4.
+10. **Mejoras PSD y PSB.** Ver sección 4.
+11. **EXIF/IPTC/XMP/ICC y privacidad de metadatos.** Ver sección 4.
+12. **PDF profesional, miniaturas con Pica, respaldo WASM con Photon**: no mejoran el
+    resultado; secciones 4 y 5.
 
-Útil pero sin efecto en la calidad: poder cancelar tareas de IA y gestión más fina de
-sesiones y memoria (el motor común ya existe en `js/ai/worker.js`: WebGPU→WASM,
-IndexedDB, descarga bajo demanda, grupos de sesión, modelos partidos).
-
-No integrar: Fabric.js, TOAST UI Image Editor ni otro editor completo; Transformers.js
-sólo si un modelo concreto lo exige (evitar dos motores de inferencia).
-
-Licencias: los modelos de IA nuevos deben permitir uso comercial (normas del proyecto),
-aunque el código de Realify sea PolyForm Noncommercial.
-
-## Alta precisión: estado y fases (punto 1 de la hoja de ruta)
+## 2. Alta precisión: estado y fases (punto 1 de la hoja de ruta)
 
 ### Ya hecho
 - **Exportación**: el paso final (remuestreo y codificación) se hace en RGB lineal Float32
@@ -98,7 +99,87 @@ aunque el código de Realify sea PolyForm Noncommercial.
 - **Fase 3**: compositor GPU en coma flotante para la vista previa (6).
 - **Fases 4–5**: migrar filtros a coma flotante (5) y capas en alta precisión (7, 8).
 
-## Informe de errores en Ayuda (con Postfix del VPS)
+## 3. Visión clásica, apilado y profundidad
+
+### OpenCV.js como motor especializado (Premium)
+Apache-2.0, ~8–10 MB: cargar sólo bajo demanda. No sustituye lo que ya funciona (HDR,
+Unir imágenes, Perspectiva propios); se usa donde mejore el resultado o evite
+reimplementar algoritmos complejos:
+- Alineación HDR y de panorámicas más precisa: homografías, registro subpíxel, optical
+  flow (fantasmas en HDR con movimiento).
+- **Image stacking** (reducción de ruido con varias tomas) y **focus stacking**.
+- Corrección de perspectiva y detección de horizonte automáticas.
+- CLAHE (contraste local adaptativo), morfología, detección de bordes y contornos.
+- Análisis de nitidez (elegir la mejor toma, mapas de enfoque).
+- Detección automática de documentos (recorte y enderezado).
+
+### Profundidad (Depth Anything V2 ya integrado)
+Ya hecho: Desenfoque por profundidad, Niebla por distancia y Foto 3D. Pendiente:
+- **Seleccionar por profundidad**: primer plano, plano medio, fondo o intervalo manual,
+  como máscara editable.
+- **Máscaras por distancia** para cualquier ajuste local.
+- **Iluminación dependiente de la profundidad** y **separación de planos** en capas.
+- Calcular la profundidad a resolución completa por bloques (sección 1, punto 3).
+
+## 4. Formatos, metadatos y exportación
+
+### Formatos
+- **Gestor de códecs WASM** (filosofía de Squoosh, que ya se usa para AVIF): cada
+  codificador se carga sólo al elegir el formato; estimación de peso y calidad antes de
+  exportar (AVIF/WebP).
+- **HEIC/HEIF**: exportar HEIC con libheif (interesa sobre todo en móviles). LGPL: módulo
+  WASM separado y sin modificar; revisar las obligaciones de las bibliotecas enlazadas.
+- **JPEG XL** y **OpenEXR** (sección 1, punto 4).
+- **PSD**: Realify ya usa ag-psd; comparar capacidades y completar grupos, máscaras,
+  modos de fusión, metadatos, efectos de capa y objetos inteligentes. ag-psd tiene
+  límites con PSB y escritura de 16 bits.
+- **PSB** (documentos grandes de Photoshop): extender gradualmente la infraestructura PSD
+  propia; coste alto.
+
+### Metadatos (ExifReader, MPL-2.0: usar como módulo sin modificar)
+- Leer EXIF, IPTC, XMP, ICC, MPF, metadatos de Photoshop, MakerNotes y miniaturas
+  incrustadas en el inspector de imagen. Revisar antes qué hace ya el módulo EXIF actual.
+- Controles de privacidad al exportar: quitar GPS, conservar copyright, conservar o quitar
+  fecha y cámara, limpiar todos los metadatos y **conservar el perfil ICC** cuando el
+  formato lo permita (enlaza con la sección 1, punto 2).
+
+### PDF profesional (pdf-lib, MIT)
+- Documentos multipágina, A4/A3/Carta, márgenes, sangrado, resolución objetivo, portada,
+  numeración, varias imágenes por página, fuentes y metadatos; importar/copiar páginas.
+- Exportar siempre las imágenes a la resolución objetivo sin recomprimir de más.
+
+## 5. Infraestructura (sin efecto directo en la calidad)
+
+El motor común de IA ya existe (`js/ai/worker.js`: WebGPU→WASM, caché en IndexedDB,
+descarga bajo demanda con aviso de tamaño, grupos de sesión que se liberan, modelos
+partidos, fp16). Falta:
+- **Cancelar** tareas de IA y progreso uniforme en todas.
+- Límites de memoria por dispositivo y liberación de tensores más fina (al servicio del
+  procesado por bloques, nunca bajando la precisión).
+- **Pipeline «lazy» por bloques inspirado en libvips**: representar la edición como un
+  grafo de operaciones y calcular sólo los bloques necesarios para la vista o la
+  exportación. Es la evolución más potente para imágenes enormes y edición no
+  destructiva, y la más costosa; encaja con las fases 4–5 de la sección 2.
+- **Pica** para miniaturas de interfaz (capas, cielos, LUT, filtros, estilos, stickers,
+  marcos): nunca para el remuestreo final, que ya es de mayor calidad.
+- **Photon (Rust/WASM)** como respaldo de CPU cuando no haya WebGPU/WebGL2
+  (convoluciones, Sobel, desenfoque, enfoque, tramado). Jerarquía WebGPU → WebGL2 → WASM →
+  JavaScript. Sólo si las pruebas demuestran el mismo resultado y mejor tiempo.
+- **image-js** sólo como fuente de algoritmos concretos.
+
+## 6. Descartado y por qué
+
+- **Cuantizar modelos a INT8/Q4** («política de cuantización» del informe): empeora la
+  calidad. Seguir con fp16/fp32.
+- **Fabric.js, TOAST UI Image Editor u otro editor completo**: crearían un segundo modelo
+  de capas y lienzo; Realify ya supera su alcance.
+- **Transformers.js como segundo motor de inferencia**: sólo para experimentar con un
+  modelo concreto (segmentación, profundidad, clasificación, detección de objetos); lo que
+  se adopte va al motor ONNX común.
+- **image-js como sustituto del pipeline**, y **libvips completo en el navegador**
+  (inspira la arquitectura de la sección 5, no se integra).
+
+## 7. Informe de errores en Ayuda (con Postfix del VPS)
 
 - Entrada «Informar de un error» en el menú Ayuda (móvil y escritorio): qué ha pasado,
   correo opcional para responder y casilla «Adjuntar diagnóstico» (`__realifyDiag`). Sin la
