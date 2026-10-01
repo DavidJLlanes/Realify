@@ -128,6 +128,16 @@ async function fetchModel(id, model){
    many storage buffers» en GPUs con límites bajos): no se reintenta. */
 const gpuFailed = new Set();
 
+/* ¿Hay de verdad una GPU utilizable? Con WebGPU en el navegador pero sin
+   adaptador (sin GPU, controlador bloqueado), ONNX Runtime pasa a la CPU
+   sin avisar y la sesión parecía «webgpu»: el tamaño de los bloques y su
+   número se elegían como si hubiera GPU. */
+let gpuAdapter = null;
+function hasGpuAdapter(){
+  if(!gpuAdapter) gpuAdapter = Promise.resolve().then(() => self.navigator.gpu.requestAdapter()).then(a => !!a).catch(() => false);
+  return gpuAdapter;
+}
+
 async function getSession(id, model){
   if(sessions.has(id)) return sessions.get(id);
   // Un solo modelo en memoria a la vez: dos de 200 MB juntos tumban
@@ -143,7 +153,7 @@ async function getSession(id, model){
   const opts = { graphOptimizationLevel: "all", logSeverityLevel: 3 };
   let session = null, backend = "wasm";
   // `model.cpu`: modelos cuyo resultado con WebGPU no es fiable.
-  if(self.navigator?.gpu && !model.cpu && !gpuFailed.has(id)){
+  if(self.navigator?.gpu && !model.cpu && !gpuFailed.has(id) && await hasGpuAdapter()){
     try{
       session = await ort.InferenceSession.create(bytes, { ...opts, executionProviders: ["webgpu", "wasm"] });
       backend = "webgpu";
@@ -588,7 +598,7 @@ async function parse({ model, id, rgba }){
    de profundidad relativa INVERSA (mayor = más cerca). Se devuelve
    normalizada a 0-1 (1 = lo más cercano). */
 async function depth({ model, id, rgba }){
-  const { session } = await getSession(id, model);
+  const { session, backend } = await getSession(id, model);
   const S = 518, n = S * S, x = new Float32Array(3 * n), mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
   for(let p = 0, i = 0; p < n; p++, i += 4){
     x[p] = (rgba[i] / 255 - mean[0]) / std[0]; x[n + p] = (rgba[i + 1] / 255 - mean[1]) / std[1]; x[2 * n + p] = (rgba[i + 2] / 255 - mean[2]) / std[2];
@@ -601,7 +611,7 @@ async function depth({ model, id, rgba }){
   for(let i = 0; i < n; i++){ if(v[i] < lo) lo = v[i]; if(v[i] > hi) hi = v[i]; }
   const d = new Float32Array(n), span = Math.max(1e-6, hi - lo);
   for(let i = 0; i < n; i++) d[i] = (v[i] - lo) / span;
-  return { depth: d, size: S };
+  return { depth: d, size: S, backend };
 }
 
 /* ── Restaurar caras (GFPGAN v1.4, en dos mitades) ────────────────

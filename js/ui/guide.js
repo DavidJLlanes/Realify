@@ -714,6 +714,12 @@ const TOPICS = [
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
           PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
       </ul>
+      <p><b>Resolución completa.</b> Los modelos trabajan a un tamaño fijo (unos 512 px). En
+        fotos grandes, la profundidad y las máscaras de cielo y de persona se calculan además
+        <b>por bloques</b>: una pasada de la foto entera da la escena y los bloques, a más
+        resolución, el detalle fino (ramas, pelo, farolas, cables) sin costuras. En las caras
+        mayores que el modelo se conserva la nitidez real de la foto. Mientras trabaja verás
+        «bloque 3 de 9» y un botón <b>Cancelar</b> que para toda la operación.</p>
       <p>Los modelos funcionan en tu equipo (WebGPU si el navegador la tiene; si no, en la CPU)
         y los grandes se descargan la primera vez, avisando antes del tamaño; en
         <b>Ayuda › Diagnóstico</b> ves los que tienes guardados y puedes borrarlos.</p>

@@ -585,7 +585,7 @@ y abre `http://localhost:8080`.
 | Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU |
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
-| IA | [ONNX Runtime Web](https://onnxruntime.ai/) (BodyPix, DeepLab, MobileNet, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++) |
+| IA | Profundidad y máscaras de cielo y persona a resolución completa por bloques (pasada global + bloques alineados, `js/ai/tiles.js`); [ONNX Runtime Web](https://onnxruntime.ai/) (BodyPix, DeepLab, MobileNet, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any) |
 | App | Service worker, Web App Manifest, IndexedDB |
 

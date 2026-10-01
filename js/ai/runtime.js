@@ -51,7 +51,9 @@ function hideBusy(){
 
 /* Cancelar: se para el worker en seco (una inferencia de ONNX no se
    puede interrumpir de otro modo) y se arranca otro la próxima vez. */
+let session = null;   // { cancelled } mientras dura una operación de varias pasadas
 function cancelAll(){
+  if(session) session.cancelled = true;
   if(worker){ worker.terminate(); worker = null; }
   const err = new Error("cancelado");
   err.cancelled = true;
@@ -110,6 +112,34 @@ export async function withHeavyGuard(id, title, fn){
     ok = true;
     return r;
   }finally{ if(heavy) releaseHeavy(id, ok); hideBusy(); }
+}
+
+const cancelledError = () => { const e = new Error("cancelado"); e.cancelled = true; return e; };
+
+/** Operación de IA de varias pasadas (bloques, varias caras…) con UN
+    solo aviso «trabajando», un progreso continuo y un Cancelar que la
+    para entera: `fn(step)` llama a runModel tantas veces como quiera y
+    a `step(hechos, total)` al acabar cada bloque (`unit`: «bloque»,
+    «cara»…, para el texto del aviso). Al cancelar, la
+    llamada en curso y todas las siguientes fallan con `err.cancelled`. */
+export async function aiSession(title, fn, { unit = "bloque" } = {}){
+  if(session) return fn(() => {});              // anidada: la de fuera manda
+  const s = session = { title, cancelled: false, heavy: new Set() };
+  showBusy(title);
+  progress(0.02);
+  let ok = false;
+  const step = (done, total) => {
+    if(s.cancelled) throw cancelledError();
+    const msg = `Procesando la imagen… ${unit} ${Math.min(done + 1, total)} de ${total}`;
+    status(msg); busyMsg(done >= total ? "Terminando…" : msg);
+    progress(0.05 + 0.9 * done / Math.max(1, total));
+  };
+  try{ const r = await fn(step); if(s.cancelled) throw cancelledError(); ok = true; return r; }
+  finally{
+    for(const id of s.heavy) releaseHeavy(id, ok);
+    session = null;
+    hideBusy(); progress(null); status("");
+  }
 }
 
 /** Al arrancar (main.js): si la página se cayó con un modelo pesado en
@@ -182,6 +212,7 @@ export async function runModel(type, id, payload, transfer, opts = {}){
   const model = MODELS[id];
   if(!model) throw new Error("Modelo desconocido: " + id);
   await confirmDownload(id);
+  if(session?.cancelled) throw cancelledError();
   // `opts.quiet`: llamadas rapidísimas y repetidas (cada toque con SAM):
   // sin aviso, progreso ni barra de estado.
   if(opts.quiet){
@@ -190,6 +221,19 @@ export async function runModel(type, id, payload, transfer, opts = {}){
   }
   // `opts.noGuard`: pasadas 2ª y siguientes de una misma operación (la
   // copia de seguridad ya se hizo en la primera). `opts.title`: aviso.
+  /* Dentro de una sesión (aiSession): el aviso, el progreso y la copia
+     de seguridad son de la sesión; aquí sólo se llama al modelo. */
+  if(session){
+    if(session.cancelled) throw cancelledError();
+    if(model.size > HEAVY && !session.heavy.has(id)){ session.heavy.add(id); await guardHeavy(id, model, session.title); }
+    try{ return await call({ type, id, model, ...payload }, transfer); }
+    catch(err){
+      if(session.cancelled) throw cancelledError();
+      if(/bad_alloc|out of memory|memory access out of bounds|Aborted\(|RangeError: Array buffer allocation/i.test(err.message))
+        err.message = "no hay memoria suficiente en este dispositivo para el modelo " + model.label + ". Prueba con uno más ligero";
+      throw err;
+    }
+  }
   const heavy = model.size > HEAVY && !opts.noGuard;
   let ok = false;
   progress(0.02);

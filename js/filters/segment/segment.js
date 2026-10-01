@@ -55,22 +55,96 @@ function upscaleMask(prob, w, h, outW, outH){
   return mask;
 }
 
+/* ── Por bloques (fase 3 de PENDIENTE.md) ───────────────────────
+   La pasada GLOBAL (la foto entera a 513 px) decide dónde hay persona o
+   cielo: es la que ve la escena completa. En fotos grandes, además, la
+   foto a unas 1,75 veces esa resolución se parte en bloques de 513 que
+   se solapan, y cada bloque da su probabilidad con 4 veces más detalle
+   en los bordes (ramas contra el cielo, pelo, dedos). Los bloques sólo
+   cuentan en la franja dudosa del borde de la máscara global: un bloque
+   sin contexto no puede inventarse cielo en una pared azul. */
+
+/* Rejilla del modelo (celda c ↔ píxel c·stride, esquinas alineadas) →
+   mapa de W×H píxeles */
+function gridToMap(prob, gw, gh, stride, W, H){
+  const out = new Float32Array(W * H);
+  for(let y = 0; y < H; y++){
+    const fy = Math.min(gh - 1, y / stride), y0 = fy | 0, y1 = Math.min(gh - 1, y0 + 1), ty = fy - y0;
+    for(let x = 0; x < W; x++){
+      const fx = Math.min(gw - 1, x / stride), x0 = fx | 0, x1 = Math.min(gw - 1, x0 + 1), tx = fx - x0;
+      const a = prob[y0 * gw + x0] + (prob[y0 * gw + x1] - prob[y0 * gw + x0]) * tx;
+      const b = prob[y1 * gw + x0] + (prob[y1 * gw + x1] - prob[y1 * gw + x0]) * tx;
+      out[y * W + x] = a + (b - a) * ty;
+    }
+  }
+  return out;
+}
+
+const SIDE = 513, OV = 128;
+const snap16 = v => Math.max(17, Math.round((v - 1) / 16) * 16 + 1);
+
+/* kind: { task, id, title, stride, snap } */
+async function segmentTiled(src, kind){
+  const { aiSession } = await import("../../ai/runtime.js");
+  const T = await import("../../ai/tiles.js");
+  return aiSession(kind.title, async step => {
+    step(0, 1);
+    const g = workThumb(src, SIDE, kind.snap);
+    const rg = await runModel(kind.task, kind.id, { rgba: g.rgba, w: g.w, h: g.h }, [g.rgba.buffer]);
+    const long = Math.max(src.width, src.height);
+    const side = T.workSide(SIDE, OV, 2, long);
+    if(side <= SIDE * 1.3) return { prob: rg.prob, w: rg.w, h: rg.h, stride: kind.stride, thumbW: g.w, thumbH: g.h, hasSky: rg.hasSky };
+
+    // Foto a la resolución de trabajo (lados 16k+1 para BodyPix)
+    const k = side / long;
+    let W = Math.round(src.width * k), H = Math.round(src.height * k);
+    if(kind.snap){ W = snap16(W); H = snap16(H); }
+    const work = document.createElement("canvas"); work.width = W; work.height = H;
+    const wx = work.getContext("2d", { willReadFrequently: true });
+    wx.imageSmoothingQuality = "high"; wx.drawImage(src, 0, 0, W, H);
+
+    const G = T.resizeBilinear(gridToMap(rg.prob, rg.w, rg.h, kind.stride, g.w, g.h), g.w, g.h, W, H);
+    const plan = T.tilePlan(W, H, SIDE, OV), total = 1 + plan.length, mix = T.blender(W, H);
+    for(let i = 0; i < plan.length; i++){
+      step(1 + i, total);
+      const t = plan[i], rgba = wx.getImageData(t.x, t.y, t.w, t.h).data;
+      const r = await runModel(kind.task, kind.id, { rgba, w: t.w, h: t.h }, [rgba.buffer]);
+      mix.add(t, gridToMap(r.prob, r.w, r.h, kind.stride, t.w, t.h), T.tileWeights(t, W, H, OV));
+    }
+    step(total, total);
+    const tiles = mix.result();
+    // Franja dudosa de la máscara global, ensanchada y con borde suave
+    const band = new Float32Array(W * H);
+    for(let i = 0; i < band.length; i++) band[i] = G[i] > 0.06 && G[i] < 0.94 ? 1 : 0;
+    const gate = T.smooth(band, W, H, Math.max(4, Math.round(W / 64)));
+    let any = false;
+    for(let i = 0; i < G.length; i++){
+      const a = Math.min(1, gate[i] * 3);
+      G[i] = G[i] + (tiles[i] - G[i]) * a;
+      if(G[i] > 0.5) any = true;
+    }
+    return { prob: G, w: W, h: H, stride: 1, thumbW: W, thumbH: H, hasSky: rg.hasSky || any };
+  });
+}
+
+/* Probabilidad (en rejilla o ya densa) → alfa del tamaño de `src` */
+function toMask(r, src){
+  const dense = r.stride === 1 ? r.prob : gridToMap(r.prob, r.w, r.h, r.stride, r.thumbW, r.thumbH);
+  return upscaleMask(dense, r.thumbW, r.thumbH, src.width, src.height);
+}
+
 /** Máscara de persona (0-255) del tamaño de `src`. Vacía —todo ceros—
     si BodyPix no encuentra a nadie. */
 export async function segmentPerson(src){
   const t0 = performance.now();
-  const { rgba, w, h } = workThumb(src, 513, true);
-  const r = await runModel("segPerson", "person", { rgba, w, h }, [rgba.buffer], { title: "Buscando a la persona con IA" });
-  return { mask: upscaleMask(r.prob, r.w, r.h, src.width, src.height), ms: Math.round(performance.now() - t0) };
+  const r = await segmentTiled(src, { task: "segPerson", id: "person", title: "Buscando a la persona con IA", stride: 16, snap: true });
+  return { mask: toMask(r, src), ms: Math.round(performance.now() - t0) };
 }
 
 /** Máscara de cielo (0-255) del tamaño de `src`. `hasSky` distingue
-    «no hay cielo en la foto» de «hubo un fallo». `prob` (0-1, en la
-    rejilla del modelo, `pw`×`ph`) sirve para afinar el borde. */
+    «no hay cielo en la foto» de «hubo un fallo». */
 export async function segmentSky(src){
   const t0 = performance.now();
-  const { rgba, w, h } = workThumb(src, 513);
-  const r = await runModel("segSky", "sky", { rgba, w, h }, [rgba.buffer], { title: "Detectando el cielo con IA" });
-  return { mask: upscaleMask(r.prob, r.w, r.h, src.width, src.height), hasSky: r.hasSky, prob: r.prob, pw: r.w, ph: r.h,
-           ms: Math.round(performance.now() - t0) };
+  const r = await segmentTiled(src, { task: "segSky", id: "sky", title: "Detectando el cielo con IA", stride: 4, snap: false });
+  return { mask: toMask(r, src), hasSky: r.hasSky, ms: Math.round(performance.now() - t0) };
 }

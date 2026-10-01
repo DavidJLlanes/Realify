@@ -333,12 +333,26 @@ async function prepareFace(src, rgba, W, H, f){
     return o;
   };
   const m = { skin: up(r.groups.skin), eyes: up(r.groups.eyes), mouth: up(r.groups.mouth), lips: up(r.groups.lips) };
-  // Ojos: un poco agrandados (el borde del iris cuenta)
-  m.eyes = boxBlurFloat(m.eyes, w, h, Math.max(1, Math.round(f.w * 0.01))).map(v => Math.min(1, v * 1.6));
   // Luz lineal de la región y su «bajo» (suavizado que respeta bordes)
   const lin = [new Float32Array(n), new Float32Array(n), new Float32Array(n)];
   for(let y = 0; y < h; y++) for(let xx = 0; xx < w; xx++){ const i = ((y0 + y) * W + x0 + xx) * 4, p = y * w + xx; lin[0][p] = DEC[rgba[i]]; lin[1][p] = DEC[rgba[i + 1]]; lin[2][p] = DEC[rgba[i + 2]]; }
   const { guidedFilterAlpha } = await import("../editor/refineedge-math.js");
+  /* Resolución real del rostro (fase 3): si la cara es mayor que los 512
+     px del modelo, las zonas llegan ampliadas y con el borde borroso; un
+     filtro guiado por la propia foto las ajusta a los bordes reales de
+     labios, ojos y piel a la resolución de la foto. */
+  if(k < 0.9){
+    const I = new Float32Array(n);
+    for(let p = 0; p < n; p++) I[p] = Math.sqrt(0.2126 * lin[0][p] + 0.7152 * lin[1][p] + 0.0722 * lin[2][p]);
+    const gr = Math.max(2, Math.round(1.5 / k));
+    for(const key of ["skin", "eyes", "mouth", "lips"]){
+      const g = guidedFilterAlpha(I, m[key], w, h, gr, 0.0006);
+      for(let p = 0; p < n; p++) g[p] = g[p] < 0 ? 0 : g[p] > 1 ? 1 : g[p];
+      m[key] = g;
+    }
+  }
+  // Ojos: un poco agrandados (el borde del iris cuenta)
+  m.eyes = boxBlurFloat(m.eyes, w, h, Math.max(1, Math.round(f.w * 0.01))).map(v => Math.min(1, v * 1.6));
   const rad = Math.max(2, Math.round(f.w * 0.03));
   const low = lin.map(ch => guidedFilterAlpha(ch, ch, w, h, rad, 0.0012));
   // Luminancia de la boca para separar los dientes (lo claro)
@@ -388,7 +402,13 @@ export async function openFaceRetouch(){
   retouchOpen = true;
   const rgba = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
   let prepared = [];
-  try{ for(const f of faces) prepared.push(await prepareFace(src, rgba, W, H, f)); }
+  try{
+    // Varias caras: un solo aviso con su progreso y un Cancelar para todas
+    const { aiSession } = await import("../ai/runtime.js");
+    await aiSession(faces.length === 1 ? "Analizando la cara con IA" : `Analizando ${faces.length} caras con IA`, async step => {
+      for(let i = 0; i < faces.length; i++){ step(i, faces.length); prepared.push(await prepareFace(src, rgba, W, H, faces[i])); }
+    }, { unit: "cara" });
+  }
   catch(err){ retouchOpen = false; if(!err.cancelled && !/cancelad/.test(err.message)) toast("No se pudo analizar la cara: " + err.message, "err"); return; }
   const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
   await ensureShellStyles();
@@ -441,9 +461,11 @@ export async function openFaceRetouch(){
      · Bueno: la cara se recorta de la foto a resolución completa y se
        pega en luz lineal con un borde amplio y suave.
      · Mejor: si la cara es pequeña, la restauración se filtra antes de
-       reducirla (sin dientes de sierra); se le devuelve el color de piel
-       de la foto (GFPGAN tiende a cambiarlo) y el grano original, para
-       que no parezca una pegatina.
+       reducirla (sin dientes de sierra); si es mayor que los 512 px del
+       modelo, se le suma el detalle de la foto por encima de esa
+       resolución (no queda más blanda que el original); se le devuelve
+       el color de piel de la foto (GFPGAN tiende a cambiarlo) y el grano
+       original, para que no parezca una pegatina.
    Toca una cara para excluirla. El resultado va a una capa nueva. */
 const FFHQ = [[192.98138, 239.94708], [318.90277, 240.1936], [256.63416, 314.01935], [201.26117, 371.41043], [313.08905, 371.15118]];
 
@@ -510,6 +532,20 @@ function prepareRestored(M, out512, rgba, W, H){
   // Mismo color de piel que la foto (ganancia por canal, limitada)
   const gain = [0, 1, 2].map(c => cnt ? Math.min(1.25, Math.max(0.8, sum[3 + c] / Math.max(1e-5, sum[c]))) : 1);
   for(let c = 0; c < 3; c++) for(let p = 0; p < w * h; p++) col[c][p] *= gain[c];
+  /* Resolución real del rostro (fase 3): GFPGAN pinta la cara a 512 px.
+     Si en la foto es mayor, la restauración llega ampliada y más blanda
+     que el original; se le suma el detalle de la propia foto que queda
+     por encima de esa resolución (lo que el modelo no puede ver), así la
+     cara conserva la nitidez real de la foto. */
+  if(s < 0.9){
+    const rr = Math.max(1, Math.round(0.6 / s)), n2 = w * h;
+    for(let c = 0; c < 3; c++){
+      const o = new Float32Array(n2);
+      for(let y = 0; y < h; y++) for(let x = 0; x < w; x++) o[y * w + x] = DEC[rgba[((y0 + y) * W + x0 + x) * 4 + c]];
+      const low = boxBlurFloat(boxBlurFloat(o, w, h, rr), w, h, Math.max(1, rr >> 1));
+      for(let p = 0; p < n2; p++) if(m[p] > 0) col[c][p] = Math.max(0, col[c][p] + (o[p] - low[p]));
+    }
+  }
   return { x0, y0, w, h, m, col, grain: grainAt(rgba, W, x0, y0, w, h) };
 }
 

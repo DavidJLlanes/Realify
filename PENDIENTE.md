@@ -61,13 +61,16 @@ Las fotos de iPhone y de muchos Android vienen en P3; hasta la v199 todos los li
       pintura en P3 (selector y cuentagotas fuera de sRGB).
 - [ ] Pendiente: «Abrir en Realify» desde el revelador RAW en P3 (con la fase 4).
 
-## Fase 3 · IA a resolución completa por bloques
-Ampliar y colorear ya van por bloques; el resto se calcula reducido y se amplía.
-- [ ] Motor común de bloques: solape configurable, fundido, tamaño según memoria,
-      backend y modelo.
-- [ ] Profundidad (hoy 518 px) y máscaras de cielo y persona por bloques.
-- [ ] Caras (GFPGAN, retoque) a la resolución real del rostro.
-- [ ] Cancelar tareas de IA y progreso uniforme (mismos archivos; sin efecto en calidad).
+## Fase 3 · IA a resolución completa por bloques ✅ (v202)
+Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampliaba.
+- [x] Motor común de bloques (`js/ai/tiles.js`): solape, fundido con pesos, número de bloques
+      según el motor (GPU o no). Ampliar, colorear y restaurar siguen con su troceado. (v202)
+- [x] Profundidad por bloques alineados al mapa global; máscaras de cielo y persona por
+      bloques en la franja dudosa del borde. (v202)
+- [x] Caras (GFPGAN, retoque) a la resolución real del rostro. (v202)
+- [x] Cancelar tareas de IA de varias pasadas y progreso uniforme (`aiSession`). (v202)
+- [ ] Pendiente: Eliminar fondo (U²-Net, MODNet, ISNet) también por bloques o con refinado
+      de borde a resolución completa.
 
 ## Fase 4 · Entrada de alta profundidad
 - [ ] «Abrir en Realify» desde el revelador RAW sin bajar a 8 bits.

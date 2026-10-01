@@ -9,6 +9,29 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### IA a resolución completa por bloques
+- **Motor común de bloques** (`js/ai/tiles.js`): bloques que se solapan, fundido con pesos
+  suaves (nunca en el borde de la foto), número de bloques según el motor (más con GPU).
+- **Profundidad** (Desenfoque por profundidad, Niebla por distancia, Foto 3D): además de la
+  pasada global a 518 px, la foto a más resolución se parte en bloques; cada bloque se ajusta
+  por mínimos cuadrados a la escala del mapa global y se funden sin costuras. Las formas
+  grandes salen del mapa global y el detalle de los bloques: ahora aparecen los hilos de una
+  red, las cruces de un puente o las farolas, que a 518 px se perdían.
+- **Máscaras de cielo y de persona** (Seleccionar cielo, Reemplazar cielo, Seleccionar
+  sujeto): la pasada global decide dónde hay cielo o persona y los bloques, con hasta 4 veces
+  más detalle, afinan sólo la franja dudosa del borde (un bloque sin contexto no puede
+  confundir una pared azul con cielo).
+- **Caras a su resolución real**: en Restaurar caras, si la cara es mayor que los 512 px de
+  GFPGAN, se le devuelve el detalle de la foto por encima de esa resolución (antes quedaba más
+  blanda que el original). En Retoque de cara, las zonas (piel, ojos, labios) se ajustan con
+  un filtro guiado a los bordes reales a la resolución de la foto.
+- **Progreso y cancelar uniformes**: las operaciones de varias pasadas muestran un solo aviso
+  con «bloque i de n» y un Cancelar que para la operación entera (antes el aviso parpadeaba
+  en cada pasada y cancelar sólo paraba la pasada en curso).
+- **Detección real de la GPU**: con WebGPU en el navegador pero sin una GPU utilizable, el
+  motor pasaba a la CPU sin avisar y se elegían tamaños de bloque de GPU; ahora se comprueba
+  que hay adaptador antes de usarla.
+
 ### Enfoque avanzado / estabilizador: sin pixelar y con deconvolución real
 - **La vista previa ya no se queda pixelada**: se calculaba sobre una copia de 0,4 MP
   ampliada y así seguía hasta pulsar Aplicar. Ahora la copia reducida sólo se ve mientras se
