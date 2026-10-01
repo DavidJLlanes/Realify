@@ -31,6 +31,17 @@ const LEGAL_BODY = `<div class="guide">
     reclama ningún derecho sobre ellas, porque nunca salen de tu equipo ni
     llegan a verse desde fuera.</p>
 
+  <h3>Licencia y uso de la aplicación</h3>
+  <p>El código fuente de Realify se distribuye bajo la licencia
+    <b>PolyForm Noncommercial 1.0.0</b>: puede estudiarse, modificarse y
+    redistribuirse sólo con fines no comerciales; venderlo, integrarlo
+    en un producto o servicio de pago u ofrecer una copia o adaptación
+    con ánimo de lucro requiere autorización expresa del titular.</p>
+  <p>Esa limitación se refiere al código. <b>El uso de la aplicación en
+    <code>realify.es</code> está permitido para cualquier fin, también
+    profesional o comercial</b>: puedes editar con ella tus fotos o las de
+    tus clientes y usar el resultado como quieras.</p>
+
   <h3>Responsabilidad</h3>
   <p>Realify se ofrece tal cual, sin garantía de disponibilidad continua
     ni de idoneidad para un uso concreto. El uso de sus filtros y ajustes

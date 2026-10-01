@@ -628,6 +628,8 @@ Sin autorización expresa, no está permitido, entre otros usos:
 - monetizar una copia o adaptación mediante publicidad, suscripciones, licencias u otros ingresos;
 - revender o redistribuir comercialmente Realify bajo otra marca.
 
+**El uso de la aplicación publicada en [realify.es](https://realify.es) está permitido para cualquier fin, también profesional o comercial** (por ejemplo, editar fotos propias o de clientes y usar el resultado libremente). Este permiso adicional del titular cubre sólo el uso de la web oficial; la licencia no comercial se aplica al código fuente y a sus copias o adaptaciones.
+
 Los componentes de terceros conservan sus propias licencias y no quedan relicenciados por esta licencia:
 
 - LibRaw-Wasm (ISC) y LibRaw (LGPL-2.1 / CDDL-1.0): ver `raw/NOTICES.md`.

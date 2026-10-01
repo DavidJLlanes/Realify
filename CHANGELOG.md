@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Licencia: uso libre de la web
+- El código pasa a la licencia PolyForm Noncommercial 1.0.0. El Aviso legal de la app y el
+  README aclaran que esa limitación es para el código: usar la aplicación en realify.es está
+  permitido para cualquier fin, también profesional o comercial.
+
 ### Móvil: el zoom con dos dedos falla con Capas abiertas
 - Con Capas abiertas (y con la herramienta Mano), tocar la imagen sólo desplaza y amplía, y el
   doble toque alterna entre ajustar y 100 %. Los dos dedos de un pellizco se apoyan casi a la vez,
