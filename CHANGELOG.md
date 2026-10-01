@@ -9,6 +9,25 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Entrada de alta profundidad: los bits de la foto llegan a la exportación
+- **La capa de fondo guarda los bits reales de la foto** cuando trae más de 8 por canal
+  (`js/core/hisrc.js`); el lienzo sigue siendo de 8 bits y la exportación en coma flotante
+  decide píxel a píxel: donde el lienzo sigue igual que el original usa sus 16 bits; donde
+  se ha pintado, clonado o filtrado, lo que hay en la capa (deshacer lo devuelve al original).
+- **Abrir en Realify desde el revelador RAW** (Premium): el revelado llega con sus 16 bits por
+  canal, con el mismo tramado de siempre en el lienzo.
+- **PNG y TIFF de 16 bits** (RGB, RGBA y gris; TIFF sin comprimir, LZW, Deflate, intel y
+  motorola) con un lector propio (`js/io/hidepth.js`), y **AVIF de 10 y 12 bits** con el
+  decodificador libavif + dav1d de jSquash (Apache-2.0 y BSD, 1,2 MB, sólo se carga para esos
+  archivos). Los bits se aceptan sólo si coinciden con lo que decodifica el navegador, que
+  aplica el perfil de color del archivo.
+- Resultado medido con una foto oscura de 16 bits y +2,5 EV de exposición en una capa de
+  ajuste: error medio de 0,001 niveles frente al cálculo ideal (0,69 partiendo de 8 bits, que
+  es lo que se ve como bandas); en las sombras, 7 827 niveles distintos frente a 31.
+- **Exportar** marca de entrada «Alta precisión» y «Tramado a 8 bits» cuando la foto trae
+  más de 8 bits, y lo explica.
+- Tope de memoria: hasta 12 MP en móviles y 32 MP en ordenador (6 bytes por píxel).
+
 ### IA a resolución completa por bloques
 - **Motor común de bloques** (`js/ai/tiles.js`): bloques que se solapan, fundido con pesos
   suaves (nunca en el borde de la foto), número de bloques según el motor (más con GPU).

@@ -1018,7 +1018,11 @@ const TOPICS = [
           otro día; una imagen abierta directamente empieza como una sola capa. Si la foto trae
           colores de <b>gama amplia</b> (Display P3, como las de iPhone y muchos Android) y el
           navegador lo permite, el documento trabaja en <b>Display P3</b> para no perder esos rojos,
-          verdes y naranjas intensos; se avisa al abrirla.</li>
+          verdes y naranjas intensos; se avisa al abrirla. Si trae <b>más de 8 bits por canal</b>
+          (PNG o TIFF de 16 bits, AVIF de 10 o 12 bits, o un RAW abierto desde el revelador con
+          Premium), la capa de fondo guarda esos bits («· 16 bits por canal» al abrir) y Exportar
+          los usa con «Alta precisión», ya marcada: sin bandas en cielos y sombras aunque apliques
+          ajustes fuertes. Donde pintes o retoques, cuenta lo que hay en la capa.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas

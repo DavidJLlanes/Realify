@@ -27,6 +27,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc } from "./doc.js";
+import { fillBand } from "./hisrc.js";
 import { buildLayerTree, flatten } from "../editor/layertree.js";
 import { ADJUST_TYPES, exposureFunction } from "../editor/adjustlayers.js";
 import { levelsFunctions, wbGains } from "../editor/adjustments.js";
@@ -272,9 +273,12 @@ function effectiveMask(layer){
 function readBand(canvas, y0, w, bh){
   return canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, y0, w, bh).data;
 }
-/* Píxeles de una capa → Float32 premultiplicado */
-function layerBand(canvas, y0, w, bh){
-  const d = readBand(canvas, y0, w, bh), out = new Float32Array(d.length);
+/* Píxeles de una capa → Float32 premultiplicado. Si la capa trae un
+   origen de 16 bits (RAW, PNG/TIFF de 16 bits, AVIF de 10/12 bits; ver
+   core/hisrc.js), los píxeles sin tocar salen de ahí. */
+function layerBand(layer, y0, w, bh){
+  const d = readBand(layer.canvas, y0, w, bh), out = new Float32Array(d.length);
+  if(layer.hiSrc){ fillBand(layer, d, out, y0, w, bh); return out; }
   for(let i = 0; i < d.length; i += 4){
     const a = d[i + 3] / 255;
     if(a <= 0) continue;
@@ -335,7 +339,7 @@ function composeLevel(nodes, out, y0, w, bh, fns){
       src = new Float32Array(n * 4);
       composeLevel(node.children || [], src, y0, w, bh, fns);
     } else {
-      src = layerBand(l.canvas, y0, w, bh);
+      src = layerBand(l, y0, w, bh);
     }
     const mk = maskBand(l, y0, w, bh);
     if(mk) for(let p = 0, i = 0; p < n; p++, i += 4){ const k = mk[p]; src[i] *= k; src[i + 1] *= k; src[i + 2] *= k; src[i + 3] *= k; }

@@ -9,6 +9,7 @@ import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
+import { docHasHi } from "../core/hisrc.js";
 import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 export { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 
@@ -349,6 +350,10 @@ export async function exportDialog(){
       const precision = body.querySelector("#exPrecision");
       const precisionHint = body.querySelector("#exPrecisionHint");
       const dither = body.querySelector("#exDither");
+      /* La foto trae más de 8 bits (RAW, PNG/TIFF de 16, AVIF de 10/12):
+         alta precisión y tramado de entrada, para que lleguen al archivo. */
+      const hasHi = docHasHi(doc.layers);
+      if(hasHi){ precision.checked = true; dither.checked = true; }
       const weightRow = body.querySelector("#exWeightRow");
       const cleanHint = body.querySelector("#exCleanHint");
       const q    = body.querySelector("#exQ");
@@ -384,7 +389,7 @@ export async function exportDialog(){
         /* 16 bits: siempre alta precisión y sin tramado (no hace falta) */
         if(is16(type.value)){
           precision.checked=true;precision.disabled=true;dither.disabled=true;
-          precisionHint.textContent=possible.ok?"16 bits por canal: capas y ajustes recompuestos en coma flotante, sin redondear a 8 bits.":`No disponible: ${possible.reason}.`;
+          precisionHint.textContent=possible.ok?(hasHi?"16 bits por canal con los bits reales de la foto original: capas y ajustes recompuestos en coma flotante.":"16 bits por canal: capas y ajustes recompuestos en coma flotante, sin redondear a 8 bits."):`No disponible: ${possible.reason}.`;
           return;
         }
         precision.disabled=!possible.ok||clean.checked;
@@ -393,6 +398,7 @@ export async function exportDialog(){
         dither.disabled=precision.disabled||!precision.checked;
         if(clean.checked)precisionHint.textContent="La exportación limpia prioriza el peso y utiliza el motor rápido.";
         else if(!possible.ok)precisionHint.textContent=`Se usará el motor compatible: ${possible.reason}.`;
+        else if(hasHi)precisionHint.textContent="La foto original tiene más de 8 bits por canal: con alta precisión se usan al exportar (sin bandas en cielos y sombras).";
         else precisionHint.textContent=`Disponible en este dispositivo${cap.webgpu?" · WebGPU detectada para futuras aceleraciones":" · cálculo CPU compatible"}. La vista previa sigue siendo rápida.`;
       };
 

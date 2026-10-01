@@ -97,15 +97,16 @@ export class RenderWorker {
     }
     return out;
   }
-  /* 16 bits por canal a resolución original, RGB entrelazado. */
-  async render16(settings, width, height, onProgress = ()=>{}) {
-    const out=new Uint16Array(width*height*3);
-    const rows=Math.max(1,Math.min(256,Math.floor(262144/Math.max(1,width))));
-    for(let d0=0;d0<height;d0+=rows){
-      const d1=Math.min(height,d0+rows);
-      const px=await this.request('premium',{settings,d0,d1,outW:width,outH:height,bits:16});
-      out.set(px,d0*width*3);
-      onProgress(Math.round(d1/height*100));
+  /* 16 bits por canal, RGB entrelazado, a outW×outH (por defecto, a
+     resolución original). */
+  async render16(settings, width, height, onProgress = ()=>{}, outW = width, outH = height) {
+    const out=new Uint16Array(outW*outH*3);
+    const rows=Math.max(1,Math.min(256,Math.floor(262144*outH/height/Math.max(1,width))));
+    for(let d0=0;d0<outH;d0+=rows){
+      const d1=Math.min(outH,d0+rows);
+      const px=await this.request('premium',{settings,d0,d1,outW,outH,bits:16});
+      out.set(px,d0*outW*3);
+      onProgress(Math.round(d1/outH*100));
     }
     return out;
   }

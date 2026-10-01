@@ -138,7 +138,7 @@ el pulgar. Instalable y disponible sin conexión.
 
 | Función | Qué hace |
 |---|---|
-| **Abrir imagen** | Nueve familias explícitas: JPEG, PNG, WebP, BMP, SVG, TIFF, HEIC, HEIF y PSD (con capas). Las fotos con colores de gama amplia (Display P3) se detectan y el documento trabaja en P3 si el navegador lo permite. Se reconocen además 40 extensiones RAW que se envían al revelador; otros `image/*` dependen del navegador. También se puede arrastrar y soltar o pegar desde el portapapeles. |
+| **Abrir imagen** | Nueve familias explícitas: JPEG, PNG, WebP, BMP, SVG, TIFF, HEIC, HEIF y PSD (con capas). PNG y TIFF de 16 bits, AVIF de 10/12 bits y el RAW revelado con Premium conservan sus bits en la capa base para la exportación en coma flotante (`js/core/hisrc.js`, `js/io/hidepth.js`). Las fotos con colores de gama amplia (Display P3) se detectan y el documento trabaja en P3 si el navegador lo permite. Se reconocen además 40 extensiones RAW que se envían al revelador; otros `image/*` dependen del navegador. También se puede arrastrar y soltar o pegar desde el portapapeles. |
 | **Cargar archivos en pila** | Abre varias imágenes como capas de un mismo documento. |
 | **Documento nuevo** | Lienzo vacío del tamaño elegido. |
 | **Collage / History / Post** | Composiciones para redes creadas como documento nuevo (ver [módulos especiales](#collage--history--post--socialmediapost)). |

@@ -26,6 +26,24 @@ export function outputSharpen(canvas, scale){
   x.putImageData(img, 0, 0);
 }
 
+/* Lo mismo sobre RGB de 16 bits (Uint16, entrelazado): la salida para
+   «Abrir en Realify» con los 16 bits (fase 4). */
+export function outputSharpen16(data, w, h, scale){
+  if(!(scale < 0.98)) return;
+  const amount = Math.min(0.6, 0.15 + 0.6 * (1 - scale)), lim = 8 * 257;
+  const Y = new Float32Array(w * h);
+  for(let i = 0; i < w * h; i++) Y[i] = 0.2126 * data[i*3] + 0.7152 * data[i*3+1] + 0.0722 * data[i*3+2];
+  for(let yy = 0; yy < h; yy++){
+    const ym = Math.max(0, yy - 1), yp = Math.min(h - 1, yy + 1);
+    for(let xx = 0; xx < w; xx++){
+      const xm = Math.max(0, xx - 1), xp = Math.min(w - 1, xx + 1);
+      const b = (Y[ym*w+xm] + 2 * Y[ym*w+xx] + Y[ym*w+xp] + 2 * Y[yy*w+xm] + 4 * Y[yy*w+xx] + 2 * Y[yy*w+xp] + Y[yp*w+xm] + 2 * Y[yp*w+xx] + Y[yp*w+xp]) / 16;
+      const i = yy * w + xx, delta = Math.max(-lim, Math.min(lim, (Y[i] - b) * amount));
+      for(let c = 0; c < 3; c++){ const v = Math.round(data[i*3+c] + delta); data[i*3+c] = v < 0 ? 0 : v > 65535 ? 65535 : v; }
+    }
+  }
+}
+
 export function tiff16(pixels, width, height){
   const entries = [];
   const tag = (id, type, count, value) => entries.push({ id, type, count, value });

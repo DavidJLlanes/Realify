@@ -36,6 +36,18 @@ async function decodeImage(file){
   }
 }
 
+async function keepHighDepth(file, bmp, w, h){
+  try{
+    const { decodeHighDepth } = await import("./hidepth.js");
+    const hi = await decodeHighDepth(file);
+    if(!hi) return 0;
+    const H = await import("../core/hisrc.js");
+    if(!H.hiAllowed(w, h) || !H.matchesImage(bmp, hi.data, hi.w, hi.h, hi.kind === "avif" ? { mean: 1, worst: 2.5, far: 0.005 } : undefined)) return 0;
+    const data = H.resizeHi(hi.data, hi.w, hi.h, w, h);
+    return H.adoptHi(doc.layers[0], data, w, h) ? hi.bits : 0;
+  }catch(err){ console.warn("[alta profundidad]", err); return 0; }
+}
+
 /* Límite de tamaño: ver `docSizeLimit` en core/device.js. */
 const limitFor = docSizeLimit;
 
@@ -74,13 +86,17 @@ export async function openFile(file){
       source: { w: bmp.width, h: bmp.height, type: file.type, size: file.size,
                 name: file.name, file, exif }
     });
+    /* Más de 8 bits (PNG/TIFF de 16, AVIF de 10/12): la capa base guarda
+       también esos datos para la exportación en coma flotante, si
+       coinciden con lo que ha decodificado el navegador (core/hisrc.js). */
+    const bits = await keepHighDepth(file, bmp, w, h);
     if(typeof bmp.close === "function") bmp.close();
     clearHistory();
     clearSnapshots();
     empty.classList.add("hide");
     toast((limited
       ? `Abierta a ${w} × ${h} (reducida para esta pantalla)`
-      : `${file.name} · ${w} × ${h}`) + (wide ? " · color de gama amplia (Display P3)" : ""));
+      : `${file.name} · ${w} × ${h}`) + (bits ? ` · ${bits} bits por canal` : "") + (wide ? " · color de gama amplia (Display P3)" : ""));
   }catch(err){
     console.error(err);
     toast("No se pudo leer ese archivo" + (err?.message ? ": " + err.message : ""), "err");

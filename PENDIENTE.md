@@ -72,10 +72,15 @@ Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampl
 - [ ] Pendiente: Eliminar fondo (U²-Net, MODNet, ISNet) también por bloques o con refinado
       de borde a resolución completa.
 
-## Fase 4 · Entrada de alta profundidad
-- [ ] «Abrir en Realify» desde el revelador RAW sin bajar a 8 bits.
-- [ ] Conservar los 16 bits de TIFF y PNG, y los 10 bits de AVIF, como fuente de la capa
-      base.
+## Fase 4 · Entrada de alta profundidad ✅ (v203)
+- [x] «Abrir en Realify» desde el revelador RAW (Premium) sin bajar a 8 bits: la capa guarda
+      los 16 bits del revelado. (v203)
+- [x] Conservar los 16 bits de TIFF y PNG, y los 10/12 bits de AVIF, como origen de la capa
+      base (`js/core/hisrc.js`, `js/io/hidepth.js`); la exportación en coma flotante los usa
+      píxel a píxel donde la capa no se ha tocado. (v203)
+- [ ] Pendiente: revelado RAW sin Premium (motor GPU de 8 bits) y RAW en Display P3.
+- [ ] Pendiente: guardar el origen de 16 bits en el proyecto `.realify` y conservarlo al
+      recortar o girar (hoy se descarta); el documento entero en 16 bits es la fase 14.
 
 ## Fase 5 · Profundidad como herramienta
 Reutiliza Depth Anything V2 (ya están Desenfoque por profundidad, Niebla y Foto 3D).

@@ -11,6 +11,7 @@ import { emit } from "../js/core/bus.js";
 import { commitFilter, filterBase } from "../js/editor/filterlayer.js";
 import { docSizeLimit } from "../js/core/device.js";
 import { premiumPref } from "../js/ui/premium.js";
+import { attachHi } from "../js/core/hisrc.js";
 
 const canvasCopy=source=>{const c=document.createElement("canvas");c.width=source.width;c.height=source.height;c.getContext("2d",{willReadFrequently:true}).drawImage(source,0,0);return c;};
 
@@ -46,7 +47,11 @@ export async function openRawFile(file) {
          24 MP ese buffer puede superar 100 MB y mantenerlo durante el
          primer repintado provocaba cierres por presión de memoria. */
       decoder.dispose();
-      newDoc(result.width,result.height,{image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});clearHistory();clearSnapshots();emit("doc:change");toast(limited?`RAW revelado y abierto a ${result.width} × ${result.height} (reducido para esta pantalla)`:"RAW revelado y abierto en Realify","ok");
+      const hi=result.hi16;
+      const base=newDoc(result.width,result.height,{image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});
+      // Premium: la capa conserva los 16 bits del revelado (js/core/hisrc.js)
+      const kept=!!(hi&&attachHi(base,hi.data,hi.w,hi.h));delete result.hi16;
+      clearHistory();clearSnapshots();emit("doc:change");toast((limited?`RAW revelado y abierto a ${result.width} × ${result.height} (reducido para esta pantalla)`:"RAW revelado y abierto en Realify")+(kept?" · 16 bits por canal":""),"ok");
     }});
     // The developer owns the linear source now; do not retain the first
     // decode after engine settings replace it with a new one.

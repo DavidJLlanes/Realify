@@ -7,7 +7,8 @@ import { isLinearSource, linearReader } from './source.js';
 import { PIPETTE_SVG } from '../js/ui/wbpick.js';
 import { SRGB_TO_2020 } from './premium/core.js';
 import { premiumSwitch, premiumPref, dockPremium } from "../js/ui/premium.js";
-import { outputSharpen, tiff16 } from "./premium/output.js";
+import { outputSharpen, outputSharpen16, tiff16 } from "./premium/output.js";
+import { canvasFromHi, hiAllowed } from "../js/core/hisrc.js";
 
 const canvasCopy = source => {
   const canvas=document.createElement("canvas"); canvas.width=source.width; canvas.height=source.height;
@@ -200,7 +201,15 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
         workingSource=null;
         const [outW,outH]=outputSize?outputSize(width,height):[width,height];
         const progress=percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;};
-        if(settings.premium){
+        if(settings.premium&&hiAllowed(outW,outH)){
+          /* Premium: el revelado llega al editor con sus 16 bits por canal
+             (fase 4): el lienzo es su redondeo a 8 y la capa guarda los 16
+             para la exportación en coma flotante (js/core/hisrc.js). */
+          const pixels=await finalWorker.render16(settings,width,height,progress,outW,outH);
+          outputSharpen16(pixels,outW,outH,outW/width);
+          result=canvasFromHi(pixels,outW,outH);
+          result.hi16={data:pixels,w:outW,h:outH};
+        }else if(settings.premium){
           result=await finalWorker.renderPremium(settings,width,height,progress,outW,outH);
           outputSharpen(result,outW/width);
         }else result=await finalWorker.renderToCanvas(settings,width,height,progress,outW,outH);

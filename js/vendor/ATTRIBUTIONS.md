@@ -23,7 +23,7 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 
 # Codificadores de exportación
 
-- `avif/`: codificador AVIF de Squoosh (libavif + libaom) empaquetado por @jsquash/avif 2.1.1, copyright Google Inc. y colaboradores, licencia Apache-2.0. Se carga sólo al exportar en AVIF.
+- `avif/`: codificador AVIF de Squoosh (libavif + libaom) empaquetado por @jsquash/avif 2.1.1, copyright Google Inc. y colaboradores, licencia Apache-2.0. Se carga sólo al exportar en AVIF. Incluye también su decodificador (libavif + dav1d, Apache-2.0 y BSD-2-Clause), que sólo se carga al abrir un AVIF de 10 o 12 bits.
 - `gifenc/`: gifenc 1.0.3, copyright Matt DesLauriers, licencia MIT. GIF animados.
 - El PDF lo genera `js/io/formats.js` sin bibliotecas (una imagen JPEG por página).
 - `js/filters/unmark/` (código propio): adapta conceptos y heurísticas de [wiltodelta/remove-ai-watermarks](https://github.com/wiltodelta/remove-ai-watermarks), licencia Apache-2.0 (https://www.apache.org/licenses/LICENSE-2.0); ver la nota de procedencia al principio de cada archivo.
