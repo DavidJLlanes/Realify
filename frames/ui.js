@@ -100,15 +100,30 @@ export function openFramesEditor({ source, onAccept }){
     [...cats.children].forEach(n=>n.classList.toggle("on",n.dataset.category===category));
     renderGrid();renderControls();syncValues();fitPreview();
   }
-  catSel.onchange=()=>choose(framesInCategory(catSel.value)[0]);
-  frameSel.onchange=()=>choose(frameById(frameSel.value));
+  catSel.onchange=()=>{choose(framesInCategory(catSel.value)[0]);catSel.blur();};
+  frameSel.onchange=()=>{choose(frameById(frameSel.value));frameSel.blur();};
   range.oninput=()=>{width=+range.value;syncValues();fitPreview();};
   colors[0].oninput=()=>{primary=colors[0].value;syncValues();fitPreview();};
   colors[1].oninput=()=>{secondary=colors[1].value;syncValues();fitPreview();};
+  colors.forEach(input=>input.onchange=()=>input.blur());
   choose(preset);
+  // iOS puede reducir la zona visible al mostrar sus barras o selectores nativos.
+  const viewport=window.visualViewport;
+  function fitViewport(){
+    if(viewport&&viewport.scale===1){
+      root.style.top=viewport.offsetTop+"px";root.style.left=viewport.offsetLeft+"px";
+      root.style.width=viewport.width+"px";root.style.height=viewport.height+"px";
+      root.style.bottom="auto";root.style.right="auto";
+    }else{
+      for(const key of ["top","left","width","height","bottom","right"])root.style[key]="";
+    }
+    fitStage();
+  }
+  viewport?.addEventListener("resize",fitViewport);viewport?.addEventListener("scroll",fitViewport);
+  fitViewport();
   const resize=new ResizeObserver(fitStage);resize.observe(stage);
 
-  const cleanup=()=>{resize.disconnect();root.remove();window.removeEventListener("keydown",key);};
+  const cleanup=()=>{viewport?.removeEventListener("resize",fitViewport);viewport?.removeEventListener("scroll",fitViewport);resize.disconnect();root.remove();window.removeEventListener("keydown",key);};
   const key=e=>{if(e.key==="Escape")cleanup();};window.addEventListener("keydown",key);
   cancel.onclick=closeM.onclick=cleanup;
   const accept=async()=>{apply.disabled=applyM.disabled=true;try{await onAccept(preset,{width,primary,secondary});cleanup();}catch(e){console.error(e);apply.disabled=applyM.disabled=false;}};

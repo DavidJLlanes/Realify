@@ -1444,9 +1444,11 @@ const TOPICS = [
         <li id="sp-frames"><b>Marcos…</b> 138 modelos en 12 categorías. <b>Básicos</b>
           incluye Liso, con un único color; <b>De autor</b> reúne 16 diseños como kintsugi,
           vitral, origami, constelación y holográfico. Diamond y Heart dibujan sus motivos
-          en los cuatro lados. Elige modelo, anchura y colores en escritorio o móvil;
+          en los cuatro lados. Todos los modelos respetan los colores elegidos; los de un
+          solo color muestran únicamente el mando principal. Elige modelo, anchura y
+          colores en escritorio o móvil;
           los ajustes se conservan al cambiar de modo. La vista previa muestra el marco
-          completo. Aplicar amplía el lienzo y añade una capa exterior sin tapar la foto;
+          completo y los mandos se adaptan al área visible del navegador. Aplicar amplía el lienzo y añade una capa exterior sin tapar la foto;
           deshacer recupera también el tamaño anterior.</li>
         <li id="sp-vintage"><b>Filtro Vintage…</b> 42 modificadores en siete grupos (virados, color,
           tono, luz y película, daños, bordes, óptica) y <b>215 estilos</b> en 19 categorías:

@@ -412,7 +412,8 @@ conserva el tono, tinte y saturación en OKLab con mapeo de gama y tramado a 8 b
 **138 modelos en 12 categorías**, con un marco Liso de color único y 16 diseños
 de autor: kintsugi, vitral, origami, constelación, holográfico y otros. Diamond y
 Heart utilizan motivos vectoriales en los cuatro lados. Anchura y colores
-editables en móvil y escritorio, con vista previa completa. El marco amplía el
+editables en todos los modelos, tanto en móvil como en escritorio. La vista
+previa y los mandos se adaptan al área visible del navegador. El marco amplía el
 lienzo, conserva la fotografía y se añade en una capa independiente; deshacer
 recupera el tamaño anterior. Detalles en [`frames/README.md`](frames/README.md).
 

@@ -46,3 +46,10 @@ sincronización entre modos y conservación exacta de la foto a resolución comp
 El comprobador general de calidad también marca «detalle bajo» en el plugin
 original: compara la capa de marco, sin fotografía, con el detalle de la foto.
 La regresión específica verifica por separado los píxeles de ambas capas.
+
+Desde v225, todas las familias utilizan los colores de los mandos: materiales,
+texturas y luces se conservan, pero no sobrescriben la paleta elegida. Los modelos
+minimalistas con un único color ocultan el secundario. La regresión comprueba que
+cada mando visible cambia los píxeles y revisa Electric en los dos modos.
+El editor sigue `visualViewport` y retira el foco de los selectores al elegir,
+para mantener sus mandos dentro del área disponible del navegador móvil.

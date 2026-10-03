@@ -93,6 +93,7 @@ const legacyPresets=defs.flatMap(([category,prefix,names])=>
     id:`${category}-${String(i+1).padStart(2,"0")}`,
     label:`${prefix} · ${name[0].toUpperCase()+name.slice(1)}`,
     category,family:category,variant:i,width:widths[category][i],
+    singleColor:category==="minimal"&&[0,4,5,6,8,9].includes(i),
     primary:palettes[category][i][0],secondary:palettes[category][i][1]
   }))
 );

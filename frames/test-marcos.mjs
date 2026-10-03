@@ -40,6 +40,18 @@ try{
       const second=x.getImageData(0,0,c.width,c.height).data;
       assert(first.every((v,i)=>v===second[i]),p.id+': resultado no reproducible');renders++;
     }
+    // Cada mando visible debe alterar los píxeles: evita paletas fijas ocultas.
+    for(const preset of FRAME_PRESETS){
+      const cv=document.createElement('canvas');cv.width=240;cv.height=180;
+      const ctx=cv.getContext('2d',{willReadFrequently:true});
+      const opts={primary:'#214569',secondary:'#c98532',borderPx:20,contentRect:{x:20,y:20,w:200,h:140}};
+      drawFrame(ctx,preset,240,180,opts);const before=ctx.getImageData(0,0,240,180).data;
+      for(const key of preset.singleColor?['primary']:['primary','secondary']){
+        drawFrame(ctx,preset,240,180,{...opts,[key]:'#e926a8'});
+        const after=ctx.getImageData(0,0,240,180).data;
+        assert(before.some((v,i)=>v!==after[i]),preset.id+': ignora '+key);
+      }
+    }
     const c=document.createElement('canvas');c.width=400;c.height=300;const x=c.getContext('2d',{willReadFrequently:true});
     drawFrame(x,frameById('basic-solid'),400,300,{primary:'#25ab73',borderPx:30,contentRect:{x:30,y:30,w:340,h:240}});
     const data=x.getImageData(0,0,400,300).data;
@@ -57,8 +69,9 @@ try{
     return {modelos:FRAME_PRESETS.length,renders};
   });
   console.log('APTO · geometría/color/recorte/reproducibilidad ·',checks);await page.close();
-  for(const mobile of [false,true]){
-    const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:800},isMobile:mobile,hasTouch:mobile});
+  for(const viewport of [{width:1280,height:800},{width:390,height:844},{width:820,height:1180}]){
+    const mobile=viewport.width<=900,mode=mobile?(viewport.width>600?"tableta":"móvil"):"escritorio";
+    const context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile});
     const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'/index.html');await p.waitForTimeout(1200);
     await p.evaluate(async()=>{
       const {doc,newDoc}=await import('/js/core/doc.js');newDoc(1800,1200);
@@ -74,7 +87,7 @@ try{
     await p.setViewportSize(mobile?{width:1280,height:800}:{width:390,height:844});
     const other=p.locator(mobile?'.fr-side.right [data-primary]':'.fr-mobile [data-primary]');
     if(await other.inputValue()!=='#25ab73')throw new Error('Color sin sincronizar');
-    await p.setViewportSize(mobile?{width:390,height:844}:{width:1280,height:800});
+    await p.setViewportSize(viewport);
     const apply=p.locator(mobile?'.fr-mobile-row .primary':'.fr-head .primary');await apply.click();
     const result=await p.evaluate(async()=>{
       const {doc}=await import('/js/core/doc.js');const frame=doc.layers.at(-1),pad=frame.frameMeta.pad;
@@ -98,9 +111,35 @@ try{
       if(r.top<s.top||r.bottom>s.bottom+.5||r.left<s.left||r.right>s.right+.5)throw new Error('Vista previa cortada');
       if(Math.abs(r.width/r.height-c.width/c.height)>.01)throw new Error('Vista previa deformada');
     });
-    if(process.env.FRAMES_REVIEW_DIR)await p.screenshot({path:path.join(process.env.FRAMES_REVIEW_DIR,mobile?'movil.png':'escritorio.png')});
+    if(process.env.FRAMES_REVIEW_DIR)await p.screenshot({path:path.join(process.env.FRAMES_REVIEW_DIR,mode+'.png')});
     await p.locator(mobile?'.fr-mobile-row .primary':'.fr-head .primary').click();
     if(errors.length)throw new Error(errors.join('\n'));
-    console.log('APTO · '+(mobile?'móvil':'escritorio')+' ·',result);await context.close();
+    await p.evaluate(async()=>{await (await import('/frames/index.js')).openFrames();});
+    if(mobile){await p.locator('.fr-mobile select').first().selectOption('color');await p.locator('.fr-mobile select').nth(1).selectOption('color-11');}
+    else{await p.locator('[data-category="color"]').click();await p.locator('.fr-card').filter({hasText:'Electric'}).click();}
+    const host=mobile?'.fr-mobile':'.fr-side.right';
+    await p.locator(host+' [data-primary]').fill('#12ab34');await p.locator(host+' [data-secondary]').fill('#ef3267');
+    await p.evaluate(()=>{
+      const cv=document.querySelector('.fr-stage canvas'),ctx=cv.getContext('2d');
+      const top=ctx.getImageData(Math.floor(cv.width/2),2,1,1).data,bottom=ctx.getImageData(Math.floor(cv.width/2),cv.height-3,1,1).data;
+      if(top[1]<top[0]||bottom[0]<bottom[1])throw new Error('Electric ignora los colores');
+    });
+    if(mobile){
+      await p.evaluate(()=>{
+        window.testViewport=new EventTarget();Object.assign(window.testViewport,{width:innerWidth,height:innerHeight-110,offsetTop:0,offsetLeft:0,scale:1});
+        window.realViewport=window.visualViewport;Object.defineProperty(window,'visualViewport',{configurable:true,value:window.testViewport});
+        document.querySelector('.fr-mobile-row .fr-btn').click();
+      });
+      await p.evaluate(async()=>{await (await import('/frames/index.js')).openFrames();});
+      await p.evaluate(()=>{window.testViewport.height-=60;window.testViewport.dispatchEvent(new Event('resize'));});
+      await p.waitForTimeout(100);
+      await p.evaluate(()=>{
+        const root=document.querySelector('.fr-root').getBoundingClientRect(),row=document.querySelector('.fr-mobile-row').getBoundingClientRect();
+        if(root.bottom>window.testViewport.height+.5||row.bottom>root.bottom+.5)throw new Error('Controles tapados al reducir el área visible');
+        document.querySelector('.fr-mobile-row .fr-btn').click();
+        Object.defineProperty(window,'visualViewport',{configurable:true,value:window.realViewport});
+      });
+    }
+    console.log('APTO · '+mode+' · colores, zona visible y',result);await context.close();
   }
 }finally{await browser.close();server.close();}

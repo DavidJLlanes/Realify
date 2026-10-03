@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v225 · Colores y controles de Marcos
+- Todos los marcos utilizan los colores elegidos; se eliminan las paletas fijas que ignoraban los mandos, incluido Color · Electric.
+- Los modelos minimalistas de un solo color ocultan el mando secundario sin efecto.
+- El editor sigue el área visible del navegador al cambiar sus barras o selectores nativos; al elegir una opción se retira el foco del selector.
+- Pruebas de los 138 modelos: cada color visible cambia los píxeles; Electric respeta ambos colores en móvil y escritorio. Se comprueban los mandos dentro de un área visible reducida y la conservación de la foto.
+- VERSION, version.json, caché y URLs de carga sincronizados en v225, pendiente de publicación.
+
 ### v224 · Marcos
 - **138 modelos en 12 categorías**: marco Liso de color único, Heart geométrico y 16 diseños de autor (kintsugi, vitral, origami, constelación, holográfico y otros).
 - **Diamond y corazones corregidos**: motivos vectoriales simétricos distribuidos en los cuatro lados, sin depender de caracteres de una fuente.
