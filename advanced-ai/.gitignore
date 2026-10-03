@@ -1,0 +1,13 @@
+# Los pesos se descargan en el PC del usuario, nunca al repositorio.
+models/**/*.pth
+models/**/*.part
+
+# Datos temporales del servicio local.
+local-service/runtime/
+local-service/__pycache__/
+engines/__pycache__/
+**/*.pyc
+
+# Entornos locales.
+local-service/.venv/
+local-service/venv/
