@@ -4,14 +4,14 @@ Servicio CUDA/PyTorch del proyecto `advanced-ai/`.
 
 ## Fase actual
 
-**Fase 2:** detección de GPU + upscale Real-ESRGAN ×2/×4 con tiling, progreso, cancelación y transporte RGB16.
+**Fase 3:** Upscale + Denoise + Deblur con CUDA, tiling, progreso, cancelación y transporte RGB16.
 
 ## Instalación de desarrollo
 
 Se recomienda Python 3.11 o 3.12 en Windows.
 
 1. Crear y activar un entorno virtual.
-2. Instalar **PyTorch + torchvision con CUDA** usando el selector oficial de PyTorch para la versión CUDA recomendada en ese momento.
+2. Instalar **PyTorch + torchvision con CUDA** usando el selector oficial de PyTorch.
 3. Instalar el resto:
 
 ```bash
@@ -35,6 +35,7 @@ http://127.0.0.1:17834
 ```text
 GET    /status
 POST   /jobs/upscale
+POST   /jobs/restore
 GET    /jobs/{id}
 DELETE /jobs/{id}
 GET    /jobs/{id}/result
@@ -42,22 +43,23 @@ GET    /jobs/{id}/result
 
 ## Modelos
 
-Los pesos no se cargan al arrancar Realify. Se descargan en el primer uso y permanecen dentro de:
+Todos los pesos están bajo `advanced-ai/models/` y se descargan sólo al primer uso.
 
-```text
-advanced-ai/models/upscale/
-```
+### Upscale
 
-Modelos de Fase 2:
+- RealESRGAN_x2plus
+- RealESRGAN_x4plus
 
-- RealESRGAN_x2plus — ×2.
-- RealESRGAN_x4plus — ×4.
+### Restauración
 
-Cada descarga se valida con el tamaño esperado y **SHA-256** antes de ser usada. Si falla la comprobación, el peso no se carga.
+- NAFNet-SIDD-width64 — reducción de ruido.
+- NAFNet-GoPro-width64 — deblur.
+
+Los pesos NAFNet se descargan desde los enlaces oficiales publicados por el repositorio de NAFNet. Al cargarlos se comprueba que el checkpoint contiene un state_dict compatible con la arquitectura exacta configurada; la carga es estricta.
 
 ## Precisión
 
-Cuando Realify puede recomponer el documento mediante su pila de alta precisión:
+Cuando Realify puede recomponer el documento en alta precisión:
 
 ```text
 capas / hiSrc
@@ -66,18 +68,18 @@ RGB16 sRGB
     ↓
 Realify AI Local
     ↓
-Real-ESRGAN CUDA FP16
+PyTorch + CUDA
     ↓
 RGB16
     ↓
-canvas de previsualización + hiSrc de 16 bits
+preview canvas + hiSrc 16-bit
 ```
 
-Si una construcción del documento no admite esa ruta, el cliente puede recurrir al canvas compatible. El resultado del motor se entrega igualmente en un contenedor RGB16, aunque una entrada de 8 bits no recupera información que ya no existía.
+NAFNet procesa internamente con CUDA/autocast FP16 y devuelve un resultado RGB16. La entrada original de 16 bits se conserva hasta la normalización del tensor.
 
-## Tiling
+## Gestión de VRAM
 
-El cliente elige un tile inicial según la VRAM detectada. En una GPU de ~12 GB se usa un bloque amplio y el motor añade solape para evitar costuras. La cancelación se comprueba entre bloques.
+Sólo se mantiene un motor pesado activo a la vez. Al cambiar entre Real-ESRGAN, NAFNet Denoise y NAFNet Deblur, el servicio descarta el anterior y ejecuta `torch.cuda.empty_cache()`.
 
 ## Seguridad
 
@@ -87,4 +89,4 @@ El cliente elige un tile inicial según la VRAM detectada. En una GPU de ~12 GB 
 - Límite de tamaño de subida.
 - Sin ejecución arbitraria de comandos.
 - Temporales dentro de `advanced-ai/local-service/runtime/`.
-- Pesos y temporales excluidos de Git mediante `advanced-ai/.gitignore`.
+- Pesos y temporales excluidos de Git.
