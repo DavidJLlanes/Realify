@@ -53,10 +53,11 @@ $startLines = @(
   '$ErrorActionPreference = "Stop"',
   ('$python = "' + $Vpyw + '"'),
   ('$server = "' + $Server + '"'),
-  ('$log = "' + (Join-Path $Root "service.log") + '"'),
+  ('$outlog = "' + (Join-Path $Root "service-out.log") + '"'),
+  ('$errlog = "' + (Join-Path $Root "service-err.log") + '"'),
   '$existing = Get-NetTCPConnection -LocalPort 17834 -State Listen -ErrorAction SilentlyContinue',
   'if ($existing) { exit 0 }',
-  'Start-Process -FilePath $python -ArgumentList @($server) -WorkingDirectory (Split-Path $server) -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError $log'
+  'Start-Process -FilePath $python -ArgumentList @($server) -WorkingDirectory (Split-Path $server) -WindowStyle Hidden -RedirectStandardOutput $outlog -RedirectStandardError $errlog'
 )
 $startLines | Set-Content -Encoding UTF8 $StartPs1
 if (-not $NoStartup) {
@@ -72,6 +73,6 @@ try {
   $status = Invoke-RestMethod "http://127.0.0.1:17834/status" -Headers @{"X-Realify-Client"="web"} -TimeoutSec 10
   Write-Host ("Motor listo: " + $status.gpu + " · " + $status.vramGB + " GB VRAM") -ForegroundColor Green
   Write-Host "Vuelve a Realify.es y pulsa Volver a comprobar."
-} catch { Write-Warning ("El servicio no respondió. Revisa " + $Log + " y " + (Join-Path $Root "service.log")) }
+} catch { Write-Warning ("El servicio no respondió. Revisa " + $Log + " y " + (Join-Path $Root "service-err.log")) }
 Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 Stop-Transcript | Out-Null
