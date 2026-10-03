@@ -370,6 +370,10 @@ export const MENUS = [
        cajón del móvil (pestaña «Inteligencia Artificial») toma de aquí el
        orden y los títulos de sección, así que los dos coinciden siempre.
        Las funciones de IA nuevas son sólo Premium 👑 (ver CLAUDE.md). */
+    { header:"IA avanzada local" },
+    { cmd:"ai.advancedLocal", ic:"wand-sparkles", label:"IA avanzada local…",
+      help:"Módulo fullscreen para la nueva IA CUDA/PyTorch de Realify. En la Fase 1 muestra la foto y detecta Realify AI Local, GPU NVIDIA, CUDA y VRAM; los modelos se activarán por fases." },
+    { sep:true },
     { header:"Seleccionar" },
     { cmd:"ai.tapSelect", ic:"mouse-pointer-click", label:"Selección con un toque Premium 👑…", premium:true,
       help:"Toca un objeto y la IA (Segment Anything) lo selecciona entero; toca más para añadir o quitar partes. Borde afinado a la resolución de la foto." },
