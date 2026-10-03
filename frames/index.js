@@ -19,7 +19,8 @@ function expandedLayer(src,pad,newW,newH){
   const canvas=document.createElement("canvas");canvas.width=newW;canvas.height=newH;
   const ctx=canvas.getContext("2d",{willReadFrequently:true,colorSpace:"srgb"});
   if(src.canvas?.width&&src.canvas?.height)ctx.drawImage(src.canvas,pad,pad);
-  const out={...src,canvas,ctx,thumbDirty:true,thumb:""};\n  if(src.hiSrc)out.hiSrc={...src.hiSrc,x:(src.hiSrc.x||0)+pad,y:(src.hiSrc.y||0)+pad,canvasW:newW,canvasH:newH};
+  const out={...src,canvas,ctx,thumbDirty:true,thumb:""};
+  if(src.hiSrc)out.hiSrc={...src.hiSrc,x:(src.hiSrc.x||0)+pad,y:(src.hiSrc.y||0)+pad,canvasW:newW,canvasH:newH};
   if(src.mask){
     const mc=document.createElement("canvas");mc.width=newW;mc.height=newH;
     const mx=mc.getContext("2d",{willReadFrequently:true});
