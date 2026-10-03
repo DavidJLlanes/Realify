@@ -10,6 +10,17 @@ $RepoDir = Join-Path $Tmp "Realify-main"
 $Log = Join-Path $Root "install.log"
 New-Item -ItemType Directory -Force -Path $Root,$Tmp | Out-Null
 Start-Transcript -Path $Log -Append | Out-Null
+function Invoke-NativeChecked {
+  param(
+    [Parameter(Mandatory=$true)][string]$FilePath,
+    [Parameter(ValueFromRemainingArguments=$true)][string[]]$Arguments
+  )
+  & $FilePath @Arguments
+  if ($LASTEXITCODE -ne 0) {
+    throw "El comando falló con código $LASTEXITCODE: $FilePath $($Arguments -join ' ')"
+  }
+}
+
 function Find-Python311 {
   try { $p = (& py -3.11 -c "import sys; print(sys.executable)" 2>$null).Trim(); if ($LASTEXITCODE -eq 0 -and (Test-Path $p)) { return $p } } catch {}
   try { $p = (& python -c "import sys; print(sys.executable if sys.version_info[:2]==(3,11) else '')" 2>$null).Trim(); if ($p -and (Test-Path $p)) { return $p } } catch {}
@@ -24,26 +35,26 @@ if (-not $Python) {
   $Python = Find-Python311
   if (-not $Python) { throw "No se pudo localizar Python 3.11." }
 }
-Write-Host "[1/6] Descargando Realify AI Local..."
+Write-Host "[1/7] Descargando Realify AI Local..."
 Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Tmp | Out-Null
 Invoke-WebRequest "https://github.com/DavidJLlanes/Realify/archive/refs/heads/main.zip" -OutFile $RepoZip
 Expand-Archive -Path $RepoZip -DestinationPath $Tmp -Force
 if (-not (Test-Path (Join-Path $RepoDir "advanced-ai"))) { throw "El paquete no contiene advanced-ai." }
-Write-Host "[2/6] Instalando archivos locales..."
+Write-Host "[2/7] Instalando archivos locales..."
 Remove-Item -Recurse -Force $App -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $App | Out-Null
 Copy-Item -Recurse -Force (Join-Path $RepoDir "advanced-ai") (Join-Path $App "advanced-ai")
-Write-Host "[3/6] Creando entorno Python..."
+Write-Host "[3/7] Creando entorno Python..."
 if (-not (Test-Path (Join-Path $Venv "Scripts\python.exe"))) { & $Python -m venv $Venv }
 $Vpy = Join-Path $Venv "Scripts\python.exe"
 $Vpyw = Join-Path $Venv "Scripts\pythonw.exe"
-& $Vpy -m pip install --upgrade pip setuptools wheel
-Write-Host "[4/6] Instalando PyTorch CUDA 12.8..."
-& $Vpy -m pip install --upgrade torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu128
-Write-Host "[5/6] Instalando motores de Realify..."
+Invoke-NativeChecked $Vpy -m pip install --upgrade pip setuptools wheel
+Write-Host "[4/7] Instalando PyTorch CUDA 12.8..."
+Invoke-NativeChecked $Vpy -m pip install --upgrade torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu128
+Write-Host "[5/7] Instalando motores de Realify..."
 $Req = Join-Path $App "advanced-ai\local-service\requirements.txt"
-& $Vpy -m pip install -r $Req
+Invoke-NativeChecked $Vpy -m pip install -r $Req
 Write-Host "[6/6] Comprobando CUDA..."
 $Cuda = & $Vpy -c "import torch; print('OK' if torch.cuda.is_available() else 'NO'); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
 if ($Cuda[0] -ne "OK") { Write-Warning "CUDA no está disponible. Actualiza el driver NVIDIA y vuelve a ejecutar el instalador." } else { Write-Host ("GPU detectada: " + $Cuda[1]) -ForegroundColor Green }
