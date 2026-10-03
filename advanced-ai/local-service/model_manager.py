@@ -59,18 +59,11 @@ class ModelManager:
                         or (path / "tokenizer_config.json").is_file()
                     )
                 )
-            if download_type == "huggingface-diffusers":
-                return (
-                    path.is_dir()
-                    and (path / "model_index.json").is_file()
-                    and (path / "unet" / "config.json").is_file()
-                    and (
-                        (path / "unet" / "diffusion_pytorch_model.fp16.safetensors").is_file()
-                        or (path / "unet" / "diffusion_pytorch_model.safetensors").is_file()
-                    )
-                    and (path / "vae" / "config.json").is_file()
-                    and (path / "tokenizer" / "tokenizer_config.json").is_file()
-                )
+            if download_type in ("huggingface-diffusers", "huggingface-patterns"):
+                required = spec.get("download", {}).get("required") or []
+                if required:
+                    return path.is_dir() and all((path / rel).is_file() for rel in required)
+                return path.is_dir() and (path / "model_index.json").is_file()
             if not path.is_file():
                 return False
             size = path.stat().st_size
@@ -142,12 +135,12 @@ class ModelManager:
             progress(0.0, "Descargando modelo oficial")
 
         download = spec.get("download") or {}
-        if download.get("type") in ("huggingface-snapshot", "huggingface-diffusers"):
+        if download.get("type") in ("huggingface-snapshot", "huggingface-diffusers", "huggingface-patterns"):
             try:
                 from huggingface_hub import snapshot_download
             except Exception as exc:
                 raise RuntimeError("Falta huggingface_hub para descargar el modelo.") from exc
-            is_diffusers = download.get("type") == "huggingface-diffusers"
+            is_diffusers = download.get("type") in ("huggingface-diffusers", "huggingface-patterns")
             if progress:
                 progress(0.05, "Descargando modelo generativo" if is_diffusers else "Descargando modelo")
             dest.mkdir(parents=True, exist_ok=True)
@@ -157,16 +150,26 @@ class ModelManager:
                 "local_dir": str(dest),
                 "local_dir_use_symlinks": False,
             }
-            if is_diffusers and spec.get("variant") == "fp16":
+            if download.get("allowPatterns"):
+                kwargs["allow_patterns"] = list(download["allowPatterns"])
+            elif is_diffusers and spec.get("variant") == "fp16":
                 kwargs["allow_patterns"] = [
-                    "*.json", "*.txt", "*.model", "*.json",
+                    "*.json", "*.txt", "*.model",
                     "tokenizer/*", "tokenizer_2/*", "scheduler/*",
                     "text_encoder/config.json", "text_encoder/model.fp16.safetensors",
                     "text_encoder_2/config.json", "text_encoder_2/model.fp16.safetensors",
                     "unet/config.json", "unet/diffusion_pytorch_model.fp16.safetensors",
                     "vae/config.json", "vae/diffusion_pytorch_model.fp16.safetensors",
                 ]
-            snapshot_download(**kwargs)
+            try:
+                snapshot_download(**kwargs)
+            except Exception as exc:
+                if spec.get("gated"):
+                    raise RuntimeError(
+                        "FLUX Fill requiere aceptar su licencia en Hugging Face y autenticar este PC "
+                        "(hf auth login o variable HF_TOKEN)."
+                    ) from exc
+                raise
             if not self._valid_file(dest, spec):
                 raise RuntimeError("La descarga del modelo está incompleta.")
             if progress:
