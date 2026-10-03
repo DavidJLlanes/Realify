@@ -1,5 +1,5 @@
 import { doc, addLayer } from "../js/core/doc.js";
-import { recordLayers } from "../js/core/history.js";
+import { record } from "../js/core/history.js";
 import { flatten } from "../js/editor/layertree.js";
 import { emit } from "../js/core/bus.js";
 import { toast } from "../js/ui/toast.js";
@@ -32,6 +32,20 @@ function expandedLayer(src,pad,newW,newH){
   return out;
 }
 
+function snapshotState(){
+  return {
+    layers:doc.layers.slice(),activeId:doc.activeId,w:doc.w,h:doc.h,
+    selection:doc.selection,
+    guides:{h:[...(doc.guides?.h||[])],v:[...(doc.guides?.v||[])]}
+  };
+}
+function restoreState(s){
+  doc.layers=s.layers.slice();doc.activeId=s.activeId;doc.w=s.w;doc.h=s.h;
+  doc.selection=s.selection;
+  doc.guides={h:[...s.guides.h],v:[...s.guides.v]};
+  emit("doc:resize");emit("doc:structure");emit("doc:change");
+}
+
 function addOutsideFrame(preset,opts){
   const oldW=doc.w,oldH=doc.h,pad=framePixels(oldW,oldH,opts.width);
   const newW=oldW+pad*2,newH=oldH+pad*2;
@@ -43,8 +57,7 @@ function addOutsideFrame(preset,opts){
   };
   const layer=addLayer({name:`Marco · ${preset.label}`,above:doc.layers.length});
   drawFrame(layer.ctx,preset,newW,newH,{
-    ...opts,
-    borderPx:pad,
+    ...opts,borderPx:pad,
     contentRect:{x:pad,y:pad,w:oldW,h:oldH}
   });
   layer.frameMeta={preset:preset.id,...opts,outside:true,pad,sourceW:oldW,sourceH:oldH};
@@ -55,12 +68,15 @@ function addOutsideFrame(preset,opts){
 export async function openFrames(){
   if(!doc.open){toast("Abre una imagen antes de añadir un marco","err");return;}
   await ensureStyles();
-  const { openFramesEditor }=await import("./ui.js");
+  const {openFramesEditor}=await import("./ui.js");
   const source=flatten();
   openFramesEditor({
     source,
     onAccept:async(preset,opts)=>{
-      recordLayers("Añadir marco",()=>addOutsideFrame(preset,opts));
+      const before=snapshotState();
+      addOutsideFrame(preset,opts);
+      const after=snapshotState();
+      record("Añadir marco",()=>restoreState(before),()=>restoreState(after));
       toast(`Marco exterior añadido · ${preset.label}`,"ok");
     }
   });
