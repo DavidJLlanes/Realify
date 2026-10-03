@@ -14,3 +14,11 @@ local-service/venv/
 
 # Snapshots de modelos de lenguaje descargados bajo demanda.
 models/prompt/
+
+# Fase 7: runtime aislado, vendor oficial y cachés/modelos locales.
+phase7-runtime/
+vendor/PuLID/
+models/hf-cache/
+models/identity/
+models/control/
+models/reference/
