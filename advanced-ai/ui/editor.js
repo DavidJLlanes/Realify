@@ -258,6 +258,9 @@ export function openAdvancedAIEditor(opts){
       '<button type="button" data-mobile-run disabled>Procesar</button><button type="button" data-mobile-cancel disabled>Cancelar</button>' +
     '</div>' +
     '<label class="aai-mobile-strength"><span>Intensidad <b data-mobile-strength-value>100%</b></span><input type="range" min="0" max="100" value="100" data-mobile-strength></label>' +
+    '<div class="aai-mobile-prompt"><textarea rows="3" data-mobile-prompt placeholder="Describe los ajustes que quieres…"></textarea>' +
+    '<button type="button" data-mobile-prompt-run disabled>Interpretar prompt</button></div>' +
+    '<div class="aai-mobile-prompt-result" data-mobile-prompt-result hidden></div>' +
     '<div class="aai-mobile-progress" hidden>Preparando…</div>';
 
   const statusHost = shell.right.querySelector("[data-engine-status]");
@@ -292,6 +295,9 @@ export function openAdvancedAIEditor(opts){
   const mobileStrengthInput = shell.mobile.querySelector("[data-mobile-strength]");
   const mobileStrengthValue = shell.mobile.querySelector("[data-mobile-strength-value]");
   const mobileProgress = shell.mobile.querySelector(".aai-mobile-progress");
+  const mobilePrompt = shell.mobile.querySelector("[data-mobile-prompt]");
+  const mobilePromptRun = shell.mobile.querySelector("[data-mobile-prompt-run]");
+  const mobilePromptResult = shell.mobile.querySelector("[data-mobile-prompt-result]");
   var checking = false;
 
   function featureReady(feature){
@@ -304,6 +310,7 @@ export function openAdvancedAIEditor(opts){
     restoreRun.disabled = busy || !(featureReady("denoise-nafnet") && featureReady("deblur-nafnet"));
     mobileRun.disabled = busy || !status?.ready;
     promptRun.disabled = busy || !featureReady("prompt-adjustments");
+    mobilePromptRun.disabled = busy || !featureReady("prompt-adjustments");
   }
 
   function setRunning(kind, on){
@@ -382,6 +389,8 @@ export function openAdvancedAIEditor(opts){
     syncControlsFromState();
     promptResult.hidden = true;
     promptResult.innerHTML = "";
+    mobilePromptResult.hidden = true;
+    mobilePromptResult.innerHTML = "";
     renderAdjustmentPreview();
   }
 
@@ -400,11 +409,14 @@ export function openAdvancedAIEditor(opts){
 
       const unsupported = Array.isArray(parsed.unsupported) ? parsed.unsupported : [];
       const changes = Object.entries(adjustmentState).filter(([,v]) => Math.abs(v) > 1e-6);
-      promptResult.hidden = false;
-      promptResult.innerHTML =
+      const promptHtml =
         '<b>' + esc(parsed.summary || (changes.length ? "Ajustes interpretados" : "Sin ajustes fotográficos")) + '</b>' +
         (changes.length ? '<span>' + changes.map(([k,v]) => esc(k) + ': ' + esc(v)).join(' · ') + '</span>' : '') +
         (unsupported.length ? '<em>No disponible todavía: ' + unsupported.map(esc).join(' · ') + '</em>' : '');
+      promptResult.hidden = false;
+      promptResult.innerHTML = promptHtml;
+      mobilePromptResult.hidden = false;
+      mobilePromptResult.innerHTML = promptHtml;
       if(unsupported.length) toast("Parte del prompt requiere edición generativa de la Fase 6.");
       if(changes.length) toast("Prompt interpretado. Revisa los controles y la previsualización.", "ok");
     }catch(err){
@@ -575,6 +587,10 @@ export function openAdvancedAIEditor(opts){
   });
   mobileCancel.addEventListener("click", cancelActive);
   promptRun.addEventListener("click", runPrompt);
+  mobilePromptRun.addEventListener("click", () => {
+    promptBox.value = mobilePrompt.value;
+    runPrompt();
+  });
   promptReset.addEventListener("click", resetAdjustments);
   promptBox.addEventListener("keydown", e => {
     if((e.ctrlKey || e.metaKey) && e.key === "Enter"){ e.preventDefault(); runPrompt(); }
