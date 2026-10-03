@@ -61,8 +61,13 @@ class ModelManager:
                 )
             if download_type in ("huggingface-diffusers", "huggingface-patterns"):
                 required = spec.get("download", {}).get("required") or []
-                if required:
-                    return path.is_dir() and all((path / rel).is_file() for rel in required)
+                required_globs = spec.get("download", {}).get("requiredGlobs") or []
+                if required and not (path.is_dir() and all((path / rel).is_file() for rel in required)):
+                    return False
+                if required_globs and not all(any(path.glob(pattern)) for pattern in required_globs):
+                    return False
+                if required or required_globs:
+                    return path.is_dir()
                 return path.is_dir() and (path / "model_index.json").is_file()
             if not path.is_file():
                 return False
