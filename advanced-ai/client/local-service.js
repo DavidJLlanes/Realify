@@ -2,11 +2,31 @@ const DEFAULT_URL = "http://127.0.0.1:17834";
 const TIMEOUT_MS = 1800;
 const HEADERS = { "X-Realify-Client": "web" };
 
+async function loopbackPermissionState(){
+  try{
+    if(!navigator?.permissions?.query) return "unknown";
+    const p = await navigator.permissions.query({ name:"loopback-network" });
+    return p?.state || "unknown";
+  }catch{
+    try{
+      const p = await navigator.permissions.query({ name:"local-network" });
+      return p?.state || "unknown";
+    }catch{
+      return "unknown";
+    }
+  }
+}
+
+async function localFetch(url, init = {}){
+  return fetch(url, { ...init, targetAddressSpace:"loopback" });
+}
+
 export async function probeLocalService(base = DEFAULT_URL){
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try{
-    const res = await fetch(base + "/status", {
+    const permission = await loopbackPermissionState();
+    const res = await localFetch(base + "/status", {
       method: "GET",
       mode: "cors",
       cache: "no-store",
@@ -29,15 +49,20 @@ export async function probeLocalService(base = DEFAULT_URL){
       computeCapability: data.computeCapability || null,
       torch: data.torch || null,
       cudaVersion: data.cudaVersion || null,
-      reason: data.reason || null
+      reason: data.reason || null,
+      loopbackPermission: permission
     };
   }catch(err){
+    const permission = await loopbackPermissionState();
     return {
       online: false,
       ready: false,
+      loopbackPermission: permission,
       reason: err?.name === "AbortError"
         ? "El servicio local no respondió a tiempo."
-        : "Realify AI Local no está disponible."
+        : permission === "denied"
+          ? "El navegador ha bloqueado el acceso de Realify al motor local."
+          : "Realify AI Local no está instalado, no está iniciado o el navegador aún no tiene permiso para acceder a este PC."
     };
   }finally{
     clearTimeout(timer);
@@ -74,7 +99,7 @@ async function appendImage(form, source){
 }
 
 async function postJob(path, form, { base = DEFAULT_URL, signal } = {}){
-  const res = await fetch(base + path, {
+  const res = await localFetch(base + path, {
     method: "POST",
     mode: "cors",
     cache: "no-store",
@@ -97,7 +122,7 @@ export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAU
 }
 
 export async function interpretPrompt(prompt, { base = DEFAULT_URL, signal } = {}){
-  const res = await fetch(base + "/prompt/adjust", {
+  const res = await localFetch(base + "/prompt/adjust", {
     method:"POST",
     mode:"cors",
     cache:"no-store",
@@ -129,7 +154,7 @@ export async function startSegment(source, { points = [], labels = [], invert = 
 }
 
 export async function fetchMaskResult(jobId, base = DEFAULT_URL){
-  const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId) + "/mask", {
+  const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/mask", {
     mode:"cors", cache:"no-store", credentials:"omit", headers:HEADERS
   });
   if(!res.ok) throw new Error(await errorMessage(res));
@@ -191,7 +216,7 @@ export async function startAdvancedControl(source, {
 }
 
 export async function getJob(jobId, base = DEFAULT_URL){
-  const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId), {
+  const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
     cache: "no-store",
     credentials: "omit",
@@ -204,7 +229,7 @@ export async function getJob(jobId, base = DEFAULT_URL){
 export async function cancelJob(jobId, base = DEFAULT_URL){
   if(!jobId) return;
   try{
-    await fetch(base + "/jobs/" + encodeURIComponent(jobId), {
+    await localFetch(base + "/jobs/" + encodeURIComponent(jobId), {
       method: "DELETE",
       mode: "cors",
       cache: "no-store",
@@ -215,7 +240,7 @@ export async function cancelJob(jobId, base = DEFAULT_URL){
 }
 
 export async function fetchJobResult(jobId, base = DEFAULT_URL){
-  const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId) + "/result", {
+  const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/result", {
     mode: "cors",
     cache: "no-store",
     credentials: "omit",
