@@ -4,89 +4,63 @@ Servicio CUDA/PyTorch del proyecto `advanced-ai/`.
 
 ## Fase actual
 
-**Fase 3:** Upscale + Denoise + Deblur con CUDA, tiling, progreso, cancelación y transporte RGB16.
+**Fase 4:** Upscale + Denoise + Deblur + interpretación local de prompts.
 
-## Instalación de desarrollo
+## Motores
 
-Se recomienda Python 3.11 o 3.12 en Windows.
+- Real-ESRGAN ×2 / ×4.
+- NAFNet SIDD width64.
+- NAFNet GoPro width64.
+- Qwen2.5-1.5B-Instruct.
 
-1. Crear y activar un entorno virtual.
-2. Instalar **PyTorch + torchvision con CUDA** usando el selector oficial de PyTorch.
-3. Instalar el resto:
+## Prompt
 
-```bash
-pip install -r requirements.txt
-```
-
-4. Arrancar:
-
-```bash
-python server.py
-```
-
-El servicio escucha exclusivamente en:
+Endpoint:
 
 ```text
-http://127.0.0.1:17834
+POST /prompt/adjust
 ```
 
-## Endpoints
+Entrada:
+
+```json
+{"prompt":"aclara la foto, recupera sombras y haz el color algo más cálido"}
+```
+
+Salida conceptual:
+
+```json
+{
+  "adjustments": {
+    "exposure": 0.25,
+    "shadows": 20,
+    "temperature": 8
+  },
+  "summary": "Aclara y calienta ligeramente la fotografía",
+  "unsupported": []
+}
+```
+
+La respuesta del modelo no se ejecuta directamente. El servicio descarta claves desconocidas, convierte valores a números y los limita a rangos definidos. El navegador vuelve a validarlos antes de usarlos.
+
+Las instrucciones generativas —por ejemplo cambiar el pelo, sustituir un fondo o añadir objetos— se devuelven en `unsupported` hasta la Fase 6.
+
+## Modelo de lenguaje
+
+`Qwen/Qwen2.5-1.5B-Instruct`, descargado bajo demanda a:
 
 ```text
-GET    /status
-POST   /jobs/upscale
-POST   /jobs/restore
-GET    /jobs/{id}
-DELETE /jobs/{id}
-GET    /jobs/{id}/result
+advanced-ai/models/prompt/qwen2.5-1.5b-instruct/
 ```
 
-## Modelos
-
-Todos los pesos están bajo `advanced-ai/models/` y se descargan sólo al primer uso.
-
-### Upscale
-
-- RealESRGAN_x2plus
-- RealESRGAN_x4plus
-
-### Restauración
-
-- NAFNet-SIDD-width64 — reducción de ruido.
-- NAFNet-GoPro-width64 — deblur.
-
-Los pesos NAFNet se descargan desde los enlaces oficiales publicados por el repositorio de NAFNet. Al cargarlos se comprueba que el checkpoint contiene un state_dict compatible con la arquitectura exacta configurada; la carga es estricta.
-
-## Precisión
-
-Cuando Realify puede recomponer el documento en alta precisión:
-
-```text
-capas / hiSrc
-    ↓
-RGB16 sRGB
-    ↓
-Realify AI Local
-    ↓
-PyTorch + CUDA
-    ↓
-RGB16
-    ↓
-preview canvas + hiSrc 16-bit
-```
-
-NAFNet procesa internamente con CUDA/autocast FP16 y devuelve un resultado RGB16. La entrada original de 16 bits se conserva hasta la normalización del tensor.
-
-## Gestión de VRAM
-
-Sólo se mantiene un motor pesado activo a la vez. Al cambiar entre Real-ESRGAN, NAFNet Denoise y NAFNet Deblur, el servicio descarta el anterior y ejecuta `torch.cuda.empty_cache()`.
+El snapshot queda ignorado por Git.
 
 ## Seguridad
 
-- Solo loopback (`127.0.0.1`).
-- CORS limitado a Realify y desarrollo local.
-- Los endpoints de trabajos exigen la cabecera del cliente Realify.
-- Límite de tamaño de subida.
-- Sin ejecución arbitraria de comandos.
-- Temporales dentro de `advanced-ai/local-service/runtime/`.
-- Pesos y temporales excluidos de Git.
+- Solo `127.0.0.1`.
+- CORS limitado.
+- Cabecera de cliente obligatoria.
+- Prompt máximo 2000 caracteres.
+- Ningún shell, eval o ejecución de código.
+- Esquema de acciones cerrado.
+- Los pesos y runtime permanecen dentro de `advanced-ai/`.
