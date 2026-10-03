@@ -2,6 +2,7 @@ const DEFAULT_URL = "http://127.0.0.1:17834";
 const FALLBACK_URL = "http://localhost:17834";
 const TIMEOUT_MS = 12000;
 let ACTIVE_URL = DEFAULT_URL;
+const AUTH_HEADERS = { "X-Realify-Client":"web" };
 
 async function loopbackPermissionState(){
   try{
@@ -112,7 +113,8 @@ async function postJob(path, form, { base = ACTIVE_URL, signal } = {}){
     mode: "cors",
     cache: "no-store",
     credentials: "omit",
-        body: form,
+    headers: AUTH_HEADERS,
+    body: form,
     signal
   });
   if(!res.ok) throw new Error(await errorMessage(res));
@@ -134,7 +136,7 @@ export async function interpretPrompt(prompt, { base = ACTIVE_URL, signal } = {}
     mode:"cors",
     cache:"no-store",
     credentials:"omit",
-    headers:{ "Content-Type":"application/json" },
+    headers:{ ...AUTH_HEADERS, "Content-Type":"application/json" },
     body:JSON.stringify({ prompt:String(prompt || "") }),
     signal
   });
@@ -162,7 +164,7 @@ export async function startSegment(source, { points = [], labels = [], invert = 
 
 export async function fetchMaskResult(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/mask", {
-    mode:"cors", cache:"no-store", credentials:"omit", headers:{}
+    mode:"cors", cache:"no-store", credentials:"omit", headers:AUTH_HEADERS
   });
   if(!res.ok) throw new Error(await errorMessage(res));
   const w = +(res.headers.get("X-Realify-Width") || 0);
@@ -226,7 +228,8 @@ export async function getJob(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
     cache: "no-store",
-    credentials: "omit"
+    credentials: "omit",
+    headers: AUTH_HEADERS
   });
   if(!res.ok) throw new Error(await errorMessage(res));
   return res.json();
@@ -249,7 +252,8 @@ export async function fetchJobResult(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/result", {
     mode: "cors",
     cache: "no-store",
-    credentials: "omit"
+    credentials: "omit",
+    headers: AUTH_HEADERS
   });
   if(!res.ok) throw new Error(await errorMessage(res));
 
