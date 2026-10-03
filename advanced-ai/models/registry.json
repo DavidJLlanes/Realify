@@ -1,5 +1,5 @@
 {
-  "schema": 8,
+  "schema": 9,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -169,6 +169,53 @@
       "computeDtype": "bfloat16",
       "license": "FLUX-dev-non-commercial",
       "source": "https://huggingface.co/diffusers/FLUX.1-Fill-dev-nf4"
+    },
+    "pulid-flux-v0.9.1": {
+      "task": "identity",
+      "label": "PuLID-FLUX v0.9.1",
+      "directory": "identity/pulid-flux-v0.9.1",
+      "repository": "guozinan/PuLID",
+      "revision": "v0.9.1",
+      "runtimeManaged": true,
+      "baseModel": "FLUX.1-dev FP8",
+      "license": "Apache-2.0 (code) + upstream model licenses",
+      "source": "https://github.com/ToTheBeginning/PuLID"
+    },
+    "flux-ip-adapter": {
+      "task": "reference",
+      "label": "FLUX IP-Adapter",
+      "directory": "reference/flux-ip-adapter",
+      "repository": "XLabs-AI/flux-ip-adapter",
+      "revision": "main",
+      "runtimeManaged": true,
+      "baseModel": "FLUX.1-dev NF4",
+      "source": "https://huggingface.co/XLabs-AI/flux-ip-adapter"
+    },
+    "flux-controlnet-union-pro-2": {
+      "task": "structural-control",
+      "label": "FLUX ControlNet Union Pro 2.0",
+      "directory": "control/flux-controlnet-union-pro-2",
+      "repository": "Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro-2.0",
+      "revision": "main",
+      "runtimeManaged": true,
+      "controls": [
+        "canny",
+        "softedge",
+        "depth",
+        "pose"
+      ],
+      "baseModel": "FLUX.1-dev NF4",
+      "license": "FLUX-dev-non-commercial",
+      "source": "https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Union-Pro-2.0"
+    },
+    "depth-anything-v2-large": {
+      "task": "depth-preprocessor",
+      "label": "Depth Anything V2 Large",
+      "directory": "control/depth-anything-v2-large",
+      "repository": "depth-anything/Depth-Anything-V2-Large-hf",
+      "revision": "main",
+      "runtimeManaged": true,
+      "source": "https://huggingface.co/depth-anything/Depth-Anything-V2-Large-hf"
     }
   }
 }
