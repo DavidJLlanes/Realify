@@ -294,6 +294,76 @@ registerAll({
                            () => put(pixAfter, nextLayers, nextActive));
                        },
                        enabled: () => { const l = activeLayer(); return needsDoc() && l && l.type !== "group" && l.type !== "adjust"; } },
+  "layer.mergeSelected": { run: () => {
+                         const ids = getSelectedLayerIds();
+                         if(ids.length < 2){ toast("Selecciona al menos dos capas para combinarlas.", "err"); return; }
+                         const selected = ids.map(id => ({ id, i: doc.layers.findIndex(l => l.id === id) }))
+                           .filter(x => x.i >= 0).sort((a, b) => a.i - b.i);
+                         if(selected.length < 2){ toast("Selecciona al menos dos capas para combinarlas.", "err"); return; }
+                         for(let k = 1; k < selected.length; k++){
+                           if(selected[k].i !== selected[k - 1].i + 1){
+                             toast("Sólo se pueden combinar capas seleccionadas contiguas.", "err");
+                             return;
+                           }
+                         }
+                         const layers = selected.map(x => doc.layers[x.i]);
+                         if(layers.some(l => l.type === "group" || l.type === "adjust")){
+                           toast("Los grupos y las capas de ajuste no se pueden combinar directamente.", "err");
+                           return;
+                         }
+                         const groupId = layers[0].groupId ?? null;
+                         if(layers.some(l => (l.groupId ?? null) !== groupId)){
+                           toast("Las capas seleccionadas deben pertenecer al mismo grupo.", "err");
+                           return;
+                         }
+                         // Todas salvo la superior actuarán en algún momento como
+                         // capa receptora. Deben ser neutras para que una capa de
+                         // arriba no herede su opacidad, fusión, máscara o efectos.
+                         for(const l of layers.slice(0, -1)){
+                           if(!l.visible || l.opacity !== 1 || l.blend !== "source-over" || l.clipped || l.mask || l.maskRef || l.styles || l.blendIf){
+                             toast(`«${l.name}» tiene máscara, opacidad, fusión o efectos propios; aplícalos antes de combinar la selección.`, "err");
+                             return;
+                           }
+                           if(canRasterize(l)){
+                             toast(`«${l.name}» es una capa de relleno o de forma: rasterízala primero.`, "err");
+                             return;
+                           }
+                         }
+                         for(const l of layers.slice(1)){
+                           if(l.clipped || l.styles || l.blendIf || l.filters?.length){
+                             toast(`«${l.name}» tiene recorte, estilos, filtros o Fusionar si; aplícalos antes de combinar.`, "err");
+                             return;
+                           }
+                         }
+                         const copyOf = c => { const o = document.createElement("canvas");
+                           o.width = c.width; o.height = c.height; o.getContext("2d").drawImage(c, 0, 0); return o; };
+                         const beforePixels = new Map(layers.map(l => [l.id, copyOf(l.canvas)]));
+                         const prevLayers = doc.layers.slice(), prevActive = doc.activeId;
+                         for(let k = layers.length - 1; k > 0; k--){
+                           if(!mergeDown(layers[k].id)){
+                             toast("No se pudieron combinar las capas seleccionadas.", "err");
+                             return;
+                           }
+                         }
+                         const bottom = layers[0], afterPixel = copyOf(bottom.canvas);
+                         const nextLayers = doc.layers.slice(), nextActive = doc.activeId;
+                         const restoreCanvas = (layer, pix) => {
+                           const x = layer.ctx; x.save(); x.setTransform(1,0,0,1,0,0);
+                           x.globalCompositeOperation = "copy"; x.drawImage(pix,0,0); x.restore(); layer.thumbDirty = true;
+                         };
+                         record("Combinar capas seleccionadas",
+                           () => {
+                             for(const l of layers) restoreCanvas(l, beforePixels.get(l.id));
+                             doc.layers = prevLayers.slice(); doc.activeId = prevActive;
+                             emit("doc:structure"); emit("doc:change");
+                           },
+                           () => {
+                             restoreCanvas(bottom, afterPixel);
+                             doc.layers = nextLayers.slice(); doc.activeId = nextActive;
+                             emit("doc:structure"); emit("doc:change");
+                           });
+                       },
+                       enabled: () => doc.open && getSelectedLayerIds().length >= 2 },
   "layer.mergeVisible": { run: mergeVisible,
                           enabled: () => doc.open && doc.layers.filter(l => l.groupId == null && l.visible).length > 1 },
   "layer.flatten":   { run: flattenImage, enabled: () => doc.open && doc.layers.length > 1 },
