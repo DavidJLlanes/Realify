@@ -47,8 +47,15 @@ function statusMarkup(s){
     return '<div class="aai-status checking"><i></i><div><b>Comprobando motor local…</b><span>Buscando Realify AI Local en este equipo.</span></div></div>';
   }
   if(!s.online){
-    return '<div class="aai-status offline"><i></i><div><b>Motor local no detectado</b><span>' +
-      esc(s.reason || "Realify AI Local no está disponible.") + '</span></div></div>';
+    const denied = s.loopbackPermission === "denied";
+    return '<div class="aai-status offline"><i></i><div><b>' +
+      (denied ? 'Acceso al motor local bloqueado' : 'Realify AI Local no está activo') +
+      '</b><span>' + esc(s.reason || "Realify AI Local no está disponible.") + '</span>' +
+      (denied
+        ? '<span class="aai-local-help">En la configuración del sitio de realify.es, permite el acceso a la red/equipo local y pulsa Volver a comprobar.</span>'
+        : '<a class="aai-install-local" href="/advanced-ai/install/windows/instalar-realify-ai-local.cmd" download>Instalar Realify AI Local para Windows</a>' +
+          '<span class="aai-local-help">Instálalo una vez. Quedará arrancando con Windows y utilizará tu GPU NVIDIA local.</span>') +
+      '</div></div>';
   }
   if(!s.ready){
     return '<div class="aai-status warn"><i></i><div><b>Motor encontrado, GPU no preparada</b><span>' +
