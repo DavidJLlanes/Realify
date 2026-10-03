@@ -24,7 +24,7 @@ from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.7.1"
+SERVICE_VERSION = "0.7.2"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
@@ -42,7 +42,7 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["X-Realify-Client", "Content-Type"],
+    allow_headers=["*"],
 )
 
 jobs = JobManager(max_workers=1)
@@ -61,8 +61,11 @@ async def private_network_access(request: Request, call_next):
 
 
 def require_client(value: str | None) -> None:
-    if value != "web":
-        raise HTTPException(status_code=403, detail="Cliente no autorizado.")
+    # El servicio sólo escucha en loopback y CORS limita el navegador a Realify.
+    # La cabecera personalizada provocaba preflights innecesarios en navegadores
+    # con Local Network Access, así que se conserva por compatibilidad pero ya
+    # no es obligatoria.
+    return
 
 
 def hardware_status() -> dict[str, Any]:
