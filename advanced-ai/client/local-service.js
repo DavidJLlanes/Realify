@@ -119,6 +119,30 @@ export async function startRestore(source, { mode = "denoise", tile = 512, base 
   return postJob("/jobs/restore", form, { base, signal });
 }
 
+export async function startSegment(source, { points = [], labels = [], invert = false, base = DEFAULT_URL, signal } = {}){
+  const form = new FormData();
+  await appendImage(form, source);
+  form.append("points_json", JSON.stringify(points));
+  form.append("labels_json", JSON.stringify(labels));
+  form.append("invert", invert ? "true" : "false");
+  return postJob("/jobs/segment", form, { base, signal });
+}
+
+export async function fetchMaskResult(jobId, base = DEFAULT_URL){
+  const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId) + "/mask", {
+    mode:"cors", cache:"no-store", credentials:"omit", headers:HEADERS
+  });
+  if(!res.ok) throw new Error(await errorMessage(res));
+  const w = +(res.headers.get("X-Realify-Width") || 0);
+  const h = +(res.headers.get("X-Realify-Height") || 0);
+  const dtype = res.headers.get("X-Realify-Dtype") || "";
+  const model = res.headers.get("X-Realify-Model") || "";
+  if(!w || !h || dtype !== "uint8") throw new Error("Metadatos de máscara no válidos.");
+  const buffer = await res.arrayBuffer();
+  if(buffer.byteLength !== w * h) throw new Error("El tamaño de la máscara no coincide con sus dimensiones.");
+  return { data:new Uint8Array(buffer), w, h, model };
+}
+
 export async function getJob(jobId, base = DEFAULT_URL){
   const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
