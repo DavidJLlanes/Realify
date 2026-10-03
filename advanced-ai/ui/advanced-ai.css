@@ -111,3 +111,10 @@
   .aai-mobile-prompt button:not(:disabled){background:#416fc7;border-color:#6794ff;font-weight:700}
   .aai-mobile-prompt button:disabled{opacity:.45}
 }
+
+.aai-segment{display:grid;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid #2b3038}
+.aai-segment label{display:grid;gap:6px;margin-bottom:9px;color:#ccd4df;font-size:12px}
+.aai-segment select{height:36px;background:#252a31;color:#eef3fa;border:1px solid #414852;border-radius:6px;padding:0 8px}
+.aai-segment button{width:100%;min-height:36px;margin-top:7px;border:1px solid #46515f;border-radius:6px;background:#29384f;color:#e7effd;font:inherit}
+.aai-segment button[data-segment-run]:not(:disabled),.aai-segment button.on{background:#416fc7;border-color:#6794ff;font-weight:700;cursor:pointer}
+.aai-segment button:disabled{opacity:.45}
