@@ -138,3 +138,7 @@
 .aai-advanced button{width:100%;min-height:36px;border:1px solid #46515f;border-radius:6px;background:#29384f;color:#e7effd;font:inherit}
 .aai-advanced button[data-advanced-run]:not(:disabled){background:#416fc7;border-color:#6794ff;font-weight:700;cursor:pointer}
 .aai-advanced button:disabled{opacity:.45}
+
+.aai-install-local{display:inline-flex;align-items:center;justify-content:center;margin-top:7px;min-height:32px;padding:0 10px;border:1px solid #5877ab;border-radius:6px;background:#29436b;color:#eef5ff;text-decoration:none;font-size:11px;font-weight:700}
+.aai-install-local:hover{background:#355785}
+.aai-local-help{display:block;margin-top:6px;color:#aab5c4!important;font-size:10px!important;line-height:1.4}
