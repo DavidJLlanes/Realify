@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v210-tool-apply-flow";
+const VERSION = "realify-v211-canvas-readback";
 const SHELL = [
   "./",
   "./index.html",
