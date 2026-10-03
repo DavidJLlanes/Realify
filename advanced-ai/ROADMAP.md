@@ -90,15 +90,24 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 - ×2 usa RealESRGAN_x2plus oficial; ×4 usa RealESRGAN_x4plus oficial.
 - Los temporales y pesos descargados siguen dentro de `advanced-ai/` y están excluidos de Git.
 
-## Fase 3 — Denoise / Deblur
+## Fase 3 — Denoise / Deblur ✅
 
-- NAFNet o modelo final elegido.
-- Reducción de ruido.
-- Deblur.
-- Control de intensidad.
-- Tiling.
-- Gestión de VRAM.
-- Integración con antes/después e historial.
+- NAFNet-SIDD-width64 oficial para reducción de ruido de fotografía real.
+- NAFNet-GoPro-width64 oficial para recuperación de desenfoque.
+- Arquitectura NAFNet integrada dentro de `advanced-ai/engines/` con atribución MIT.
+- Descarga bajo demanda desde los enlaces oficiales de Google Drive.
+- Validación mínima del checkpoint + carga estricta del state_dict antes de inferencia.
+- CUDA con autocast FP16 para equilibrar calidad, memoria y velocidad.
+- Tiling con 64 px de solape para reducir costuras.
+- Tamaño de tile adaptado a VRAM y al tipo de restauración.
+- Resultado RGB16 del mismo tamaño que la fotografía.
+- Entrada RGB16 cuando la pila de Realify puede recomponer alta precisión.
+- Control de intensidad 0–100 % sin volver a ejecutar el modelo.
+- Previsualización antes/después.
+- Aplicación como capa nueva, reversible y con opacidad igual a la intensidad.
+- `hiSrc` de 16 bits asociado a la capa de restauración cuando entra en los límites de memoria.
+- Progreso y cancelación reutilizando el gestor de trabajos local.
+- El servicio libera el motor anterior al cambiar entre Real-ESRGAN y NAFNet para no acumular VRAM.
 
 ## Fase 4 — Prompt → ajustes de Realify
 
