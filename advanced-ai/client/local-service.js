@@ -96,6 +96,20 @@ export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAU
   return postJob("/jobs/upscale", form, { base, signal });
 }
 
+export async function interpretPrompt(prompt, { base = DEFAULT_URL, signal } = {}){
+  const res = await fetch(base + "/prompt/adjust", {
+    method:"POST",
+    mode:"cors",
+    cache:"no-store",
+    credentials:"omit",
+    headers:{ ...HEADERS, "Content-Type":"application/json" },
+    body:JSON.stringify({ prompt:String(prompt || "") }),
+    signal
+  });
+  if(!res.ok) throw new Error(await errorMessage(res));
+  return res.json();
+}
+
 export async function startRestore(source, { mode = "denoise", tile = 512, base = DEFAULT_URL, signal } = {}){
   if(mode !== "denoise" && mode !== "deblur") throw new Error("Modo de restauración no válido.");
   const form = new FormData();
