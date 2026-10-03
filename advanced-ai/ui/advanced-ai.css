@@ -118,3 +118,14 @@
 .aai-segment button{width:100%;min-height:36px;margin-top:7px;border:1px solid #46515f;border-radius:6px;background:#29384f;color:#e7effd;font:inherit}
 .aai-segment button[data-segment-run]:not(:disabled),.aai-segment button.on{background:#416fc7;border-color:#6794ff;font-weight:700;cursor:pointer}
 .aai-segment button:disabled{opacity:.45}
+
+.aai-generative{display:grid;gap:7px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #2b3038}
+.aai-generative textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:118px;padding:10px;background:#101318;color:#eef3fa;border:1px solid #3b4350;border-radius:7px;font:13px/1.45 var(--sans,system-ui,sans-serif)}
+.aai-generative textarea:focus{outline:none;border-color:#6794ff}
+.aai-generative button{width:100%;min-height:36px;margin-top:3px;border:1px solid #46515f;border-radius:6px;background:#29384f;color:#e7effd;font:inherit}
+.aai-generative button[data-generative-run]:not(:disabled){background:#416fc7;border-color:#6794ff;font-weight:700;cursor:pointer}
+.aai-generative button:disabled{opacity:.45}
+.aai-gen-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.aai-gen-grid label{display:grid;gap:4px;color:#aeb8c7;font-size:11px}
+.aai-gen-grid input{min-width:0;height:32px;box-sizing:border-box;padding:0 7px;background:#20252c;color:#eef3fa;border:1px solid #3d4652;border-radius:5px}
+@media(max-width:900px){.aai-mobile-prompt{grid-template-columns:minmax(0,1fr) auto auto}}
