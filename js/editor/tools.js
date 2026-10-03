@@ -3120,7 +3120,7 @@ export function applyCrop(){
   record("Recortar", () => restoreAll(before, oldW, oldH),
                      () => restoreAll(after, rect.w, rect.h));
   state.cropRect = { x: 0, y: 0, w: doc.w, h: doc.h };
-  fit();
+  finishAppliedTool();
   toast(`Recortado a ${rect.w} × ${rect.h}`);
 }
 
@@ -3158,6 +3158,13 @@ function restoreAll(snaps, w, h){
   emit("doc:structure");
 }
 
+/* Flujo común de las herramientas que tienen botón «Aplicar»:
+   confirmar → salir a Mover → enseñar la foto completa. */
+function finishAppliedTool(){
+  setTool("move", { auto:true });
+  fit();
+}
+
 /* ═══ perspectiva ═══
    Toda la lógica vive en perspectool.js; aquí sólo queda el puente
    entre el `state` que lee la barra de opciones y el módulo, y los
@@ -3175,8 +3182,8 @@ function syncPersp(){
 
 export function applyPerspective(){
   if(perspApply()){
-    setTool("move", { auto:true });
     resetPerspState();
+    finishAppliedTool();
   }
 }
 
@@ -3215,7 +3222,7 @@ function syncXformFields(){
 }
 
 export function applyTransform(){
-  if(xformApply()) setTool("move", { auto:true });
+  if(xformApply()) finishAppliedTool();
 }
 
 export function resetTransform(){
