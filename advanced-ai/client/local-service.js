@@ -1,5 +1,5 @@
 const DEFAULT_URL = "http://127.0.0.1:17834";
-const TIMEOUT_MS = 1800;
+const TIMEOUT_MS = 12000;
 const HEADERS = { "X-Realify-Client": "web" };
 
 async function loopbackPermissionState(){
