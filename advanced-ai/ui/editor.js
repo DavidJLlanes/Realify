@@ -615,7 +615,7 @@ export function openAdvancedAIEditor(opts){
       promptResult.innerHTML = promptHtml;
       mobilePromptResult.hidden = false;
       mobilePromptResult.innerHTML = promptHtml;
-      if(unsupported.length) toast("Parte del prompt requiere edición generativa de la Fase 6.");
+      if(unsupported.length) toast("Parte del prompt es generativa. Selecciona una zona con SAM2 y usa FLUX Fill.");
       if(changes.length) toast("Prompt interpretado. Revisa los controles y la previsualización.", "ok");
     }catch(err){
       if(err?.name !== "AbortError") toast("Prompt IA: " + err.message, "err");
@@ -788,7 +788,10 @@ export function openAdvancedAIEditor(opts){
 
   mobileRun.addEventListener("click", () => {
     const action = mobileAction.value;
-    if(action === "segment"){ setSegmentInteract(true); toast("Toca el sujeto u objeto en la imagen y después calcula la máscara."); }
+    if(action === "segment"){
+      if(segmentLabels.includes(1)) runSegment();
+      else { setSegmentInteract(true); toast("Toca el sujeto u objeto y pulsa Procesar otra vez para calcular la máscara."); }
+    }
     else if(action === "denoise" || action === "deblur") runRestore(action);
     else runUpscale(action === "upscale4" ? 4 : 2);
   });
