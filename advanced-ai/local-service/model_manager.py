@@ -30,7 +30,9 @@ class ModelManager:
 
     def path(self, model_id: str) -> Path:
         spec = self.spec(model_id)
-        return MODELS_ROOT / spec["directory"] / spec["filename"]
+        base = MODELS_ROOT / spec["directory"]
+        filename = spec.get("filename")
+        return base / filename if filename else base
 
     @staticmethod
     def _sha256(path: Path) -> str:
@@ -43,6 +45,8 @@ class ModelManager:
     @classmethod
     def _valid_file(cls, path: Path, spec: dict[str, Any]) -> bool:
         try:
+            if spec.get("download", {}).get("type") == "huggingface-snapshot":
+                return path.is_dir() and (path / "config.json").is_file()
             if not path.is_file():
                 return False
             size = path.stat().st_size
@@ -104,16 +108,40 @@ class ModelManager:
             return dest
 
         if dest.exists():
-            dest.unlink(missing_ok=True)
+            if dest.is_dir():
+                import shutil
+                shutil.rmtree(dest, ignore_errors=True)
+            else:
+                dest.unlink(missing_ok=True)
 
         if progress:
             progress(0.0, "Descargando modelo oficial")
+
+        download = spec.get("download") or {}
+        if download.get("type") == "huggingface-snapshot":
+            try:
+                from huggingface_hub import snapshot_download
+            except Exception as exc:
+                raise RuntimeError("Falta huggingface_hub para descargar el modelo de prompts.") from exc
+            if progress:
+                progress(0.05, "Descargando modelo de prompts")
+            dest.mkdir(parents=True, exist_ok=True)
+            snapshot_download(
+                repo_id=spec["repository"],
+                revision=spec.get("revision") or "main",
+                local_dir=str(dest),
+                local_dir_use_symlinks=False,
+            )
+            if not self._valid_file(dest, spec):
+                raise RuntimeError("La descarga del modelo de prompts está incompleta.")
+            if progress:
+                progress(1.0, "Modelo de prompts disponible")
+            return dest
 
         fd, tmp_name = tempfile.mkstemp(prefix=dest.name + ".", suffix=".part", dir=dest.parent)
         os.close(fd)
         tmp = Path(tmp_name)
         try:
-            download = spec.get("download") or {}
             if download.get("type") == "gdrive":
                 self._download_gdrive(spec, tmp, progress)
             else:
