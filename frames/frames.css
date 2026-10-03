@@ -17,3 +17,9 @@
  .fr-mobile select,.fr-mobile input[type=range]{width:100%;box-sizing:border-box}.fr-mobile select{height:42px;border:1px solid #3f4855;border-radius:7px;background:#222831;color:#eef3ff;padding:0 10px}
  .fr-mobile-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.fr-mobile .fr-btn{height:42px}
 }
+
+.fr-root [hidden]{display:none!important}
+.fr-mobile-adjustments{display:flex;align-items:center;gap:8px;min-width:0}
+.fr-mobile-adjustments input[type=range]{flex:1;min-width:0}
+.fr-width-value{min-width:36px;text-align:right;font-size:11px;color:#aeb7c4}
+.fr-mobile-adjustments input[type=color]{flex:0 0 36px;width:36px;height:34px;padding:2px;border:1px solid #3d4652;border-radius:5px;background:#222;cursor:pointer}

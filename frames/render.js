@@ -1,3 +1,6 @@
+import { diamondPath, heartPath, borderMotifs } from "./geometry.js";
+import { drawArtisticFrame } from "./artistic.js";
+
 /* Marcos procedurales de Realify.
    Todo el dibujo queda recortado a la corona exterior de contentRect:
    ningún preset puede invadir la fotografía. */
@@ -60,6 +63,12 @@ function scallop(c,W,H,t,color){
   c.restore();
 }
 
+function hearts(c,W,H,t,color){
+  borderMotifs(c,W,H,t,1.05,x=>{
+    x.fillStyle=color;heartPath(x,t*.62);x.fill();
+  });
+}
+
 export function drawFrame(c,p,W,H,o={}){
   if(o.clear!==false)c.clearRect(0,0,W,H);
   const pct=clamp(o.width??p.width,1,24),t=Math.max(2,o.borderPx??Math.min(W,H)*pct/100);
@@ -67,6 +76,12 @@ export function drawFrame(c,p,W,H,o={}){
   c.save();clipRing(c,W,H,o.contentRect);
 
   switch(p.family){
+    case "basic":
+      bands(c,W,H,t,a);
+      break;
+    case "artistic":
+      drawArtisticFrame(c,p.style,W,H,t,a,b);
+      break;
     case "minimal":
       if(v===0)rect(c,W,H,t,.5,.035,a);
       else if(v===1){rect(c,W,H,t,.18,.045,a);rect(c,W,H,t,.72,.035,b);}
@@ -154,7 +169,8 @@ export function drawFrame(c,p,W,H,o={}){
 
     case "geometric":
       bands(c,W,H,t,a);
-      if(v===0)stripes(c,W,H,t,a,b);
+      if(p.motif==="heart")hearts(c,W,H,t,b);
+      else if(v===0)stripes(c,W,H,t,a,b);
       else if(v===1)corners(c,W,H,t,b);
       else if(v===2)stripes(c,W,H,t,a,b,true);
       else if(v===3)dots(c,W,H,t,b,.38,.1);
@@ -164,7 +180,13 @@ export function drawFrame(c,p,W,H,o={}){
       else if(v===7){c.fillStyle=b;for(let x=0;x<W;x+=t*.5){c.fillRect(x,0,t*.25,t*.4);c.fillRect(x+t*.25,H-t*.4,t*.25,t*.4);}}
       else if(v===8){for(let k=0;k<4;k++)rect(c,W,H,t,.15+k*.18,.025,k%2?b:a);}
       else if(v===9){for(let k=0;k<4;k++)rect(c,W,H,t,k*.18,.055,b);}
-      else if(v===10){c.save();c.strokeStyle=b;c.lineWidth=Math.max(1,t*.05);for(let x=t*.4;x<W;x+=t*.45){c.beginPath();c.moveTo(x-t*.1,t*.5);c.lineTo(x,t*.4);c.lineTo(x+t*.1,t*.5);c.lineTo(x,t*.6);c.closePath();c.stroke();}c.restore();}
+      else if(v===10){
+        borderMotifs(c,W,H,t,.9,(x)=>{
+          x.strokeStyle=b;x.lineWidth=Math.max(.8,t*.035);
+          diamondPath(x,t*.58);x.stroke();
+          x.fillStyle=b;diamondPath(x,t*.22);x.fill();
+        });
+      }
       else{rect(c,W,H,t,.18,.035,b);rect(c,W,H,t,.5,.035,a);rect(c,W,H,t,.82,.035,b);}
       break;
 
@@ -178,7 +200,7 @@ export function drawFrame(c,p,W,H,o={}){
       else if(v===5){rect(c,W,H,t,.22,.06,b);corners(c,W,H,t,b);dots(c,W,H,t,b,1,.035);}
       else if(v===6){c.fillStyle=b;c.textAlign="center";c.font=`${Math.max(10,t*.3)}px serif`;c.fillText("❦",W/2,t*.58);c.fillText("❦",W/2,H-t*.3);}
       else if(v===7){c.fillStyle=b;c.textAlign="center";c.font=`${Math.max(10,t*.25)}px serif`;c.fillText("★",W/2,t*.56);c.fillText("★",W/2,H-t*.32);}
-      else if(v===8){c.fillStyle=b;c.textAlign="center";c.font=`${Math.max(10,t*.25)}px serif`;c.fillText("♥",W/2,t*.56);c.fillText("♥",W/2,H-t*.32);}
+      else if(v===8)hearts(c,W,H,t,b);
       else if(v===9)stripes(c,W,H,t,a,b,true);
       else if(v===10)dots(c,W,H,t,b,.32,.08);
       else corners(c,W,H,t,b);
@@ -203,7 +225,7 @@ export function drawFrame(c,p,W,H,o={}){
       else if(v===3){corners(c,W,H,t,q[1],true);dots(c,W,H,t,"#fff9",.55,.04);}
       else if(v===4){rect(c,W,H,t,.22,.05,"#f1d7a3");corners(c,W,H,t,"#f1d7a3",true);}
       else if(v===5){c.fillStyle=q[1];c.textAlign="center";c.font=`${Math.max(10,t*.23)}px serif`;c.fillText("★",W/2,t*.55);c.fillText("★",W/2,H-t*.32);}
-      else if(v===6){c.fillStyle="#fff";c.textAlign="center";c.font=`${Math.max(10,t*.24)}px serif`;c.fillText("♥",W/2,t*.56);c.fillText("♥",W/2,H-t*.32);}
+      else if(v===6)hearts(c,W,H,t,"#ffffff");
       else if(v===7){dots(c,W,H,t,q[1],.4,.065);corners(c,W,H,t,"#fff",true);}
       else if(v===8)dots(c,W,H,t,"#fff8",.4,.09);
       else if(v===9){grain(c,W,H,t,q[1],109,150);corners(c,W,H,t,"#fff8",true);}

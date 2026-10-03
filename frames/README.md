@@ -2,7 +2,8 @@
 
 Plugin de marcos para Realify.
 
-- **120 marcos**: 10 categorías × 12 variantes.
+- **138 marcos** en 12 categorías: los 120 originales, un marco liso,
+  Heart geométrico y 16 diseños de autor.
 - Interfaz a pantalla completa siguiendo el patrón de `socialmediapost/`:
   tres zonas en escritorio y controles inferiores compactos en móvil.
 - Render vectorial/procedural: no depende de una API ni de imágenes externas.
@@ -18,13 +19,30 @@ Plugin de marcos para Realify.
 
 ## Categorías
 
-Minimalistas, Clásicos, Paspartú, Película, Instantánea, Vintage,
-Geométricos, Decorativos, Color y Festivos.
+Básicos, Minimalistas, Clásicos, Paspartú, Película, Instantánea, Vintage,
+Geométricos, Decorativos, Color, Festivos y De autor.
 
-## Fuente externa investigada
+## Nuevos modelos y ajustes
 
-`cyanidecupcake/openclipart-svg` contiene miles de SVG de OpenClipart,
-incluida la carpeta `svg/borders/`, y está publicado bajo CC0-1.0.
-No se integra el repositorio completo porque ocupa varios GB y contiene
-duplicados/desorganización. La arquitectura del plugin permite añadir
-posteriormente una selección curada de SVG como presets locales.
+- Liso: una corona de color uniforme, sin textura ni color secundario.
+- Diamond y Heart: motivos vectoriales simétricos repartidos en los cuatro
+  lados. Los corazones decorativos y festivos también usan curvas, sin glifos.
+- De autor: Aurora boreal, Prisma facetado, Eclipse de metal, Porcelana kintsugi,
+  Atlas topográfico, Arcadas art déco, Vitral de joyería, Pliegues de origami,
+  Constelación, Seda moiré, Ondas de nácar, Circuito luminoso, Lámina holográfica,
+  Mármol azul, Herbario grabado y Abanico art déco.
+- Anchura y colores editables en escritorio y móvil, sincronizados al cambiar
+  de tamaño de pantalla. Liso muestra sólo el color principal.
+- `geometry.js` comparte trazados y distribuye motivos en los cuatro lados.
+  `artistic.js` dibuja los nuevos materiales y patrones. Los diseños aleatorios
+  usan semillas fijas para que previsualización y resultado sean reproducibles.
+
+Comprobación del editor: `node tests/calidad-herramienta.mjs filter.frames`.
+
+Regresión específica: `node frames/test-marcos.mjs`. Recorre los 138 modelos
+con orientación horizontal/vertical y tres anchuras (828 renders), comprueba
+recorte, reproducibilidad, motivos en los cuatro lados, color uniforme,
+sincronización entre modos y conservación exacta de la foto a resolución completa.
+El comprobador general de calidad también marca «detalle bajo» en el plugin
+original: compara la capa de marco, sin fotografía, con el detalle de la foto.
+La regresión específica verifica por separado los píxeles de ambas capas.

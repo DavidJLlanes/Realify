@@ -1,12 +1,12 @@
-/* 120 marcos vectoriales/procedurales, sin dependencias externas.
+/* 138 marcos vectoriales/procedurales, sin dependencias externas.
    Cada preset tiene grosor y paleta propios; render.js aporta una geometría
    distinta para cada variante. */
 
 export const FRAME_CATEGORIES=[
-  ["minimal","Minimalistas"],["classic","Clásicos"],["mat","Paspartú"],
+  ["basic","Básicos"],["minimal","Minimalistas"],["classic","Clásicos"],["mat","Paspartú"],
   ["film","Película"],["instant","Instantánea"],["vintage","Vintage"],
   ["geometric","Geométricos"],["decorative","Decorativos"],
-  ["color","Color"],["festive","Festivos"]
+  ["color","Color"],["festive","Festivos"],["artistic","De autor"]
 ];
 
 const defs=[
@@ -88,7 +88,7 @@ const palettes={
   ]
 };
 
-export const FRAME_PRESETS=defs.flatMap(([category,prefix,names])=>
+const legacyPresets=defs.flatMap(([category,prefix,names])=>
   names.map((name,i)=>({
     id:`${category}-${String(i+1).padStart(2,"0")}`,
     label:`${prefix} · ${name[0].toUpperCase()+name.slice(1)}`,
@@ -96,6 +96,34 @@ export const FRAME_PRESETS=defs.flatMap(([category,prefix,names])=>
     primary:palettes[category][i][0],secondary:palettes[category][i][1]
   }))
 );
+
+const artisticDefs=[
+  ["aurora","Aurora boreal",12,"#183248","#72e7c3"],
+  ["prism","Prisma facetado",10,"#604aa2","#73dce7"],
+  ["eclipse","Eclipse de metal",9,"#0b1018","#ddb967"],
+  ["kintsugi","Porcelana kintsugi",11,"#efe8d9","#b98d39"],
+  ["topography","Atlas topográfico",10,"#102d31","#97d4b6"],
+  ["arcades","Arcadas art déco",12,"#222839","#e8bb82"],
+  ["glass","Vitral de joyería",12,"#267879","#e6ab61"],
+  ["origami","Pliegues de origami",12,"#b9b2d9","#5c478d"],
+  ["constellation","Constelación",11,"#101c35","#bedcff"],
+  ["moire","Seda moiré",10,"#111722","#91d3e2"],
+  ["ripple","Ondas de nácar",10,"#447d83","#ead4df"],
+  ["circuit","Circuito luminoso",10,"#112822","#62e9b4"],
+  ["hologram","Lámina holográfica",10,"#bd8be6","#69dbe5"],
+  ["marble","Mármol azul",11,"#f0eeea","#637c9b"],
+  ["botanical","Herbario grabado",12,"#244534","#d0d8a8"],
+  ["deco","Abanico art déco",12,"#152335","#d7b578"]
+];
+
+export const FRAME_PRESETS=[
+  {id:"basic-solid",label:"Liso · Color único",category:"basic",family:"basic",singleColor:true,width:6,primary:"#ffffff",secondary:"#ffffff"},
+  ...legacyPresets,
+  {id:"geometric-heart",label:"Geométrico · Heart",category:"geometric",family:"geometric",motif:"heart",width:8,primary:"#241d32",secondary:"#efa0bc"},
+  ...artisticDefs.map(([style,label,width,primary,secondary])=>({
+    id:`artistic-${style}`,category:"artistic",family:"artistic",style,label,width,primary,secondary
+  }))
+];
 
 export const frameById=id=>FRAME_PRESETS.find(f=>f.id===id)||FRAME_PRESETS[0];
 export const framesInCategory=id=>FRAME_PRESETS.filter(f=>f.category===id);
