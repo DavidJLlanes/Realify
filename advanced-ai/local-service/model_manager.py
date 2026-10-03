@@ -45,7 +45,8 @@ class ModelManager:
     @classmethod
     def _valid_file(cls, path: Path, spec: dict[str, Any]) -> bool:
         try:
-            if spec.get("download", {}).get("type") == "huggingface-snapshot":
+            download_type = spec.get("download", {}).get("type")
+            if download_type == "huggingface-snapshot":
                 return (
                     path.is_dir()
                     and (path / "config.json").is_file()
@@ -57,6 +58,18 @@ class ModelManager:
                         (path / "tokenizer.json").is_file()
                         or (path / "tokenizer_config.json").is_file()
                     )
+                )
+            if download_type == "huggingface-diffusers":
+                return (
+                    path.is_dir()
+                    and (path / "model_index.json").is_file()
+                    and (path / "unet" / "config.json").is_file()
+                    and (
+                        (path / "unet" / "diffusion_pytorch_model.fp16.safetensors").is_file()
+                        or (path / "unet" / "diffusion_pytorch_model.safetensors").is_file()
+                    )
+                    and (path / "vae" / "config.json").is_file()
+                    and (path / "tokenizer" / "tokenizer_config.json").is_file()
                 )
             if not path.is_file():
                 return False
@@ -129,24 +142,35 @@ class ModelManager:
             progress(0.0, "Descargando modelo oficial")
 
         download = spec.get("download") or {}
-        if download.get("type") == "huggingface-snapshot":
+        if download.get("type") in ("huggingface-snapshot", "huggingface-diffusers"):
             try:
                 from huggingface_hub import snapshot_download
             except Exception as exc:
-                raise RuntimeError("Falta huggingface_hub para descargar el modelo de prompts.") from exc
+                raise RuntimeError("Falta huggingface_hub para descargar el modelo.") from exc
+            is_diffusers = download.get("type") == "huggingface-diffusers"
             if progress:
-                progress(0.05, "Descargando modelo de prompts")
+                progress(0.05, "Descargando modelo generativo" if is_diffusers else "Descargando modelo")
             dest.mkdir(parents=True, exist_ok=True)
-            snapshot_download(
-                repo_id=spec["repository"],
-                revision=spec.get("revision") or "main",
-                local_dir=str(dest),
-                local_dir_use_symlinks=False,
-            )
+            kwargs = {
+                "repo_id": spec["repository"],
+                "revision": spec.get("revision") or "main",
+                "local_dir": str(dest),
+                "local_dir_use_symlinks": False,
+            }
+            if is_diffusers and spec.get("variant") == "fp16":
+                kwargs["allow_patterns"] = [
+                    "*.json", "*.txt", "*.model", "*.json",
+                    "tokenizer/*", "tokenizer_2/*", "scheduler/*",
+                    "text_encoder/config.json", "text_encoder/model.fp16.safetensors",
+                    "text_encoder_2/config.json", "text_encoder_2/model.fp16.safetensors",
+                    "unet/config.json", "unet/diffusion_pytorch_model.fp16.safetensors",
+                    "vae/config.json", "vae/diffusion_pytorch_model.fp16.safetensors",
+                ]
+            snapshot_download(**kwargs)
             if not self._valid_file(dest, spec):
-                raise RuntimeError("La descarga del modelo de prompts está incompleta.")
+                raise RuntimeError("La descarga del modelo está incompleta.")
             if progress:
-                progress(1.0, "Modelo de prompts disponible")
+                progress(1.0, "Modelo generativo disponible" if is_diffusers else "Modelo disponible")
             return dest
 
         fd, tmp_name = tempfile.mkstemp(prefix=dest.name + ".", suffix=".part", dir=dest.parent)
