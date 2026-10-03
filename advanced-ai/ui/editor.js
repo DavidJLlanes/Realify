@@ -1,9 +1,11 @@
 import { createShell, resultToLayer } from "../../js/ui/fsshell.js";
 import { toast } from "../../js/ui/toast.js";
 import { docSizeLimit } from "../../js/core/device.js";
+import { renderPrecise } from "../../js/core/precision-stack.js";
+import { canvasFromHi, attachHi } from "../../js/core/hisrc.js";
+import { emit } from "../../js/core/bus.js";
 import {
-  probeLocalService, startUpscale, waitForJob, fetchJobResult,
-  resultBlobToCanvas, cancelJob
+  probeLocalService, startUpscale, waitForJob, fetchJobResult, cancelJob
 } from "../client/local-service.js";
 
 const CONTROLS = [
@@ -57,25 +59,71 @@ function statusMarkup(s){
     '</b><span>' + cuda + torch + ' · motor listo</span></div></div>';
 }
 
-function scaledForOutput(source, scale){
-  const wantedW = source.width * scale, wantedH = source.height * scale;
-  const lim = docSizeLimit(wantedW, wantedH, { highQuality:true });
-  if(lim[0] === wantedW && lim[1] === wantedH) return { canvas:source, limited:false };
-  const inputW = Math.max(8, Math.floor(lim[0] / scale));
-  const inputH = Math.max(8, Math.floor(lim[1] / scale));
+function maxHiPixels(){
+  const coarse = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
+  const mem = navigator.deviceMemory || 8;
+  return (coarse || mem <= 4) ? 12e6 : 32e6;
+}
+
+function targetInputSize(source, scale){
+  let [outW, outH, limitedSide] = docSizeLimit(source.width * scale, source.height * scale, { highQuality:true });
+  const maxPixels = maxHiPixels();
+  let limitedPixels = false;
+  if(outW * outH > maxPixels){
+    const k = Math.sqrt(maxPixels / (outW * outH));
+    outW = Math.max(1, Math.floor(outW * k));
+    outH = Math.max(1, Math.floor(outH * k));
+    limitedPixels = true;
+  }
+  const w = Math.max(8, Math.floor(outW / scale));
+  const h = Math.max(8, Math.floor(outH / scale));
+  return { w, h, limited:limitedSide || limitedPixels };
+}
+
+function scaledCanvas(source, w, h){
+  if(source.width === w && source.height === h) return source;
   const c = document.createElement("canvas");
-  c.width = inputW; c.height = inputH;
+  c.width = w; c.height = h;
   const x = c.getContext("2d");
   x.imageSmoothingEnabled = true;
   x.imageSmoothingQuality = "high";
-  x.drawImage(source, 0, 0, inputW, inputH);
-  return { canvas:c, limited:true };
+  x.drawImage(source, 0, 0, w, h);
+  return c;
+}
+
+async function prepareUpscaleSource(source, scale){
+  const size = targetInputSize(source, scale);
+  try{
+    const precise = await renderPrecise({
+      w:size.w, h:size.h,
+      bits16:true,
+      alpha:false,
+      layersOnly:false,
+      srgb:true
+    });
+    if(precise?.data16?.data instanceof Uint16Array){
+      return {
+        payload:precise.data16,
+        limited:size.limited,
+        precision:16,
+        reason:precise.reason || "RGB16"
+      };
+    }
+  }catch(err){
+    console.warn("IA avanzada: no se pudo preparar RGB16; se usa canvas compatible", err);
+  }
+  return {
+    payload:scaledCanvas(source, size.w, size.h),
+    limited:size.limited,
+    precision:8,
+    reason:"Composición compatible de 8 bits"
+  };
 }
 
 export function openAdvancedAIEditor(opts){
   var source = opts.source, name = opts.name, width = opts.width, height = opts.height;
   var shell, status = null, activeJob = null, aborter = null;
-  var resultCanvas = null, resultScale = 2, closed = false;
+  var resultCanvas = null, result16 = null, resultScale = 2, closed = false;
 
   async function close(){
     if(closed) return;
@@ -86,7 +134,7 @@ export function openAdvancedAIEditor(opts){
   }
 
   async function applyResult(){
-    if(!resultCanvas) return;
+    if(!resultCanvas || !result16) return;
     shell.setBusy("Aplicando resultado…");
     try{
       await resultToLayer(resultCanvas, {
@@ -94,7 +142,20 @@ export function openAdvancedAIEditor(opts){
         docName: name + " ×" + resultScale,
         newDocument: true
       });
-      toast("Upscale ×" + resultScale + " aplicado", "ok");
+
+      const { doc } = await import("../../js/core/doc.js");
+      const layer = doc.layers[0];
+      const kept16 = attachHi(layer, result16.data, result16.w, result16.h);
+      if(kept16){
+        layer.thumbDirty = true;
+        emit("doc:change");
+        emit("doc:structure");
+      }
+      toast(
+        "Upscale ×" + resultScale + " aplicado" +
+        (kept16 ? " · origen de 16 bits conservado" : ""),
+        "ok"
+      );
       await close();
     }catch(err){
       shell.setBusy("");
@@ -120,11 +181,12 @@ export function openAdvancedAIEditor(opts){
     '<span>Los ajustes clásicos se activarán en las siguientes fases. Upscale IA ya usa CUDA local.</span></div>' +
     '<div class="aai-controls">' + controlsMarkup() + '</div>' +
     '<section class="aai-upscale">' +
-      '<div class="aai-panel-head"><b>Upscale IA</b><span>Real-ESRGAN · CUDA · resultado en pestaña nueva.</span></div>' +
+      '<div class="aai-panel-head"><b>Upscale IA</b><span>Real-ESRGAN · CUDA FP16 · transporte RGB16 cuando es posible.</span></div>' +
       '<label><span>Escala</span><select data-upscale-scale><option value="2">×2 · alta calidad</option><option value="4">×4 · máxima ampliación</option></select></label>' +
       '<button type="button" data-upscale-run disabled>Procesar con GPU</button>' +
       '<button type="button" data-upscale-cancel disabled>Cancelar proceso</button>' +
       '<div class="aai-progress" hidden><div><i></i></div><span>Preparando…</span></div>' +
+      '<p class="aai-quality" data-quality>Los pesos se descargan y verifican con SHA-256 en el primer uso.</p>' +
     '</section>';
 
   shell.right.innerHTML =
@@ -152,14 +214,17 @@ export function openAdvancedAIEditor(opts){
   const progress = shell.left.querySelector(".aai-progress");
   const progressBar = progress.querySelector("i");
   const progressText = progress.querySelector("span");
+  const qualityText = shell.left.querySelector("[data-quality]");
   const mobileRun = shell.mobile.querySelector("[data-mobile-run]");
   const mobileCancel = shell.mobile.querySelector("[data-mobile-cancel]");
   const mobileScale = shell.mobile.querySelector("[data-mobile-scale]");
   const mobileProgress = shell.mobile.querySelector(".aai-mobile-progress");
   var checking = false;
 
-  function setReady(on){
-    const supported = !!on && status?.features?.some(f => f === "upscale-x2");
+  function setReady(){
+    const supported = !!status?.ready &&
+      status?.features?.includes("upscale-x2") &&
+      status?.features?.includes("upscale-x4");
     runBtn.disabled = !supported || !!activeJob;
     mobileRun.disabled = !supported || !!activeJob;
   }
@@ -194,48 +259,66 @@ export function openAdvancedAIEditor(opts){
     statusHost.innerHTML = html;
     mobileStatus.innerHTML = html;
     checking = false;
-    setReady(status.ready);
+    setReady();
   }
 
   async function process(scale){
     if(activeJob || !status?.ready) return;
     resultCanvas = null;
+    result16 = null;
     shell.setApplyEnabled(false);
     shell.setView(source, false);
     resultScale = scale;
-    const prep = scaledForOutput(source, scale);
-    if(prep.limited) toast("La entrada se ha ajustado al límite de documento de Realify antes del upscale.");
-    const tile = status.vramGB >= 11 ? 640 : status.vramGB >= 8 ? 512 : 384;
     aborter = new AbortController();
     setRunning(true);
-    shell.setBusy("Enviando imagen al motor CUDA…");
+    shell.setBusy("Preparando imagen a máxima precisión…");
+
     try{
-      const job = await startUpscale(prep.canvas, { scale, tile });
+      const prepared = await prepareUpscaleSource(source, scale);
+      if(prepared.limited)
+        toast("El resultado se limita al máximo seguro de Realify manteniendo alta precisión.");
+      qualityText.textContent =
+        (prepared.precision === 16 ? "Entrada RGB16" : "Entrada compatible 8-bit") +
+        " · " + prepared.reason;
+
+      const tile = status.vramGB >= 11 ? 640 : status.vramGB >= 8 ? 512 : 384;
+      shell.setBusy("Enviando imagen al motor CUDA…");
+      const job = await startUpscale(prepared.payload, {
+        scale, tile, signal:aborter.signal
+      });
       activeJob = job.id;
       shell.setBusy("");
+
       await waitForJob(activeJob, {
-        signal: aborter.signal,
-        onProgress: showProgress
+        signal:aborter.signal,
+        onProgress:showProgress
       });
-      const blob = await fetchJobResult(activeJob);
-      resultCanvas = await resultBlobToCanvas(blob);
+
+      const result = await fetchJobResult(activeJob);
+      result16 = result;
+      resultCanvas = canvasFromHi(result.data, result.w, result.h);
       shell.setView(resultCanvas, false);
       shell.setOriginal(source);
       shell.setApplyEnabled(true);
-      shell.setSubtitle(name + " · resultado ×" + scale + " · " + resultCanvas.width + " × " + resultCanvas.height);
+      qualityText.textContent =
+        "Resultado RGB16 · " + result.w + " × " + result.h +
+        " · entrada del motor: " + result.inputPrecision + " bits";
+      shell.setSubtitle(name + " · resultado ×" + scale + " · " + result.w + " × " + result.h);
       toast("Upscale ×" + scale + " terminado. Revisa y pulsa Aplicar.", "ok");
     }catch(err){
-      if(!err.cancelled) toast("Upscale IA: " + err.message, "err");
+      if(!err.cancelled && err?.name !== "AbortError")
+        toast("Upscale IA: " + err.message, "err");
       shell.setView(source, false);
       shell.setOriginal(source);
       shell.setSubtitle(name + " · " + width + " × " + height + " · Fase 2");
+      qualityText.textContent = "Los pesos se descargan y verifican con SHA-256 en el primer uso.";
     }finally{
       activeJob = null;
       aborter = null;
       setRunning(false);
       progress.hidden = true;
       mobileProgress.hidden = true;
-      setReady(status?.ready);
+      setReady();
       shell.setBusy("");
     }
   }
