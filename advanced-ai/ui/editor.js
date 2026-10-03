@@ -5,7 +5,7 @@ import { renderPrecise } from "../../js/core/precision-stack.js";
 import { canvasFromHi, attachHi } from "../../js/core/hisrc.js";
 import { emit } from "../../js/core/bus.js";
 import {
-  probeLocalService, startUpscale, startRestore, startSegment, fetchMaskResult, startGenerativeEdit, interpretPrompt,
+  probeLocalService, startUpscale, startRestore, startSegment, fetchMaskResult, startGenerativeEdit, startAdvancedControl, interpretPrompt,
   waitForJob, fetchJobResult, cancelJob
 } from "../client/local-service.js";
 import { renderAdjustments, sanitizeAdjustments, isNeutral } from "./prompt-adjustments.js";
@@ -141,6 +141,7 @@ export function openAdvancedAIEditor(opts){
   var adjustmentState = sanitizeAdjustments({}), adjustmentPreview = null, promptInfo = null;
   var segmentPoints = [], segmentLabels = [], segmentMask = null, segmentInvert = false;
   var generativePrompt = "", generativeSeed = 0;
+  var advancedPrompt = "", advancedTask = "identity", advancedSeed = 0;
   var closed = false;
 
   async function close(){
@@ -182,6 +183,25 @@ export function openAdvancedAIEditor(opts){
           emit("doc:change"); emit("doc:structure");
         }
         toast("Ajustes por prompt aplicados", "ok");
+      }else if(resultKind?.startsWith("advanced-")){
+        const labels = {
+          "advanced-identity":"Identidad preservada · PuLID-FLUX",
+          "advanced-reference":"Referencia visual · FLUX IP-Adapter",
+          "advanced-control":"Control estructural · FLUX ControlNet"
+        };
+        const label = labels[resultKind] || "Control avanzado IA";
+        await resultToLayer(resultCanvas, { name:label, mix:true });
+        const { doc } = await import("../../js/core/doc.js");
+        const layer = doc.layers.find(l => l.id === doc.activeId);
+        if(layer){
+          layer.aiAdvancedTask = advancedTask;
+          layer.aiAdvancedPrompt = advancedPrompt;
+          layer.aiAdvancedSeed = advancedSeed;
+          layer.aiAdvancedModel = result16?.model || "";
+          layer.thumbDirty = true;
+          emit("doc:change"); emit("doc:structure");
+        }
+        toast(label + " aplicado como capa nueva","ok");
       }else if(resultKind === "generative-edit"){
         await resultToLayer(resultCanvas, { name:"Edición generativa · FLUX Fill", mix:true });
         const { doc } = await import("../../js/core/doc.js");
@@ -230,7 +250,7 @@ export function openAdvancedAIEditor(opts){
 
   shell = createShell({
     title:"IA avanzada",
-    subtitle:name + " · " + width + " × " + height + " · Fase 6",
+    subtitle:name + " · " + width + " × " + height + " · Fase 7",
     applyLabel:"Aplicar",
     cls:"aai-shell",
     onApply:applyResult,
@@ -303,8 +323,34 @@ export function openAdvancedAIEditor(opts){
     '<div class="aai-progress aai-generative-progress" hidden><div><i></i></div><span>Preparando FLUX…</span></div>' +
     '<p class="aai-quality" data-generative-quality>FLUX.1 Fill [dev] NF4 · BF16 · calidad alta · optimizado para 12 GB VRAM.</p>' +
     '</section>' +
-    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 6 · Edición generativa operativa</span>' +
-    '<small>FLUX.1 Fill NF4 + SAM2 · edición localizada y zonas protegidas.</small></section>';
+    '<section class="aai-advanced"><div class="aai-panel-head"><b>Identidad y control avanzado</b>' +
+    '<span>PuLID-FLUX para identidad, IP-Adapter para referencia visual y ControlNet Union Pro 2.0 para estructura.</span></div>' +
+    '<label><span>Modo</span><select data-advanced-task>' +
+      '<option value="identity">Preservar identidad · PuLID-FLUX</option>' +
+      '<option value="reference">Referencia visual · FLUX IP-Adapter</option>' +
+      '<option value="control">Control estructural · FLUX ControlNet</option>' +
+    '</select></label>' +
+    '<label data-reference-wrap><span>Imagen de referencia</span><input type="file" accept="image/*" data-advanced-reference></label>' +
+    '<label data-control-wrap hidden><span>Estructura</span><select data-control-mode>' +
+      '<option value="depth">Profundidad · Depth Anything V2 Large</option>' +
+      '<option value="canny">Bordes Canny</option>' +
+      '<option value="softedge">Soft Edge</option>' +
+      '<option value="pose">Pose humana</option>' +
+    '</select></label>' +
+    '<textarea rows="5" data-advanced-prompt placeholder="Ej.: la misma persona en un yate de lujo al atardecer, fotografía realista."></textarea>' +
+    '<div class="aai-gen-grid">' +
+      '<label><span>Fuerza</span><input type="number" min="0" max="3" step=".05" value="1" data-advanced-strength></label>' +
+      '<label><span>Pasos</span><input type="number" min="10" max="50" value="28" data-advanced-steps></label>' +
+      '<label><span>Guidance</span><input type="number" min="1" max="10" step=".1" value="4" data-advanced-guidance></label>' +
+      '<label><span>Semilla</span><input type="number" min="0" max="2147483647" value="0" data-advanced-seed></label>' +
+    '</div>' +
+    '<button type="button" data-advanced-run disabled>Generar con control avanzado</button>' +
+    '<button type="button" data-advanced-cancel disabled>Cancelar proceso</button>' +
+    '<div class="aai-progress aai-advanced-progress" hidden><div><i></i></div><span>Preparando Fase 7…</span></div>' +
+    '<p class="aai-quality" data-advanced-quality>La primera ejecución prepara un runtime aislado y descarga los modelos necesarios dentro de advanced-ai/.</p>' +
+    '</section>' +
+    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 7 · Identidad y control avanzado operativo</span>' +
+    '<small>PuLID-FLUX v0.9.1 · IP-Adapter · ControlNet Union Pro 2.0 · 12 GB VRAM.</small></section>';
 
   shell.mobile.innerHTML =
     '<div class="aai-mobile-status" data-mobile-status>' + statusMarkup(null) + '</div>' +
@@ -335,6 +381,22 @@ export function openAdvancedAIEditor(opts){
   const generativeProgressBar = generativeProgress.querySelector("i");
   const generativeProgressText = generativeProgress.querySelector("span");
   const generativeQuality = shell.right.querySelector("[data-generative-quality]");
+  const advancedTaskSel = shell.right.querySelector("[data-advanced-task]");
+  const advancedReference = shell.right.querySelector("[data-advanced-reference]");
+  const advancedReferenceWrap = shell.right.querySelector("[data-reference-wrap]");
+  const advancedControlWrap = shell.right.querySelector("[data-control-wrap]");
+  const advancedControlMode = shell.right.querySelector("[data-control-mode]");
+  const advancedPromptBox = shell.right.querySelector("[data-advanced-prompt]");
+  const advancedStrength = shell.right.querySelector("[data-advanced-strength]");
+  const advancedSteps = shell.right.querySelector("[data-advanced-steps]");
+  const advancedGuidance = shell.right.querySelector("[data-advanced-guidance]");
+  const advancedSeedInput = shell.right.querySelector("[data-advanced-seed]");
+  const advancedRun = shell.right.querySelector("[data-advanced-run]");
+  const advancedCancel = shell.right.querySelector("[data-advanced-cancel]");
+  const advancedProgress = shell.right.querySelector(".aai-advanced-progress");
+  const advancedProgressBar = advancedProgress.querySelector("i");
+  const advancedProgressText = advancedProgress.querySelector("span");
+  const advancedQuality = shell.right.querySelector("[data-advanced-quality]");
   const controlInputs = [...shell.left.querySelectorAll("[data-control]")];
 
   const upscaleRun = shell.left.querySelector("[data-upscale-run]");
@@ -391,6 +453,11 @@ export function openAdvancedAIEditor(opts){
     mobilePromptRun.disabled = busy || !featureReady("prompt-adjustments");
     generativeRun.disabled = busy || !featureReady("generative-flux-fill") || !segmentMask;
     mobileGenerativeRun.disabled = busy || !featureReady("generative-flux-fill") || !segmentMask;
+    if(advancedRun) advancedRun.disabled = busy;
+    const advFeature = advancedTaskSel?.value === "identity" ? "identity-pulid-flux" :
+      advancedTaskSel?.value === "reference" ? "reference-flux-ip-adapter" : "controlnet-flux-union";
+    if(advancedRun) advancedRun.disabled = busy || !featureReady(advFeature) ||
+      ((advancedTaskSel.value === "identity" || advancedTaskSel.value === "reference") && !advancedReference.files?.[0]);
   }
 
   function setRunning(kind, on){
@@ -407,6 +474,7 @@ export function openAdvancedAIEditor(opts){
     restoreCancel.disabled = !(busy && kind === "restore");
     segmentCancel.disabled = !(busy && kind === "segment");
     generativeCancel.disabled = !(busy && kind === "generative");
+    advancedCancel.disabled = !(busy && kind === "advanced");
     mobileCancel.disabled = !busy;
     upscaleScale.disabled = busy;
     restoreModeSel.disabled = busy;
@@ -415,6 +483,7 @@ export function openAdvancedAIEditor(opts){
     restoreProgress.hidden = !(busy && kind === "restore");
     segmentProgress.hidden = !(busy && kind === "segment");
     generativeProgress.hidden = !(busy && kind === "generative");
+    advancedProgress.hidden = !(busy && kind === "advanced");
     mobileProgress.hidden = !busy;
   }
 
@@ -424,8 +493,9 @@ export function openAdvancedAIEditor(opts){
     const isUpscale = runningKind === "upscale";
     const isSegment = runningKind === "segment";
     const isGenerative = runningKind === "generative";
-    const bar = isGenerative ? generativeProgressBar : (isSegment ? segmentProgressBar : (isUpscale ? upscaleProgressBar : restoreProgressBar));
-    const text = isGenerative ? generativeProgressText : (isSegment ? segmentProgressText : (isUpscale ? upscaleProgressText : restoreProgressText));
+    const isAdvanced = runningKind === "advanced";
+    const bar = isAdvanced ? advancedProgressBar : (isGenerative ? generativeProgressBar : (isSegment ? segmentProgressBar : (isUpscale ? upscaleProgressBar : restoreProgressBar)));
+    const text = isAdvanced ? advancedProgressText : (isGenerative ? generativeProgressText : (isSegment ? segmentProgressText : (isUpscale ? upscaleProgressText : restoreProgressText)));
     bar.style.width = pct + "%";
     text.textContent = pct + "% · " + stage;
     mobileProgress.textContent = pct + "% · " + stage;
@@ -538,6 +608,72 @@ export function openAdvancedAIEditor(opts){
       shell.setOverlay(segmentMask ? drawSegmentOverlay : null);
     }finally{
       activeJob=null; aborter=null; setRunning("generative",false); setReady(); shell.setBusy("");
+    }
+  }
+
+  function syncAdvancedMode(){
+    advancedTask = advancedTaskSel.value;
+    const needsReference = advancedTask !== "control";
+    advancedReferenceWrap.hidden = !needsReference;
+    advancedControlWrap.hidden = advancedTask !== "control";
+    advancedStrength.previousElementSibling;
+    advancedQuality.textContent = advancedTask === "identity"
+      ? "PuLID-FLUX v0.9.1 · FP8 + aggressive offload · identidad facial de máxima calidad práctica para 12 GB."
+      : advancedTask === "reference"
+        ? "FLUX IP-Adapter · referencia visual para sujeto, estilo y concepto."
+        : "FLUX ControlNet Union Pro 2.0 · profundidad, bordes, soft-edge o pose.";
+    setReady();
+  }
+
+  async function runAdvanced(){
+    const task = advancedTaskSel.value;
+    const prompt = advancedPromptBox.value.trim();
+    const reference = advancedReference.files?.[0] || null;
+    if(activeJob || runningKind || !prompt) return;
+    if((task === "identity" || task === "reference") && !reference){
+      toast("Selecciona una imagen de referencia.","err"); return;
+    }
+    advancedTask = task;
+    advancedPrompt = prompt;
+    advancedSeed = Math.max(0, Math.min(2147483647, +(advancedSeedInput.value || 0)));
+    aborter = new AbortController();
+    setRunning("advanced", true);
+    shell.setBusy("Preparando control avanzado…");
+    try{
+      const prepared = await preparePreciseSource(source, source.width, source.height);
+      const strength = +(advancedStrength.value || 1);
+      const job = await startAdvancedControl(prepared.payload, {
+        task, prompt, reference,
+        steps:Math.max(10, Math.min(50, +(advancedSteps.value || 28))),
+        guidance:Math.max(1, Math.min(10, +(advancedGuidance.value || 4))),
+        seed:advancedSeed,
+        identityWeight:task === "identity" ? Math.max(0, Math.min(3, strength)) : 1,
+        identityStart:2,
+        referenceWeight:task === "reference" ? Math.max(0, Math.min(1.5, strength)) : .8,
+        controlMode:advancedControlMode.value,
+        controlStrength:task === "control" ? Math.max(.1, Math.min(1, strength)) : .6,
+        maxSide:1024,
+        signal:aborter.signal
+      });
+      activeJob = job.id;
+      shell.setBusy("");
+      await waitForJob(activeJob, { signal:aborter.signal, onProgress:showProgress, interval:500 });
+      const result = await fetchJobResult(activeJob);
+      result16 = result;
+      resultCanvas = canvasFromHi(result.data, result.w, result.h);
+      resultKind = "advanced-" + task;
+      shell.setView(resultCanvas, false);
+      shell.setOriginal(source);
+      shell.setOverlay(null);
+      shell.setApplyEnabled(true);
+      advancedQuality.textContent = result.model + " · semilla " + advancedSeed + " · resultado RGB16";
+      shell.setSubtitle(name + " · Fase 7 terminada");
+      toast("Control avanzado terminado. Revisa y pulsa Aplicar.","ok");
+    }catch(err){
+      if(!err.cancelled && err?.name !== "AbortError") toast("Fase 7: " + err.message,"err");
+      shell.setView(source, false);
+    }finally{
+      activeJob=null; aborter=null; setRunning("advanced",false); setReady(); shell.setBusy("");
     }
   }
 
@@ -764,6 +900,10 @@ export function openAdvancedAIEditor(opts){
   segmentTarget.addEventListener("change",()=>{ if(segmentMask){ segmentMask.data = Uint8Array.from(segmentMask.data, a=>255-a); segmentInvert=!segmentInvert; shell.redraw(); setReady(); } });
   generativeRun.addEventListener("click",()=>runGenerative());
   generativeCancel.addEventListener("click",cancelActive);
+  advancedTaskSel.addEventListener("change",syncAdvancedMode);
+  advancedReference.addEventListener("change",setReady);
+  advancedRun.addEventListener("click",runAdvanced);
+  advancedCancel.addEventListener("click",cancelActive);
 
   upscaleRun.addEventListener("click", () => runUpscale(+upscaleScale.value));
   upscaleCancel.addEventListener("click", cancelActive);
@@ -811,6 +951,7 @@ export function openAdvancedAIEditor(opts){
   });
   shell.right.querySelector(".aai-retry").addEventListener("click", check);
 
+  syncAdvancedMode();
   check();
   return { close };
 }
