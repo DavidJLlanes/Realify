@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gc
-import math
 from pathlib import Path
 
 import numpy as np
@@ -23,8 +22,8 @@ def _read_rgb(path: Path, input_format: str, width: int, height: int) -> Image.I
     return Image.open(path).convert("RGB")
 
 
-def _multiple8(v: int) -> int:
-    return max(64, int(round(v / 8)) * 8)
+def _multiple16(v: int) -> int:
+    return max(64, int(round(v / 16)) * 16)
 
 
 def _bbox(mask: np.ndarray, padding: int) -> tuple[int, int, int, int]:
@@ -32,38 +31,52 @@ def _bbox(mask: np.ndarray, padding: int) -> tuple[int, int, int, int]:
     if xs.size == 0:
         raise RuntimeError("La máscara de edición está vacía.")
     h, w = mask.shape
-    x0=max(0,int(xs.min())-padding); y0=max(0,int(ys.min())-padding)
-    x1=min(w,int(xs.max())+1+padding); y1=min(h,int(ys.max())+1+padding)
-    return x0,y0,x1,y1
+    x0 = max(0, int(xs.min()) - padding)
+    y0 = max(0, int(ys.min()) - padding)
+    x1 = min(w, int(xs.max()) + 1 + padding)
+    y1 = min(h, int(ys.max()) + 1 + padding)
+    return x0, y0, x1, y1
 
 
 class GenerativeEditEngine:
-    """SDXL Inpainting con ROI para mantener resolución completa y controlar VRAM."""
+    """FLUX.1 Fill [dev] NF4, optimizado para 12 GB mediante cuantización y offload."""
 
-    model_id = "sdxl-inpaint-1.0"
+    model_id = "flux1-fill-dev-nf4"
+    base_id = "flux1-fill-dev-components"
 
     def __init__(self) -> None:
         import torch
-        from diffusers import AutoPipelineForInpainting
+        from diffusers import FluxFillPipeline, FluxTransformer2DModel
+        from transformers import T5EncoderModel
 
-        self.torch=torch
-        manager=ModelManager()
-        model_path=manager.ensure(self.model_id)
-        self.pipe=AutoPipelineForInpainting.from_pretrained(
-            str(model_path),
-            torch_dtype=torch.float16,
-            variant="fp16",
-            local_files_only=True,
-            use_safetensors=True,
+        self.torch = torch
+        manager = ModelManager()
+        base_path = manager.ensure(self.base_id)
+        nf4_path = manager.ensure(self.model_id)
+
+        # NF4 conserva calidad de la arquitectura Fill reduciendo drásticamente
+        # la VRAM del transformer y de T5 XXL.
+        transformer = FluxTransformer2DModel.from_pretrained(
+            str(nf4_path), subfolder="transformer",
+            torch_dtype=torch.bfloat16, local_files_only=True,
         )
-        # 12 GB: mantener el UNet entrando/saliendo de GPU es más estable que .to("cuda").
+        text_encoder_2 = T5EncoderModel.from_pretrained(
+            str(nf4_path), subfolder="text_encoder_2",
+            torch_dtype=torch.bfloat16, local_files_only=True,
+        )
+
+        self.pipe = FluxFillPipeline.from_pretrained(
+            str(base_path),
+            transformer=transformer,
+            text_encoder_2=text_encoder_2,
+            torch_dtype=torch.bfloat16,
+            local_files_only=True,
+        )
+        # 4070 SUPER 12 GB: secuencial es más conservador; model_cpu_offload
+        # suele ser más rápido y sigue entrando gracias a NF4.
         self.pipe.enable_model_cpu_offload()
         self.pipe.enable_vae_slicing()
         self.pipe.enable_vae_tiling()
-        try:
-            self.pipe.enable_xformers_memory_efficient_attention()
-        except Exception:
-            pass
         try:
             self.pipe.set_progress_bar_config(disable=True)
         except Exception:
@@ -81,76 +94,76 @@ class GenerativeEditEngine:
     def run(
         self, job, src: Path, mask_path: Path, out: Path, *,
         input_format: str, width: int, height: int,
-        prompt: str, negative_prompt: str,
-        strength: float, guidance: float, steps: int, seed: int,
-        padding: int = 96, feather: int = 8,
-        max_side: int = 1024,
+        prompt: str, guidance: float, steps: int, seed: int,
+        padding: int = 128, feather: int = 8, max_side: int = 1024,
     ) -> Path:
         cancelled_guard(job)
-        job.set_progress(0.05,"Preparando edición localizada")
-        image=_read_rgb(src,input_format,width,height)
-        w,h=image.size
-        mask=np.fromfile(mask_path,dtype=np.uint8)
-        if mask.size != w*h:
-            raise RuntimeError("La máscara no coincide con las dimensiones de la fotografía.")
-        mask=mask.reshape(h,w)
+        job.set_progress(0.04, "Preparando edición localizada")
+        image = _read_rgb(src, input_format, width, height)
+        w, h = image.size
 
-        x0,y0,x1,y1=_bbox(mask,padding)
-        crop=image.crop((x0,y0,x1,y1))
-        mask_crop=Image.fromarray(mask[y0:y1,x0:x1],"L")
+        mask = np.fromfile(mask_path, dtype=np.uint8)
+        if mask.size != w * h:
+            raise RuntimeError("La máscara no coincide con la fotografía.")
+        mask = mask.reshape(h, w)
 
-        cw,ch=crop.size
-        scale=min(1.0,float(max_side)/max(cw,ch))
-        tw=_multiple8(max(64,round(cw*scale)))
-        th=_multiple8(max(64,round(ch*scale)))
-        work_img=crop.resize((tw,th),Image.Resampling.LANCZOS)
-        work_mask=mask_crop.resize((tw,th),Image.Resampling.LANCZOS)
+        x0, y0, x1, y1 = _bbox(mask, padding)
+        crop = image.crop((x0, y0, x1, y1))
+        mask_crop = Image.fromarray(mask[y0:y1, x0:x1], "L")
+
+        cw, ch = crop.size
+        scale = min(1.0, float(max_side) / max(cw, ch))
+        tw = _multiple16(max(64, round(cw * scale)))
+        th = _multiple16(max(64, round(ch * scale)))
+        work_image = crop.resize((tw, th), Image.Resampling.LANCZOS)
+        work_mask = mask_crop.resize((tw, th), Image.Resampling.LANCZOS)
 
         cancelled_guard(job)
-        job.set_progress(0.18,"Cargando condicionamiento SDXL")
-        generator=self.torch.Generator(device="cpu").manual_seed(int(seed) & 0x7FFFFFFF)
+        job.set_progress(0.14, "Preparando FLUX Fill NF4")
+        generator = self.torch.Generator(device="cpu").manual_seed(int(seed) & 0x7FFFFFFF)
 
-        def cb(pipe, step, timestep, callback_kwargs):
+        def callback(pipe, step, timestep, callback_kwargs):
             cancelled_guard(job)
-            frac=(step+1)/max(1,steps)
-            job.set_progress(0.20+0.68*frac,f"Generando · paso {step+1}/{steps}")
+            frac = (step + 1) / max(1, int(steps))
+            job.set_progress(0.16 + 0.72 * frac, f"FLUX Fill · paso {step + 1}/{steps}")
             return callback_kwargs
 
         with self.torch.inference_mode():
-            result=self.pipe(
+            generated = self.pipe(
                 prompt=prompt,
-                negative_prompt=negative_prompt or None,
-                image=work_img,
+                image=work_image,
                 mask_image=work_mask,
-                strength=float(strength),
+                height=th,
+                width=tw,
                 guidance_scale=float(guidance),
                 num_inference_steps=int(steps),
+                max_sequence_length=512,
                 generator=generator,
-                callback_on_step_end=cb,
+                callback_on_step_end=callback,
             ).images[0]
 
         cancelled_guard(job)
-        job.set_progress(0.90,"Recomponiendo a resolución completa")
-        generated=result.resize((cw,ch),Image.Resampling.LANCZOS)
+        job.set_progress(0.91, "Recomponiendo a resolución completa")
+        generated = generated.resize((cw, ch), Image.Resampling.LANCZOS)
 
-        # El modelo sólo aporta píxeles donde la máscara permite editar.
-        # El exterior se recompone desde la fotografía original.
-        alpha=mask_crop
-        if feather>0:
-            alpha=alpha.filter(ImageFilter.GaussianBlur(radius=min(32,int(feather))))
-        patch=Image.composite(generated,crop,alpha)
-        final=image.copy()
-        final.paste(patch,(x0,y0))
+        alpha = mask_crop
+        if feather > 0:
+            alpha = alpha.filter(ImageFilter.GaussianBlur(radius=min(32, int(feather))))
+        patch = Image.composite(generated, crop, alpha)
 
-        arr=np.asarray(final,dtype=np.uint16)*257
-        out.parent.mkdir(parents=True,exist_ok=True)
-        arr.astype("<u2",copy=False).tofile(out)
+        final = image.copy()
+        final.paste(patch, (x0, y0))
+
+        arr16 = np.asarray(final, dtype=np.uint16) * 257
+        out.parent.mkdir(parents=True, exist_ok=True)
+        arr16.astype("<u2", copy=False).tofile(out)
+
         job.meta.update({
-            "width":w,"height":h,"channels":3,"dtype":"uint16le",
-            "inputPrecision":16 if input_format=="raw16" else 8,
-            "model":self.model_id,"task":"generative-edit",
-            "seed":int(seed),"steps":int(steps),
-            "roi":[x0,y0,x1,y1],
+            "width": w, "height": h, "channels": 3, "dtype": "uint16le",
+            "inputPrecision": 16 if input_format == "raw16" else 8,
+            "model": self.model_id, "task": "generative-edit",
+            "seed": int(seed), "steps": int(steps),
+            "roi": [x0, y0, x1, y1],
         })
-        job.set_progress(0.97,"Edición generativa preparada")
+        job.set_progress(0.98, "Edición FLUX preparada")
         return out
