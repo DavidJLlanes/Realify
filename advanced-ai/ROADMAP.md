@@ -139,13 +139,21 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 - Progreso, cancelación y validación de entrada reutilizando el gestor de trabajos local.
 - Base de máscara lista para que la Fase 6 haga inpainting y edición generativa localizada sin tocar zonas protegidas.
 
-## Fase 6 — Edición generativa
+## Fase 6 — Edición generativa ✅
 
-- Modelo generativo final (objetivo inicial: familia FLUX adecuada a licencia/hardware).
-- Inpainting / image editing.
-- Cambiar cielo, fondo, pelo, ropa y escenario.
-- Añadir objetos.
-- Mantener zonas protegidas.
+- FLUX.1 Fill [dev] como motor generativo principal por calidad de inpainting y seguimiento de prompt.
+- Variante NF4 de Diffusers para transformer + T5 XXL, con cálculo BF16 y offload para la RTX 4070 SUPER de 12 GB.
+- Componentes base oficiales de FLUX Fill descargados bajo demanda dentro de `advanced-ai/models/generative/`.
+- Soporte para repositorios gated de Hugging Face: la primera instalación exige aceptar la licencia de FLUX y autenticar el PC.
+- SAM2 define la zona editable; todo lo situado fuera de la máscara queda protegido.
+- Edición localizada para cambiar cielo, fondo, pelo, ropa, escenario y añadir objetos.
+- Procesado de región de interés: hasta 1024 px de lado por defecto en 12 GB de VRAM, seguido de recomposición a la resolución completa original.
+- 50 pasos y guidance 30 por defecto, priorizando calidad sobre velocidad.
+- Semilla reproducible y controles de pasos, guidance y suavizado de borde.
+- Previsualización antes/después y cancelación durante la generación.
+- Resultado aplicado como capa nueva y reversible, conservando prompt, modelo y semilla como metadatos.
+- El backend generativo queda desacoplado de la interfaz para poder sustituir FLUX por un modelo superior futuro sin rehacer Realify.
+- No se usa SDXL como motor principal: el criterio permanente del proyecto es usar el mejor modelo práctico compatible con la GPU objetivo.
 
 ## Fase 7 — Identidad y control avanzado
 
@@ -177,3 +185,4 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 8. Las operaciones largas deben tener progreso y cancelación.
 9. El resultado se integra con capas e historial de Realify.
 10. Antes de añadir un modelo se revisan licencia, tamaño, VRAM y compatibilidad.
+11. Para cada tarea se prioriza el modelo de mayor calidad práctica que pueda ejecutarse razonablemente en una RTX 4070 SUPER de 12 GB; las variantes ligeras sólo se usarán cuando sean necesarias para hacerlo viable.
