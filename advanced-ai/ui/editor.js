@@ -149,7 +149,8 @@ export function openAdvancedAIEditor(opts){
   }
 
   async function applyResult(){
-    if(!resultCanvas || !result16 || !resultKind) return;
+    if(!resultCanvas || !resultKind) return;
+    if(resultKind !== "prompt-adjust" && !result16) return;
     shell.setBusy("Aplicando resultado…");
     try{
       if(resultKind === "prompt-adjust"){
