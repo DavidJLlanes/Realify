@@ -24,7 +24,7 @@ export function openFramesEditor({ source, onAccept }){
     const max=1000, k=Math.min(1,max/source.width,max/source.height);
     preview.width=Math.max(1,Math.round(source.width*k));preview.height=Math.max(1,Math.round(source.height*k));
     const x=preview.getContext("2d");x.clearRect(0,0,preview.width,preview.height);x.drawImage(source,0,0,preview.width,preview.height);
-    drawFrame(x,preset,preview.width,preview.height,{width,primary,secondary});
+    drawFrame(x,preset,preview.width,preview.height,{width,primary,secondary,clear:false});
   };
   const renderGrid=()=>{
     grid.textContent="";
