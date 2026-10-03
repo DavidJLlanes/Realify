@@ -66,7 +66,9 @@ function statusMarkup(s){
   var cuda = s.cudaVersion ? "CUDA " + esc(s.cudaVersion) : "CUDA";
   var torch = s.torch ? " · PyTorch " + esc(s.torch) : "";
   return '<div class="aai-status ready"><i></i><div><b>' + gpu + vram +
-    '</b><span>' + cuda + torch + ' · motor listo</span></div></div>';
+    '</b><span>' + cuda + torch + ' · motor listo</span>' +
+    '<a class="aai-install-local" href="/advanced-ai/install/windows/instalar-realify-ai-local-v2.cmd?v=3" download>Actualizar / reinstalar Realify AI Local</a>' +
+    '</div></div>';
 }
 
 function maxHiPixels(){
