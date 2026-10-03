@@ -56,7 +56,7 @@ motor local no disponible
 GPU cloud de pago por uso
 ```
 
-## Fase 1 — Base del módulo y motor local
+## Fase 1 — Base del módulo y motor local ✅
 
 Objetivo: construir la infraestructura sin ejecutar todavía modelos pesados.
 
@@ -75,16 +75,17 @@ Objetivo: construir la infraestructura sin ejecutar todavía modelos pesados.
 
 Criterio de finalización: Realify abre el módulo, muestra la foto y puede decir de forma fiable si Realify AI Local está disponible y qué GPU/CUDA tiene.
 
-## Fase 2 — Upscale CUDA
+## Fase 2 — Upscale CUDA ✅
 
-- Real-ESRGAN o modelo final elegido.
-- ModelManager.
-- Descarga/validación del modelo.
-- Tiling y solape.
-- Progreso y cancelación.
-- Resultado devuelto a Realify.
-- Aplicar como nueva capa / documento según corresponda.
-- Preservar máxima profundidad posible.
+- Real-ESRGAN x2plus y x4plus oficiales.
+- ModelManager y registro central de modelos.
+- Descarga bajo demanda y validación de tamaño del peso.
+- Tiling solapado para controlar VRAM.
+- Progreso y cancelación entre bloques.
+- Resultado PNG devuelto a Realify y previsualizado antes de aplicar.
+- Upscale abre un documento nuevo al cambiar dimensiones.
+- El motor Python acepta imágenes de 8/16 bits cuando OpenCV las entrega así.
+- El puente web actual parte del canvas compuesto de Realify; preservar hiSrc de 16 bits a través del puente queda como mejora específica antes de declarar soporte 16-bit extremo a extremo.
 
 ## Fase 3 — Denoise / Deblur
 
