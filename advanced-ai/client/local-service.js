@@ -51,29 +51,30 @@ function canvasBlob(canvas){
 }
 
 /** source: HTMLCanvasElement o { data:Uint16Array, w, h, channels:3 }. */
-export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAULT_URL, signal } = {}){
-  const form = new FormData();
+async function appendImage(form, source){
   if(source?.data instanceof Uint16Array){
-    const raw = new Blob([
-      source.data.buffer.slice(source.data.byteOffset, source.data.byteOffset + source.data.byteLength)
-    ], { type:"application/octet-stream" });
-    form.append("image", raw, "realify-input.rgb16");
+    const bytes = source.data.buffer.slice(
+      source.data.byteOffset,
+      source.data.byteOffset + source.data.byteLength
+    );
+    form.append("image", new Blob([bytes], { type:"application/octet-stream" }), "realify-input.rgb16");
     form.append("input_format", "raw16");
     form.append("width", String(source.w));
     form.append("height", String(source.h));
     form.append("channels", String(source.channels || 3));
-  }else{
-    const blob = await canvasBlob(source);
-    form.append("image", blob, "realify-input.png");
-    form.append("input_format", "png");
-    form.append("width", String(source.width || 0));
-    form.append("height", String(source.height || 0));
-    form.append("channels", "4");
+    return;
   }
-  form.append("scale", String(scale));
-  form.append("tile", String(tile));
 
-  const res = await fetch(base + "/jobs/upscale", {
+  const blob = await canvasBlob(source);
+  form.append("image", blob, "realify-input.png");
+  form.append("input_format", "png");
+  form.append("width", String(source.width || 0));
+  form.append("height", String(source.height || 0));
+  form.append("channels", "4");
+}
+
+async function postJob(path, form, { base = DEFAULT_URL, signal } = {}){
+  const res = await fetch(base + path, {
     method: "POST",
     mode: "cors",
     cache: "no-store",
@@ -85,6 +86,23 @@ export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAU
   if(!res.ok) throw new Error(await errorMessage(res));
   const data = await res.json();
   return data.job;
+}
+
+export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAULT_URL, signal } = {}){
+  const form = new FormData();
+  await appendImage(form, source);
+  form.append("scale", String(scale));
+  form.append("tile", String(tile));
+  return postJob("/jobs/upscale", form, { base, signal });
+}
+
+export async function startRestore(source, { mode = "denoise", tile = 512, base = DEFAULT_URL, signal } = {}){
+  if(mode !== "denoise" && mode !== "deblur") throw new Error("Modo de restauración no válido.");
+  const form = new FormData();
+  await appendImage(form, source);
+  form.append("mode", mode);
+  form.append("tile", String(tile));
+  return postJob("/jobs/restore", form, { base, signal });
 }
 
 export async function getJob(jobId, base = DEFAULT_URL){
@@ -119,17 +137,26 @@ export async function fetchJobResult(jobId, base = DEFAULT_URL){
     headers: HEADERS
   });
   if(!res.ok) throw new Error(await errorMessage(res));
+
   const w = +(res.headers.get("X-Realify-Width") || 0);
   const h = +(res.headers.get("X-Realify-Height") || 0);
   const channels = +(res.headers.get("X-Realify-Channels") || 3);
   const dtype = res.headers.get("X-Realify-Dtype") || "";
   const inputPrecision = +(res.headers.get("X-Realify-Input-Precision") || 8);
+  const model = res.headers.get("X-Realify-Model") || "";
+  const task = res.headers.get("X-Realify-Task") || "";
+
   if(!w || !h || channels !== 3 || dtype !== "uint16le")
     throw new Error("El motor local devolvió metadatos de imagen no válidos.");
+
   const buffer = await res.arrayBuffer();
   if(buffer.byteLength !== w * h * channels * 2)
     throw new Error("El tamaño del resultado no coincide con sus dimensiones.");
-  return { data:new Uint16Array(buffer), w, h, channels, inputPrecision };
+
+  return {
+    data:new Uint16Array(buffer),
+    w, h, channels, inputPrecision, model, task
+  };
 }
 
 export async function waitForJob(jobId, { onProgress, signal, interval = 350, base = DEFAULT_URL } = {}){
@@ -140,8 +167,10 @@ export async function waitForJob(jobId, { onProgress, signal, interval = 350, ba
       err.cancelled = true;
       throw err;
     }
+
     const job = await getJob(jobId, base);
     onProgress?.(job);
+
     if(job.status === "completed") return job;
     if(job.status === "failed") throw new Error(job.error || "El procesamiento ha fallado.");
     if(job.status === "cancelled"){
@@ -149,6 +178,7 @@ export async function waitForJob(jobId, { onProgress, signal, interval = 350, ba
       err.cancelled = true;
       throw err;
     }
+
     await new Promise((resolve, reject) => {
       const t = setTimeout(resolve, interval);
       if(signal) signal.addEventListener("abort", () => {
