@@ -252,6 +252,7 @@ export function openAdvancedAIEditor(opts){
       '<label><span>Resultado</span><select data-segment-target><option value="object">Sujeto / objeto</option><option value="background">Fondo</option></select></label>' +
       '<button type="button" data-segment-start>Activar selección por clic</button>' +
       '<button type="button" data-segment-run disabled>Calcular / refinar máscara</button>' +
+      '<button type="button" data-segment-cancel disabled>Cancelar proceso</button>' +
       '<button type="button" data-segment-clear>Limpiar puntos</button>' +
       '<div class="aai-progress aai-segment-progress" hidden><div><i></i></div><span>Preparando…</span></div>' +
       '<p class="aai-quality" data-segment-quality>SAM2.1 Hiera Large · máscara editable al aplicar.</p>' +
@@ -318,6 +319,7 @@ export function openAdvancedAIEditor(opts){
 
   const segmentStart = shell.left.querySelector("[data-segment-start]");
   const segmentRun = shell.left.querySelector("[data-segment-run]");
+  const segmentCancel = shell.left.querySelector("[data-segment-cancel]");
   const segmentClear = shell.left.querySelector("[data-segment-clear]");
   const segmentTarget = shell.left.querySelector("[data-segment-target]");
   const segmentProgress = shell.left.querySelector(".aai-segment-progress");
@@ -360,6 +362,7 @@ export function openAdvancedAIEditor(opts){
     promptRun.disabled = busy || !featureReady("prompt-adjustments");
     upscaleCancel.disabled = !(busy && kind === "upscale");
     restoreCancel.disabled = !(busy && kind === "restore");
+    segmentCancel.disabled = !(busy && kind === "segment");
     mobileCancel.disabled = !busy;
     upscaleScale.disabled = busy;
     restoreModeSel.disabled = busy;
@@ -663,6 +666,7 @@ export function openAdvancedAIEditor(opts){
 
   segmentStart.addEventListener("click",()=>setSegmentInteract(!segmentStart.classList.contains("on")));
   segmentRun.addEventListener("click",runSegment);
+  segmentCancel.addEventListener("click",cancelActive);
   segmentClear.addEventListener("click",()=>{ segmentPoints=[]; segmentLabels=[]; segmentMask=null; resultKind=null; shell.setApplyEnabled(false); shell.setOverlay(segmentStart.classList.contains("on")?drawSegmentOverlay:null); setReady(); shell.redraw(); });
   segmentTarget.addEventListener("change",()=>{ if(segmentMask){ segmentMask.data = Uint8Array.from(segmentMask.data, a=>255-a); segmentInvert=!segmentInvert; shell.redraw(); } });
 
