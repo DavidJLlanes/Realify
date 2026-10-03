@@ -241,6 +241,7 @@ const ITEMS = [
   { tool:"picker",       label:"Cuentagotas",  cat:"pintar" },
   { cmd:"layer.meme",      label:"Crear meme",     ic:"sticker",   cat:"pintar estilo" },
   { cmd:"file.socialPost", label:"Collage / Post", ic:"layout-dashboard", cat:"pintar estilo" },
+  { cmd:"filter.frames",   label:"Marcos",         ic:"frame",            cat:"pintar estilo" },
   { cmd:"image.beforeAfter", label:"Antes y después", ic:"before-after", cat:"estilo analizar" },
   { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"contact-sheet", cat:"estilo" },
   { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos" },
