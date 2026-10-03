@@ -44,6 +44,18 @@ class UpscaleEngine:
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA no está disponible.")
 
+        # BasicSR 1.4.2 todavía importa torchvision.transforms.functional_tensor,
+        # módulo retirado en torchvision moderno. Creamos sólo el alias que usa
+        # BasicSR para mantener Real-ESRGAN compatible con el PyTorch CUDA actual.
+        try:
+            import torchvision.transforms.functional_tensor  # noqa: F401
+        except ModuleNotFoundError:
+            import types
+            from torchvision.transforms import functional as tvf
+            compat = types.ModuleType("torchvision.transforms.functional_tensor")
+            compat.rgb_to_grayscale = tvf.rgb_to_grayscale
+            sys.modules["torchvision.transforms.functional_tensor"] = compat
+
         from basicsr.archs.rrdbnet_arch import RRDBNet
         from realesrgan import RealESRGANer
 
