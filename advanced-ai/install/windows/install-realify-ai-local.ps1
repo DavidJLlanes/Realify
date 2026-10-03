@@ -17,7 +17,7 @@ function Invoke-NativeChecked {
   )
   & $FilePath @Arguments
   if ($LASTEXITCODE -ne 0) {
-    throw "El comando falló con código $LASTEXITCODE: $FilePath $($Arguments -join ' ')"
+    throw "El comando falló con código ${LASTEXITCODE}: $FilePath $($Arguments -join ' ')"
   }
 }
 
