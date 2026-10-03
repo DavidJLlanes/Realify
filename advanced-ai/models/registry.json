@@ -1,5 +1,5 @@
 {
-  "schema": 5,
+  "schema": 6,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -94,6 +94,18 @@
       },
       "license": "Apache-2.0",
       "source": "https://huggingface.co/Qwen/Qwen3-1.7B"
+    },
+    "sam2.1-hiera-large": {
+      "task": "segment",
+      "label": "SAM2.1 Hiera Large",
+      "directory": "segmentation/sam2.1-hiera-large",
+      "repository": "facebook/sam2.1-hiera-large",
+      "revision": "main",
+      "download": {
+        "type": "huggingface-snapshot"
+      },
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/facebook/sam2.1-hiera-large"
     }
   }
 }
