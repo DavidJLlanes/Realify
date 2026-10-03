@@ -226,8 +226,7 @@ export async function getJob(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
     cache: "no-store",
-    credentials: "omit",
-    headers: HEADERS
+    credentials: "omit"
   });
   if(!res.ok) throw new Error(await errorMessage(res));
   return res.json();
@@ -241,7 +240,7 @@ export async function cancelJob(jobId, base = ACTIVE_URL){
       mode: "cors",
       cache: "no-store",
       credentials: "omit",
-      headers: HEADERS
+      
     });
   }catch{}
 }
@@ -250,8 +249,7 @@ export async function fetchJobResult(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/result", {
     mode: "cors",
     cache: "no-store",
-    credentials: "omit",
-    headers: HEADERS
+    credentials: "omit"
   });
   if(!res.ok) throw new Error(await errorMessage(res));
 
