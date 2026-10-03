@@ -109,13 +109,21 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 - Progreso y cancelación reutilizando el gestor de trabajos local.
 - El servicio libera el motor anterior al cambiar entre Real-ESRGAN y NAFNet para no acumular VRAM.
 
-## Fase 4 — Prompt → ajustes de Realify
+## Fase 4 — Prompt → ajustes de Realify ✅
 
-- Modelo lingüístico local pequeño.
-- Convertir lenguaje natural a acciones estructuradas.
-- Exposición, contraste, luces, sombras, blancos, negros, color, claridad, etc.
-- Validación estricta del esquema de acciones.
-- Ningún comando arbitrario.
+- Qwen2.5-1.5B-Instruct local como intérprete de lenguaje natural.
+- Modelo almacenado bajo `advanced-ai/models/prompt/` y descargado bajo demanda.
+- Licencia Apache 2.0.
+- El modelo sólo puede devolver un JSON dentro de un esquema cerrado.
+- Validación y límites estrictos de todos los valores antes de tocar la fotografía.
+- Ajustes admitidos: exposición, brillo, contraste, altas luces, sombras, blancos, negros, temperatura, matiz, saturación, vibrancia, claridad, textura, dehaze y enfoque.
+- Los sliders manuales del módulo usan exactamente el mismo estado que el prompt.
+- Previsualización inmediata antes de aplicar.
+- Aplicación como capa nueva/reversible.
+- Las peticiones generativas o fuera del esquema se marcan como no disponibles todavía; no se traducen a comandos arbitrarios.
+- Prompt disponible también en móvil.
+- Ctrl/Cmd + Enter ejecuta el prompt en escritorio.
+- El motor pesado anterior se libera al cargar Qwen para evitar acumular VRAM.
 
 ## Fase 5 — Segmentación y máscaras
 
