@@ -10,83 +10,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release_guard:
-    name: Verificar versión de publicación
+  deploy:
+    name: Validar y publicar Realify
     runs-on: ubuntu-latest
-    outputs:
-      should_deploy: ${{ steps.guard.outputs.should_deploy }}
-      version: ${{ steps.guard.outputs.version }}
     steps:
-      - name: Obtener repositorio completo
+      - name: Obtener repositorio
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Validar versión, caché y release
-        id: guard
+      - name: Validar release
         shell: bash
         run: |
           set -euo pipefail
 
           VERSION="$(tr -d '[:space:]' < VERSION)"
           test -n "$VERSION"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "REALIFY_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-          JSON_VERSION="$(python - <<'PY'
-import json
-print(json.load(open("version.json", encoding="utf-8"))["version"])
-PY
-          )"
-
-          SW_VERSION="$(python - <<'PY'
-import re
-s=open("sw.js", encoding="utf-8").read()
-m=re.search(r'const VERSION = "realify-v(\d+)', s)
-print(m.group(1) if m else "")
-PY
-          )"
-
-          MAIN_VERSION="$(python - <<'PY'
-import re
-s=open("index.html", encoding="utf-8").read()
-m=re.search(r'js/main\.js\?v=(\d+)', s)
-print(m.group(1) if m else "")
-PY
-          )"
-
-          BOOT_VERSION="$(python - <<'PY'
-import re
-s=open("index.html", encoding="utf-8").read()
-m=re.search(r'js/boot-guard\.js\?v=(\d+)', s)
-print(m.group(1) if m else "")
-PY
-          )"
+          JSON_VERSION="$(python -c 'import json; print(json.load(open("version.json", encoding="utf-8"))["version"])')"
+          SW_VERSION="$(python -c 'import re; s=open("sw.js", encoding="utf-8").read(); m=re.search(r"const VERSION = \"realify-v(\d+)", s); print(m.group(1) if m else "")')"
+          MAIN_VERSION="$(python -c 'import re; s=open("index.html", encoding="utf-8").read(); m=re.search(r"js/main\.js\?v=(\d+)", s); print(m.group(1) if m else "")')"
+          BOOT_VERSION="$(python -c 'import re; s=open("index.html", encoding="utf-8").read(); m=re.search(r"js/boot-guard\.js\?v=(\d+)", s); print(m.group(1) if m else "")')"
 
           if [ "$VERSION" != "$JSON_VERSION" ] || [ "$VERSION" != "$SW_VERSION" ] || [ "$VERSION" != "$MAIN_VERSION" ] || [ "$VERSION" != "$BOOT_VERSION" ]; then
-            echo "::error::Versionado desincronizado. VERSION=$VERSION version.json=$JSON_VERSION sw.js=$SW_VERSION main.js=$MAIN_VERSION boot-guard=$BOOT_VERSION"
+            echo "::error::Versionado desincronizado: VERSION=$VERSION version.json=$JSON_VERSION sw.js=$SW_VERSION main.js=$MAIN_VERSION boot-guard=$BOOT_VERSION"
             exit 1
           fi
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
+            echo "Publicación manual autorizada para v$VERSION."
             exit 0
           fi
 
           BEFORE="${{ github.event.before }}"
           if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
             exit 0
           fi
 
           PREV_VERSION="$(git show "$BEFORE:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
           CHANGED="$(git diff --name-only "$BEFORE" "${{ github.sha }}")"
-
-          # Cambios sólo administrativos/documentales no necesitan publicar.
           RUNTIME_CHANGED="$(printf '%s\n' "$CHANGED" | grep -Ev '^(VERSION|version\.json|sw\.js|index\.html|\.github/|.*\.md$|$)' || true)"
 
           if [ -n "$RUNTIME_CHANGED" ] && [ "$VERSION" = "$PREV_VERSION" ]; then
-            echo "::error::Hay cambios de aplicación en main pero VERSION no aumentó. Crea el commit de release y sincroniza VERSION, version.json, sw.js e index.html."
-            echo "Archivos pendientes de release:"
+            echo "::error::Hay cambios de aplicación sin incrementar VERSION."
             printf '%s\n' "$RUNTIME_CHANGED"
             exit 1
           fi
@@ -100,20 +69,15 @@ PY
               echo "::error::La versión debe aumentar: anterior=$PREV_VERSION nueva=$VERSION"
               exit 1
             fi
-            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
             echo "Release Realify v$VERSION autorizado."
           else
-            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
-            echo "Sin incremento de versión: no se despliega."
+            echo "SHOULD_DEPLOY=false" >> "$GITHUB_ENV"
+            echo "Cambio administrativo/documental: no se publica."
           fi
 
-  deploy:
-    name: Publicar Realify
-    needs: release_guard
-    if: needs.release_guard.outputs.should_deploy == 'true'
-    runs-on: ubuntu-latest
-    steps:
       - name: Preparar clave SSH
+        if: env.SHOULD_DEPLOY == 'true'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
@@ -124,6 +88,7 @@ PY
           done
 
       - name: Actualizar la web en el VPS
+        if: env.SHOULD_DEPLOY == 'true'
         run: |
           for i in 1 2 3 4; do
             ssh -i ~/.ssh/deploy_key -o ConnectTimeout=20 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
@@ -137,20 +102,19 @@ PY
           exit 1
 
       - name: Verificar versión publicada
-        env:
-          EXPECTED_VERSION: ${{ needs.release_guard.outputs.version }}
+        if: env.SHOULD_DEPLOY == 'true'
         run: |
           set -euo pipefail
           URL="https://realify.es/version.json?release=${GITHUB_SHA}"
           for i in 1 2 3 4 5 6; do
             BODY="$(curl -fsS --max-time 15 -H 'Cache-Control: no-cache' "$URL" || true)"
-            LIVE_VERSION="$(printf '%s' "$BODY" | python -c 'import json,sys; try: print(json.load(sys.stdin).get("version","")) except Exception: print("")' 2>/dev/null || true)"
-            if [ "$LIVE_VERSION" = "$EXPECTED_VERSION" ]; then
-              echo "realify.es sirve Realify v$EXPECTED_VERSION"
+            LIVE_VERSION="$(printf '%s' "$BODY" | python -c 'import json,sys; d=json.load(sys.stdin); print(d.get("version",""))' 2>/dev/null || true)"
+            if [ "$LIVE_VERSION" = "$REALIFY_VERSION" ]; then
+              echo "realify.es sirve Realify v$REALIFY_VERSION"
               exit 0
             fi
-            echo "Producción aún devuelve v${LIVE_VERSION:-?}; reintento $i/6..."
+            echo "Producción devuelve v${LIVE_VERSION:-?}; reintento $i/6..."
             sleep 10
           done
-          echo "::error::El VPS se actualizó pero realify.es no sirve la versión v$EXPECTED_VERSION."
+          echo "::error::realify.es no sirve la versión v$REALIFY_VERSION."
           exit 1
