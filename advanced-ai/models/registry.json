@@ -1,5 +1,5 @@
 {
-  "schema": 7,
+  "schema": 8,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -107,18 +107,60 @@
       "license": "Apache-2.0",
       "source": "https://huggingface.co/facebook/sam2.1-hiera-large"
     },
-    "sdxl-inpaint-1.0": {
-      "task": "generative-edit",
-      "label": "SDXL Inpainting 1.0",
-      "directory": "generative/sdxl-inpaint-1.0",
-      "repository": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
+    "flux1-fill-dev-components": {
+      "task": "generative-edit-base",
+      "label": "FLUX.1 Fill dev · componentes base",
+      "directory": "generative/flux1-fill-dev/components",
+      "repository": "black-forest-labs/FLUX.1-Fill-dev",
       "revision": "main",
-      "variant": "fp16",
       "download": {
-        "type": "huggingface-diffusers"
+        "type": "huggingface-patterns",
+        "allowPatterns": [
+          "model_index.json",
+          "scheduler/*",
+          "tokenizer/*",
+          "tokenizer_2/*",
+          "text_encoder/config.json",
+          "text_encoder/model*.safetensors",
+          "vae/config.json",
+          "vae/diffusion_pytorch_model*.safetensors"
+        ],
+        "required": [
+          "model_index.json",
+          "scheduler/scheduler_config.json",
+          "tokenizer/tokenizer_config.json",
+          "tokenizer_2/tokenizer_config.json",
+          "text_encoder/config.json",
+          "vae/config.json"
+        ]
       },
-      "license": "CreativeML-Open-RAIL++-M",
-      "source": "https://huggingface.co/diffusers/stable-diffusion-xl-1.0-inpainting-0.1"
+      "license": "FLUX-dev-non-commercial",
+      "gated": true,
+      "source": "https://huggingface.co/black-forest-labs/FLUX.1-Fill-dev"
+    },
+    "flux1-fill-dev-nf4": {
+      "task": "generative-edit",
+      "label": "FLUX.1 Fill dev · NF4",
+      "directory": "generative/flux1-fill-dev/nf4",
+      "repository": "diffusers/FLUX.1-Fill-dev-nf4",
+      "revision": "main",
+      "download": {
+        "type": "huggingface-patterns",
+        "allowPatterns": [
+          "transformer/*",
+          "text_encoder_2/*",
+          "LICENSE.md",
+          "README.md"
+        ],
+        "required": [
+          "transformer/config.json",
+          "text_encoder_2/config.json"
+        ]
+      },
+      "quantization": "NF4",
+      "computeDtype": "bfloat16",
+      "license": "FLUX-dev-non-commercial",
+      "source": "https://huggingface.co/diffusers/FLUX.1-Fill-dev-nf4"
     }
   }
 }
