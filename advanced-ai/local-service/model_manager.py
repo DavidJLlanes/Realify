@@ -46,7 +46,18 @@ class ModelManager:
     def _valid_file(cls, path: Path, spec: dict[str, Any]) -> bool:
         try:
             if spec.get("download", {}).get("type") == "huggingface-snapshot":
-                return path.is_dir() and (path / "config.json").is_file()
+                return (
+                    path.is_dir()
+                    and (path / "config.json").is_file()
+                    and (
+                        (path / "model.safetensors").is_file()
+                        or any(path.glob("model-*.safetensors"))
+                    )
+                    and (
+                        (path / "tokenizer.json").is_file()
+                        or (path / "tokenizer_config.json").is_file()
+                    )
+                )
             if not path.is_file():
                 return False
             size = path.stat().st_size
