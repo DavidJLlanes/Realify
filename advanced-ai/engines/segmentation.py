@@ -91,8 +91,8 @@ class SegmentationEngine:
         job.set_progress(0.22, "Codificando imagen con SAM2")
         inputs = self.processor(
             images=image,
-            input_points=[[[clean_points]]],
-            input_labels=[[[clean_labels]]],
+            input_points=[[clean_points]],
+            input_labels=[[clean_labels]],
             return_tensors="pt",
         )
         inputs = {k: v.to(self.device) if hasattr(v, "to") else v for k, v in inputs.items()}
