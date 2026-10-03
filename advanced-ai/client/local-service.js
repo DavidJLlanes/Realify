@@ -1,6 +1,7 @@
 const DEFAULT_URL = "http://127.0.0.1:17834";
+const FALLBACK_URL = "http://localhost:17834";
 const TIMEOUT_MS = 12000;
-const HEADERS = { "X-Realify-Client": "web" };
+let ACTIVE_URL = DEFAULT_URL;
 
 async function loopbackPermissionState(){
   try{
@@ -21,52 +22,59 @@ async function localFetch(url, init = {}){
   return fetch(url, { ...init, targetAddressSpace:"loopback" });
 }
 
-export async function probeLocalService(base = DEFAULT_URL){
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try{
-    const permission = await loopbackPermissionState();
-    const res = await localFetch(base + "/status", {
-      method: "GET",
-      mode: "cors",
-      cache: "no-store",
-      credentials: "omit",
-      headers: HEADERS,
-      signal: ctrl.signal
-    });
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    return {
-      online: true,
-      ready: !!data.ready,
-      serviceVersion: data.serviceVersion || "?",
-      phase: data.phase || 1,
-      features: Array.isArray(data.features) ? data.features : [],
-      torchAvailable: !!data.torchAvailable,
-      cuda: !!data.cuda,
-      gpu: data.gpu || null,
-      vramGB: Number.isFinite(+data.vramGB) ? +data.vramGB : null,
-      computeCapability: data.computeCapability || null,
-      torch: data.torch || null,
-      cudaVersion: data.cudaVersion || null,
-      reason: data.reason || null,
-      loopbackPermission: permission
-    };
-  }catch(err){
-    const permission = await loopbackPermissionState();
-    return {
-      online: false,
-      ready: false,
-      loopbackPermission: permission,
-      reason: err?.name === "AbortError"
-        ? "El servicio local no respondió a tiempo."
-        : permission === "denied"
-          ? "El navegador ha bloqueado el acceso de Realify al motor local."
-          : "Realify AI Local no está instalado, no está iniciado o el navegador aún no tiene permiso para acceder a este PC."
-    };
-  }finally{
-    clearTimeout(timer);
+export async function probeLocalService(base = null){
+  const permission = await loopbackPermissionState();
+  const candidates = base ? [base] : [DEFAULT_URL, FALLBACK_URL];
+  let lastError = null;
+
+  for(const candidate of candidates){
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    try{
+      const res = await localFetch(candidate + "/status", {
+        method:"GET",
+        mode:"cors",
+        cache:"no-store",
+        credentials:"omit",
+        signal:ctrl.signal
+      });
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      ACTIVE_URL = candidate;
+      return {
+        online:true,
+        ready:!!data.ready,
+        serviceVersion:data.serviceVersion || "?",
+        phase:data.phase || 1,
+        features:Array.isArray(data.features) ? data.features : [],
+        torchAvailable:!!data.torchAvailable,
+        cuda:!!data.cuda,
+        gpu:data.gpu || null,
+        vramGB:Number.isFinite(+data.vramGB) ? +data.vramGB : null,
+        computeCapability:data.computeCapability || null,
+        torch:data.torch || null,
+        cudaVersion:data.cudaVersion || null,
+        reason:data.reason || null,
+        loopbackPermission:permission,
+        baseUrl:candidate
+      };
+    }catch(err){
+      lastError = err;
+    }finally{
+      clearTimeout(timer);
+    }
   }
+
+  return {
+    online:false,
+    ready:false,
+    loopbackPermission:permission,
+    reason:lastError?.name === "AbortError"
+      ? "El servicio local respondió directamente, pero Realify no ha podido acceder a él desde esta pestaña."
+      : permission === "denied"
+        ? "El navegador ha bloqueado el acceso de Realify al motor local."
+        : "El servicio local está instalado, pero el navegador no permite todavía que realify.es acceda al loopback."
+  };
 }
 
 function canvasBlob(canvas){
@@ -98,14 +106,13 @@ async function appendImage(form, source){
   form.append("channels", "4");
 }
 
-async function postJob(path, form, { base = DEFAULT_URL, signal } = {}){
+async function postJob(path, form, { base = ACTIVE_URL, signal } = {}){
   const res = await localFetch(base + path, {
     method: "POST",
     mode: "cors",
     cache: "no-store",
     credentials: "omit",
-    headers: HEADERS,
-    body: form,
+        body: form,
     signal
   });
   if(!res.ok) throw new Error(await errorMessage(res));
@@ -113,7 +120,7 @@ async function postJob(path, form, { base = DEFAULT_URL, signal } = {}){
   return data.job;
 }
 
-export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAULT_URL, signal } = {}){
+export async function startUpscale(source, { scale = 2, tile = 512, base = ACTIVE_URL, signal } = {}){
   const form = new FormData();
   await appendImage(form, source);
   form.append("scale", String(scale));
@@ -121,13 +128,13 @@ export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAU
   return postJob("/jobs/upscale", form, { base, signal });
 }
 
-export async function interpretPrompt(prompt, { base = DEFAULT_URL, signal } = {}){
+export async function interpretPrompt(prompt, { base = ACTIVE_URL, signal } = {}){
   const res = await localFetch(base + "/prompt/adjust", {
     method:"POST",
     mode:"cors",
     cache:"no-store",
     credentials:"omit",
-    headers:{ ...HEADERS, "Content-Type":"application/json" },
+    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify({ prompt:String(prompt || "") }),
     signal
   });
@@ -135,7 +142,7 @@ export async function interpretPrompt(prompt, { base = DEFAULT_URL, signal } = {
   return res.json();
 }
 
-export async function startRestore(source, { mode = "denoise", tile = 512, base = DEFAULT_URL, signal } = {}){
+export async function startRestore(source, { mode = "denoise", tile = 512, base = ACTIVE_URL, signal } = {}){
   if(mode !== "denoise" && mode !== "deblur") throw new Error("Modo de restauración no válido.");
   const form = new FormData();
   await appendImage(form, source);
@@ -144,7 +151,7 @@ export async function startRestore(source, { mode = "denoise", tile = 512, base 
   return postJob("/jobs/restore", form, { base, signal });
 }
 
-export async function startSegment(source, { points = [], labels = [], invert = false, base = DEFAULT_URL, signal } = {}){
+export async function startSegment(source, { points = [], labels = [], invert = false, base = ACTIVE_URL, signal } = {}){
   const form = new FormData();
   await appendImage(form, source);
   form.append("points_json", JSON.stringify(points));
@@ -153,9 +160,9 @@ export async function startSegment(source, { points = [], labels = [], invert = 
   return postJob("/jobs/segment", form, { base, signal });
 }
 
-export async function fetchMaskResult(jobId, base = DEFAULT_URL){
+export async function fetchMaskResult(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/mask", {
-    mode:"cors", cache:"no-store", credentials:"omit", headers:HEADERS
+    mode:"cors", cache:"no-store", credentials:"omit", headers:{}
   });
   if(!res.ok) throw new Error(await errorMessage(res));
   const w = +(res.headers.get("X-Realify-Width") || 0);
@@ -170,7 +177,7 @@ export async function fetchMaskResult(jobId, base = DEFAULT_URL){
 
 export async function startGenerativeEdit(source, maskData, {
   prompt, guidance = 30, steps = 50, seed = 0, padding = 128, feather = 8, maxSide = 1024,
-  base = DEFAULT_URL, signal
+  base = ACTIVE_URL, signal
 } = {}){
   if(!(maskData?.data instanceof Uint8Array) || !maskData.w || !maskData.h)
     throw new Error("La edición generativa necesita una máscara válida.");
@@ -192,7 +199,7 @@ export async function startAdvancedControl(source, {
   task, prompt, reference = null, negativePrompt = "", steps = 28, guidance = 4,
   seed = 0, identityWeight = 1, identityStart = 2, referenceWeight = .8,
   controlMode = "depth", controlStrength = .6, maxSide = 1024,
-  base = DEFAULT_URL, signal
+  base = ACTIVE_URL, signal
 } = {}){
   const form = new FormData();
   await appendImage(form, source);
@@ -215,7 +222,7 @@ export async function startAdvancedControl(source, {
   return postJob("/jobs/advanced-control", form, { base, signal });
 }
 
-export async function getJob(jobId, base = DEFAULT_URL){
+export async function getJob(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
     cache: "no-store",
@@ -226,7 +233,7 @@ export async function getJob(jobId, base = DEFAULT_URL){
   return res.json();
 }
 
-export async function cancelJob(jobId, base = DEFAULT_URL){
+export async function cancelJob(jobId, base = ACTIVE_URL){
   if(!jobId) return;
   try{
     await localFetch(base + "/jobs/" + encodeURIComponent(jobId), {
@@ -239,7 +246,7 @@ export async function cancelJob(jobId, base = DEFAULT_URL){
   }catch{}
 }
 
-export async function fetchJobResult(jobId, base = DEFAULT_URL){
+export async function fetchJobResult(jobId, base = ACTIVE_URL){
   const res = await localFetch(base + "/jobs/" + encodeURIComponent(jobId) + "/result", {
     mode: "cors",
     cache: "no-store",
@@ -269,7 +276,7 @@ export async function fetchJobResult(jobId, base = DEFAULT_URL){
   };
 }
 
-export async function waitForJob(jobId, { onProgress, signal, interval = 350, base = DEFAULT_URL } = {}){
+export async function waitForJob(jobId, { onProgress, signal, interval = 350, base = ACTIVE_URL } = {}){
   for(;;){
     if(signal?.aborted){
       await cancelJob(jobId, base);
