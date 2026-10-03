@@ -8,6 +8,7 @@
 
 import { dialog } from "./ui/dialog.js";
 import { toast } from "./ui/toast.js";
+import { watchPWAUpdates } from "./pwa-updates.js";
 
 let deferredPrompt = null;
 
@@ -21,52 +22,30 @@ addEventListener("appinstalled", () => {
   toast("Instalada. Búscala en tu pantalla de inicio o en tus aplicaciones.", "ok");
 });
 
+let initialized=false;
+let dismissedAt=0,bar=null;
 export function initPWA(){
-  // En Firefox (ventana privada, «borrar datos al cerrar», políticas de
-  // empresa) `serviceWorker` puede existir pero valer undefined, o
-  // `register` lanzar al instante en vez de rechazar: todo protegido.
-  if(!navigator.serviceWorker || typeof navigator.serviceWorker.register !== "function") return;
-  addEventListener("load", () => {
+  if(initialized)return;initialized=true;
+  const watcher=watchPWAUpdates({onUpdate:()=>{
+    if(Date.now()-dismissedAt>60e3)showUpdateBar();
+  }});
+  // La detección por version.json funciona también sin service worker.
+  if(!navigator.serviceWorker||typeof navigator.serviceWorker.register!=="function")return;
+  const register=()=>{
     try{
-      navigator.serviceWorker.register("./sw.js").then(watchUpdates).catch(() => {
-        // Sin service worker la app sigue funcionando igual, sólo que
-        // no se cachea para uso sin conexión; no hace falta molestar.
-      });
+      Promise.resolve(navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}))
+        .then(reg=>watcher.setRegistration(reg)).catch(()=>{});
     }catch{}
-  });
+  };
+  // Una app reanudada puede iniciar este módulo después del evento load.
+  if(document.readyState==="complete")register();
+  else addEventListener("load",register,{once:true});
 }
 
-/* ── Aviso de versión nueva ───────────────────────────────────────
-   El service worker sirve siempre lo último de la red, pero lo que ya
-   está cargado en una sesión abierta sigue siendo la versión con la
-   que se abrió (y en el iPhone una app instalada puede pasar días
-   «dormida» sin recargarse). Así que se pregunta por una versión nueva
-   al arrancar, al volver a la app y cada 30 minutos; cuando el service
-   worker nuevo toma el control, se avisa con una barra. «Actualizar»
-   guarda todas las pestañas abiertas (io/project.js), recarga y las
-   vuelve a abrir. La primera instalación también cambia de
-   controlador, pero eso no es una versión nueva: no se avisa. */
-let updateReady = false, dismissedAt = 0, bar = null;
-function watchUpdates(reg){
-  // Con el service worker bloqueado (navegación privada, políticas de
-  // empresa, pruebas automáticas) `register` puede resolver sin
-  // registro: no hay nada que vigilar. Antes esto lanzaba un error a los
-  // 5 s y cada 30 minutos («Cannot read properties of undefined»).
-  if(!reg || typeof reg.update !== "function") return;
-  let hadController = !!navigator.serviceWorker.controller;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if(hadController){ updateReady = true; showUpdateBar(); }
-    hadController = true;
-  });
-  const check = () => { if(navigator.onLine !== false) reg.update().catch(() => {}); };
-  document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState !== "visible") return;
-    check();
-    if(updateReady && Date.now() - dismissedAt > 60e3) showUpdateBar();
-  });
-  setInterval(check, 30 * 60e3);
-  setTimeout(check, 5e3);
-}
+/* El aviso depende de la versión cargada en main.js frente a version.json,
+   no de que cambie el controlador. Se comprueba al arrancar, reanudar,
+   volver a tener red y cada minuto mientras la app está visible.
+   Actualizar conserva el guardado y recuperación de documentos existentes. */
 
 function showUpdateBar(){
   if(bar){ bar.hidden = false; return; }

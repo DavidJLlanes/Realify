@@ -1635,6 +1635,12 @@ const TOPICS = [
         compilación de cada shader por separado, y las funciones del navegador
         que usan la exportación y el análisis. <b>Copiar diagnóstico</b> copia un informe
         (navegador, funciones disponibles y errores) para enviarlo si algo falla.</p>
+      <p id="diag-update"><b>Actualizar la web o la app instalada.</b> Realify compara
+        su versión abierta con la publicada al arrancar, volver a la app, recuperar
+        conexión y cada minuto mientras está visible. Si hay novedades aparece
+        <b>Actualizar</b>: guarda los documentos, recarga y los recupera (el historial
+        de deshacer empieza de cero). <b>Luego</b> aplaza el aviso. No recarga por su
+        cuenta una sesión con trabajo abierto; sin conexión conserva la sesión.</p>
       <p id="diag-compat"><b>Avisos automáticos.</b> Al arrancar, la app comprueba que el
         navegador le deja leer los píxeles del lienzo (Firefox con la protección estricta contra
         rastreo, LibreWolf o Mullvad los bloquean o los alteran, y entonces los filtros no hacen

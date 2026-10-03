@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v227 · Aviso de actualización en la app instalada
+- La detección compara la versión de `main.js` cargada con `version.json`, también cuando la app reanuda una sesión con el mismo service worker o éste falla.
+- Comprueba al arrancar, volver a primer plano, recuperar conexión y cada minuto mientras está visible. El registro funciona aunque el módulo se inicie después de `load`.
+- Conserva el botón «Actualizar», el guardado y la recuperación de documentos; no recarga automáticamente una sesión abierta y respeta «Luego».
+- El service worker consulta el manifiesto en la red y no almacena sus consultas ni devuelve versiones obsoletas sin conexión.
+- Regresión de navegador y app instalada: suspensión/reanudación, registro tardío, reconexión, manifiesto inválido, primera instalación y botón Actualizar. Comprobado también con un service worker real.
+- VERSION, version.json, caché y URLs de carga sincronizados en v227, pendiente de publicación.
+
 ### v226 · Zoom en Marcos
 - Zoom con rueda del ratón o pellizco de dos dedos, centrado en el punto del gesto; admite desplazamiento al arrastrar la imagen ampliada.
 - «Encajar» devuelve la imagen completa al área de vista previa; doble clic también restablece el zoom.

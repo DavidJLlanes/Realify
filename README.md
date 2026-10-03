@@ -515,7 +515,10 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 ## 13. App, privacidad y ayuda
 
 - **PWA instalable** (Ayuda › Instalar como app) con service worker para
-  funcionar sin conexión.
+  funcionar sin conexión. Comprueba versiones al arrancar, volver a la app y
+  recuperar conexión, y cada minuto mientras está visible. «Actualizar» guarda
+  y recupera los documentos abiertos; «Luego» aplaza el aviso. La detección
+  funciona aunque el service worker no cambie al reanudar la app.
 - **Guía** interactiva con **buscador** (sin tildes, varias palabras, salta al
   párrafo exacto), página de **novedades** y ayuda directa de cada herramienta
   (botón «?» de la barra de opciones); asistente de bienvenida.
