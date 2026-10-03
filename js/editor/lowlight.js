@@ -141,7 +141,7 @@ export function finishLifted(d, w, h, R, G, B, gain, { lumaDenoise = 0 } = {}){
 export function lowLight(opts = {}){
   const p = { amount: 60, premium: opts.premium !== undefined ? !!opts.premium : opts.init ? false : premiumPref.get("lowLight"), ...opts.init };
   return runAdjust({
-    title: "Iluminar foto oscura", asLayer: true, filterId: "low-light", filterParams: p, previewLimit: 4e5,
+    title: "Iluminar foto oscura", asLayer: true, filterId: "low-light", filterParams: p, previewLimit: 1.2e6,
     compute: (d, w, h) => (p.premium ? premium : basic)(d, w, h, p),
     buildBody: ({ preview }) => {
       const b = document.createElement("div");
