@@ -24,10 +24,17 @@ from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.7.2"
+SERVICE_VERSION = "0.7.3"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
+
+try:
+    import json as _json
+    with (ROOT / "models" / "registry.json").open("r", encoding="utf-8") as _fh:
+        MODEL_REGISTRY_SCHEMA = int(_json.load(_fh).get("schema", 0))
+except Exception:
+    MODEL_REGISTRY_SCHEMA = 0
 
 ALLOWED_ORIGINS = [
     "https://realify.es",
@@ -179,6 +186,7 @@ def status():
         "service": "realify-ai-local",
         "serviceVersion": SERVICE_VERSION,
         "phase": 7,
+        "modelRegistrySchema": MODEL_REGISTRY_SCHEMA,
         "features": [
             "upscale-x2", "upscale-x4", "rgb16-transport",
             "denoise-nafnet", "deblur-nafnet", "prompt-adjustments", "segment-sam2", "generative-flux-fill",
