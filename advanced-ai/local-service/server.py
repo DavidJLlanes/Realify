@@ -12,7 +12,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
+from fastapi import Body, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -22,11 +22,12 @@ if str(ROOT) not in sys.path:
 
 from engines.upscale import UpscaleEngine
 from engines.restoration import RestorationEngine
+from engines.prompt_engine import PromptEngine
 from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.3.0"
+SERVICE_VERSION = "0.4.0"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
@@ -105,7 +106,8 @@ def hardware_status() -> dict[str, Any]:
 def switch_engine(key: str, factory: Callable[[], Any], tile: int):
     global _current_engine, _current_key
     if _current_engine is not None and _current_key == key:
-        _current_engine.tile = tile
+        if hasattr(_current_engine, "tile"):
+            _current_engine.tile = tile
         return _current_engine
 
     old = _current_engine
@@ -176,10 +178,10 @@ def status():
     return {
         "service": "realify-ai-local",
         "serviceVersion": SERVICE_VERSION,
-        "phase": 3,
+        "phase": 4,
         "features": [
             "upscale-x2", "upscale-x4", "rgb16-transport",
-            "denoise-nafnet", "deblur-nafnet",
+            "denoise-nafnet", "deblur-nafnet", "prompt-adjustments",
         ],
         **hardware_status(),
     }
@@ -281,6 +283,36 @@ async def create_restore_job(
 
     job = jobs.create(mode, worker)
     return {"job": job.public(), "mode": mode, "model": model_id}
+
+
+
+@app.post("/prompt/adjust")
+def interpret_adjustment_prompt(
+    payload: dict[str, Any] = Body(...),
+    x_realify_client: str | None = Header(default=None),
+):
+    require_client(x_realify_client)
+    hw = hardware_status()
+    if not hw.get("ready"):
+        raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
+
+    prompt = str(payload.get("prompt") or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="El prompt está vacío.")
+    if len(prompt) > 2000:
+        raise HTTPException(status_code=400, detail="El prompt es demasiado largo.")
+
+    try:
+        engine = switch_engine(
+            "prompt:qwen2.5-1.5b",
+            lambda: PromptEngine(),
+            0,
+        )
+        return engine.parse(prompt)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"No se pudo interpretar el prompt: {exc}") from exc
 
 
 @app.get("/jobs/{job_id}")
