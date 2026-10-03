@@ -66,6 +66,10 @@ class ModelManager:
                     return False
                 if required_globs and not all(any(path.glob(pattern)) for pattern in required_globs):
                     return False
+                if "minModelBytes" in spec:
+                    model_file = path / "model.safetensors"
+                    if not model_file.is_file() or model_file.stat().st_size < int(spec["minModelBytes"]):
+                        return False
                 if required or required_globs:
                     return path.is_dir()
                 return path.is_dir() and (path / "model_index.json").is_file()
