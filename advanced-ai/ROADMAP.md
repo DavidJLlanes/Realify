@@ -125,13 +125,19 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 - Ctrl/Cmd + Enter ejecuta el prompt en escritorio.
 - El motor pesado anterior se libera al cargar Qwen para evitar acumular VRAM.
 
-## Fase 5 — Segmentación y máscaras
+## Fase 5 — Segmentación y máscaras ✅
 
-- SAM/SAM2 o alternativa final.
-- Sujeto, objetos, fondo y selecciones.
-- Máscaras editables.
-- Refinado manual.
-- Base para edición generativa localizada.
+- SAM2.1 Hiera Large como modelo local de máxima calidad práctica para la RTX 4070 SUPER de 12 GB.
+- Pesos oficiales de `facebook/sam2.1-hiera-large`, descargados bajo demanda en `advanced-ai/models/segmentation/`.
+- CUDA + FP16 y liberación del motor pesado anterior mediante el mismo `ModelManager`.
+- Selección por clic sobre sujeto u objeto.
+- Puntos positivos y Alt+clic para puntos negativos de refinado.
+- Opción de invertir el resultado para seleccionar el fondo.
+- Máscara binaria a resolución completa devuelta por la API local.
+- Superposición visual de la máscara antes de aplicar.
+- Aplicación como máscara de capa nativa de Realify, editable con las herramientas de máscaras ya existentes.
+- Progreso, cancelación y validación de entrada reutilizando el gestor de trabajos local.
+- Base de máscara lista para que la Fase 6 haga inpainting y edición generativa localizada sin tocar zonas protegidas.
 
 ## Fase 6 — Edición generativa
 
