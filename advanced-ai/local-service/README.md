@@ -4,7 +4,7 @@ Servicio CUDA/PyTorch del proyecto `advanced-ai/`.
 
 ## Fase actual
 
-**Fase 6:** upscale, restauración, prompts fotográficos, segmentación SAM2 y edición generativa localizada con FLUX Fill.
+**Fase 7:** upscale, restauración, prompts, SAM2, FLUX Fill, preservación de identidad y control estructural avanzado.
 
 ## Motores
 
@@ -86,3 +86,37 @@ SAM2.1 Hiera Large genera máscaras mediante puntos positivos y negativos. Esas 
 - Modelos cargados bajo demanda y liberados al cambiar de motor.
 - Operaciones largas con progreso y cancelación.
 - Pesos, temporales y runtime dentro de `advanced-ai/`.
+
+
+## Fase 7 · Identidad y control avanzado
+
+La Fase 7 usa un runtime Python aislado en:
+
+```text
+advanced-ai/phase7-runtime/
+```
+
+Esto evita que las versiones requeridas por PuLID-FLUX interfieran con los motores de las fases 1–6. El código oficial de PuLID se fija al commit `1aa2fc7df4bf51080df39f355f9abdc1cbfefbaa` y se instala bajo:
+
+```text
+advanced-ai/vendor/PuLID/
+```
+
+Los pesos y cachés de Hugging Face se fuerzan a `advanced-ai/models/`.
+
+Rutas:
+
+- **Identidad:** PuLID-FLUX v0.9.1 + FLUX.1-dev FP8, aggressive offload y procesamiento facial ONNX en CPU. El proyecto oficial documenta este modo para GPUs de 12 GB.
+- **Referencia visual:** FLUX.1-dev NF4 + XLabs FLUX IP-Adapter.
+- **Control estructural:** FLUX.1-dev NF4 + Shakker Labs ControlNet Union Pro 2.0.
+- **Profundidad:** Depth Anything V2 Large.
+- **Bordes:** Canny y Soft Edge.
+- **Pose:** OpenPose mediante controlnet-aux.
+
+Endpoint:
+
+```text
+POST /jobs/advanced-control
+```
+
+Las tareas largas se ejecutan en un subproceso que puede terminarse al cancelar el trabajo. Cuando el subproceso termina, la memoria CUDA usada por Fase 7 desaparece con él. El resultado vuelve al proceso principal como RGB16 y Realify lo aplica como una capa nueva y reversible.
