@@ -74,3 +74,5 @@
   .aai-mobile-upscale button[data-mobile-run]:not(:disabled){background:#416fc7;border-color:#6794ff;font-weight:700}
   .aai-mobile-progress{font-size:11px;color:#a9b5c4;text-align:center}
 }
+
+.aai-quality{margin:8px 0 0;font-size:11px;line-height:1.4;color:#8f9bac}
