@@ -1,4 +1,4 @@
-"""Realify AI Local · Fase 5.
+"""Realify AI Local · Fase 6.
 
 Servicio loopback CUDA/PyTorch para upscale, restauración e interpretación de prompts.
 """
@@ -24,11 +24,12 @@ from engines.upscale import UpscaleEngine
 from engines.restoration import RestorationEngine
 from engines.prompt_engine import PromptEngine
 from engines.segmentation import SegmentationEngine
+from engines.generative_edit import GenerativeEditEngine
 from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.5.0"
+SERVICE_VERSION = "0.6.0"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
@@ -179,10 +180,10 @@ def status():
     return {
         "service": "realify-ai-local",
         "serviceVersion": SERVICE_VERSION,
-        "phase": 5,
+        "phase": 6,
         "features": [
             "upscale-x2", "upscale-x4", "rgb16-transport",
-            "denoise-nafnet", "deblur-nafnet", "prompt-adjustments", "segment-sam2",
+            "denoise-nafnet", "deblur-nafnet", "prompt-adjustments", "segment-sam2", "generative-flux-fill",
         ],
         **hardware_status(),
     }
