@@ -132,6 +132,10 @@
           "tokenizer_2/tokenizer_config.json",
           "text_encoder/config.json",
           "vae/config.json"
+        ],
+        "requiredGlobs": [
+          "text_encoder/*.safetensors",
+          "vae/*.safetensors"
         ]
       },
       "license": "FLUX-dev-non-commercial",
@@ -155,6 +159,10 @@
         "required": [
           "transformer/config.json",
           "text_encoder_2/config.json"
+        ],
+        "requiredGlobs": [
+          "transformer/*.safetensors",
+          "text_encoder_2/*.safetensors"
         ]
       },
       "quantization": "NF4",
