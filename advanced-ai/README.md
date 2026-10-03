@@ -16,6 +16,15 @@ La hoja de ruta obligatoria está en [ROADMAP.md](./ROADMAP.md).
 
 ## Estado
 
-Fase actual: **1 — Base del módulo y motor local**.
+Fase actual: **2 — Upscale CUDA**.
 
-No hay modelos de producción activados todavía.
+Implementado:
+- detección del servicio local, GPU, CUDA y VRAM;
+- Real-ESRGAN ×2 / ×4;
+- descarga de modelos bajo demanda;
+- tiling solapado;
+- progreso y cancelación;
+- previsualización del resultado;
+- Aplicar abre el upscale como documento nuevo.
+
+Próxima fase: **3 — Denoise / Deblur**.
