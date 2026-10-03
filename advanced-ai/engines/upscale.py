@@ -18,7 +18,7 @@ _MANAGER = ModelManager()
 
 
 class UpscaleEngine:
-    """Real-ESRGAN CUDA con tiling exterior para progreso/cancelación."""
+    """Real-ESRGAN CUDA con tiling exterior para progreso y cancelación."""
 
     def __init__(self, model_id: str, tile: int = 512, overlap: int = 32):
         self.model_id = model_id
@@ -68,29 +68,50 @@ class UpscaleEngine:
         job.set_progress(0.17, "Modelo cargado en GPU")
         return self._upsampler
 
-    def run(self, job, input_path: Path, output_path: Path) -> Path:
+    @staticmethod
+    def _read_input(path: Path, input_format: str, width: int, height: int, channels: int):
+        if input_format == "raw16":
+            if channels != 3 or width < 1 or height < 1:
+                raise RuntimeError("Metadatos raw16 no válidos.")
+            expected = width * height * channels
+            rgb = np.fromfile(path, dtype="<u2")
+            if rgb.size != expected:
+                raise RuntimeError("El tamaño del RGB16 recibido no coincide con sus dimensiones.")
+            rgb = rgb.reshape((height, width, 3))
+            return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+
+        img = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+        if img is None:
+            raise RuntimeError("No se pudo leer la imagen enviada.")
+        if img.ndim == 2:
+            return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        if img.shape[2] == 4:
+            return img[:, :, :3]
+        return img[:, :, :3]
+
+    def run(
+        self,
+        job,
+        input_path: Path,
+        output_path: Path,
+        *,
+        input_format: str = "png",
+        width: int = 0,
+        height: int = 0,
+        channels: int = 3,
+    ) -> Path:
         upsampler = self._load(job)
         if job.cancelled:
             raise RuntimeError("Cancelado")
 
-        img = cv2.imread(str(input_path), cv2.IMREAD_UNCHANGED)
-        if img is None:
-            raise RuntimeError("No se pudo leer la imagen enviada.")
-
-        alpha = None
-        gray = False
-        if img.ndim == 2:
-            gray = True
-            src = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        elif img.shape[2] == 4:
-            src = img[:, :, :3]
-            alpha = img[:, :, 3]
-        else:
-            src = img[:, :, :3]
-
+        src = self._read_input(input_path, input_format, width, height, channels)
         h, w = src.shape[:2]
         scale = self.scale
-        out = np.empty((h * scale, w * scale, 3), dtype=src.dtype)
+
+        # El resultado se mantiene en 16 bits por canal incluso si la entrada
+        # sólo pudo llegar en 8 bits. Si Realify dispone de hiSrc, la entrada
+        # raw16 conserva esos 16 bits hasta el tensor de Real-ESRGAN.
+        out = np.empty((h * scale, w * scale, 3), dtype=np.uint16)
 
         nx = math.ceil(w / self.tile)
         ny = math.ceil(h / self.tile)
@@ -115,13 +136,16 @@ class UpscaleEngine:
                 tile = src[ey0:ey1, ex0:ex1]
                 enhanced, _ = upsampler.enhance(tile, outscale=scale)
 
+                if enhanced.dtype != np.uint16:
+                    enhanced = enhanced.astype(np.uint16) * 257
+
                 crop_l = (x0 - ex0) * scale
                 crop_t = (y0 - ey0) * scale
                 crop_r = crop_l + (x1 - x0) * scale
                 crop_b = crop_t + (y1 - y0) * scale
 
                 out[y0 * scale:y1 * scale, x0 * scale:x1 * scale] = (
-                    enhanced[crop_t:crop_b, crop_l:crop_r]
+                    enhanced[crop_t:crop_b, crop_l:crop_r, :3]
                 )
 
                 done += 1
@@ -130,24 +154,24 @@ class UpscaleEngine:
                     f"Ampliando · bloque {done}/{total}",
                 )
 
-        if gray:
-            out = cv2.cvtColor(out, cv2.COLOR_BGR2GRAY)
+        if job.cancelled:
+            raise RuntimeError("Cancelado")
 
-        if alpha is not None:
-            alpha_up = cv2.resize(
-                alpha,
-                (w * scale, h * scale),
-                interpolation=cv2.INTER_LANCZOS4,
-            )
-            if out.ndim == 2:
-                out = cv2.cvtColor(out, cv2.COLOR_GRAY2BGRA)
-                out[:, :, 3] = alpha_up
-            else:
-                out = np.dstack([out, alpha_up])
-
-        job.set_progress(0.97, "Guardando resultado")
+        job.set_progress(0.97, "Preparando resultado de 16 bits")
+        rgb = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
+        rgb = np.ascontiguousarray(rgb.astype("<u2", copy=False))
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        if not cv2.imwrite(str(output_path), out, [cv2.IMWRITE_PNG_COMPRESSION, 3]):
-            raise RuntimeError("No se pudo guardar el resultado.")
+        rgb.tofile(output_path)
+
+        job.meta.update({
+            "width": int(rgb.shape[1]),
+            "height": int(rgb.shape[0]),
+            "channels": 3,
+            "dtype": "uint16le",
+            "colorSpace": "srgb",
+            "scale": scale,
+            "model": self.model_id,
+            "inputPrecision": 16 if src.dtype == np.uint16 else 8,
+        })
         job.set_progress(0.99, "Resultado listo")
         return output_path
