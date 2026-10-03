@@ -1448,7 +1448,10 @@ const TOPICS = [
           solo color muestran únicamente el mando principal. Elige modelo, anchura y
           colores en escritorio o móvil;
           los ajustes se conservan al cambiar de modo. La vista previa muestra el marco
-          completo y los mandos se adaptan al área visible del navegador. Aplicar amplía el lienzo y añade una capa exterior sin tapar la foto;
+          completo y los mandos se adaptan al área visible del navegador. Amplía con la
+          rueda del ratón o separando dos dedos y arrastra para recorrer la imagen.
+          <b>Encajar</b> devuelve la vista completa; el doble clic también restablece el zoom.
+          El zoom no modifica el resultado. Aplicar amplía el lienzo y añade una capa exterior sin tapar la foto;
           deshacer recupera también el tamaño anterior.</li>
         <li id="sp-vintage"><b>Filtro Vintage…</b> 42 modificadores en siete grupos (virados, color,
           tono, luz y película, daños, bordes, óptica) y <b>215 estilos</b> en 19 categorías:

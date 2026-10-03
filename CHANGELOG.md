@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v226 · Zoom en Marcos
+- Zoom con rueda del ratón o pellizco de dos dedos, centrado en el punto del gesto; admite desplazamiento al arrastrar la imagen ampliada.
+- «Encajar» devuelve la imagen completa al área de vista previa; doble clic también restablece el zoom.
+- La vista previa aumenta su resolución al ampliar, hasta la resolución de la foto con un límite de 8 MP / 4096 px para contener la memoria.
+- El zoom afecta únicamente a la vista; Aplicar conserva los píxeles, dimensiones y anchura de marco elegida.
+- Regresión de rueda, punto bajo el cursor, pellizco, arrastre y encajar en escritorio, móvil y tableta. Versionado sincronizado en v226, pendiente de publicación.
+
 ### v225 · Colores y controles de Marcos
 - Todos los marcos utilizan los colores elegidos; se eliminan las paletas fijas que ignoraban los mandos, incluido Color · Electric.
 - Los modelos minimalistas de un solo color ocultan el mando secundario sin efecto.

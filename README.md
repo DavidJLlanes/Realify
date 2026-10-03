@@ -413,7 +413,8 @@ conserva el tono, tinte y saturación en OKLab con mapeo de gama y tramado a 8 b
 de autor: kintsugi, vitral, origami, constelación, holográfico y otros. Diamond y
 Heart utilizan motivos vectoriales en los cuatro lados. Anchura y colores
 editables en todos los modelos, tanto en móvil como en escritorio. La vista
-previa y los mandos se adaptan al área visible del navegador. El marco amplía el
+previa y los mandos se adaptan al área visible del navegador. Zoom con rueda o
+pellizco, arrastre para recorrer la imagen y «Encajar» para verla completa. El marco amplía el
 lienzo, conserva la fotografía y se añade en una capa independiente; deshacer
 recupera el tamaño anterior. Detalles en [`frames/README.md`](frames/README.md).
 

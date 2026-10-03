@@ -80,6 +80,32 @@ try{
       await (await import('/frames/index.js')).openFrames();
     });
     await p.locator('.fr-root').waitFor();
+    const stage=p.locator('.fr-stage'),canvas=stage.locator('canvas');
+    const before=await canvas.boundingBox(),box=await stage.boundingBox();
+    const anchorX=box.x+box.width/2+before.width*.15;
+    await p.mouse.move(anchorX,box.y+box.height/2);
+    await p.mouse.wheel(0,-240);await p.waitForTimeout(120);
+    const enlarged=await canvas.boundingBox();
+    if(enlarged.width<before.width*1.5)throw new Error('Rueda no amplía la vista previa');
+    if(Math.abs((anchorX-before.x)/before.width-(anchorX-enlarged.x)/enlarged.width)>.01)throw new Error('Zoom desplaza el punto bajo el ratón');
+    if(await canvas.evaluate(c=>c.width)<=1000)throw new Error('Zoom mantiene vista previa de baja resolución');
+    await p.mouse.down();await p.mouse.move(anchorX+40,box.y+box.height/2+15);await p.mouse.up();
+    const dragged=await canvas.boundingBox();
+    if(Math.abs(dragged.x-enlarged.x)<10)throw new Error('Arrastre no desplaza la imagen ampliada');
+    await p.locator('.fr-head button').filter({hasText:'Encajar'}).click();await p.waitForTimeout(120);
+    const reset=await canvas.boundingBox();if(Math.abs(reset.width-before.width)>2)throw new Error('Encajar no restaura la vista');
+    if(mobile){
+      const session=await context.newCDPSession(p),cx=box.x+box.width/2,cy=box.y+box.height/2;
+      const touches=distance=>[{x:cx-distance/2,y:cy,id:1},{x:cx+distance/2,y:cy,id:2}];
+      await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:touches(100)});
+      await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:touches(180)});
+      await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await p.waitForTimeout(120);
+      const pinched=await canvas.boundingBox();
+      if(pinched.width<before.width*1.5)throw new Error('Pellizco no amplía la imagen');
+      if(await p.evaluate(()=>window.visualViewport.scale)!==1)throw new Error('Pellizco amplía el navegador');
+      await session.detach();
+    }else{await p.mouse.wheel(0,-240);await p.waitForTimeout(120);}
+
     const color=p.locator(mobile?'.fr-mobile [data-primary]':'.fr-side.right [data-primary]');
     await color.fill('#25ab73');
     if(await p.locator('.fr-root [data-secondary]:visible').count())throw new Error('Liso muestra color secundario');
@@ -140,6 +166,6 @@ try{
         Object.defineProperty(window,'visualViewport',{configurable:true,value:window.realViewport});
       });
     }
-    console.log('APTO · '+mode+' · colores, zona visible y',result);await context.close();
+    console.log('APTO · '+mode+' · zoom, arrastre, encajar, colores, zona visible y',result);await context.close();
   }
 }finally{await browser.close();server.close();}

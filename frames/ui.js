@@ -1,5 +1,6 @@
 import { FRAME_CATEGORIES, FRAME_PRESETS, frameById, framesInCategory } from "./presets.js";
 import { drawFrame } from "./render.js";
+import { createFrameViewport } from "./viewport.js";
 
 function el(tag,cls){const n=document.createElement(tag);if(cls)n.className=cls;return n;}
 const padFor=(w,h,pct)=>Math.max(2,Math.round(Math.min(w,h)*Math.max(1,Math.min(24,pct))/100));
@@ -21,17 +22,19 @@ export function openFramesEditor({ source, onAccept }){
   cancel.textContent="Cancelar";apply.textContent="Aplicar";head.innerHTML="<b>Marcos</b><div class='spacer'></div>";head.append(cancel,apply);
   stage.append(preview);center.append(stage,grid);body.append(left,center,right);root.append(head,body,mobileBar);document.body.append(root);
 
-  function fitStage(){
-    const css=getComputedStyle(stage);
-    const w=stage.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
-    const h=stage.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom);
-    const scale=Math.min(w/preview.width,h/preview.height);
-    if(scale>0){preview.style.width=preview.width*scale+"px";preview.style.height=preview.height*scale+"px";}
-  }
+  const fit=el("button","fr-btn");fit.textContent="Encajar";fit.title="Restablecer zoom";
+  head.insertBefore(fit,cancel);
+  let renderRequest=0;
+  const imageView=createFrameViewport(stage,preview,{
+    onZoom:()=>{cancelAnimationFrame(renderRequest);renderRequest=requestAnimationFrame(fitPreview);},
+    onChange:zoom=>{fit.disabled=zoom===1;}
+  });
+  fit.onclick=()=>imageView.reset();
+  function fitStage(){imageView.fit();}
   const fitPreview=()=>{
     const sourcePad=padFor(source.width,source.height,width);
     const outerW=source.width+sourcePad*2,outerH=source.height+sourcePad*2;
-    const max=1000,k=Math.min(1,max/outerW,max/outerH),pad=Math.max(1,Math.round(sourcePad*k));
+    const max=Math.min(4096,1000*imageView.zoom),k=Math.min(1,max/outerW,max/outerH,Math.sqrt(8000000/(outerW*outerH))),pad=Math.max(1,Math.round(sourcePad*k));
     preview.width=Math.max(1,Math.round(outerW*k));preview.height=Math.max(1,Math.round(outerH*k));
     const imgW=Math.max(1,preview.width-pad*2),imgH=Math.max(1,preview.height-pad*2);
     const x=preview.getContext("2d");x.clearRect(0,0,preview.width,preview.height);
@@ -123,7 +126,7 @@ export function openFramesEditor({ source, onAccept }){
   fitViewport();
   const resize=new ResizeObserver(fitStage);resize.observe(stage);
 
-  const cleanup=()=>{viewport?.removeEventListener("resize",fitViewport);viewport?.removeEventListener("scroll",fitViewport);resize.disconnect();root.remove();window.removeEventListener("keydown",key);};
+  const cleanup=()=>{cancelAnimationFrame(renderRequest);imageView.destroy();viewport?.removeEventListener("resize",fitViewport);viewport?.removeEventListener("scroll",fitViewport);resize.disconnect();root.remove();window.removeEventListener("keydown",key);};
   const key=e=>{if(e.key==="Escape")cleanup();};window.addEventListener("keydown",key);
   cancel.onclick=closeM.onclick=cleanup;
   const accept=async()=>{apply.disabled=applyM.disabled=true;try{await onAccept(preset,{width,primary,secondary});cleanup();}catch(e){console.error(e);apply.disabled=applyM.disabled=false;}};

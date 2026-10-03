@@ -53,3 +53,14 @@ minimalistas con un único color ocultan el secundario. La regresión comprueba 
 cada mando visible cambia los píxeles y revisa Electric en los dos modos.
 El editor sigue `visualViewport` y retira el foco de los selectores al elegir,
 para mantener sus mandos dentro del área disponible del navegador móvil.
+
+## Zoom de la vista previa (v226)
+
+`viewport.js` gestiona rueda, pellizco de dos dedos y arrastre con Pointer Events,
+sin ampliar el navegador. La ampliación sigue el punto del ratón o el centro del
+pellizco y queda entre 1× y 8× respecto al encaje inicial. «Encajar» y doble clic
+restablecen la vista. El gesto afecta sólo a la imagen, sin nuevas filas móviles.
+La vista previa se vuelve a dibujar con más resolución al ampliar (máximo 8 MP y
+4096 px de lado); Aplicar sigue trabajando sobre la foto completa y no recibe el
+zoom ni el desplazamiento. La regresión comprueba estos gestos, que Encajar
+recupera el tamaño anterior y que aplicar tras hacer zoom conserva la foto.
