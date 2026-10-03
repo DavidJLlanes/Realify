@@ -6,11 +6,15 @@ Plugin de marcos para Realify.
 - Interfaz a pantalla completa siguiendo el patrón de `socialmediapost/`:
   tres zonas en escritorio y controles inferiores compactos en móvil.
 - Render vectorial/procedural: no depende de una API ni de imágenes externas.
-- El marco se crea como **una capa raster independiente** encima del documento.
-  La capa fotográfica original no se toca, por lo que si conserva `hiSrc`
-  (RAW, PNG/TIFF de 16 bits, AVIF de 10/12 bits), el compositor de alta
-  precisión puede seguir exportándola a 16 bits.
-- Los presets externos futuros pueden añadirse sin cambiar la UI.
+- Los marcos son **marcos exteriores reales**: al aplicarlos, Realify amplía el
+  lienzo y conserva la fotografía completa en el centro. El render del marco se
+  recorta a la corona exterior y no puede tapar píxeles de la imagen.
+- El marco queda en **una capa raster independiente**, por encima del resto.
+- Deshacer/restaurar un marco recupera también el tamaño anterior del documento,
+  la selección y las guías.
+- Las variantes usan geometrías, materiales, patrones, texturas y acabados
+  diferenciados; no son simples recoloraciones del mismo marco.
+- La capa fotográfica original no se rasteriza de nuevo por aplicar el marco.
 
 ## Categorías
 
@@ -22,5 +26,5 @@ Geométricos, Decorativos, Color y Festivos.
 `cyanidecupcake/openclipart-svg` contiene miles de SVG de OpenClipart,
 incluida la carpeta `svg/borders/`, y está publicado bajo CC0-1.0.
 No se integra el repositorio completo porque ocupa varios GB y contiene
-duplicados/desorganización. La arquitectura de este plugin permite añadir
-una selección curada de esos SVG como presets locales en una iteración futura.
+duplicados/desorganización. La arquitectura del plugin permite añadir
+posteriormente una selección curada de SVG como presets locales.
