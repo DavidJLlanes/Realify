@@ -163,6 +163,33 @@ export async function startGenerativeEdit(source, maskData, {
   return postJob("/jobs/generative-edit", form, { base, signal });
 }
 
+export async function startAdvancedControl(source, {
+  task, prompt, reference = null, negativePrompt = "", steps = 28, guidance = 4,
+  seed = 0, identityWeight = 1, identityStart = 2, referenceWeight = .8,
+  controlMode = "depth", controlStrength = .6, maxSide = 1024,
+  base = DEFAULT_URL, signal
+} = {}){
+  const form = new FormData();
+  await appendImage(form, source);
+  if(reference){
+    const blob = reference instanceof Blob ? reference : await canvasBlob(reference);
+    form.append("reference", blob, "reference.png");
+  }
+  form.append("task", String(task || ""));
+  form.append("prompt", String(prompt || ""));
+  form.append("negative_prompt", String(negativePrompt || ""));
+  form.append("steps", String(steps));
+  form.append("guidance", String(guidance));
+  form.append("seed", String(seed));
+  form.append("identity_weight", String(identityWeight));
+  form.append("identity_start", String(identityStart));
+  form.append("reference_weight", String(referenceWeight));
+  form.append("control_mode", String(controlMode));
+  form.append("control_strength", String(controlStrength));
+  form.append("max_side", String(maxSide));
+  return postJob("/jobs/advanced-control", form, { base, signal });
+}
+
 export async function getJob(jobId, base = DEFAULT_URL){
   const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
