@@ -11,3 +11,6 @@ engines/__pycache__/
 # Entornos locales.
 local-service/.venv/
 local-service/venv/
+
+# Snapshots de modelos de lenguaje descargados bajo demanda.
+models/prompt/
