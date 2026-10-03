@@ -1,0 +1,54 @@
+/* Realify · IA avanzada. Todo el CSS específico permanece dentro de advanced-ai/. */
+.aai-shell .fsp-work{grid-template-columns:300px minmax(0,1fr) 340px}
+.aai-shell .fsp-left,.aai-shell .fsp-right{padding:16px;overflow:auto;background:#171a1f}
+.aai-shell .fsp-left{border-right:1px solid #30353d}
+.aai-shell .fsp-right{border-left:1px solid #30353d}
+.aai-shell .fsp-stage{background:#090b0e}
+.aai-panel-head{display:grid;gap:4px;margin-bottom:14px}
+.aai-panel-head>b{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#dfe6f2}
+.aai-panel-head>span{font-size:11px;color:#929cab;line-height:1.4}
+.aai-controls{display:grid;gap:12px}
+.aai-control{display:grid;gap:6px}
+.aai-control>span{display:flex;justify-content:space-between;gap:10px;color:#ccd4df;font-size:12px}
+.aai-control b{font:11px var(--mono,monospace);color:#86a9f5;font-weight:500}
+.aai-control input{width:100%;margin:0;accent-color:#6794ff}
+.aai-shell .is-future{opacity:.55}
+.aai-upscale{display:grid;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid #2b3038}
+.aai-upscale>span{font-size:12px;color:#ccd4df}
+.aai-upscale select{height:34px;background:#252a31;color:#e9edf4;border:1px solid #414852;border-radius:5px;padding:0 8px}
+.aai-engine,.aai-prompt,.aai-plan{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #2b3038}
+.aai-status{display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px;align-items:start;padding:11px;border:1px solid #343b46;border-radius:8px;background:#20242a}
+.aai-status i{width:9px;height:9px;margin-top:4px;border-radius:50%;background:#7c8797;box-shadow:0 0 0 3px #7c879722}
+.aai-status>div{display:grid;gap:3px;min-width:0}
+.aai-status b{font-size:12px;color:#e5ebf5;overflow-wrap:anywhere}
+.aai-status span{font-size:11px;color:#9ba5b3;line-height:1.4;overflow-wrap:anywhere}
+.aai-status.ready{border-color:#315b43;background:#17251d}
+.aai-status.ready i{background:#65d394;box-shadow:0 0 0 3px #65d39422}
+.aai-status.warn{border-color:#66552e;background:#282317}
+.aai-status.warn i{background:#e7b852}
+.aai-status.offline{border-color:#51343a;background:#24191c}
+.aai-status.offline i{background:#d87883}
+.aai-status.checking i{animation:aai-pulse .9s infinite alternate}
+@keyframes aai-pulse{to{opacity:.3}}
+.aai-retry,.aai-mobile-retry{width:100%;min-height:34px;margin-top:8px;padding:0 10px;background:#272d35;color:#e7edf7;border:1px solid #414a57;border-radius:6px;font:inherit;cursor:pointer}
+.aai-retry:hover,.aai-mobile-retry:hover{background:#313a46}
+.aai-prompt textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:122px;padding:10px;background:#101318;color:#eef3fa;border:1px solid #3b4350;border-radius:7px;font:13px/1.45 var(--sans,system-ui,sans-serif)}
+.aai-prompt textarea:focus{outline:none;border-color:#6794ff}
+.aai-prompt-actions{display:flex;align-items:center;gap:9px;margin-top:8px}
+.aai-prompt-actions button{min-height:34px;padding:0 14px;border:1px solid #4a5668;border-radius:6px;background:#29384f;color:#dce8fa}
+.aai-prompt-actions span{font-size:11px;color:#7f8998}
+.aai-plan{display:grid;gap:5px;border-bottom:0}
+.aai-plan>b{font-size:12px}
+.aai-plan>span{font-size:12px;color:#aeb8c7}
+.aai-plan>small{font-size:11px;color:#7f8998;line-height:1.4}
+.aai-mobile-status{display:none}
+
+@media(max-width:900px){
+  .aai-shell .fsp-work{display:block}
+  .aai-shell .fsp-left,.aai-shell .fsp-right{display:none}
+  .aai-shell .fsp-mobile{display:grid;gap:7px}
+  .aai-mobile-status{display:block}
+  .aai-mobile-status .aai-status{padding:8px 10px}
+  .aai-mobile-retry{margin:0;min-height:40px}
+  .aai-mobile-note{font-size:11px;color:#8993a2;text-align:center;padding:0 8px 2px}
+}
