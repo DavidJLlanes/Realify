@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from local_service_compat import cancelled_guard
+from .local_service_compat import cancelled_guard
 
 
 def _read_rgb(path: Path, input_format: str, width: int, height: int) -> Image.Image:
@@ -29,7 +29,7 @@ class SegmentationEngine:
     def __init__(self) -> None:
         import torch
         from transformers import Sam2Model, Sam2Processor
-        from local_service_model_manager import ModelManager
+        from .local_service_model_manager import ModelManager
 
         self.torch = torch
         self.device = torch.device("cuda")
