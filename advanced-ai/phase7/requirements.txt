@@ -19,3 +19,4 @@ onnxruntime-gpu
 sentencepiece
 bitsandbytes>=0.45,<1
 controlnet-aux>=0.0.10
+gradio>=4,<6
