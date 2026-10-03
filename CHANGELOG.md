@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Marcos
+- **Marcos exteriores reales**: aplicar un marco amplía el lienzo y mantiene toda la fotografía intacta en el centro; el dibujo del marco queda recortado a la corona exterior y no puede superponerse sobre la imagen.
+- **120 presets revisados**: las variantes se diferencian ahora por geometría, material, patrón, textura y acabado, no sólo por color o grosor.
+- **Previsualización fiel**: las miniaturas y la vista previa muestran el espacio exterior que añadirá el marco antes de aplicarlo.
+- **Deshacer/rehacer completo**: al quitar o recuperar un marco también se restaura el tamaño del documento, las guías y la selección.
+
 ### Capas, gestos y rendimiento
 - **Capas**: doble clic en el nombre o clic derecho en la fila para renombrarla (con deshacer/rehacer). En escritorio siguen funcionando Ctrl/Cmd+clic y Mayús+clic; el botón de selección múltiple añade un modo táctil para marcar capas con toques y agruparlas desde la cabecera.
 - **Combinar con la de abajo** ahora respeta la máscara de la capa superior y la composición alfa de los modos personalizados. Se evita combinar sobre capas inferiores cuyo estado (visibilidad, opacidad, fusión, máscara o efectos) haría que el resultado cambiase de aspecto.
