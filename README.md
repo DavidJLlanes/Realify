@@ -408,6 +408,14 @@ histograma y espectro. Interruptor **Premium 👑** (y entrada «Realify Premium
 los mismos mandos con la cadena en coma flotante de 32 bits, luces con hombro que
 conserva el tono, tinte y saturación en OKLab con mapeo de gama y tramado a 8 bits.
 
+### Marcos — `frames/`
+**138 modelos en 12 categorías**, con un marco Liso de color único y 16 diseños
+de autor: kintsugi, vitral, origami, constelación, holográfico y otros. Diamond y
+Heart utilizan motivos vectoriales en los cuatro lados. Anchura y colores
+editables en móvil y escritorio, con vista previa completa. El marco amplía el
+lienzo, conserva la fotografía y se añade en una capa independiente; deshacer
+recupera el tamaño anterior. Detalles en [`frames/README.md`](frames/README.md).
+
 ### Filtro Vintage — `vintagefilter/`
 42 parámetros en 7 grupos (virados, color —con blanco y negro ortocromático y
 pancromático—, tono, luz y película, daños, bordes y óptica), **215 estilos** en

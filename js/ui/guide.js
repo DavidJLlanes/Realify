@@ -1441,6 +1441,13 @@ const TOPICS = [
           bocadillos y curvatura; toca un texto para elegirlo, arrástralo, usa su esquina
           para escalar y girar y doble clic para escribir. Si el diseño lo necesita, el
           lienzo se amplía; cada elemento queda en su capa.</li>
+        <li id="sp-frames"><b>Marcos…</b> 138 modelos en 12 categorías. <b>Básicos</b>
+          incluye Liso, con un único color; <b>De autor</b> reúne 16 diseños como kintsugi,
+          vitral, origami, constelación y holográfico. Diamond y Heart dibujan sus motivos
+          en los cuatro lados. Elige modelo, anchura y colores en escritorio o móvil;
+          los ajustes se conservan al cambiar de modo. La vista previa muestra el marco
+          completo. Aplicar amplía el lienzo y añade una capa exterior sin tapar la foto;
+          deshacer recupera también el tamaño anterior.</li>
         <li id="sp-vintage"><b>Filtro Vintage…</b> 42 modificadores en siete grupos (virados, color,
           tono, luz y película, daños, bordes, óptica) y <b>215 estilos</b> en 19 categorías:
           décadas, películas en color, blanco y negro, procesos antiguos, cámaras y ópticas,

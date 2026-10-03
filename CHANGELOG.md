@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v224 · Marcos
+- **138 modelos en 12 categorías**: marco Liso de color único, Heart geométrico y 16 diseños de autor (kintsugi, vitral, origami, constelación, holográfico y otros).
+- **Diamond y corazones corregidos**: motivos vectoriales simétricos distribuidos en los cuatro lados, sin depender de caracteres de una fuente.
+- **Ajustes en móvil y escritorio**: anchura y colores sincronizados al cambiar de modo; Liso muestra un único color.
+- **Vista previa completa**: encaja el marco entero en el espacio disponible sin deformarlo ni cortar el borde inferior.
+- **Comprobaciones específicas**: 828 renders, recorte exterior, reproducibilidad, color uniforme, conservación exacta de la fotografía y deshacer/rehacer en ambos modos.
+- **Versión v224** sincronizada en `VERSION`, `version.json`, caché y URLs de carga.
+
 ### Marcos
 - **Marcos exteriores reales**: aplicar un marco amplía el lienzo y mantiene toda la fotografía intacta en el centro; el dibujo del marco queda recortado a la corona exterior y no puede superponerse sobre la imagen.
 - **120 presets revisados**: las variantes se diferencian ahora por geometría, material, patrón, textura y acabado, no sólo por color o grosor.
