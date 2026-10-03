@@ -4,37 +4,23 @@ Proyecto aislado para la IA local CUDA/PyTorch y, más adelante, el fallback clo
 
 La hoja de ruta obligatoria está en [ROADMAP.md](./ROADMAP.md).
 
-## Carpetas
-
-- `ui/`: interfaz fullscreen.
-- `client/`: comunicación de Realify con el servicio local.
-- `local-service/`: servicio Python/PyTorch/CUDA.
-- `engines/`: adaptadores de inferencia por función/modelo.
-- `models/`: pesos y manifiestos de modelos.
-- `workers/`: trabajo auxiliar del lado navegador.
-- `cloud/`: reservado para la Fase 8.
-
 ## Estado
 
-Fase actual: **3 — Denoise / Deblur ✅**.
+Fase actual: **4 — Prompt → ajustes ✅**.
 
 Implementado:
 
-- detección del servicio local, GPU, CUDA y VRAM;
-- Real-ESRGAN oficial ×2 y ×4;
-- NAFNet-SIDD-width64 para reducción de ruido;
-- NAFNet-GoPro-width64 para deblur;
-- descarga de modelos bajo demanda;
-- verificación SHA-256 para Real-ESRGAN;
-- validación y carga estricta de checkpoints NAFNet;
-- tiling adaptado a VRAM;
-- progreso y cancelación;
-- RGB16 de entrada/salida cuando está disponible;
-- previsualización del resultado;
-- intensidad 0–100 % para Denoise/Deblur;
-- resultado de restauración como capa nueva y reversible;
-- conservación de `hiSrc` de 16 bits cuando entra en los límites de Realify;
-- liberación de VRAM al cambiar de motor;
-- pesos y temporales permanecen dentro de `advanced-ai/` y no se suben a Git.
+- Real-ESRGAN ×2/×4;
+- NAFNet Denoise/Deblur;
+- Qwen2.5-1.5B-Instruct para interpretar prompts;
+- controles manuales activos;
+- prompt → JSON estructurado → sliders → previsualización;
+- exposición, brillo, contraste, luces, sombras, blancos, negros, balance de color, saturación, vibrancia, claridad, textura, dehaze y enfoque;
+- validación estricta y rangos cerrados;
+- peticiones no soportadas separadas del ajuste fotográfico;
+- aplicación no destructiva como capa;
+- soporte de prompt también en móvil;
+- gestión de VRAM entre motores;
+- todos los pesos y temporales permanecen dentro de `advanced-ai/`.
 
-Próxima fase: **4 — Prompt → ajustes de Realify**.
+Próxima fase: **5 — Segmentación y máscaras**.
