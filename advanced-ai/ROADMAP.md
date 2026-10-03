@@ -111,7 +111,7 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 
 ## Fase 4 — Prompt → ajustes de Realify ✅
 
-- Qwen2.5-1.5B-Instruct local como intérprete de lenguaje natural.
+- Qwen3-1.7B local como intérprete de lenguaje natural.
 - Modelo almacenado bajo `advanced-ai/models/prompt/` y descargado bajo demanda.
 - Licencia Apache 2.0.
 - El modelo sólo puede devolver un JSON dentro de un esquema cerrado.
