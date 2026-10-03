@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "models": {
+    "realesrgan-x2plus": {
+      "task": "upscale",
+      "label": "Real-ESRGAN ×2",
+      "scale": 2,
+      "filename": "RealESRGAN_x2plus.pth",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth",
+      "directory": "upscale/realesrgan-x2plus",
+      "minBytes": 20000000,
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/xinntao/Real-ESRGAN"
+    },
+    "realesrgan-x4plus": {
+      "task": "upscale",
+      "label": "Real-ESRGAN ×4",
+      "scale": 4,
+      "filename": "RealESRGAN_x4plus.pth",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
+      "directory": "upscale/realesrgan-x4plus",
+      "minBytes": 20000000,
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/xinntao/Real-ESRGAN"
+    }
+  }
+}
