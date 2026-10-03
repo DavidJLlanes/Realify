@@ -5,10 +5,11 @@ import { renderPrecise } from "../../js/core/precision-stack.js";
 import { canvasFromHi, attachHi } from "../../js/core/hisrc.js";
 import { emit } from "../../js/core/bus.js";
 import {
-  probeLocalService, startUpscale, startRestore, interpretPrompt,
+  probeLocalService, startUpscale, startRestore, startSegment, fetchMaskResult, interpretPrompt,
   waitForJob, fetchJobResult, cancelJob
 } from "../client/local-service.js";
 import { renderAdjustments, sanitizeAdjustments, isNeutral } from "./prompt-adjustments.js";
+import { addMask } from "../../js/editor/masks.js";
 
 const CONTROLS = [
   ["exposure","Exposición","-5","5","0","0.05"," EV"],
@@ -138,6 +139,7 @@ export function openAdvancedAIEditor(opts){
   var resultCanvas = null, result16 = null, resultKind = null, resultScale = 2;
   var restoreMode = "denoise", restoreStrength = 100, restorePreview = null;
   var adjustmentState = sanitizeAdjustments({}), adjustmentPreview = null, promptInfo = null;
+  var segmentPoints = [], segmentLabels = [], segmentMask = null, segmentInvert = false;
   var closed = false;
 
   async function close(){
@@ -153,7 +155,22 @@ export function openAdvancedAIEditor(opts){
     if(resultKind !== "prompt-adjust" && !result16) return;
     shell.setBusy("Aplicando resultado…");
     try{
-      if(resultKind === "prompt-adjust"){
+      if(resultKind === "segment-mask"){
+        await resultToLayer(source, { name:"Selección IA · SAM2", mix:true });
+        const { doc } = await import("../../js/core/doc.js");
+        const layer = doc.layers.find(l => l.id === doc.activeId);
+        if(!layer || !segmentMask) throw new Error("No se pudo crear la capa de máscara.");
+        addMask(layer, false, true);
+        const img = layer.mask.ctx.createImageData(segmentMask.w, segmentMask.h);
+        for(let i=0;i<segmentMask.data.length;i++){
+          const p=i*4, a=segmentMask.data[i];
+          img.data[p]=img.data[p+1]=img.data[p+2]=255; img.data[p+3]=a;
+        }
+        layer.mask.ctx.putImageData(img,0,0);
+        layer.maskEnabled=true; layer.thumbDirty=true;
+        emit("doc:change"); emit("doc:structure");
+        toast("Máscara SAM2 aplicada como máscara de capa editable","ok");
+      }else if(resultKind === "prompt-adjust"){
         await resultToLayer(resultCanvas, { name:"Ajustes por prompt IA", mix:true });
         const { doc } = await import("../../js/core/doc.js");
         const layer = doc.layers.find(l => l.id === doc.activeId);
@@ -200,7 +217,7 @@ export function openAdvancedAIEditor(opts){
 
   shell = createShell({
     title:"IA avanzada",
-    subtitle:name + " · " + width + " × " + height + " · Fase 4",
+    subtitle:name + " · " + width + " × " + height + " · Fase 5",
     applyLabel:"Aplicar",
     cls:"aai-shell",
     onApply:applyResult,
@@ -230,6 +247,16 @@ export function openAdvancedAIEditor(opts){
       '<p class="aai-quality" data-restore-quality>El modelo se descarga en el primer uso y permanece en advanced-ai/models/.</p>' +
     '</section>' +
 
+    '<section class="aai-segment">' +
+      '<div class="aai-panel-head"><b>Selección IA · SAM2</b><span>Haz clic sobre el sujeto u objeto. Alt+clic añade puntos negativos para corregir la máscara.</span></div>' +
+      '<label><span>Resultado</span><select data-segment-target><option value="object">Sujeto / objeto</option><option value="background">Fondo</option></select></label>' +
+      '<button type="button" data-segment-start>Activar selección por clic</button>' +
+      '<button type="button" data-segment-run disabled>Calcular / refinar máscara</button>' +
+      '<button type="button" data-segment-clear>Limpiar puntos</button>' +
+      '<div class="aai-progress aai-segment-progress" hidden><div><i></i></div><span>Preparando…</span></div>' +
+      '<p class="aai-quality" data-segment-quality>SAM2.1 Hiera Large · máscara editable al aplicar.</p>' +
+    '</section>' +
+
     '<section class="aai-upscale">' +
       '<div class="aai-panel-head"><b>Upscale IA</b><span>Real-ESRGAN · CUDA FP16 · transporte RGB16 cuando es posible.</span></div>' +
       '<label><span>Escala</span><select data-upscale-scale><option value="2">×2 · alta calidad</option><option value="4">×4 · máxima ampliación</option></select></label>' +
@@ -254,7 +281,7 @@ export function openAdvancedAIEditor(opts){
   shell.mobile.innerHTML =
     '<div class="aai-mobile-status" data-mobile-status>' + statusMarkup(null) + '</div>' +
     '<div class="aai-mobile-tools">' +
-      '<select data-mobile-action><option value="denoise">Denoise IA</option><option value="deblur">Deblur IA</option><option value="upscale2">Upscale ×2</option><option value="upscale4">Upscale ×4</option></select>' +
+      '<select data-mobile-action><option value="segment">Selección SAM2</option><option value="denoise">Denoise IA</option><option value="deblur">Deblur IA</option><option value="upscale2">Upscale ×2</option><option value="upscale4">Upscale ×4</option></select>' +
       '<button type="button" data-mobile-run disabled>Procesar</button><button type="button" data-mobile-cancel disabled>Cancelar</button>' +
     '</div>' +
     '<label class="aai-mobile-strength"><span>Intensidad <b data-mobile-strength-value>100%</b></span><input type="range" min="0" max="100" value="100" data-mobile-strength></label>' +
@@ -289,6 +316,15 @@ export function openAdvancedAIEditor(opts){
   const restoreProgressText = restoreProgress.querySelector("span");
   const restoreQuality = shell.left.querySelector("[data-restore-quality]");
 
+  const segmentStart = shell.left.querySelector("[data-segment-start]");
+  const segmentRun = shell.left.querySelector("[data-segment-run]");
+  const segmentClear = shell.left.querySelector("[data-segment-clear]");
+  const segmentTarget = shell.left.querySelector("[data-segment-target]");
+  const segmentProgress = shell.left.querySelector(".aai-segment-progress");
+  const segmentProgressBar = segmentProgress.querySelector("i");
+  const segmentProgressText = segmentProgress.querySelector("span");
+  const segmentQuality = shell.left.querySelector("[data-segment-quality]");
+
   const mobileAction = shell.mobile.querySelector("[data-mobile-action]");
   const mobileRun = shell.mobile.querySelector("[data-mobile-run]");
   const mobileCancel = shell.mobile.querySelector("[data-mobile-cancel]");
@@ -310,6 +346,7 @@ export function openAdvancedAIEditor(opts){
     restoreRun.disabled = busy || !(featureReady("denoise-nafnet") && featureReady("deblur-nafnet"));
     mobileRun.disabled = busy || !status?.ready;
     promptRun.disabled = busy || !featureReady("prompt-adjustments");
+    segmentRun.disabled = busy || !featureReady("segment-sam2") || !segmentPoints.some((_,i)=>segmentLabels[i]===1);
     mobilePromptRun.disabled = busy || !featureReady("prompt-adjustments");
   }
 
@@ -318,6 +355,7 @@ export function openAdvancedAIEditor(opts){
     const busy = !!runningKind;
     upscaleRun.disabled = busy || !status?.ready;
     restoreRun.disabled = busy || !status?.ready;
+    segmentRun.disabled = busy || !featureReady("segment-sam2") || !segmentPoints.some((_,i)=>segmentLabels[i]===1);
     mobileRun.disabled = busy || !status?.ready;
     promptRun.disabled = busy || !featureReady("prompt-adjustments");
     upscaleCancel.disabled = !(busy && kind === "upscale");
@@ -328,6 +366,7 @@ export function openAdvancedAIEditor(opts){
     mobileAction.disabled = busy;
     upscaleProgress.hidden = !(busy && kind === "upscale");
     restoreProgress.hidden = !(busy && kind === "restore");
+    segmentProgress.hidden = !(busy && kind === "segment");
     mobileProgress.hidden = !busy;
   }
 
@@ -335,12 +374,75 @@ export function openAdvancedAIEditor(opts){
     const pct = Math.round((job.progress || 0) * 100);
     const stage = job.stage || "Procesando";
     const isUpscale = runningKind === "upscale";
-    const bar = isUpscale ? upscaleProgressBar : restoreProgressBar;
-    const text = isUpscale ? upscaleProgressText : restoreProgressText;
+    const isSegment = runningKind === "segment";
+    const bar = isSegment ? segmentProgressBar : (isUpscale ? upscaleProgressBar : restoreProgressBar);
+    const text = isSegment ? segmentProgressText : (isUpscale ? upscaleProgressText : restoreProgressText);
     bar.style.width = pct + "%";
     text.textContent = pct + "% · " + stage;
     mobileProgress.textContent = pct + "% · " + stage;
     shell.setSubtitle(name + " · " + pct + "% · " + stage);
+  }
+
+  function drawSegmentOverlay(ctx, t){
+    if(segmentMask){
+      const overlay = document.createElement("canvas");
+      overlay.width = segmentMask.w; overlay.height = segmentMask.h;
+      const ox = overlay.getContext("2d");
+      const img = ox.createImageData(segmentMask.w, segmentMask.h);
+      for(let i=0;i<segmentMask.data.length;i++){
+        const p=i*4, a=segmentMask.data[i];
+        img.data[p]=70; img.data[p+1]=150; img.data[p+2]=255; img.data[p+3]=Math.round(a*0.42);
+      }
+      ox.putImageData(img,0,0);
+      ctx.drawImage(overlay,t.ox,t.oy,segmentMask.w*t.k,segmentMask.h*t.k);
+    }
+    ctx.lineWidth = Math.max(2, 2*t.dpr);
+    for(let i=0;i<segmentPoints.length;i++){
+      const p=segmentPoints[i], positive=segmentLabels[i]===1;
+      ctx.beginPath();
+      ctx.arc(t.ox+p[0]*t.k,t.oy+p[1]*t.k,Math.max(5,6*t.dpr),0,Math.PI*2);
+      ctx.fillStyle=positive?"rgba(80,220,120,.95)":"rgba(255,90,90,.95)";
+      ctx.fill();
+      ctx.strokeStyle="#fff"; ctx.stroke();
+    }
+  }
+
+  function setSegmentInteract(on){
+    shell.setOverlay(on || segmentMask ? drawSegmentOverlay : null);
+    shell.setInteract(on ? (type,p,e)=>{
+      if(type!=="down") return type==="move" || type==="up";
+      if(p.x<0 || p.y<0 || p.x>=source.width || p.y>=source.height) return true;
+      segmentPoints.push([Math.round(p.x),Math.round(p.y)]);
+      segmentLabels.push(e.altKey ? 0 : 1);
+      segmentMask=null;
+      segmentRun.disabled=!featureReady("segment-sam2") || !segmentLabels.includes(1);
+      shell.redraw();
+      return true;
+    } : null);
+    segmentStart.classList.toggle("on", !!on);
+    segmentStart.textContent = on ? "Selección por clic activa" : "Activar selección por clic";
+  }
+
+  async function runSegment(){
+    if(activeJob || runningKind || !featureReady("segment-sam2") || !segmentLabels.includes(1)) return;
+    aborter=new AbortController();
+    setRunning("segment",true);
+    segmentInvert=segmentTarget.value==="background";
+    shell.setBusy("Calculando máscara con SAM2…");
+    try{
+      const job=await startSegment(source,{points:segmentPoints,labels:segmentLabels,invert:segmentInvert,signal:aborter.signal});
+      activeJob=job.id; shell.setBusy("");
+      await waitForJob(activeJob,{signal:aborter.signal,onProgress:showProgress});
+      segmentMask=await fetchMaskResult(activeJob);
+      resultCanvas=source; result16=null; resultKind="segment-mask";
+      shell.setOverlay(drawSegmentOverlay); shell.setApplyEnabled(true);
+      segmentQuality.textContent="SAM2.1 Hiera Large · "+segmentMask.w+" × "+segmentMask.h+" · "+segmentPoints.length+" puntos";
+      toast("Máscara calculada. Añade puntos para refinar o pulsa Aplicar.","ok");
+    }catch(err){
+      if(!err.cancelled && err?.name!=="AbortError") toast("Segmentación IA: "+err.message,"err");
+    }finally{
+      activeJob=null; aborter=null; setRunning("segment",false); setReady(); shell.setBusy(""); shell.redraw();
+    }
   }
 
   function updateRestorePreview(){
@@ -559,6 +661,11 @@ export function openAdvancedAIEditor(opts){
     if(activeJob) await cancelJob(activeJob);
   }
 
+  segmentStart.addEventListener("click",()=>setSegmentInteract(!segmentStart.classList.contains("on")));
+  segmentRun.addEventListener("click",runSegment);
+  segmentClear.addEventListener("click",()=>{ segmentPoints=[]; segmentLabels=[]; segmentMask=null; resultKind=null; shell.setApplyEnabled(false); shell.setOverlay(segmentStart.classList.contains("on")?drawSegmentOverlay:null); setReady(); shell.redraw(); });
+  segmentTarget.addEventListener("change",()=>{ if(segmentMask){ segmentMask.data = Uint8Array.from(segmentMask.data, a=>255-a); segmentInvert=!segmentInvert; shell.redraw(); } });
+
   upscaleRun.addEventListener("click", () => runUpscale(+upscaleScale.value));
   upscaleCancel.addEventListener("click", cancelActive);
   restoreRun.addEventListener("click", () => runRestore(restoreModeSel.value));
@@ -582,7 +689,8 @@ export function openAdvancedAIEditor(opts){
 
   mobileRun.addEventListener("click", () => {
     const action = mobileAction.value;
-    if(action === "denoise" || action === "deblur") runRestore(action);
+    if(action === "segment"){ setSegmentInteract(true); toast("Toca el sujeto u objeto en la imagen y después calcula la máscara."); }
+    else if(action === "denoise" || action === "deblur") runRestore(action);
     else runUpscale(action === "upscale4" ? 4 : 2);
   });
   mobileCancel.addEventListener("click", cancelActive);
