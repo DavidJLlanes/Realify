@@ -392,6 +392,11 @@ registerAll({
   /* Collage / History / Post (socialmediapost/): no necesita documento;
      el resultado se abre en una pestaña nueva. */
   "file.socialPost": { run: async () => (await import("../socialmediapost/index.js")).openSocialPost() },
+  /* Marcos (frames/): añade un marco como capa independiente sobre el
+     documento, de modo que las capas fotográficas de 16 bits conservan
+     su hiSrc y siguen pudiendo exportarse en alta precisión. */
+  "filter.frames":   { run: async () => (await import("../frames/index.js")).openFrames(),
+                       enabled: needsDoc },
 
   "view.fit":     { run: fit, enabled: needsDoc },
   "view.zoom100": { run: zoom100, enabled: needsDoc },
