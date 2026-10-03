@@ -5,7 +5,7 @@ import { renderPrecise } from "../../js/core/precision-stack.js";
 import { canvasFromHi, attachHi } from "../../js/core/hisrc.js";
 import { emit } from "../../js/core/bus.js";
 import {
-  probeLocalService, startUpscale, waitForJob, fetchJobResult, cancelJob
+  probeLocalService, startUpscale, startRestore, waitForJob, fetchJobResult, cancelJob
 } from "../client/local-service.js";
 
 const CONTROLS = [
@@ -22,8 +22,7 @@ const CONTROLS = [
   ["Claridad", "-100", "100", "0", "1"],
   ["Textura", "-100", "100", "0", "1"],
   ["Borrar neblina", "-100", "100", "0", "1"],
-  ["Enfoque", "0", "100", "0", "1"],
-  ["Reducción de ruido IA", "0", "100", "0", "1"]
+  ["Enfoque", "0", "100", "0", "1"]
 ];
 
 function esc(s){
@@ -65,7 +64,7 @@ function maxHiPixels(){
   return (coarse || mem <= 4) ? 12e6 : 32e6;
 }
 
-function targetInputSize(source, scale){
+function targetUpscaleInput(source, scale){
   let [outW, outH, limitedSide] = docSizeLimit(source.width * scale, source.height * scale, { highQuality:true });
   const maxPixels = maxHiPixels();
   let limitedPixels = false;
@@ -75,9 +74,11 @@ function targetInputSize(source, scale){
     outH = Math.max(1, Math.floor(outH * k));
     limitedPixels = true;
   }
-  const w = Math.max(8, Math.floor(outW / scale));
-  const h = Math.max(8, Math.floor(outH / scale));
-  return { w, h, limited:limitedSide || limitedPixels };
+  return {
+    w:Math.max(8, Math.floor(outW / scale)),
+    h:Math.max(8, Math.floor(outH / scale)),
+    limited:limitedSide || limitedPixels
+  };
 }
 
 function scaledCanvas(source, w, h){
@@ -91,20 +92,14 @@ function scaledCanvas(source, w, h){
   return c;
 }
 
-async function prepareUpscaleSource(source, scale){
-  const size = targetInputSize(source, scale);
+async function preparePreciseSource(source, w, h){
   try{
     const precise = await renderPrecise({
-      w:size.w, h:size.h,
-      bits16:true,
-      alpha:false,
-      layersOnly:false,
-      srgb:true
+      w, h, bits16:true, alpha:false, layersOnly:false, srgb:true
     });
     if(precise?.data16?.data instanceof Uint16Array){
       return {
         payload:precise.data16,
-        limited:size.limited,
         precision:16,
         reason:precise.reason || "RGB16"
       };
@@ -113,17 +108,33 @@ async function prepareUpscaleSource(source, scale){
     console.warn("IA avanzada: no se pudo preparar RGB16; se usa canvas compatible", err);
   }
   return {
-    payload:scaledCanvas(source, size.w, size.h),
-    limited:size.limited,
+    payload:scaledCanvas(source, w, h),
     precision:8,
     reason:"Composición compatible de 8 bits"
   };
 }
 
+function blendPreview(source, restored, strength, reuse){
+  const c = reuse || document.createElement("canvas");
+  if(c.width !== restored.width || c.height !== restored.height){
+    c.width = restored.width; c.height = restored.height;
+  }
+  const x = c.getContext("2d");
+  x.clearRect(0, 0, c.width, c.height);
+  x.globalAlpha = 1;
+  x.drawImage(source, 0, 0, c.width, c.height);
+  x.globalAlpha = Math.max(0, Math.min(1, strength / 100));
+  x.drawImage(restored, 0, 0, c.width, c.height);
+  x.globalAlpha = 1;
+  return c;
+}
+
 export function openAdvancedAIEditor(opts){
   var source = opts.source, name = opts.name, width = opts.width, height = opts.height;
-  var shell, status = null, activeJob = null, aborter = null;
-  var resultCanvas = null, result16 = null, resultScale = 2, closed = false;
+  var shell, status = null, activeJob = null, aborter = null, runningKind = null;
+  var resultCanvas = null, result16 = null, resultKind = null, resultScale = 2;
+  var restoreMode = "denoise", restoreStrength = 100, restorePreview = null;
+  var closed = false;
 
   async function close(){
     if(closed) return;
@@ -134,28 +145,36 @@ export function openAdvancedAIEditor(opts){
   }
 
   async function applyResult(){
-    if(!resultCanvas || !result16) return;
+    if(!resultCanvas || !result16 || !resultKind) return;
     shell.setBusy("Aplicando resultado…");
     try{
-      await resultToLayer(resultCanvas, {
-        name: "Ampliada ×" + resultScale + " · Real-ESRGAN",
-        docName: name + " ×" + resultScale,
-        newDocument: true
-      });
-
-      const { doc } = await import("../../js/core/doc.js");
-      const layer = doc.layers[0];
-      const kept16 = attachHi(layer, result16.data, result16.w, result16.h);
-      if(kept16){
-        layer.thumbDirty = true;
-        emit("doc:change");
-        emit("doc:structure");
+      if(resultKind === "upscale"){
+        await resultToLayer(resultCanvas, {
+          name:"Ampliada ×" + resultScale + " · Real-ESRGAN",
+          docName:name + " ×" + resultScale,
+          newDocument:true
+        });
+        const { doc } = await import("../../js/core/doc.js");
+        const layer = doc.layers[0];
+        const kept16 = attachHi(layer, result16.data, result16.w, result16.h);
+        if(kept16){
+          layer.thumbDirty = true;
+          emit("doc:change"); emit("doc:structure");
+        }
+        toast("Upscale ×" + resultScale + " aplicado" + (kept16 ? " · 16 bits conservados" : ""), "ok");
+      }else{
+        const label = resultKind === "denoise" ? "Reducción de ruido IA · NAFNet" : "Deblur IA · NAFNet";
+        await resultToLayer(resultCanvas, { name:label, mix:true });
+        const { doc } = await import("../../js/core/doc.js");
+        const layer = doc.layers.find(l => l.id === doc.activeId);
+        if(layer){
+          attachHi(layer, result16.data, result16.w, result16.h);
+          layer.opacity = restoreStrength / 100;
+          layer.thumbDirty = true;
+          emit("doc:change"); emit("doc:structure");
+        }
+        toast(label + " aplicado · " + restoreStrength + "%", "ok");
       }
-      toast(
-        "Upscale ×" + resultScale + " aplicado" +
-        (kept16 ? " · origen de 16 bits conservado" : ""),
-        "ok"
-      );
       await close();
     }catch(err){
       shell.setBusy("");
@@ -164,12 +183,12 @@ export function openAdvancedAIEditor(opts){
   }
 
   shell = createShell({
-    title: "IA avanzada",
-    subtitle: name + " · " + width + " × " + height + " · Fase 2",
-    applyLabel: "Aplicar",
-    cls: "aai-shell",
-    onApply: applyResult,
-    onCancel: close
+    title:"IA avanzada",
+    subtitle:name + " · " + width + " × " + height + " · Fase 3",
+    applyLabel:"Aplicar",
+    cls:"aai-shell",
+    onApply:applyResult,
+    onCancel:close
   });
 
   shell.setApplyEnabled(false);
@@ -178,15 +197,30 @@ export function openAdvancedAIEditor(opts){
 
   shell.left.innerHTML =
     '<div class="aai-panel-head"><b>Ajustes fotográficos</b>' +
-    '<span>Los ajustes clásicos se activarán en las siguientes fases. Upscale IA ya usa CUDA local.</span></div>' +
+    '<span>Los ajustes clásicos se activarán en la Fase 4. Denoise, Deblur y Upscale ya usan CUDA local.</span></div>' +
     '<div class="aai-controls">' + controlsMarkup() + '</div>' +
+
+    '<section class="aai-restore">' +
+      '<div class="aai-panel-head"><b>Restauración IA</b><span>NAFNet width64 · máxima calidad · CUDA.</span></div>' +
+      '<label><span>Tipo</span><select data-restore-mode>' +
+        '<option value="denoise">Reducir ruido · NAFNet SIDD width64</option>' +
+        '<option value="deblur">Recuperar desenfoque · NAFNet GoPro width64</option>' +
+      '</select></label>' +
+      '<label class="aai-strength"><span>Intensidad <b data-strength-value>100%</b></span>' +
+        '<input type="range" min="0" max="100" value="100" step="1" data-restore-strength></label>' +
+      '<button type="button" data-restore-run disabled>Restaurar con GPU</button>' +
+      '<button type="button" data-restore-cancel disabled>Cancelar proceso</button>' +
+      '<div class="aai-progress aai-restore-progress" hidden><div><i></i></div><span>Preparando…</span></div>' +
+      '<p class="aai-quality" data-restore-quality>El modelo se descarga en el primer uso y permanece en advanced-ai/models/.</p>' +
+    '</section>' +
+
     '<section class="aai-upscale">' +
       '<div class="aai-panel-head"><b>Upscale IA</b><span>Real-ESRGAN · CUDA FP16 · transporte RGB16 cuando es posible.</span></div>' +
       '<label><span>Escala</span><select data-upscale-scale><option value="2">×2 · alta calidad</option><option value="4">×4 · máxima ampliación</option></select></label>' +
       '<button type="button" data-upscale-run disabled>Procesar con GPU</button>' +
       '<button type="button" data-upscale-cancel disabled>Cancelar proceso</button>' +
-      '<div class="aai-progress" hidden><div><i></i></div><span>Preparando…</span></div>' +
-      '<p class="aai-quality" data-quality>Los pesos se descargan y verifican con SHA-256 en el primer uso.</p>' +
+      '<div class="aai-progress aai-upscale-progress" hidden><div><i></i></div><span>Preparando…</span></div>' +
+      '<p class="aai-quality" data-upscale-quality>Los pesos se descargan y verifican en el primer uso.</p>' +
     '</section>';
 
   shell.right.innerHTML =
@@ -194,58 +228,98 @@ export function openAdvancedAIEditor(opts){
     '<div data-engine-status>' + statusMarkup(null) + '</div>' +
     '<button type="button" class="aai-retry">Volver a comprobar</button></section>' +
     '<section class="aai-prompt"><div class="aai-panel-head"><b>Prompt</b>' +
-    '<span>Edición generativa se activará en las fases posteriores.</span></div>' +
-    '<textarea rows="6" placeholder="Ej.: cambia el pelo a rubio, pon una montaña de fondo, añade una cabra a mi lado…"></textarea>' +
-    '<div class="aai-prompt-actions"><button type="button" disabled>Generar</button><span>Fase 6</span></div></section>' +
-    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 2 · upscale CUDA operativo</span>' +
-    '<small>Pesos: advanced-ai/models/upscale/. Se descargan solo al primer uso.</small></section>';
+    '<span>La interpretación de ajustes por lenguaje natural llega en la Fase 4; edición generativa en la Fase 6.</span></div>' +
+    '<textarea rows="6" placeholder="Ej.: reduce el ruido sin perder textura; recupera el ligero desenfoque; cambia el pelo a rubio…"></textarea>' +
+    '<div class="aai-prompt-actions"><button type="button" disabled>Generar</button><span>Fases 4/6</span></div></section>' +
+    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 3 · NAFNet Denoise / Deblur operativo</span>' +
+    '<small>NAFNet width64, RGB16, tiling, intensidad, progreso y cancelación.</small></section>';
 
   shell.mobile.innerHTML =
     '<div class="aai-mobile-status" data-mobile-status>' + statusMarkup(null) + '</div>' +
-    '<div class="aai-mobile-upscale"><select data-mobile-scale><option value="2">Upscale ×2</option><option value="4">Upscale ×4</option></select>' +
-    '<button type="button" data-mobile-run disabled>Procesar</button><button type="button" data-mobile-cancel disabled>Cancelar</button></div>' +
+    '<div class="aai-mobile-tools">' +
+      '<select data-mobile-action><option value="denoise">Denoise IA</option><option value="deblur">Deblur IA</option><option value="upscale2">Upscale ×2</option><option value="upscale4">Upscale ×4</option></select>' +
+      '<button type="button" data-mobile-run disabled>Procesar</button><button type="button" data-mobile-cancel disabled>Cancelar</button>' +
+    '</div>' +
+    '<label class="aai-mobile-strength"><span>Intensidad <b data-mobile-strength-value>100%</b></span><input type="range" min="0" max="100" value="100" data-mobile-strength></label>' +
     '<div class="aai-mobile-progress" hidden>Preparando…</div>';
 
   const statusHost = shell.right.querySelector("[data-engine-status]");
   const mobileStatus = shell.mobile.querySelector("[data-mobile-status]");
-  const runBtn = shell.left.querySelector("[data-upscale-run]");
-  const cancelBtn = shell.left.querySelector("[data-upscale-cancel]");
-  const scaleSel = shell.left.querySelector("[data-upscale-scale]");
-  const progress = shell.left.querySelector(".aai-progress");
-  const progressBar = progress.querySelector("i");
-  const progressText = progress.querySelector("span");
-  const qualityText = shell.left.querySelector("[data-quality]");
+
+  const upscaleRun = shell.left.querySelector("[data-upscale-run]");
+  const upscaleCancel = shell.left.querySelector("[data-upscale-cancel]");
+  const upscaleScale = shell.left.querySelector("[data-upscale-scale]");
+  const upscaleProgress = shell.left.querySelector(".aai-upscale-progress");
+  const upscaleProgressBar = upscaleProgress.querySelector("i");
+  const upscaleProgressText = upscaleProgress.querySelector("span");
+  const upscaleQuality = shell.left.querySelector("[data-upscale-quality]");
+
+  const restoreRun = shell.left.querySelector("[data-restore-run]");
+  const restoreCancel = shell.left.querySelector("[data-restore-cancel]");
+  const restoreModeSel = shell.left.querySelector("[data-restore-mode]");
+  const restoreStrengthInput = shell.left.querySelector("[data-restore-strength]");
+  const restoreStrengthValue = shell.left.querySelector("[data-strength-value]");
+  const restoreProgress = shell.left.querySelector(".aai-restore-progress");
+  const restoreProgressBar = restoreProgress.querySelector("i");
+  const restoreProgressText = restoreProgress.querySelector("span");
+  const restoreQuality = shell.left.querySelector("[data-restore-quality]");
+
+  const mobileAction = shell.mobile.querySelector("[data-mobile-action]");
   const mobileRun = shell.mobile.querySelector("[data-mobile-run]");
   const mobileCancel = shell.mobile.querySelector("[data-mobile-cancel]");
-  const mobileScale = shell.mobile.querySelector("[data-mobile-scale]");
+  const mobileStrengthInput = shell.mobile.querySelector("[data-mobile-strength]");
+  const mobileStrengthValue = shell.mobile.querySelector("[data-mobile-strength-value]");
   const mobileProgress = shell.mobile.querySelector(".aai-mobile-progress");
   var checking = false;
 
-  function setReady(){
-    const supported = !!status?.ready &&
-      status?.features?.includes("upscale-x2") &&
-      status?.features?.includes("upscale-x4");
-    runBtn.disabled = !supported || !!activeJob;
-    mobileRun.disabled = !supported || !!activeJob;
+  function featureReady(feature){
+    return !!status?.ready && status?.features?.includes(feature);
   }
 
-  function setRunning(on){
-    runBtn.disabled = on || !status?.ready;
-    mobileRun.disabled = on || !status?.ready;
-    cancelBtn.disabled = !on;
-    mobileCancel.disabled = !on;
-    scaleSel.disabled = on;
-    mobileScale.disabled = on;
-    progress.hidden = !on;
-    mobileProgress.hidden = !on;
+  function setReady(){
+    const busy = !!activeJob || !!runningKind;
+    upscaleRun.disabled = busy || !(featureReady("upscale-x2") && featureReady("upscale-x4"));
+    restoreRun.disabled = busy || !(featureReady("denoise-nafnet") && featureReady("deblur-nafnet"));
+    mobileRun.disabled = busy || !status?.ready;
+  }
+
+  function setRunning(kind, on){
+    runningKind = on ? kind : null;
+    const busy = !!runningKind;
+    upscaleRun.disabled = busy || !status?.ready;
+    restoreRun.disabled = busy || !status?.ready;
+    mobileRun.disabled = busy || !status?.ready;
+    upscaleCancel.disabled = !(busy && kind === "upscale");
+    restoreCancel.disabled = !(busy && kind === "restore");
+    mobileCancel.disabled = !busy;
+    upscaleScale.disabled = busy;
+    restoreModeSel.disabled = busy;
+    mobileAction.disabled = busy;
+    upscaleProgress.hidden = !(busy && kind === "upscale");
+    restoreProgress.hidden = !(busy && kind === "restore");
+    mobileProgress.hidden = !busy;
   }
 
   function showProgress(job){
     const pct = Math.round((job.progress || 0) * 100);
-    progressBar.style.width = pct + "%";
-    progressText.textContent = pct + "% · " + (job.stage || "Procesando");
-    mobileProgress.textContent = pct + "% · " + (job.stage || "Procesando");
-    shell.setSubtitle(name + " · " + pct + "% · " + (job.stage || "Procesando"));
+    const stage = job.stage || "Procesando";
+    const isUpscale = runningKind === "upscale";
+    const bar = isUpscale ? upscaleProgressBar : restoreProgressBar;
+    const text = isUpscale ? upscaleProgressText : restoreProgressText;
+    bar.style.width = pct + "%";
+    text.textContent = pct + "% · " + stage;
+    mobileProgress.textContent = pct + "% · " + stage;
+    shell.setSubtitle(name + " · " + pct + "% · " + stage);
+  }
+
+  function updateRestorePreview(){
+    restoreStrength = +restoreStrengthInput.value;
+    mobileStrengthInput.value = String(restoreStrength);
+    restoreStrengthValue.textContent = restoreStrength + "%";
+    mobileStrengthValue.textContent = restoreStrength + "%";
+    if(resultKind !== "denoise" && resultKind !== "deblur") return;
+    restorePreview = blendPreview(source, resultCanvas, restoreStrength, restorePreview);
+    shell.setView(restorePreview, true);
   }
 
   async function check(){
@@ -262,62 +336,100 @@ export function openAdvancedAIEditor(opts){
     setReady();
   }
 
-  async function process(scale){
-    if(activeJob || !status?.ready) return;
-    resultCanvas = null;
-    result16 = null;
+  async function runUpscale(scale){
+    if(activeJob || runningKind || !status?.ready) return;
+    resultCanvas = null; result16 = null; resultKind = null;
     shell.setApplyEnabled(false);
     shell.setView(source, false);
     resultScale = scale;
     aborter = new AbortController();
-    setRunning(true);
+    setRunning("upscale", true);
     shell.setBusy("Preparando imagen a máxima precisión…");
 
     try{
-      const prepared = await prepareUpscaleSource(source, scale);
-      if(prepared.limited)
-        toast("El resultado se limita al máximo seguro de Realify manteniendo alta precisión.");
-      qualityText.textContent =
-        (prepared.precision === 16 ? "Entrada RGB16" : "Entrada compatible 8-bit") +
-        " · " + prepared.reason;
+      const size = targetUpscaleInput(source, scale);
+      const prepared = await preparePreciseSource(source, size.w, size.h);
+      if(size.limited) toast("El resultado se limita al máximo seguro de Realify manteniendo alta precisión.");
+      upscaleQuality.textContent =
+        (prepared.precision === 16 ? "Entrada RGB16" : "Entrada compatible 8-bit") + " · " + prepared.reason;
 
       const tile = status.vramGB >= 11 ? 640 : status.vramGB >= 8 ? 512 : 384;
       shell.setBusy("Enviando imagen al motor CUDA…");
-      const job = await startUpscale(prepared.payload, {
-        scale, tile, signal:aborter.signal
-      });
+      const job = await startUpscale(prepared.payload, { scale, tile, signal:aborter.signal });
       activeJob = job.id;
       shell.setBusy("");
 
-      await waitForJob(activeJob, {
-        signal:aborter.signal,
-        onProgress:showProgress
-      });
-
+      await waitForJob(activeJob, { signal:aborter.signal, onProgress:showProgress });
       const result = await fetchJobResult(activeJob);
       result16 = result;
       resultCanvas = canvasFromHi(result.data, result.w, result.h);
+      resultKind = "upscale";
       shell.setView(resultCanvas, false);
       shell.setOriginal(source);
       shell.setApplyEnabled(true);
-      qualityText.textContent =
+      upscaleQuality.textContent =
         "Resultado RGB16 · " + result.w + " × " + result.h +
         " · entrada del motor: " + result.inputPrecision + " bits";
       shell.setSubtitle(name + " · resultado ×" + scale + " · " + result.w + " × " + result.h);
       toast("Upscale ×" + scale + " terminado. Revisa y pulsa Aplicar.", "ok");
     }catch(err){
-      if(!err.cancelled && err?.name !== "AbortError")
-        toast("Upscale IA: " + err.message, "err");
+      if(!err.cancelled && err?.name !== "AbortError") toast("Upscale IA: " + err.message, "err");
       shell.setView(source, false);
       shell.setOriginal(source);
-      shell.setSubtitle(name + " · " + width + " × " + height + " · Fase 2");
-      qualityText.textContent = "Los pesos se descargan y verifican con SHA-256 en el primer uso.";
     }finally{
-      activeJob = null;
-      aborter = null;
-      setRunning(false);
-      progress.hidden = true;
-      mobileProgress.hidden = true;
+      activeJob = null; aborter = null;
+      setRunning("upscale", false);
+      setReady();
+      shell.setBusy("");
+    }
+  }
+
+  async function runRestore(mode){
+    if(activeJob || runningKind || !status?.ready) return;
+    resultCanvas = null; result16 = null; resultKind = null; restorePreview = null;
+    restoreMode = mode;
+    shell.setApplyEnabled(false);
+    shell.setView(source, false);
+    aborter = new AbortController();
+    setRunning("restore", true);
+    shell.setBusy("Preparando imagen a máxima precisión…");
+
+    try{
+      const prepared = await preparePreciseSource(source, source.width, source.height);
+      restoreQuality.textContent =
+        (prepared.precision === 16 ? "Entrada RGB16" : "Entrada compatible 8-bit") + " · " + prepared.reason;
+
+      let tile;
+      if(mode === "denoise") tile = status.vramGB >= 11 ? 512 : status.vramGB >= 8 ? 384 : 256;
+      else tile = status.vramGB >= 11 ? 384 : status.vramGB >= 8 ? 320 : 224;
+
+      shell.setBusy("Enviando imagen a NAFNet…");
+      const job = await startRestore(prepared.payload, { mode, tile, signal:aborter.signal });
+      activeJob = job.id;
+      shell.setBusy("");
+
+      await waitForJob(activeJob, { signal:aborter.signal, onProgress:showProgress });
+      const result = await fetchJobResult(activeJob);
+      result16 = result;
+      resultCanvas = canvasFromHi(result.data, result.w, result.h);
+      resultKind = mode;
+      updateRestorePreview();
+      shell.setOriginal(source);
+      shell.setApplyEnabled(true);
+      restoreQuality.textContent =
+        (mode === "denoise" ? "NAFNet SIDD width64" : "NAFNet GoPro width64") +
+        " · RGB16 · " + result.w + " × " + result.h +
+        " · entrada: " + result.inputPrecision + " bits";
+      shell.setSubtitle(name + " · " + (mode === "denoise" ? "ruido reducido" : "desenfoque recuperado"));
+      toast((mode === "denoise" ? "Reducción de ruido" : "Deblur") + " terminado. Ajusta intensidad y pulsa Aplicar.", "ok");
+    }catch(err){
+      if(!err.cancelled && err?.name !== "AbortError")
+        toast((mode === "denoise" ? "Denoise" : "Deblur") + " IA: " + err.message, "err");
+      shell.setView(source, false);
+      shell.setOriginal(source);
+    }finally{
+      activeJob = null; aborter = null;
+      setRunning("restore", false);
       setReady();
       shell.setBusy("");
     }
@@ -329,12 +441,33 @@ export function openAdvancedAIEditor(opts){
     if(activeJob) await cancelJob(activeJob);
   }
 
-  runBtn.addEventListener("click", () => process(+scaleSel.value));
-  mobileRun.addEventListener("click", () => process(+mobileScale.value));
-  cancelBtn.addEventListener("click", cancelActive);
+  upscaleRun.addEventListener("click", () => runUpscale(+upscaleScale.value));
+  upscaleCancel.addEventListener("click", cancelActive);
+  restoreRun.addEventListener("click", () => runRestore(restoreModeSel.value));
+  restoreCancel.addEventListener("click", cancelActive);
+
+  restoreStrengthInput.addEventListener("input", updateRestorePreview);
+  mobileStrengthInput.addEventListener("input", () => {
+    restoreStrengthInput.value = mobileStrengthInput.value;
+    updateRestorePreview();
+  });
+
+  restoreModeSel.addEventListener("change", () => {
+    restoreMode = restoreModeSel.value;
+    if(restoreMode === "denoise" || restoreMode === "deblur") mobileAction.value = restoreMode;
+  });
+
+  mobileAction.addEventListener("change", () => {
+    if(mobileAction.value === "denoise" || mobileAction.value === "deblur")
+      restoreModeSel.value = mobileAction.value;
+  });
+
+  mobileRun.addEventListener("click", () => {
+    const action = mobileAction.value;
+    if(action === "denoise" || action === "deblur") runRestore(action);
+    else runUpscale(action === "upscale4" ? 4 : 2);
+  });
   mobileCancel.addEventListener("click", cancelActive);
-  scaleSel.addEventListener("change", () => { mobileScale.value = scaleSel.value; });
-  mobileScale.addEventListener("change", () => { scaleSel.value = mobileScale.value; });
   shell.right.querySelector(".aai-retry").addEventListener("click", check);
 
   check();
