@@ -89,6 +89,12 @@ if (-not $NoStartup) {
   $cmd = '@echo off' + [Environment]::NewLine + 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $StartPs1 + '"' + [Environment]::NewLine
   $cmd | Set-Content -Encoding ASCII $StartupCmd
 }
+Write-Host "Cerrando servicio anterior de Realify AI Local si está activo..."
+$listener = Get-NetTCPConnection -LocalPort 17834 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($listener) {
+  try { taskkill /PID $listener.OwningProcess /F | Out-Null } catch {}
+  Start-Sleep -Milliseconds 800
+}
 Write-Host "Arrancando Realify AI Local..."
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $StartPs1
 
