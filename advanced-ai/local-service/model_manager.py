@@ -16,7 +16,7 @@ Progress = Callable[[float, str], None]
 
 
 class ModelManager:
-    """Descarga bajo demanda y no expone un modelo hasta verificarlo."""
+    """Descarga bajo demanda y no expone un modelo hasta validarlo."""
 
     def __init__(self) -> None:
         with REGISTRY_PATH.open("r", encoding="utf-8") as fh:
@@ -43,11 +43,55 @@ class ModelManager:
     @classmethod
     def _valid_file(cls, path: Path, spec: dict[str, Any]) -> bool:
         try:
-            if not path.is_file() or path.stat().st_size != int(spec["bytes"]):
+            if not path.is_file():
                 return False
-            return cls._sha256(path).lower() == str(spec["sha256"]).lower()
+            size = path.stat().st_size
+            if "bytes" in spec and size != int(spec["bytes"]):
+                return False
+            if "minBytes" in spec and size < int(spec["minBytes"]):
+                return False
+            if "sha256" in spec and cls._sha256(path).lower() != str(spec["sha256"]).lower():
+                return False
+            return size > 0
         except (OSError, KeyError, ValueError):
             return False
+
+    @staticmethod
+    def _download_http(spec: dict[str, Any], tmp: Path, progress: Progress | None) -> None:
+        req = urllib.request.Request(
+            spec["url"],
+            headers={"User-Agent": "Realify-AI-Local/0.3"},
+        )
+        with urllib.request.urlopen(req, timeout=90) as src, tmp.open("wb") as out:
+            total = int(src.headers.get("Content-Length") or spec.get("bytes") or 0)
+            done = 0
+            while True:
+                block = src.read(1024 * 1024)
+                if not block:
+                    break
+                out.write(block)
+                done += len(block)
+                if progress and total:
+                    progress(min(0.96, done / max(total, 1)), "Descargando modelo oficial")
+
+    @staticmethod
+    def _download_gdrive(spec: dict[str, Any], tmp: Path, progress: Progress | None) -> None:
+        try:
+            import gdown
+        except Exception as exc:
+            raise RuntimeError("Falta gdown para descargar el modelo oficial de Google Drive.") from exc
+
+        file_id = spec.get("download", {}).get("id")
+        if not file_id:
+            raise RuntimeError("El modelo no tiene ID de Google Drive.")
+
+        if progress:
+            progress(0.05, "Descargando modelo oficial")
+        ok = gdown.download(id=file_id, output=str(tmp), quiet=True)
+        if not ok or not tmp.is_file():
+            raise RuntimeError("No se pudo descargar el modelo oficial desde Google Drive.")
+        if progress:
+            progress(0.96, "Descarga completada")
 
     def ensure(self, model_id: str, progress: Progress | None = None) -> Path:
         spec = self.spec(model_id)
@@ -69,35 +113,21 @@ class ModelManager:
         os.close(fd)
         tmp = Path(tmp_name)
         try:
-            req = urllib.request.Request(
-                spec["url"],
-                headers={"User-Agent": "Realify-AI-Local/0.2"},
-            )
-            with urllib.request.urlopen(req, timeout=90) as src, tmp.open("wb") as out:
-                total = int(src.headers.get("Content-Length") or spec["bytes"])
-                done = 0
-                while True:
-                    block = src.read(1024 * 1024)
-                    if not block:
-                        break
-                    out.write(block)
-                    done += len(block)
-                    if progress:
-                        progress(min(0.96, done / max(total, 1)), "Descargando modelo oficial")
+            download = spec.get("download") or {}
+            if download.get("type") == "gdrive":
+                self._download_gdrive(spec, tmp, progress)
+            else:
+                self._download_http(spec, tmp, progress)
 
-            if tmp.stat().st_size != int(spec["bytes"]):
-                raise RuntimeError("El tamaño del modelo descargado no coincide con el oficial.")
+            if not self._valid_file(tmp, spec):
+                raise RuntimeError("La descarga del modelo está incompleta o no supera la validación.")
 
-            if progress:
+            if progress and "sha256" in spec:
                 progress(0.98, "Verificando SHA-256")
-            digest = self._sha256(tmp)
-            if digest.lower() != str(spec["sha256"]).lower():
-                raise RuntimeError("La verificación SHA-256 del modelo ha fallado.")
-
             os.replace(tmp, dest)
         finally:
             tmp.unlink(missing_ok=True)
 
         if progress:
-            progress(1.0, "Modelo descargado y verificado")
+            progress(1.0, "Modelo descargado y validado")
         return dest
