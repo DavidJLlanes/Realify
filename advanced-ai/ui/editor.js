@@ -5,7 +5,7 @@ import { renderPrecise } from "../../js/core/precision-stack.js";
 import { canvasFromHi, attachHi } from "../../js/core/hisrc.js";
 import { emit } from "../../js/core/bus.js";
 import {
-  probeLocalService, startUpscale, startRestore, startSegment, fetchMaskResult, interpretPrompt,
+  probeLocalService, startUpscale, startRestore, startSegment, fetchMaskResult, startGenerativeEdit, interpretPrompt,
   waitForJob, fetchJobResult, cancelJob
 } from "../client/local-service.js";
 import { renderAdjustments, sanitizeAdjustments, isNeutral } from "./prompt-adjustments.js";
@@ -140,6 +140,7 @@ export function openAdvancedAIEditor(opts){
   var restoreMode = "denoise", restoreStrength = 100, restorePreview = null;
   var adjustmentState = sanitizeAdjustments({}), adjustmentPreview = null, promptInfo = null;
   var segmentPoints = [], segmentLabels = [], segmentMask = null, segmentInvert = false;
+  var generativePrompt = "", generativeSeed = 0;
   var closed = false;
 
   async function close(){
@@ -152,7 +153,7 @@ export function openAdvancedAIEditor(opts){
 
   async function applyResult(){
     if(!resultCanvas || !resultKind) return;
-    if(resultKind !== "prompt-adjust" && !result16) return;
+    if(resultKind !== "prompt-adjust" && resultKind !== "segment-mask" && !result16) return;
     shell.setBusy("Aplicando resultado…");
     try{
       if(resultKind === "segment-mask"){
@@ -181,6 +182,18 @@ export function openAdvancedAIEditor(opts){
           emit("doc:change"); emit("doc:structure");
         }
         toast("Ajustes por prompt aplicados", "ok");
+      }else if(resultKind === "generative-edit"){
+        await resultToLayer(resultCanvas, { name:"Edición generativa · FLUX Fill", mix:true });
+        const { doc } = await import("../../js/core/doc.js");
+        const layer = doc.layers.find(l => l.id === doc.activeId);
+        if(layer){
+          layer.aiGenerativeModel = result16?.model || "flux1-fill-dev-nf4";
+          layer.aiGenerativePrompt = generativePrompt;
+          layer.aiGenerativeSeed = generativeSeed;
+          layer.thumbDirty = true;
+          emit("doc:change"); emit("doc:structure");
+        }
+        toast("Edición generativa FLUX aplicada como capa nueva","ok");
       }else if(resultKind === "upscale"){
         await resultToLayer(resultCanvas, {
           name:"Ampliada ×" + resultScale + " · Real-ESRGAN",
@@ -217,7 +230,7 @@ export function openAdvancedAIEditor(opts){
 
   shell = createShell({
     title:"IA avanzada",
-    subtitle:name + " · " + width + " × " + height + " · Fase 5",
+    subtitle:name + " · " + width + " × " + height + " · Fase 6",
     applyLabel:"Aplicar",
     cls:"aai-shell",
     onApply:applyResult,
@@ -271,13 +284,27 @@ export function openAdvancedAIEditor(opts){
     '<section class="aai-engine"><div class="aai-panel-head"><b>Motor IA local</b><span>CUDA/PyTorch en este PC.</span></div>' +
     '<div data-engine-status>' + statusMarkup(null) + '</div>' +
     '<button type="button" class="aai-retry">Volver a comprobar</button></section>' +
-    '<section class="aai-prompt"><div class="aai-panel-head"><b>Prompt</b>' +
-    '<span>Qwen3 interpreta instrucciones y sólo puede devolver ajustes permitidos. Edición generativa llegará en la Fase 6.</span></div>' +
-    '<textarea rows="6" data-prompt placeholder="Ej.: aclara un poco la foto, recupera sombras, baja altas luces y haz el color algo más cálido."></textarea>' +
-    '<div class="aai-prompt-actions"><button type="button" data-prompt-run disabled>Interpretar y previsualizar</button><button type="button" data-prompt-reset>Restablecer</button></div>' +
+    '<section class="aai-prompt"><div class="aai-panel-head"><b>Ajustes por prompt</b>' +
+    '<span>Qwen3 interpreta instrucciones fotográficas y las convierte en controles editables.</span></div>' +
+    '<textarea rows="5" data-prompt placeholder="Ej.: aclara la foto, recupera sombras y haz el color algo más cálido."></textarea>' +
+    '<div class="aai-prompt-actions"><button type="button" data-prompt-run disabled>Interpretar</button><button type="button" data-prompt-reset>Restablecer</button></div>' +
     '<div class="aai-prompt-result" data-prompt-result hidden></div></section>' +
-    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 4 · Prompt → ajustes operativo</span>' +
-    '<small>Qwen3 1.7B local · JSON validado · sin comandos arbitrarios.</small></section>';
+    '<section class="aai-generative"><div class="aai-panel-head"><b>Edición generativa · FLUX Fill</b>' +
+    '<span>Genera únicamente dentro de la máscara de SAM2. Ideal para cielo, fondo, pelo, ropa, escenarios u objetos.</span></div>' +
+    '<textarea rows="6" data-generative-prompt placeholder="Ej.: cambia el pelo a rubio natural manteniendo el rostro y la iluminación."></textarea>' +
+    '<div class="aai-gen-grid">' +
+      '<label><span>Pasos</span><input type="number" min="20" max="80" value="50" data-gen-steps></label>' +
+      '<label><span>Guidance</span><input type="number" min="1" max="60" step="1" value="30" data-gen-guidance></label>' +
+      '<label><span>Semilla</span><input type="number" min="0" max="2147483647" value="0" data-gen-seed></label>' +
+      '<label><span>Borde</span><input type="number" min="0" max="32" value="8" data-gen-feather></label>' +
+    '</div>' +
+    '<button type="button" data-generative-run disabled>Generar dentro de la máscara</button>' +
+    '<button type="button" data-generative-cancel disabled>Cancelar generación</button>' +
+    '<div class="aai-progress aai-generative-progress" hidden><div><i></i></div><span>Preparando FLUX…</span></div>' +
+    '<p class="aai-quality" data-generative-quality>FLUX.1 Fill [dev] NF4 · BF16 · calidad alta · optimizado para 12 GB VRAM.</p>' +
+    '</section>' +
+    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 6 · Edición generativa operativa</span>' +
+    '<small>FLUX.1 Fill NF4 + SAM2 · edición localizada y zonas protegidas.</small></section>';
 
   shell.mobile.innerHTML =
     '<div class="aai-mobile-status" data-mobile-status>' + statusMarkup(null) + '</div>' +
@@ -286,8 +313,8 @@ export function openAdvancedAIEditor(opts){
       '<button type="button" data-mobile-run disabled>Procesar</button><button type="button" data-mobile-cancel disabled>Cancelar</button>' +
     '</div>' +
     '<label class="aai-mobile-strength"><span>Intensidad <b data-mobile-strength-value>100%</b></span><input type="range" min="0" max="100" value="100" data-mobile-strength></label>' +
-    '<div class="aai-mobile-prompt"><textarea rows="3" data-mobile-prompt placeholder="Describe los ajustes que quieres…"></textarea>' +
-    '<button type="button" data-mobile-prompt-run disabled>Interpretar prompt</button></div>' +
+    '<div class="aai-mobile-prompt"><textarea rows="3" data-mobile-prompt placeholder="Describe los ajustes o la edición que quieres…"></textarea>' +
+    '<button type="button" data-mobile-prompt-run disabled>Ajustar</button><button type="button" data-mobile-generative-run disabled>Generar</button></div>' +
     '<div class="aai-mobile-prompt-result" data-mobile-prompt-result hidden></div>' +
     '<div class="aai-mobile-progress" hidden>Preparando…</div>';
 
@@ -297,6 +324,17 @@ export function openAdvancedAIEditor(opts){
   const promptRun = shell.right.querySelector("[data-prompt-run]");
   const promptReset = shell.right.querySelector("[data-prompt-reset]");
   const promptResult = shell.right.querySelector("[data-prompt-result]");
+  const generativePromptBox = shell.right.querySelector("[data-generative-prompt]");
+  const generativeRun = shell.right.querySelector("[data-generative-run]");
+  const generativeCancel = shell.right.querySelector("[data-generative-cancel]");
+  const generativeSteps = shell.right.querySelector("[data-gen-steps]");
+  const generativeGuidance = shell.right.querySelector("[data-gen-guidance]");
+  const generativeSeedInput = shell.right.querySelector("[data-gen-seed]");
+  const generativeFeather = shell.right.querySelector("[data-gen-feather]");
+  const generativeProgress = shell.right.querySelector(".aai-generative-progress");
+  const generativeProgressBar = generativeProgress.querySelector("i");
+  const generativeProgressText = generativeProgress.querySelector("span");
+  const generativeQuality = shell.right.querySelector("[data-generative-quality]");
   const controlInputs = [...shell.left.querySelectorAll("[data-control]")];
 
   const upscaleRun = shell.left.querySelector("[data-upscale-run]");
@@ -335,6 +373,7 @@ export function openAdvancedAIEditor(opts){
   const mobileProgress = shell.mobile.querySelector(".aai-mobile-progress");
   const mobilePrompt = shell.mobile.querySelector("[data-mobile-prompt]");
   const mobilePromptRun = shell.mobile.querySelector("[data-mobile-prompt-run]");
+  const mobileGenerativeRun = shell.mobile.querySelector("[data-mobile-generative-run]");
   const mobilePromptResult = shell.mobile.querySelector("[data-mobile-prompt-result]");
   var checking = false;
 
@@ -350,6 +389,8 @@ export function openAdvancedAIEditor(opts){
     promptRun.disabled = busy || !featureReady("prompt-adjustments");
     segmentRun.disabled = busy || !featureReady("segment-sam2") || !segmentPoints.some((_,i)=>segmentLabels[i]===1);
     mobilePromptRun.disabled = busy || !featureReady("prompt-adjustments");
+    generativeRun.disabled = busy || !featureReady("generative-flux-fill") || !segmentMask;
+    mobileGenerativeRun.disabled = busy || !featureReady("generative-flux-fill") || !segmentMask;
   }
 
   function setRunning(kind, on){
@@ -360,9 +401,12 @@ export function openAdvancedAIEditor(opts){
     segmentRun.disabled = busy || !featureReady("segment-sam2") || !segmentPoints.some((_,i)=>segmentLabels[i]===1);
     mobileRun.disabled = busy || !status?.ready;
     promptRun.disabled = busy || !featureReady("prompt-adjustments");
+    generativeRun.disabled = busy || !featureReady("generative-flux-fill") || !segmentMask;
+    mobileGenerativeRun.disabled = busy || !featureReady("generative-flux-fill") || !segmentMask;
     upscaleCancel.disabled = !(busy && kind === "upscale");
     restoreCancel.disabled = !(busy && kind === "restore");
     segmentCancel.disabled = !(busy && kind === "segment");
+    generativeCancel.disabled = !(busy && kind === "generative");
     mobileCancel.disabled = !busy;
     upscaleScale.disabled = busy;
     restoreModeSel.disabled = busy;
@@ -370,6 +414,7 @@ export function openAdvancedAIEditor(opts){
     upscaleProgress.hidden = !(busy && kind === "upscale");
     restoreProgress.hidden = !(busy && kind === "restore");
     segmentProgress.hidden = !(busy && kind === "segment");
+    generativeProgress.hidden = !(busy && kind === "generative");
     mobileProgress.hidden = !busy;
   }
 
@@ -378,8 +423,9 @@ export function openAdvancedAIEditor(opts){
     const stage = job.stage || "Procesando";
     const isUpscale = runningKind === "upscale";
     const isSegment = runningKind === "segment";
-    const bar = isSegment ? segmentProgressBar : (isUpscale ? upscaleProgressBar : restoreProgressBar);
-    const text = isSegment ? segmentProgressText : (isUpscale ? upscaleProgressText : restoreProgressText);
+    const isGenerative = runningKind === "generative";
+    const bar = isGenerative ? generativeProgressBar : (isSegment ? segmentProgressBar : (isUpscale ? upscaleProgressBar : restoreProgressBar));
+    const text = isGenerative ? generativeProgressText : (isSegment ? segmentProgressText : (isUpscale ? upscaleProgressText : restoreProgressText));
     bar.style.width = pct + "%";
     text.textContent = pct + "% · " + stage;
     mobileProgress.textContent = pct + "% · " + stage;
@@ -439,12 +485,59 @@ export function openAdvancedAIEditor(opts){
       segmentMask=await fetchMaskResult(activeJob);
       resultCanvas=source; result16=null; resultKind="segment-mask";
       shell.setOverlay(drawSegmentOverlay); shell.setApplyEnabled(true);
+      generativeRun.disabled=!featureReady("generative-flux-fill");
+      mobileGenerativeRun.disabled=!featureReady("generative-flux-fill");
       segmentQuality.textContent="SAM2.1 Hiera Large · "+segmentMask.w+" × "+segmentMask.h+" · "+segmentPoints.length+" puntos";
       toast("Máscara calculada. Añade puntos para refinar o pulsa Aplicar.","ok");
     }catch(err){
       if(!err.cancelled && err?.name!=="AbortError") toast("Segmentación IA: "+err.message,"err");
     }finally{
       activeJob=null; aborter=null; setRunning("segment",false); setReady(); shell.setBusy(""); shell.redraw();
+    }
+  }
+
+  async function runGenerative(promptOverride){
+    const prompt = String(promptOverride ?? generativePromptBox.value).trim();
+    if(activeJob || runningKind || !featureReady("generative-flux-fill") || !segmentMask || !prompt) return;
+    generativePrompt = prompt;
+    generativeSeed = Math.max(0, Math.min(2147483647, +(generativeSeedInput.value || 0)));
+    aborter = new AbortController();
+    setRunning("generative", true);
+    shell.setBusy("Preparando FLUX.1 Fill…");
+    try{
+      const prepared = await preparePreciseSource(source, source.width, source.height);
+      const job = await startGenerativeEdit(prepared.payload, segmentMask, {
+        prompt,
+        guidance:Math.max(1, Math.min(60, +(generativeGuidance.value || 30))),
+        steps:Math.max(20, Math.min(80, +(generativeSteps.value || 50))),
+        seed:generativeSeed,
+        padding:128,
+        feather:Math.max(0, Math.min(32, +(generativeFeather.value || 8))),
+        maxSide:status?.vramGB >= 11 ? 1024 : 896,
+        signal:aborter.signal
+      });
+      activeJob = job.id;
+      shell.setBusy("");
+      await waitForJob(activeJob, { signal:aborter.signal, onProgress:showProgress });
+      const result = await fetchJobResult(activeJob);
+      result16 = result;
+      resultCanvas = canvasFromHi(result.data, result.w, result.h);
+      resultKind = "generative-edit";
+      shell.setView(resultCanvas, false);
+      shell.setOriginal(source);
+      shell.setOverlay(null);
+      shell.setApplyEnabled(true);
+      generativeQuality.textContent =
+        "FLUX.1 Fill NF4 · " + result.w + " × " + result.h +
+        " · semilla " + generativeSeed + " · salida recompuesta a resolución completa";
+      shell.setSubtitle(name + " · edición generativa terminada");
+      toast("FLUX Fill ha terminado. Revisa el resultado y pulsa Aplicar.","ok");
+    }catch(err){
+      if(!err.cancelled && err?.name !== "AbortError") toast("FLUX Fill: " + err.message,"err");
+      shell.setView(source, false);
+      shell.setOverlay(segmentMask ? drawSegmentOverlay : null);
+    }finally{
+      activeJob=null; aborter=null; setRunning("generative",false); setReady(); shell.setBusy("");
     }
   }
 
@@ -668,7 +761,9 @@ export function openAdvancedAIEditor(opts){
   segmentRun.addEventListener("click",runSegment);
   segmentCancel.addEventListener("click",cancelActive);
   segmentClear.addEventListener("click",()=>{ segmentPoints=[]; segmentLabels=[]; segmentMask=null; resultKind=null; shell.setApplyEnabled(false); shell.setOverlay(segmentStart.classList.contains("on")?drawSegmentOverlay:null); setReady(); shell.redraw(); });
-  segmentTarget.addEventListener("change",()=>{ if(segmentMask){ segmentMask.data = Uint8Array.from(segmentMask.data, a=>255-a); segmentInvert=!segmentInvert; shell.redraw(); } });
+  segmentTarget.addEventListener("change",()=>{ if(segmentMask){ segmentMask.data = Uint8Array.from(segmentMask.data, a=>255-a); segmentInvert=!segmentInvert; shell.redraw(); setReady(); } });
+  generativeRun.addEventListener("click",()=>runGenerative());
+  generativeCancel.addEventListener("click",cancelActive);
 
   upscaleRun.addEventListener("click", () => runUpscale(+upscaleScale.value));
   upscaleCancel.addEventListener("click", cancelActive);
@@ -702,6 +797,10 @@ export function openAdvancedAIEditor(opts){
   mobilePromptRun.addEventListener("click", () => {
     promptBox.value = mobilePrompt.value;
     runPrompt();
+  });
+  mobileGenerativeRun.addEventListener("click", () => {
+    generativePromptBox.value = mobilePrompt.value;
+    runGenerative(mobilePrompt.value);
   });
   promptReset.addEventListener("click", resetAdjustments);
   promptBox.addEventListener("keydown", e => {
