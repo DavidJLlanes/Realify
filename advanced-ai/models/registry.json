@@ -1,5 +1,5 @@
 {
-  "schema": 4,
+  "schema": 5,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -83,17 +83,17 @@
         ]
       }
     },
-    "qwen2.5-1.5b-instruct": {
+    "qwen3-1.7b": {
       "task": "prompt",
-      "label": "Qwen2.5 1.5B Instruct",
-      "directory": "prompt/qwen2.5-1.5b-instruct",
-      "repository": "Qwen/Qwen2.5-1.5B-Instruct",
+      "label": "Qwen3 1.7B",
+      "directory": "prompt/qwen3-1.7b",
+      "repository": "Qwen/Qwen3-1.7B",
       "revision": "main",
       "download": {
         "type": "huggingface-snapshot"
       },
       "license": "Apache-2.0",
-      "source": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct"
+      "source": "https://huggingface.co/Qwen/Qwen3-1.7B"
     }
   }
 }
