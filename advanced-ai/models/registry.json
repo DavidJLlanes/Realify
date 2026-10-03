@@ -1,5 +1,5 @@
 {
-  "schema": 3,
+  "schema": 4,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -82,6 +82,18 @@
           1
         ]
       }
+    },
+    "qwen2.5-1.5b-instruct": {
+      "task": "prompt",
+      "label": "Qwen2.5 1.5B Instruct",
+      "directory": "prompt/qwen2.5-1.5b-instruct",
+      "repository": "Qwen/Qwen2.5-1.5B-Instruct",
+      "revision": "main",
+      "download": {
+        "type": "huggingface-snapshot"
+      },
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct"
     }
   }
 }
