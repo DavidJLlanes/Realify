@@ -117,6 +117,7 @@ registerAll({
   /* Misma edición en varias fotos (lote/) */
   "file.batchEdit":  { run: async () => (await import("../lote/index.js")).openBatchEdit(), enabled: needsDoc },
   "file.startBatch": () => promptStartBatch(),
+  "ai.advancedLocal": { run: async () => (await import("../advanced-ai/index.js")).openAdvancedAI(), enabled: needsDoc },
   "ai.tapSelect":   { run: async () => (await import("./features/samtools.js")).openSamTool("select"), enabled: needsDoc },
   "ai.magicErase":  { run: async () => (await import("./features/samtools.js")).openSamTool("erase"), enabled: needsDoc },
   "ai.faceBlur":    { run: async () => (await import("./features/facetools.js")).openFaceBlur(), enabled: needsDoc },
