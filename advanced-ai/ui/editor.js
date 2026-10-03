@@ -53,7 +53,7 @@ function statusMarkup(s){
       '</b><span>' + esc(s.reason || "Realify AI Local no está disponible.") + '</span>' +
       (denied
         ? '<span class="aai-local-help">En la configuración del sitio de realify.es, permite el acceso a la red/equipo local y pulsa Volver a comprobar.</span>'
-        : '<a class="aai-install-local" href="/advanced-ai/install/windows/instalar-realify-ai-local-v2.cmd?v=2" download>Instalar Realify AI Local para Windows · V2</a>' +
+        : '<a class="aai-install-local" href="/advanced-ai/install/windows/instalar-realify-ai-local-v2.cmd?v=4" download>Instalar Realify AI Local para Windows · V2</a>' +
           '<span class="aai-local-help">Instálalo una vez. Quedará arrancando con Windows y utilizará tu GPU NVIDIA local.</span>') +
       '</div></div>';
   }
@@ -67,7 +67,7 @@ function statusMarkup(s){
   var torch = s.torch ? " · PyTorch " + esc(s.torch) : "";
   return '<div class="aai-status ready"><i></i><div><b>' + gpu + vram +
     '</b><span>' + cuda + torch + ' · motor listo</span>' +
-    '<a class="aai-install-local" href="/advanced-ai/install/windows/instalar-realify-ai-local-v2.cmd?v=3" download>Actualizar / reinstalar Realify AI Local</a>' +
+    '<a class="aai-install-local" href="/advanced-ai/install/windows/instalar-realify-ai-local-v2.cmd?v=4" download>Actualizar / reinstalar Realify AI Local</a>' +
     '</div></div>';
 }
 
