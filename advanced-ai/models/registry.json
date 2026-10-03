@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -24,6 +24,64 @@
       "sha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
       "license": "BSD-3-Clause",
       "source": "https://github.com/xinntao/Real-ESRGAN"
+    },
+    "nafnet-sidd-width64": {
+      "task": "denoise",
+      "label": "NAFNet SIDD width64",
+      "filename": "NAFNet-SIDD-width64.pth",
+      "directory": "denoise/nafnet-sidd-width64",
+      "download": {
+        "type": "gdrive",
+        "id": "14Fht1QQJ2gMlk4N1ERCRuElg8JfjrWWR"
+      },
+      "minBytes": 50000000,
+      "license": "MIT",
+      "source": "https://github.com/megvii-research/NAFNet",
+      "architecture": {
+        "width": 64,
+        "enc_blk_nums": [
+          2,
+          2,
+          4,
+          8
+        ],
+        "middle_blk_num": 12,
+        "dec_blk_nums": [
+          2,
+          2,
+          2,
+          2
+        ]
+      }
+    },
+    "nafnet-gopro-width64": {
+      "task": "deblur",
+      "label": "NAFNet GoPro width64",
+      "filename": "NAFNet-GoPro-width64.pth",
+      "directory": "deblur/nafnet-gopro-width64",
+      "download": {
+        "type": "gdrive",
+        "id": "1S0PVRbyTakYY9a82kujgZLbMihfNBLfC"
+      },
+      "minBytes": 50000000,
+      "license": "MIT",
+      "source": "https://github.com/megvii-research/NAFNet",
+      "architecture": {
+        "width": 64,
+        "enc_blk_nums": [
+          1,
+          1,
+          1,
+          28
+        ],
+        "middle_blk_num": 1,
+        "dec_blk_nums": [
+          1,
+          1,
+          1,
+          1
+        ]
+      }
     }
   }
 }
