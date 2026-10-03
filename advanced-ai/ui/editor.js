@@ -616,7 +616,6 @@ export function openAdvancedAIEditor(opts){
     const needsReference = advancedTask !== "control";
     advancedReferenceWrap.hidden = !needsReference;
     advancedControlWrap.hidden = advancedTask !== "control";
-    advancedStrength.previousElementSibling;
     advancedQuality.textContent = advancedTask === "identity"
       ? "PuLID-FLUX v0.9.1 · FP8 + aggressive offload · identidad facial de máxima calidad práctica para 12 GB."
       : advancedTask === "reference"
