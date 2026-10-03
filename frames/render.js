@@ -32,7 +32,7 @@ function gradient(ctx,W,H,a,b,vertical=false){
 function seed(i){let x=(i+1)*2654435761>>>0;return()=>((x=Math.imul(x^(x>>>15),2246822519)>>>0)>>>0)/4294967296;}
 
 export function drawFrame(ctx,p,W,H,opts={}){
-  ctx.clearRect(0,0,W,H);
+  if(opts.clear !== false) ctx.clearRect(0,0,W,H);
   const scale=Math.min(W,H), pct=clamp(opts.width ?? p.width,1,24);
   const t=Math.max(2,scale*pct/100);
   const a=opts.primary||p.primary, b=opts.secondary||p.secondary, v=p.variant||0;
