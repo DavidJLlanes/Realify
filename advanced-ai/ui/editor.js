@@ -5,24 +5,27 @@ import { renderPrecise } from "../../js/core/precision-stack.js";
 import { canvasFromHi, attachHi } from "../../js/core/hisrc.js";
 import { emit } from "../../js/core/bus.js";
 import {
-  probeLocalService, startUpscale, startRestore, waitForJob, fetchJobResult, cancelJob
+  probeLocalService, startUpscale, startRestore, interpretPrompt,
+  waitForJob, fetchJobResult, cancelJob
 } from "../client/local-service.js";
+import { renderAdjustments, sanitizeAdjustments, isNeutral } from "./prompt-adjustments.js";
 
 const CONTROLS = [
-  ["Exposición", "-2", "2", "0", "0.01"],
-  ["Contraste", "-100", "100", "0", "1"],
-  ["Altas luces", "-100", "100", "0", "1"],
-  ["Sombras", "-100", "100", "0", "1"],
-  ["Blancos", "-100", "100", "0", "1"],
-  ["Negros", "-100", "100", "0", "1"],
-  ["Temperatura", "-100", "100", "0", "1"],
-  ["Matiz", "-100", "100", "0", "1"],
-  ["Saturación", "-100", "100", "0", "1"],
-  ["Vibrancia", "-100", "100", "0", "1"],
-  ["Claridad", "-100", "100", "0", "1"],
-  ["Textura", "-100", "100", "0", "1"],
-  ["Borrar neblina", "-100", "100", "0", "1"],
-  ["Enfoque", "0", "100", "0", "1"]
+  ["exposure","Exposición","-5","5","0","0.05"," EV"],
+  ["brightness","Brillo","-100","100","0","1",""],
+  ["contrast","Contraste","-100","100","0","1",""],
+  ["highlights","Altas luces","-100","100","0","1",""],
+  ["shadows","Sombras","-100","100","0","1",""],
+  ["whites","Blancos","-100","100","0","1",""],
+  ["blacks","Negros","-100","100","0","1",""],
+  ["temperature","Temperatura","-100","100","0","1",""],
+  ["tint","Matiz","-100","100","0","1",""],
+  ["saturation","Saturación","-100","100","0","1",""],
+  ["vibrance","Vibrancia","-100","100","0","1",""],
+  ["clarity","Claridad","-100","100","0","1",""],
+  ["texture","Textura","-100","100","0","1",""],
+  ["dehaze","Borrar neblina","-100","100","0","1",""],
+  ["sharpen","Enfoque","0","100","0","1",""]
 ];
 
 function esc(s){
@@ -32,9 +35,9 @@ function esc(s){
 
 function controlsMarkup(){
   return CONTROLS.map(function(c){
-    return '<label class="aai-control is-future"><span>' + esc(c[0]) + ' <b>' + c[3] +
-      '</b></span><input type="range" min="' + c[1] + '" max="' + c[2] +
-      '" step="' + c[4] + '" value="' + c[3] + '" disabled></label>';
+    return '<label class="aai-control"><span>' + esc(c[1]) + ' <b data-control-value="' + c[0] + '">' +
+      c[4] + esc(c[6]) + '</b></span><input type="range" data-control="' + c[0] +
+      '" min="' + c[2] + '" max="' + c[3] + '" step="' + c[5] + '" value="' + c[4] + '"></label>';
   }).join("");
 }
 
@@ -134,6 +137,7 @@ export function openAdvancedAIEditor(opts){
   var shell, status = null, activeJob = null, aborter = null, runningKind = null;
   var resultCanvas = null, result16 = null, resultKind = null, resultScale = 2;
   var restoreMode = "denoise", restoreStrength = 100, restorePreview = null;
+  var adjustmentState = sanitizeAdjustments({}), adjustmentPreview = null, promptInfo = null;
   var closed = false;
 
   async function close(){
@@ -148,7 +152,18 @@ export function openAdvancedAIEditor(opts){
     if(!resultCanvas || !result16 || !resultKind) return;
     shell.setBusy("Aplicando resultado…");
     try{
-      if(resultKind === "upscale"){
+      if(resultKind === "prompt-adjust"){
+        await resultToLayer(resultCanvas, { name:"Ajustes por prompt IA", mix:true });
+        const { doc } = await import("../../js/core/doc.js");
+        const layer = doc.layers.find(l => l.id === doc.activeId);
+        if(layer){
+          layer.aiPromptAdjustments = structuredClone(adjustmentState);
+          layer.aiPromptSummary = promptInfo?.summary || "";
+          layer.thumbDirty = true;
+          emit("doc:change"); emit("doc:structure");
+        }
+        toast("Ajustes por prompt aplicados", "ok");
+      }else if(resultKind === "upscale"){
         await resultToLayer(resultCanvas, {
           name:"Ampliada ×" + resultScale + " · Real-ESRGAN",
           docName:name + " ×" + resultScale,
@@ -184,7 +199,7 @@ export function openAdvancedAIEditor(opts){
 
   shell = createShell({
     title:"IA avanzada",
-    subtitle:name + " · " + width + " × " + height + " · Fase 3",
+    subtitle:name + " · " + width + " × " + height + " · Fase 4",
     applyLabel:"Aplicar",
     cls:"aai-shell",
     onApply:applyResult,
@@ -197,7 +212,7 @@ export function openAdvancedAIEditor(opts){
 
   shell.left.innerHTML =
     '<div class="aai-panel-head"><b>Ajustes fotográficos</b>' +
-    '<span>Los ajustes clásicos se activarán en la Fase 4. Denoise, Deblur y Upscale ya usan CUDA local.</span></div>' +
+    '<span>Controles manuales activos. La caja de prompt puede rellenarlos automáticamente.</span></div>' +
     '<div class="aai-controls">' + controlsMarkup() + '</div>' +
 
     '<section class="aai-restore">' +
@@ -228,11 +243,12 @@ export function openAdvancedAIEditor(opts){
     '<div data-engine-status>' + statusMarkup(null) + '</div>' +
     '<button type="button" class="aai-retry">Volver a comprobar</button></section>' +
     '<section class="aai-prompt"><div class="aai-panel-head"><b>Prompt</b>' +
-    '<span>La interpretación de ajustes por lenguaje natural llega en la Fase 4; edición generativa en la Fase 6.</span></div>' +
-    '<textarea rows="6" placeholder="Ej.: reduce el ruido sin perder textura; recupera el ligero desenfoque; cambia el pelo a rubio…"></textarea>' +
-    '<div class="aai-prompt-actions"><button type="button" disabled>Generar</button><span>Fases 4/6</span></div></section>' +
-    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 3 · NAFNet Denoise / Deblur operativo</span>' +
-    '<small>NAFNet width64, RGB16, tiling, intensidad, progreso y cancelación.</small></section>';
+    '<span>Qwen2.5 interpreta instrucciones y sólo puede devolver ajustes permitidos. Edición generativa llegará en la Fase 6.</span></div>' +
+    '<textarea rows="6" data-prompt placeholder="Ej.: aclara un poco la foto, recupera sombras, baja altas luces y haz el color algo más cálido."></textarea>' +
+    '<div class="aai-prompt-actions"><button type="button" data-prompt-run disabled>Interpretar y previsualizar</button><button type="button" data-prompt-reset>Restablecer</button></div>' +
+    '<div class="aai-prompt-result" data-prompt-result hidden></div></section>' +
+    '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 4 · Prompt → ajustes operativo</span>' +
+    '<small>Qwen2.5 1.5B local · JSON validado · sin comandos arbitrarios.</small></section>';
 
   shell.mobile.innerHTML =
     '<div class="aai-mobile-status" data-mobile-status>' + statusMarkup(null) + '</div>' +
@@ -245,6 +261,11 @@ export function openAdvancedAIEditor(opts){
 
   const statusHost = shell.right.querySelector("[data-engine-status]");
   const mobileStatus = shell.mobile.querySelector("[data-mobile-status]");
+  const promptBox = shell.right.querySelector("[data-prompt]");
+  const promptRun = shell.right.querySelector("[data-prompt-run]");
+  const promptReset = shell.right.querySelector("[data-prompt-reset]");
+  const promptResult = shell.right.querySelector("[data-prompt-result]");
+  const controlInputs = [...shell.left.querySelectorAll("[data-control]")];
 
   const upscaleRun = shell.left.querySelector("[data-upscale-run]");
   const upscaleCancel = shell.left.querySelector("[data-upscale-cancel]");
@@ -281,6 +302,7 @@ export function openAdvancedAIEditor(opts){
     upscaleRun.disabled = busy || !(featureReady("upscale-x2") && featureReady("upscale-x4"));
     restoreRun.disabled = busy || !(featureReady("denoise-nafnet") && featureReady("deblur-nafnet"));
     mobileRun.disabled = busy || !status?.ready;
+    promptRun.disabled = busy || !featureReady("prompt-adjustments");
   }
 
   function setRunning(kind, on){
@@ -289,6 +311,7 @@ export function openAdvancedAIEditor(opts){
     upscaleRun.disabled = busy || !status?.ready;
     restoreRun.disabled = busy || !status?.ready;
     mobileRun.disabled = busy || !status?.ready;
+    promptRun.disabled = busy || !featureReady("prompt-adjustments");
     upscaleCancel.disabled = !(busy && kind === "upscale");
     restoreCancel.disabled = !(busy && kind === "restore");
     mobileCancel.disabled = !busy;
@@ -320,6 +343,88 @@ export function openAdvancedAIEditor(opts){
     if(resultKind !== "denoise" && resultKind !== "deblur") return;
     restorePreview = blendPreview(source, resultCanvas, restoreStrength, restorePreview);
     shell.setView(restorePreview, true);
+  }
+
+  function syncControlsFromState(){
+    for(const input of controlInputs){
+      const key = input.dataset.control;
+      const value = adjustmentState[key] ?? 0;
+      input.value = String(value);
+      const out = shell.left.querySelector('[data-control-value="' + key + '"]');
+      if(out){
+        const meta = CONTROLS.find(c => c[0] === key);
+        out.textContent = value + (meta?.[6] || "");
+      }
+    }
+  }
+
+  function renderAdjustmentPreview(){
+    if(isNeutral(adjustmentState)){
+      adjustmentPreview = null;
+      resultCanvas = null; resultKind = null;
+      shell.setView(source, true);
+      shell.setApplyEnabled(false);
+      return;
+    }
+    adjustmentPreview = renderAdjustments(source, adjustmentState, adjustmentPreview);
+    resultCanvas = adjustmentPreview;
+    result16 = null;
+    resultKind = "prompt-adjust";
+    shell.setView(adjustmentPreview, true);
+    shell.setOriginal(source);
+    shell.setApplyEnabled(true);
+  }
+
+  function resetAdjustments(){
+    adjustmentState = sanitizeAdjustments({});
+    promptInfo = null;
+    syncControlsFromState();
+    promptResult.hidden = true;
+    promptResult.innerHTML = "";
+    renderAdjustmentPreview();
+  }
+
+  async function runPrompt(){
+    const prompt = promptBox.value.trim();
+    if(!prompt || runningKind || activeJob) return;
+    aborter = new AbortController();
+    setRunning("prompt", true);
+    shell.setBusy("Interpretando prompt en la GPU local…");
+    try{
+      const parsed = await interpretPrompt(prompt, { signal:aborter.signal });
+      adjustmentState = sanitizeAdjustments(parsed.adjustments || {});
+      promptInfo = parsed;
+      syncControlsFromState();
+      renderAdjustmentPreview();
+
+      const unsupported = Array.isArray(parsed.unsupported) ? parsed.unsupported : [];
+      const changes = Object.entries(adjustmentState).filter(([,v]) => Math.abs(v) > 1e-6);
+      promptResult.hidden = false;
+      promptResult.innerHTML =
+        '<b>' + esc(parsed.summary || (changes.length ? "Ajustes interpretados" : "Sin ajustes fotográficos")) + '</b>' +
+        (changes.length ? '<span>' + changes.map(([k,v]) => esc(k) + ': ' + esc(v)).join(' · ') + '</span>' : '') +
+        (unsupported.length ? '<em>No disponible todavía: ' + unsupported.map(esc).join(' · ') + '</em>' : '');
+      if(unsupported.length) toast("Parte del prompt requiere edición generativa de la Fase 6.");
+      if(changes.length) toast("Prompt interpretado. Revisa los controles y la previsualización.", "ok");
+    }catch(err){
+      if(err?.name !== "AbortError") toast("Prompt IA: " + err.message, "err");
+    }finally{
+      aborter = null;
+      setRunning("prompt", false);
+      setReady();
+      shell.setBusy("");
+    }
+  }
+
+  for(const input of controlInputs){
+    input.addEventListener("input", () => {
+      adjustmentState[input.dataset.control] = +input.value;
+      const out = shell.left.querySelector('[data-control-value="' + input.dataset.control + '"]');
+      const meta = CONTROLS.find(c => c[0] === input.dataset.control);
+      if(out) out.textContent = input.value + (meta?.[6] || "");
+      promptInfo = null;
+      renderAdjustmentPreview();
+    });
   }
 
   async function check(){
@@ -468,6 +573,11 @@ export function openAdvancedAIEditor(opts){
     else runUpscale(action === "upscale4" ? 4 : 2);
   });
   mobileCancel.addEventListener("click", cancelActive);
+  promptRun.addEventListener("click", runPrompt);
+  promptReset.addEventListener("click", resetAdjustments);
+  promptBox.addEventListener("keydown", e => {
+    if((e.ctrlKey || e.metaKey) && e.key === "Enter"){ e.preventDefault(); runPrompt(); }
+  });
   shell.right.querySelector(".aai-retry").addEventListener("click", check);
 
   check();
