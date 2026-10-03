@@ -1,4 +1,4 @@
-"""Realify AI Local · Fase 4.
+"""Realify AI Local · Fase 5.
 
 Servicio loopback CUDA/PyTorch para upscale, restauración e interpretación de prompts.
 """
@@ -23,11 +23,12 @@ if str(ROOT) not in sys.path:
 from engines.upscale import UpscaleEngine
 from engines.restoration import RestorationEngine
 from engines.prompt_engine import PromptEngine
+from engines.segmentation import SegmentationEngine
 from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.4.0"
+SERVICE_VERSION = "0.5.0"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
@@ -178,10 +179,10 @@ def status():
     return {
         "service": "realify-ai-local",
         "serviceVersion": SERVICE_VERSION,
-        "phase": 4,
+        "phase": 5,
         "features": [
             "upscale-x2", "upscale-x4", "rgb16-transport",
-            "denoise-nafnet", "deblur-nafnet", "prompt-adjustments",
+            "denoise-nafnet", "deblur-nafnet", "prompt-adjustments", "segment-sam2",
         ],
         **hardware_status(),
     }
@@ -284,6 +285,88 @@ async def create_restore_job(
     job = jobs.create(mode, worker)
     return {"job": job.public(), "mode": mode, "model": model_id}
 
+
+
+@app.post("/jobs/segment")
+async def create_segment_job(
+    image: UploadFile = File(...),
+    points_json: str = Form(...),
+    labels_json: str = Form(...),
+    invert: bool = Form(False),
+    input_format: str = Form("png"),
+    width: int = Form(0),
+    height: int = Form(0),
+    channels: int = Form(3),
+    x_realify_client: str | None = Header(default=None),
+):
+    import json
+    require_client(x_realify_client)
+    hw = hardware_status()
+    if not hw.get("ready"):
+        raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
+    validate_input(input_format, width, height, channels)
+    try:
+        points = json.loads(points_json)
+        labels = json.loads(labels_json)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Puntos de segmentación no válidos.") from exc
+    if not isinstance(points, list) or not isinstance(labels, list) or len(points) != len(labels):
+        raise HTTPException(status_code=400, detail="Puntos y etiquetas no coinciden.")
+    if len(points) < 1 or len(points) > 64:
+        raise HTTPException(status_code=400, detail="Usa entre 1 y 64 puntos de refinado.")
+
+    work = RUNTIME / next(tempfile._get_candidate_names())
+    work.mkdir(parents=True, exist_ok=False)
+    src = await save_upload(
+        image, work=work, input_format=input_format,
+        width=width, height=height, channels=channels,
+    )
+    out = work / "result.mask8"
+
+    def worker(job):
+        try:
+            eng = switch_engine(
+                "segment:sam2.1-hiera-large",
+                lambda: SegmentationEngine(),
+                0,
+            )
+            return eng.run(
+                job, src, out,
+                input_format=input_format,
+                width=int(width), height=int(height),
+                points=points, labels=labels, invert=bool(invert),
+            )
+        finally:
+            src.unlink(missing_ok=True)
+
+    job = jobs.create("segment", worker)
+    return {"job": job.public(), "model": "sam2.1-hiera-large"}
+
+
+@app.get("/jobs/{job_id}/mask")
+def get_mask_result(job_id: str, x_realify_client: str | None = Header(default=None)):
+    require_client(x_realify_client)
+    job = jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Trabajo no encontrado.")
+    if job.status != "completed" or not job.result or not job.result.exists():
+        raise HTTPException(status_code=409, detail="La máscara todavía no está disponible.")
+    meta = job.meta
+    if meta.get("task") != "segment":
+        raise HTTPException(status_code=400, detail="El trabajo no contiene una máscara.")
+    return FileResponse(
+        path=str(job.result),
+        media_type="application/octet-stream",
+        filename="realify-sam2-mask.raw",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Realify-Width": str(meta.get("width", 0)),
+            "X-Realify-Height": str(meta.get("height", 0)),
+            "X-Realify-Dtype": "uint8",
+            "X-Realify-Model": str(meta.get("model", "")),
+            "Access-Control-Expose-Headers": "X-Realify-Width, X-Realify-Height, X-Realify-Dtype, X-Realify-Model",
+        },
+    )
 
 
 @app.post("/prompt/adjust")
