@@ -1,5 +1,5 @@
 {
-  "schema": 10,
+  "schema": 11,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -102,14 +102,8 @@
       "repository": "facebook/sam2.1-hiera-large",
       "revision": "main",
       "download": {
-        "type": "huggingface-patterns",
-        "allowPatterns": [
-          "config.json",
-          "model.safetensors",
-          "preprocessor_config.json",
-          "processor_config.json"
-        ],
-        "required": [
+        "type": "huggingface-files",
+        "files": [
           "config.json",
           "model.safetensors",
           "preprocessor_config.json",
@@ -118,7 +112,12 @@
       },
       "license": "Apache-2.0",
       "source": "https://huggingface.co/facebook/sam2.1-hiera-large",
-      "minModelBytes": 800000000
+      "fileChecks": {
+        "model.safetensors": {
+          "bytes": 897897416,
+          "sha256": "dc407dce21301fd94abb395c5099b4f2c455fdc8a8f261ac3d0ea6d4cd197230"
+        }
+      }
     },
     "flux1-fill-dev-components": {
       "task": "generative-edit-base",
