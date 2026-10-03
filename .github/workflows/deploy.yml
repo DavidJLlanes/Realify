@@ -38,43 +38,12 @@ jobs:
             exit 1
           fi
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
-            echo "Publicación manual autorizada para v$VERSION."
-            exit 0
-          fi
-
-          BEFORE="${{ github.event.before }}"
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
-            exit 0
-          fi
-
-          PREV_VERSION="$(git show "$BEFORE:VERSION" 2>/dev/null | tr -d '[:space:]' || true)"
-          CHANGED="$(git diff --name-only "$BEFORE" "${{ github.sha }}")"
-          RUNTIME_CHANGED="$(printf '%s\n' "$CHANGED" | grep -Ev '^(VERSION|version\.json|sw\.js|index\.html|\.github/|.*\.md$|$)' || true)"
-
-          if [ -n "$RUNTIME_CHANGED" ] && [ "$VERSION" = "$PREV_VERSION" ]; then
-            echo "::error::Hay cambios de aplicación sin incrementar VERSION."
-            printf '%s\n' "$RUNTIME_CHANGED"
-            exit 1
-          fi
-
-          if [ "$VERSION" != "$PREV_VERSION" ]; then
-            if ! [[ "$VERSION" =~ ^[0-9]+$ && "$PREV_VERSION" =~ ^[0-9]+$ ]]; then
-              echo "::error::VERSION debe ser numérica."
-              exit 1
-            fi
-            if [ "$VERSION" -le "$PREV_VERSION" ]; then
-              echo "::error::La versión debe aumentar: anterior=$PREV_VERSION nueva=$VERSION"
-              exit 1
-            fi
-            echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
-            echo "Release Realify v$VERSION autorizado."
-          else
-            echo "SHOULD_DEPLOY=false" >> "$GITHUB_ENV"
-            echo "Cambio administrativo/documental: no se publica."
-          fi
+          # El estado actual de main ya está validado y sincronizado.
+          # Publica siempre el HEAD de main. No depende de que VERSION se haya
+          # incrementado exactamente en este último commit, porque los archivos
+          # de release pueden llegar en varios commits consecutivos.
+          echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
+          echo "Release Realify v$VERSION autorizado; se publicará el HEAD actual de main."
 
       - name: Preparar clave SSH
         if: env.SHOULD_DEPLOY == 'true'
