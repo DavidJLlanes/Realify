@@ -155,14 +155,22 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 - El backend generativo queda desacoplado de la interfaz para poder sustituir FLUX por un modelo superior futuro sin rehacer Realify.
 - No se usa SDXL como motor principal: el criterio permanente del proyecto es usar el mejor modelo práctico compatible con la GPU objetivo.
 
-## Fase 7 — Identidad y control avanzado
+## Fase 7 — Identidad y control avanzado ✅
 
-- Preservación de identidad.
-- Referencia visual.
-- Profundidad / bordes / pose cuando proceda.
-- Cambios complejos de escena.
-- Integración de sombras, luz y perspectiva.
-- Variaciones y refinado.
+- PuLID-FLUX v0.9.1 como ruta principal de preservación de identidad facial.
+- FLUX.1-dev FP8 + aggressive offload + ONNX de rostro en CPU para mantener el pico de VRAM alrededor del margen viable de una RTX 4070 SUPER de 12 GB.
+- Runtime aislado bajo `advanced-ai/phase7-runtime/` para no romper las dependencias de las fases 1–6.
+- Código oficial de PuLID fijado a un commit conocido y descargado dentro de `advanced-ai/vendor/PuLID/`.
+- FLUX IP-Adapter como referencia visual general para sujeto, estilo o concepto cuando no se necesita identidad facial estricta.
+- FLUX ControlNet Union Pro 2.0 como motor estructural para profundidad, Canny, soft-edge y pose.
+- Depth Anything V2 Large como preprocesador de profundidad de alta calidad.
+- La estructura original puede mantenerse mientras FLUX modifica iluminación, entorno, materiales y apariencia desde el prompt.
+- Controles de fuerza, pasos, guidance y semilla para variar y refinar resultados de forma reproducible.
+- Todos los pesos, cachés y runtimes permanecen dentro de `advanced-ai/`.
+- Los motores de Fase 7 se ejecutan en un subproceso aislado: al terminar liberan completamente la VRAM sin contaminar el proceso principal.
+- Progreso, cancelación y resultado RGB16 integrados con el gestor de trabajos existente.
+- El resultado se aplica como capa nueva y conserva tarea, prompt, modelo y semilla como metadatos.
+- La interfaz permite elegir entre identidad, referencia visual y control estructural sin mezclar modelos cuando no aporta calidad.
 
 ## Fase 8 — GPU cloud de pago por uso
 
