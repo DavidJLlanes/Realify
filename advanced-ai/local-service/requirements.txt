@@ -1,2 +1,8 @@
 fastapi>=0.115,<1
 uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9
+numpy>=1.24,<2
+opencv-python-headless>=4.8,<5
+Pillow>=10,<12
+basicsr==1.4.2
+realesrgan==0.3.0
