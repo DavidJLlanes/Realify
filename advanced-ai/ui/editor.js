@@ -244,12 +244,12 @@ export function openAdvancedAIEditor(opts){
     '<div data-engine-status>' + statusMarkup(null) + '</div>' +
     '<button type="button" class="aai-retry">Volver a comprobar</button></section>' +
     '<section class="aai-prompt"><div class="aai-panel-head"><b>Prompt</b>' +
-    '<span>Qwen2.5 interpreta instrucciones y sólo puede devolver ajustes permitidos. Edición generativa llegará en la Fase 6.</span></div>' +
+    '<span>Qwen3 interpreta instrucciones y sólo puede devolver ajustes permitidos. Edición generativa llegará en la Fase 6.</span></div>' +
     '<textarea rows="6" data-prompt placeholder="Ej.: aclara un poco la foto, recupera sombras, baja altas luces y haz el color algo más cálido."></textarea>' +
     '<div class="aai-prompt-actions"><button type="button" data-prompt-run disabled>Interpretar y previsualizar</button><button type="button" data-prompt-reset>Restablecer</button></div>' +
     '<div class="aai-prompt-result" data-prompt-result hidden></div></section>' +
     '<section class="aai-plan"><b>Estado del proyecto</b><span>Fase 4 · Prompt → ajustes operativo</span>' +
-    '<small>Qwen2.5 1.5B local · JSON validado · sin comandos arbitrarios.</small></section>';
+    '<small>Qwen3 1.7B local · JSON validado · sin comandos arbitrarios.</small></section>';
 
   shell.mobile.innerHTML =
     '<div class="aai-mobile-status" data-mobile-status>' + statusMarkup(null) + '</div>' +
