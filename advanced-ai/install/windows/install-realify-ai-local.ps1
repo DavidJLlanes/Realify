@@ -55,14 +55,26 @@ Invoke-NativeChecked $Vpy -m pip install --upgrade torch==2.9.1 torchvision==0.2
 Write-Host "[5/7] Instalando motores de Realify..."
 $Req = Join-Path $App "advanced-ai\local-service\requirements.txt"
 Invoke-NativeChecked $Vpy -m pip install -r $Req
-Write-Host "[6/6] Comprobando CUDA..."
+Write-Host "[6/7] Comprobando CUDA..."
 $Cuda = & $Vpy -c "import torch; print('OK' if torch.cuda.is_available() else 'NO'); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
-if ($Cuda[0] -ne "OK") { Write-Warning "CUDA no está disponible. Actualiza el driver NVIDIA y vuelve a ejecutar el instalador." } else { Write-Host ("GPU detectada: " + $Cuda[1]) -ForegroundColor Green }
+if ($LASTEXITCODE -ne 0) { throw "PyTorch no pudo ejecutarse correctamente." }
+if ($Cuda[0] -ne "OK") { throw "CUDA no está disponible. Actualiza el driver NVIDIA y vuelve a ejecutar el instalador." }
+Write-Host ("GPU detectada: " + $Cuda[1]) -ForegroundColor Green
+
+Write-Host "[7/7] Comprobando servidor Realify AI Local..."
+$ServiceDir = Join-Path $App "advanced-ai\local-service"
+Push-Location $ServiceDir
+try {
+  Invoke-NativeChecked $Vpy -c "import server; print('Realify AI Local', server.SERVICE_VERSION)"
+} finally {
+  Pop-Location
+}
+
 $StartPs1 = Join-Path $Root "start-realify-ai-local.ps1"
 $Server = Join-Path $App "advanced-ai\local-service\server.py"
 $startLines = @(
   '$ErrorActionPreference = "Stop"',
-  ('$python = "' + $Vpyw + '"'),
+  ('$python = "' + $Vpy + '"'),
   ('$server = "' + $Server + '"'),
   ('$outlog = "' + (Join-Path $Root "service-out.log") + '"'),
   ('$errlog = "' + (Join-Path $Root "service-err.log") + '"'),
@@ -79,11 +91,26 @@ if (-not $NoStartup) {
 }
 Write-Host "Arrancando Realify AI Local..."
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $StartPs1
-Start-Sleep -Seconds 4
-try {
-  $status = Invoke-RestMethod "http://127.0.0.1:17834/status" -Headers @{"X-Realify-Client"="web"} -TimeoutSec 10
-  Write-Host ("Motor listo: " + $status.gpu + " · " + $status.vramGB + " GB VRAM") -ForegroundColor Green
-  Write-Host "Vuelve a Realify.es y pulsa Volver a comprobar."
-} catch { Write-Warning ("El servicio no respondió. Revisa " + $Log + " y " + (Join-Path $Root "service-err.log")) }
+
+$status = $null
+for ($i = 1; $i -le 20; $i++) {
+  Start-Sleep -Milliseconds 750
+  try {
+    $status = Invoke-RestMethod "http://127.0.0.1:17834/status" -Headers @{"X-Realify-Client"="web"} -TimeoutSec 3
+    if ($status) { break }
+  } catch {}
+}
+if (-not $status) {
+  Write-Host ""
+  Write-Host "ERROR: Realify AI Local no ha arrancado." -ForegroundColor Red
+  if (Test-Path (Join-Path $Root "service-err.log")) {
+    Write-Host "--- service-err.log ---" -ForegroundColor Yellow
+    Get-Content -Tail 80 (Join-Path $Root "service-err.log")
+  }
+  throw "El puerto 17834 no responde."
+}
+if (-not $status.ready) { throw ("El servicio respondió pero no está listo: " + $status.reason) }
+Write-Host ("Motor listo: " + $status.gpu + " · " + $status.vramGB + " GB VRAM") -ForegroundColor Green
+Write-Host "Vuelve a Realify.es y pulsa Volver a comprobar."
 Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 Stop-Transcript | Out-Null
