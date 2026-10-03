@@ -50,10 +50,26 @@ function canvasBlob(canvas){
   });
 }
 
-export async function startUpscale(canvas, { scale = 2, tile = 512, base = DEFAULT_URL } = {}){
-  const blob = await canvasBlob(canvas);
+/** source: HTMLCanvasElement o { data:Uint16Array, w, h, channels:3 }. */
+export async function startUpscale(source, { scale = 2, tile = 512, base = DEFAULT_URL, signal } = {}){
   const form = new FormData();
-  form.append("image", blob, "realify-input.png");
+  if(source?.data instanceof Uint16Array){
+    const raw = new Blob([
+      source.data.buffer.slice(source.data.byteOffset, source.data.byteOffset + source.data.byteLength)
+    ], { type:"application/octet-stream" });
+    form.append("image", raw, "realify-input.rgb16");
+    form.append("input_format", "raw16");
+    form.append("width", String(source.w));
+    form.append("height", String(source.h));
+    form.append("channels", String(source.channels || 3));
+  }else{
+    const blob = await canvasBlob(source);
+    form.append("image", blob, "realify-input.png");
+    form.append("input_format", "png");
+    form.append("width", String(source.width || 0));
+    form.append("height", String(source.height || 0));
+    form.append("channels", "4");
+  }
   form.append("scale", String(scale));
   form.append("tile", String(tile));
 
@@ -63,7 +79,8 @@ export async function startUpscale(canvas, { scale = 2, tile = 512, base = DEFAU
     cache: "no-store",
     credentials: "omit",
     headers: HEADERS,
-    body: form
+    body: form,
+    signal
   });
   if(!res.ok) throw new Error(await errorMessage(res));
   const data = await res.json();
@@ -102,7 +119,17 @@ export async function fetchJobResult(jobId, base = DEFAULT_URL){
     headers: HEADERS
   });
   if(!res.ok) throw new Error(await errorMessage(res));
-  return res.blob();
+  const w = +(res.headers.get("X-Realify-Width") || 0);
+  const h = +(res.headers.get("X-Realify-Height") || 0);
+  const channels = +(res.headers.get("X-Realify-Channels") || 3);
+  const dtype = res.headers.get("X-Realify-Dtype") || "";
+  const inputPrecision = +(res.headers.get("X-Realify-Input-Precision") || 8);
+  if(!w || !h || channels !== 3 || dtype !== "uint16le")
+    throw new Error("El motor local devolvió metadatos de imagen no válidos.");
+  const buffer = await res.arrayBuffer();
+  if(buffer.byteLength !== w * h * channels * 2)
+    throw new Error("El tamaño del resultado no coincide con sus dimensiones.");
+  return { data:new Uint16Array(buffer), w, h, channels, inputPrecision };
 }
 
 export async function waitForJob(jobId, { onProgress, signal, interval = 350, base = DEFAULT_URL } = {}){
@@ -124,24 +151,14 @@ export async function waitForJob(jobId, { onProgress, signal, interval = 350, ba
     }
     await new Promise((resolve, reject) => {
       const t = setTimeout(resolve, interval);
-      if(signal) signal.addEventListener("abort", () => { clearTimeout(t); reject(Object.assign(new Error("Cancelado"), { cancelled:true })); }, { once:true });
+      if(signal) signal.addEventListener("abort", () => {
+        clearTimeout(t);
+        reject(Object.assign(new Error("Cancelado"), { cancelled:true }));
+      }, { once:true });
     }).catch(async err => {
       if(err.cancelled) await cancelJob(jobId, base);
       throw err;
     });
-  }
-}
-
-export async function resultBlobToCanvas(blob){
-  const bmp = await createImageBitmap(blob);
-  try{
-    const c = document.createElement("canvas");
-    c.width = bmp.width;
-    c.height = bmp.height;
-    c.getContext("2d").drawImage(bmp, 0, 0);
-    return c;
-  }finally{
-    bmp.close?.();
   }
 }
 
