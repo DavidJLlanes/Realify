@@ -16,15 +16,20 @@ La hoja de ruta obligatoria está en [ROADMAP.md](./ROADMAP.md).
 
 ## Estado
 
-Fase actual: **2 — Upscale CUDA**.
+Fase actual: **2 — Upscale CUDA ✅**.
 
 Implementado:
+
 - detección del servicio local, GPU, CUDA y VRAM;
-- Real-ESRGAN ×2 / ×4;
+- Real-ESRGAN oficial ×2 y ×4;
 - descarga de modelos bajo demanda;
-- tiling solapado;
-- progreso y cancelación;
-- previsualización del resultado;
-- Aplicar abre el upscale como documento nuevo.
+- comprobación de tamaño y SHA-256 antes de usar los pesos;
+- tiling solapado según VRAM;
+- progreso y cancelación entre bloques;
+- transporte RGB16 cuando Realify puede recomponer a alta precisión;
+- resultado RGB16 con previsualización en canvas;
+- conservación de `hiSrc` de 16 bits al aplicar cuando entra en los límites de Realify;
+- Aplicar abre el upscale como documento nuevo;
+- pesos y temporales permanecen dentro de `advanced-ai/` y no se suben a Git.
 
 Próxima fase: **3 — Denoise / Deblur**.
