@@ -191,8 +191,14 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
   };
 
   let queued = false, body = null;
+  /* Al reabrir una capa de filtro ya calculada, algunos cuerpos llaman
+     preview() al construirse para inicializar sus controles. Esa llamada
+     NO debe reemplazar el resultado final por el proxy reducido. Se
+     habilita la vista previa sólo después de montar el cuerpo; las
+     llamadas posteriores (cambios reales del usuario) sí se procesan. */
+  let previewReady = !edit;
   const preview = () => {
-    if(queued) return;
+    if(!previewReady || queued) return;
     queued = true;
     clearTimeout(refineTimer); refineTimer = 0;
     requestAnimationFrame(() => {
@@ -228,6 +234,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
   };
 
   body = buildBody({ hist, preview, source });
+  previewReady = true;
   /* Al reabrir una capa de filtro, la capa YA tiene el resultado a
      resolución completa: no se repinta con la vista previa. Antes se
      llamaba a preview(), y en imágenes grandes eso cambiaba el
