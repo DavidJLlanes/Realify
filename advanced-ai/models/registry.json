@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "models": {
     "realesrgan-x2plus": {
       "task": "upscale",
@@ -8,7 +8,8 @@
       "filename": "RealESRGAN_x2plus.pth",
       "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth",
       "directory": "upscale/realesrgan-x2plus",
-      "minBytes": 20000000,
+      "bytes": 67061725,
+      "sha256": "49fafd45f8fd7aa8d31ab2a22d14d91b536c34494a5cfe31eb5d89c2fa266abb",
       "license": "BSD-3-Clause",
       "source": "https://github.com/xinntao/Real-ESRGAN"
     },
@@ -19,7 +20,8 @@
       "filename": "RealESRGAN_x4plus.pth",
       "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
       "directory": "upscale/realesrgan-x4plus",
-      "minBytes": 20000000,
+      "bytes": 67040989,
+      "sha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
       "license": "BSD-3-Clause",
       "source": "https://github.com/xinntao/Real-ESRGAN"
     }
