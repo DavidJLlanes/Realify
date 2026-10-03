@@ -143,6 +143,26 @@ export async function fetchMaskResult(jobId, base = DEFAULT_URL){
   return { data:new Uint8Array(buffer), w, h, model };
 }
 
+export async function startGenerativeEdit(source, maskData, {
+  prompt, guidance = 30, steps = 50, seed = 0, padding = 128, feather = 8, maxSide = 1024,
+  base = DEFAULT_URL, signal
+} = {}){
+  if(!(maskData?.data instanceof Uint8Array) || !maskData.w || !maskData.h)
+    throw new Error("La edición generativa necesita una máscara válida.");
+  const form = new FormData();
+  await appendImage(form, source);
+  const bytes = maskData.data.buffer.slice(maskData.data.byteOffset, maskData.data.byteOffset + maskData.data.byteLength);
+  form.append("mask", new Blob([bytes], { type:"application/octet-stream" }), "realify-edit.mask8");
+  form.append("prompt", String(prompt || ""));
+  form.append("guidance", String(guidance));
+  form.append("steps", String(steps));
+  form.append("seed", String(seed));
+  form.append("padding", String(padding));
+  form.append("feather", String(feather));
+  form.append("max_side", String(maxSide));
+  return postJob("/jobs/generative-edit", form, { base, signal });
+}
+
 export async function getJob(jobId, base = DEFAULT_URL){
   const res = await fetch(base + "/jobs/" + encodeURIComponent(jobId), {
     mode: "cors",
