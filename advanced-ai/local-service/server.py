@@ -1,6 +1,6 @@
-"""Realify AI Local · Fase 3.
+"""Realify AI Local · Fase 4.
 
-Servicio loopback CUDA/PyTorch para upscale, denoise y deblur.
+Servicio loopback CUDA/PyTorch para upscale, restauración e interpretación de prompts.
 """
 
 from __future__ import annotations
@@ -304,7 +304,7 @@ def interpret_adjustment_prompt(
 
     try:
         engine = switch_engine(
-            "prompt:qwen2.5-1.5b",
+            "prompt:qwen3-1.7b",
             lambda: PromptEngine(),
             0,
         )
