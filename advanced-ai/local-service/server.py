@@ -370,6 +370,93 @@ def get_mask_result(job_id: str, x_realify_client: str | None = Header(default=N
     )
 
 
+@app.post("/jobs/generative-edit")
+async def create_generative_edit_job(
+    image: UploadFile = File(...),
+    mask: UploadFile = File(...),
+    prompt: str = Form(...),
+    guidance: float = Form(30.0),
+    steps: int = Form(50),
+    seed: int = Form(0),
+    padding: int = Form(128),
+    feather: int = Form(8),
+    max_side: int = Form(1024),
+    input_format: str = Form("png"),
+    width: int = Form(0),
+    height: int = Form(0),
+    channels: int = Form(3),
+    x_realify_client: str | None = Header(default=None),
+):
+    require_client(x_realify_client)
+    hw = hardware_status()
+    if not hw.get("ready"):
+        raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
+    validate_input(input_format, width, height, channels)
+
+    prompt = str(prompt or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="Describe el cambio que quieres generar.")
+    if len(prompt) > 3000:
+        raise HTTPException(status_code=400, detail="El prompt generativo es demasiado largo.")
+
+    guidance = max(1.0, min(float(guidance), 60.0))
+    steps = max(20, min(int(steps), 80))
+    padding = max(0, min(int(padding), 512))
+    feather = max(0, min(int(feather), 32))
+    max_side = max(512, min(int(max_side), 1536))
+
+    work = RUNTIME / next(tempfile._get_candidate_names())
+    work.mkdir(parents=True, exist_ok=False)
+    src = await save_upload(
+        image, work=work, input_format=input_format,
+        width=width, height=height, channels=channels,
+    )
+
+    mask_path = work / "edit.mask8"
+    total = 0
+    try:
+        with mask_path.open("wb") as fh:
+            while True:
+                chunk = await mask.read(1024 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > MAX_UPLOAD:
+                    raise HTTPException(status_code=413, detail="La máscara supera el límite local.")
+                fh.write(chunk)
+    finally:
+        await mask.close()
+
+    expected = int(width) * int(height)
+    if expected <= 0 or total != expected:
+        shutil.rmtree(work, ignore_errors=True)
+        raise HTTPException(status_code=400, detail="La máscara no coincide con las dimensiones de la imagen.")
+
+    out = work / "result.rgb16"
+
+    def worker(job):
+        try:
+            eng = switch_engine(
+                "generative:flux1-fill-dev-nf4",
+                lambda: GenerativeEditEngine(),
+                0,
+            )
+            return eng.run(
+                job, src, mask_path, out,
+                input_format=input_format,
+                width=int(width), height=int(height),
+                prompt=prompt,
+                guidance=guidance, steps=steps, seed=int(seed),
+                padding=padding, feather=feather, max_side=max_side,
+            )
+        finally:
+            src.unlink(missing_ok=True)
+            mask_path.unlink(missing_ok=True)
+
+    job = jobs.create("generative-edit", worker)
+    return {"job": job.public(), "model": "flux1-fill-dev-nf4"}
+
+
 @app.post("/prompt/adjust")
 def interpret_adjustment_prompt(
     payload: dict[str, Any] = Body(...),
