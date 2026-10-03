@@ -3,11 +3,13 @@ import { drawFrame } from "./render.js";
 
 const mobile=()=>matchMedia("(max-width:900px)").matches;
 function el(tag,cls){const n=document.createElement(tag);if(cls)n.className=cls;return n;}
+const padFor=(w,h,pct)=>Math.max(2,Math.round(Math.min(w,h)*Math.max(1,Math.min(24,pct))/100));
 
 function thumb(p){
   const c=el("canvas");c.width=180;c.height=126;const x=c.getContext("2d");
-  x.fillStyle="#404854";x.fillRect(0,0,c.width,c.height);
-  drawFrame(x,p,c.width,c.height,{width:p.width});
+  const pad=Math.max(5,Math.min(24,Math.round(Math.min(c.width,c.height)*p.width/100)));
+  x.fillStyle="#404854";x.fillRect(pad,pad,c.width-pad*2,c.height-pad*2);
+  drawFrame(x,p,c.width,c.height,{width:p.width,borderPx:pad,contentRect:{x:pad,y:pad,w:c.width-pad*2,h:c.height-pad*2}});
   return c;
 }
 
@@ -21,10 +23,17 @@ export function openFramesEditor({ source, onAccept }){
   stage.append(preview);center.append(stage,grid);body.append(left,center,right);root.append(head,body,mobileBar);document.body.append(root);
 
   const fitPreview=()=>{
-    const max=1000, k=Math.min(1,max/source.width,max/source.height);
-    preview.width=Math.max(1,Math.round(source.width*k));preview.height=Math.max(1,Math.round(source.height*k));
-    const x=preview.getContext("2d");x.clearRect(0,0,preview.width,preview.height);x.drawImage(source,0,0,preview.width,preview.height);
-    drawFrame(x,preset,preview.width,preview.height,{width,primary,secondary,clear:false});
+    const sourcePad=padFor(source.width,source.height,width);
+    const outerW=source.width+sourcePad*2,outerH=source.height+sourcePad*2;
+    const max=1000,k=Math.min(1,max/outerW,max/outerH),pad=Math.max(1,Math.round(sourcePad*k));
+    preview.width=Math.max(1,Math.round(outerW*k));preview.height=Math.max(1,Math.round(outerH*k));
+    const imgW=Math.max(1,preview.width-pad*2),imgH=Math.max(1,preview.height-pad*2);
+    const x=preview.getContext("2d");x.clearRect(0,0,preview.width,preview.height);
+    x.drawImage(source,pad,pad,imgW,imgH);
+    drawFrame(x,preset,preview.width,preview.height,{
+      width,primary,secondary,clear:false,borderPx:pad,
+      contentRect:{x:pad,y:pad,w:imgW,h:imgH}
+    });
   };
   const renderGrid=()=>{
     grid.textContent="";
@@ -38,28 +47,28 @@ export function openFramesEditor({ source, onAccept }){
 
   function controlsHTML(){
     return `<h3>Ajustes</h3>
-      <div class="fr-field"><label>Grosor · <b data-wv>${Math.round(width)}%</b></label><input data-width type="range" min="1" max="24" step=".5" value="${width}"></div>
+      <div class="fr-field"><label>Anchura exterior · <b data-wv>${Math.round(width)}%</b></label><input data-width type="range" min="1" max="24" step=".5" value="${width}"></div>
       <div class="fr-field"><label>Color principal</label><div class="fr-color"><span>${primary}</span><input data-primary type="color" value="${primary}"></div></div>
       <div class="fr-field"><label>Color secundario</label><div class="fr-color"><span>${secondary}</span><input data-secondary type="color" value="${secondary}"></div></div>
-      <p class="fr-note">El marco se añade como una capa independiente. La imagen original y su origen de 16 bits no se modifican.</p>`;
+      <p class="fr-note">El marco amplía el lienzo y se añade fuera de la fotografía. Nunca tapa píxeles de la imagen y queda como una capa independiente.</p>`;
   }
   function wireControls(host){
     host.querySelector("[data-width]")?.addEventListener("input",e=>{width=+e.target.value;host.querySelector("[data-wv]").textContent=Math.round(width)+"%";fitPreview();});
-    host.querySelector("[data-primary]")?.addEventListener("input",e=>{primary=e.target.value;fitPreview();});
-    host.querySelector("[data-secondary]")?.addEventListener("input",e=>{secondary=e.target.value;fitPreview();});
+    host.querySelector("[data-primary]")?.addEventListener("input",e=>{primary=e.target.value;host.querySelector("[data-primary]")?.previousElementSibling&&(host.querySelector("[data-primary]").previousElementSibling.textContent=primary);fitPreview();});
+    host.querySelector("[data-secondary]")?.addEventListener("input",e=>{secondary=e.target.value;host.querySelector("[data-secondary]")?.previousElementSibling&&(host.querySelector("[data-secondary]").previousElementSibling.textContent=secondary);fitPreview();});
   }
   function renderControls(){right.innerHTML=controlsHTML();wireControls(right);}
   renderControls();renderGrid();fitPreview();
 
-  const catSel=el("select"), frameSel=el("select");
-  FRAME_CATEGORIES.forEach(([id,label])=>{const o=new Option(label,id);catSel.add(o);});
+  const catSel=el("select"),frameSel=el("select");
+  FRAME_CATEGORIES.forEach(([id,label])=>catSel.add(new Option(label,id)));
   const refill=()=>{frameSel.textContent="";framesInCategory(category).forEach(p=>frameSel.add(new Option(p.label,p.id)));frameSel.value=preset.id;};
   catSel.value=category;refill();
   const range=el("input");range.type="range";range.min="1";range.max="24";range.step=".5";range.value=width;
-  const row=el("div","fr-mobile-row"), closeM=el("button","fr-btn"), applyM=el("button","fr-btn primary");closeM.textContent="Cancelar";applyM.textContent="Aplicar";row.append(closeM,applyM);
+  const row=el("div","fr-mobile-row"),closeM=el("button","fr-btn"),applyM=el("button","fr-btn primary");closeM.textContent="Cancelar";applyM.textContent="Aplicar";row.append(closeM,applyM);
   mobileBar.append(catSel,frameSel,range,row);
   catSel.onchange=()=>{category=catSel.value;preset=framesInCategory(category)[0];width=preset.width;primary=preset.primary;secondary=preset.secondary;refill();range.value=width;renderGrid();renderControls();fitPreview();};
-  frameSel.onchange=()=>{preset=frameById(frameSel.value);width=preset.width;primary=preset.primary;secondary=preset.secondary;range.value=width;fitPreview();};
+  frameSel.onchange=()=>{preset=frameById(frameSel.value);width=preset.width;primary=preset.primary;secondary=preset.secondary;range.value=width;renderGrid();renderControls();fitPreview();};
   range.oninput=()=>{width=+range.value;fitPreview();};
 
   const cleanup=()=>{root.remove();window.removeEventListener("keydown",key);};
