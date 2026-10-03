@@ -79,13 +79,16 @@ Criterio de finalización: Realify abre el módulo, muestra la foto y puede deci
 
 - Real-ESRGAN x2plus y x4plus oficiales.
 - ModelManager y registro central de modelos.
-- Descarga bajo demanda y validación de tamaño del peso.
+- Descarga bajo demanda desde las releases oficiales.
+- Verificación exacta por tamaño + SHA-256 antes de cargar cada peso.
 - Tiling solapado para controlar VRAM.
-- Progreso y cancelación entre bloques.
-- Resultado PNG devuelto a Realify y previsualizado antes de aplicar.
-- Upscale abre un documento nuevo al cambiar dimensiones.
-- El motor Python acepta imágenes de 8/16 bits cuando OpenCV las entrega así.
-- El puente web actual parte del canvas compuesto de Realify; preservar hiSrc de 16 bits a través del puente queda como mejora específica antes de declarar soporte 16-bit extremo a extremo.
+- Progreso real por bloques y cancelación entre bloques.
+- Realify recompone RGB16 cuando la pila permite alta precisión y lo envía como datos crudos al servicio local.
+- Fallback a PNG/canvas sólo cuando la composición de alta precisión no esté disponible.
+- El resultado vuelve como RGB16 y se previsualiza con canvas de 8 bits sin perder el origen de 16 bits.
+- Al aplicar, el resultado abre un documento nuevo y se asocia como `hiSrc` de 16 bits cuando cabe en los límites profesionales de Realify.
+- ×2 usa RealESRGAN_x2plus oficial; ×4 usa RealESRGAN_x4plus oficial.
+- Los temporales y pesos descargados siguen dentro de `advanced-ai/` y están excluidos de Git.
 
 ## Fase 3 — Denoise / Deblur
 
