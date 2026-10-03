@@ -59,6 +59,21 @@ class ModelManager:
                         or (path / "tokenizer_config.json").is_file()
                     )
                 )
+            if download_type == "huggingface-files":
+                if not path.is_dir():
+                    return False
+                files = spec.get("download", {}).get("files") or []
+                checks = spec.get("fileChecks") or {}
+                for rel in files:
+                    fp = path / rel
+                    if not fp.is_file():
+                        return False
+                    rule = checks.get(rel) or {}
+                    if "bytes" in rule and fp.stat().st_size != int(rule["bytes"]):
+                        return False
+                    if "sha256" in rule and cls._sha256(fp).lower() != str(rule["sha256"]).lower():
+                        return False
+                return bool(files)
             if download_type in ("huggingface-diffusers", "huggingface-patterns"):
                 required = spec.get("download", {}).get("required") or []
                 required_globs = spec.get("download", {}).get("requiredGlobs") or []
@@ -144,6 +159,70 @@ class ModelManager:
             progress(0.0, "Descargando modelo oficial")
 
         download = spec.get("download") or {}
+        if download.get("type") == "huggingface-files":
+            try:
+                from huggingface_hub import hf_hub_download
+            except Exception as exc:
+                raise RuntimeError("Falta huggingface_hub para descargar el modelo.") from exc
+
+            files = list(download.get("files") or [])
+            if not files:
+                raise RuntimeError("El modelo no define archivos de descarga.")
+            dest.mkdir(parents=True, exist_ok=True)
+            checks = spec.get("fileChecks") or {}
+            total_files = len(files)
+
+            for index, rel in enumerate(files, start=1):
+                if progress:
+                    progress(
+                        0.03 + 0.90 * ((index - 1) / max(total_files, 1)),
+                        f"Descargando {rel}"
+                    )
+                target = dest / rel
+                target.parent.mkdir(parents=True, exist_ok=True)
+
+                def valid_target() -> bool:
+                    if not target.is_file():
+                        return False
+                    rule = checks.get(rel) or {}
+                    if "bytes" in rule and target.stat().st_size != int(rule["bytes"]):
+                        return False
+                    if "sha256" in rule and self._sha256(target).lower() != str(rule["sha256"]).lower():
+                        return False
+                    return target.stat().st_size > 0
+
+                if valid_target():
+                    continue
+
+                target.unlink(missing_ok=True)
+                try:
+                    hf_hub_download(
+                        repo_id=spec["repository"],
+                        filename=rel,
+                        revision=spec.get("revision") or "main",
+                        local_dir=str(dest),
+                        force_download=True,
+                    )
+                except Exception as exc:
+                    raise RuntimeError(f"No se pudo descargar {rel}: {exc}") from exc
+
+                if not valid_target():
+                    rule = checks.get(rel) or {}
+                    got = target.stat().st_size if target.is_file() else 0
+                    expected = rule.get("bytes")
+                    extra = f" (recibidos {got} bytes" + (f", esperados {expected}" if expected else "") + ")"
+                    raise RuntimeError(f"El archivo {rel} está incompleto" + extra + ".")
+
+            if not self._valid_file(dest, spec):
+                missing = [rel for rel in files if not (dest / rel).is_file()]
+                raise RuntimeError(
+                    "La descarga del modelo está incompleta."
+                    + (f" Faltan: {', '.join(missing)}." if missing else "")
+                )
+            if progress:
+                progress(1.0, "Modelo descargado y verificado")
+            return dest
+
         if download.get("type") in ("huggingface-snapshot", "huggingface-diffusers", "huggingface-patterns"):
             try:
                 from huggingface_hub import snapshot_download
