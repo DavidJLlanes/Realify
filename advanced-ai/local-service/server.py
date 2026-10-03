@@ -20,17 +20,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from engines.upscale import UpscaleEngine
-from engines.restoration import RestorationEngine
-from engines.prompt_engine import PromptEngine
-from engines.segmentation import SegmentationEngine
-from engines.generative_edit import GenerativeEditEngine
-from engines.advanced_control import AdvancedControlEngine
 from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.7.0"
+SERVICE_VERSION = "0.7.1"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
@@ -223,6 +217,7 @@ async def create_upscale_job(
 
     def worker(job):
         try:
+            from engines.upscale import UpscaleEngine
             eng = switch_engine(
                 "upscale:" + model_id,
                 lambda: UpscaleEngine(model_id=model_id, tile=tile),
@@ -272,6 +267,7 @@ async def create_restore_job(
 
     def worker(job):
         try:
+            from engines.restoration import RestorationEngine
             eng = switch_engine(
                 "restore:" + model_id,
                 lambda: RestorationEngine(model_id=model_id, tile=tile, overlap=64),
@@ -328,6 +324,7 @@ async def create_segment_job(
 
     def worker(job):
         try:
+            from engines.segmentation import SegmentationEngine
             eng = switch_engine(
                 "segment:sam2.1-hiera-large",
                 lambda: SegmentationEngine(),
@@ -438,6 +435,7 @@ async def create_generative_edit_job(
 
     def worker(job):
         try:
+            from engines.generative_edit import GenerativeEditEngine
             eng = switch_engine(
                 "generative:flux1-fill-dev-nf4",
                 lambda: GenerativeEditEngine(),
@@ -540,6 +538,7 @@ async def create_advanced_control_job(
 
     def worker(job):
         try:
+            from engines.advanced_control import AdvancedControlEngine
             eng = switch_engine("advanced:" + task, lambda: AdvancedControlEngine(), 0)
             return eng.run(
                 job, src, out,
@@ -579,6 +578,7 @@ def interpret_adjustment_prompt(
         raise HTTPException(status_code=400, detail="El prompt es demasiado largo.")
 
     try:
+        from engines.prompt_engine import PromptEngine
         engine = switch_engine(
             "prompt:qwen3-1.7b",
             lambda: PromptEngine(),
