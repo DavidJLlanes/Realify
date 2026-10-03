@@ -21,6 +21,7 @@ class Job:
     stage: str = "En cola"
     error: str | None = None
     result: Path | None = None
+    meta: dict[str, Any] = field(default_factory=dict)
     cancel_event: threading.Event = field(default_factory=threading.Event)
 
     def set_progress(self, value: float, stage: str) -> None:
@@ -39,6 +40,7 @@ class Job:
             "progress": round(self.progress, 4),
             "stage": self.stage,
             "error": self.error,
+            "meta": dict(self.meta),
         }
 
 
@@ -72,9 +74,10 @@ class JobManager:
             job.stage = "Terminado"
             job.status = "completed"
         except Exception as exc:
-            if job.cancelled:
+            if job.cancelled or str(exc) == "Cancelado":
                 job.status = "cancelled"
                 job.stage = "Cancelado"
+                job.error = None
             else:
                 job.status = "failed"
                 job.error = str(exc)
@@ -91,4 +94,6 @@ class JobManager:
             if job.status == "queued":
                 job.status = "cancelled"
                 job.stage = "Cancelado"
+            elif job.status == "running":
+                job.stage = "Cancelando…"
         return job
