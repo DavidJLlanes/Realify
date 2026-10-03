@@ -26,9 +26,9 @@ from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.2.0"
-MAX_UPLOAD = 160 * 1024 * 1024
-RUNTIME = Path(tempfile.gettempdir()) / "realify-ai-local"
+SERVICE_VERSION = "0.2.1"
+MAX_UPLOAD = 256 * 1024 * 1024
+RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_ORIGINS = [
@@ -129,7 +129,7 @@ def status():
         "service": "realify-ai-local",
         "serviceVersion": SERVICE_VERSION,
         "phase": 2,
-        "features": ["upscale-x2", "upscale-x4"],
+        "features": ["upscale-x2", "upscale-x4", "rgb16-transport"],
         **hardware_status(),
     }
 
@@ -139,6 +139,10 @@ async def create_upscale_job(
     image: UploadFile = File(...),
     scale: int = Form(2),
     tile: int = Form(512),
+    input_format: str = Form("png"),
+    width: int = Form(0),
+    height: int = Form(0),
+    channels: int = Form(3),
     x_realify_client: str | None = Header(default=None),
 ):
     require_client(x_realify_client)
@@ -147,12 +151,15 @@ async def create_upscale_job(
         raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
     if scale not in (2, 4):
         raise HTTPException(status_code=400, detail="Escala no válida.")
-    tile = max(128, min(int(tile), 1024))
+    if input_format not in ("png", "raw16"):
+        raise HTTPException(status_code=400, detail="Formato de entrada no válido.")
+    if input_format == "raw16" and (width < 1 or height < 1 or channels != 3):
+        raise HTTPException(status_code=400, detail="Metadatos raw16 no válidos.")
 
-    suffix = ".png"
+    tile = max(128, min(int(tile), 1024))
     work = RUNTIME / next(tempfile._get_candidate_names())
     work.mkdir(parents=True, exist_ok=False)
-    src = work / ("input" + suffix)
+    src = work / ("input.rgb16" if input_format == "raw16" else "input.png")
     total = 0
     try:
         with src.open("wb") as fh:
@@ -170,13 +177,25 @@ async def create_upscale_job(
     finally:
         await image.close()
 
+    if input_format == "raw16":
+        expected = int(width) * int(height) * 3 * 2
+        if total != expected:
+            shutil.rmtree(work, ignore_errors=True)
+            raise HTTPException(status_code=400, detail="El tamaño del RGB16 no coincide con sus dimensiones.")
+
     model_id = "realesrgan-x2plus" if scale == 2 else "realesrgan-x4plus"
-    out = work / "result.png"
+    out = work / "result.rgb16"
 
     def worker(job):
         try:
             eng = engine_for(model_id, tile)
-            return eng.run(job, src, out)
+            return eng.run(
+                job, src, out,
+                input_format=input_format,
+                width=int(width),
+                height=int(height),
+                channels=int(channels),
+            )
         finally:
             src.unlink(missing_ok=True)
 
@@ -210,11 +229,21 @@ def get_result(job_id: str, x_realify_client: str | None = Header(default=None))
         raise HTTPException(status_code=404, detail="Trabajo no encontrado.")
     if job.status != "completed" or not job.result or not job.result.exists():
         raise HTTPException(status_code=409, detail="El resultado todavía no está disponible.")
+
+    meta = job.meta
     return FileResponse(
         path=str(job.result),
-        media_type="image/png",
-        filename="realify-upscale.png",
-        headers={"Cache-Control": "no-store"},
+        media_type="application/octet-stream",
+        filename="realify-upscale.rgb16",
+        headers={
+            "Cache-Control": "no-store",
+            "X-Realify-Width": str(meta.get("width", 0)),
+            "X-Realify-Height": str(meta.get("height", 0)),
+            "X-Realify-Channels": str(meta.get("channels", 3)),
+            "X-Realify-Dtype": str(meta.get("dtype", "uint16le")),
+            "X-Realify-Input-Precision": str(meta.get("inputPrecision", 8)),
+            "Access-Control-Expose-Headers": "X-Realify-Width, X-Realify-Height, X-Realify-Channels, X-Realify-Dtype, X-Realify-Input-Precision",
+        },
     )
 
 
