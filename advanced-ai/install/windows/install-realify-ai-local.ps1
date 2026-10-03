@@ -35,6 +35,12 @@ if (-not $Python) {
   $Python = Find-Python311
   if (-not $Python) { throw "No se pudo localizar Python 3.11." }
 }
+Write-Host "Deteniendo Realify AI Local antes de actualizar..."
+$listener = Get-NetTCPConnection -LocalPort 17834 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($listener) {
+  try { taskkill /PID $listener.OwningProcess /F | Out-Null } catch {}
+  Start-Sleep -Milliseconds 800
+}
 Write-Host "[1/7] Descargando Realify AI Local..."
 Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Tmp | Out-Null
