@@ -12,7 +12,7 @@ Implementado:
 
 - Real-ESRGAN ×2/×4;
 - NAFNet Denoise/Deblur;
-- Qwen2.5-1.5B-Instruct para interpretar prompts;
+- Qwen3-1.7B para interpretar prompts;
 - controles manuales activos;
 - prompt → JSON estructurado → sliders → previsualización;
 - exposición, brillo, contraste, luces, sombras, blancos, negros, balance de color, saturación, vibrancia, claridad, textura, dehaze y enfoque;
