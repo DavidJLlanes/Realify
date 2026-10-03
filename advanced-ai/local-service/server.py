@@ -1,7 +1,6 @@
-"""Realify AI Local · Fase 2.
+"""Realify AI Local · Fase 3.
 
-Servicio loopback para CUDA/PyTorch. Expone estado, trabajos de upscale,
-progreso, cancelación y descarga del resultado.
+Servicio loopback CUDA/PyTorch para upscale, denoise y deblur.
 """
 
 from __future__ import annotations
@@ -11,7 +10,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,11 +21,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engines.upscale import UpscaleEngine
+from engines.restoration import RestorationEngine
 from jobs import JobManager
 
 HOST = "127.0.0.1"
 PORT = 17834
-SERVICE_VERSION = "0.2.1"
+SERVICE_VERSION = "0.3.0"
 MAX_UPLOAD = 256 * 1024 * 1024
 RUNTIME = ROOT / "local-service" / "runtime"
 RUNTIME.mkdir(parents=True, exist_ok=True)
@@ -48,8 +48,8 @@ app.add_middleware(
 )
 
 jobs = JobManager(max_workers=1)
-_current_engine: UpscaleEngine | None = None
-_current_model: str | None = None
+_current_engine: Any = None
+_current_key: str | None = None
 
 
 @app.middleware("http")
@@ -102,14 +102,20 @@ def hardware_status() -> dict[str, Any]:
     return base
 
 
-def engine_for(model_id: str, tile: int) -> UpscaleEngine:
-    global _current_engine, _current_model
-    if _current_engine is not None and _current_model == model_id:
+def switch_engine(key: str, factory: Callable[[], Any], tile: int):
+    global _current_engine, _current_key
+    if _current_engine is not None and _current_key == key:
         _current_engine.tile = tile
         return _current_engine
 
+    old = _current_engine
     _current_engine = None
-    _current_model = None
+    _current_key = None
+    try:
+        old.release()
+    except Exception:
+        pass
+    del old
     gc.collect()
     try:
         import torch
@@ -118,47 +124,27 @@ def engine_for(model_id: str, tile: int) -> UpscaleEngine:
     except Exception:
         pass
 
-    _current_engine = UpscaleEngine(model_id=model_id, tile=tile)
-    _current_model = model_id
+    _current_engine = factory()
+    _current_key = key
     return _current_engine
 
 
-@app.get("/status")
-def status():
-    return {
-        "service": "realify-ai-local",
-        "serviceVersion": SERVICE_VERSION,
-        "phase": 2,
-        "features": ["upscale-x2", "upscale-x4", "rgb16-transport"],
-        **hardware_status(),
-    }
-
-
-@app.post("/jobs/upscale")
-async def create_upscale_job(
-    image: UploadFile = File(...),
-    scale: int = Form(2),
-    tile: int = Form(512),
-    input_format: str = Form("png"),
-    width: int = Form(0),
-    height: int = Form(0),
-    channels: int = Form(3),
-    x_realify_client: str | None = Header(default=None),
-):
-    require_client(x_realify_client)
-    hw = hardware_status()
-    if not hw.get("ready"):
-        raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
-    if scale not in (2, 4):
-        raise HTTPException(status_code=400, detail="Escala no válida.")
+def validate_input(input_format: str, width: int, height: int, channels: int) -> None:
     if input_format not in ("png", "raw16"):
         raise HTTPException(status_code=400, detail="Formato de entrada no válido.")
     if input_format == "raw16" and (width < 1 or height < 1 or channels != 3):
         raise HTTPException(status_code=400, detail="Metadatos raw16 no válidos.")
 
-    tile = max(128, min(int(tile), 1024))
-    work = RUNTIME / next(tempfile._get_candidate_names())
-    work.mkdir(parents=True, exist_ok=False)
+
+async def save_upload(
+    image: UploadFile,
+    *,
+    work: Path,
+    input_format: str,
+    width: int,
+    height: int,
+    channels: int,
+) -> Path:
     src = work / ("input.rgb16" if input_format == "raw16" else "input.png")
     total = 0
     try:
@@ -182,25 +168,119 @@ async def create_upscale_job(
         if total != expected:
             shutil.rmtree(work, ignore_errors=True)
             raise HTTPException(status_code=400, detail="El tamaño del RGB16 no coincide con sus dimensiones.")
+    return src
+
+
+@app.get("/status")
+def status():
+    return {
+        "service": "realify-ai-local",
+        "serviceVersion": SERVICE_VERSION,
+        "phase": 3,
+        "features": [
+            "upscale-x2", "upscale-x4", "rgb16-transport",
+            "denoise-nafnet", "deblur-nafnet",
+        ],
+        **hardware_status(),
+    }
+
+
+@app.post("/jobs/upscale")
+async def create_upscale_job(
+    image: UploadFile = File(...),
+    scale: int = Form(2),
+    tile: int = Form(512),
+    input_format: str = Form("png"),
+    width: int = Form(0),
+    height: int = Form(0),
+    channels: int = Form(3),
+    x_realify_client: str | None = Header(default=None),
+):
+    require_client(x_realify_client)
+    hw = hardware_status()
+    if not hw.get("ready"):
+        raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
+    if scale not in (2, 4):
+        raise HTTPException(status_code=400, detail="Escala no válida.")
+    validate_input(input_format, width, height, channels)
+
+    tile = max(128, min(int(tile), 1024))
+    work = RUNTIME / next(tempfile._get_candidate_names())
+    work.mkdir(parents=True, exist_ok=False)
+    src = await save_upload(
+        image, work=work, input_format=input_format,
+        width=width, height=height, channels=channels,
+    )
 
     model_id = "realesrgan-x2plus" if scale == 2 else "realesrgan-x4plus"
     out = work / "result.rgb16"
 
     def worker(job):
         try:
-            eng = engine_for(model_id, tile)
+            eng = switch_engine(
+                "upscale:" + model_id,
+                lambda: UpscaleEngine(model_id=model_id, tile=tile),
+                tile,
+            )
             return eng.run(
                 job, src, out,
                 input_format=input_format,
-                width=int(width),
-                height=int(height),
-                channels=int(channels),
+                width=int(width), height=int(height), channels=int(channels),
             )
         finally:
             src.unlink(missing_ok=True)
 
     job = jobs.create("upscale", worker)
     return {"job": job.public(), "scale": scale, "model": model_id}
+
+
+@app.post("/jobs/restore")
+async def create_restore_job(
+    image: UploadFile = File(...),
+    mode: str = Form(...),
+    tile: int = Form(512),
+    input_format: str = Form("png"),
+    width: int = Form(0),
+    height: int = Form(0),
+    channels: int = Form(3),
+    x_realify_client: str | None = Header(default=None),
+):
+    require_client(x_realify_client)
+    hw = hardware_status()
+    if not hw.get("ready"):
+        raise HTTPException(status_code=409, detail=hw.get("reason") or "GPU no preparada.")
+    if mode not in ("denoise", "deblur"):
+        raise HTTPException(status_code=400, detail="Modo de restauración no válido.")
+    validate_input(input_format, width, height, channels)
+
+    tile = max(192, min(int(tile), 768))
+    work = RUNTIME / next(tempfile._get_candidate_names())
+    work.mkdir(parents=True, exist_ok=False)
+    src = await save_upload(
+        image, work=work, input_format=input_format,
+        width=width, height=height, channels=channels,
+    )
+
+    model_id = "nafnet-sidd-width64" if mode == "denoise" else "nafnet-gopro-width64"
+    out = work / "result.rgb16"
+
+    def worker(job):
+        try:
+            eng = switch_engine(
+                "restore:" + model_id,
+                lambda: RestorationEngine(model_id=model_id, tile=tile, overlap=64),
+                tile,
+            )
+            return eng.run(
+                job, src, out,
+                input_format=input_format,
+                width=int(width), height=int(height), channels=int(channels),
+            )
+        finally:
+            src.unlink(missing_ok=True)
+
+    job = jobs.create(mode, worker)
+    return {"job": job.public(), "mode": mode, "model": model_id}
 
 
 @app.get("/jobs/{job_id}")
@@ -234,7 +314,7 @@ def get_result(job_id: str, x_realify_client: str | None = Header(default=None))
     return FileResponse(
         path=str(job.result),
         media_type="application/octet-stream",
-        filename="realify-upscale.rgb16",
+        filename="realify-ai-result.rgb16",
         headers={
             "Cache-Control": "no-store",
             "X-Realify-Width": str(meta.get("width", 0)),
@@ -242,7 +322,9 @@ def get_result(job_id: str, x_realify_client: str | None = Header(default=None))
             "X-Realify-Channels": str(meta.get("channels", 3)),
             "X-Realify-Dtype": str(meta.get("dtype", "uint16le")),
             "X-Realify-Input-Precision": str(meta.get("inputPrecision", 8)),
-            "Access-Control-Expose-Headers": "X-Realify-Width, X-Realify-Height, X-Realify-Channels, X-Realify-Dtype, X-Realify-Input-Precision",
+            "X-Realify-Model": str(meta.get("model", "")),
+            "X-Realify-Task": str(meta.get("task", job.kind)),
+            "Access-Control-Expose-Headers": "X-Realify-Width, X-Realify-Height, X-Realify-Channels, X-Realify-Dtype, X-Realify-Input-Precision, X-Realify-Model, X-Realify-Task",
         },
     )
 
