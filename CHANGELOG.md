@@ -9,6 +9,17 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v232 · Actualización automática al abrir o volver a la app
+- **Se actualiza sola de nuevo**: al abrir la web o la app, o al volver a ponerla en primer plano,
+  si `version.json` anuncia una versión más nueva que la cargada, Realify guarda lo abierto, se
+  recarga y lo recupera («Realify actualizado · tu documento se ha recuperado»). Antes (desde
+  la v227) sólo salía un aviso con Luego / Actualizar.
+- Sigue saliendo el aviso, sin recargar solo, si hay un diálogo o una herramienta a pantalla
+  completa abiertos, si lo abierto no se puede guardar, o si ya se intentó para esa versión hace
+  menos de 3 minutos (para no entrar en bucle si el servidor sirviese una copia vieja).
+- Prueba `tests/pwa-actualizaciones.mjs` adaptada: actualización automática, sin bucle, registro
+  tardío, mismo worker y reconexión.
+
 ### v231 · Visión clásica con OpenCV (fase 8)
 - **Perspectiva automática 👑**: botón «Automático» en el modo Guías de Perspectiva. Hough
   probabilista + RANSAC de punto de fuga eligen hasta 3 guías por familia. Con una fachada

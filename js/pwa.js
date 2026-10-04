@@ -26,7 +26,10 @@ let initialized=false;
 let dismissedAt=0,bar=null;
 export function initPWA(){
   if(initialized)return;initialized=true;
-  const watcher=watchPWAUpdates({onUpdate:()=>{
+  const watcher=watchPWAUpdates({onUpdate:latest=>{
+    // Al abrir la web o la app, o volver a ponerla en primer plano, se actualiza sola
+    // (guardando antes lo abierto). Sólo si no se puede, queda el aviso con Luego/Actualizar.
+    if(autoUpdate(latest))return;
     if(Date.now()-dismissedAt>60e3)showUpdateBar();
   }});
   // La detección por version.json funciona también sin service worker.
@@ -40,6 +43,29 @@ export function initPWA(){
   // Una app reanudada puede iniciar este módulo después del evento load.
   if(document.readyState==="complete")register();
   else addEventListener("load",register,{once:true});
+}
+
+/* Actualización automática. Se recarga sola cuando hay una versión nueva, con lo abierto
+   guardado y recuperado después (applyUpdate). No lo hace —y deja el aviso— si:
+     · hay un diálogo o una herramienta a pantalla completa abiertos (se perdería lo que se
+       está haciendo en ellos);
+     · ya lo intentó para esa misma versión hace menos de 3 minutos (si el servidor sirviese
+       una copia vieja, se recargaría sin fin);
+     · no hay sessionStorage para recordar el intento (mismo motivo). */
+const AUTO_KEY="realify.autoUpdate";
+let updating=false;
+function autoUpdate(latest){
+  if(updating)return true;
+  if(document.querySelector(".modal, .fsp"))return false;
+  try{
+    const t=JSON.parse(sessionStorage.getItem(AUTO_KEY)||"null");
+    if(t&&t.v===latest&&Date.now()-t.t<180e3)return false;
+    sessionStorage.setItem(AUTO_KEY,JSON.stringify({v:latest,t:Date.now()}));
+  }catch{return false;}
+  updating=true;
+  toast("Actualizando Realify a la versión nueva…");
+  applyUpdate({silent:true}).then(ok=>{if(!ok){updating=false;showUpdateBar();}}).catch(()=>{updating=false;showUpdateBar();});
+  return true;
 }
 
 /* El aviso depende de la versión cargada en main.js frente a version.json,
@@ -63,7 +89,7 @@ function showUpdateBar(){
   document.body.appendChild(bar);
 }
 
-async function applyUpdate(){
+async function applyUpdate({ silent = false } = {}){
   const btn = bar?.querySelector('[data-u="now"]');
   if(btn){ btn.disabled = true; btn.textContent = "Guardando…"; }
   try{
@@ -73,11 +99,13 @@ async function applyUpdate(){
       await stashForUpdate();
     }
   }catch(err){
+    if(silent) return false;           // sin poder guardar, no se recarga solo: queda el aviso
     const { confirmDlg } = await import("./ui/dialog.js");
     const ok = await confirmDlg("Actualizar sin guardar", `No se ha podido guardar lo que tienes abierto (${err?.message || "sin espacio en el navegador"}). Si actualizas ahora, se cerrará. Puedes cancelar, guardarlo como proyecto o exportarlo, y actualizar después.`, "Actualizar igualmente");
-    if(!ok){ if(btn){ btn.disabled = false; btn.textContent = "Actualizar"; } return; }
+    if(!ok){ if(btn){ btn.disabled = false; btn.textContent = "Actualizar"; } return false; }
   }
   location.reload();
+  return true;
 }
 
 /** Al arrancar: reabre lo que se guardó justo antes de actualizar. */

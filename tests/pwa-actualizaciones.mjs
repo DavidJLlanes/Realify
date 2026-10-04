@@ -62,8 +62,16 @@ try{
       Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
       document.dispatchEvent(new Event('visibilitychange'));
     });
+    // Versión nueva al volver al primer plano: se actualiza sola (recarga una vez)…
+    await page.waitForFunction(()=>true);
+    for(let i=0;i<40&&navigations===beforeNavigation;i++)await page.waitForTimeout(100);
+    if(navigations!==beforeNavigation+1)throw new Error('No se actualizó sola al volver al primer plano');
+    await page.waitForLoadState('load');
+    // …y si el servidor sirve otra vez la copia vieja, no entra en bucle: queda el aviso.
+    await page.evaluate(async()=>{const m=await import('/js/pwa.js');m.initPWA();});
     await page.locator('.update-bar').waitFor();
-    if(navigations!==beforeNavigation)throw new Error('Recarga automática sin guardar');
+    await page.waitForTimeout(300);
+    if(navigations!==beforeNavigation+1)throw new Error('Bucle de recargas con un servidor que sirve la versión vieja');
     await page.locator('[data-u="later"]').click();
     await page.evaluate(()=>window.dispatchEvent(new Event('pageshow')));await page.waitForTimeout(100);
     if(await page.locator('.update-bar').isVisible())throw new Error('Ignora Luego');
@@ -84,10 +92,10 @@ try{
     await cold.evaluate(()=>{
       Object.defineProperty(navigator,'onLine',{configurable:true,value:true});window.dispatchEvent(new Event('online'));
     });
-    await cold.locator('.update-bar').waitFor();
-    await Promise.all([cold.waitForNavigation(),cold.locator('[data-u="now"]').click()]);
+    // Reconexión con versión nueva y sin lo abierto: se actualiza sola.
+    await cold.waitForNavigation();
     if(errors.length)throw new Error(errors.join('\n'));
-    console.log('APTO · '+(installed?'app instalada':'navegador')+' · reanudación, registro tardío, mismo worker, reconexión, Luego y Actualizar');
+    console.log('APTO · '+(installed?'app instalada':'navegador')+' · reanudación con actualización automática, sin bucle, registro tardío, mismo worker y reconexión');
     await context.close();
   }
   const workerContext=await browser.newContext({serviceWorkers:'allow'}),workerPage=await workerContext.newPage();
