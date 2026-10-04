@@ -459,6 +459,7 @@ export async function openLooks(opts = {}){
     title: "Estilos",
     wide: true,
     asLayer: true, filterId: "look", filterParams: state,
+    float: true,
     compute(data){
       if(state.picked < 0) return;
       const orig = Uint8ClampedArray.from(data);

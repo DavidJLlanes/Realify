@@ -156,9 +156,20 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
       degradado, Blanco y negro, los que usan `applyDirect`) y los modos Premium con su propio motor.
 - [ ] (→ fase 20) Capas con origen de 16 bits recortado o desplazado (hoy sólo cuando cubre todo el lienzo).
 
-## Fase 12 · Filtros en coma flotante
-- [ ] Migrar los filtros de `runFilter` y `photo-tools`.
-- [ ] Migrar los plugins con motor propio que aún escriban 8 bits.
+## Fase 12 · Filtros en coma flotante ✅ en parte (v237)
+- [x] Motor común (`js/editor/floatfilter.js`) y opción `float` en `runFilter` y en el diálogo en vivo de
+      photo-tools: «color» (rejilla RGB + interpolación, para lo que sólo mira el color) y «delta» (el cambio de
+      un filtro local se suma a los 16 bits del origen). El lienzo de 8 bits es el redondeo tramado de los 16. (v237)
+- [x] Con «delta»: Desenfoque gaussiano, Enfocar, Movimiento, Detalle y estructura, Viñeteado, Añadir ruido, Lente,
+      Radial, De superficie, Ruido por canal, Nitidez inteligente, Galería de desenfoque, Desenfoques clásicos,
+      Restauración, Enfoque avanzado, Textura y grano, Convolución, Reducción de ruido, Enfoque selectivo, Retoque de
+      retrato y PurePixel. Con «color» (por `runAdjust`): Estilos (looks) y Tabla de color (LUT). (v237)
+- [x] No se migran a propósito los filtros que mueven la imagen (distorsiones, desplazar, pixelar, gran angular,
+      deformación) o la sustituyen (paso alto, estilizar, artísticos, interpretar, IA): sus 16 bits no significan nada.
+- [ ] Realify (simulación de captura), Filtro Vintage y Revelado fotográfico siguen con salida de 8 bits: sus
+      motores son shaders de WebGL; hace falta salida RGBA16F/float y su lectura (ver fase 13).
+- [ ] Cálculo en coma flotante «de verdad» (no por delta) para el desenfoque, el enfoque y el ruido, que hoy
+      parten del filtro nativo de 8 bits del lienzo.
 
 ## Fase 13 · Compositor de la vista previa en GPU de coma flotante
 - [ ] Fusión de capas, opacidad y modos de fusión en WebGL2 RGBA16F (o WebGPU).

@@ -9,6 +9,7 @@ import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 import { addMask } from "../editor/masks.js";
 import { commitFilter, filterBase } from "../editor/filterlayer.js";
+import { hiFullCover, applyDeltaFromBase, attachFloatResult } from "../editor/floatfilter.js";
 import { featherMask } from "../editor/selection.js";
 import { renderExport } from "../io/export.js";
 import { COARSE, isMobile } from "../core/device.js";
@@ -47,11 +48,18 @@ function rasterLayer(){
 /* El efecto se calcula sobre la capa activa para poder verlo, pero al
    confirmar se devuelve la capa a como estaba y el resultado se lleva
    a una capa nueva encima. Ver editor/filterlayer.js. */
-function commitEffect(layer, before, label, params = {}, base = layer, edit = null){
-  const after = canvasCopy(layer.canvas);
+/* `float: "delta"` (fase 12, editor/floatfilter.js): el efecto es local y su cambio se suma a los 16 bits de
+   la capa de origen si los trae (`source` = el lienzo de 8 bits del que salió). */
+async function commitEffect(layer, before, label, params = {}, base = layer, edit = null, { float = false, source = null } = {}){
+  let after = canvasCopy(layer.canvas), fres = null;
   restore(layer, before);
-  commitFilter({ base, edit, result: after, title: label, filter: label, params });
-  toast(label + (edit ? " · actualizado" : " · capa nueva"), "ok");
+  if(float === "delta" && source && hiFullCover(base)){
+    try{ fres = await applyDeltaFromBase(base, source, after); if(fres) after = fres.canvas; }
+    catch(err){ console.warn("[coma flotante]", err); fres = null; }
+  }
+  const made = commitFilter({ base, edit, result: after, title: label, filter: label, params });
+  if(fres) attachFloatResult(made, base, fres);
+  toast(label + (edit ? " · actualizado" : " · capa nueva") + (fres ? " · 16 bits conservados" : ""), "ok");
 }
 
 function sliderRow(id, label, min, max, value, unit = "", step = 1){
@@ -143,7 +151,7 @@ async function settingsDialog(title, html, wide = false){
    parámetros en vez de mirar el DOM: así el registro de filtros puede
    pedir el mismo cálculo sin diálogo (`opts.render`) y reabrir el
    panel con los valores guardados en la capa (`opts.init`, `opts.edit`). */
-async function liveDialog(title, html, { compute, label, read, fill, defaults }, opts = {}){
+async function liveDialog(title, html, { compute, label, read, fill, defaults, float = false }, opts = {}){
   const p0 = { ...defaults, ...opts.init };
   if(opts.render){
     const src = opts.render.src, w = src.width, h = src.height;
@@ -220,7 +228,7 @@ async function liveDialog(title, html, { compute, label, read, fill, defaults },
     layer.ctx.putImageData(new ImageData(out, w, h), 0, 0);
     status("");
   }
-  commitEffect(layer, before, label, p, base, edit);
+  await commitEffect(layer, before, label, p, base, edit, { float, source });
   return true;
 }
 
@@ -402,7 +410,7 @@ export async function reduceNoise(opts = {}){
     ${sliderRow("dnLum","Luminancia",0,100,35,"%")}
     ${sliderRow("dnChroma","Color",0,100,60,"%")}
     <p class="hint">Suaviza el ruido conservando bordes mediante diferencias de luminancia.</p>`, {
-    label: "Reducción de ruido",
+    label: "Reducción de ruido", float: "delta",
     defaults: { lum: 35, chroma: 60 },
     compute: (src, w, h, p) => denoisePixels(src, w, h, p.lum, p.chroma),
     read: host => ({ lum: +host.querySelector("#dnLum").value, chroma: +host.querySelector("#dnChroma").value }),
@@ -520,7 +528,7 @@ export async function selectiveSharpen(opts = {}){
     ${sliderRow("ssThreshold","Umbral",0,50,8)}
     <label class="chk"><input id="ssSkin" type="checkbox" checked> Proteger tonos de piel</label>
     <label class="chk"><input id="ssSky" type="checkbox" checked> Proteger cielos y zonas azules lisas</label>`, {
-    label: "Enfoque selectivo",
+    label: "Enfoque selectivo", float: "delta",
     defaults: { amount: 70, threshold: 8, protectSkin: true, protectSky: true },
     compute: (src, w, h, p) => selectiveSharpenPixels(src, w, h, p),
     read: host => ({
@@ -710,7 +718,7 @@ export async function portraitRetouch(opts = {}){
     ${sliderRow("portraitSmooth","Suavizado de piel",0,100,25,"%")}${sliderRow("portraitShine","Reducir brillos",0,100,20,"%")}${sliderRow("portraitEye","Corregir ojos rojos",0,100,70,"%")}
     <p class="hint">Trabaja sólo sobre colores compatibles con piel y píxeles rojos intensos, protegiendo
       ojos, cejas y demás bordes reales para que la piel no quede de plástico.</p>`, {
-    label: "Retoque de retrato",
+    label: "Retoque de retrato", float: "delta",
     defaults: { smooth: 25, shine: 20, redEye: 70 },
     compute: (src, w, h, p) => portraitPixels(src, w, h, p),
     read: host => ({

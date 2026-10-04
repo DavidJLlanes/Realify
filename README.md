@@ -252,6 +252,11 @@ tiempo real mientras se pinta.
   canales, Mezclador, Vibrance) calculan en coma flotante desde el origen de 16 bits de la capa y la capa de
   filtro conserva sus 16 bits (el lienzo de 8 bits es su redondeo tramado). Sin origen de 16 bits, todo
   sigue como siempre.
+- **Filtros en coma flotante** (`js/editor/floatfilter.js`, opción `float` de `runFilter` y del diálogo en vivo
+  de `photo-tools`): los filtros locales (desenfoques, enfoques, ruido, Detalle y estructura, Viñeteado,
+  Reducción de ruido, Enfoque selectivo, Retoque de retrato, PurePixel…) suman su cambio a los 16 bits del origen
+  («delta»), y los Estilos y las Tablas de color calculan en coma flotante a través de una rejilla RGB
+  («color»). Los filtros que mueven o sustituyen la imagen siguen en 8 bits.
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

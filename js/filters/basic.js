@@ -16,6 +16,8 @@ import { hexToRgb } from "../editor/paint.js";
 import { blendBySelection } from "../editor/selection.js";
 import { COARSE, isMobile } from "../core/device.js";
 import { boxBlurFloat } from "../editor/refineedge-math.js";
+import { hiFullCover, colorFnFromFilter, applyDeltaFromBase, attachFloatResult } from "../editor/floatfilter.js";
+import { applyFloatFromBase } from "../editor/floatadjust.js";
 
 function snapshot(layer){
   const c = document.createElement("canvas");
@@ -69,7 +71,7 @@ function clipToSelection(layer, beforeCanvas){
    deslizador y sólo recalcular a resolución completa cuando de verdad
    hace falta guardar el resultado; los demás (el desenfoque nativo,
    que ya va por GPU) la ignoran sin más. */
-export async function runFilter({ title, build, apply, wide = false, id, params, asyncRefine = false }, opts = {}){
+export async function runFilter({ title, build, apply, wide = false, id, params, asyncRefine = false, float = false }, opts = {}){
   /* Modo sin diálogo: el registro de filtros pide el resultado para
      un lienzo cualquiera (deslizador de aplicación de la capa). */
   if(opts.render){
@@ -152,13 +154,33 @@ export async function runFilter({ title, build, apply, wide = false, id, params,
   const finish = async commit => {
     gen++; clearTimeout(refineTimer); refineTimer = 0;
     if(!commit){ restore(layer, before); return; }
-    await Promise.resolve(apply(layer, source, true));
-    clipToSelection(layer, clipRef);
-    const after = snapshot(layer);
+    /* Coma flotante (fase 12, editor/floatfilter.js): `float` = "color" (el filtro sólo mira el color de cada
+       píxel) o "delta" (filtro local: su cambio se suma a los 16 bits). Sólo si la capa de origen trae 16 bits
+       que cubren el lienzo; si algo falla, el camino de 8 bits de siempre. Al reeditar con una selección activa
+       el recorte se hace contra el resultado anterior, así que «color» (que mezcla con el origen) no se usa. */
+    const mode = typeof float === "function" ? float() : float;
+    const wantHi = !!mode && hiFullCover(base) && !(mode === "color" && edit && doc.selection);
+    let fres = null;
+    if(wantHi && mode === "color"){
+      try{
+        const fn = await colorFnFromFilter(apply);
+        fres = await applyFloatFromBase(base, source, fn, doc.selection);
+      }catch(err){ console.warn("[coma flotante]", err); fres = null; }
+    }
+    if(!fres){
+      await Promise.resolve(apply(layer, source, true));
+      clipToSelection(layer, clipRef);
+    }
+    let after = fres ? fres.canvas : snapshot(layer);
+    if(!fres && wantHi && mode === "delta"){
+      try{ fres = await applyDeltaFromBase(base, source, after); if(fres) after = fres.canvas; }
+      catch(err){ console.warn("[coma flotante]", err); fres = null; }
+    }
     restore(layer, before);
-    commitFilter({ base, edit, result: after, title,
+    const made = commitFilter({ base, edit, result: after, title,
                    filter: id || title, params: params || {} });
-    toast(title + (edit ? " · actualizado" : " · capa nueva"), "ok");
+    if(fres) attachFloatResult(made, base, fres);
+    toast(title + (edit ? " · actualizado" : " · capa nueva") + (fres ? " · 16 bits conservados" : ""), "ok");
   };
 
   if(opts.container){
@@ -274,7 +296,7 @@ export function blur(opts = {}){
   const p = { radius: 4, ...opts.init };
   return runFilter({
     title: "Desenfoque gaussiano",
-    id: "blur", params: p,
+    id: "blur", params: p, float: "delta",
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Radio", 0, 200, p.radius, v => { p.radius = v; preview(); }, " px"));
@@ -316,7 +338,7 @@ export function sharpen(opts = {}){
 
   return runFilter({
     title: "Enfocar",
-    id: "sharpen", params: p,
+    id: "sharpen", params: p, float: "delta",
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Cantidad", 0, 300, p.amount, v => { p.amount = v; preview(); }, "%"));
@@ -382,7 +404,7 @@ export function motionBlur(opts = {}){
   const p = { amount: 24, angle: 0, ...opts.init };
   return runFilter({
     title: "Desenfoque de movimiento",
-    id: "motion-blur", params: p,
+    id: "motion-blur", params: p, float: "delta",
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Distancia", 0, 300, p.amount, v => { p.amount = v; preview(); }, " px"));
@@ -461,7 +483,7 @@ export function clarity(opts = {}){
 
   return runFilter({
     title: "Detalle y estructura",
-    id: "clarity", params: p,
+    id: "clarity", params: p, float: "delta",
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Estructura", -100, 100, p.structure, v => { p.structure = v; preview(); }));
@@ -538,7 +560,7 @@ export function vignette(opts = {}){
 
   return runFilter({
     title: "Viñeteado",
-    id: "vignette", params: p,
+    id: "vignette", params: p, float: "delta",
     build(preview){
       const box = document.createElement("div");
       box.innerHTML = `
@@ -621,11 +643,13 @@ export function vignette(opts = {}){
 
 /* ── ruido ────────────────────────────────────────────────────── */
 export function noise(opts = {}){
-  const p = { amount: 12, mono: true, gaussian: true, ...opts.init };
+  /* `seed` queda en los parámetros: el mismo ruido al reeditar, al recalcular el porcentaje de aplicación
+     y al comparar con el cálculo completo (antes salía distinto cada vez). */
+  const p = { amount: 12, mono: true, gaussian: true, seed: (Math.random() * 2147483647) | 0, ...opts.init };
 
   return runFilter({
     title: "Añadir ruido",
-    id: "noise", params: p,
+    id: "noise", params: p, float: "delta",
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Cantidad", 0, 100, p.amount, v => { p.amount = v; preview(); }, "%"));
@@ -670,12 +694,20 @@ export function noise(opts = {}){
 
       // Box-Muller da una normal de verdad; el uniforme es un simple
       // desplazamiento plano y se ve más "digital".
+      let st = (p.seed | 0) >>> 0;                    // mulberry32: determinista a partir de la semilla
+      const rand = () => {
+        st = (st + 0x6D2B79F5) >>> 0;
+        let t = st;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
       const rnd = p.gaussian
         ? () => {
-            const u = Math.max(Math.random(), 1e-9);
-            return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2831853 * Math.random()) * 0.4;
+            const u = Math.max(rand(), 1e-9);
+            return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2831853 * rand()) * 0.4;
           }
-        : () => Math.random() * 2 - 1;
+        : () => rand() * 2 - 1;
 
       for(let i = 0; i < d.length; i += 4){
         if(p.mono){

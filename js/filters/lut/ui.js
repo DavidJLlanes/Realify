@@ -25,6 +25,7 @@ export async function openLut(opts = {}){
   return runAdjust({
     title: "Tabla de color (LUT)",
     asLayer: true, filterId: "lut",
+    float: true,
     filterParams: state,
     compute(data){
       if(lut) applyCubeLut(data, lut, state.intensity);

@@ -9,6 +9,25 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v237 · Filtros en coma flotante (fase 12)
+- **Motor común para filtros** (`js/editor/floatfilter.js`) y opción `float` en `runFilter` y en el diálogo en
+  vivo de photo-tools, que convive con el camino de 8 bits: sólo actúa si la capa trae origen de 16 bits que
+  cubre el lienzo, y la capa de filtro nueva conserva sus 16 bits (aviso «· 16 bits conservados»).
+  - **«delta»** para filtros locales: el cambio que produce el filtro (en niveles de 8 bits) se suma a los 16 bits
+    del origen; donde no toca un píxel se conservan sus 16 bits exactos.
+  - **«color»** para lo que sólo mira el color de cada píxel: se evalúa en una rejilla RGB y se interpola.
+- **Con «delta»**: Desenfoque gaussiano, Enfocar, Desenfoque de movimiento, Detalle y estructura, Viñeteado, Añadir
+  ruido, Desenfoque de lente, radial y de superficie, Reducción de ruido por canal, Nitidez inteligente, Galería de
+  desenfoque, Desenfoques clásicos, Restauración de escaneados, Enfoque avanzado, Textura y grano, Convolución
+  personalizada, Reducción de ruido, Enfoque selectivo, Retoque de retrato y PurePixel.
+- **Con «color»**: Estilos (looks) y Tabla de color (LUT), que ya pasaban por `runAdjust`.
+- **Añadir ruido** usa ahora una semilla guardada en los parámetros: el mismo ruido al reeditar y al recalcular el
+  porcentaje de aplicación (antes salía distinto cada vez y la prueba de calidad lo daba por FALLO).
+- No se migran los filtros que mueven la imagen o la sustituyen (distorsiones, pixelar, paso alto, artísticos, IA…).
+- Medido con un degradado de 16 bits muy suave: 1 000–1 200 valores distintos por fila tras el filtro
+  (la misma capa sin origen de 16 bits: 13); el lienzo de 8 bits coincide con el redondeo de los 16 bits (≤ 0,5 niveles).
+  Estilos y LUT: diferencia media con el camino de 8 bits ≤ 0,3 niveles.
+
 ### v236 · Ajustes en coma flotante (fase 11)
 - **Interfaz de coma flotante en `runAdjust`** (`float`, `js/editor/floatadjust.js`) que convive con la de
   8 bits: un ajuste de color puro, aplicado a una capa con origen de 16 bits (RAW revelado, PNG/TIFF

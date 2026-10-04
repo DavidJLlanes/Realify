@@ -1091,7 +1091,11 @@ const TOPICS = [
           —Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y saturación, Exposición,
           Color por canales, Mezclador de canales y Vibrance— calculan a partir de esos 16 bits
           y la capa de filtro que crean <b>conserva sus 16 bits</b> («· 16 bits conservados»): una
-          escala estrecha de grises estirada con Niveles no sale a escalones al exportar.</li>
+          escala estrecha de grises estirada con Niveles no sale a escalones al exportar. Lo mismo
+          hacen los <b>filtros</b> —desenfoques, enfoques, ruido, Detalle y estructura, Viñeteado,
+          Reducción de ruido, PurePixel…— y los <b>Estilos</b> y las <b>Tablas de color</b>: el cambio
+          se suma a los 16 bits de la capa de origen. Los filtros que mueven o sustituyen la imagen
+          (distorsiones, pixelar, artísticos…) siguen en 8 bits.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas

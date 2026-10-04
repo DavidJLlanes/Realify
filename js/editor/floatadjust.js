@@ -37,18 +37,20 @@ export function hiFullCover(layer){
   return (hs.canvasW || hs.w) === W && (hs.canvasH || hs.h) === H && hs.w === W && hs.h === H && !(hs.x || 0) && !(hs.y || 0) && W * H <= 24e6;
 }
 
-/**
- * Función de color en coma flotante a partir de un `compute(data, w, h)` de 8 bits que sólo mira el color
- * de cada píxel: se evalúa en una rejilla RGB de 86³ nodos (paso 3, valores enteros exactos) y se
- * interpola de forma trilineal. Devuelve null si el resultado no es numérico.
- */
-export function colorFnFromCompute(compute){
+/** Rejilla RGB de 86³ nodos (paso 3, enteros exactos) como RGBA de 8 bits, lista para pasarla por cualquier
+    cálculo de color de 8 bits. */
+export function gridInput(){
   const n = GRID * GRID * GRID, d = new Uint8ClampedArray(n * 4);
   for(let bi = 0, i = 0; bi < GRID; bi++) for(let gi = 0; gi < GRID; gi++) for(let ri = 0; ri < GRID; ri++, i += 4){
     d[i] = Math.round(ri * STEP); d[i + 1] = Math.round(gi * STEP); d[i + 2] = Math.round(bi * STEP); d[i + 3] = 255;
   }
-  compute(d, n, 1);
-  const T = new Float32Array(n * 3);
+  return { d, n };
+}
+
+/** Función de color (r, g, b, out) en 0-255 sin recortar, interpolando de forma trilineal la rejilla `d`
+    (la de `gridInput` tras pasar por el cálculo de color de 8 bits). */
+export function colorFnFromTable(d){
+  const n = GRID * GRID * GRID, T = new Float32Array(n * 3);
   for(let i = 0, j = 0; i < n; i++, j += 4){ T[i * 3] = d[j]; T[i * 3 + 1] = d[j + 1]; T[i * 3 + 2] = d[j + 2]; }
   return (r, g, b, o) => {
     const fr = C255(r) / STEP, fg = C255(g) / STEP, fb = C255(b) / STEP;
@@ -64,6 +66,17 @@ export function colorFnFromCompute(compute){
       o[c] = c0 + (c1 - c0) * tb;
     }
   };
+}
+
+/**
+ * Función de color en coma flotante a partir de un `compute(data, w, h)` de 8 bits que sólo mira el color
+ * de cada píxel: se evalúa en una rejilla RGB de 86³ nodos (paso 3, valores enteros exactos) y se
+ * interpola de forma trilineal.
+ */
+export function colorFnFromCompute(compute){
+  const { d, n } = gridInput();
+  compute(d, n, 1);
+  return colorFnFromTable(d);
 }
 
 /**

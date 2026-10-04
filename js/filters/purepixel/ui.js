@@ -1,6 +1,7 @@
 import { doc, activeLayer } from "../../core/doc.js";
 import { on, emit } from "../../core/bus.js";
 import { commitFilter, filterBase } from "../../editor/filterlayer.js";
+import { hiFullCover, applyDeltaFromBase, attachFloatResult } from "../../editor/floatfilter.js";
 import { dialog, anyDialogOpen } from "../../ui/dialog.js";
 import { toast } from "../../ui/toast.js";
 import { slider } from "../../editor/adjust.js";
@@ -200,8 +201,15 @@ export async function openPurePixel(opts = {}) {
            doc:structure, y el vigilante que hay montado cierra el
            diálogo en cuanto el documento cambia. */
         unsubscribe();
-        commitFilter({ base, edit, result: out, title: "PurePixel",
+        /* Coma flotante (fase 12): el cambio de PurePixel (como mucho unos niveles) se suma a los 16 bits del origen. */
+        let fres = null, shown = out;
+        if (hiFullCover(base)) {
+          try { fres = await applyDeltaFromBase(base, base.canvas, out); if (fres) shown = fres.canvas; }
+          catch (err) { console.warn("[coma flotante]", err); fres = null; }
+        }
+        const made = commitFilter({ base, edit, result: shown, title: "PurePixel",
                        filter: "purepixel", params: { ...options } });
+        if (fres) attachFloatResult(made, base, fres);
       }
       cleanup(); closeDialog("applied");
       toast(result.stats.max ? `PurePixel aplicado · ${metrics(result.stats)}` : "PurePixel: sin cambios de píxeles", "ok");
