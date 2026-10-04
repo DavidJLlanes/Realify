@@ -10,6 +10,7 @@ import { toast, status } from "../ui/toast.js";
 import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
 import { docHasHi } from "../core/hisrc.js";
+import { codecMaxPixels } from "./codecs.js";
 import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 export { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 
@@ -51,6 +52,8 @@ function pickerTypes(type){
     return [{ description: "WebP", accept: { "image/webp": [".webp"] } }];
   }
   if(type === "image/avif") return [{ description: "AVIF", accept: { "image/avif": [".avif"] } }];
+  if(type === "image/jxl") return [{ description: "JPEG XL", accept: { "image/jxl": [".jxl"] } }];
+  if(type === "image/x-exr") return [{ description: "OpenEXR", accept: { "image/x-exr": [".exr"] } }];
   if(type === "image/tiff") return [{ description: "TIFF", accept: { "image/tiff": [".tif", ".tiff"] } }];
   if(type === "image/gif") return [{ description: "GIF", accept: { "image/gif": [".gif"] } }];
   if(type === "application/pdf") return [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }];
@@ -146,9 +149,14 @@ export function stamp(){
 }
 
 let lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
-const is16 = t => /;16$/.test(t);
+/* Formatos de más de 8 bits (PNG/TIFF 16, AVIF 10/12) y OpenEXR: parten de
+   los 16 bits del motor de alta precisión, así que lo piden siempre. */
+const is16 = t => /;(10|12|16)$/.test(t) || t === "image/x-exr";
+const avifDepth = t => { const m = /^image\/avif;(10|12)$/.exec(t); return m ? +m[1] : 0; };
 const extOfType = t => ({ "image/png": "png", "image/png;16": "png", "image/webp": "webp", "image/avif": "avif",
+  "image/avif;10": "avif", "image/avif;12": "avif", "image/jxl": "jxl", "image/x-exr": "exr",
   "image/tiff": "tif", "image/tiff;16": "tif", "application/pdf": "pdf" })[t] || "jpg";
+const depthText = t => /;16$/.test(t) ? " · 16 bits" : avifDepth(t) ? ` · ${avifDepth(t)} bits` : t === "image/x-exr" ? " · EXR half" : "";
 export const exportPrecisionInfo=()=>({...lastPrecisionInfo});
 
 /* `alpha`: conservar la transparencia si el formato la admite (PNG, WebP,
@@ -159,18 +167,29 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   let flat = null, out = null;
   /* «image/png;16» y «image/tiff;16»: 16 bits por canal, siempre con el
      motor de alta precisión (core/precision-stack.js). */
-  const bits16 = /;16$/.test(type);
-  /* Documento en Display P3 (core/colorspace.js): JPEG, PNG y los de
-     16 bits se guardan en P3 con su perfil incrustado; el resto de
-     formatos (sin perfil) y quien pida sRGB, convertidos a sRGB. */
-  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || type === "image/jpeg" || type === "image/png");
+  const bits16 = /;16$/.test(type), deepAvif = avifDepth(type), isExr = type === "image/x-exr", isJxl = type === "image/jxl";
+  /* Documento en Display P3 (core/colorspace.js): JPEG, PNG, AVIF, EXR y los
+     de 16 bits se guardan en P3 con su perfil o etiqueta de color; el resto
+     de formatos (sin perfil: WebP, JPEG XL, TIFF de 8 bits, PDF) y quien
+     pida sRGB, convertidos a sRGB. */
+  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/avif"].includes(type));
   const toSrgb = isP3Doc() && !keepP3;
-  if(bits16){
+  /* AVIF y JPEG XL necesitan varias veces el tamaño de la imagen en memoria */
+  if((deepAvif || isJxl) && w * h > codecMaxPixels())
+    throw new Error(`${isJxl ? "JPEG XL" : "AVIF de " + deepAvif + " bits"} admite hasta ${Math.round(codecMaxPixels() / 1e6)} megapíxeles en este dispositivo: reduce el tamaño`);
+  if(bits16 || deepAvif || isExr){
     const precise = await renderPrecisionAdjustmentStack(w, h, { bits16: true, alpha, background, layersOnly: false, srgb: toSrgb });
-    if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de 16 bits");
+    if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de " + (deepAvif || 16) + " bits");
     lastPrecisionInfo = { mode: precise.mode, reason: precise.reason };
+    const d16 = precise.data16, space = d16.space === "display-p3" ? "display-p3" : "srgb";
+    if(deepAvif) return (await import("./codecs.js")).encodeAvifDeep({ data: d16.data, channels: d16.channels, width: d16.w || w, height: d16.h || h }, deepAvif, { quality: Math.round((quality ?? .8) * 100), space });
+    if(isExr){
+      const X = await import("./exr.js");
+      return X.encodeExr({ width: d16.w || w, height: d16.h || h, hasAlpha: d16.channels === 4, space,
+        getLine: X.lineReaderFromData16({ data: d16.data, channels: d16.channels, width: d16.w || w }) });
+    }
     const f16 = await import("./formats16.js");
-    return type.startsWith("image/png") ? f16.png16(precise.data16) : f16.tiff16(precise.data16);
+    return type.startsWith("image/png") ? f16.png16(d16) : f16.tiff16(d16);
   }
   if(precision){
     /* Primero, la pila completa recompuesta en coma flotante (capas,
@@ -207,8 +226,12 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   if(!precision)lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
   if(toSrgb) out = toSrgbCanvas(out);
   out = prepareForType(out, type, { alpha, background });
-  /* AVIF y PDF no los genera `toBlob`: ver io/formats.js */
-  if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6).catch(() => null);
+  /* AVIF, JPEG XL y PDF no los genera `toBlob`: ver io/formats.js y io/codecs.js */
+  if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6, keepP3 ? "display-p3" : "srgb").catch(() => null);
+  if(isJxl){
+    const px = out.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, out.width, out.height, { colorSpace: "srgb" }).data;
+    return (await import("./codecs.js")).encodeJxl(px, out.width, out.height, { quality: Math.round((quality ?? .85) * 100) });
+  }
   if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
   if(type === "image/tiff") return (await import("./professional-formats.js")).tiffFromCanvas(out);
   const blob = await new Promise(res => out.toBlob(res, type, quality));
@@ -256,9 +279,13 @@ export async function exportDialog(){
         <option value="image/png">PNG</option>
         <option value="image/webp">WebP</option>
         <option value="image/avif">AVIF (más ligero)</option>
+        <option value="image/avif;10">AVIF 10 bits (alta calidad)</option>
+        <option value="image/avif;12">AVIF 12 bits (archivo; poca compatibilidad)</option>
+        <option value="image/jxl">JPEG XL (sin pérdidas o con pérdidas)</option>
         <option value="image/tiff">TIFF (sin pérdidas, 8 bits)</option>
         <option value="image/png;16">PNG 16 bits (máxima calidad)</option>
         <option value="image/tiff;16">TIFF 16 bits (máxima calidad)</option>
+        <option value="image/x-exr">OpenEXR (luz lineal, 16 bits)</option>
         <option value="application/pdf">PDF</option>
       </select></div>
     ${alphaFieldsHTML("exA")}
@@ -302,6 +329,7 @@ export async function exportDialog(){
     <div class="field" id="qRow"><label>Calidad</label>
       <input type="range" id="exQ" class="grow" min="30" max="100" value="90">
       <span class="unit mono" id="exQV">90</span></div>
+    <p class="hint" id="exQHint" hidden style="margin:-3px 0 9px"></p>
     <div class="section-label">Tamaño</div>
     <div class="field"><label>Ancho</label>
       <input type="number" id="exW" class="grow" min="1" max="16384" value="${doc.w}">
@@ -375,7 +403,7 @@ export async function exportDialog(){
       let colorChoice = "display-p3";   // lo elegido por el usuario, para volver a ello
       const syncColor = () => {
         if(!colorSel) return;
-        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16"].includes(type.value) && !clean.checked;
+        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16","image/avif","image/avif;10","image/avif;12","image/x-exr"].includes(type.value) && !clean.checked;
         colorSel.disabled = !ok;
         colorSel.value = ok ? colorChoice : "srgb";
         colorHint.textContent = !ok ? (clean.checked ? "«Limpio para web» guarda en sRGB." : "Este formato no lleva perfil de color: se guarda en sRGB.")
@@ -383,13 +411,21 @@ export async function exportDialog(){
           : "Convierte a sRGB: los colores fuera de sRGB se ajustan al más cercano.";
       };
       colorSel?.addEventListener("change", () => { colorChoice = colorSel.value; syncColor(); });
+      /* Calidad 100 = sin pérdidas en los códecs que lo permiten (AVIF, JPEG XL) */
+      const qHint = body.querySelector("#exQHint");
+      const syncQHint = () => {
+        const lossy = type.value === "image/jxl" || type.value.startsWith("image/avif");
+        qHint.hidden = !lossy;
+        if(lossy) qHint.textContent = "100 = sin pérdidas (el archivo pesa mucho más).";
+      };
       const precisionState=()=>{
         syncColor();
         const possible=highPrecisionAvailableFor(+W.value||doc.w,+H.value||doc.h),cap=highPrecisionCapabilities();
         /* 16 bits: siempre alta precisión y sin tramado (no hace falta) */
         if(is16(type.value)){
           precision.checked=true;precision.disabled=true;dither.disabled=true;
-          precisionHint.textContent=possible.ok?(hasHi?"16 bits por canal con los bits reales de la foto original: capas y ajustes recompuestos en coma flotante.":"16 bits por canal: capas y ajustes recompuestos en coma flotante, sin redondear a 8 bits."):`No disponible: ${possible.reason}.`;
+          const what = avifDepth(type.value) ? `AVIF de ${avifDepth(type.value)} bits: parte de los 16 bits del motor de alta precisión` : type.value === "image/x-exr" ? "OpenEXR: luz lineal en coma flotante de 16 bits (half), con alfa asociado" : "16 bits por canal";
+          precisionHint.textContent=possible.ok?(hasHi?`${what}, con los bits reales de la foto original: capas y ajustes recompuestos en coma flotante.`:`${what}: capas y ajustes recompuestos en coma flotante, sin redondear a 8 bits.`):`No disponible: ${possible.reason}.`;
           return;
         }
         precision.disabled=!possible.ok||clean.checked;
@@ -448,15 +484,37 @@ export async function exportDialog(){
             est.textContent="PNG de 16 bits: sin pérdidas; suele ocupar entre 2 y 3 veces un PNG normal.";
             return;
           }
+          const ow = +W.value || 1, oh = +H.value || 1, fmtKb = bytes => { const kb = bytes / 1024; return kb > 1024 ? (kb/1024).toFixed(2) + " MB" : Math.round(kb) + " KB"; };
+          const qual = +q.value / 100, T = type.value;
+          const codec = T === "image/jxl" || T.startsWith("image/avif");
+          /* Códecs pesados (AVIF, JPEG XL): se codifican sólo unos recortes
+             representativos y se extrapola el peso; de paso se mide el
+             parecido con el original (PSNR). */
+          if(codec || T === "image/jpeg" || T === "image/webp"){
+            try{
+              const C = await import("./codecs.js");
+              if(codec && ow * oh > C.codecMaxPixels()){ est.textContent = `Este formato admite hasta ${Math.round(C.codecMaxPixels() / 1e6)} megapíxeles en este dispositivo: reduce el tamaño.`; return; }
+              const r = await C.estimateCodec({ type: T, source: flatten(), outW: ow, outH: oh, quality: qual });
+              const cal = r.lossless || r.psnr === Infinity ? "sin pérdidas" : `${C.qualityWord(r.psnr)} (PSNR ${r.psnr.toFixed(0)} dB)`;
+              est.textContent = `Peso aproximado: ${fmtKb(r.bytes)} · Calidad estimada: ${cal}`;
+              return;
+            }catch(err){
+              if(codec){ est.textContent = "No se pudo estimar el peso: " + err.message; return; }
+            }
+          }
+          if(T === "image/x-exr"){
+            const bytes = ow * oh * (alphaUI?.values().alpha ? 4 : 3) * 2 * 0.6;
+            est.textContent = `OpenEXR (half, ZIP): aproximadamente ${fmtKb(bytes)} (varía mucho con el detalle)`;
+            return;
+          }
           const b = await renderExport({
-            w: +W.value || 1, h: +H.value || 1,
-            type: type.value,
-            quality: type.value === "image/png" ? undefined : +q.value / 100,
+            w: ow, h: oh,
+            type: T,
+            quality: T === "image/png" ? undefined : qual,
             ...(alphaUI ? alphaUI.values() : {})
           });
           if(!b){ est.textContent = "Este navegador no puede generar ese formato."; return; }
-          const kb = b.size / 1024;
-          est.textContent = `Peso aproximado: ${kb > 1024 ? (kb/1024).toFixed(2) + " MB" : Math.round(kb) + " KB"}`;
+          est.textContent = `Peso aproximado: ${fmtKb(b.size)}`;
         }, 260);
       };
 
@@ -512,7 +570,8 @@ export async function exportDialog(){
       body.querySelector("#exPdfMargin").addEventListener("input", syncPdf);
       type.addEventListener("change", () => {
         syncPdf(); alphaUI.sync();
-        qRow.style.display = ["image/png","image/tiff","image/png;16","image/tiff;16"].includes(type.value) ? "none" : "";
+        qRow.style.display = ["image/png","image/tiff","image/png;16","image/tiff;16","image/x-exr"].includes(type.value) ? "none" : "";
+        syncQHint();
         clean.disabled = type.value.startsWith("image/tiff") || is16(type.value);
         if(clean.disabled){clean.checked=false;weightRow.hidden=cleanHint.hidden=true;}
         ext.textContent = "." + extOf(type.value);
@@ -600,7 +659,7 @@ export async function exportDialog(){
              : result === "picked" ? "Guardado"
              : "Exportado";
   const finalW = cleanResult?.w || w, finalH = cleanResult?.h || h;
-  const precisionText=is16(type)?" · 16 bits":precision&&exportPrecisionInfo().mode==="high-precision"?" · alta precisión":precision?" · modo compatible":"";
+  const precisionText=is16(type)?depthText(type):precision&&exportPrecisionInfo().mode==="high-precision"?" · alta precisión":precision?" · modo compatible":"";
   toast(`${verb} ${finalW} × ${finalH} · ` +
         `${(out.size / 1024).toFixed(0)} KB` + (clean ? " · limpio · sRGB" : out !== blob ? " · con EXIF" : "") + precisionText, "ok");
 }

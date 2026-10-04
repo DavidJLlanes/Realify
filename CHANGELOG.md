@@ -9,6 +9,27 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v229 · Formatos modernos de alta calidad (fase 6)
+- **AVIF de 10 y 12 bits** al exportar: salen de los 16 bits del motor de alta precisión
+  (sin redondear antes a 8 bits), con tramado de ±½ nivel y calidad 100 = sin pérdidas
+  (4:4:4). Etiqueta de color `colr/nclx` correcta (sRGB o **Display P3**); el AVIF normal de
+  8 bits también la lleva ahora (antes no decía en qué espacio estaba).
+- **JPEG XL** (`.jxl`): exportar con pérdidas o sin ellas (calidad 100) y **abrir** archivos
+  `.jxl` (el del navegador si lo tiene; si no, un decodificador propio). Códec jSquash/libjxl
+  (Apache-2.0) en `js/vendor/jxl/`, cargado sólo al usarlo. En 8 bits (límite del códec);
+  el decodificador WASM puede diferir ±1 nivel en archivos sin pérdidas.
+- **OpenEXR** (`.exr`): escritor propio sin dependencias, en luz **lineal**, HALF (16 bits en
+  coma flotante), compresión ZIP, alfa asociado y atributo `chromaticities` (sRGB o
+  Display P3). Se escribe por bloques de 16 líneas: nunca está la foto entera en coma
+  flotante en memoria. Verificado leyéndolo con OpenEXR.
+- **Gestor de códecs** (`js/io/codecs.js`): cada códec WASM se carga al elegir el formato y
+  en el diálogo Exportar aparece el **peso aproximado y la calidad estimada** (PSNR en
+  palabras: excelente, muy buena, buena…) para AVIF, JPEG XL, JPEG y WebP. Se estima codificando
+  recortes representativos de la foto (elegidos por nivel de detalle) y extrapolando; desvío
+  medio de ~10 %.
+- Límite por memoria: AVIF profundo y JPEG XL admiten hasta 24 MP en ordenador y 8 MP en móvil
+  o equipos con poca memoria, con un aviso claro si se supera.
+
 ### v228 · Profundidad como herramienta (fase 5)
 - **Seleccionar por profundidad 👑** (Inteligencia Artificial › Seleccionar): primer plano,
   plano medio, fondo (tercios por cantidad de píxeles, siempre dan algo útil) o intervalo

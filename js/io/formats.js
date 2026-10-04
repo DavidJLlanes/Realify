@@ -1,33 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
    FORMATOS DE EXPORTACIÓN QUE EL NAVEGADOR NO GENERA SOLO
      · AVIF: codificador de Squoosh en WebAssembly (js/vendor/avif),
-       cargado sólo cuando se usa.
+       cargado sólo cuando se usa, desde el gestor de códecs (codecs.js).
      · GIF animado: gifenc (js/vendor/gifenc), paleta por fotograma.
      · PDF: escrito a mano, una imagen JPEG por página (DCTDecode), con
        tamaño de página y margen.
    ═══════════════════════════════════════════════════════════════ */
 
-let avifModule = null;
-async function avif(){
-  if(!avifModule){
-    const { default: factory } = await import("../vendor/avif/avif_enc.js");
-    avifModule = factory({ noInitialRun: true });
-  }
-  return avifModule;
-}
-
-/** Lienzo → Blob AVIF. `quality` 0-1. */
-export async function avifFromCanvas(canvas, quality = .6){
-  const m = await avif();
+/** Lienzo → Blob AVIF. `quality` 0-1 (1 = sin pérdidas). `space`: espacio de
+    los píxeles del lienzo ("srgb" o "display-p3"), que también se escribe en
+    la etiqueta de color del archivo. El códec lo carga js/io/codecs.js. */
+export async function avifFromCanvas(canvas, quality = .6, space = "srgb"){
   const { width, height } = canvas;
-  // AVIF sin perfil: los píxeles, siempre en sRGB (en documentos P3 el navegador convierte)
-  const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height, { colorSpace: "srgb" }).data;
-  const out = m.encode(new Uint8Array(data.buffer), width, height, {
-    quality: Math.round(quality * 100), qualityAlpha: -1, denoiseLevel: 0, tileColsLog2: 0, tileRowsLog2: 0,
-    speed: 6, subsample: 1, chromaDeltaQ: false, sharpness: 0, tune: 0, enableSharpYUV: false, bitDepth: 8, lossless: false
-  });
-  if(!out) throw new Error("No se pudo codificar en AVIF");
-  return new Blob([out], { type: "image/avif" });
+  // Los píxeles, en el espacio pedido (un lienzo P3 convierte a sRGB al leer si se pide sRGB)
+  const data = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, width, height, { colorSpace: space }).data;
+  const { encodeAvif8 } = await import("./codecs.js");
+  return encodeAvif8(data, width, height, { quality: Math.round(quality * 100), space });
 }
 
 /* ── PDF ─────────────────────────────────────────────────────── */

@@ -1040,7 +1040,7 @@ const TOPICS = [
       </ul>` },
 
   { id:"archivo", title:"Archivo y documentos",
-    desc:"Abrir, guardar, exportar (TIFF, PSD, AVIF, PDF, GIF), hoja de contactos y lotes.",
+    desc:"Abrir, guardar, exportar (TIFF, PSD, AVIF, JPEG XL, OpenEXR, PDF, GIF), hoja de contactos y lotes.",
     html:`
       <h3>Archivo</h3>
       <ul>
@@ -1064,9 +1064,14 @@ const TOPICS = [
           <b>color de fondo</b> que elijas (blanco por defecto). Con transparencia, Exportar propone
           PNG de entrada. Para conservar todos los mandos de las capas, usa Guardar proyecto.</li>
         <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato (JPEG,
-          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad—, <b>TIFF</b> sin pérdidas a 8 bits,
+          PNG, WebP, <b>AVIF</b> —más ligero a igual calidad; también de <b>10 o 12 bits</b>—, <b>JPEG XL</b>
+          (con o sin pérdidas), <b>OpenEXR</b> (luz lineal de 16 bits en coma flotante, para vídeo y 3D),
+          <b>TIFF</b> sin pérdidas a 8 bits,
           <b>PNG 16 bits</b> o <b>TIFF 16 bits</b> —máxima calidad— o <b>PDF</b>, con tamaño de página y
-          margen), calidad y metadatos EXIF. Con <b>«Alta precisión al exportar»</b> (y siempre en
+          margen), calidad y metadatos EXIF. En AVIF, JPEG XL, JPEG y WebP el diálogo muestra el
+          <b>peso aproximado y la calidad estimada</b> antes de exportar; en AVIF y JPEG XL, calidad 100
+          = sin pérdidas. AVIF profundo y JPEG XL admiten hasta 24 megapíxeles (8 en móvil). También
+          puedes abrir archivos <b>.jxl</b>. Con <b>«Alta precisión al exportar»</b> (y siempre en
           16 bits) las capas, las capas de ajuste y los modos de fusión se recalculan en coma
           flotante: apilar varios ajustes ya no deja bandas en cielos y degradados, y al cambiar
           el tamaño se promedia en luz lineal. <b>«Tramado a 8 bits»</b> añade un ruido

@@ -483,7 +483,7 @@ function loadImg(blob){
 }
 export async function decodePhoto(blob, maxSide){
   let loaded = null, bmp = null, tiff = null;
-  if(/\.tiff?$/i.test(blob.name || "") || /image\/tiff/i.test(blob.type || "")){
+  if(/\.(tiff?|jxl)$/i.test(blob.name || "") || /image\/(tiff|jxl)/i.test(blob.type || "")){
     try{ const { decodeCompatible } = await import("../io/compatibility.js"); tiff = await decodeCompatible(blob); }catch{}
   }
   if(!tiff){ try{ loaded = await loadImg(blob); }catch{} }
@@ -512,7 +512,7 @@ export function scaledCanvas(img, side){
 /* `gallery`: en Android se pide sólo `image/*` para que se abra la galería
    directamente (ver core/device.js); con `gallery: false`, el explorador
    de archivos con todos los formatos de `accept`. */
-export function pickFiles({ multiple = true, accept = "image/*,.heic,.heif,.tif,.tiff", gallery = true } = {}){
+export function pickFiles({ multiple = true, accept = "image/*,.heic,.heif,.tif,.tiff,.jxl", gallery = true } = {}){
   return new Promise(resolve => {
     const input = document.createElement("input");
     const android = /Android/i.test(navigator.userAgent || "") || navigator.userAgentData?.platform === "Android";

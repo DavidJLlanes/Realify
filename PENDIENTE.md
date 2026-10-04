@@ -55,8 +55,8 @@ Las fotos de iPhone y de muchos Android vienen en P3; hasta la v199 todos los li
       lo permite (`js/core/colorspace.js`); proyecto y pestañas guardan el espacio. (v200)
 - [x] Exportar con el perfil incrustado: JPEG, PNG, PNG 16 y TIFF 16 en P3, o sRGB a
       elección; el resto se convierte a sRGB. (v200)
-- [ ] Pendiente: AVIF y WebP con perfil o etiqueta P3 (con el códec propio, fase 6) y TIFF
-      de 8 bits con perfil.
+- [x] AVIF con etiqueta P3 (fase 6, v229).
+- [ ] Pendiente: WebP con perfil P3 y TIFF de 8 bits con perfil.
 - [ ] Pendiente: herramientas WebGL en P3 (hoy recortan a sRGB; con la fase 13) y color de
       pintura en P3 (selector y cuentagotas fuera de sRGB).
 - [ ] Pendiente: «Abrir en Realify» desde el revelador RAW en P3 (con la fase 4).
@@ -93,12 +93,13 @@ Reutiliza Depth Anything V2 (ya estaban Desenfoque por profundidad, Niebla y Fot
 - [ ] Pendiente: máscara por profundidad como capa de ajuste «viva» (que se recalcule al
       cambiar la foto de debajo); hoy la máscara se calcula una vez.
 
-## Fase 6 · Formatos modernos de alta calidad
-- [ ] Gestor de códecs WASM (cada uno se carga al elegir el formato) con estimación de
-      peso y calidad antes de exportar.
-- [ ] AVIF de 10/12 bits.
-- [ ] JPEG XL.
-- [ ] OpenEXR (valores HDR de escena; encaja con el pipeline Premium en coma flotante).
+## Fase 6 · Formatos modernos de alta calidad ✅ (v229)
+- [x] Gestor de códecs WASM (cada uno se carga al elegir el formato) con estimación de
+      peso y calidad antes de exportar. (v229)
+- [x] AVIF de 10/12 bits, con etiqueta de color sRGB / Display P3 (también en el de 8 bits). (v229)
+- [x] JPEG XL (exportar y abrir). Sólo 8 bits por límite del códec. (v229)
+- [x] OpenEXR (luz lineal, half, ZIP, cromaticidades; escritor propio). (v229)
+- Queda: JPEG XL de más de 8 bits; etiqueta P3 en WebP (el formato no la admite sin ICC).
 
 ## Fase 7 · Apilado de fotos (OpenCV.js, parte 1)
 OpenCV.js (Apache-2.0, ~8–10 MB) sólo bajo demanda y como motor Premium; no sustituye lo

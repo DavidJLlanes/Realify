@@ -8,7 +8,7 @@ import { defaultText, renderTextLayer } from "../editor/text.js";
 import { RAW_EXTENSIONS } from "../../raw/formats.js";
 
 const ext=file=>(file.name.split(".").pop()||"").toLowerCase();
-export const compatibleFile=file=>file?.type?.startsWith("image/")||["psd","tif","tiff","heic","heif","svg",...RAW_EXTENSIONS].includes(ext(file));
+export const compatibleFile=file=>file?.type?.startsWith("image/")||["psd","tif","tiff","heic","heif","jxl","svg",...RAW_EXTENSIONS].includes(ext(file));
 const canvas=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c;};
 
 function imageDataCanvas(rgba,w,h){const c=canvas(w,h);c.getContext("2d",{willReadFrequently:true}).putImageData(new ImageData(new Uint8ClampedArray(rgba),w,h),0,0);return c;}
@@ -41,6 +41,11 @@ function parsePsd(buffer){
 export async function decodeCompatible(file){
   const e=ext(file);
   if(e==="heic"||e==="heif")return decodeHeic(file);
+  if(e==="jxl"||file.type==="image/jxl"){
+    /* Safari lo abre de serie; en el resto, decodificador propio (vendor/jxl) */
+    try{return await createImageBitmap(file,{colorSpaceConversion:"default",premultiplyAlpha:"default"});}catch{}
+    return (await import("./codecs.js")).decodeJxlToCanvas(await file.arrayBuffer());
+  }
   if(e==="tif"||e==="tiff"||e==="dng")return decodeTiff(await file.arrayBuffer());
   if(e==="psd"){const p=parsePsd(await file.arrayBuffer());if(!p.canvas)throw new Error("El PSD no contiene una composición");return p.canvas;}
   return createImageBitmap(file,{colorSpaceConversion:"default",premultiplyAlpha:"default"});

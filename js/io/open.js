@@ -290,7 +290,7 @@ export function promptOpen(){ picker.click(); }
 /** Selector de archivos abierto YA, en el mismo toque (sin esperas antes);
     `cb(files)` al elegir. Para comandos que, sin documento abierto, piden
     una foto antes de cargar su propio código (Cortar, Recortar en forma). */
-export function pickNow({ multiple = false, accept = "image/*,.heic,.heif,.tif,.tiff" } = {}, cb){
+export function pickNow({ multiple = false, accept = "image/*,.heic,.heif,.tif,.tiff,.jxl" } = {}, cb){
   const i = document.createElement("input");
   i.type = "file"; i.accept = galleryAccept(accept); i.multiple = multiple;
   i.style.cssText = "position:fixed;left:-9999px;opacity:0";

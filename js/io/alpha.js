@@ -13,8 +13,8 @@
    diálogos de guardado (`alphaFieldsHTML` + `wireAlphaFields`).
    ═══════════════════════════════════════════════════════════════ */
 
-const ALPHA_TYPES = new Set(["image/png", "image/webp", "image/avif", "image/gif", "image/tiff"]);
-const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/tiff":"TIFF",
+const ALPHA_TYPES = new Set(["image/png", "image/webp", "image/avif", "image/gif", "image/tiff", "image/jxl", "image/x-exr"]);
+const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/tiff":"TIFF", "image/jxl": "JPEG XL", "image/x-exr": "OpenEXR",
                 jpg: "JPEG", jpeg: "JPEG", pdf: "PDF", png: "PNG", webp: "WebP", avif: "AVIF", gif: "GIF", tiff:"TIFF" };
 
 /** ¿El formato (tipo MIME, o «png», «jpg»…) admite transparencia? */
@@ -74,7 +74,7 @@ export function wireAlphaFields(root, { id = "ax", getType, hasAlpha = false, on
   const box = root.querySelector(`#${id}Box`), chk = root.querySelector(`#${id}Alpha`);
   const bgRow = root.querySelector(`#${id}BgRow`), bg = root.querySelector(`#${id}Bg`), hint = root.querySelector(`#${id}Hint`);
   const sync = () => {
-    const t = String(getType()).replace(/;16$/, ""), ok = supportsAlpha(t), name = NAMES[t] || String(t).toUpperCase();
+    const t = String(getType()).replace(/;(10|12|16)$/, ""), ok = supportsAlpha(t), name = NAMES[t] || String(t).toUpperCase();
     chk.disabled = !ok;
     chk.closest("label").style.opacity = ok ? "" : ".55";
     bgRow.hidden = ok && chk.checked;
