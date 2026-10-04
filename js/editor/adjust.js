@@ -20,6 +20,7 @@ import { toast, status } from "../ui/toast.js";
 import { blendBySelection } from "./selection.js";
 import { isMobile } from "../core/device.js";
 import { view, fitAbove } from "./view.js";
+import { hiFullCover, colorFnFromCompute, applyFloatFromBase } from "./floatadjust.js";
 
 /* Por encima de este tamaño, la vista previa se calcula sobre una
    versión reducida: al aceptar sí se aplica entera.
@@ -113,7 +114,7 @@ export function drawHistogram(canvas, hist, channel = "l"){
    filtros. Ver editor/filterlayer.js. */
 export async function runAdjust({ title, buildBody, compute, wide = false,
                                   previewLimit = PREVIEW_LIMIT, dlgCls = "",
-                                  asLayer = false, filterId, filterParams, fullscreen = false }, opts = {}){
+                                  asLayer = false, filterId, filterParams, fullscreen = false, float = false }, opts = {}){
   /* Modo sin diálogo (registro de filtros): `compute` sobre un lienzo
      cualquiera y se devuelve el resultado. */
   if(opts.render){
@@ -256,19 +257,39 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
     clearTimeout(refineTimer); refineTimer = 0;
     if(!commit){ restore(layer, before); return; }
     if(big){ status("Aplicando…"); await new Promise(resolve => requestAnimationFrame(resolve)); }
-    const out = new ImageData(new Uint8ClampedArray(full.data), full.width, full.height);
-    compute(out.data, out.width, out.height);
-    if(doc.selection) blendBySelection(out.data, full.data, doc.selection, out.width, out.height);
-    layer.ctx.putImageData(out, 0, 0);
-    layer.thumbDirty = true;
-    const after = snapshot(layer);
+    /* Coma flotante (fase 11, editor/floatadjust.js): si el ajuste es de color puro y la capa de origen trae
+       16 bits, el resultado sale de esos 16 bits y la capa de filtro nueva los conserva. */
+    let fres = null;
+    if(float && asLayer && hiFullCover(base)){
+      try{
+        const v = typeof float === "function" ? float() : float;
+        const fn = v === true ? colorFnFromCompute(compute) : (typeof v === "function" ? v : null);
+        if(fn) fres = await applyFloatFromBase(base, source, fn, doc.selection);
+      }catch(err){ console.warn("[coma flotante]", err); fres = null; }
+    }
+    let after;
+    if(fres){
+      after = fres.canvas;
+    } else {
+      const out = new ImageData(new Uint8ClampedArray(full.data), full.width, full.height);
+      compute(out.data, out.width, out.height);
+      if(doc.selection) blendBySelection(out.data, full.data, doc.selection, out.width, out.height);
+      layer.ctx.putImageData(out, 0, 0);
+      layer.thumbDirty = true;
+      after = snapshot(layer);
+    }
     status("");
 
     if(asLayer){
       restore(layer, before);
-      commitFilter({ base, edit, result: after, title,
+      const made = commitFilter({ base, edit, result: after, title,
                      filter: filterId || title, params: filterParams || {} });
-      toast(title + (edit ? " · actualizado" : " · capa nueva"), "ok");
+      if(fres && made){
+        const hs = base.hiSrc, W = fres.canvas.width, H = fres.canvas.height;
+        made.hiSrc = { data: fres.hi, w: W, h: H, dither: hs.dither, x: 0, y: 0, canvasW: W, canvasH: H };
+        made.thumbDirty = true;
+      }
+      toast(title + (edit ? " · actualizado" : " · capa nueva") + (fres ? " · 16 bits conservados" : ""), "ok");
       return;
     }
 

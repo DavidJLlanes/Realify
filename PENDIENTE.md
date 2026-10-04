@@ -146,10 +146,15 @@ que ya funciona.
 - [ ] «Pelo» y partes de la cara: sólo con BiSeNet (uso no comercial, excepción aceptada sólo para
       Retoque de cara) — decidir si se amplía la excepción.
 
-## Fase 11 · Ajustes en coma flotante
-Hoy los ~90 ajustes y filtros leen y escriben píxeles de 8 bits.
-- [ ] Interfaz de cálculo en coma flotante para `runAdjust` (convive con la actual).
-- [ ] Migrar los ajustes (son tablas y curvas: lo más sencillo).
+## Fase 11 · Ajustes en coma flotante ✅ en parte (v236)
+Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
+- [x] Interfaz de cálculo en coma flotante para `runAdjust` (`float`, convive con la actual): sólo actúa si la
+      capa trae origen de 16 bits que cubre el lienzo; la capa de filtro conserva sus 16 bits. (v236)
+- [x] Migrados los ajustes de color puro: Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y
+      saturación, Exposición, Color por canales, Mezclador de canales y Vibrance. (v236)
+- [ ] Resto de ajustes (Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
+      degradado, Blanco y negro, los que usan `applyDirect`) y los modos Premium con su propio motor.
+- [ ] Capas con origen de 16 bits recortado o desplazado (hoy sólo cuando cubre todo el lienzo).
 
 ## Fase 12 · Filtros en coma flotante
 - [ ] Migrar los filtros de `runFilter` y `photo-tools`.

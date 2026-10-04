@@ -29,6 +29,7 @@ export function brightnessContrast(opts = {}){
   return runAdjust({
     title: "Brillo y contraste",
     asLayer: true, filterId: "bc", filterParams: p, dlgCls: "dlg-compact",
+    float: () => !p.premium,
     compute(data, w, h){ if(p.premium) applyBCPremium(data, w, h, p); else applyBC(data, p); },
     buildBody({ preview }){
       const box = bcControls(p, preview);
@@ -512,6 +513,7 @@ export function levels(opts = {}){
     title: "Niveles",
     wide: true,
     asLayer: true, filterId: "levels", filterParams: state,
+    float: () => !state.premium,
     compute(data, w, h){
       if(state.premium){ applyLevelsPremium(data, state, { fast: w * h < doc.w * doc.h * 0.98 }); return; }
       const lut = buildLevelsByChannel(state);
@@ -719,6 +721,7 @@ export function curves(opts = {}){
     title: "Curvas",
     wide: true,
     asLayer: true, filterId: "curves", filterParams: state,
+    float: () => !state.premium,
     fullscreen,
     compute(data, w, h){ if(state.premium) applyCurvesPremium(data, state, { fast: w * h < doc.w * doc.h * 0.98 }); else applyCurves(data, state); },
     buildBody({ hist, preview, source }){
@@ -867,6 +870,7 @@ export function whiteBalance(opts = {}){
   return runAdjust({
     title: "Balance de blancos",
     asLayer: true, filterId: "whiteBalance", filterParams: p,
+    float: true,
     compute(data){
       const lut = buildWB(p);
       applyLut(data, lut);
@@ -1051,6 +1055,7 @@ export function hueSaturation(opts = {}){
   return runAdjust({
     title: "Tono y saturación",
     asLayer: true, filterId: "hsl", filterParams: p,
+    float: () => !p.premium,
     // Premium 👑: mismo ajuste en OKLCh, coma flotante, gama y tramado
     // (vista previa reducida → tabla interpolada; resultado final → exacto)
     previewLimit: 6e5,

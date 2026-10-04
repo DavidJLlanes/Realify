@@ -247,6 +247,11 @@ tiempo real mientras se pinta.
   («coche rojo», «césped sin personas») → selección o máscara de capa. Usa el DeepLab ADE20K que ya
   viaja con la web (150 categorías, vocabulario y sinónimos en español, colores por HSV), por
   bloques y con borde ajustado por filtro guiado; sin descargas. Vocabulario cerrado.
+- **Ajustes en coma flotante** (`js/editor/floatadjust.js`, opción `float` de `runAdjust`): los ajustes
+  de color puro (Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y saturación, Exposición, Color por
+  canales, Mezclador, Vibrance) calculan en coma flotante desde el origen de 16 bits de la capa y la capa de
+  filtro conserva sus 16 bits (el lienzo de 8 bits es su redondeo tramado). Sin origen de 16 bits, todo
+  sigue como siempre.
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

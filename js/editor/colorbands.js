@@ -154,6 +154,7 @@ export function colorBands(opts = {}){
     title: "Color por canales",
     wide: true,
     asLayer: true, filterId: "colorBands", filterParams: bands,
+    float: true,
     /* Este ajuste no se puede resolver con una tabla de 256 entradas
        por canal como los demás: depende del color entero del píxel, no
        de cada canal por separado, así que hay que convertir a HSL y

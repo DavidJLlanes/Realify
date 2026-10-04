@@ -9,6 +9,19 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v236 · Ajustes en coma flotante (fase 11)
+- **Interfaz de coma flotante en `runAdjust`** (`float`, `js/editor/floatadjust.js`) que convive con la de
+  8 bits: un ajuste de color puro, aplicado a una capa con origen de 16 bits (RAW revelado, PNG/TIFF
+  de 16 bits, AVIF de 10/12 bits), calcula en coma flotante desde esos 16 bits y la capa de filtro nueva
+  los conserva; el lienzo de 8 bits es su redondeo con el mismo tramado que el origen. Si no cuadra
+  (otro tamaño, memoria, función no numérica) se usa el camino de 8 bits de siempre.
+- **Migrados**: Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y saturación, Exposición,
+  Color por canales, Mezclador de canales y Vibrance (los modos Premium de estos tienen su propio
+  motor). Medido con un degradado de 16 bits muy suave y Exposición +2 EV: 1 200 valores distintos
+  por fila al exportar en PNG de 16 bits (antes, 13: bandas).
+- Prueba de calidad en escritorio y móvil: APTO en Exposición, Niveles y Vibrance (fotos de 8 bits, camino
+  de siempre sin cambios).
+
 ### v235 · Avisos de versión más robustos
 - **Segundo camino de aviso, sin `version.json`**: el service worker nuevo avisa a las páginas abiertas
   al activarse y la app se actualiza (o enseña el banner) aunque la consulta de `version.json` falle.

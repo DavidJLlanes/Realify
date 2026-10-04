@@ -22,6 +22,7 @@ export function vibrance(opts = {}){
   return runAdjust({
     title: "Vibrance",
     asLayer: true, filterId: "vibrance", filterParams: p,
+    float: true,
     previewLimit: 6e5,
     compute(data){
       const vib = p.vibrance / 100, sat = p.saturation / 100;

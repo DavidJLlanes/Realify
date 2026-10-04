@@ -33,6 +33,10 @@ const dith = (x, y, c) => {
 };
 const d8 = (v, x, y, c) => { const r = Math.round(v * (255 / 65535) + dith(x, y, c)); return r < 0 ? 0 : r > 255 ? 255 : r; };
 
+/** Valor de 8 bits del lienzo para un valor de 16 bits en (x, y) del origen: el mismo redondeo (con
+    tramado si el origen lo lleva) que usa `fillBand` para saber si un píxel sigue sin tocar. */
+export const hiToCanvas8 = (v, x, y, c, dither) => dither ? d8(v, x, y, c) : q8(v);
+
 /** ¿Cabe un origen de w×h en la memoria de este equipo? Ocupa 6 bytes
     por píxel: hasta 12 MP (72 MB) en móviles, 32 MP en ordenador (el
     mismo tope que la exportación en coma flotante). */

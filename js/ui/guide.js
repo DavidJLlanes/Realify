@@ -1087,7 +1087,11 @@ const TOPICS = [
           (PNG o TIFF de 16 bits, AVIF de 10 o 12 bits, o un RAW abierto desde el revelador con
           Premium), la capa de fondo guarda esos bits («· 16 bits por canal» al abrir) y Exportar
           los usa con «Alta precisión», ya marcada: sin bandas en cielos y sombras aunque apliques
-          ajustes fuertes. Donde pintes o retoques, cuenta lo que hay en la capa.</li>
+          ajustes fuertes. Donde pintes o retoques, cuenta lo que hay en la capa. Los ajustes de color
+          —Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y saturación, Exposición,
+          Color por canales, Mezclador de canales y Vibrance— calculan a partir de esos 16 bits
+          y la capa de filtro que crean <b>conserva sus 16 bits</b> («· 16 bits conservados»): una
+          escala estrecha de grises estirada con Niveles no sale a escalones al exportar.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas

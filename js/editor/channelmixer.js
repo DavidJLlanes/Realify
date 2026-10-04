@@ -35,6 +35,7 @@ export function channelMixer(opts = {}){
     title: "Mezclador de canales",
     wide: true,
     asLayer: true, filterId: "channelMixer", filterParams: p,
+    float: true,
     compute(data){
       if(p.mono){
         const m = p.gray;

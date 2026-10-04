@@ -36,6 +36,7 @@ export function exposure(opts = {}){
   return runAdjust({
     title: "Exposición",
     asLayer: true, filterId: "exposure", filterParams: p,
+    float: true,
     compute(data){
       const lut = buildExposureLut(p);
       applyLut(data, { r: lut, g: lut, b: lut });
