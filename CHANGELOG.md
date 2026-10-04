@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v230 · Apilado de fotos con OpenCV (fase 7)
+- **Apilar fotos Premium 👑** (Imagen › Apilar fotos…): de 2 a 16 tomas de la misma escena
+  hechas a pulso, alineadas con **precisión subpíxel** y combinadas. **Reducir ruido**: media
+  en luz lineal con rechazo de lo que se mueve (cada toma se compara con la mediana de las
+  demás, con el ruido medido en la propia pila); el ruido baja en √N. **Ampliar el enfoque**:
+  en cada punto gana la toma más nítida, con transiciones suaves. Foto nueva a la resolución
+  completa que admite el editor, por franjas.
+- **Alineación** (`js/cv/align.js`): puntos ORB + homografía robusta (RANSAC) + afinado ECC; con
+  fotos sintéticas giradas ±1,5°, con escala, perspectiva y ruido, el error medio es de 0,15–0,4 px.
+  Opción «Corregir movimiento fino» con flujo óptico (Farnebäck). La foto se resamplea una sola
+  vez (Lanczos); con trípode (casi sin movimiento) no se toca ni un píxel.
+- **OpenCV.js 4.12** (Apache-2.0, 11 MB) en `js/vendor/opencv/`, sólo se descarga al usarlo, avisando
+  antes (`js/cv/opencv.js`).
+- Medido con 6 tomas con ruido σ = 10: PSNR 28,0 → 36,0 dB y el objeto móvil desaparece; con 4
+  tomas con bandas desenfocadas distintas, 28–33 dB → 43–46 dB.
+
 ### v229 · Formatos modernos de alta calidad (fase 6)
 - **AVIF de 10 y 12 bits** al exportar: salen de los 16 bits del motor de alta precisión
   (sin redondear antes a 8 bits), con tramado de ±½ nivel y calidad 100 = sin pérdidas

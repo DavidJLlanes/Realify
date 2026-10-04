@@ -101,14 +101,18 @@ Reutiliza Depth Anything V2 (ya estaban Desenfoque por profundidad, Niebla y Fot
 - [x] OpenEXR (luz lineal, half, ZIP, cromaticidades; escritor propio). (v229)
 - Queda: JPEG XL de más de 8 bits; etiqueta P3 en WebP (el formato no la admite sin ICC).
 
-## Fase 7 · Apilado de fotos (OpenCV.js, parte 1)
+## Fase 7 · Apilado de fotos (OpenCV.js, parte 1) ✅ (v230, con pendientes)
 OpenCV.js (Apache-2.0, ~8–10 MB) sólo bajo demanda y como motor Premium; no sustituye lo
 que ya funciona.
-- [ ] Carga bajo demanda de OpenCV.js.
-- [ ] Alineación subpíxel (homografías, optical flow) para HDR y panorámicas, también con
-      movimiento.
-- [ ] Reducción de ruido con varias tomas (image stacking).
-- [ ] Focus stacking.
+- [x] Carga bajo demanda de OpenCV.js (4.12; la 5.0.0 empaquetada no arranca en Chromium). (v230)
+- [x] Alineación subpíxel (homografía ORB+RANSAC+ECC, flujo óptico opcional), también con
+      movimiento. En Apilar fotos. (v230)
+- [x] Reducción de ruido con varias tomas (image stacking). (v230)
+- [x] Focus stacking. (v230) Mezcla por pesos de nitidez; queda la mezcla por pirámides
+      laplacianas para zonas con halos.
+- [ ] Usar esta alineación en Fusión HDR y Unir imágenes (hoy siguen con su propia
+      alineación por traslación).
+- [ ] Apilar RAW directamente y ordenar las tomas por nitidez para elegir la referencia.
 
 ## Fase 8 · Visión clásica (OpenCV.js, parte 2)
 - [ ] Corrección de perspectiva y detección de horizonte automáticas.

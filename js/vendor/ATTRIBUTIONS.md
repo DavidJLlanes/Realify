@@ -28,3 +28,4 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 - El PDF lo genera `js/io/formats.js` sin bibliotecas (una imagen JPEG por página).
 - `js/filters/unmark/` (código propio): adapta conceptos y heurísticas de [wiltodelta/remove-ai-watermarks](https://github.com/wiltodelta/remove-ai-watermarks), licencia Apache-2.0 (https://www.apache.org/licenses/LICENSE-2.0); ver la nota de procedencia al principio de cada archivo.
 - `jxl/`: codificador y decodificador de JPEG XL (libjxl, BSD-3-Clause, © los autores de libjxl) empaquetados por @jsquash/jxl 1.3.0 (Apache-2.0, © Google Inc. y colaboradores; versión de un solo hilo). Sólo se cargan al exportar o abrir un JPEG XL.
+- `opencv/`: OpenCV.js 4.12.0 (WebAssembly de OpenCV, © los colaboradores de OpenCV, licencia Apache-2.0) empaquetado por `@techstark/opencv-js` 4.12.0-release.1. Se descarga sólo al usar el apilado de fotos. Incluye `LICENSE-Apache-2.0.txt`.

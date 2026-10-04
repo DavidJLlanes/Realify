@@ -107,6 +107,8 @@ export const MENUS = [
     { cmd:"image.merge", label:"Unir imágenes…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="8" height="12" rx="1.5"/><rect x="14" y="6" width="8" height="12" rx="1.5"/><path d="M10 12h4"/><path d="m12.5 10.5 1.5 1.5-1.5 1.5"/></svg>',
       help:"Panorámica (alinea y funde fotos solapadas, iguala la exposición y recorta los bordes) o unión en fila, columna o cuadrícula con separación, margen, esquinas y fondo. Crea una capa nueva." },
+    { cmd:"image.stack", ic:"stack-photos", label:"Apilar fotos Premium 👑…", premium:true,
+      help:"Varias tomas de la misma escena, hechas a pulso: se alinean con precisión subpíxel (OpenCV, se descarga una vez, 11 MB) y se combinan para reducir el ruido (rechazando lo que se mueve) o para ampliar el enfoque. Foto nueva a resolución completa." },
     { sep:true },
     { cmd:"image.slice", label:"Cortar en partes…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18" stroke-dasharray="3 2"/></svg>',

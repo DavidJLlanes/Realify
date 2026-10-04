@@ -182,6 +182,7 @@ const ITEMS = [
   { cmd:"image.contentAwareScale", label:"Escala por contenido", ic:"shrink",  cat:"corregir" },
   { cmd:"image.hdr",       label:"Fusión HDR",          ic:"hdr",               cat:"mejorar estilo" },
   { cmd:"image.merge",     label:"Unir imágenes",       ic:"merge-images",      cat:"corregir estilo" },
+  { cmd:"image.stack",     label:"Apilar fotos",        ic:"stack-photos",      premium:true, cat:"mejorar estilo" },
   { cmd:"image.slice",     label:"Cortar en partes",    ic:"layout-grid",       cat:"corregir estilo" },
   { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"shapes",            cat:"corregir estilo" },
   { cmd:"ai.advancedLocal", label:"IA avanzada local", ic:"wand-sparkles", cat:"ia" },

@@ -59,7 +59,7 @@ const TOPICS = [
         <li><a data-go="especiales#sp-collage">Collage / History / Post</a>: collages,
           publicaciones e historias con 41 diseños (incluido «Libre»), formatos de todas las
           redes y de los móviles más conocidos, y fotos dentro de 28 formas.</li>
-        <li><a data-go="imagen#img-hdr">Fusión HDR</a>, <a data-go="imagen#img-merge">Unir imágenes</a>,
+        <li><a data-go="imagen#img-hdr">Fusión HDR</a>, <a data-go="imagen#img-merge">Unir imágenes</a>, <a data-go="imagen#img-stack">Apilar fotos</a>,
           <a data-go="imagen#img-slice">Cortar en partes</a> y <a data-go="imagen#img-shapecrop">Recortar en
           forma</a>, a pantalla completa en el menú Imagen.</li>
         <li><a data-go="imagen#img-ai">Ampliar, colorear y expandir con IA</a>; exportar en AVIF, PDF y GIF
@@ -406,6 +406,14 @@ const TOPICS = [
           solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
           iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:
           en fila, columna o cuadrícula, con separación, margen, esquinas y fondo.</li>
+        <li id="img-stack"><b>Apilar fotos Premium 👑…</b> Varias tomas de la misma escena, hechas
+          a pulso (del dispositivo o de las abiertas, de 2 a 16). Se <b>alinean con precisión
+          subpíxel</b> aunque se hayan girado o movido y se combinan: <b>Reducir ruido</b> (media en
+          luz lineal; el ruido baja en √N y lo que se mueve —gente, hojas— se quita solo) o
+          <b>Ampliar el enfoque</b> (en cada punto gana la toma más nítida: macro y paisaje).
+          «Corregir movimiento fino» añade flujo óptico para lo que el giro y el desplazamiento no
+          explican. La primera vez se descarga OpenCV (11 MB, una sola vez). El resultado se abre
+          como una foto nueva, a la resolución completa que admite el editor.</li>
         <li id="img-slice"><b>Cortar en partes…</b> Pantalla completa. Cuadrícula, tamaño fijo,
           <b>carrusel</b> (2 a 10 publicaciones seguidas), <b>perfil de Instagram</b> (numerado en
           el orden de subida) o <b>cortes a mano</b> (toca para añadir, arrastra para mover).

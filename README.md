@@ -232,6 +232,12 @@ tiempo real mientras se pinta.
 - **Unir imágenes** (pantalla completa, `unir/`): panorámica automática
   (proyección cilíndrica, solape por correlación de gradientes, exposición
   igualada, costuras suaves y recorte) o unión en fila, columna o cuadrícula.
+- **Apilar fotos Premium 👑** (`js/features/stack.js`, `js/cv/`): de 2 a 16 tomas de la
+  misma escena, alineadas con precisión subpíxel con OpenCV.js (puntos ORB + RANSAC +
+  afinado ECC, flujo óptico opcional; OpenCV 4.12, Apache-2.0, 11 MB, sólo al usarlo) y
+  combinadas por franjas en luz lineal: reducir ruido con rechazo de movimiento (el ruido
+  baja en √N) o ampliar el enfoque (la toma más nítida en cada punto). Foto nueva a
+  resolución completa.
 - **Cortar en partes** (pantalla completa, `cortar/`): cuadrícula, tamaño fijo,
   carrusel, perfil de Instagram (orden de subida) o cortes a mano. Cada trozo en
   una capa nueva, en su pestaña, en un ZIP o suelto.
@@ -562,6 +568,7 @@ socialmediapost/        Collage / Historia / Post
 stickers/               Stickers (Fluent Emoji)
 hdr/                    Fusión HDR
 unir/                   Unir imágenes (panorámica y unión)
+js/cv/                  OpenCV bajo demanda, alineación subpíxel y apilado de fotos
 cortar/                 Cortar en partes
 formas/                 Recortar en forma
 comparar/               Antes y después

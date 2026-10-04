@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v229";
+const VERSION = "realify-v230";
 const SHELL = [
   "./",
   "./index.html",
