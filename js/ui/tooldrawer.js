@@ -200,6 +200,7 @@ const ITEMS = [
   { cmd:"ai.redEye",     label:"Ojos rojos",           ic:"scan-eye",            premium:true, cat:"ia" },
   { cmd:"ai.smartCrop",  label:"Recorte para redes",   ic:"scan",                premium:true, cat:"ia" },
   { cmd:"ai.faceCrop",   label:"Recorte de retrato",   ic:"frame",               premium:true, cat:"ia" },
+  { cmd:"ai.textSelect",  label:"Seleccionar por texto", ic:"text-select",    premium:true, cat:"ia" },
   { cmd:"ai.depthSelect", label:"Seleccionar profundidad", ic:"mountain-snow",   premium:true, cat:"ia" },
   { cmd:"ai.depthBlur",  label:"Desenfoque profundidad", ic:"aperture",          premium:true, cat:"ia" },
   { cmd:"ai.depthFog",   label:"Niebla por distancia", ic:"cloud-fog",           premium:true, cat:"ia" },

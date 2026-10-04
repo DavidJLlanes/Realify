@@ -243,6 +243,10 @@ tiempo real mientras se pinta.
   `tools/build-lensdb.mjs`) → distorsión (poly3, poly5, ptlens), aberración cromática (lineal,
   poly3) y viñeteo (pa) a resolución completa, un solo remuestreo bicúbico. Fórmulas
   reimplementadas y comprobadas contra Lensfun (menos de 1 px).
+- **Seleccionar por texto Premium 👑** (`js/features/textselect.js`, `js/ai/textclasses.js`): una frase
+  («coche rojo», «césped sin personas») → selección o máscara de capa. Usa el DeepLab ADE20K que ya
+  viaja con la web (150 categorías, vocabulario y sinónimos en español, colores por HSV), por
+  bloques y con borde ajustado por filtro guiado; sin descargas. Vocabulario cerrado.
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

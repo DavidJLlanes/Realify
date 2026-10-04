@@ -134,10 +134,17 @@ que ya funciona.
 - [ ] Modelos de distorsión «acm» y viñeteo ACM; recorte del propio archivo (fotos ya recortadas).
 - [ ] Aplicarlo a archivos RAW antes del revelado y en lote.
 
-## Fase 10 · Selección por texto
-- [ ] Elegir modelo («persona», «cielo», «pelo», «coche rojo»…) con licencia comercial y
-      tamaño razonable; integrarlo en el motor ONNX común.
-- [ ] Máscara editable resultante, a resolución completa (por bloques, fase 3).
+## Fase 10 · Selección por texto ✅ en parte (v234)
+- [x] Selección por texto con vocabulario CERRADO: las 150 categorías de ADE20K del DeepLab que ya
+      viaja con la web (Apache-2.0), con sinónimos en español, colores y «sin X». (v234)
+- [x] Máscara editable resultante, a resolución completa (por bloques, fase 3, y borde guiado). (v234)
+- [ ] **Vocabulario abierto** («una taza azul», «el pelo», «el logo»): hace falta un modelo tipo CLIPSeg
+      o Grounding-DINO + SAM. No se pudo hacer: el entorno de desarrollo no llega a Hugging Face
+      (proxy 403), así que no se puede descargar ni probar un modelo. Cuando haya acceso:
+      CLIPSeg-rd64-refined en ONNX cuantizado (~150 MB, licencia Apache-2.0 a verificar) en el
+      worker de IA, con tokenizador CLIP (vocabulario BPE), bajo demanda y avisando del tamaño.
+- [ ] «Pelo» y partes de la cara: sólo con BiSeNet (uso no comercial, excepción aceptada sólo para
+      Retoque de cara) — decidir si se amplía la excepción.
 
 ## Fase 11 · Ajustes en coma flotante
 Hoy los ~90 ajustes y filtros leen y escriben píxeles de 8 bits.

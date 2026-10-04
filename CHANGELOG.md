@@ -9,6 +9,19 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v234 · Seleccionar por texto (fase 10)
+- **Seleccionar por texto Premium 👑** (Selección, y Capa › Máscara de capa › «Por texto»): se escribe
+  qué seleccionar —«persona», «cielo», «coche rojo», «césped sin personas», «árboles y montañas»— y
+  sale una selección o la máscara de la capa. Reconoce las 150 categorías de ADE20K del modelo
+  DeepLab que ya viaja con la web (nombres y sinónimos en español, plurales, grupos como
+  «vehículos» o «muebles»), colores (rojo, naranja, amarillo, verde, azul, morado, rosa, marrón,
+  blanco, negro, gris) y «sin X» para restar. Por bloques como «Seleccionar cielo» y con el borde ajustado
+  a la foto por filtro guiado. Todo en el equipo, sin descargar nada.
+- Medido con el modelo real: en una foto de fútbol, «persona» 14 % y «césped» 19 % de la imagen, y
+  «césped sin persona» deja fuera al jugador; «césped azul» no encuentra nada.
+- **Límite**: vocabulario cerrado (esas 150 categorías); no entiende descripciones libres. Un modelo de
+  vocabulario abierto exigiría descargarlo de Hugging Face (ver PENDIENTE).
+
 ### v233 · Corrección de lente con perfiles reales (fase 9)
 - **Corrección de lente por perfil Premium 👑** (Filtro): lee la cámara, el objetivo, la focal y el
   diafragma de los datos EXIF (JPEG, TIFF/DNG, HEIC, PNG, WebP), identifica el objetivo en la base de

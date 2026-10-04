@@ -249,6 +249,15 @@ const TOPICS = [
           encuentra a nadie con confianza suficiente, cae automáticamente al mismo
           heurístico de color de «Eliminar fondo», así que sigue funcionando con objetos
           o productos sobre un fondo liso.</li>
+        <li id="sel-text"><b>Seleccionar por texto Premium 👑.</b> Escribe lo que quieres —«persona»,
+          «cielo», «coche rojo», «césped sin personas», «árboles y montañas»— y sale una selección (o la
+          máscara de la capa), editable como cualquier otra. Reconoce <b>150 tipos de cosas</b> (con nombres y
+          sinónimos en español: pared, edificio, cielo, árbol, césped, persona, coche, mesa, silla, agua,
+          montaña, flor, bicicleta, semáforo…) y <b>colores</b> (rojo, azul, verde, blanco, negro…) que
+          dejan sólo los píxeles de ese color dentro de la cosa. «Sin X» resta. Se calcula en tu equipo,
+          por bloques, con el borde ajustado a los contornos de la foto. El vocabulario es cerrado: no
+          entiende descripciones libres como «una taza con un dibujo». Se encuentra también en Capa ›
+          Máscara de capa › «Por texto».</li>
         <li><b>Seleccionar cielo.</b> Igual de local, con otro modelo (DeepLab, entrenado
           sobre ADE20K): reconoce el cielo por lo que ES —no por ser azul o blanco—, así
           que no confunde una pared o una tela del mismo color. Sin cielo en la foto, avisa

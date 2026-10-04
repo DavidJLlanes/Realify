@@ -130,6 +130,8 @@ registerAll({
   "ai.depthBlur":   { run: async () => (await import("./features/depthtools.js")).openDepthBlur(), enabled: needsDoc },
   "ai.depthFog":    { run: async () => (await import("./features/depthtools.js")).openDepthFog(), enabled: needsDoc },
   "ai.photo3d":     { run: async () => (await import("./features/depthtools.js")).openPhoto3D(), enabled: needsDoc },
+  "ai.textSelect":  { run: async () => (await import("./features/textselect.js")).openTextSelect(), enabled: needsDoc },
+  "layer.maskText": { run: async () => (await import("./features/textselect.js")).maskByTextCommand(), enabled: needsDoc },
   "ai.depthSelect": { run: async () => (await import("./features/depthzones.js")).openDepthSelect(), enabled: needsDoc },
   "ai.depthLight":  { run: async () => (await import("./features/depthlight.js")).openDepthLight(), enabled: needsDoc },
   "ai.depthPlanes": { run: async () => (await import("./features/depthlight.js")).openDepthPlanes(), enabled: needsDoc },

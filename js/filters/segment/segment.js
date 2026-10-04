@@ -90,7 +90,7 @@ async function segmentTiled(src, kind){
   return aiSession(kind.title, async step => {
     step(0, 1);
     const g = workThumb(src, SIDE, kind.snap);
-    const rg = await runModel(kind.task, kind.id, { rgba: g.rgba, w: g.w, h: g.h }, [g.rgba.buffer]);
+    const rg = await runModel(kind.task, kind.id, { rgba: g.rgba, w: g.w, h: g.h, ...kind.extra }, [g.rgba.buffer]);
     const long = Math.max(src.width, src.height);
     const side = T.workSide(SIDE, OV, 2, long);
     if(side <= SIDE * 1.3) return { prob: rg.prob, w: rg.w, h: rg.h, stride: kind.stride, thumbW: g.w, thumbH: g.h, hasSky: rg.hasSky };
@@ -108,7 +108,7 @@ async function segmentTiled(src, kind){
     for(let i = 0; i < plan.length; i++){
       step(1 + i, total);
       const t = plan[i], rgba = wx.getImageData(t.x, t.y, t.w, t.h).data;
-      const r = await runModel(kind.task, kind.id, { rgba, w: t.w, h: t.h }, [rgba.buffer]);
+      const r = await runModel(kind.task, kind.id, { rgba, w: t.w, h: t.h, ...kind.extra }, [rgba.buffer]);
       mix.add(t, gridToMap(r.prob, r.w, r.h, kind.stride, t.w, t.h), T.tileWeights(t, W, H, OV));
     }
     step(total, total);
@@ -147,4 +147,12 @@ export async function segmentSky(src){
   const t0 = performance.now();
   const r = await segmentTiled(src, { task: "segSky", id: "sky", title: "Detectando el cielo con IA", stride: 4, snap: false });
   return { mask: toMask(r, src), hasSky: r.hasSky, ms: Math.round(performance.now() - t0) };
+}
+
+/** Máscara (0-255, del tamaño de `src`) de la unión de varias clases de ADE20K (canales 1-150 del modelo).
+    Mismo método por bloques que el cielo. `found` dice si el modelo vio alguna de ellas. */
+export async function segmentClasses(src, classes, title = "Buscando en la foto con IA"){
+  const t0 = performance.now();
+  const r = await segmentTiled(src, { task: "segSky", id: "sky", title, stride: 4, snap: false, extra: { classes } });
+  return { mask: toMask(r, src), found: r.hasSky, ms: Math.round(performance.now() - t0) };
 }
