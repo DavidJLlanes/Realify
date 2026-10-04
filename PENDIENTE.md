@@ -138,12 +138,12 @@ que ya funciona.
 - [x] Selección por texto con vocabulario CERRADO: las 150 categorías de ADE20K del DeepLab que ya
       viaja con la web (Apache-2.0), con sinónimos en español, colores y «sin X». (v234)
 - [x] Máscara editable resultante, a resolución completa (por bloques, fase 3, y borde guiado). (v234)
-- [ ] **Vocabulario abierto** («una taza azul», «el pelo», «el logo»): hace falta un modelo tipo CLIPSeg
+- [ ] (→ fase 20) **Vocabulario abierto** («una taza azul», «el pelo», «el logo»): hace falta un modelo tipo CLIPSeg
       o Grounding-DINO + SAM. No se pudo hacer: el entorno de desarrollo no llega a Hugging Face
       (proxy 403), así que no se puede descargar ni probar un modelo. Cuando haya acceso:
       CLIPSeg-rd64-refined en ONNX cuantizado (~150 MB, licencia Apache-2.0 a verificar) en el
       worker de IA, con tokenizador CLIP (vocabulario BPE), bajo demanda y avisando del tamaño.
-- [ ] «Pelo» y partes de la cara: sólo con BiSeNet (uso no comercial, excepción aceptada sólo para
+- [ ] (→ fase 20) «Pelo» y partes de la cara: sólo con BiSeNet (uso no comercial, excepción aceptada sólo para
       Retoque de cara) — decidir si se amplía la excepción.
 
 ## Fase 11 · Ajustes en coma flotante ✅ en parte (v236)
@@ -152,9 +152,9 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
       capa trae origen de 16 bits que cubre el lienzo; la capa de filtro conserva sus 16 bits. (v236)
 - [x] Migrados los ajustes de color puro: Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y
       saturación, Exposición, Color por canales, Mezclador de canales y Vibrance. (v236)
-- [ ] Resto de ajustes (Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
+- [ ] (→ fase 20) Resto de ajustes (Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
       degradado, Blanco y negro, los que usan `applyDirect`) y los modos Premium con su propio motor.
-- [ ] Capas con origen de 16 bits recortado o desplazado (hoy sólo cuando cubre todo el lienzo).
+- [ ] (→ fase 20) Capas con origen de 16 bits recortado o desplazado (hoy sólo cuando cubre todo el lienzo).
 
 ## Fase 12 · Filtros en coma flotante
 - [ ] Migrar los filtros de `runFilter` y `photo-tools`.
@@ -208,6 +208,18 @@ No mejoran el resultado; sólo si sobra tiempo.
       nunca para el remuestreo final.
 - [ ] Photon (Rust/WASM) como respaldo de CPU sin WebGPU/WebGL2, sólo si las pruebas dan
       el mismo resultado y mejor tiempo.
+
+## Fase 20 · Cabos sueltos de las fases 10 y 11
+- [ ] **Selección por texto con vocabulario abierto** («una taza azul», «el logo»): CLIPSeg u otro
+      modelo; necesita acceso a Hugging Face (ver fase 10).
+- [ ] «Pelo» y partes de la cara: BiSeNet (uso no comercial); decidir si se amplía la excepción.
+- [ ] **Ajustes sin migrar a coma flotante**: Sombras y luces, Tono, Banda tonal, Color selectivo,
+      Equilibrio de color, Mapa de degradado, Blanco y negro, los que usan `applyDirect` y los modos
+      Premium con motor propio.
+- [ ] Capas con origen de 16 bits recortado o desplazado (hoy sólo si cubre todo el lienzo).
+- [ ] CLAHE Premium: la vista previa difiere de lo aplicado (aviso del test de calidad); hallar la causa.
+- [ ] Verificar el límite de memoria con imágenes de 24 MP (`codecMaxPixels()` 24e6/8e6): sólo se
+      probó con tamaños pequeños; repetir con 12 y 24 MP.
 
 ---
 
