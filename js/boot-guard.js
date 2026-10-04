@@ -52,6 +52,7 @@
       "Navegador: " + navigator.userAgent,
       "Idioma: " + (navigator.language || "?") + " · Pantalla: " + screen.width + "×" + screen.height + " @" + (window.devicePixelRatio || 1),
       "Versión de la app: " + (function(){ var s = document.querySelector('script[src*="main.js"]'); return s ? s.getAttribute("src") : "?"; })(),
+      "Actualización: " + (function(){ try{ var u = window.__realifyUpdateInfo && window.__realifyUpdateInfo(); if(!u) return "sin comprobar"; return "cargada " + u.loaded + " · última " + (u.latest === null ? "?" : u.latest) + (u.checkedAt ? " · comprobada hace " + Math.round((Date.now() - u.checkedAt) / 1000) + " s" : " · sin comprobar") + (u.error ? " · error: " + u.error : ""); }catch(e){ return "?"; } })() + " · service worker: " + (function(){ try{ return navigator.serviceWorker && navigator.serviceWorker.controller ? "controla la página" : "no controla"; }catch(e){ return "?"; } })(),
       "Arrancada: " + (window.__realifyReady ? "sí" : "NO") + " · segundos desde la carga: " + Math.round((Date.now() - started) / 1000) +
         " · autorreparación: " + (function(){ try{ return sessionStorage.getItem("realify.repaired") === "1" ? "hecha" : "no"; }catch(e){ return "?"; } })(),
       feature("Módulos ES", function(){ return "noModule" in document.createElement("script"); }),

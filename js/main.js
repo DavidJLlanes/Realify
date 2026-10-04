@@ -658,6 +658,7 @@ registerAll({
     }, enabled: () => isText(activeLayer()) },
 
   "help.install": () => promptInstall(),
+  "help.update": async () => (await import("./pwa.js")).checkForUpdateDialog(),
 
   "help.about": () => dialog({
     title: "Acerca de Realify",

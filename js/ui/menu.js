@@ -508,6 +508,7 @@ export const MENUS = [
     { cmd:"help.guide",   label:"Guía…" },
     { cmd:"help.diag",    label:"Diagnóstico…" },
     { sep:true },
+    { cmd:"help.update", ic:"refresh-cw", label:"Buscar actualización…" },
     { cmd:"help.install", label:"Instalar como app…" },
     { sep:true },
     { cmd:"help.legal",    label:"Aviso legal…" },

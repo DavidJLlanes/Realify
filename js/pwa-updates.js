@@ -6,28 +6,54 @@ export function loadedVersion(){
   return value&&/^\d+$/.test(value)?Number(value):null;
 }
 
+/* Estado de la última comprobación, a la vista (Ayuda › Buscar actualización y Diagnóstico). */
+export const updateInfo={loaded:loadedVersion(),latest:null,checkedAt:0,error:null};
+if(typeof window!=='undefined')window.__realifyUpdateInfo=()=>({...updateInfo});
+
 export function watchPWAUpdates({onUpdate,currentVersion=loadedVersion()}={}){
-  let registration=null,pending=null,disposed=false;
+  let registration=null,pending=null,pendingSince=0,disposed=false;
   const sw=navigator.serviceWorker;
+  /* Consulta version.json. Un fallo puntual (red lenta al despertar la app) se reintenta una vez. */
   async function fetchVersion(){
-    const abort=new AbortController(),timeout=setTimeout(()=>abort.abort(),10000);
-    try{
-      const url=new URL('./version.json',document.baseURI);
-      url.searchParams.set('update-check',Date.now());
-      const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:abort.signal});
-      if(!response.ok)return;
-      const data=await response.json(),latest=Number(data.version);
-      if(!disposed&&currentVersion!==null&&Number.isSafeInteger(latest)&&latest>currentVersion)onUpdate?.(latest);
-    }catch{/* Sin conexión o respuesta inválida: mantener la sesión abierta. */}
-    finally{clearTimeout(timeout);}
+    for(let attempt=0;attempt<2;attempt++){
+      const abort=new AbortController(),timeout=setTimeout(()=>abort.abort(),10000);
+      try{
+        const url=new URL('./version.json',document.baseURI);
+        url.searchParams.set('update-check',Date.now());
+        const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:abort.signal});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const data=await response.json(),latest=Number(data.version);
+        if(!Number.isSafeInteger(latest))throw new Error('version.json sin número de versión');
+        updateInfo.latest=latest;updateInfo.checkedAt=Date.now();updateInfo.error=null;
+        if(!disposed&&currentVersion!==null&&latest>currentVersion)onUpdate?.(latest);
+        return;
+      }catch(err){
+        updateInfo.error=String(err?.message||err);updateInfo.checkedAt=Date.now();
+        if(attempt===0)await new Promise(r=>setTimeout(r,2500));
+      }
+      finally{clearTimeout(timeout);}
+    }
   }
   function check(){
     if(disposed||document.visibilityState==='hidden'||navigator.onLine===false)return Promise.resolve();
     // El manifiesto se consulta aunque el worker falle, ya esté actualizado o
     // no llegue a emitir controllerchange (frecuente al reanudar una PWA).
-    if(pending)return pending;
+    // Una consulta «colgada» (iOS congela las peticiones al suspender la app) no bloquea las siguientes.
+    if(pending&&Date.now()-pendingSince<25000)return pending;
     try{Promise.resolve(registration?.update()).catch(()=>{});}catch{}
-    pending=fetchVersion().finally(()=>{pending=null;});return pending;
+    pendingSince=Date.now();
+    const mine=pending=fetchVersion().finally(()=>{if(pending===mine)pending=null;});return pending;
+  }
+  /* Comprobación pedida por la persona (Ayuda › Buscar actualización): sin atajos ni esperas. */
+  async function checkNow(){
+    try{await Promise.resolve(registration?.update()).catch(()=>{});}catch{}
+    await fetchVersion();
+    return {...updateInfo};
+  }
+  /* El propio service worker avisa al activarse (js/pwa.js recibe el mensaje): no depende de version.json. */
+  function swActivated(version){
+    if(disposed||currentVersion===null||!Number.isSafeInteger(version))return;
+    if(version>currentVersion){updateInfo.latest=Math.max(updateInfo.latest||0,version);onUpdate?.(version);}
   }
   const visible=()=>{if(document.visibilityState==='visible')check();};
   document.addEventListener('visibilitychange',visible);
@@ -35,7 +61,7 @@ export function watchPWAUpdates({onUpdate,currentVersion=loadedVersion()}={}){
   sw?.addEventListener?.('controllerchange',check);
   const timer=setInterval(check,60000);
   check();
-  return {check,setRegistration(reg){registration=reg;check();},destroy(){
+  return {check,checkNow,swActivated,setRegistration(reg){registration=reg;check();},destroy(){
     disposed=true;clearInterval(timer);document.removeEventListener('visibilitychange',visible);
     for(const event of ['pageshow','focus','online'])window.removeEventListener(event,check);
     sw?.removeEventListener?.('controllerchange',check);

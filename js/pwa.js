@@ -24,9 +24,10 @@ addEventListener("appinstalled", () => {
 
 let initialized=false;
 let dismissedAt=0,bar=null;
+let watcherRef=null;
 export function initPWA(){
   if(initialized)return;initialized=true;
-  const watcher=watchPWAUpdates({onUpdate:latest=>{
+  const watcher=watcherRef=watchPWAUpdates({onUpdate:latest=>{
     // Al abrir la web o la app, o volver a ponerla en primer plano, se actualiza sola
     // (guardando antes lo abierto). Sólo si no se puede, queda el aviso con Luego/Actualizar.
     if(autoUpdate(latest))return;
@@ -34,6 +35,8 @@ export function initPWA(){
   }});
   // La detección por version.json funciona también sin service worker.
   if(!navigator.serviceWorker||typeof navigator.serviceWorker.register!=="function")return;
+  // Segundo camino, sin version.json: el service worker nuevo avisa a las páginas abiertas al activarse.
+  try{navigator.serviceWorker.addEventListener("message",e=>{if(e.data?.type==="realify-sw")watcher.swActivated(Number(e.data.version));});}catch{}
   const register=()=>{
     try{
       Promise.resolve(navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}))
@@ -162,4 +165,20 @@ export async function promptInstall(){
       un icono de instalación en la barra de direcciones—.</p>`,
     buttons: [{ label:"Entendido", primary:true }]
   });
+}
+
+/** Ayuda › Buscar actualización…: consulta ahora y cuenta lo que hay, con la versión a la vista. */
+export async function checkForUpdateDialog(){
+  const { updateInfo, loadedVersion } = await import("./pwa-updates.js");
+  const { dialog } = await import("./ui/dialog.js");
+  const loaded = loadedVersion();
+  const info = watcherRef ? await watcherRef.checkNow() : { ...updateInfo };
+  const newer = info.latest !== null && loaded !== null && info.latest > loaded;
+  const body = newer
+    ? `<p>Hay una versión nueva de Realify: <b>${info.latest}</b> (esta es la ${loaded}).</p><p class="hint">Se guardan tus documentos abiertos y se recuperan al reiniciar.</p>`
+    : info.error && info.latest === null
+      ? `<p>No se ha podido consultar la última versión (${String(info.error).replace(/</g, "&lt;")}).</p><p class="hint">Versión de esta copia: ${loaded ?? "?"}. Comprueba la conexión e inténtalo de nuevo.</p>`
+      : `<p>Realify está al día: versión <b>${loaded ?? "?"}</b>.</p>`;
+  const r = await dialog({ title: "Buscar actualización", body, buttons: newer ? [{ label: "Luego", value: null }, { label: "Actualizar ahora", primary: true, value: "go" }] : [{ label: "Cerrar", primary: true, value: null }] });
+  if(r === "go") await applyUpdate();
 }

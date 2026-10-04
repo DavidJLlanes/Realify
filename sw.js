@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v234";
+const VERSION = "realify-v235";
 const SHELL = [
   "./",
   "./index.html",
@@ -48,6 +48,10 @@ self.addEventListener("activate", e => {
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
+     // Avisa a las páginas abiertas de que hay una versión nueva (js/pwa.js): segundo camino,
+     // independiente de que puedan consultar version.json.
+     .then(() => self.clients.matchAll({ type: "window" }))
+     .then(cs => cs.forEach(c => c.postMessage({ type: "realify-sw", version: +VERSION.match(/v(\d+)/)[1] })))
   );
 });
 
