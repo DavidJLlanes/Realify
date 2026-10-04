@@ -46,7 +46,7 @@ export const blendIfEligible = l => !!l && l.type !== "group" && l.type !== "adj
    invisible; entre los dos, visible del todo; en la rampa de en medio
    —cuando el punto está partido, blackMin<blackMax o
    whiteMin<whiteMax—, una transición lineal en vez de un corte duro. */
-function rampFactor(value, side){
+export function rampFactor(value, side){
   let lo = 1;
   if(side.blackMax > side.blackMin) lo = clamp((value - side.blackMin) / (side.blackMax - side.blackMin), 0, 1);
   else if(value < side.blackMin) lo = 0;

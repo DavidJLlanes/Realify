@@ -1114,9 +1114,14 @@ const TOPICS = [
           <b>peso aproximado y la calidad estimada</b> antes de exportar; en AVIF y JPEG XL, calidad 100
           = sin pérdidas. AVIF profundo y JPEG XL admiten hasta 24 megapíxeles (8 en móvil). También
           puedes abrir archivos <b>.jxl</b>. Con <b>«Alta precisión al exportar»</b> (y siempre en
-          16 bits) las capas, las capas de ajuste y los modos de fusión se recalculan en coma
-          flotante: apilar varios ajustes ya no deja bandas en cielos y degradados, y al cambiar
-          el tamaño se promedia en luz lineal. <b>«Tramado a 8 bits»</b> añade un ruido
+          16 bits) las capas, las capas de ajuste, los modos de fusión, los <b>estilos de capa</b> y
+          <b>Fusionar si</b> se recalculan en coma flotante: apilar varios ajustes ya no deja bandas
+          en cielos y degradados, y al cambiar el tamaño se promedia en luz lineal. <b>La vista
+          previa también</b>: si el documento tiene capas de ajuste, una foto de 16 bits, Fusionar
+          si o modos de fusión «a mano», se compone en la GPU en coma flotante (WebGL2) y se pasa a 8
+          bits sólo al mostrarla, con un tramado imperceptible; si el equipo no puede, o el documento
+          usa estilos de capa, un trazo en curso o es muy grande, se compone en 8 bits como siempre
+          (Ayuda › Diagnóstico dice si está activo). <b>«Tramado a 8 bits»</b> añade un ruido
           imperceptible que reparte los tonos intermedios al guardar en 8 bits. El segundo
           entrega un PNG sin preguntar nada. En documentos Display P3 aparece <b>Color</b>:
           <b>Display P3</b> (JPEG, PNG y 16 bits, con su perfil incrustado) o <b>sRGB</b> para la

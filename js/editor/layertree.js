@@ -16,7 +16,7 @@
 
 import { doc } from "../core/doc.js";
 import { isAdjustLayer, applyAdjustLayer } from "./adjustlayers.js";
-import { hasEnabledStyle, renderLayerStyles } from "./layerstyles.js";
+import { hasEnabledStyle, renderLayerStyles, styleBehind, styleRing } from "./layerstyles.js";
 import { drawWithBlend, CUSTOM_BLENDS } from "./blend.js";
 import { isBlendIfActive, buildBlendIfAlphaCanvas } from "./blendif.js";
 
@@ -194,6 +194,46 @@ export function compositeTree(nodes, ctx, w, h, scratch = null){
     // modo—, y para cualquier otro uso normal de luz lineal.
     drawWithBlend(ctx, drawn, l.blend, l.opacity, w, h);
   }
+}
+
+/* Láminas de estilo de las capas con estilos activos, a tamaño completo y en 8 bits, para el motor de
+   coma flotante de exportación (core/precision-stack.js): ese motor recorre el documento por franjas, pero
+   una sombra o un resplandor se desenfocan a través de las franjas, así que se dibujan aparte con la
+   misma `drawn` que usa compositeTree (la capa ya recortada por su máscara y por el recorte, sin trazo en
+   curso). Devuelve un Map capa → { behind, ring } (lienzos o null). Mismo recorrido y mismas reglas de
+   recorte que compositeTree; sólo calcula lo que hace falta. */
+export function collectStyleShapes(nodes, w, h, plates = new Map()){
+  let clipBaseCanvas = null;
+  for(const node of nodes){
+    const l = node.layer;
+    if(!l.visible || l.opacity <= 0 || l.__editing) continue;
+    if(isAdjustLayer(l)) continue;
+    let src;
+    if(l.type === "group"){
+      const buf = document.createElement("canvas");
+      buf.width = w; buf.height = h;
+      compositeTree(node.children, buf.getContext("2d", { colorSpace:"srgb" }), w, h, null);
+      collectStyleShapes(node.children, w, h, plates);
+      src = buf;
+    } else src = l.canvas;
+    const effectiveMask = getEffectiveMask(l);
+    const ownMasked = !!(effectiveMask && l.maskEnabled), doClip = !!(l.clipped && clipBaseCanvas);
+    let drawn = src;
+    if(ownMasked || doClip){
+      const tmp = document.createElement("canvas");
+      tmp.width = w; tmp.height = h;
+      const tctx = tmp.getContext("2d", { colorSpace:"srgb" });
+      tctx.drawImage(src, 0, 0);
+      if(ownMasked){ tctx.globalCompositeOperation = "destination-in"; tctx.drawImage(effectiveMask.canvas, 0, 0); tctx.globalCompositeOperation = "source-over"; }
+      if(doClip){ tctx.globalCompositeOperation = "destination-in"; tctx.drawImage(clipBaseCanvas, 0, 0); tctx.globalCompositeOperation = "source-over"; }
+      drawn = tmp;
+    }
+    if(!l.clipped) clipBaseCanvas = drawn;
+    if(l.styles && hasEnabledStyle(l.styles)){
+      plates.set(l, { behind: styleBehind(drawn, l.styles, w, h), ring: styleRing(drawn, l.styles, w, h) });
+    }
+  }
+  return plates;
 }
 
 /* Devuelve un lienzo con todo el documento aplanado —de verdad, con

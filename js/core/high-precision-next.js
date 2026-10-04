@@ -122,12 +122,12 @@ export function renderHighPrecisionCanvas(source, requestedW, requestedH, option
 /* Recompone la pila de capas y ajustes en coma flotante (fase 1 de
  * PENDIENTE.md, ver core/precision-stack.js) y la remuestrea en RGB
  * lineal. Asíncrona: el motor se carga sólo al exportar. Devuelve null
- * si el documento usa algo que ese motor aún no reproduce (estilos de
- * capa, «Fusionar si»): entonces se usa el compuesto de 8 bits.
+ * si el documento usa algo que ese motor aún no reproduce (un modo de
+ * fusión o un ajuste desconocido): entonces se usa el compuesto de 8 bits.
  * `options`: { dither, bits16, alpha, background, layersOnly }. */
 export async function renderPrecisionAdjustmentStack(w, h, options = {}){
   try{
-    const m = await import("./precision-stack.js?v=1");
+    const m = await import("./precision-stack.js?v=2");
     return await m.renderPrecise({ w, h, layersOnly: true, ...options });
   }catch(error){
     console.warn("[alta precisión]", error);

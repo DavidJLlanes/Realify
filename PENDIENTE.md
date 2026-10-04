@@ -171,11 +171,19 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
 - [ ] Cálculo en coma flotante «de verdad» (no por delta) para el desenfoque, el enfoque y el ruido, que hoy
       parten del filtro nativo de 8 bits del lienzo.
 
-## Fase 13 · Compositor de la vista previa en GPU de coma flotante
-- [ ] Fusión de capas, opacidad y modos de fusión en WebGL2 RGBA16F (o WebGPU).
-- [ ] Tramado al mostrar en pantalla.
-- [ ] Estilos de capa y «Fusionar si» también en el motor de coma flotante de exportación
-      (hoy, si se usan, se parte del compuesto de 8 bits; ver fase 1).
+## Fase 13 · Compositor de la vista previa en GPU de coma flotante ✅ en parte (v238)
+- [x] Fusión de capas, opacidad, 28 modos de fusión, máscaras, recorte, grupos, Fusionar si y capas de ajuste en
+      WebGL2 con RGBA32F/RGBA16F (`js/gpu/floatcompositor.js`); contrastado con el motor de exportación en CPU
+      (máx. 0,03 niveles en 32 bits, 0,4 en 16 bits). Capas con origen de 16 bits y documentos Display P3 incluidos. (v238)
+- [x] Tramado al mostrar en pantalla (el mismo de la exportación). (v238)
+- [x] Estilos de capa y «Fusionar si» en el motor de coma flotante de exportación: ya no se parte del aplanado de
+      8 bits (`collectStyleShapes` en `layertree.js`, `applyStylesBand` en `precision-stack.js`). (v238)
+- [ ] Estilos de capa (sombra, resplandor, trazo, degradado) en la vista previa de GPU: hoy, con estilos, el
+      documento se compone en 8 bits. Las láminas de 8 bits de `collectStyleShapes` ya valen como entrada.
+- [ ] Trazo en curso (pincel, borrador) en la GPU: hoy mientras se pinta se compone en 8 bits.
+- [ ] WebGPU como alternativa (los modos «a mano» ya tienen su versión en `webgpu.js`).
+- [ ] Caché de texturas por capa (hoy se suben las capas en cada composición); documentos grandes por mosaicos
+      (≥ 18 MP en escritorio, ≥ 8 MP en móvil) siguen en 8 bits.
 
 ## Fase 14 · Documento en alta precisión
 Lo más costoso: ×2–×4 de memoria (12 MP: ~48 MB por capa → 96–192 MB).

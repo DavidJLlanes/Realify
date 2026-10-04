@@ -19,8 +19,12 @@
    bilineal al ampliar) y se codifica en 8 bits con tramado opcional o
    en 16 bits para PNG/TIFF.
 
-   Si el documento usa algo que aquí aún no se reproduce exactamente
-   (estilos de capa, «Fusionar si»), se parte del aplanado normal de
+   Los estilos de capa (sombra, resplandor, trazo, degradado) y «Fusionar
+   si» también se calculan aquí (fase 13): las sombras y los trazos se
+   dibujan aparte a tamaño completo (colores sólidos), la capa va encima en
+   coma flotante y el degradado y «Fusionar si» se evalúan sin redondear.
+   Si el documento usa algo que aún no se reproduce exactamente (un modo de
+   fusión o un tipo de ajuste desconocido), se parte del aplanado normal de
    8 bits: el remuestreo y la salida siguen siendo de alta precisión.
    Se carga sólo al exportar (import dinámico): un fallo aquí nunca
    impide que el editor arranque.
@@ -28,12 +32,12 @@
 
 import { doc } from "./doc.js";
 import { fillBand } from "./hisrc.js";
-import { buildLayerTree, flatten } from "../editor/layertree.js";
+import { buildLayerTree, flatten, collectStyleShapes } from "../editor/layertree.js";
 import { ADJUST_TYPES, exposureFunction } from "../editor/adjustlayers.js";
 import { levelsFunctions, wbGains } from "../editor/adjustments.js";
 import { curveFunction } from "../editor/curves.js";
-import { hasEnabledStyle } from "../editor/layerstyles.js";
-import { isBlendIfActive } from "../editor/blendif.js";
+import { hasEnabledStyle, gradientParams } from "../editor/layerstyles.js";
+import { isBlendIfActive, rampFactor } from "../editor/blendif.js";
 import { workSpace } from "./colorspace.js";
 import { rgbMatrix } from "./icc.js";
 
@@ -87,10 +91,10 @@ function ditherNoise(x, y, c){
      · Los que mezclan canales (brillo/contraste, tono/saturación, color
        por canales) se evalúan con su propia función sobre una rejilla
        RGB de 86³ (paso 3) en coma flotante y se interpolan. */
-const GRID = 86, STEP = 255 / (GRID - 1);
+export const GRID = 86, STEP = 255 / (GRID - 1);
 const C255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
 
-function adjustFunction(layer){
+export function adjustFunction(layer){
   const type = ADJUST_TYPES[layer.adjustType];
   const p = layer.adjustParams || type.defaults();
   const id = layer.adjustType;
@@ -208,8 +212,10 @@ const custom = {
   "hard-mix": (b, s) => fVividLight(b, s) < 128 ? 0 : 255
 };
 function hash2i(x, y){
-  let h = (x * 374761393 + y * 668265263) | 0;
-  h = (h ^ (h >>> 13)) * 1274126177 | 0;
+  /* Aritmética entera de 32 bits exacta (Math.imul): el producto en coma flotante perdía bits y no coincidía con
+     el de la GPU (WebGPU y el compositor de coma flotante). */
+  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) % 4096 / 4096;
 }
 const SUPPORTED_BLENDS = new Set([...Object.keys(sep), ...Object.keys(nonSep), ...Object.keys(custom),
@@ -295,11 +301,9 @@ function maskBand(layer, y0, w, bh){
 }
 
 /* ¿Hay algo en el documento que este motor aún no reproduce igual? */
-function unsupportedReason(layers){
+export function unsupportedReason(layers){
   for(const l of layers){
     if(!l.visible) continue;
-    if(l.styles && hasEnabledStyle(l.styles)) return "estilos de capa";
-    if(l.type !== "group" && l.type !== "adjust" && isBlendIfActive(l.blendIf)) return "«Fusionar si»";
     if(l.type === "adjust"){
       if(!ADJUST_TYPES[l.adjustType]) return "un tipo de capa de ajuste desconocido";
       const p = l.adjustParams || {};
@@ -310,8 +314,53 @@ function unsupportedReason(layers){
   return null;
 }
 
+/* Lienzo de 8 bits → Float32 premultiplicado de una franja */
+function premultBand(canvas, y0, w, bh){
+  const d = readBand(canvas, y0, w, bh), out = new Float32Array(d.length);
+  for(let i = 0; i < d.length; i += 4){
+    const a = d[i + 3] / 255;
+    if(a <= 0) continue;
+    out[i] = d[i] / 255 * a; out[i + 1] = d[i + 1] / 255 * a; out[i + 2] = d[i + 2] / 255 * a; out[i + 3] = a;
+  }
+  return out;
+}
+
+/* Estilos de capa en coma flotante (mismo orden que renderLayerStyles): sombra y resplandor detrás (láminas de
+   8 bits de collectStyleShapes, de colores sólidos), la capa encima con el degradado calculado sin redondear
+   y el trazo por encima. */
+function applyStylesBand(src, plate, st, y0, w, bh, H){
+  const n = w * bh;
+  if(st.gradient && st.gradient.enabled){
+    const g = gradientParams(st.gradient, w, H), dx = g.x1 - g.x0, dy = g.y1 - g.y0, L2 = dx * dx + dy * dy || 1e-9;
+    for(let p = 0, i = 0; p < n; p++, i += 4){
+      const a = src[i + 3];
+      if(a <= 0) continue;
+      const x = p % w, y = y0 + ((p / w) | 0);
+      let t = ((x + .5 - g.x0) * dx + (y + .5 - g.y0) * dy) / L2;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      for(let c = 0; c < 3; c++){
+        const cur = src[i + c] / a * 255, gc = g.c1[c] + (g.c2[c] - g.c1[c]) * t;
+        src[i + c] = (cur + (gc - cur) * g.opacity) / 255 * a;
+      }
+    }
+  }
+  const acc = plate.behind ? premultBand(plate.behind, y0, w, bh) : new Float32Array(n * 4);
+  for(let i = 0; i < acc.length; i += 4){
+    const k = 1 - src[i + 3];
+    acc[i] = src[i] + acc[i] * k; acc[i + 1] = src[i + 1] + acc[i + 1] * k; acc[i + 2] = src[i + 2] + acc[i + 2] * k; acc[i + 3] = src[i + 3] + acc[i + 3] * k;
+  }
+  if(plate.ring){
+    const r = premultBand(plate.ring, y0, w, bh);
+    for(let i = 0; i < acc.length; i += 4){
+      const k = 1 - r[i + 3];
+      acc[i] = r[i] + acc[i] * k; acc[i + 1] = r[i + 1] + acc[i + 1] * k; acc[i + 2] = r[i + 2] + acc[i + 2] * k; acc[i + 3] = r[i + 3] + acc[i + 3] * k;
+    }
+  }
+  return acc;
+}
+
 /* Compone un nivel del árbol (mismo orden y reglas que compositeTree) */
-function composeLevel(nodes, out, y0, w, bh, fns){
+function composeLevel(nodes, out, y0, w, bh, fns, plates, H){
   const n = w * bh;
   let clipBase = null;
   const tmp = [0, 0, 0];
@@ -337,14 +386,27 @@ function composeLevel(nodes, out, y0, w, bh, fns){
     let src;
     if(l.type === "group"){
       src = new Float32Array(n * 4);
-      composeLevel(node.children || [], src, y0, w, bh, fns);
+      composeLevel(node.children || [], src, y0, w, bh, fns, plates, H);
     } else {
       src = layerBand(l, y0, w, bh);
+    }
+    /* «Fusionar si»: la visibilidad sale de la luminosidad de esta capa (antes de máscara y recorte) y de la de lo
+       que hay compuesto debajo, en coma flotante y sin redondear. */
+    if(l.type !== "group" && isBlendIfActive(l.blendIf)){
+      const bi = l.blendIf;
+      for(let p = 0, i = 0; p < n; p++, i += 4){
+        const sa = src[i + 3], da = out[i + 3];
+        const tl = sa > 0 ? (src[i] * .2126 + src[i + 1] * .7152 + src[i + 2] * .0722) / sa * 255 : 0;
+        const ul = da > 0 ? (out[i] * .2126 + out[i + 1] * .7152 + out[i + 2] * .0722) / da * 255 : 0;
+        const f = rampFactor(tl, bi.thisLayer) * rampFactor(ul, bi.underlying);
+        src[i] *= f; src[i + 1] *= f; src[i + 2] *= f; src[i + 3] *= f;
+      }
     }
     const mk = maskBand(l, y0, w, bh);
     if(mk) for(let p = 0, i = 0; p < n; p++, i += 4){ const k = mk[p]; src[i] *= k; src[i + 1] *= k; src[i + 2] *= k; src[i + 3] *= k; }
     if(l.clipped && clipBase) for(let p = 0, i = 0; p < n; p++, i += 4){ const k = clipBase[p]; src[i] *= k; src[i + 1] *= k; src[i + 2] *= k; src[i + 3] *= k; }
     if(!l.clipped){ clipBase = new Float32Array(n); for(let p = 0, i = 3; p < n; p++, i += 4) clipBase[p] = src[i]; }
+    if(plates && l.styles && hasEnabledStyle(l.styles) && plates.has(l)) src = applyStylesBand(src, plates.get(l), l.styles, y0, w, bh, H);
     blendInto(out, src, l.blend || "source-over", l.opacity, w, y0);
   }
 }
@@ -358,11 +420,12 @@ async function storeFromLayers(W, H){
   const fns = new Map();
   for(const l of doc.layers) if(l.type === "adjust" && l.visible && l.opacity > 0) fns.set(l, adjustFunction(l));
   const tree = buildLayerTree(doc.layers);
+  const plates = doc.layers.some(l => l.visible && l.opacity > 0 && l.styles && hasEnabledStyle(l.styles)) ? collectStyleShapes(tree, W, H) : null;
   const store = new Uint16Array(W * H * 4);
   const rows = Math.max(1, Math.floor(BAND_PIXELS / W));
   for(let y0 = 0; y0 < H; y0 += rows){
     const bh = Math.min(rows, H - y0), out = new Float32Array(W * bh * 4);
-    composeLevel(tree, out, y0, W, bh, fns);
+    composeLevel(tree, out, y0, W, bh, fns, plates, H);
     await breathe();
     const base = y0 * W * 4;
     for(let i = 0; i < out.length; i += 4){

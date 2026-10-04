@@ -901,6 +901,7 @@ registerAll({
           (d.webgl2 ? row(bad.length === 0, "Shaders",
               bad.length ? "fallan: " + bad.map(b => b[0]).join(", ")
                          : Object.keys(d.shaders).length + " compilan correctamente") : "") +
+          `<div class="diag-float"></div>` +
           row(typeof createImageBitmap === "function", "createImageBitmap",
               typeof createImageBitmap === "function" ? "sí" : "no: el análisis ELA no funcionará") +
           row((() => { try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }catch{ return false; } })(),
@@ -909,6 +910,13 @@ registerAll({
           compatRows.map(p => row(false, p.title.split(" ").slice(0, 3).join(" "), p.title)).join("") +
           `<div class="field"><button type="button" class="diag-copy">Copiar diagnóstico</button><span class="hint" style="margin:0">para enviarlo si algo no funciona</span></div>` +
           `<div class="section-label" style="margin-top:12px">Modelos de IA descargados</div><div class="diag-models hint" style="margin:0">Comprobando…</div>`;
+      // Compositor de coma flotante de la vista previa (fase 13): se carga sólo si el documento lo aprovecha
+      import("./gpu/floatcompositor.js").then(m => {
+        const el = body.querySelector(".diag-float"), ok = m.floatAvailable();
+        if(el) el.innerHTML = row(ok, "Compositor de coma flotante",
+          ok ? "sí: ajustes, 16 bits y modos de fusión sin redondear" + (m.floatInfo.last ? " · último: " + (m.floatInfo.last.f32 ? "32" : "16") + " bits, " + m.floatInfo.composes + " usos" : "")
+             : "no: la vista previa se compone en 8 bits");
+      }).catch(() => {});
       body.querySelector(".diag-copy").addEventListener("click", e =>
         window.__realifyCopyDiag?.(window.__realifyDiag?.([
           "WebGL2: " + (d.webgl2 ? "sí" : "no") + (d.renderer ? " · " + d.renderer : ""),

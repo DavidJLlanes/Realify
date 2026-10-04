@@ -122,8 +122,10 @@ function blendPixelPick(ctx, srcCanvas, w, h, opacity, keepDarker){
    deriva un umbral fijo de las coordenadas del propio píxel (hash
    entero barato, sin tabla ni estado). */
 function hash2i(x, y){
-  let h = (x * 374761393 + y * 668265263) | 0;
-  h = (h ^ (h >>> 13)) * 1274126177 | 0;
+  /* Aritmética entera de 32 bits exacta (Math.imul): el producto en coma flotante perdía bits y no coincidía con
+     el de la GPU (WebGPU y el compositor de coma flotante). */
+  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) % 4096 / 4096;
 }
 function blendDissolve(ctx, srcCanvas, w, h, opacity){

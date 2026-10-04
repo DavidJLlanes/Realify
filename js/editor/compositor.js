@@ -316,6 +316,24 @@ function composeTiled(dirty){
   composeOverlay();emit("compositor:done");
 }
 
+/* Compositor de coma flotante en GPU (fase 13, gpu/floatcompositor.js). Se carga sólo cuando el documento lo
+   aprovecha —capas de ajuste, origen de 16 bits, «Fusionar si» o modos de fusión «a mano»—; hasta entonces (y
+   siempre que algo no esté soportado o falle) todo sigue por el camino de 8 bits de abajo, sin cambios. */
+let floatMod = null, floatLoading = false;
+function floatWorthIt(){
+  for(const l of doc.layers){
+    if(!l.visible||l.opacity<=0||l.__editing)continue;
+    if(l.type==="adjust"||(l.hiSrc&&l.hiSrc.data)||CUSTOM_BLENDS.has(l.blend)||(l.type!=="group"&&isBlendIfActive(l.blendIf)))return true;
+  }
+  return false;
+}
+function floatModule(){
+  if(floatMod||floatLoading)return floatMod;
+  floatLoading=true;
+  import("../gpu/floatcompositor.js").then(m=>{floatMod=m;scheduleCompose();}).catch(err=>console.info("[compositor GPU] no se pudo cargar:",err));
+  return null;
+}
+
 export function compose(dirty=null){
   ensureViewSpace();
   if(!doc.open){ cv.width = cv.height = 0;tileHost.innerHTML="";liveTiles.clear(); return; }
@@ -347,6 +365,19 @@ export function compose(dirty=null){
         d[i + 3] = 255;
       }
       cx.putImageData(img, 0, 0);
+      composeOverlay();
+      emit("compositor:done");
+      return;
+    }
+  }
+
+  if(!scratchOn&&floatWorthIt()){
+    const fc=floatModule();
+    const plan=fc&&fc.floatPlan(doc.layers,doc.w,doc.h,{scratchOn});
+    const g=plan&&fc.floatCompose(buildLayerTree(doc.layers),doc.layers,doc.w,doc.h,plan);
+    if(g){
+      cx.drawImage(g,0,0);
+      if(cpuCv){cpuCv.width=cpuCv.height=0;cpuCv=null;cpuCx=null;}
       composeOverlay();
       emit("compositor:done");
       return;

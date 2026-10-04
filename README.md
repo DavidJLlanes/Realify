@@ -257,6 +257,18 @@ tiempo real mientras se pinta.
   Reducción de ruido, Enfoque selectivo, Retoque de retrato, PurePixel…) suman su cambio a los 16 bits del origen
   («delta»), y los Estilos y las Tablas de color calculan en coma flotante a través de una rejilla RGB
   («color»). Los filtros que mueven o sustituyen la imagen siguen en 8 bits.
+- **Vista previa en coma flotante en GPU** (`js/gpu/floatcompositor.js`, fase 13): el mismo árbol de capas
+  que el compositor de 8 bits se recompone en WebGL2 con texturas RGBA32F/RGBA16F —opacidad, 28 modos de
+  fusión, máscaras, recorte, grupos, Fusionar si y capas de ajuste (rejilla RGB de 86³ o curvas de 4096
+  puntos)— con las fórmulas de `core/precision-stack.js`, que es la referencia en las pruebas (diferencia
+  máxima 0,03 niveles en 32 bits y 0,4 en 16 bits). Las capas con origen de 16 bits muestran esos bits (misma
+  regla de `core/hisrc.js`, comprobada en la GPU) y el paso a 8 bits lleva el tramado de la exportación.
+  Sólo se usa si compensa (ajustes, 16 bits, Fusionar si o modos «a mano») y todo está soportado; con estilos
+  de capa, trazo en curso o un documento muy grande, sigue el camino de 8 bits. Documentos Display P3 también
+  (se comprueba una vez que el navegador conserva el P3 por la GPU).
+- **Exportación en coma flotante con estilos de capa y Fusionar si** (`core/precision-stack.js`): la sombra,
+  el resplandor y el trazo se dibujan aparte (láminas de 8 bits de colores sólidos), la capa va encima en
+  coma flotante y el degradado y Fusionar si se evalúan sin redondear; ya no se parte del aplanado de 8 bits.
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

@@ -78,13 +78,12 @@ function linearGradient(ctx, g, w, h){
   return grad;
 }
 
-/* `drawn` es exactamente lo que va a verse de la capa —ya recortado
-   por su máscara y por el recorte a la capa de abajo, pero SIN su
-   opacidad ni su modo de fusión propios, que se aplican después—.
-   Devuelve un lienzo nuevo del mismo tamaño con la sombra y el
-   resplandor detrás, el degradado teñido sobre los píxeles reales y
-   el trazo encima del borde. */
-export function renderLayerStyles(drawn, st, w, h){
+/* Sombra y resplandor ya dibujados en un lienzo nuevo (con una copia de `drawn` encima, como siempre
+   deja el lienzo al dibujar con sombra), o null si no hay ninguno activo. Es la primera mitad de
+   `renderLayerStyles`; el motor de coma flotante (core/precision-stack.js) la usa tal cual y pone
+   la capa en coma flotante encima. */
+export function styleBehind(drawn, st, w, h){
+  if(!((st.shadow && st.shadow.enabled) || (st.glow && st.glow.enabled))) return null;
   const out = document.createElement("canvas");
   out.width = w; out.height = h;
   const octx = out.getContext("2d", { colorSpace:"srgb" });
@@ -109,6 +108,39 @@ export function renderLayerStyles(drawn, st, w, h){
     octx.drawImage(drawn, 0, 0);
     octx.restore();
   }
+  return out;
+}
+
+/* El anillo del trazo (lienzo nuevo) o null si no hay trazo activo. */
+export function styleRing(drawn, st, w, h){
+  if(!(st.stroke && st.stroke.enabled)) return null;
+  return strokeRing(drawn, w, h, st.stroke.width ?? 3, st.stroke.color ?? "#ffffff");
+}
+
+/* Colores 0..255 de la superposición de degradado, para quien la calcule en coma flotante: el degradado
+   lineal de `linearGradient` en (x, y) es c1 + (c2 − c1)·t, con t según la proyección del píxel. */
+export function gradientParams(g, w, h){
+  const rad = (g.angle || 0) * Math.PI / 180;
+  const cx = w / 2, cy = h / 2;
+  const len = Math.abs(w * Math.cos(rad)) + Math.abs(h * Math.sin(rad));
+  const dx = Math.cos(rad) * len / 2, dy = Math.sin(rad) * len / 2;
+  const rgb = hex => { const h2 = String(hex || "#000000").replace("#", ""); const n = parseInt(h2.length === 3 ? h2.split("").map(c => c + c).join("") : h2, 16) || 0; return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  return { x0: cx - dx, y0: cy - dy, x1: cx + dx, y1: cy + dy, c1: rgb(g.color1), c2: rgb(g.color2), opacity: (g.opacity ?? 100) / 100 };
+}
+
+/* `drawn` es exactamente lo que va a verse de la capa —ya recortado
+   por su máscara y por el recorte a la capa de abajo, pero SIN su
+   opacidad ni su modo de fusión propios, que se aplican después—.
+   Devuelve un lienzo nuevo del mismo tamaño con la sombra y el
+   resplandor detrás, el degradado teñido sobre los píxeles reales y
+   el trazo encima del borde. */
+export function renderLayerStyles(drawn, st, w, h){
+  let out = styleBehind(drawn, st, w, h);
+  if(!out){
+    out = document.createElement("canvas");
+    out.width = w; out.height = h;
+  }
+  const octx = out.getContext("2d", { colorSpace:"srgb" });
 
   let top = drawn;
   if(st.gradient && st.gradient.enabled){
@@ -127,9 +159,8 @@ export function renderLayerStyles(drawn, st, w, h){
   }
   octx.drawImage(top, 0, 0);
 
-  if(st.stroke && st.stroke.enabled){
-    octx.drawImage(strokeRing(drawn, w, h, st.stroke.width ?? 3, st.stroke.color ?? "#ffffff"), 0, 0);
-  }
+  const ring = styleRing(drawn, st, w, h);
+  if(ring) octx.drawImage(ring, 0, 0);
 
   return out;
 }

@@ -9,6 +9,25 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v238 · Vista previa en coma flotante en GPU (fase 13)
+- **Compositor de coma flotante en GPU** (`js/gpu/floatcompositor.js`): el árbol de capas se recompone en WebGL2
+  con texturas RGBA32F (RGBA16F si el equipo no puede dibujar en 32) y sólo se pasa a 8 bits al mostrarlo, con
+  el mismo tramado que la exportación. Cubre opacidad, los 28 modos de fusión, máscaras, recorte, grupos,
+  «Fusionar si» y capas de ajuste (curvas de 4096 puntos para Niveles, Curvas, Exposición y Balance de blancos;
+  rejilla RGB de 86³ para el resto). Las capas con origen de 16 bits muestran esos bits (la regla de
+  `core/hisrc.js` se comprueba en la GPU). Documentos Display P3 incluidos, tras una comprobación única de que el
+  navegador conserva el P3 por la GPU.
+- **Cuándo se usa**: sólo si compensa (capas de ajuste, origen de 16 bits, «Fusionar si» o modos de fusión «a
+  mano») y todo está soportado; con estilos de capa, un trazo en curso, documentos muy grandes (mosaicos) o sin
+  WebGL2 de coma flotante, sigue el compositor de 8 bits, sin cambios. Ayuda › Diagnóstico dice si está activo.
+- **Contrastado con la exportación en CPU** (`core/precision-stack.js`): 29 modos de fusión, 8 tipos de ajuste,
+  máscara, recorte, grupo y Fusionar si dan una diferencia máxima de 0,03 niveles en 32 bits y de 0,4 en 16 bits.
+- **Exportación en coma flotante con estilos de capa y «Fusionar si»**: ya no se parte del aplanado de 8 bits.
+  Sombra, resplandor y trazo se dibujan aparte a tamaño completo y la capa va encima en coma flotante; el
+  degradado y «Fusionar si» se evalúan sin redondear (diferencia con el aplanado de 8 bits: media 0,3–0,5 niveles).
+- **Disolver** usa ahora aritmética entera exacta (`Math.imul`) en el compositor de 8 bits, en el de exportación y
+  en WebGPU, igual que la GPU nueva: el patrón es el mismo en la vista, en la exportación y en la GPU.
+
 ### v237 · Filtros en coma flotante (fase 12)
 - **Motor común para filtros** (`js/editor/floatfilter.js`) y opción `float` en `runFilter` y en el diálogo en
   vivo de photo-tools, que convive con el camino de 8 bits: sólo actúa si la capa trae origen de 16 bits que

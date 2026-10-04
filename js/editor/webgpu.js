@@ -48,7 +48,7 @@ struct P { size:vec2<u32>, mode:u32, pad:u32, opacity:f32, seed:f32, p2:f32, p3:
 @group(0) @binding(3) var<uniform> p:P;
 fn lum(c:vec3<f32>)->f32{return dot(c,vec3<f32>(.2126,.7152,.0722));}
 fn vivid(b:f32,s:f32)->f32{if(s<=.5){if(s<=0.){return 0.;}return 1.-clamp((1.-b)/(2.*s),0.,1.);}if(s>=1.){return 1.;}return clamp(b/(2.*(1.-s)),0.,1.);}
-fn hash(q:vec2<u32>)->f32{var n=q.x*374761393u+q.y*668265263u;n=(n^(n>>13u))*1274126177u;return f32(n^(n>>16u))/4294967295.;}
+fn hash(q:vec2<u32>)->f32{var n=q.x*374761393u+q.y*668265263u;n=(n^(n>>13u))*1274126177u;return f32((n^(n>>16u))%4096u)/4096.;}
 @compute @workgroup_size(8,8) fn main(@builtin(global_invocation_id) q:vec3<u32>){
  if(q.x>=p.size.x||q.y>=p.size.y){return;} let xy=vec2<i32>(q.xy);let b=textureLoad(baseTex,xy,0);let s=textureLoad(topTex,xy,0);let a=s.a*p.opacity;if(a<=0.){textureStore(outTex,xy,b);return;}
  var r=s.rgb;
