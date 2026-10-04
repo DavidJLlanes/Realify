@@ -81,6 +81,8 @@ const ITEMS = [
   { cmd:"adj.dehaze",            label:"Quitar neblina",       ic:"cloud-fog",             cat:"mejorar corregir" },
   { cmd:"adj.hdrTone",           label:"Tono HDR",             ic:"mountain-snow",         cat:"mejorar estilo" },
   { cmd:"adj.tonalContrast",     label:"Contraste tonal",      ic:"circle-gauge",          cat:"mejorar" },
+  { cmd:"adj.clahe",             label:"Contraste local",      ic:"grid-contrast",         cat:"mejorar" },
+  { cmd:"adj.clahePremium",      label:"Contraste local Premium", ic:"grid-contrast", premium:true, cat:"mejorar" },
   { cmd:"adj.graduatedFilter",   label:"Graduado y radial",    ic:"sunset",                cat:"mejorar" },
   { cmd:"adj.autoToneColor",     label:"Tono y color auto.",   ic:"wand",                  cat:"auto mejorar color" },
   { cmd:"adj.autoToneColorPremium", label:"Tono y color auto. Premium", ic:"wand", premium:true, cat:"auto mejorar color" },

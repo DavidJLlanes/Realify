@@ -232,6 +232,30 @@ export function perspStraighten(){
   perspRecompute();
 }
 
+/* «Automático»: OpenCV busca los segmentos largos casi verticales y casi
+   horizontales (js/cv/lines.js) y los pone como guías, que es justo lo
+   que hace uno a mano; después se afina arrastrando o borrando guías. */
+export async function perspAuto(){
+  if(!armed || !src) return;
+  const lib = await (await import("../cv/opencv.js")).loadOpenCv();
+  if(!lib || !armed || !src) return;
+  status("Buscando líneas rectas…");
+  await new Promise(r => setTimeout(r, 30));
+  // Foto sin deformar: las copias completas de las capas visibles, en su orden
+  const flat = document.createElement("canvas"); flat.width = doc.w; flat.height = doc.h;
+  const fx = flat.getContext("2d");
+  for(const s of src){ const l = doc.layers.find(x => x.id === s.id); if(!l || l.visible === false) continue; fx.globalAlpha = l.opacity ?? 1; fx.drawImage(s.full, 0, 0, doc.w, doc.h); }
+  const { detectGuides } = await import("../cv/lines.js");
+  const r = detectGuides(lib.cv, flat);
+  status("");
+  if(!r.v.length && !r.h.length){ toast("No he encontrado líneas rectas claras: traza las guías a mano"); return; }
+  persp.base = identityQuad(); persp.quad = identityQuad();
+  persp.guides = [...r.v.map(g => ({ ...g, kind: "v" })), ...r.h.map(g => ({ ...g, kind: "h" }))];
+  perspStraighten(); perspPreview();
+  emit("tool:options"); scheduleOverlay();
+  toast(`${r.v.length} guías verticales y ${r.h.length} horizontales: arrastra o toca una para corregirla`, "ok");
+}
+
 export function perspClearGuides(){
   persp.guides = [];
   persp.base = identityQuad();

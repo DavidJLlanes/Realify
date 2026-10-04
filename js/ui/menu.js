@@ -271,6 +271,8 @@ export const MENUS = [
       { cmd:"adj.dehaze",          label:"Quitar neblina…" },
       { cmd:"adj.hdrTone",         label:"Tono HDR…" },
       { cmd:"adj.tonalContrast",   label:"Contraste tonal…" },
+      { cmd:"adj.clahe",           label:"Contraste local (CLAHE)…" },
+      { cmd:"adj.clahePremium",    label:"Contraste local (CLAHE) Premium 👑…" },
       { cmd:"adj.graduatedFilter", label:"Densidad neutra graduada / radial…" }
     ]},
     { label:"Mapa tonal y gráfico", submenu:[

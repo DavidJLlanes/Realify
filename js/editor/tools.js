@@ -27,7 +27,7 @@ import { hexToRgb, floodFill, drawGradient, drawShape,
          dodgeBurn, makeSmudge, cloneStamp, healSpot } from "./paint.js";
 import { perspBegin, perspEnd, perspRestore, perspPreview, perspRecompute,
          perspDown, perspMove, perspUp, perspCancel, perspApply, perspReset,
-         perspFill, perspClearGuides, perspSync, drawPerspOverlay,
+         perspFill, perspClearGuides, perspAuto, perspSync, drawPerspOverlay,
          persp, perspHasChange } from "./perspectool.js";
 import { xform, xformBegin, xformEnd, xformRestore, xformDown, xformMove, xformUp,
          xformCancel, xformApply, xformResetAll, xformFlip, xformSync,
@@ -1627,6 +1627,9 @@ export const TOOLS = [
          no tiene tiradores, así que no hay nada que invite a trazar. */
       {type:"static", label:"Traza sobre lo que debería estar recto: el horizonte, un canto vertical. Toca una guía para borrarla.",
        showIf:() => state.perspMode === "guides"},
+      {type:"button", label:"Automático 👑", cmd:"perspective.auto",
+       title:"Premium: busca solo las líneas que deben quedar rectas (OpenCV)",
+       showIf:() => state.perspMode === "guides"},
       {type:"button", label:"Borrar guías", cmd:"perspective.clear",
        showIf:() => state.perspMode === "guides"},
       {type:"range", key:"perspVert", label:"Vertical", min:-100, max:100,
@@ -3194,6 +3197,7 @@ export function resetPerspective(){
 }
 
 export function clearPerspGuides(){ perspClearGuides(); }
+export function autoPerspGuides(){ return perspAuto(); }
 
 /* «Rellenar» cambia la escala por su cuenta, así que hay que devolver
    el valor al estado o el deslizador se quedaría diciendo otra cosa. */

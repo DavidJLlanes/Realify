@@ -185,6 +185,8 @@ export const FILTERS = {
                        scale: (p, t) => ({ ...p, amount: (p.amount ?? 100) * t }) },
   "low-light":       { load: mod("./lowlight.js"), fn: "lowLight",
                        scale: (p, t) => ({ ...p, amount: (p.amount ?? 60) * t }) },
+  "clahe":           { load: mod("./clahe.js"), fn: "clahe",
+                       scale: (p, t) => ({ ...p, amount: (p.amount ?? 100) * t }) },
   "hdr-tone": { load: mod("./advanced-color.js"), fn: "hdrTone",
                  scale: (p, t) => toward(p, t, zeros("compression", "detail", "glow")) },
   "tonal-contrast": { load: mod("./advanced-color.js"), fn: "tonalContrast",
@@ -270,7 +272,7 @@ const LIVE_CAPABLE = new Set([
   "custom-convolution", "offset-morphology"
   , "color-grading", "split-toning", "photo-filter", "dehaze", "lab-curves",
   "range-hsl", "tone-band", "replace-color", "match-color", "threshold", "posterize", "equalize",
-  "desaturate", "auto-tone-color", "low-light", "hdr-tone", "tonal-contrast", "graduated-filter"
+  "desaturate", "auto-tone-color", "low-light", "clahe", "hdr-tone", "tonal-contrast", "graduated-filter"
 ]);
 export const filterLiveCapable = id => LIVE_CAPABLE.has(id);
 
