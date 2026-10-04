@@ -238,6 +238,16 @@ tiempo real mientras se pinta.
   combinadas por franjas en luz lineal: reducir ruido con rechazo de movimiento (el ruido
   baja en √N) o ampliar el enfoque (la toma más nítida en cada punto). Foto nueva a
   resolución completa.
+- **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
+  una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
+  nítidos, a 1024 px).
+- **Escanear documento Premium 👑** (`js/features/docscan.js`, `js/cv/docquad.js`): cuadrilátero
+  con OpenCV (Canny y Otsu), esquinas editables, proporción real por el método de Zhang y He y
+  homografía Lanczos a resolución completa.
+- **Perspectiva automática** (botón «Automático 👑» de Perspectiva, `js/cv/lines.js`): Hough
+  probabilista + RANSAC de punto de fuga para poner las guías solas.
+- **Contraste local (CLAHE)** (`js/editor/clahe.js`, `clahe-math.js`): normal y Premium (OKLab,
+  1024 niveles, croma que acompaña a la luz, tramado).
 - **Cortar en partes** (pantalla completa, `cortar/`): cuadrícula, tamaño fijo,
   carrusel, perfil de Instagram (orden de subida) o cortes a mano. Cada trozo en
   una capa nueva, en su pestaña, en un ZIP o suelto.

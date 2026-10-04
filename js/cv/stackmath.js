@@ -135,3 +135,68 @@ export function combineFocus(imgs, W, H, y0, y1, out, { power = 6, smooth = 3, r
     out[oo] = enc(r) + nz; out[oo + 1] = enc(g) + nz; out[oo + 2] = enc(b) + nz; out[oo + 3] = 255;
   }
 }
+
+/* ── Análisis de nitidez (fase 8) ────────────────────────────── */
+
+/** Luma 0-255 de un RGBA, reducida por bloques a `side` px de lado largo (para comparar tomas de distinto tamaño). */
+function lumaSmall(img, W, H, side){
+  const k = Math.min(1, side / Math.max(W, H)), w = Math.max(8, Math.round(W * k)), h = Math.max(8, Math.round(H * k)), out = new Float32Array(w * h);
+  for(let y = 0; y < h; y++){
+    const y0 = Math.floor(y / k), y1 = Math.min(H, Math.max(y0 + 1, Math.floor((y + 1) / k)));
+    for(let x = 0; x < w; x++){
+      const x0 = Math.floor(x / k), x1 = Math.min(W, Math.max(x0 + 1, Math.floor((x + 1) / k)));
+      let s = 0, n = 0;
+      for(let yy = y0; yy < y1; yy++) for(let xx = x0; xx < x1; xx++){ const o = (yy * W + xx) * 4; s += img[o] * 0.299 + img[o + 1] * 0.587 + img[o + 2] * 0.114; n++; }
+      out[y * w + x] = s / n;
+    }
+  }
+  return { L: out, w, h };
+}
+
+/** Varianza del Laplaciano por bloques de 24 px: los bloques más nítidos mandan, así un cielo liso no hunde la nota. */
+export function focusScore(img, W, H){
+  const { L, w, h } = lumaSmall(img, W, H, 1024), blk = 24, vals = [];
+  for(let by = 0; by + blk <= h; by += blk) for(let bx = 0; bx + blk <= w; bx += blk){
+    let s = 0, s2 = 0, n = 0;
+    for(let y = by + 1; y < by + blk - 1; y++) for(let x = bx + 1; x < bx + blk - 1; x++){
+      const i = y * w + x, v = 4 * L[i] - L[i - 1] - L[i + 1] - L[i - w] - L[i + w];
+      s += v; s2 += v * v; n++;
+    }
+    vals.push(s2 / n - (s / n) ** 2);
+  }
+  if(!vals.length) return 0;
+  vals.sort((a, b) => b - a);
+  const top = vals.slice(0, Math.max(1, Math.round(vals.length * 0.2))), mean = top.reduce((a, b) => a + b, 0) / top.length;
+  return mean;
+}
+/** Nota 0-100 legible a partir de la varianza. */
+export const scoreTo100 = v => Math.max(0, Math.min(100, 22 * Math.log10(1 + v)));
+
+/**
+ * Mapa de enfoque a tamaño completo: RGBA (azul = algo nítido, verde, amarillo, rojo = muy nítido;
+ * transparente donde no hay detalle enfocado). Calcula por franjas para no gastar memoria.
+ */
+export function focusMapRows(img, W, H, y0, y1, out, ref95){
+  const pad = 6, ya = Math.max(0, y0 - pad), yb = Math.min(H, y1 + pad), h = yb - ya;
+  const S = sharpness(img, W, ya, yb, 2);
+  for(let y = y0; y < y1; y++) for(let x = 0; x < W; x++){
+    const t = Math.min(1, S[(y - ya) * W + x] / ref95), o = ((y - y0) * W + x) * 4;
+    if(t < 0.22){ out[o] = out[o + 1] = out[o + 2] = out[o + 3] = 0; continue; }
+    // rampa azul → verde → amarillo → rojo
+    let r, g, b; const u = (t - 0.22) / 0.78;
+    if(u < 1 / 3){ const k = u * 3; r = 40; g = 120 + 135 * k; b = 255 - 175 * k; }
+    else if(u < 2 / 3){ const k = (u - 1 / 3) * 3; r = 40 + 215 * k; g = 255; b = 80 - 60 * k; }
+    else { const k = (u - 2 / 3) * 3; r = 255; g = 255 - 190 * k; b = 20; }
+    out[o] = r; out[o + 1] = g; out[o + 2] = b; out[o + 3] = 90 + 130 * u;
+  }
+}
+/** Nivel de referencia del mapa: percentil 95 de la nitidez local, medido a resolución completa en 6 franjas repartidas. */
+export function focusMapRef(img, W, H){
+  const vals = [], band = Math.min(H, 96);
+  for(let k = 0; k < 6; k++){
+    const ya = Math.round((H - band) * k / 5), S = sharpness(img, W, ya, ya + band, 2);
+    for(let i = 0; i < S.length; i += 3) if(S[i] > 0) vals.push(S[i]);
+  }
+  vals.sort((a, b) => a - b);
+  return Math.max(1, vals[Math.floor(vals.length * 0.95)] || 1);
+}

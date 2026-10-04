@@ -210,6 +210,8 @@ registerAll({
   /* Plugins a pantalla completa (carpetas hdr/, …): no necesitan documento */
   "image.hdr":       { run: async () => (await import("../hdr/index.js")).openHdr() },
   "image.merge":     { run: async () => (await import("../unir/index.js")).openMerge() },
+  "image.docscan":   { run: async () => (await import("./features/docscan.js")).openDocScan(), enabled: needsDoc },
+  "image.sharpness": { run: async () => (await import("./features/sharpness.js")).openSharpness() },
   "image.stack":     { run: async () => (await import("./features/stack.js")).openStack() },
   "image.flipH":  { run: flipH,       enabled: needsDoc },
   "image.flipV":  { run: flipV,       enabled: needsDoc },

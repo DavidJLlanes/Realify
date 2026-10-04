@@ -345,7 +345,8 @@ const TOPICS = [
           (deslizadores de trapecio, giro y escala). «Rellenar» amplía la imagen lo justo
           para tapar las cuñas transparentes que deja corregir la perspectiva. Mismo
           criterio que Transformación libre: cambiar de herramienta con una corrección
-          ya trazada la aplica; <b>Esc</b> o «Cancelar» la descartan de verdad.</li>
+          ya trazada la aplica; <b>Esc</b> o «Cancelar» la descartan de verdad. En el modo Guías, <b>Automático 👑</b> busca solo las líneas casi verticales (y las horizontales
+          ya casi rectas) con OpenCV y las pone como guías; luego puedes arrastrarlas o borrarlas.</li>
       </ul>` },
 
   { id:"imagen", title:"Imagen (menú Imagen)",
@@ -414,6 +415,14 @@ const TOPICS = [
           «Corregir movimiento fino» añade flujo óptico para lo que el giro y el desplazamiento no
           explican. La primera vez se descarga OpenCV (11 MB, una sola vez). El resultado se abre
           como una foto nueva, a la resolución completa que admite el editor.</li>
+        <li id="img-sharp"><b>Análisis de nitidez…</b> <b>Mapa de enfoque</b> de la imagen: una capa
+          nueva, a resolución completa, que colorea lo nítido (azul, verde, amarillo, rojo = lo más
+          nítido). <b>Mejor toma</b>: de varias fotos parecidas (del dispositivo o abiertas) las ordena de
+          más a menos nítida con una nota de 0 a 100 y abre la mejor.</li>
+        <li id="img-docscan"><b>Escanear documento Premium 👑…</b> Encuentra el papel, la pizarra o el
+          cuadro de la foto (OpenCV, se descarga una vez), deja arrastrar las cuatro esquinas, deduce la
+          proporción real del papel desde la perspectiva (o la fija a A4 / Carta) y lo endereza a
+          resolución completa. Foto nueva.</li>
         <li id="img-slice"><b>Cortar en partes…</b> Pantalla completa. Cuadrícula, tamaño fijo,
           <b>carrusel</b> (2 a 10 publicaciones seguidas), <b>perfil de Instagram</b> (numerado en
           el orden de subida) o <b>cortes a mano</b> (toca para añadir, arrastra para mover).
@@ -656,7 +665,9 @@ const TOPICS = [
         <li><b>Tono y luz avanzados (submenú).</b> <i>Quitar neblina</i> (recupera contraste y
           color en fotos veladas, o añade niebla en negativo), <i>Tono HDR</i> (comprime el
           rango y realza el detalle local), <i>Contraste tonal</i> (micro, medio y
-          macrocontraste por separado), <i>Densidad neutra graduada / radial</i> (exposición,
+          macrocontraste por separado), <i>Contraste local (CLAHE)</i> (ecualización adaptativa por
+          zonas con límite de contraste; con «Premium 👑» trabaja en la luminosidad percibida OKLab,
+          con el color acompañando a la luz y tramado), <i>Densidad neutra graduada / radial</i> (exposición,
           contraste y temperatura sólo en una parte de la foto). <i>Tono / Color
           automático</i> está, con los demás automáticos, en <b>Ajustes › Automáticos</b> (también como «Tono / Color automático Premium 👑», que lo abre con el interruptor ya encendido); tiene interruptor <b>Premium 👑</b>: con los mismos mandos, el
           estiramiento y los medios se aplican a la intensidad de cada color (el tono y la

@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v231 · Visión clásica con OpenCV (fase 8)
+- **Perspectiva automática 👑**: botón «Automático» en el modo Guías de Perspectiva. Hough
+  probabilista + RANSAC de punto de fuga eligen hasta 3 guías por familia. Con una fachada
+  sintética con verticales a 9°, 2,3° y −5° quedan a 0,00°. Las horizontales sólo cuentan si ya
+  están casi rectas (en una fachada vista de lado convergen de verdad).
+- **Contraste local (CLAHE)** (Ajustes › Tono avanzado), normal y Premium 👑: ecualización adaptativa con
+  límite de contraste e interpolación entre mosaicos. Premium: luminosidad OKLab en coma
+  flotante (1024 niveles), el croma acompaña a la luz con mapeo de gama, tramado. Resultado en
+  capa nueva, a tamaño completo.
+- **Análisis de nitidez** (Imagen): mapa de enfoque a resolución completa en una capa nueva y
+  ranking de tomas con nota 0-100 para abrir la mejor (en una prueba, 77 y 69 las nítidas frente a
+  36 y 35 las desenfocadas).
+- **Escanear documento 👑** (Imagen): detecta el papel con OpenCV, esquinas arrastrables, proporción
+  real deducida de la perspectiva (con una cámara sintética recupera 0,707 de un A4) o A4 / Carta, y
+  lo endereza a resolución completa. Foto nueva.
+
 ### v230 · Apilado de fotos con OpenCV (fase 7)
 - **Apilar fotos Premium 👑** (Imagen › Apilar fotos…): de 2 a 16 tomas de la misma escena
   hechas a pulso, alineadas con **precisión subpíxel** y combinadas. **Reducir ruido**: media

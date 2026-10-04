@@ -114,11 +114,15 @@ que ya funciona.
       alineación por traslación).
 - [ ] Apilar RAW directamente y ordenar las tomas por nitidez para elegir la referencia.
 
-## Fase 8 · Visión clásica (OpenCV.js, parte 2)
-- [ ] Corrección de perspectiva y detección de horizonte automáticas.
-- [ ] CLAHE (contraste local adaptativo).
-- [ ] Análisis de nitidez (elegir la mejor toma, mapa de enfoque).
-- [ ] Detección y enderezado automático de documentos.
+## Fase 8 · Visión clásica (OpenCV.js, parte 2) ✅ (v231, con pendientes)
+- [x] Corrección de perspectiva y detección de horizonte automáticas (botón Automático de
+      Perspectiva; el horizonte ya lo hacía Enderezar automáticamente). (v231)
+- [x] CLAHE (contraste local adaptativo), normal y Premium. (v231)
+- [x] Análisis de nitidez (mapa de enfoque, mejor toma). (v231)
+- [x] Detección y enderezado automático de documentos. (v231)
+- [ ] Usar el análisis de nitidez para elegir la referencia en Apilar fotos.
+- [ ] Documentos: mejora opcional del fondo (aclarar el papel, blanco y negro) y varias páginas.
+- [ ] Perspectiva automática con líneas diagonales y puntos de fuga horizontales (fachadas vistas de lado).
 
 ## Fase 9 · Corrección de lente con perfiles reales
 - [ ] Base de perfiles por objetivo (distorsión, viñeteo y aberración); revisar su
