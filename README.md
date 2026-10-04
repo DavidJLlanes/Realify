@@ -187,6 +187,7 @@ r3d raf raw rwl rw2 rwz sr2 srf srw x3f`.
 
 Los pinceles tienen tamaño, dureza, opacidad, flujo, espaciado y dispersión.
 Mover ajusta a los bordes y centros de las demás capas.
+Como en Photoshop, **Alt + botón derecho y arrastrar** cambia el tamaño (horizontal) y la dureza (vertical) de pinceles y herramientas de retoque compatibles.
 
 **Dinámicas del pincel**: la presión, velocidad e inclinación del stylus (o
 emuladas con el ratón) pueden aplicarse a:
@@ -312,6 +313,7 @@ tiempo real mientras se pinta.
 - **Capas de relleno**: color sólido, degradado y motivo.
 - **Alinear y distribuir** capas.
 - Combinar con la de abajo, combinar visibles y acoplar imagen.
+- Renombrar con doble clic en el nombre o desde el menú contextual; selección múltiple con Ctrl/Cmd o Mayús en escritorio y con el botón de selección en móvil. Las capas marcadas se pueden agrupar.
 - **Añadir stickers** y **añadir marca de agua**.
 
 ## 7. Texto
@@ -408,6 +410,16 @@ datos EXIF. Editor a pantalla completa con zoom real hasta 1:1, comparación,
 histograma y espectro. Interruptor **Premium 👑** (y entrada «Realify Premium 👑»):
 los mismos mandos con la cadena en coma flotante de 32 bits, luces con hombro que
 conserva el tono, tinte y saturación en OKLab con mapeo de gama y tramado a 8 bits.
+
+### Marcos — `frames/`
+**138 modelos en 12 categorías**, con un marco Liso de color único y 16 diseños
+de autor: kintsugi, vitral, origami, constelación, holográfico y otros. Diamond y
+Heart utilizan motivos vectoriales en los cuatro lados. Anchura y colores
+editables en todos los modelos, tanto en móvil como en escritorio. La vista
+previa y los mandos se adaptan al área visible del navegador. Zoom con rueda o
+pellizco, arrastre para recorrer la imagen y «Encajar» para verla completa. El marco amplía el
+lienzo, conserva la fotografía y se añade en una capa independiente; deshacer
+recupera el tamaño anterior. Detalles en [`frames/README.md`](frames/README.md).
 
 ### Filtro Vintage — `vintagefilter/`
 42 parámetros en 7 grupos (virados, color —con blanco y negro ortocromático y
@@ -506,7 +518,10 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 ## 13. App, privacidad y ayuda
 
 - **PWA instalable** (Ayuda › Instalar como app) con service worker para
-  funcionar sin conexión.
+  funcionar sin conexión. Comprueba versiones al arrancar, volver a la app y
+  recuperar conexión, y cada minuto mientras está visible. «Actualizar» guarda
+  y recupera los documentos abiertos; «Luego» aplaza el aviso. La detección
+  funciona aunque el service worker no cambie al reanudar la app.
 - **Guía** interactiva con **buscador** (sin tildes, varias palabras, salta al
   párrafo exacto), página de **novedades** y ayuda directa de cada herramienta
   (botón «?» de la barra de opciones); asistente de bienvenida.

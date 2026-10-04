@@ -117,6 +117,7 @@ registerAll({
   /* Misma edición en varias fotos (lote/) */
   "file.batchEdit":  { run: async () => (await import("../lote/index.js")).openBatchEdit(), enabled: needsDoc },
   "file.startBatch": () => promptStartBatch(),
+  "ai.advancedLocal": { run: async () => (await import("../advanced-ai/index.js")).openAdvancedAI(), enabled: needsDoc },
   "ai.tapSelect":   { run: async () => (await import("./features/samtools.js")).openSamTool("select"), enabled: needsDoc },
   "ai.magicErase":  { run: async () => (await import("./features/samtools.js")).openSamTool("erase"), enabled: needsDoc },
   "ai.faceBlur":    { run: async () => (await import("./features/facetools.js")).openFaceBlur(), enabled: needsDoc },
@@ -220,6 +221,16 @@ registerAll({
                          if(l && l.type === "group") duplicateGroup(l.id);
                          else recordLayers("Duplicar capa", () => duplicateLayer());
                        }, enabled: needsDoc },
+  "layer.rename": { run: async () => {
+                       const l = activeLayer(); if(!l) return;
+                       const name = await promptDlg("Renombrar capa", "Nombre", l.name);
+                       if(name === null) return;
+                       const before = l.name, after = name.trim().slice(0, 80) || before;
+                       if(after === before) return;
+                       l.name = after;
+                       record("Renombrar capa", () => { l.name = before; emit("doc:structure"); }, () => { l.name = after; emit("doc:structure"); });
+                       emit("doc:structure");
+                     }, enabled: needsDoc },
   "layer.remove":    { run: () => {
                          const l = activeLayer();
                          if(l && l.type === "group"){
@@ -244,6 +255,19 @@ registerAll({
                          // requirePaintable() en editor/tools.js—.
                          const i = doc.layers.findIndex(l => l.id === doc.activeId);
                          const below = i > 0 ? doc.layers[i - 1] : null;
+                         if(below && (!below.visible || below.opacity !== 1 || below.blend !== "source-over" || below.clipped || below.mask || below.maskRef || below.styles || below.blendIf)){
+                           toast(`«${below.name}» tiene máscara, opacidad, fusión o efectos propios; aplícales una composición segura antes de combinar.`, "err");
+                           return;
+                         }
+                         const top = i >= 0 ? doc.layers[i] : null;
+                         if(top && below && top.groupId !== below.groupId){
+                           toast("No se pueden combinar capas de grupos distintos; desagrupa o elige una capa del mismo grupo.", "err");
+                           return;
+                         }
+                         if(top && (top.clipped || top.styles || top.blendIf || top.filters?.length)){
+                           toast(`«${top.name}» tiene recorte, estilos, filtros o Fusionar si; aplícalos antes de combinar.`, "err");
+                           return;
+                         }
                          if(below && (canRasterize(below))){
                            toast(`«${below.name}» es una capa de relleno o de forma: rasterízala primero (menú Capa) para poder combinar sobre ella.`, "err");
                            return;
@@ -273,7 +297,77 @@ registerAll({
                            () => put(pixBefore, prevLayers, prevActive),
                            () => put(pixAfter, nextLayers, nextActive));
                        },
-                       enabled: () => { const l = activeLayer(); return needsDoc() && l && l.type !== "group"; } },
+                       enabled: () => { const l = activeLayer(); return needsDoc() && l && l.type !== "group" && l.type !== "adjust"; } },
+  "layer.mergeSelected": { run: () => {
+                         const ids = getSelectedLayerIds();
+                         if(ids.length < 2){ toast("Selecciona al menos dos capas para combinarlas.", "err"); return; }
+                         const selected = ids.map(id => ({ id, i: doc.layers.findIndex(l => l.id === id) }))
+                           .filter(x => x.i >= 0).sort((a, b) => a.i - b.i);
+                         if(selected.length < 2){ toast("Selecciona al menos dos capas para combinarlas.", "err"); return; }
+                         for(let k = 1; k < selected.length; k++){
+                           if(selected[k].i !== selected[k - 1].i + 1){
+                             toast("Sólo se pueden combinar capas seleccionadas contiguas.", "err");
+                             return;
+                           }
+                         }
+                         const layers = selected.map(x => doc.layers[x.i]);
+                         if(layers.some(l => l.type === "group" || l.type === "adjust")){
+                           toast("Los grupos y las capas de ajuste no se pueden combinar directamente.", "err");
+                           return;
+                         }
+                         const groupId = layers[0].groupId ?? null;
+                         if(layers.some(l => (l.groupId ?? null) !== groupId)){
+                           toast("Las capas seleccionadas deben pertenecer al mismo grupo.", "err");
+                           return;
+                         }
+                         // Todas salvo la superior actuarán en algún momento como
+                         // capa receptora. Deben ser neutras para que una capa de
+                         // arriba no herede su opacidad, fusión, máscara o efectos.
+                         for(const l of layers.slice(0, -1)){
+                           if(!l.visible || l.opacity !== 1 || l.blend !== "source-over" || l.clipped || l.mask || l.maskRef || l.styles || l.blendIf){
+                             toast(`«${l.name}» tiene máscara, opacidad, fusión o efectos propios; aplícalos antes de combinar la selección.`, "err");
+                             return;
+                           }
+                           if(canRasterize(l)){
+                             toast(`«${l.name}» es una capa de relleno o de forma: rasterízala primero.`, "err");
+                             return;
+                           }
+                         }
+                         for(const l of layers.slice(1)){
+                           if(l.clipped || l.styles || l.blendIf || l.filters?.length){
+                             toast(`«${l.name}» tiene recorte, estilos, filtros o Fusionar si; aplícalos antes de combinar.`, "err");
+                             return;
+                           }
+                         }
+                         const copyOf = c => { const o = document.createElement("canvas");
+                           o.width = c.width; o.height = c.height; o.getContext("2d").drawImage(c, 0, 0); return o; };
+                         const beforePixels = new Map(layers.map(l => [l.id, copyOf(l.canvas)]));
+                         const prevLayers = doc.layers.slice(), prevActive = doc.activeId;
+                         for(let k = layers.length - 1; k > 0; k--){
+                           if(!mergeDown(layers[k].id)){
+                             toast("No se pudieron combinar las capas seleccionadas.", "err");
+                             return;
+                           }
+                         }
+                         const bottom = layers[0], afterPixel = copyOf(bottom.canvas);
+                         const nextLayers = doc.layers.slice(), nextActive = doc.activeId;
+                         const restoreCanvas = (layer, pix) => {
+                           const x = layer.ctx; x.save(); x.setTransform(1,0,0,1,0,0);
+                           x.globalCompositeOperation = "copy"; x.drawImage(pix,0,0); x.restore(); layer.thumbDirty = true;
+                         };
+                         record("Combinar capas seleccionadas",
+                           () => {
+                             for(const l of layers) restoreCanvas(l, beforePixels.get(l.id));
+                             doc.layers = prevLayers.slice(); doc.activeId = prevActive;
+                             emit("doc:structure"); emit("doc:change");
+                           },
+                           () => {
+                             restoreCanvas(bottom, afterPixel);
+                             doc.layers = nextLayers.slice(); doc.activeId = nextActive;
+                             emit("doc:structure"); emit("doc:change");
+                           });
+                       },
+                       enabled: () => doc.open && getSelectedLayerIds().length >= 2 },
   "layer.mergeVisible": { run: mergeVisible,
                           enabled: () => doc.open && doc.layers.filter(l => l.groupId == null && l.visible).length > 1 },
   "layer.flatten":   { run: flattenImage, enabled: () => doc.open && doc.layers.length > 1 },
@@ -302,6 +396,11 @@ registerAll({
   /* Collage / History / Post (socialmediapost/): no necesita documento;
      el resultado se abre en una pestaña nueva. */
   "file.socialPost": { run: async () => (await import("../socialmediapost/index.js")).openSocialPost() },
+  /* Marcos (frames/): añade un marco como capa independiente sobre el
+     documento, de modo que las capas fotográficas de 16 bits conservan
+     su hiSrc y siguen pudiendo exportarse en alta precisión. */
+  "filter.frames":   { run: async () => (await import("../frames/index.js")).openFrames(),
+                       enabled: needsDoc },
 
   "view.fit":     { run: fit, enabled: needsDoc },
   "view.zoom100": { run: zoom100, enabled: needsDoc },
@@ -1111,6 +1210,7 @@ on("tool:change", () => {
 
 /* ═══ gestos sobre el lienzo ═══ */
 let drawing = false;
+let brushResize = null;
 
 /* Si un segundo dedo llega para pellizcar o panear mientras había un
    trazo a medias, ese trazo se cancela primero: sin esto se queda un
@@ -1181,6 +1281,16 @@ stage.addEventListener("pointerdown", e => {
   // más abajo secuestra el puntero y el click nativo del botón nunca
   // llega a dispararse.
   if(e.target.closest("button, input, select, textarea, a")) return;
+  // Photoshop: Alt + botón derecho y arrastrar. Horizontal cambia el
+  // diámetro; vertical, la dureza. Todas las herramientas que declaran
+  // una opción `size` comparten state.size, por lo que el mismo gesto
+  // sirve para pincel, borrador, clonar, correctores y similares.
+  if(e.altKey && e.button === 2 && current.options?.some(o => o.key === "size")){
+    e.preventDefault();
+    brushResize = { x:e.clientX, y:e.clientY, size:toolState.size, hardness:toolState.hardness };
+    stage.setPointerCapture(e.pointerId);
+    return;
+  }
   // Con un texto en edición, tocar fuera lo confirma
   if(isEditing() && !e.target.closest(".text-edit")) endEdit();
   if(handleDoubleTap(e)) return;
@@ -1199,6 +1309,17 @@ stage.addEventListener("pointerdown", e => {
 
 stage.addEventListener("pointermove", e => {
   if(!doc.open) return;
+  if(brushResize){
+    e.preventDefault();
+    toolState.size = Math.max(1, Math.min(400, Math.round(brushResize.size + e.clientX - brushResize.x)));
+    toolState.hardness = Math.max(0, Math.min(100, Math.round(brushResize.hardness - (e.clientY - brushResize.y) / 2)));
+    for(const [key, value] of [["size", toolState.size], ["hardness", toolState.hardness]]){
+      const input = document.querySelector(`#optsbar input[data-option-key="${key}"]`);
+      if(input){ input.value = value; const label = input.parentElement.querySelector(".mono"); if(label) label.textContent = value + (key === "size" ? "px" : "%"); }
+      emit("tool:paramchange", key);
+    }
+    return;
+  }
   const p = toImage(e.clientX, e.clientY);
   updatePos(p);
   if(current.cursor === "none") setCursorPos(p);
@@ -1211,6 +1332,7 @@ stage.addEventListener("pointermove", e => {
 });
 
 const endStroke = e => {
+  if(brushResize){ brushResize = null; return; }
   stopAutoScroll();
   // El botón derecho vale sólo para el trazo que lo usó: suelto el
   // ratón, «state.color» vuelve a mirar al frontal, que es el que

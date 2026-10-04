@@ -43,9 +43,13 @@ export const galleryAccept = full => isAndroid() ? "image/*" : full;
    a 2400 px; en escritorio, a 8192. Devuelve [ancho, alto, reducida].
    La usan al abrir imágenes (io/open.js) y al pasar un RAW revelado
    al editor (raw/index.js). */
-export function docSizeLimit(w, h){
+export function docSizeLimit(w, h, { highQuality = false } = {}){
   const coarse = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
-  const LIM = coarse ? 2400 : 8192;
+  /* El límite normal mantiene el editor ligero. Herramientas cuyo resultado
+     ES la foto final (RAW/HDR) pueden pedir el techo de alta calidad: 4096
+     en móvil sigue por debajo de los lienzos problemáticos de Safari para
+     proporciones fotográficas habituales, y evita el antiguo salto a 2400. */
+  const LIM = coarse ? (highQuality ? 4096 : 2400) : 8192;
   const m = Math.max(w, h);
   if(m <= LIM) return [w, h, false];
   const s = LIM / m;

@@ -41,6 +41,7 @@ import { fitAbove, fitInRect, view } from "../editor/view.js";
    dice "sólo esta"; Ctrl o Mayús la va sumando. No vive en `doc`
    porque no es parte del documento, es un estado de la interfaz. */
 let multiSelect = new Set();
+let layerSelectMode = false;
 export const getSelectedLayerIds = () => [...multiSelect];
 function setMultiSelect(ids){ multiSelect = new Set(ids); emit("layers:multiselect"); }
 
@@ -48,6 +49,15 @@ const panels = document.getElementById("panels");
 const veil   = document.getElementById("sheetVeil");
 const grip   = document.getElementById("sheetGrip");
 const mBtn   = document.getElementById("mPanels");
+const layerSelectModeBtn = document.getElementById("layerSelectMode");
+layerSelectModeBtn?.addEventListener("click", () => {
+  layerSelectMode = !layerSelectMode;
+  layerSelectModeBtn.setAttribute("aria-pressed", String(layerSelectMode));
+  layerSelectModeBtn.classList.toggle("on", layerSelectMode);
+  layerSelectModeBtn.title = layerSelectMode ? "Selección múltiple activa · toca capas y vuelve a pulsar para terminar" : "Activar selección múltiple para agrupar capas";
+  if(!layerSelectMode) setMultiSelect([]);
+  renderLayers();
+});
 
 export { isMobile };
 
@@ -698,19 +708,44 @@ export function renderLayers(){
       // arrastrarla hasta su pestaña (ver más arriba), para quien
       // prefiera un menú a un gesto de arrastre. Los grupos quedan
       // fuera por el mismo motivo que en el arrastre.
-      if(isGroup) return;
       const tabs = listTabs();
-      if(tabs.length < 2) return;
+      const actions = [{ label:"Renombrar capa…", onClick: async () => {
+        const name = await promptDlg("Renombrar capa", "Nombre", l.name);
+        if(name === null) return;
+        const before = l.name, after = name.trim().slice(0, 80) || before;
+        if(after === before) return;
+        l.name = after;
+        record("Renombrar capa", () => { l.name = before; emit("doc:structure"); }, () => { l.name = after; emit("doc:structure"); });
+        emit("doc:structure");
+      }}];
+      if(!isGroup && tabs.length > 1){
+        actions.push({ sep:true }, ...tabs.filter(t => t !== activeTab())
+          .map(t => ({ label:`Copiar capa a «${t.title}»`, onClick:() => copyLayerToTab(l, t.tabId) })));
+      }
       e.preventDefault();
       setActive(l.id);
-      const here = activeTab();
-      openContextMenu(
-        tabs.filter(t => t !== here)
-            .map(t => ({ label: `Copiar capa a «${t.title}»`, onClick: () => copyLayerToTab(l, t.tabId) })),
-        e.clientX, e.clientY
-      );
+      openContextMenu(actions, e.clientX, e.clientY);
+    });
+    el.querySelector(".name")?.addEventListener("dblclick", async e => {
+      e.preventDefault(); e.stopPropagation();
+      setActive(l.id);
+      const name = await promptDlg("Renombrar capa", "Nombre", l.name);
+      if(name === null) return;
+      const before = l.name, after = name.trim().slice(0, 80) || before;
+      if(after === before) return;
+      l.name = after;
+      record("Renombrar capa", () => { l.name = before; emit("doc:structure"); }, () => { l.name = after; emit("doc:structure"); });
+      emit("doc:structure");
     });
     el.addEventListener("click", e => {
+      if(layerSelectMode && !e.target.closest("button, input, [data-mask], [data-add-mask], [data-open-fx]")){
+        const selected = new Set(multiSelect);
+        selected.has(l.id) ? selected.delete(l.id) : selected.add(l.id);
+        setMultiSelect(selected);
+        setActive(l.id);
+        renderLayers();
+        return;
+      }
       /* Insignia «fx» / «adj»: abre el panel del propio efecto con UN
          clic —o un toque en móvil—, que es lo que se espera de un
          botón que lleva escrito el nombre del filtro. Antes pedía

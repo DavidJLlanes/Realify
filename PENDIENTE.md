@@ -82,14 +82,14 @@ Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampl
 - [ ] Pendiente: guardar el origen de 16 bits en el proyecto `.realify` y conservarlo al
       recortar o girar (hoy se descarta); el documento entero en 16 bits es la fase 14.
 
-## Fase 5 · Profundidad como herramienta ✅ (v205)
+## Fase 5 · Profundidad como herramienta ✅ (v228)
 Reutiliza Depth Anything V2 (ya estaban Desenfoque por profundidad, Niebla y Foto 3D).
 - [x] Seleccionar por profundidad: primer plano, plano medio, fondo o intervalo manual,
-      como selección o como máscara editable (`js/features/depthzones.js`). (v205)
+      como selección o como máscara editable (`js/features/depthzones.js`). (v228)
 - [x] Máscaras por distancia para cualquier ajuste local: Capa › Máscara de capa › Por
-      profundidad y botón en las propiedades de la máscara, en capas de imagen y de ajuste. (v205)
+      profundidad y botón en las propiedades de la máscara, en capas de imagen y de ajuste. (v228)
 - [x] Iluminación dependiente de la profundidad (Luz por profundidad) y separación de planos
-      en capas (`js/features/depthlight.js`). (v205)
+      en capas (`js/features/depthlight.js`). (v228)
 - [ ] Pendiente: máscara por profundidad como capa de ajuste «viva» (que se recalcule al
       cambiar la foto de debajo); hoy la máscara se calcula una vez.
 

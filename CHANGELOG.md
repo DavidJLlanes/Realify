@@ -9,7 +9,7 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
-### Profundidad como herramienta (fase 5)
+### v228 · Profundidad como herramienta (fase 5)
 - **Seleccionar por profundidad 👑** (Inteligencia Artificial › Seleccionar): primer plano,
   plano medio, fondo (tercios por cantidad de píxeles, siempre dan algo útil) o intervalo
   manual; tocar la imagen elige la distancia de ese punto; suavidad e invertir. Ver sobre la
@@ -25,6 +25,49 @@ que las entradas se agrupan por fecha.
 - **Separar planos 👑**: 2, 3 o 4 planos en capas con máscaras acumulativas y transiciones que
   suman 1; recompuestas dan la foto original (diferencia máxima de 2 niveles de 255).
 - Matemática sin DOM en `js/ai/depthmath.js`.
+
+### v227 · Aviso de actualización en la app instalada
+- La detección compara la versión de `main.js` cargada con `version.json`, también cuando la app reanuda una sesión con el mismo service worker o éste falla.
+- Comprueba al arrancar, volver a primer plano, recuperar conexión y cada minuto mientras está visible. El registro funciona aunque el módulo se inicie después de `load`.
+- Conserva el botón «Actualizar», el guardado y la recuperación de documentos; no recarga automáticamente una sesión abierta y respeta «Luego».
+- El service worker consulta el manifiesto en la red y no almacena sus consultas ni devuelve versiones obsoletas sin conexión.
+- Regresión de navegador y app instalada: suspensión/reanudación, registro tardío, reconexión, manifiesto inválido, primera instalación y botón Actualizar. Comprobado también con un service worker real.
+- VERSION, version.json, caché y URLs de carga sincronizados en v227, pendiente de publicación.
+
+### v226 · Zoom en Marcos
+- Zoom con rueda del ratón o pellizco de dos dedos, centrado en el punto del gesto; admite desplazamiento al arrastrar la imagen ampliada.
+- «Encajar» devuelve la imagen completa al área de vista previa; doble clic también restablece el zoom.
+- La vista previa aumenta su resolución al ampliar, hasta la resolución de la foto con un límite de 8 MP / 4096 px para contener la memoria.
+- El zoom afecta únicamente a la vista; Aplicar conserva los píxeles, dimensiones y anchura de marco elegida.
+- Regresión de rueda, punto bajo el cursor, pellizco, arrastre y encajar en escritorio, móvil y tableta. Versionado sincronizado en v226, pendiente de publicación.
+
+### v225 · Colores y controles de Marcos
+- Todos los marcos utilizan los colores elegidos; se eliminan las paletas fijas que ignoraban los mandos, incluido Color · Electric.
+- Los modelos minimalistas de un solo color ocultan el mando secundario sin efecto.
+- El editor sigue el área visible del navegador al cambiar sus barras o selectores nativos; al elegir una opción se retira el foco del selector.
+- Pruebas de los 138 modelos: cada color visible cambia los píxeles; Electric respeta ambos colores en móvil y escritorio. Se comprueban los mandos dentro de un área visible reducida y la conservación de la foto.
+- VERSION, version.json, caché y URLs de carga sincronizados en v225, pendiente de publicación.
+
+### v224 · Marcos
+- **138 modelos en 12 categorías**: marco Liso de color único, Heart geométrico y 16 diseños de autor (kintsugi, vitral, origami, constelación, holográfico y otros).
+- **Diamond y corazones corregidos**: motivos vectoriales simétricos distribuidos en los cuatro lados, sin depender de caracteres de una fuente.
+- **Ajustes en móvil y escritorio**: anchura y colores sincronizados al cambiar de modo; Liso muestra un único color.
+- **Vista previa completa**: encaja el marco entero en el espacio disponible sin deformarlo ni cortar el borde inferior.
+- **Comprobaciones específicas**: 828 renders, recorte exterior, reproducibilidad, color uniforme, conservación exacta de la fotografía y deshacer/rehacer en ambos modos.
+- **Versión v224** sincronizada en `VERSION`, `version.json`, caché y URLs de carga.
+
+### Marcos
+- **Marcos exteriores reales**: aplicar un marco amplía el lienzo y mantiene toda la fotografía intacta en el centro; el dibujo del marco queda recortado a la corona exterior y no puede superponerse sobre la imagen.
+- **120 presets revisados**: las variantes se diferencian ahora por geometría, material, patrón, textura y acabado, no sólo por color o grosor.
+- **Previsualización fiel**: las miniaturas y la vista previa muestran el espacio exterior que añadirá el marco antes de aplicarlo.
+- **Deshacer/rehacer completo**: al quitar o recuperar un marco también se restaura el tamaño del documento, las guías y la selección.
+
+### Capas, gestos y rendimiento
+- **Capas**: doble clic en el nombre o clic derecho en la fila para renombrarla (con deshacer/rehacer). En escritorio siguen funcionando Ctrl/Cmd+clic y Mayús+clic; el botón de selección múltiple añade un modo táctil para marcar capas con toques y agruparlas desde la cabecera.
+- **Combinar con la de abajo** ahora respeta la máscara de la capa superior y la composición alfa de los modos personalizados. Se evita combinar sobre capas inferiores cuyo estado (visibilidad, opacidad, fusión, máscara o efectos) haría que el resultado cambiase de aspecto.
+- **Pinceles y herramientas de retoque**: Alt + botón derecho y arrastrar horizontal cambia el tamaño; arrastrar vertical ajusta dureza, al estilo Photoshop.
+- **Ventanas**: el arrastre de la cabecera funciona también al salir de ella y sigue el modo de escritorio/móvil de la interfaz, no el tipo físico del dispositivo. Reemplazar cielo usa el mismo diálogo movible que el resto.
+- **Iluminar con IA Premium**: se sustituyó la ordenación de millones de muestras para estimar el punto negro por un histograma de precisión fina. Reduce el trabajo y la memoria en imágenes grandes; el cálculo final sigue siendo a resolución completa.
 
 ### Máscaras de capa: pintar en negro ya oculta
 - **El Pincel no ocultaba nada al pintar la máscara**: pintaba gris opaco y la máscara guarda

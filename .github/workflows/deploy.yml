@@ -5,34 +5,59 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Nunca dos despliegues a la vez: si llega otro push, espera a que acabe el anterior.
 concurrency:
   group: deploy-realify
   cancel-in-progress: false
 
 jobs:
   deploy:
+    name: Validar y publicar Realify
     runs-on: ubuntu-latest
     steps:
-      - name: 🔑 Preparar clave SSH
+      - name: Obtener repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Validar release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          test -n "$VERSION"
+          echo "REALIFY_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          JSON_VERSION="$(python -c 'import json; print(json.load(open("version.json", encoding="utf-8"))["version"])')"
+          SW_VERSION="$(python -c 'import re; s=open("sw.js", encoding="utf-8").read(); m=re.search(r"const VERSION = \"realify-v(\d+)", s); print(m.group(1) if m else "")')"
+          MAIN_VERSION="$(python -c 'import re; s=open("index.html", encoding="utf-8").read(); m=re.search(r"js/main\.js\?v=(\d+)", s); print(m.group(1) if m else "")')"
+          BOOT_VERSION="$(python -c 'import re; s=open("index.html", encoding="utf-8").read(); m=re.search(r"js/boot-guard\.js\?v=(\d+)", s); print(m.group(1) if m else "")')"
+
+          if [ "$VERSION" != "$JSON_VERSION" ] || [ "$VERSION" != "$SW_VERSION" ] || [ "$VERSION" != "$MAIN_VERSION" ] || [ "$VERSION" != "$BOOT_VERSION" ]; then
+            echo "::error::Versionado desincronizado: VERSION=$VERSION version.json=$JSON_VERSION sw.js=$SW_VERSION main.js=$MAIN_VERSION boot-guard=$BOOT_VERSION"
+            exit 1
+          fi
+
+          # El estado actual de main ya está validado y sincronizado.
+          # Publica siempre el HEAD de main. No depende de que VERSION se haya
+          # incrementado exactamente en este último commit, porque los archivos
+          # de release pueden llegar en varios commits consecutivos.
+          echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
+          echo "Release Realify v$VERSION autorizado; se publicará el HEAD actual de main."
+
+      - name: Preparar clave SSH
+        if: env.SHOULD_DEPLOY == 'true'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          # Una sola conexión (sólo la clave ed25519): el VPS limita las
-          # conexiones SSH seguidas, y pedir las tres claves de golpe hacía
-          # que rechazara la del despliegue («Connection reset by peer»).
           for i in 1 2 3; do
             ssh-keyscan -T 15 -t ed25519 -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null && [ -s ~/.ssh/known_hosts ] && break
             sleep $((i * 10))
           done
 
-      # La copia del VPS queda idéntica a main: `reset --hard` en lugar de `pull`
-      # para que no falle si main se ha reescrito (push --force) ni si alguien
-      # editó archivos directamente en el servidor. Los archivos no versionados
-      # (logs, etc.) no se tocan. Si el servidor corta la conexión (límite de
-      # conexiones, reinicio), se reintenta con espera creciente.
-      - name: 🚀 Actualizar la web en el VPS
+      - name: Actualizar la web en el VPS
+        if: env.SHOULD_DEPLOY == 'true'
         run: |
           for i in 1 2 3 4; do
             ssh -i ~/.ssh/deploy_key -o ConnectTimeout=20 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
@@ -40,7 +65,25 @@ jobs:
                && git fetch --quiet origin main \
                && git reset --hard origin/main \
                && git log --oneline -1" && exit 0
-            echo "Intento $i fallido; reintentando en $((i * 15)) s…"
+            echo "Intento $i fallido; reintentando en $((i * 15)) s..."
             sleep $((i * 15))
           done
+          exit 1
+
+      - name: Verificar versión publicada
+        if: env.SHOULD_DEPLOY == 'true'
+        run: |
+          set -euo pipefail
+          URL="https://realify.es/version.json?release=${GITHUB_SHA}"
+          for i in 1 2 3 4 5 6; do
+            BODY="$(curl -fsS --max-time 15 -H 'Cache-Control: no-cache' "$URL" || true)"
+            LIVE_VERSION="$(printf '%s' "$BODY" | python -c 'import json,sys; d=json.load(sys.stdin); print(d.get("version",""))' 2>/dev/null || true)"
+            if [ "$LIVE_VERSION" = "$REALIFY_VERSION" ]; then
+              echo "realify.es sirve Realify v$REALIFY_VERSION"
+              exit 0
+            fi
+            echo "Producción devuelve v${LIVE_VERSION:-?}; reintento $i/6..."
+            sleep 10
+          done
+          echo "::error::realify.es no sirve la versión v$REALIFY_VERSION."
           exit 1

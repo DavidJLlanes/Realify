@@ -1,0 +1,196 @@
+# Realify · IA avanzada — hoja de ruta permanente
+
+> Documento maestro del proyecto. Debe consultarse antes de modificar cualquier parte de IA avanzada.
+
+## Regla de estructura
+
+Todo lo que pertenezca a estas ocho fases vive dentro de **`/advanced-ai/`**.
+
+No crear código, modelos, scripts de instalación, adaptadores cloud, workers ni documentación de este proyecto fuera de esa carpeta, salvo los puntos mínimos de integración con Realify (comando, menú/cajón y versionado de la app).
+
+Estructura canónica:
+
+```text
+advanced-ai/
+├─ ROADMAP.md
+├─ README.md
+├─ index.js
+├─ ui/
+├─ client/
+├─ local-service/
+├─ engines/
+├─ models/
+├─ workers/
+└─ cloud/
+```
+
+Los pesos de modelos estarán siempre bajo `advanced-ai/models/`, separados por motor y versión. No se mezclarán con `assets/models/` existentes de Realify.
+
+## Flujo final objetivo
+
+```text
+Realify
+  ↓
+IA avanzada fullscreen
+  ↓
+detección de Realify AI Local
+  ↓
+GPU NVIDIA + CUDA disponibles
+  ↓
+ModelManager
+  ↓
+motor necesario
+  ↓
+resultado
+  ↓
+previsualización / antes-después
+  ↓
+Aplicar como capa + historial
+```
+
+En una fase posterior:
+
+```text
+motor local no disponible
+  ↓
+GPU cloud de pago por uso
+```
+
+## Fase 1 — Base del módulo y motor local ✅
+
+Objetivo: construir la infraestructura sin ejecutar todavía modelos pesados.
+
+- Carpeta única `advanced-ai/`.
+- Interfaz fullscreen integrada en Realify.
+- Previsualización de la fotografía abierta.
+- Área de ajustes fotográficos.
+- Caja de prompt.
+- Estado del motor local.
+- Cliente HTTP hacia `127.0.0.1`.
+- Servicio local mínimo Python/PyTorch.
+- Detección CUDA, GPU y VRAM.
+- Preparar carpetas de modelos y motores.
+- Sin alterar la imagen al pulsar controles todavía.
+- Sin descargar modelos todavía.
+
+Criterio de finalización: Realify abre el módulo, muestra la foto y puede decir de forma fiable si Realify AI Local está disponible y qué GPU/CUDA tiene.
+
+## Fase 2 — Upscale CUDA ✅
+
+- Real-ESRGAN x2plus y x4plus oficiales.
+- ModelManager y registro central de modelos.
+- Descarga bajo demanda desde las releases oficiales.
+- Verificación exacta por tamaño + SHA-256 antes de cargar cada peso.
+- Tiling solapado para controlar VRAM.
+- Progreso real por bloques y cancelación entre bloques.
+- Realify recompone RGB16 cuando la pila permite alta precisión y lo envía como datos crudos al servicio local.
+- Fallback a PNG/canvas sólo cuando la composición de alta precisión no esté disponible.
+- El resultado vuelve como RGB16 y se previsualiza con canvas de 8 bits sin perder el origen de 16 bits.
+- Al aplicar, el resultado abre un documento nuevo y se asocia como `hiSrc` de 16 bits cuando cabe en los límites profesionales de Realify.
+- ×2 usa RealESRGAN_x2plus oficial; ×4 usa RealESRGAN_x4plus oficial.
+- Los temporales y pesos descargados siguen dentro de `advanced-ai/` y están excluidos de Git.
+
+## Fase 3 — Denoise / Deblur ✅
+
+- NAFNet-SIDD-width64 oficial para reducción de ruido de fotografía real.
+- NAFNet-GoPro-width64 oficial para recuperación de desenfoque.
+- Arquitectura NAFNet integrada dentro de `advanced-ai/engines/` con atribución MIT.
+- Descarga bajo demanda desde los enlaces oficiales de Google Drive.
+- Validación mínima del checkpoint + carga estricta del state_dict antes de inferencia.
+- CUDA con autocast FP16 para equilibrar calidad, memoria y velocidad.
+- Tiling con 64 px de solape para reducir costuras.
+- Tamaño de tile adaptado a VRAM y al tipo de restauración.
+- Resultado RGB16 del mismo tamaño que la fotografía.
+- Entrada RGB16 cuando la pila de Realify puede recomponer alta precisión.
+- Control de intensidad 0–100 % sin volver a ejecutar el modelo.
+- Previsualización antes/después.
+- Aplicación como capa nueva, reversible y con opacidad igual a la intensidad.
+- `hiSrc` de 16 bits asociado a la capa de restauración cuando entra en los límites de memoria.
+- Progreso y cancelación reutilizando el gestor de trabajos local.
+- El servicio libera el motor anterior al cambiar entre Real-ESRGAN y NAFNet para no acumular VRAM.
+
+## Fase 4 — Prompt → ajustes de Realify ✅
+
+- Qwen3-1.7B local como intérprete de lenguaje natural.
+- Modelo almacenado bajo `advanced-ai/models/prompt/` y descargado bajo demanda.
+- Licencia Apache 2.0.
+- El modelo sólo puede devolver un JSON dentro de un esquema cerrado.
+- Validación y límites estrictos de todos los valores antes de tocar la fotografía.
+- Ajustes admitidos: exposición, brillo, contraste, altas luces, sombras, blancos, negros, temperatura, matiz, saturación, vibrancia, claridad, textura, dehaze y enfoque.
+- Los sliders manuales del módulo usan exactamente el mismo estado que el prompt.
+- Previsualización inmediata antes de aplicar.
+- Aplicación como capa nueva/reversible.
+- Las peticiones generativas o fuera del esquema se marcan como no disponibles todavía; no se traducen a comandos arbitrarios.
+- Prompt disponible también en móvil.
+- Ctrl/Cmd + Enter ejecuta el prompt en escritorio.
+- El motor pesado anterior se libera al cargar Qwen para evitar acumular VRAM.
+
+## Fase 5 — Segmentación y máscaras ✅
+
+- SAM2.1 Hiera Large como modelo local de máxima calidad práctica para la RTX 4070 SUPER de 12 GB.
+- Pesos oficiales de `facebook/sam2.1-hiera-large`, descargados bajo demanda en `advanced-ai/models/segmentation/`.
+- CUDA + FP16 y liberación del motor pesado anterior mediante el mismo `ModelManager`.
+- Selección por clic sobre sujeto u objeto.
+- Puntos positivos y Alt+clic para puntos negativos de refinado.
+- Opción de invertir el resultado para seleccionar el fondo.
+- Máscara binaria a resolución completa devuelta por la API local.
+- Superposición visual de la máscara antes de aplicar.
+- Aplicación como máscara de capa nativa de Realify, editable con las herramientas de máscaras ya existentes.
+- Progreso, cancelación y validación de entrada reutilizando el gestor de trabajos local.
+- Base de máscara lista para que la Fase 6 haga inpainting y edición generativa localizada sin tocar zonas protegidas.
+
+## Fase 6 — Edición generativa ✅
+
+- FLUX.1 Fill [dev] como motor generativo principal por calidad de inpainting y seguimiento de prompt.
+- Variante NF4 de Diffusers para transformer + T5 XXL, con cálculo BF16 y offload para la RTX 4070 SUPER de 12 GB.
+- Componentes base oficiales de FLUX Fill descargados bajo demanda dentro de `advanced-ai/models/generative/`.
+- Soporte para repositorios gated de Hugging Face: la primera instalación exige aceptar la licencia de FLUX y autenticar el PC.
+- SAM2 define la zona editable; todo lo situado fuera de la máscara queda protegido.
+- Edición localizada para cambiar cielo, fondo, pelo, ropa, escenario y añadir objetos.
+- Procesado de región de interés: hasta 1024 px de lado por defecto en 12 GB de VRAM, seguido de recomposición a la resolución completa original.
+- 50 pasos y guidance 30 por defecto, priorizando calidad sobre velocidad.
+- Semilla reproducible y controles de pasos, guidance y suavizado de borde.
+- Previsualización antes/después y cancelación durante la generación.
+- Resultado aplicado como capa nueva y reversible, conservando prompt, modelo y semilla como metadatos.
+- El backend generativo queda desacoplado de la interfaz para poder sustituir FLUX por un modelo superior futuro sin rehacer Realify.
+- No se usa SDXL como motor principal: el criterio permanente del proyecto es usar el mejor modelo práctico compatible con la GPU objetivo.
+
+## Fase 7 — Identidad y control avanzado ✅
+
+- PuLID-FLUX v0.9.1 como ruta principal de preservación de identidad facial.
+- FLUX.1-dev FP8 + aggressive offload + ONNX de rostro en CPU para mantener el pico de VRAM alrededor del margen viable de una RTX 4070 SUPER de 12 GB.
+- Runtime aislado bajo `advanced-ai/phase7-runtime/` para no romper las dependencias de las fases 1–6.
+- Código oficial de PuLID fijado a un commit conocido y descargado dentro de `advanced-ai/vendor/PuLID/`.
+- FLUX IP-Adapter como referencia visual general para sujeto, estilo o concepto cuando no se necesita identidad facial estricta.
+- FLUX ControlNet Union Pro 2.0 como motor estructural para profundidad, Canny, soft-edge y pose.
+- Depth Anything V2 Large como preprocesador de profundidad de alta calidad.
+- La estructura original puede mantenerse mientras FLUX modifica iluminación, entorno, materiales y apariencia desde el prompt.
+- Controles de fuerza, pasos, guidance y semilla para variar y refinar resultados de forma reproducible.
+- Todos los pesos, cachés y runtimes permanecen dentro de `advanced-ai/`.
+- Los motores de Fase 7 se ejecutan en un subproceso aislado: al terminar liberan completamente la VRAM sin contaminar el proceso principal.
+- Progreso, cancelación y resultado RGB16 integrados con el gestor de trabajos existente.
+- El resultado se aplica como capa nueva y conserva tarea, prompt, modelo y semilla como metadatos.
+- La interfaz permite elegir entre identidad, referencia visual y control estructural sin mezclar modelos cuando no aporta calidad.
+
+## Fase 8 — GPU cloud de pago por uso
+
+- Adaptador cloud dentro de `advanced-ai/cloud/`.
+- Nunca exponer claves en el navegador.
+- Backend seguro.
+- Créditos/coste por operación.
+- Fallback cuando el motor local no exista o no cumpla requisitos.
+- Límites de tiempo y coste.
+
+## Principios que no se deben romper
+
+1. La fotografía original no se degrada para alimentar la interfaz.
+2. Las previsualizaciones reducidas nunca sustituyen silenciosamente el resultado de resolución completa.
+3. Los modelos se cargan bajo demanda, no al arrancar Realify.
+4. Un modelo pesado debe poder liberarse de VRAM antes de cargar otro.
+5. El navegador nunca ejecutará comandos arbitrarios recibidos de un prompt.
+6. El servicio local escucha únicamente en loopback.
+7. La API local valida origen, tipo, tamaño y parámetros.
+8. Las operaciones largas deben tener progreso y cancelación.
+9. El resultado se integra con capas e historial de Realify.
+10. Antes de añadir un modelo se revisan licencia, tamaño, VRAM y compatibilidad.
+11. Para cada tarea se prioriza el modelo de mayor calidad práctica que pueda ejecutarse razonablemente en una RTX 4070 SUPER de 12 GB; las variantes ligeras sólo se usarán cuando sean necesarias para hacerlo viable.

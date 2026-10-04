@@ -1,0 +1,20 @@
+# Pesos y artefactos descargados localmente
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
+*.engine
+*.plan
+*.gguf
+*.part
+
+# Cachés/temporales
+**/__pycache__/
+*.pyc
+
+# Mantener manifiestos y documentación versionados
+!registry.json
+!README.md
+!.gitignore

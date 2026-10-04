@@ -280,11 +280,28 @@ export function mergeDown(id = doc.activeId){
   const i = layerIndex(id);
   if(i <= 0) return false;
   const top = doc.layers[i], bottom = doc.layers[i - 1];
+  // Un grupo y una capa de ajuste no contienen píxeles propios. Pintar
+  // su lienzo vacío sobre la de abajo los borraba y daba un falso éxito.
+  if(!top || !bottom || top.type === "group" || top.type === "adjust" || bottom.type === "group" || bottom.type === "adjust") return false;
+  // La máscara forma parte de lo que se ve, no del lienzo base. Al
+  // combinarla hay que aplicarla antes de retirar la capa superior;
+  // `maskRef` permite que la máscara esté compartida desde otra capa.
+  let source = top.canvas;
+  const mask = top.maskRef ? doc.layers.find(l => l.id === top.maskRef)?.mask : top.mask;
+  if(mask && top.maskEnabled){
+    source = document.createElement("canvas");
+    source.width = top.canvas.width; source.height = top.canvas.height;
+    const x = source.getContext("2d", { colorSpace:"srgb" });
+    x.drawImage(top.canvas, 0, 0);
+    x.globalCompositeOperation = "destination-in";
+    x.drawImage(mask.canvas, 0, 0, source.width, source.height);
+    x.globalCompositeOperation = "source-over";
+  }
   // `drawWithBlend` (no `ctx.globalCompositeOperation` directo) porque
   // no todos los modos de fusión de esta app son nativos del lienzo
   // —«luz lineal» no lo es—, y ese caso el navegador lo ignora en
   // silencio en vez de avisar.
-  drawWithBlend(bottom.ctx, top.canvas, top.blend, top.opacity, bottom.canvas.width, bottom.canvas.height);
+  if(top.visible && top.opacity > 0) drawWithBlend(bottom.ctx, source, top.blend, top.opacity, bottom.canvas.width, bottom.canvas.height);
   bottom.thumbDirty = true;
   doc.layers.splice(i, 1);
   doc.activeId = bottom.id;

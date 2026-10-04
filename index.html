@@ -254,6 +254,14 @@
         <span class="caret">▾</span>
         <h3>Capas</h3>
         <div class="tools">
+          <button class="icon ghost" data-cmd="layer.rename" title="Renombrar capa activa" aria-label="Renombrar capa activa">✎</button>
+          <button class="icon ghost" id="layerSelectMode" type="button" aria-pressed="false"
+            title="Activar selección múltiple para agrupar capas" aria-label="Activar selección múltiple">☷</button>
+          <button class="icon ghost" data-cmd="layer.group" title="Agrupar capas seleccionadas" aria-label="Agrupar capas">▤</button>
+          <button class="icon ghost" data-cmd="layer.mergeSelected" title="Combinar capas seleccionadas contiguas" aria-label="Combinar capas seleccionadas">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 5h14M7 10h10M9 15h6"/><path d="m9 19 3 2 3-2"/>
+            </svg></button>
           <button class="icon ghost" data-cmd="layer.add" title="Nueva capa" aria-label="Nueva capa">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14"/></svg></button>
@@ -417,11 +425,11 @@
 <input type="file" id="filePickerStack" accept="image/*,.psd,.tif,.tiff,.heic,.heif,.3fr,.ari,.arw,.bay,.cap,.cr2,.cr3,.crw,.dcr,.dcs,.dng,.drf,.eip,.erf,.fff,.gpr,.iiq,.k25,.kdc,.mdc,.mef,.mos,.mrw,.nef,.nrw,.obm,.orf,.pef,.ptx,.pxn,.r3d,.raf,.raw,.rwl,.rw2,.rwz,.sr2,.srf,.srw,.x3f,.svg" multiple hidden>
 <input type="file" id="projectPicker" accept=".realify,application/vnd.realify+json,application/json" hidden>
 
-<script src="js/boot-guard.js?v=205"></script>
+<script src="js/boot-guard.js?v=228"></script>
 <script src="js/vendor/ag-psd.js"></script>
 <script src="js/vendor/utif.js"></script>
 <script src="js/vendor/heic2any.min.js"></script>
-<script type="module" src="js/main.js?v=205"></script>
+<script type="module" src="js/main.js?v=228"></script>
 
 </body>
 </html>

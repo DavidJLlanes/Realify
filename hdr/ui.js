@@ -32,10 +32,11 @@ import { premiumSwitch, premiumPref } from "../js/ui/premium.js";
 export const MAX_PHOTOS = 11;
 const MOBILE = matchMedia("(max-width:900px)");
 const TOUCH = matchMedia("(pointer:coarse)").matches;
-/* Tamaño de trabajo: en el móvil, el mismo límite que un documento
-   (core/device.js); en el ordenador, 4096 px (11 fotos de 12 MP ya son
-   medio giga en memoria). */
-const WORK_SIDE = TOUCH || MOBILE.matches ? 2400 : 4096;
+/* Tamaño del RESULTADO HDR. Antes se usaban 2400/4096 px también para
+   la fusión final, de modo que una foto grande perdía resolución sólo
+   por pasar por HDR. La previsualización sigue acotada aparte; el final
+   conserva hasta 4096 px en móvil y 8192 px en escritorio. */
+const WORK_SIDE = TOUCH || MOBILE.matches ? 4096 : 8192;
 const PREVIEW_SIDE = TOUCH || MOBILE.matches ? 900 : 1400;
 /* Copia para alinear: basta con menos resolución y en el móvil, con
    11 fotos, la memoria manda. */

@@ -30,13 +30,14 @@ function blendPerChannel(ctx, srcCanvas, w, h, opacity, formula){
   const src = srcCanvas.getContext("2d", { colorSpace:"srgb" }).getImageData(0, 0, w, h);
   const d = dst.data, s = src.data;
   for(let i = 0; i < d.length; i += 4){
-    const a = (s[i+3] / 255) * opacity;
-    if(a <= 0) continue;
-    const r = formula(d[i], s[i]), g = formula(d[i+1], s[i+1]), b = formula(d[i+2], s[i+2]);
-    d[i]   += (r - d[i])   * a;
-    d[i+1] += (g - d[i+1]) * a;
-    d[i+2] += (b - d[i+2]) * a;
-    d[i+3] = Math.min(255, d[i+3] + s[i+3] * a);
+    const ab=d[i+3]/255, as=(s[i+3]/255)*opacity, ao=as+ab*(1-as);
+    if(as<=0||ao<=0) continue;
+    for(let c=0;c<3;c++){
+      const cb=d[i+c]/255, cs=s[i+c]/255, blended=formula(d[i+c],s[i+c])/255;
+      const premul=(1-as)*ab*cb+(1-ab)*as*cs+ab*as*blended;
+      d[i+c]=Math.round(255*premul/ao);
+    }
+    d[i+3]=Math.round(255*ao);
   }
   ctx.putImageData(dst, 0, 0);
 }
@@ -96,16 +97,18 @@ function blendPixelPick(ctx, srcCanvas, w, h, opacity, keepDarker){
   const src = srcCanvas.getContext("2d", { colorSpace:"srgb" }).getImageData(0, 0, w, h);
   const d = dst.data, s = src.data;
   for(let i = 0; i < d.length; i += 4){
-    const a = (s[i+3] / 255) * opacity;
-    if(a <= 0) continue;
+    const as = (s[i+3] / 255) * opacity;
+    if(as <= 0) continue;
     const lumD = d[i]*0.2126 + d[i+1]*0.7152 + d[i+2]*0.0722;
     const lumS = s[i]*0.2126 + s[i+1]*0.7152 + s[i+2]*0.0722;
     const pick = keepDarker ? lumS < lumD : lumS > lumD;
     if(!pick) continue;
-    d[i]   += (s[i]   - d[i])   * a;
-    d[i+1] += (s[i+1] - d[i+1]) * a;
-    d[i+2] += (s[i+2] - d[i+2]) * a;
-    d[i+3] = Math.min(255, d[i+3] + s[i+3] * a);
+    const ab=d[i+3]/255, ao=as+ab*(1-as);
+    for(let c=0;c<3;c++){
+      const cb=d[i+c]/255, cs=s[i+c]/255;
+      d[i+c]=Math.round(255*((1-as)*ab*cb+(1-ab)*as*cs+ab*as*cs)/ao);
+    }
+    d[i+3]=Math.round(255*ao);
   }
   ctx.putImageData(dst, 0, 0);
 }

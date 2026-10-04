@@ -30,10 +30,20 @@ export function status(msg){
 /* Barra de progreso para las operaciones largas (lotes, filtros
    pesados). Sin esto la página parece colgada. */
 const bar = document.getElementById("progress");
+let progressTimer = null;
 export function progress(frac){
+  /* Una operación nueva puede empezar durante los 320 ms de salida de la
+     anterior. El temporizador viejo no debe poner la barra a cero a mitad
+     de la operación nueva. */
+  if(progressTimer){ clearTimeout(progressTimer); progressTimer = null; }
   if(frac === null || frac === undefined){
+    bar.style.width = "100%";
     bar.classList.add("done");
-    setTimeout(() => { bar.style.width = "0"; bar.classList.remove("done"); }, 320);
+    progressTimer = setTimeout(() => {
+      progressTimer = null;
+      bar.style.width = "0";
+      bar.classList.remove("done");
+    }, 320);
     return;
   }
   bar.classList.remove("done");

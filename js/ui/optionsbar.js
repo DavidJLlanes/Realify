@@ -125,6 +125,7 @@ function buildControl(o){
     const r = document.createElement("input");
     r.type = "range";
     r.min = o.min; r.max = o.max; r.value = state[o.key];
+    r.dataset.optionKey = o.key;
     const v = document.createElement("span");
     v.className = "mono";
     v.style.cssText = "min-width:38px;font-size:var(--fs-xs);color:var(--tx-dim)";

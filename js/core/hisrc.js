@@ -88,7 +88,7 @@ export function canvasFromHi(data, w, h){
     tramada (la ha pintado canvasFromHi). */
 export function attachHi(layer, data, w, h){
   if(!layer || layer.canvas.width !== w || layer.canvas.height !== h || !hiAllowed(w, h)){ return false; }
-  layer.hiSrc = { data, w, h, dither: true };
+  layer.hiSrc = { data, w, h, dither: true, x:0, y:0, canvasW:w, canvasH:h };
   return true;
 }
 
@@ -135,7 +135,7 @@ export function adoptHi(layer, data, w, h){
     d[o] = q8(data[j]); d[o + 1] = q8(data[j + 1]); d[o + 2] = q8(data[j + 2]);
   }
   x.putImageData(img, 0, 0);
-  layer.hiSrc = { data, w, h };
+  layer.hiSrc = { data, w, h, x:0, y:0, canvasW:w, canvasH:h };
   layer.thumbDirty = true;
   return true;
 }
@@ -145,19 +145,25 @@ export function adoptHi(layer, data, w, h){
     (RGBA) ya leída del lienzo. Devuelve cuántos píxeles usaron 16 bits. */
 export function fillBand(layer, d, out, y0, w, bh){
   const hs = layer.hiSrc;
+  if(hs){
+    const expectedW = hs.canvasW || hs.w, expectedH = hs.canvasH || hs.h;
+    if(expectedW !== layer.canvas.width || expectedH !== layer.canvas.height) delete layer.hiSrc;
+  }
+  const hi = layer.hiSrc, ox = hi ? (hi.x || 0) : 0, oy = hi ? (hi.y || 0) : 0;
   let used = 0;
-  if(hs && (hs.w !== layer.canvas.width || hs.h !== layer.canvas.height)) delete layer.hiSrc;
-  const hi = layer.hiSrc;
   for(let i = 0, p = 0; i < d.length; i += 4, p++){
     const a = d[i + 3] / 255;
     if(a <= 0) continue;
     let r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255;
     if(hi){
-      const j = ((y0 * w) + p) * 3, R = hi.data[j], G = hi.data[j + 1], B = hi.data[j + 2];
-      let same;
-      if(hi.dither){ const x = p % w, y = y0 + (p / w | 0); same = d8(R, x, y, 0) === d[i] && d8(G, x, y, 1) === d[i + 1] && d8(B, x, y, 2) === d[i + 2]; }
-      else same = q8(R) === d[i] && q8(G) === d[i + 1] && q8(B) === d[i + 2];
-      if(same){ r = R / 65535; g = G / 65535; b = B / 65535; used++; }
+      const cx = p % w, cy = y0 + (p / w | 0), sx = cx - ox, sy = cy - oy;
+      if(sx >= 0 && sy >= 0 && sx < hi.w && sy < hi.h){
+        const j = (sy * hi.w + sx) * 3, R = hi.data[j], G = hi.data[j + 1], B = hi.data[j + 2];
+        let same;
+        if(hi.dither) same = d8(R, sx, sy, 0) === d[i] && d8(G, sx, sy, 1) === d[i + 1] && d8(B, sx, sy, 2) === d[i + 2];
+        else same = q8(R) === d[i] && q8(G) === d[i + 1] && q8(B) === d[i + 2];
+        if(same){ r = R / 65535; g = G / 65535; b = B / 65535; used++; }
+      }
     }
     out[i] = r * a; out[i + 1] = g * a; out[i + 2] = b * a; out[i + 3] = a;
   }
@@ -165,4 +171,8 @@ export function fillBand(layer, d, out, y0, w, bh){
 }
 
 /** ¿Tiene el documento alguna capa visible con origen de alta profundidad? */
-export const docHasHi = layers => layers.some(l => l.visible && l.hiSrc && l.hiSrc.w === l.canvas.width && l.hiSrc.h === l.canvas.height);
+export const docHasHi = layers => layers.some(l => {
+  if(!l.visible || !l.hiSrc) return false;
+  const h=l.hiSrc;
+  return (h.canvasW || h.w) === l.canvas.width && (h.canvasH || h.h) === l.canvas.height;
+});

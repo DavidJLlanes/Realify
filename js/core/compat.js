@@ -20,23 +20,104 @@
 
 const isFirefox = () => /firefox|librewolf|waterfox/i.test(navigator.userAgent || "");
 
-/* Pinta colores conocidos y los lee: deben volver exactos */
+/* Comprueba la lectura de píxeles sin confundir pequeñas diferencias
+   normales de color/renderizado con una protección anti-fingerprinting.
+
+   Estrategia:
+     1) escribe dos patrones RGB opacos directamente con putImageData();
+     2) lee cada patrón tres veces;
+     3) compara contra los bytes originales y entre lecturas;
+     4) sólo avisa si la alteración es clara y repetible.
+
+   putImageData/getImageData evita que la propia gestión de color del
+   navegador (sRGB/P3, GPU, redondeos de fillStyle, etc.) se interprete
+   como manipulación de píxeles. Esta prueba NO toca ninguna foto ni el
+   pipeline de edición: usa un canvas temporal de 16 × 16. */
 function canvasReadback(){
   try{
-    const c = document.createElement("canvas"); c.width = 8; c.height = 8;
-    const x = c.getContext("2d", { willReadFrequently: true });
-    const cols = [[10, 200, 30], [250, 5, 120], [60, 60, 60], [0, 128, 255]];
-    cols.forEach(([r, g, b], i) => { x.fillStyle = `rgb(${r},${g},${b})`; x.fillRect((i % 2) * 4, (i >> 1) * 4, 4, 4); });
-    const d = x.getImageData(0, 0, 8, 8).data;
-    let bad = 0, white = 0;
-    for(let i = 0; i < 64; i++){
-      const px = i % 8, py = i >> 3, [r, g, b] = cols[(px >= 4 ? 1 : 0) + (py >= 4 ? 2 : 0)], j = i * 4;
-      if(Math.abs(d[j] - r) > 1 || Math.abs(d[j + 1] - g) > 1 || Math.abs(d[j + 2] - b) > 1) bad++;
-      if(d[j] === 255 && d[j + 1] === 255 && d[j + 2] === 255) white++;
+    const W = 16, H = 16, PX = W * H;
+
+    function makePattern(seed){
+      const a = new Uint8ClampedArray(PX * 4);
+      let s = seed >>> 0;
+      for(let i = 0; i < PX; i++){
+        // PRNG determinista: colores muy variados, siempre opacos.
+        s = Math.imul(s ^ (s >>> 15), 2246822519) >>> 0;
+        s = Math.imul(s ^ (s >>> 13), 3266489917) >>> 0;
+        s ^= s >>> 16;
+        const j = i * 4;
+        a[j]     = 8  + (s        & 239);
+        a[j + 1] = 8  + ((s >> 8) & 239);
+        a[j + 2] = 8  + ((s >>16) & 239);
+        a[j + 3] = 255;
+        s = (s + 0x9e3779b9 + i) >>> 0;
+      }
+      return a;
     }
-    if(!bad) return "ok";
-    return white > 56 ? "blocked" : "noisy";
-  }catch{ return "blocked"; }
+
+    function run(seed){
+      const c = document.createElement("canvas");
+      c.width = W; c.height = H;
+      const x = c.getContext("2d", { willReadFrequently: true });
+      if(!x) return { blocked:true };
+
+      const expected = makePattern(seed);
+      x.putImageData(new ImageData(expected, W, H), 0, 0);
+
+      const reads = [];
+      for(let n = 0; n < 3; n++) reads.push(x.getImageData(0, 0, W, H).data);
+
+      let changedPx = 0, severePx = 0, maxDelta = 0, blankPx = 0;
+      let unstablePx = 0;
+
+      for(let i = 0; i < PX; i++){
+        const j = i * 4;
+        let pxChanged = false, pxSevere = false, pxUnstable = false;
+        const d = reads[0];
+
+        if((d[j] === 255 && d[j+1] === 255 && d[j+2] === 255) ||
+           (d[j] === 0 && d[j+1] === 0 && d[j+2] === 0)) blankPx++;
+
+        for(let k = 0; k < 3; k++){
+          const delta = Math.abs(d[j+k] - expected[j+k]);
+          if(delta > maxDelta) maxDelta = delta;
+          if(delta > 2) pxChanged = true;
+          if(delta > 8) pxSevere = true;
+
+          const d12 = Math.abs(reads[0][j+k] - reads[1][j+k]);
+          const d13 = Math.abs(reads[0][j+k] - reads[2][j+k]);
+          if(d12 > 1 || d13 > 1) pxUnstable = true;
+        }
+        if(pxChanged) changedPx++;
+        if(pxSevere) severePx++;
+        if(pxUnstable) unstablePx++;
+      }
+
+      return {
+        blocked: blankPx > PX * 0.94,
+        changedRatio: changedPx / PX,
+        severeRatio: severePx / PX,
+        unstableRatio: unstablePx / PX,
+        maxDelta
+      };
+    }
+
+    const a = run(0x13579bdf), b = run(0x2468ace0);
+    if(a.blocked || b.blocked) return "blocked";
+
+    /* Diferencias minúsculas y estables (pocos píxeles, delta <= 2)
+       se consideran comportamiento normal del motor gráfico. Para
+       declarar manipulación exigimos evidencia fuerte en AMBOS tests,
+       o ruido que cambie entre lecturas consecutivas. */
+    const unstable = a.unstableRatio > 0.01 && b.unstableRatio > 0.01;
+    const altered = a.changedRatio > 0.05 && b.changedRatio > 0.05 &&
+                    (a.severeRatio > 0.01 || b.severeRatio > 0.01 ||
+                     a.maxDelta > 8 || b.maxDelta > 8);
+
+    return (unstable || altered) ? "noisy" : "ok";
+  }catch{
+    return "blocked";
+  }
 }
 
 function webgl2(){
@@ -53,7 +134,7 @@ export function checkCompat(){
   const cv = canvasReadback();
   if(cv !== "ok") out.push({ level: "grave",
     title: cv === "blocked" ? "El navegador está bloqueando la lectura de imágenes" : "El navegador está alterando los píxeles de las imágenes",
-    text: "Es una protección contra el rastreo («huella digital» del lienzo). En un editor de fotos impide que funcionen los filtros y que se exporte bien.",
+    text: "Realify ha verificado una alteración repetible de la lectura de píxeles del lienzo. En un editor de fotos puede afectar a filtros y exportaciones que necesiten leer esos píxeles.",
     steps: ff ? ["Pulsa el escudo que hay a la izquierda de la dirección (realify.es) y desactiva la «Protección contra rastreo» para esta web; después recarga.",
                  "Si Firefox te ha preguntado si permites «extraer datos de imagen del canvas», responde «Permitir» (y marca «Recordar»).",
                  "Con «resistFingerprinting» activado (about:config) o en LibreWolf/Mullvad, añade realify.es a las excepciones o usa otro navegador para editar."]

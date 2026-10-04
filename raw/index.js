@@ -37,9 +37,10 @@ export async function openRawFile(file) {
        docSizeLimit): antes el RAW pasaba al editor a resolución completa
        —48-50 MP en los móviles actuales, diez veces más que cualquier
        otra imagen en el móvil— y todo lo de después se arrastraba o
-       colgaba la web. El revelado final ya sale reducido. */
+       colgaba la web. El revelado final usa ahora el límite de alta
+       calidad (4096 px en móvil, 8192 px en escritorio). */
     let limited=false;
-    const outputSize=(w,h)=>{const [ow,oh,l]=docSizeLimit(w,h);limited=l;return [ow,oh];};
+    const outputSize=(w,h)=>{const [ow,oh,l]=docSizeLimit(w,h,{highQuality:true});limited=l;return [ow,oh];};
     openDeveloper({title:"Revelado RAW",source:decoder.source,metadata:decoder.metadata,initial,outputSize,fileName:file.name.replace(/\.[^.]+$/,""),onSettingChange:(settings,item)=>decoder.renderBase(settings),onClose:()=>decoder?.dispose(),onAccept:async(result,settings)=>{
       const rawMetadata=decoder.metadata;
       /* Liberar el buffer lineal del decodificador antes de que el

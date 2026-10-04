@@ -94,7 +94,10 @@ const TOPICS = [
         <li id="tool-brush"><b>Pincel (B).</b> Pinta con el color, tamaño, dureza y opacidad del panel.
           «Pinceles…» abre las puntas —incluidas imágenes y archivos ABR—, flujo,
           espaciado, dispersión, ángulo, suavizado, simetría y las dinámicas por presión,
-          velocidad o dirección. Si la capa activa tiene una máscara seleccionada como
+          velocidad o dirección. En escritorio, <kbd>Alt</kbd>+botón derecho y arrastrar
+          horizontal cambia el tamaño; vertical cambia la dureza, como en Photoshop.
+          El gesto vale también para borrador, clonar y herramientas de retoque compatibles.
+          Si la capa activa tiene una máscara seleccionada como
           destino, pinta en la máscara en vez de en el color.</li>
         <li id="tool-brush-special"><b>Pinceles especiales</b> (barra de opciones del Pincel, o menú
           Editar › Pinceles especiales). Tres modos que se combinan entre sí:
@@ -958,7 +961,9 @@ const TOPICS = [
           igual.</li>
         <li><b>Combinar con la de abajo / Combinar visibles / Acoplar imagen.</b> Van
           fundiendo capas: la primera sólo dos, la segunda todas las visibles, la
-          tercera el documento entero en una sola capa.</li>
+          tercera el documento entero en una sola capa. La primera aplica la máscara
+          de la capa superior. Si la inferior tiene máscara, efectos, opacidad o una
+          fusión especial que cambiaría el resultado, avisa y no altera las capas.</li>
         <li><b>Transformar capa…</b> Escala, rotación y dos inclinaciones (X, Y),
           más volteo horizontal/vertical, con valores exactos en vez de arrastrar a
           mano; distinta de la herramienta Mover (V), que sólo desplaza.</li>
@@ -969,7 +974,9 @@ const TOPICS = [
           que se pliega o despliega con la flecha de su fila —plegarlo sólo afecta
           al panel, el lienzo sigue mostrando su contenido igual—. Un grupo se
           puede agrupar dentro de otro grupo, y «Subir»/«Bajar» lo mueven entero,
-          con todo su contenido, en vez de sólo la cabecera.</li>
+          con todo su contenido, en vez de sólo la cabecera. Para marcar varias en
+          móvil, activa ☷ en la cabecera de Capas y toca cada fila; pulsa el botón
+          otra vez para salir del modo.</li>
         <li><b>Recortar a la capa de abajo.</b> <kbd>Alt</kbd>+clic en la miniatura
           de una capa la recorta a la forma (el canal alfa) de la capa —o
           grupo— no recortada más próxima por debajo, en su mismo nivel; vuelve a
@@ -1452,6 +1459,18 @@ const TOPICS = [
           bocadillos y curvatura; toca un texto para elegirlo, arrástralo, usa su esquina
           para escalar y girar y doble clic para escribir. Si el diseño lo necesita, el
           lienzo se amplía; cada elemento queda en su capa.</li>
+        <li id="sp-frames"><b>Marcos…</b> 138 modelos en 12 categorías. <b>Básicos</b>
+          incluye Liso, con un único color; <b>De autor</b> reúne 16 diseños como kintsugi,
+          vitral, origami, constelación y holográfico. Diamond y Heart dibujan sus motivos
+          en los cuatro lados. Todos los modelos respetan los colores elegidos; los de un
+          solo color muestran únicamente el mando principal. Elige modelo, anchura y
+          colores en escritorio o móvil;
+          los ajustes se conservan al cambiar de modo. La vista previa muestra el marco
+          completo y los mandos se adaptan al área visible del navegador. Amplía con la
+          rueda del ratón o separando dos dedos y arrastra para recorrer la imagen.
+          <b>Encajar</b> devuelve la vista completa; el doble clic también restablece el zoom.
+          El zoom no modifica el resultado. Aplicar amplía el lienzo y añade una capa exterior sin tapar la foto;
+          deshacer recupera también el tamaño anterior.</li>
         <li id="sp-vintage"><b>Filtro Vintage…</b> 42 modificadores en siete grupos (virados, color,
           tono, luz y película, daños, bordes, óptica) y <b>215 estilos</b> en 19 categorías:
           décadas, películas en color, blanco y negro, procesos antiguos, cámaras y ópticas,
@@ -1634,6 +1653,12 @@ const TOPICS = [
         compilación de cada shader por separado, y las funciones del navegador
         que usan la exportación y el análisis. <b>Copiar diagnóstico</b> copia un informe
         (navegador, funciones disponibles y errores) para enviarlo si algo falla.</p>
+      <p id="diag-update"><b>Actualizar la web o la app instalada.</b> Realify compara
+        su versión abierta con la publicada al arrancar, volver a la app, recuperar
+        conexión y cada minuto mientras está visible. Si hay novedades aparece
+        <b>Actualizar</b>: guarda los documentos, recarga y los recupera (el historial
+        de deshacer empieza de cero). <b>Luego</b> aplaza el aviso. No recarga por su
+        cuenta una sesión con trabajo abierto; sin conexión conserva la sesión.</p>
       <p id="diag-compat"><b>Avisos automáticos.</b> Al arrancar, la app comprueba que el
         navegador le deja leer los píxeles del lienzo (Firefox con la protección estricta contra
         rastreo, LibreWolf o Mullvad los bloquean o los alteran, y entonces los filtros no hacen

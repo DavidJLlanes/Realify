@@ -28,6 +28,9 @@ export const MENUS = [
     { cmd:"file.socialPost", label:"Collage / History / Post…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
       help:"Collages, publicaciones e historias para redes: 40 diseños de collage, formatos de Instagram, TikTok, Facebook, X, YouTube, LinkedIn, Pinterest y más, proporciones verticales y horizontales, y la pantalla de los móviles más conocidos. Crea el resultado en una pestaña nueva." },
+    { cmd:"filter.frames", label:"Marcos…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><rect x="7" y="7" width="10" height="10" rx=".5"/><path d="M5 5l2 2M19 5l-2 2M5 19l2-2M19 19l-2-2"/></svg>',
+      help:"120 marcos en 10 categorías, con grosor y colores ajustables. Se añade como una capa independiente para no degradar la imagen original ni perder su origen de 16 bits." },
     { sep:true },
     { cmd:"file.export",   label:"Exportar…" },
     { cmd:"file.exportAs", label:"Exportar como…" },
@@ -369,6 +372,10 @@ export const MENUS = [
        cajón del móvil (pestaña «Inteligencia Artificial») toma de aquí el
        orden y los títulos de sección, así que los dos coinciden siempre.
        Las funciones de IA nuevas son sólo Premium 👑 (ver CLAUDE.md). */
+    { header:"IA avanzada local" },
+    { cmd:"ai.advancedLocal", ic:"wand-sparkles", label:"IA avanzada local…",
+      help:"Módulo fullscreen para la nueva IA CUDA/PyTorch de Realify. En la Fase 1 muestra la foto y detecta Realify AI Local, GPU NVIDIA, CUDA y VRAM; los modelos se activarán por fases." },
+    { sep:true },
     { header:"Seleccionar" },
     { cmd:"ai.tapSelect", ic:"mouse-pointer-click", label:"Selección con un toque Premium 👑…", premium:true,
       help:"Toca un objeto y la IA (Segment Anything) lo selecciona entero; toca más para añadir o quitar partes. Borde afinado a la resolución de la foto." },
