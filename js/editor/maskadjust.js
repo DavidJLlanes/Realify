@@ -395,7 +395,14 @@ export function mountMaskProperties(layer, container){
   syncView();
   on("mask:isolate", syncView);
 
-  row.append(viewBtn, subjBtn, skyBtn, refineBtn);
+  const depthBtn = document.createElement("button");
+  depthBtn.textContent = "Por profundidad 👑";
+  depthBtn.title = "La IA calcula la distancia de cada punto y pone como máscara el primer plano, el plano medio, el fondo o un intervalo";
+  depthBtn.addEventListener("click", () => {
+    import("../features/depthzones.js").then(m => m.openDepthSelect({ target: layer }));
+  });
+
+  row.append(viewBtn, subjBtn, skyBtn, depthBtn, refineBtn);
   box.appendChild(row);
   container.appendChild(box);
 

@@ -263,8 +263,11 @@ tiempo real mientras se pinta.
 - **Profundidad 👑** (Premium, Inteligencia Artificial › Profundidad, con Depth
   Anything V2 Small, Apache 2.0, 50 MB que se descargan al usarlo):
   **Desenfoque por profundidad** (toca dónde enfocar; por capas de distancia,
-  sin halos y con bokeh en las luces), **Niebla por distancia** y **Foto 3D**
-  (animación con paralaje guardada como GIF).
+  sin halos y con bokeh en las luces), **Niebla por distancia**, **Foto 3D**
+  (animación con paralaje guardada como GIF), **Seleccionar por profundidad**
+  (primer plano, plano medio, fondo o intervalo; como selección o como máscara de
+  cualquier capa, también de ajuste), **Luz por profundidad** y **Separar planos**
+  (una capa por plano con su máscara acumulativa).
 - **Eliminar fondo** con IA local (U²-Net rápido, MODNet para retratos, ISNet
   de máxima calidad) o por color de los bordes: el recorte va a una capa nueva
   y la original se oculta.

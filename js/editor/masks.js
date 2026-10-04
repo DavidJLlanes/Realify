@@ -92,6 +92,39 @@ export function addMask(layer, fromSelection, invert = false){
   emit("doc:structure"); emit("doc:change");
 }
 
+/** Objeto máscara {canvas, ctx} a partir de un array 0-255 de w×h. */
+export function makeMaskFromArray(arr, w, h){
+  const m = makeMaskCanvas(w, h);
+  const img = m.ctx.createImageData(w, h), d = img.data;
+  for(let i = 0, p = 0; i < arr.length; i++, p += 4){ d[p] = d[p + 1] = d[p + 2] = 255; d[p + 3] = arr[i]; }
+  m.ctx.putImageData(img, 0, 0);
+  return m;
+}
+
+/** Pone `arr` (0-255, del tamaño de la capa) como máscara de `layer`: la
+    crea si no tiene y sustituye lo que hubiera, en un solo paso de
+    historial. Es lo que usan las herramientas que calculan una máscara
+    (profundidad…) y no deben dejar «Añadir máscara» + «Pintar» como dos
+    pasos distintos. */
+export function setMaskFromArray(layer, arr, title = "Máscara"){
+  if(!layer) return false;
+  const w = layer.canvas.width, h = layer.canvas.height;
+  if(arr.length !== w * h) return false;
+  const before = layer.mask ? cloneMask(layer.mask) : null, hadEnabled = layer.maskEnabled;
+  const m = makeMaskFromArray(arr, w, h);
+  const after = cloneMask(m);
+  layer.mask = m; layer.maskEnabled = true; layer.thumbDirty = true;
+  const put = snap => {
+    layer.mask = snap ? cloneMask(snap) : null;
+    layer.maskEnabled = snap ? true : hadEnabled;
+    layer.thumbDirty = true;
+    emit("doc:structure"); emit("doc:change");
+  };
+  record(title, () => put(before), () => put(after));
+  emit("doc:structure"); emit("doc:change");
+  return true;
+}
+
 export function removeMask(layer, apply){
   if(!layer || !layer.mask) return;
   const before = layer.mask;

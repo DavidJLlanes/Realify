@@ -708,7 +708,7 @@ const TOPICS = [
           Reemplazar cielo.</li>
         <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑 y Ojos rojos 👑.</li>
         <li><b>Encuadre:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
-        <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑 y Foto 3D 👑.</li>
+        <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑, Luz por profundidad 👑, Separar planos 👑 y Foto 3D 👑 (y Seleccionar por profundidad 👑 en «Seleccionar»).</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
           artefactos JPEG con IA, Iluminar con IA 👑, Colorear con IA y Adaptive Photo Lens.</li>
         <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
@@ -795,6 +795,24 @@ const TOPICS = [
           que se destapa con el fondo, y la guarda como <b>GIF</b>: en el iPhone, «Crear GIF» y luego
           «Guardar» (en la hoja del sistema, «Guardar imagen» la deja en Fotos); en Android y en el
           ordenador se descarga.</li>
+        <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
+          Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
+          el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>
+          Desde–Hasta (0 % = lo más cercano); también puedes <b>tocar la imagen</b> para elegir la
+          distancia de ese punto. <b>Suavidad</b> difumina el paso entre zonas e <b>Invertir</b> elige
+          lo contrario. «Ver» alterna la selección sobre la foto y el mapa de profundidad. El resultado
+          es una <b>selección</b> o la <b>máscara de la capa</b> (de imagen o de ajuste: así haces un
+          ajuste local según la distancia); se calcula a tamaño real, con el borde ajustado a la
+          foto, y es un solo paso de historial. En las propiedades de una máscara, el botón
+          «Por profundidad 👑» hace lo mismo sobre esa capa.</li>
+        <li><b>Luz por profundidad 👑.</b> Sube o baja la luz según la distancia: <b>Lo cercano</b> y
+          <b>Lo lejano</b> en pasos EV, <b>Punto de giro</b> (toca la imagen para ponerlo) y
+          <b>Transición</b>. Se aplica en luz lineal con un hombro suave, así que las luces no se
+          recortan de golpe ni cambia el tono; capa nueva.</li>
+        <li><b>Separar planos 👑.</b> Reparte la foto en 2, 3 o 4 planos y crea una capa por plano
+          con su máscara (acumulativa: cada capa se ve en su plano y en los más cercanos, y la de
+          atrás va sin máscara), para retocar el primer plano y el fondo por separado. Con las capas
+          sin tocar, la foto queda igual que la original. Un solo paso de historial.</li>
       </ul>` },
 
   { id:"filtros", title:"Filtros (menú Filtro)",

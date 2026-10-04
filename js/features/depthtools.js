@@ -30,15 +30,15 @@ import { toast, status } from "../ui/toast.js";
 import { depthMap, depthAt } from "../ai/depth.js";
 import { boxBlurFloat } from "../editor/refineedge-math.js";
 
-const DEC = new Float32Array(256);
+export const DEC = new Float32Array(256);
 for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
-const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
-const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+export const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
+export const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
-const PREVIEW = 1280;   // lado largo de la vista previa
+export const PREVIEW = 1280;   // lado largo de la vista previa
 
 /* Lo que se ve (la imagen compuesta), en un lienzo legible */
-async function visibleImage(){
+export async function visibleImage(){
   if(!doc.open || !activeLayer()){ toast("Abre una imagen primero"); return null; }
   const { flatten } = await import("../editor/layertree.js");
   const c = flatten();
@@ -47,7 +47,7 @@ async function visibleImage(){
   return r;
 }
 
-function scaled(src, side){
+export function scaled(src, side){
   const k = Math.min(1, side / Math.max(src.width, src.height));
   const c = document.createElement("canvas");
   c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
@@ -55,10 +55,10 @@ function scaled(src, side){
   x.imageSmoothingQuality = "high"; x.drawImage(src, 0, 0, c.width, c.height);
   return c;
 }
-const pixelsOf = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
+export const pixelsOf = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 
 /* Foto (a w×h) en luz lineal y su profundidad afinada */
-function prepare(canvas, map){
+export function prepare(canvas, map){
   const w = canvas.width, h = canvas.height, n = w * h, px = pixelsOf(canvas);
   const R = new Float32Array(n), G = new Float32Array(n), B = new Float32Array(n);
   for(let i = 0, j = 0; i < n; i++, j += 4){ R[i] = DEC[px[j]]; G[i] = DEC[px[j + 1]]; B[i] = DEC[px[j + 2]]; }
@@ -66,19 +66,19 @@ function prepare(canvas, map){
 }
 
 /* Mapa de profundidad (con la ventana de progreso) o null si se cancela */
-async function getDepth(src){
+export async function getDepth(src){
   try{ return await depthMap(src); }
   catch(err){ if(!err.cancelled) toast("No se pudo calcular la profundidad: " + err.message, "err"); return null; }
 }
 
 /* Capa nueva encima de la activa, un paso de deshacer */
-async function toNewLayer(canvas, name){
+export async function toNewLayer(canvas, name){
   const { resultToLayer } = await import("../ui/fsshell.js");
   await resultToLayer(canvas, { name, mix: true });
 }
 
 /* Ventana a pantalla completa común: vista, comparar y mandos */
-async function openShell(opts){
+export async function openShell(opts){
   const { createShell, ensureShellStyles, mountControls } = await import("../ui/fsshell.js");
   await ensureShellStyles();
   const sh = createShell({ cls: "depth-tool", ...opts });
@@ -218,10 +218,10 @@ function renderDepthBlur(P, S, { parts = false } = {}){
    Antes todo se calculaba a tamaño completo (una treintena de matrices
    de la foto entera): con 12 MP, unos 2 GB, y el móvil cerraba la
    pestaña. */
-const WORK = () => (matchMedia("(max-width:900px)").matches || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.deviceMemory || 8) <= 4) ? 1600 : 2400;
+export const WORK = () => (matchMedia("(max-width:900px)").matches || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.deviceMemory || 8) <= 4) ? 1600 : 2400;
 
 /* Muestreo bilineal de una matriz w×h en el punto (x, y) de la foto grande */
-function sampler(w, h, W, H){
+export function sampler(w, h, W, H){
   const sx = w / W, sy = h / H;
   return (arr, X, Y) => {
     const fx = Math.min(w - 1, Math.max(0, (X + 0.5) * sx - 0.5)), fy = Math.min(h - 1, Math.max(0, (Y + 0.5) * sy - 0.5));

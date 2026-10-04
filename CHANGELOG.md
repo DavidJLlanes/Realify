@@ -9,6 +9,23 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Profundidad como herramienta (fase 5)
+- **Seleccionar por profundidad 👑** (Inteligencia Artificial › Seleccionar): primer plano,
+  plano medio, fondo (tercios por cantidad de píxeles, siempre dan algo útil) o intervalo
+  manual; tocar la imagen elige la distancia de ese punto; suavidad e invertir. Ver sobre la
+  foto o el mapa de profundidad. Resultado como **selección** o como **máscara de capa**.
+  Se calcula a tamaño real: la distancia, guiada por los bordes de la foto, se interpola por
+  píxel antes de aplicar la zona (el contorno no sale a escalones).
+- **Máscaras por distancia para cualquier ajuste local**: Capa › Máscara de capa › «Por
+  profundidad…» y el botón «Por profundidad 👑» de las propiedades de la máscara, en capas de
+  imagen y de ajuste, en un solo paso de historial (`setMaskFromArray` en `js/editor/masks.js`).
+- **Luz por profundidad 👑**: luz distinta para lo cercano y lo lejano en pasos EV, con
+  punto de giro (se toca en la imagen) y transición suave; luz lineal con hombro suave (no
+  recorta las luces y conserva el tono) y tramado. Capa nueva.
+- **Separar planos 👑**: 2, 3 o 4 planos en capas con máscaras acumulativas y transiciones que
+  suman 1; recompuestas dan la foto original (diferencia máxima de 2 niveles de 255).
+- Matemática sin DOM en `js/ai/depthmath.js`.
+
 ### Máscaras de capa: pintar en negro ya oculta
 - **El Pincel no ocultaba nada al pintar la máscara**: pintaba gris opaco y la máscara guarda
   la visibilidad en su canal alfa, así que el negro seguía «viéndose». Ahora el trazo se
