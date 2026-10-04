@@ -25,6 +25,17 @@ que las entradas se agrupan por fecha.
 - **Exportación en coma flotante con estilos de capa y «Fusionar si»**: ya no se parte del aplanado de 8 bits.
   Sombra, resplandor y trazo se dibujan aparte a tamaño completo y la capa va encima en coma flotante; el
   degradado y «Fusionar si» se evalúan sin redondear (diferencia con el aplanado de 8 bits: media 0,3–0,5 niveles).
+- **Aviso de versión nueva más a prueba de fallos** (`js/pwa.js`, `js/pwa-updates.js`):
+  - El aviso **Actualizar / Luego sale siempre primero**; la actualización automática va detrás y, si guardar lo abierto
+    se atasca (IndexedDB bloqueado por otra pestaña, documento enorme) o falla, el aviso ya está a la vista (antes la
+    espera podía quedarse sin aviso ni recarga). Tope de 12 s; el botón vuelve a «Actualizar».
+  - Un **service worker nuevo encontrado** cuenta como señal de versión nueva: consulta `version.json` y, si no responde,
+    avisa igualmente.
+  - Ya no se fía de `navigator.onLine` (en algunos equipos dice «sin conexión» con red y bloqueaba la consulta).
+  - **Registro de lo ocurrido** (comprobaciones, avisos, actualizaciones automáticas) en Ayuda › Diagnóstico y en el
+    informe copiable, también en `localStorage`: si un aviso no llega, se ve por qué.
+  - Carga del servidor: una consulta de ~50 bytes cada 2 min por pestaña visible (antes 1 min) y las del arranque,
+    juntas, se reducen a una.
 - **Disolver** usa ahora aritmética entera exacta (`Math.imul`) en el compositor de 8 bits, en el de exportación y
   en WebGPU, igual que la GPU nueva: el patrón es el mismo en la vista, en la exportación y en la GPU.
 

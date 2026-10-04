@@ -8,7 +8,7 @@
 
 import { dialog } from "./ui/dialog.js";
 import { toast } from "./ui/toast.js";
-import { watchPWAUpdates } from "./pwa-updates.js";
+import { watchPWAUpdates, updateLog } from "./pwa-updates.js";
 
 let deferredPrompt = null;
 
@@ -28,10 +28,12 @@ let watcherRef=null;
 export function initPWA(){
   if(initialized)return;initialized=true;
   const watcher=watcherRef=watchPWAUpdates({onUpdate:latest=>{
-    // Al abrir la web o la app, o volver a ponerla en primer plano, se actualiza sola
-    // (guardando antes lo abierto). Sólo si no se puede, queda el aviso con Luego/Actualizar.
-    if(autoUpdate(latest))return;
+    /* El aviso sale SIEMPRE primero (Actualizar / Luego): si la actualización automática se atascara o
+       fallara por cualquier motivo, la persona ya lo está viendo. Al abrir la web o la app, o volver a
+       ponerla en primer plano, además se actualiza sola (guardando antes lo abierto). */
+    updateLog('versión nueva: '+latest);
     if(Date.now()-dismissedAt>60e3)showUpdateBar();
+    autoUpdate(latest);
   }});
   // La detección por version.json funciona también sin service worker.
   if(!navigator.serviceWorker||typeof navigator.serviceWorker.register!=="function")return;
@@ -59,15 +61,24 @@ const AUTO_KEY="realify.autoUpdate";
 let updating=false;
 function autoUpdate(latest){
   if(updating)return true;
-  if(document.querySelector(".modal, .fsp"))return false;
+  if(document.querySelector(".modal, .fsp")){updateLog('auto: no, hay un diálogo abierto');return false;}
   try{
     const t=JSON.parse(sessionStorage.getItem(AUTO_KEY)||"null");
-    if(t&&t.v===latest&&Date.now()-t.t<180e3)return false;
+    if(t&&t.v===latest&&Date.now()-t.t<180e3){updateLog('auto: no, ya se intentó hace poco');return false;}
     sessionStorage.setItem(AUTO_KEY,JSON.stringify({v:latest,t:Date.now()}));
-  }catch{return false;}
+  }catch{updateLog('auto: no, sin sessionStorage');return false;}
   updating=true;
+  updateLog('auto: actualizando');
   toast("Actualizando Realify a la versión nueva…");
-  applyUpdate({silent:true}).then(ok=>{if(!ok){updating=false;showUpdateBar();}}).catch(()=>{updating=false;showUpdateBar();});
+  const failed=why=>{
+    updating=false;updateLog('auto: falló ('+why+')');
+    const b=bar?.querySelector('[data-u="now"]');if(b){b.disabled=false;b.textContent='Actualizar';}
+    showUpdateBar();
+  };
+  // Tope de tiempo: si guardar lo abierto se atasca (IndexedDB bloqueado por otra pestaña, documento enorme…),
+  // queda el aviso para decidir en vez de una espera sin fin.
+  const limit=new Promise(r=>setTimeout(()=>r("tiempo"),12000));
+  Promise.race([applyUpdate({silent:true}),limit]).then(ok=>{if(ok==="tiempo")failed("sin respuesta en 12 s");else if(!ok)failed("no se pudo guardar lo abierto");}).catch(e=>failed(e?.message||e));
   return true;
 }
 
@@ -102,7 +113,7 @@ async function applyUpdate({ silent = false } = {}){
       await stashForUpdate();
     }
   }catch(err){
-    if(silent) return false;           // sin poder guardar, no se recarga solo: queda el aviso
+    if(silent){ if(btn){ btn.disabled = false; btn.textContent = "Actualizar"; } return false; }   // sin poder guardar, no se recarga solo: queda el aviso
     const { confirmDlg } = await import("./ui/dialog.js");
     const ok = await confirmDlg("Actualizar sin guardar", `No se ha podido guardar lo que tienes abierto (${err?.message || "sin espacio en el navegador"}). Si actualizas ahora, se cerrará. Puedes cancelar, guardarlo como proyecto o exportarlo, y actualizar después.`, "Actualizar igualmente");
     if(!ok){ if(btn){ btn.disabled = false; btn.textContent = "Actualizar"; } return false; }

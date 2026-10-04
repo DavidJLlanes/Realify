@@ -902,6 +902,7 @@ registerAll({
               bad.length ? "fallan: " + bad.map(b => b[0]).join(", ")
                          : Object.keys(d.shaders).length + " compilan correctamente") : "") +
           `<div class="diag-float"></div>` +
+          `<div class="diag-upd hint" style="margin:6px 0"></div>` +
           row(typeof createImageBitmap === "function", "createImageBitmap",
               typeof createImageBitmap === "function" ? "sí" : "no: el análisis ELA no funcionará") +
           row((() => { try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return true; }catch{ return false; } })(),
@@ -910,6 +911,16 @@ registerAll({
           compatRows.map(p => row(false, p.title.split(" ").slice(0, 3).join(" "), p.title)).join("") +
           `<div class="field"><button type="button" class="diag-copy">Copiar diagnóstico</button><span class="hint" style="margin:0">para enviarlo si algo no funciona</span></div>` +
           `<div class="section-label" style="margin-top:12px">Modelos de IA descargados</div><div class="diag-models hint" style="margin:0">Comprobando…</div>`;
+      // Avisos de versión nueva: versión cargada, última conocida y el registro de lo ocurrido (pwa-updates.js)
+      import("./pwa-updates.js").then(m => {
+        const el = body.querySelector(".diag-upd"); if(!el) return;
+        const i = m.updateInfo, esc = t => String(t).replace(/</g, "&lt;");
+        const log = (i.log.length ? i.log : m.savedUpdateLog()).slice(-8);
+        el.innerHTML = `<b>Avisos de versión</b>: cargada ${i.loaded ?? "?"} · última ${i.latest ?? "?"}` +
+          (i.checkedAt ? ` · comprobada hace ${Math.round((Date.now() - i.checkedAt) / 1000)} s` : " · sin comprobar") +
+          (i.error ? ` · error: ${esc(i.error)}` : "") +
+          (log.length ? `<br><span class="mono" style="font-size:11px;white-space:pre-wrap">${esc(log.join("\n"))}</span>` : "");
+      }).catch(() => {});
       // Compositor de coma flotante de la vista previa (fase 13): se carga sólo si el documento lo aprovecha
       import("./gpu/floatcompositor.js").then(m => {
         const el = body.querySelector(".diag-float"), ok = m.floatAvailable();

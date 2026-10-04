@@ -85,12 +85,10 @@ try{
     });
     await cold.waitForTimeout(100);if(await cold.locator('.update-bar').count())throw new Error('Aviso con manifiesto inválido');
     invalid=false;
+    /* navigator.onLine ya no se usa como filtro (en algunos equipos miente): la consulta se hace y, si de
+       verdad no hay red, falla sin más. */
     await cold.evaluate(()=>{
       Object.defineProperty(navigator,'onLine',{configurable:true,value:false});window.dispatchEvent(new Event('online'));
-    });
-    await cold.waitForTimeout(100);if(await cold.locator('.update-bar').count())throw new Error('Aviso nuevo sin conexión');
-    await cold.evaluate(()=>{
-      Object.defineProperty(navigator,'onLine',{configurable:true,value:true});window.dispatchEvent(new Event('online'));
     });
     // Reconexión con versión nueva y sin lo abierto: se actualiza sola.
     await cold.waitForNavigation();
