@@ -869,7 +869,13 @@ const TOPICS = [
           elimina bloques y halos de compresión). La primera vez descargan su modelo y lo
           guardan en el navegador.</li>
         <li><b>Corrección de lente.</b> Distorsión, aberración cromática y viñeteo,
-          en tiempo real mientras mueves los deslizadores.</li>
+          en tiempo real mientras mueves los deslizadores. <b>Corrección de lente por perfil Premium 👑</b> (mismo menú): lee de la foto la cámara, el
+          objetivo, la distancia focal y el diafragma (EXIF), busca el objetivo en la base de Lensfun
+          (unos 1 500 objetivos) y corrige con sus calibraciones reales: distorsión, aberración
+          cromática y viñeteo (en luz lineal), con un único remuestreo bicúbico a resolución completa
+          y, si quieres, zoom para no dejar bordes vacíos. Si no la reconoce, escribe el objetivo
+          en el cuadro (se sugieren los de la base). Resultado en una capa nueva. La base (1,7 MB)
+          se descarga la primera vez.</li>
         <li><b>Retoque de retrato.</b> Suaviza la piel respetando poros y bordes, con
           brillo controlado; no es un filtro de belleza agresivo.</li>
         <li><b>Separación de frecuencias…</b> El otro pilar del retoque de piel serio,

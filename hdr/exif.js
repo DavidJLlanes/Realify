@@ -27,7 +27,7 @@ const tag4 = (u, i, t) => u[i] === t.charCodeAt(0) && u[i + 1] === t.charCodeAt(
    TIFF/DNG: al principio. Resto (HEIC, PNG eXIf, WebP EXIF…): se
    busca la cabecera TIFF justo detrás de «Exif\0\0» o de la etiqueta
    del bloque. */
-function findTiff(buf){
+export function findTiff(buf){
   const u = new Uint8Array(buf), dv = new DataView(buf);
   if(u.length < 8) return -1;
   if(dv.getUint16(0) === 0xffd8){

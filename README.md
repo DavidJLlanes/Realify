@@ -238,6 +238,11 @@ tiempo real mientras se pinta.
   combinadas por franjas en luz lineal: reducir ruido con rechazo de movimiento (el ruido
   baja en √N) o ampliar el enfoque (la toma más nítida en cada punto). Foto nueva a
   resolución completa.
+- **Corrección de lente por perfil Premium 👑** (`js/features/lenscorrect.js`, `js/lens/`): EXIF →
+  objetivo de la base de Lensfun (`assets/lensdb/lensfun.json`, CC BY-SA 3.0, construida con
+  `tools/build-lensdb.mjs`) → distorsión (poly3, poly5, ptlens), aberración cromática (lineal,
+  poly3) y viñeteo (pa) a resolución completa, un solo remuestreo bicúbico. Fórmulas
+  reimplementadas y comprobadas contra Lensfun (menos de 1 px).
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

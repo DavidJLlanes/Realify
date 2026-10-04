@@ -124,10 +124,15 @@ que ya funciona.
 - [ ] Documentos: mejora opcional del fondo (aclarar el papel, blanco y negro) y varias páginas.
 - [ ] Perspectiva automática con líneas diagonales y puntos de fuga horizontales (fachadas vistas de lado).
 
-## Fase 9 · Corrección de lente con perfiles reales
-- [ ] Base de perfiles por objetivo (distorsión, viñeteo y aberración); revisar su
-      licencia.
-- [ ] Aplicación automática según los datos EXIF de cámara y objetivo.
+## Fase 9 · Corrección de lente con perfiles reales ✅ (v233)
+- [x] Base de perfiles por objetivo (distorsión, viñeteo y aberración): Lensfun, CC BY-SA 3.0
+      (uso comercial permitido; hay que atribuir y compartir igual la base derivada, que va
+      aparte del código: `assets/lensdb/`). (v233)
+- [x] Aplicación automática según los datos EXIF de cámara y objetivo. (v233)
+- [ ] Móviles y cámaras sin objetivo en la base (iPhone, Pixel…): sus perfiles no están en Lensfun;
+      habría que medirlos o aceptar perfiles aportados por el usuario.
+- [ ] Modelos de distorsión «acm» y viñeteo ACM; recorte del propio archivo (fotos ya recortadas).
+- [ ] Aplicarlo a archivos RAW antes del revelado y en lote.
 
 ## Fase 10 · Selección por texto
 - [ ] Elegir modelo («persona», «cielo», «pelo», «coche rojo»…) con licencia comercial y

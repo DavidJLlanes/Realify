@@ -327,6 +327,7 @@ export const MENUS = [
     ]},
     { label:"Fotografía y detalle", submenu:[
       { cmd:"filter.lensCorrection", label:"Corrección de lente…" },
+      { cmd:"filter.lensProfile", label:"Corrección de lente por perfil Premium 👑…" },
       { cmd:"filter.portrait", label:"Retoque de retrato…" },
       { cmd:"filter.freqsep",  label:"Separación de frecuencias…",
         help:"Separa color/luz y textura en dos capas —«Baja» y «Alta», en Luz lineal— para retocar tono de piel sin perder detalle, o corregir una marca sin manchar el color." },

@@ -141,6 +141,7 @@ const ITEMS = [
 
   /* ── Filtro: fotografía, detalle y ruido ── */
   { cmd:"filter.lensCorrection", label:"Corregir lente",   ic:"glasses",        cat:"corregir" },
+  { cmd:"filter.lensProfile", label:"Lente por perfil", ic:"glasses", premium:true, cat:"corregir" },
   { cmd:"filter.portrait",       label:"Retrato",          ic:"scan-face",      cat:"retoque" },
   { cmd:"filter.freqsep",        label:"Separar frecuencias", ic:"split",       cat:"retoque" },
   { cmd:"dodgeburn.start",       label:"Dodge & Burn",     tool:"dodgeburn",    cat:"retoque" },

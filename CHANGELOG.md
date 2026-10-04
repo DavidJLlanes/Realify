@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v233 · Corrección de lente con perfiles reales (fase 9)
+- **Corrección de lente por perfil Premium 👑** (Filtro): lee la cámara, el objetivo, la focal y el
+  diafragma de los datos EXIF (JPEG, TIFF/DNG, HEIC, PNG, WebP), identifica el objetivo en la base de
+  Lensfun (1 478 objetivos, 1 022 cámaras) y aplica sus calibraciones: **distorsión** (poly3, poly5,
+  ptlens), **aberración cromática** (lineal, poly3) y **viñeteo** (en luz lineal, con tramado), a
+  resolución completa y con un solo remuestreo bicúbico (Catmull-Rom). Zoom automático opcional
+  para no dejar bordes vacíos. Si no reconoce el objetivo, se escribe a mano con sugerencias.
+  Resultado en una capa nueva.
+- **Comprobado contra Lensfun**: geometría y aberración cromática a 0,25 px (focales calibradas) y
+  menos de 1 px entre calibraciones, viñeteo a ±1 nivel; una foto con distorsión sintética recupera
+  la posición de sus 297 líneas de cuadrícula.
+- **Licencia de los datos**: la base de Lensfun es CC BY-SA 3.0 (uso comercial permitido, con atribución
+  y compartiendo igual las adaptaciones): `assets/lensdb/lensfun.json` se distribuye con esa
+  licencia y su aviso (`assets/lensdb/LICENSE.md`, `js/vendor/ATTRIBUTIONS.md`). El código de
+  Realify no queda afectado.
+
 ### v232 · Actualización automática al abrir o volver a la app
 - **Se actualiza sola de nuevo**: al abrir la web o la app, o al volver a ponerla en primer plano,
   si `version.json` anuncia una versión más nueva que la cargada, Realify guarda lo abierto, se
