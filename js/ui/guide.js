@@ -1694,10 +1694,14 @@ const TOPICS = [
         (navegador, funciones disponibles y errores) para enviarlo si algo falla.</p>
       <p id="diag-update"><b>Actualizar la web o la app instalada.</b> Realify compara
         su versión abierta con la publicada al arrancar, volver a la app, recuperar
-        conexión y cada minuto mientras está visible. Si hay novedades aparece
-        <b>Actualizar</b>: guarda los documentos, recarga y los recupera (el historial
-        de deshacer empieza de cero). <b>Luego</b> aplaza el aviso. No recarga por su
-        cuenta una sesión con trabajo abierto; sin conexión conserva la sesión.</p>
+        conexión y cada minuto mientras está visible; además, el service worker nuevo
+        avisa a las páginas abiertas al activarse. Si hay una versión nueva, <b>se
+        actualiza sola</b>: guarda los documentos, recarga y los recupera (el historial
+        de deshacer empieza de cero). Si hay un diálogo o una herramienta a pantalla completa
+        abiertos, o no se pueden guardar los documentos, en su lugar sale el aviso
+        <b>Actualizar / Luego</b>. <b>Ayuda › Buscar actualización…</b> consulta en el momento y
+        dice la versión de esta copia y la última publicada; el Diagnóstico incluye cuándo se
+        comprobó y el error si lo hubo. Sin conexión conserva la sesión.</p>
       <p id="diag-compat"><b>Avisos automáticos.</b> Al arrancar, la app comprueba que el
         navegador le deja leer los píxeles del lienzo (Firefox con la protección estricta contra
         rastreo, LibreWolf o Mullvad los bloquean o los alteran, y entonces los filtros no hacen

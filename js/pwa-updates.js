@@ -14,7 +14,7 @@ export function watchPWAUpdates({onUpdate,currentVersion=loadedVersion()}={}){
   let registration=null,pending=null,pendingSince=0,disposed=false;
   const sw=navigator.serviceWorker;
   /* Consulta version.json. Un fallo puntual (red lenta al despertar la app) se reintenta una vez. */
-  async function fetchVersion(){
+  async function fetchVersion(silent=false){
     for(let attempt=0;attempt<2;attempt++){
       const abort=new AbortController(),timeout=setTimeout(()=>abort.abort(),10000);
       try{
@@ -25,7 +25,7 @@ export function watchPWAUpdates({onUpdate,currentVersion=loadedVersion()}={}){
         const data=await response.json(),latest=Number(data.version);
         if(!Number.isSafeInteger(latest))throw new Error('version.json sin número de versión');
         updateInfo.latest=latest;updateInfo.checkedAt=Date.now();updateInfo.error=null;
-        if(!disposed&&currentVersion!==null&&latest>currentVersion)onUpdate?.(latest);
+        if(!silent&&!disposed&&currentVersion!==null&&latest>currentVersion)onUpdate?.(latest);
         return;
       }catch(err){
         updateInfo.error=String(err?.message||err);updateInfo.checkedAt=Date.now();
@@ -47,7 +47,8 @@ export function watchPWAUpdates({onUpdate,currentVersion=loadedVersion()}={}){
   /* Comprobación pedida por la persona (Ayuda › Buscar actualización): sin atajos ni esperas. */
   async function checkNow(){
     try{await Promise.resolve(registration?.update()).catch(()=>{});}catch{}
-    await fetchVersion();
+    updateInfo.latest=null;updateInfo.error=null;
+    await fetchVersion(true);      // sin reacción automática: el diálogo cuenta lo que hay
     return {...updateInfo};
   }
   /* El propio service worker avisa al activarse (js/pwa.js recibe el mensaje): no depende de version.json. */

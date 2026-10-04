@@ -9,6 +9,19 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v235 · Avisos de versión más robustos
+- **Segundo camino de aviso, sin `version.json`**: el service worker nuevo avisa a las páginas abiertas
+  al activarse y la app se actualiza (o enseña el banner) aunque la consulta de `version.json` falle.
+- **Ayuda › Buscar actualización…**: consulta en el momento y dice la versión de esta copia y la última
+  publicada («al día», «hay una nueva: Actualizar ahora» o por qué no se pudo consultar).
+- **Estado a la vista**: Ayuda › Diagnóstico incluye ahora la versión cargada, la última conocida, cuándo
+  se comprobó, el error si lo hubo y si el service worker controla la página.
+- La consulta se reintenta una vez si falla (red lenta al despertar la app) y una petición congelada
+  al suspender la app en iOS ya no bloquea las siguientes.
+- Comprobado con service worker real y cabeceras como las de nginx: un cliente v227 abierto ve el banner
+  al volver al primer plano y, al pulsar Actualizar, carga la versión actual; con `version.json` caído, la
+  versión nueva se detecta igualmente por el service worker.
+
 ### v234 · Seleccionar por texto (fase 10)
 - **Seleccionar por texto Premium 👑** (Selección, y Capa › Máscara de capa › «Por texto»): se escribe
   qué seleccionar —«persona», «cielo», «coche rojo», «césped sin personas», «árboles y montañas»— y
