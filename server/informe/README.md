@@ -20,7 +20,7 @@ reducida de la imagen abierta (casilla desmarcada). Nunca la foto original, ni E
    sudo useradd --system --home /opt/informe --shell /usr/sbin/nologin informe
    sudo mkdir -p /opt/informe && sudo cp server/informe/informe.py /opt/informe/
    sudo cp server/informe/informe.service /etc/systemd/system/
-   sudo systemctl edit informe      # o editar el .service: INFORME_TO=tu@correo.es
+   sudo systemctl edit informe      # o editar el .service: INFORME_TO=djl@djl.red
    sudo systemctl daemon-reload && sudo systemctl enable --now informe
    curl -s http://127.0.0.1:8766/api/informe/salud      # {"ok": true}
    ```

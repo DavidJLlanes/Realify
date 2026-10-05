@@ -7,7 +7,7 @@ After=network.target postfix.service
 User=informe
 Group=informe
 SupplementaryGroups=postdrop
-Environment=INFORME_TO=CAMBIA@tu-correo.es
+Environment=INFORME_TO=djl@djl.red
 Environment=INFORME_FROM=informes@realify.es
 Environment=INFORME_PORT=8766
 ExecStart=/usr/bin/python3 /opt/informe/informe.py

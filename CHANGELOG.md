@@ -22,6 +22,7 @@ que las entradas se agrupan por fecha.
   máximo, campo trampa, 5 informes/hora por IP + `limit_req` de nginx, imagen sólo si es un JPEG real; con servicio
   systemd, bloque de nginx y guía de SPF, DKIM y DMARC de realify.es. **Hay que instalarlo en el VPS** para que el envío
   funcione; hasta entonces el diálogo avisa de que no se pudo enviar y deja copiar el informe.
+- El servicio ya trae `INFORME_TO=djl@djl.red` como destinatario de los informes.
 - **Política de privacidad**: nueva sección «Informes de error (sólo si tú los envías)».
 - Pruebas nuevas: `tests/informe.mjs` (diálogo en móvil y escritorio, panel de arranque, 429) y
   `tests/informe_servidor.py` (receptor con sendmail falso: inyección de cabeceras, trampa, límites, imagen falsa).
