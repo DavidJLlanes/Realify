@@ -28,7 +28,7 @@ const jpegBytes = (canvas, q) => new Promise((res, rej) => canvas.toBlob(async b
 
 /** Lienzos → PDF (una página por lienzo). opts: { page, orientation
     ("auto"|"portrait"|"landscape"), margin (pt), quality 0-1, dpi } */
-export async function pdfFromCanvases(canvases, { page = "image", orientation = "auto", margin = 0, quality = .9, dpi = 150 } = {}){
+export async function pdfFromCanvases(canvases, { page = "image", orientation = "auto", margin = 0, quality = .9, dpi = 150, info = null, xmp = null } = {}){
   const objs = [];                    // contenido de cada objeto (Uint8Array o string)
   const enc = new TextEncoder();
   const add = content => { objs.push(content); return objs.length; };
@@ -53,7 +53,17 @@ export async function pdfFromCanvases(canvases, { page = "image", orientation = 
     const pg = add(`<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${pw.toFixed(2)} ${ph.toFixed(2)}] /Resources << /XObject << /Im0 ${img} 0 R >> >> /Contents ${content} 0 R >>`);
     kids.push(pg);
   }
-  objs[catalog - 1] = `<< /Type /Catalog /Pages ${pages} 0 R >>`;
+  /* Metadatos (io/metadata.js): diccionario Info (autor, título, asunto, palabras clave, fecha) y paquete XMP como flujo «Metadata» del catálogo */
+  const hexStr = t => "<FEFF" + [...String(t)].map(ch => { const c = ch.codePointAt(0); if(c > 0xFFFF){ const v = c - 0x10000; return (0xD800 + (v >> 10)).toString(16).padStart(4, "0") + (0xDC00 + (v & 1023)).toString(16).padStart(4, "0"); } return c.toString(16).padStart(4, "0"); }).join("") + ">";
+  let infoRef = "", metaRef = "";
+  if(info && Object.values(info).some(Boolean)){
+    const d = info.date ? new Date(info.date) : null, pdfDate = x => `(D:${x.getFullYear()}${String(x.getMonth() + 1).padStart(2, "0")}${String(x.getDate()).padStart(2, "0")}${String(x.getHours()).padStart(2, "0")}${String(x.getMinutes()).padStart(2, "0")}${String(x.getSeconds()).padStart(2, "0")})`;
+    const f = [info.title && `/Title ${hexStr(info.title)}`, info.author && `/Author ${hexStr(info.author)}`, info.subject && `/Subject ${hexStr(info.subject)}`, info.keywords && `/Keywords ${hexStr(info.keywords)}`,
+               "/Creator (Realify)", "/Producer (Realify)", d && !isNaN(d) && `/CreationDate ${pdfDate(d)}`].filter(Boolean);
+    infoRef = ` /Info ${add(`<< ${f.join(" ")} >>`)} 0 R`;
+  }
+  if(xmp){ const xb = enc.encode(xmp); metaRef = ` /Metadata ${add({ dict: `<< /Type /Metadata /Subtype /XML /Length ${xb.length} >>`, stream: xb })} 0 R`; }
+  objs[catalog - 1] = `<< /Type /Catalog /Pages ${pages} 0 R${metaRef} >>`;
   objs[pages - 1] = `<< /Type /Pages /Kids [${kids.map(k => `${k} 0 R`).join(" ")}] /Count ${kids.length} >>`;
   const parts = [enc.encode("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n")], offsets = [];
   let pos = parts[0].length;
@@ -66,7 +76,7 @@ export async function pdfFromCanvases(canvases, { page = "image", orientation = 
   const xref = pos;
   let x = `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
   for(const off of offsets) x += String(off).padStart(10, "0") + " 00000 n \n";
-  x += `trailer\n<< /Size ${objs.length + 1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  x += `trailer\n<< /Size ${objs.length + 1} /Root ${catalog} 0 R${infoRef} >>\nstartxref\n${xref}\n%%EOF\n`;
   push(enc.encode(x));
   return new Blob(parts, { type: "application/pdf" });
 }

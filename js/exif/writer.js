@@ -85,13 +85,13 @@ export function writeIFD(u8, dv, start, entries){
   dv.setUint32(p, 0, true);
 }
 
-export function buildTIFF(ifd0, exifIfd, gpsIfd){
+export function buildTIFF(ifd0, exifIfd, gpsIfd, { start = 8, extra = null } = {}){
   const hasGps = gpsIfd && gpsIfd.length;
   const pExif = eLong(0x8769, 0);
   const pGps  = eLong(0x8825, 0);
   const i0 = ifd0.concat([pExif], hasGps ? [pGps] : []);
 
-  const s0 = 8;
+  const s0 = start;
   const sE = s0 + ifdBytes(i0);
   const sG = sE + ifdBytes(exifIfd);
   const total = sG + (hasGps ? ifdBytes(gpsIfd) : 0);
@@ -103,7 +103,8 @@ export function buildTIFF(ifd0, exifIfd, gpsIfd){
   const u8 = new Uint8Array(buf), dv = new DataView(buf);
   u8[0] = 0x49; u8[1] = 0x49;              // "II": Canon escribe little endian
   dv.setUint16(2, 42, true);
-  dv.setUint32(4, 8, true);
+  dv.setUint32(4, s0, true);
+  if(extra) u8.set(extra.bytes, extra.off);          // bloque que debe quedarse en su sitio (nota del fabricante)
   writeIFD(u8, dv, s0, i0);
   writeIFD(u8, dv, sE, exifIfd);
   if(hasGps) writeIFD(u8, dv, sG, gpsIfd);

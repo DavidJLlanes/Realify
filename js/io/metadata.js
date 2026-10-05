@@ -25,7 +25,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { findTiff } from "../../hdr/exif.js";
-import { buildTIFF } from "../exif/writer.js";
+import { buildTIFF, toLatin1 } from "../exif/writer.js";
 import { crc32 } from "./zip.js";
 
 export { META_NONE, META_PRESETS, metaActive } from "./metapresets.js";
@@ -72,13 +72,13 @@ export function parseTiff(buf, base){
       const bytes = new Uint8Array(buf.slice(base + vo, base + vo + size));
       const sw = SWAP[type];
       if(!le && sw) for(let k = 0; k + sw <= size; k += sw) bytes.subarray(k, k + sw).reverse();
-      list.push({ tag, type, count, bytes });
+      list.push({ tag, type, count, bytes, off: size <= 4 ? -1 : vo });
     }
     return list;
   };
   const pointer = (list, tag) => { const e = list.find(x => x.tag === tag); return e && e.bytes.length >= 4 ? new DataView(e.bytes.buffer, e.bytes.byteOffset, 4).getUint32(0, true) : 0; };
   const ifd0 = readIfd(u32(4));
-  return { ifd0, exif: readIfd(pointer(ifd0, 0x8769)), gps: readIfd(pointer(ifd0, 0x8825)) };
+  return { ifd0, exif: readIfd(pointer(ifd0, 0x8769)), gps: readIfd(pointer(ifd0, 0x8825)), le };
 }
 
 /* ── clasificación de etiquetas (lista blanca) ────────────────────── */
@@ -97,28 +97,64 @@ const bytesOf = (tag, type, count, bytes) => ({ tag, type, count, bytes });
 const longEntry = (tag, v) => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, v >>> 0, true); return bytesOf(tag, 4, 1, b); };
 const shortEntry = (tag, v) => { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, v, true); return bytesOf(tag, 3, 1, b); };
 
-/** Bloque TIFF/EXIF nuevo con lo que permite `policy`, o null si no queda nada. `w`×`h`: medidas del archivo
-    exportado; `p3`: el documento está en Display P3. */
-export function buildFilteredExif(parsed, policy, { w, h, p3 = false, original = false } = {}){
-  if(!parsed) return null;
+/* Fechas y coordenadas de los campos editados (ver io/metaedit.js) */
+const pad2 = n => String(n).padStart(2, "0");
+/** «2024-05-03T18:30[:45]» (hora local de un <input datetime-local>) → { y, mo, d, h, mi, s } o null */
+export function parseLocalDate(v){
+  const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/.exec(String(v || ""));
+  return m ? { y: +m[1], mo: +m[2], d: +m[3], h: +m[4], mi: +m[5], s: +(m[6] || 0) } : null;
+}
+const exifDateStr = t => `${t.y}:${pad2(t.mo)}:${pad2(t.d)} ${pad2(t.h)}:${pad2(t.mi)}:${pad2(t.s)}`;
+const ratDeg = v => { v = Math.abs(v); const d = Math.floor(v), mf = (v - d) * 60, m = Math.floor(mf), sec = Math.round((mf - m) * 60 * 10000); return [[d, 1], [m, 1], [sec, 10000]]; };
+const asciiEntry = (tag, text) => { const b = toLatin1(text); return bytesOf(tag, 2, b.length, b); };
+const ratEntry = (tag, pairs) => { const b = new Uint8Array(pairs.length * 8), dv = new DataView(b.buffer); pairs.forEach((p, i) => { dv.setUint32(i * 8, p[0] >>> 0, true); dv.setUint32(i * 8 + 4, p[1] >>> 0, true); }); return bytesOf(tag, 5, pairs.length, b); };
+const hasGpsOver = o => o && Number.isFinite(o.lat) && Number.isFinite(o.lon);
+
+/** Bloque TIFF/EXIF nuevo con lo que permite `policy` y lo que se haya editado (`over`), o null si no queda nada. `w`×`h`: medidas
+    del archivo exportado; `p3`: el documento está en Display P3. `maker`: { off, bytes } la nota del fabricante del original, que se copia
+    (sólo si `policy.maker`) en el MISMO desplazamiento donde estaba, porque casi todas llevan dentro desplazamientos absolutos que no se
+    pueden mover: los IFD nuevos se escriben detrás. */
+export function buildFilteredExif(parsed, policy, { w, h, p3 = false, original = false, over = null, maker = null } = {}){
+  const src = parsed || { ifd0: [], exif: [], gps: [] };
   const keep = (cls) => !!policy[cls];
   /* `original`: se limpia el propio archivo original sin recodificarlo (Limpiar metadatos): la orientación y las
      etiquetas de estructura del EXIF siguen siendo ciertas y se conservan; sin ello (exportación), no. */
-  const ifd0 = parsed.ifd0.filter(e => { if(original && e.tag === 0x0112) return true; const c = IFD0_CLASS[e.tag]; return c && keep(c); });
-  let exif = parsed.exif.filter(e => {
+  let ifd0 = src.ifd0.filter(e => { if(original && e.tag === 0x0112) return true; const c = IFD0_CLASS[e.tag]; return c && keep(c); });
+  let exif = src.exif.filter(e => {
     if(original && (e.tag === 0x9000 || e.tag === 0xA001 || e.tag === 0xA002 || e.tag === 0xA003)) return true;
     if(EXIF_DROP.has(e.tag)) return false;
     const c = EXIF_CLASS[e.tag] || "camera";
     return keep(c);
   });
-  const gps = policy.gps ? parsed.gps.slice() : [];
+  let gps = policy.gps ? src.gps.slice() : [];
+  // campos editados: mandan sobre el original aunque la casilla de su clase esté apagada (la persona los ha escrito)
+  const setE = (list, e) => { const i = list.findIndex(x => x.tag === e.tag); if(i >= 0) list.splice(i, 1); list.push(e); };
+  if(over){
+    if(over.description) setE(ifd0, asciiEntry(0x010E, over.description));
+    if(over.author) setE(ifd0, asciiEntry(0x013B, over.author));
+    if(over.copyright) setE(ifd0, asciiEntry(0x8298, over.copyright));
+    const t = parseLocalDate(over.date);
+    if(t){ const str = exifDateStr(t); setE(ifd0, asciiEntry(0x0132, str)); setE(exif, asciiEntry(0x9003, str)); setE(exif, asciiEntry(0x9004, str)); }
+    if(hasGpsOver(over)){
+      gps = [bytesOf(0x0000, 1, 4, new Uint8Array([2, 3, 0, 0])), asciiEntry(0x0001, over.lat >= 0 ? "N" : "S"), ratEntry(0x0002, ratDeg(over.lat)),
+             asciiEntry(0x0003, over.lon >= 0 ? "E" : "W"), ratEntry(0x0004, ratDeg(over.lon))];
+    }
+  }
   if(exif.length && !original){
     exif.push(bytesOf(0x9000, 7, 4, new Uint8Array([0x30, 0x32, 0x33, 0x32])));          // ExifVersion «0232»
     exif.push(shortEntry(0xA001, p3 ? 0xFFFF : 1));                                       // ColorSpace
     if(w && h){ exif.push(longEntry(0xA002, w)); exif.push(longEntry(0xA003, h)); }       // medidas del archivo, no del original
   }
   if(!ifd0.length && !exif.length && !gps.length) return null;
-  return buildTIFF(ifd0, exif, gps);
+  // nota del fabricante: sólo con la casilla, en el mismo sitio, y si cabe en un segmento EXIF de JPEG
+  let extra = null, start = 8;
+  if(policy.maker && maker && maker.bytes && maker.bytes.length && maker.off >= 8 && parsed && parsed.le && maker.off + maker.bytes.length < 40000 && !original){
+    const inline = new Uint8Array(4); new DataView(inline.buffer).setUint32(0, maker.off, true);
+    exif.push(bytesOf(0x927C, 7, maker.bytes.length, inline));
+    start = (maker.off + maker.bytes.length + 1) & ~1;
+    extra = maker;
+  }
+  return buildTIFF(ifd0, exif, gps, { start, extra });
 }
 
 /* ── IPTC (IIM) ───────────────────────────────────────────────────── */
@@ -176,20 +212,43 @@ export function readIptc(u8){
   return out;
 }
 
-/** Segmento APP13 con sólo los conjuntos IPTC que permite `policy`, o null. */
-export function buildIptc(sets, policy){
+/* Conjuntos IPTC que salen de los campos editados (ver io/metaedit.js) */
+const iptcOver = (over, utf8) => {
+  const out = [], put = (ds, text) => { if(text) out.push({ rec: 2, ds, bytes: utf8 ? new TextEncoder().encode(text) : toLatin1(text).slice(0, -1) }); };
+  if(!over) return out;
+  put(5, over.title); put(80, over.author); put(116, over.copyright); put(120, over.description);
+  for(const k of over.keywords || []) put(25, k);
+  const t = parseLocalDate(over.date);
+  if(t){ out.push({ rec: 2, ds: 55, bytes: enc(`${t.y}${pad2(t.mo)}${pad2(t.d)}`) }); out.push({ rec: 2, ds: 60, bytes: enc(`${pad2(t.h)}${pad2(t.mi)}${pad2(t.s)}+0000`) }); }
+  return out;
+};
+
+/** Datos IIM (bytes en bruto, sin envoltorio de Photoshop) con sólo los conjuntos que permite `policy` más los campos editados, o null. */
+export function buildIim(sets, policy, over = null){
   const allowed = new Set();
   for(const cls of Object.keys(IPTC_SETS)) if(policy[cls]) for(const d of IPTC_SETS[cls]) allowed.add(d);
-  const kept = sets.filter(s => s.rec === 2 && allowed.has(s.ds) && s.bytes.length < 32768);
-  if(!kept.length) return null;
+  let kept = sets.filter(s => s.rec === 2 && allowed.has(s.ds) && s.bytes.length < 32768);
   const charset = sets.find(s => s.rec === 1 && s.ds === 90);          // codificación de caracteres (UTF-8 o la antigua)
+  const isUtf8 = !charset || (charset.bytes.length === 3 && charset.bytes[0] === 0x1B && charset.bytes[1] === 0x25 && charset.bytes[2] === 0x47);
+  const mine = iptcOver(over, isUtf8);
+  if(mine.length){ const replaced = new Set(mine.map(m => m.ds)); kept = kept.filter(k => !replaced.has(k.ds)).concat(mine); }
+  if(!kept.length) return null;
   const parts = [];
   const add = (rec, ds, bytes) => { parts.push(new Uint8Array([0x1C, rec, ds, bytes.length >> 8, bytes.length & 255]), bytes); };
-  add(2, 0, new Uint8Array([0, 4]));                                     // versión del registro
   kept.sort((a, b) => a.ds - b.ds);
-  if(charset) parts.unshift(new Uint8Array([0x1C, 1, 90, charset.bytes.length >> 8, charset.bytes.length & 255]), charset.bytes);
+  if(charset) add(1, 90, charset.bytes);                                 // el registro 1 va antes que el 2
+  else if(mine.length) add(1, 90, new Uint8Array([0x1B, 0x25, 0x47]));
+  add(2, 0, new Uint8Array([0, 4]));                                     // versión del registro
   for(const s of kept) add(2, s.ds, s.bytes);
-  const iim = concat(parts);
+  return concat(parts);
+}
+
+/** Segmento APP13 (Photoshop 3.0) con los datos IPTC de `buildIim`, o null. */
+export function buildIptc(sets, policy, over = null){
+  const iim = buildIim(sets, policy, over);
+  return iim ? wrapIim(iim) : null;
+}
+export function wrapIim(iim){
   const pad = iim.length & 1;
   const irb = new Uint8Array(4 + 2 + 2 + 4 + iim.length + pad);
   irb.set([0x38, 0x42, 0x49, 0x4D, 0x04, 0x04, 0, 0], 0);                // «8BIM», recurso 0x0404, nombre vacío
@@ -245,10 +304,29 @@ export async function readXmp(u8){
   return b < 0 ? null : td.decode(u8.subarray(a, b + 12));
 }
 
+/** XMP extendido de un JPEG (varios segmentos APP1 con «http://ns.adobe.com/xmp/extension/» que se recomponen por desplazamiento), o null. */
+export function readXmpExtended(u8){
+  if(u8[0] !== 0xFF || u8[1] !== 0xD8) return null;
+  const H = "http://ns.adobe.com/xmp/extension/\0", parts = [];
+  let total = 0, guid = null;
+  for(const seg of jpegSegments(u8)){
+    if(seg.marker !== 0xE1 || ascii(seg.data, 0, H.length) !== H) continue;
+    const d = seg.data, g = ascii(d, H.length, 32), dv = new DataView(d.buffer, d.byteOffset, d.byteLength), t = dv.getUint32(H.length + 32), off = dv.getUint32(H.length + 36);
+    if(guid && g !== guid) continue;
+    guid = g; total = t;
+    if(total > 64 << 20) return null;
+    parts.push({ off, data: d.subarray(H.length + 40) });
+  }
+  if(!parts.length || !total) return null;
+  const out = new Uint8Array(total);
+  for(const p of parts) if(p.off + p.data.length <= total) out.set(p.data, p.off);
+  return td.decode(out);
+}
+
 const NS = {
   rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#", dc: "http://purl.org/dc/elements/1.1/", xmp: "http://ns.adobe.com/xap/1.0/",
   photoshop: "http://ns.adobe.com/photoshop/1.0/", xmpRights: "http://ns.adobe.com/xap/1.0/rights/",
-  Iptc4xmpCore: "http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/"
+  Iptc4xmpCore: "http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/", exif: "http://ns.adobe.com/exif/1.0/", xmpNote: "http://ns.adobe.com/xmp/note/"
 };
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -277,28 +355,65 @@ const XMP_SETS = {
   gps: [["photoshop", "City"], ["photoshop", "State"], ["photoshop", "Country"], ["Iptc4xmpCore", "Location"], ["Iptc4xmpCore", "CountryCode"]]
 };
 
-/** Paquete XMP nuevo (texto) con los campos que permite `policy`, o null. */
-export function buildXmp(xmpText, policy){
-  if(!xmpText) return null;
-  let xdoc;
-  try{
-    xdoc = new DOMParser().parseFromString(xmpText.replace(/^[^<]*/, "").replace(/<\?xpacket[^>]*\?>/g, ""), "application/xml");
-    if(xdoc.getElementsByTagName("parsererror").length) return null;
-  }catch{ return null; }
-  const used = new Set(), body = [];
+/* Del IPTC a XMP (para los formatos sin hueco para IPTC —WebP, AVIF, JPEG XL, TIFF, PDF— y para completar un XMP al que le falta algo) */
+const IPTC_XMP = {
+  author: [[80, "dc", "creator", "Seq"], [116, "dc", "rights", "Alt"], [110, "photoshop", "Credit", "text"], [115, "photoshop", "Source", "text"]],
+  text: [[5, "dc", "title", "Alt"], [120, "dc", "description", "Alt"], [25, "dc", "subject", "Bag"], [105, "photoshop", "Headline", "text"]],
+  gps: [[90, "photoshop", "City", "text"], [95, "photoshop", "State", "text"], [101, "photoshop", "Country", "text"]]
+};
+const gpsXmp = (v, pos, neg) => { const a = Math.abs(v), d = Math.floor(a), m = (a - d) * 60; return `${d},${m.toFixed(5)}${v >= 0 ? pos : neg}`; };
+
+/** Paquete XMP nuevo (texto) con los campos que permite `policy` más los editados (`over`), o null. `xmpTexts`: el XMP del original (texto o
+    lista de textos: principal y extendido); `iptc`: los conjuntos IPTC del original, que completan lo que falte. */
+export function buildXmp(xmpTexts, policy, { iptc = [], over = null } = {}){
+  const list = (Array.isArray(xmpTexts) ? xmpTexts : [xmpTexts]).filter(Boolean), docs = [];
+  for(const t of list){
+    try{
+      const d = new DOMParser().parseFromString(t.replace(/^[^<]*/, "").replace(/<\?xpacket[^>]*\?>/g, ""), "application/xml");
+      if(!d.getElementsByTagName("parsererror").length) docs.push(d);
+    }catch{ /* un paquete roto no impide los demás */ }
+  }
+  const props = new Map();                         // "pfx:nombre" → { pfx, name, kind, items }
   for(const cls of Object.keys(XMP_SETS)){
     if(!policy[cls]) continue;
     for(const [pfx, name] of XMP_SETS[cls]){
-      const v = xmpProp(xdoc, NS[pfx], name);
-      if(!v) continue;
-      used.add(pfx);
-      if(v.kind === "text") body.push(`<${pfx}:${name}>${esc(v.items[0].text)}</${pfx}:${name}>`);
-      else body.push(`<${pfx}:${name}><rdf:${v.kind}>${v.items.map(it => `<rdf:li${it.lang ? ` xml:lang="${esc(it.lang)}"` : ""}>${esc(it.text)}</rdf:li>`).join("")}</rdf:${v.kind}></${pfx}:${name}>`);
+      for(const d of docs){ const v = xmpProp(d, NS[pfx], name); if(v){ props.set(pfx + ":" + name, { pfx, name, ...v }); break; } }
     }
   }
-  if(!body.length) return null;
+  const dec = new TextDecoder("utf-8", { fatal: false }), latin = u => { let s = ""; for(const b of u) s += String.fromCharCode(b); return s; };
+  const iptcUtf8 = (() => { const c = iptc.find(x => x.rec === 1 && x.ds === 90); return !c || (c.bytes.length === 3 && c.bytes[0] === 0x1B && c.bytes[1] === 0x25 && c.bytes[2] === 0x47); })();
+  const txt = u => iptcUtf8 ? dec.decode(u) : latin(u);
+  for(const cls of Object.keys(IPTC_XMP)){
+    if(!policy[cls]) continue;
+    for(const [ds, pfx, name, kind] of IPTC_XMP[cls]){
+      const key = pfx + ":" + name; if(props.has(key)) continue;
+      const vals = iptc.filter(x => x.rec === 2 && x.ds === ds).map(x => txt(x.bytes)).filter(Boolean);
+      if(vals.length) props.set(key, { pfx, name, kind, items: (kind === "text" ? vals.slice(0, 1) : kind === "Bag" ? vals : vals.slice(0, 1)).map(text => ({ text, lang: kind === "Alt" ? "x-default" : null })) });
+    }
+  }
+  if(policy.date && !props.has("photoshop:DateCreated")){
+    const dts = iptc.find(x => x.rec === 2 && x.ds === 55), m = dts && /^(\d{4})(\d{2})(\d{2})/.exec(txt(dts.bytes));
+    if(m) props.set("photoshop:DateCreated", { pfx: "photoshop", name: "DateCreated", kind: "text", items: [{ text: `${m[1]}-${m[2]}-${m[3]}` }] });
+  }
+  // campos editados
+  if(over){
+    const one = (pfx, name, text, kind) => { if(text) props.set(pfx + ":" + name, { pfx, name, kind, items: [{ text, lang: kind === "Alt" ? "x-default" : null }] }); };
+    one("dc", "title", over.title, "Alt"); one("dc", "description", over.description, "Alt");
+    one("dc", "creator", over.author, "Seq"); one("dc", "rights", over.copyright, "Alt");
+    if(over.keywords && over.keywords.length) props.set("dc:subject", { pfx: "dc", name: "subject", kind: "Bag", items: over.keywords.map(text => ({ text })) });
+    const t = parseLocalDate(over.date);
+    if(t){ const iso = `${t.y}-${pad2(t.mo)}-${pad2(t.d)}T${pad2(t.h)}:${pad2(t.mi)}:${pad2(t.s)}`; one("xmp", "CreateDate", iso, "text"); one("photoshop", "DateCreated", iso, "text"); }
+    if(hasGpsOver(over)){ one("exif", "GPSLatitude", gpsXmp(over.lat, "N", "S"), "text"); one("exif", "GPSLongitude", gpsXmp(over.lon, "E", "W"), "text"); }
+  }
+  if(!props.size) return null;
+  const used = new Set(), body = [];
+  for(const { pfx, name, kind, items } of props.values()){
+    used.add(pfx);
+    if(kind === "text") body.push(`<${pfx}:${name}>${esc(items[0].text)}</${pfx}:${name}>`);
+    else body.push(`<${pfx}:${name}><rdf:${kind}>${items.map(it => `<rdf:li${it.lang ? ` xml:lang="${esc(it.lang)}"` : ""}>${esc(it.text)}</rdf:li>`).join("")}</rdf:${kind}></${pfx}:${name}>`);
+  }
   const decl = [...used].map(p => `xmlns:${p}="${NS[p]}"`).join(" ");
-  return `<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>\n<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="${NS.rdf}"><rdf:Description rdf:about="" ${decl}>${body.join("")}</rdf:Description></rdf:RDF></x:xmpmeta>\n<?xpacket end="w"?>`;
+  return `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>\n<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="${NS.rdf}"><rdf:Description rdf:about="" ${decl}>${body.join("")}</rdf:Description></rdf:RDF></x:xmpmeta>\n<?xpacket end="w"?>`;
 }
 
 /* ── lectura del original y construcción de lo que se escribe ─────── */
@@ -313,16 +428,22 @@ function concat(parts){
 export async function readOriginalMetadata(file){
   const buf = await file.slice(0, Math.min(file.size, 64 << 20)).arrayBuffer();
   const u8 = new Uint8Array(buf);
-  const at = findTiff(buf);
-  return { tiff: at >= 0 ? parseTiff(buf, at) : null, xmp: await readXmp(u8), iptc: readIptc(u8) };
+  const at = findTiff(buf), tiff = at >= 0 ? parseTiff(buf, at) : null;
+  const mk = tiff && tiff.exif.find(e => e.tag === 0x927C);
+  return { tiff, xmp: await readXmp(u8), xmpExt: readXmpExtended(u8), iptc: readIptc(u8), maker: mk && mk.off >= 0 ? { off: mk.off, bytes: mk.bytes } : null };
 }
 
-/** { exif (TIFF), xmp (texto), iptc (APP13) } listos para incrustar según `policy`; cualquier parte puede ser null. */
-export function filterMetadata(orig, policy, opts){
+/** { exif (TIFF), xmp (texto), iptc (APP13), iim (IPTC en bruto) } listos para incrustar según `policy`, más los campos editados `over`
+    (título, descripción, autor, copyright, palabras clave, fecha, lat/lon); cualquier parte puede ser null. `orig` puede ser null (documento
+    sin archivo de origen: sólo salen los campos editados). */
+export function filterMetadata(orig, policy, opts = {}){
+  const o = orig || { tiff: null, xmp: null, xmpExt: null, iptc: [], maker: null };
+  const over = opts.over && Object.values(opts.over).some(v => Array.isArray(v) ? v.length : v !== "" && v != null && !Number.isNaN(v)) ? opts.over : null;
   return {
-    exif: buildFilteredExif(orig.tiff, policy, opts),
-    xmp: buildXmp(orig.xmp, policy),
-    iptc: buildIptc(orig.iptc, policy)
+    exif: buildFilteredExif(o.tiff, policy, { ...opts, over, maker: o.maker }),
+    xmp: buildXmp([o.xmp, o.xmpExt], policy, { iptc: o.iptc || [], over }),
+    iptc: buildIptc(o.iptc || [], policy, over),
+    iim: buildIim(o.iptc || [], policy, over)
   };
 }
 
@@ -335,13 +456,55 @@ function app1Exif(tiff){
   seg.set(tiff, 10);
   return seg;
 }
-function app1Xmp(xmp){
-  const head = enc("http://ns.adobe.com/xap/1.0/\0"), body = enc(xmp), len = 2 + head.length + body.length;
-  if(len > 65535) return null;
+function app1Seg(head, body){
+  const len = 2 + head.length + body.length;
   const seg = new Uint8Array(2 + len);
   seg.set([0xFF, 0xE1, len >> 8, len & 255], 0);
   seg.set(head, 4); seg.set(body, 4 + head.length);
   return seg;
+}
+/** Segmentos APP1 de XMP: uno si cabe; si no, XMP EXTENDIDO (especificación de Adobe): un paquete principal que sólo anuncia el GUID del
+    extendido (MD5 en mayúsculas del paquete completo) y el paquete completo troceado en segmentos de «http://ns.adobe.com/xmp/extension/». */
+export function xmpSegments(xmp){
+  const head = enc("http://ns.adobe.com/xap/1.0/\0"), body = enc(xmp);
+  if(2 + head.length + body.length <= 65535) return [app1Seg(head, body)];
+  const guid = md5hex(body).toUpperCase();
+  const main = enc(`<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>\n<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="${NS.rdf}"><rdf:Description rdf:about="" xmlns:xmpNote="${NS.xmpNote}" xmpNote:HasExtendedXMP="${guid}"/></rdf:RDF></x:xmpmeta>\n<?xpacket end="w"?>`);
+  const segs = [app1Seg(head, main)], eh = enc("http://ns.adobe.com/xmp/extension/\0"), CH = 65000;
+  for(let off = 0; off < body.length; off += CH){
+    const data = body.subarray(off, off + CH), h = new Uint8Array(eh.length + 40), dv = new DataView(h.buffer);
+    h.set(eh, 0); h.set(enc(guid), eh.length); dv.setUint32(eh.length + 32, body.length); dv.setUint32(eh.length + 36, off);
+    segs.push(app1Seg(h, data));
+  }
+  return segs;
+}
+
+/* MD5 (el XMP extendido lo identifica con él; WebCrypto no lo trae) */
+export function md5hex(data){
+  const K = new Uint32Array(64), S = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
+  for(let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296);
+  const n = data.length, total = ((n + 8) >> 6) * 64 + 64, m = new Uint8Array(total);
+  m.set(data); m[n] = 0x80;
+  const dv = new DataView(m.buffer); dv.setUint32(total - 8, (n * 8) >>> 0, true); dv.setUint32(total - 4, Math.floor(n / 0x20000000), true);
+  let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+  const rol = (x, c) => (x << c) | (x >>> (32 - c));
+  for(let o = 0; o < total; o += 64){
+    let A = a0, B = b0, C = c0, D = d0;
+    for(let i = 0; i < 64; i++){
+      let F, g;
+      if(i < 16){ F = (B & C) | (~B & D); g = i; }
+      else if(i < 32){ F = (D & B) | (~D & C); g = (5 * i + 1) & 15; }
+      else if(i < 48){ F = B ^ C ^ D; g = (3 * i + 5) & 15; }
+      else { F = C ^ (B | ~D); g = (7 * i) & 15; }
+      const tmp = D; D = C; C = B;
+      B = (B + rol((A + F + K[i] + dv.getUint32(o + g * 4, true)) | 0, S[(i >> 4) * 4 + (i & 3)])) | 0;
+      A = tmp;
+    }
+    a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+  }
+  const out = new Uint8Array(16), ov = new DataView(out.buffer);
+  ov.setUint32(0, a0, true); ov.setUint32(4, b0, true); ov.setUint32(8, c0, true); ov.setUint32(12, d0, true);
+  return [...out].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 function app13(iptc){
   const len = 2 + iptc.length;
@@ -365,7 +528,7 @@ function injectJpeg(u8, segs){
     const sl = (u8[j + 2] << 8) | u8[j + 3];
     if(sl < 2) break;
     const s = u8.subarray(j, j + 2 + sl);
-    const isExif = m === 0xE1 && ascii(u8, j + 4, 4) === "Exif", isXmp = m === 0xE1 && ascii(u8, j + 4, 28) === "http://ns.adobe.com/xap/1.0/";
+    const isExif = m === 0xE1 && ascii(u8, j + 4, 4) === "Exif", isXmp = m === 0xE1 && (ascii(u8, j + 4, 28) === "http://ns.adobe.com/xap/1.0/" || ascii(u8, j + 4, 34) === "http://ns.adobe.com/xmp/extension/");
     if(isExif || isXmp || m === 0xED){ /* los previos, fuera */ }
     else if(m === 0xE0 && !placed){ head.push(s, ...segs); placed = true; }
     else (placed ? tail : head).push(s);
@@ -383,10 +546,16 @@ function pngChunk(type, payload){
   v.setUint32(8 + payload.length, crc32(out.subarray(4, 8 + payload.length)));
   return out;
 }
-function injectPng(u8, { exif, xmp }){
+/* IPTC en PNG: no hay chunk propio; la convención (ImageMagick, ExifTool, Photoshop) es un tEXt «Raw profile type iptc» con el perfil en hexadecimal */
+function rawProfileChunk(name, bytes){
+  const hex = [...bytes].map(b => b.toString(16).padStart(2, "0")).join(""), lines = hex.match(/.{1,72}/g) || [];
+  return pngChunk("tEXt", enc(`Raw profile type ${name}\0\n${name === "iptc" ? "IPTC" : name} profile\n${String(bytes.length).padStart(8, " ")}\n${lines.join("\n")}\n`));
+}
+function injectPng(u8, { exif, xmp, iptc }){
   if(u8[0] !== 0x89 || u8[1] !== 0x50) return null;
   const add = [];
   if(exif) add.push(pngChunk("eXIf", exif));
+  if(iptc) add.push(rawProfileChunk("iptc", iptc));
   if(xmp) add.push(pngChunk("iTXt", concat([enc("XML:com.adobe.xmp"), new Uint8Array([0, 0, 0, 0, 0]), enc(xmp)])));
   const parts = [u8.subarray(0, 8)];
   let i = 8, placed = false;
@@ -394,7 +563,7 @@ function injectPng(u8, { exif, xmp }){
   while(i + 8 <= u8.length){
     const n = dv.getUint32(i), type = ascii(u8, i + 4, 4);
     if(type === "IDAT" && !placed){ parts.push(...add); placed = true; }
-    if(type === "eXIf") { i += 12 + n; continue; }
+    if(type === "eXIf" || (type === "tEXt" && ascii(u8, i + 8, 22) === "Raw profile type iptc\0")) { i += 12 + n; continue; }
     parts.push(u8.subarray(i, i + 12 + n));
     i += 12 + n;
     if(type === "IEND") break;
@@ -446,17 +615,22 @@ function injectWebp(u8, { exif, xmp }){
   return new Blob([riff, ...parts], { type: "image/webp" });
 }
 
-/** Incrusta `meta` ({ exif, xmp, iptc }) en un JPEG, PNG o WebP recién exportado. Si algo falla, devuelve el archivo tal cual. */
+/** Incrusta `meta` ({ exif, xmp, iptc, iim }) en un JPEG, PNG, WebP, AVIF, JPEG XL o TIFF recién exportado (el PDF los lleva desde que se
+    construye: ver pdfFromCanvases). El formato se reconoce por los primeros bytes. Si algo falla, devuelve el archivo tal cual. */
 export async function embedMetadata(blob, meta){
   try{
     if(!meta || (!meta.exif && !meta.xmp && !meta.iptc)) return blob;
     const u8 = new Uint8Array(await blob.arrayBuffer());
     let out = null;
-    if(blob.type === "image/jpeg"){
-      const segs = [meta.exif && app1Exif(meta.exif), meta.xmp && app1Xmp(meta.xmp), meta.iptc && app13(meta.iptc)].filter(Boolean);
+    if(u8[0] === 0xFF && u8[1] === 0xD8){
+      const segs = [meta.exif && app1Exif(meta.exif), ...(meta.xmp ? xmpSegments(meta.xmp) : []), meta.iptc && app13(meta.iptc)].filter(Boolean);
       out = segs.length ? injectJpeg(u8, segs) : null;
-    } else if(blob.type === "image/png") out = injectPng(u8, meta);
-    else if(blob.type === "image/webp") out = injectWebp(u8, meta);
+    } else if(u8[0] === 0x89 && u8[1] === 0x50) out = injectPng(u8, meta);
+    else if(ascii(u8, 0, 4) === "RIFF" && ascii(u8, 8, 4) === "WEBP") out = injectWebp(u8, meta);
+    else {
+      const C = await import("./metacontainers.js");
+      out = C.injectContainer(u8, meta);
+    }
     return out || blob;
   }catch(err){ console.warn("[metadatos]", err); return blob; }
 }
@@ -472,4 +646,15 @@ export function describeMeta(meta, policy){
     if(policy.text) parts.push("descripción");
   }
   return parts.join(", ");
+}
+
+/** Campos básicos de un paquete XMP ya construido (para el diccionario Info de un PDF): { title, description, author, copyright, keywords, date } */
+export function fieldsFromXmp(xmp){
+  if(!xmp) return {};
+  try{
+    const d = new DOMParser().parseFromString(xmp.replace(/^[^<]*/, "").replace(/<\?xpacket[^>]*\?>/g, ""), "application/xml");
+    if(d.getElementsByTagName("parsererror").length) return {};
+    const one = (ns, n) => { const v = xmpProp(d, ns, n); return v ? v.items.map(i => i.text).join(", ") : ""; };
+    return { title: one(NS.dc, "title"), description: one(NS.dc, "description"), author: one(NS.dc, "creator"), copyright: one(NS.dc, "rights"), keywords: one(NS.dc, "subject"), date: one(NS.xmp, "CreateDate") || one(NS.photoshop, "DateCreated") };
+  }catch{ return {}; }
 }
