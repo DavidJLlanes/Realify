@@ -77,3 +77,14 @@ export async function renderPhotoDevelop({init={},render,edit=null}) {
   const { renderPhoto }=await import("./pipeline.js");
   return renderPhoto(render.src,normalize(init),{preview:!render.isFinal});
 }
+
+/** Un RAW revelado como lienzo (para apilar y otras herramientas que parten de fotos): balance de la cámara, motor Premium (completo) o de siempre
+    a media resolución (`half`, rápido: para medir la nitidez). */
+export async function rawToCanvas(file,{half=false}={}){
+  const settings=normalize({...defaults(),premium:!half,halfSize:half,wb:"camera"});
+  const decoder=await RawDecoder.open(file,settings);
+  try{
+    const { renderPhoto }=await import("./pipeline.js");
+    return renderPhoto(decoder.source,settings);
+  }finally{decoder.dispose();}
+}

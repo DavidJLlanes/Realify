@@ -210,9 +210,9 @@ export function openMergeEditor({ current = null, onAccept }){
   const sections = [
     { id: "mode", label: "Modo", props: [{ key: "mode", label: "Modo", type: "seg", options: [["pano", "Panorámica"], ["simple", "Unión"]] }] },
     { id: "pano", label: "Panorámica", when: isPano, props: [
-      { key: "p.projection", label: "Proyección", type: "select", options: [["cyl", "Cilíndrica (recomendada)"], ["plane", "Plana (escaneos, planos)"]] },
+      { key: "p.projection", label: "Proyección", type: "select", options: [["cyl", "Cilíndrica (recomendada)"], ["plane", "Plana (escaneos, planos)"], ["homog", "Precisa · OpenCV (giro y perspectiva)"]] },
       { key: "p.fov", label: "Campo de visión de cada foto", type: "range", min: 20, max: 120, unit: "°", def: 60, when: () => P.projection === "cyl" },
-      { key: "p.dir", label: "Dirección", type: "select", options: [["auto", "Automática"], ["h", "Horizontal"], ["v", "Vertical"]] },
+      { key: "p.dir", label: "Dirección", type: "select", options: [["auto", "Automática"], ["h", "Horizontal"], ["v", "Vertical"]], when: () => P.projection !== "homog" },
       { key: "p.blend", label: "Suavidad de las uniones", type: "range", min: 0, max: 100, unit: " %", def: 50 },
       { key: "p.gain", label: "Igualar la exposición", type: "toggle" },
       { key: "p.crop", label: "Recortar bordes vacíos", type: "toggle" }
@@ -260,7 +260,7 @@ export function openMergeEditor({ current = null, onAccept }){
     if(photos.length < 2){ sh.setView(ordered()[0]?.proxy || null); sh.setBusy(null); toast("Añade al menos 2 fotos para la panorámica"); return; }
     sh.setBusy("Uniendo…");
     try{
-      const r = await call({ type: "pano", s: { ...P }, side: Math.round(PREVIEW_SIDE * .6), final: false });
+      const r = P.projection === "homog" ? await precisePano(false) : await call({ type: "pano", s: { ...P }, side: Math.round(PREVIEW_SIDE * .6), final: false });
       if(s !== runSeq || closed) return;
       view.width = r.w; view.height = r.h;
       view.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
@@ -269,6 +269,28 @@ export function openMergeEditor({ current = null, onAccept }){
       if(miss) toast(`No se encontró el solape de ${miss === 1 ? "una foto" : miss + " fotos"}: revisa el orden o que se solapen`, "err");
     }catch(err){ if(!closed) toast(err.message, "err"); }
     finally{ if(s === runSeq) sh.setBusy(null); }
+  }
+
+  /* Panorámica precisa (unir/precise.js): homografías con OpenCV en el hilo principal y mezcla en el worker. Las fotos ya colocadas se guardan
+     mientras no cambien el orden ni las fotos: mover la suavidad o el recorte sólo recompone. */
+  let placedCache = null;
+  async function precisePano(final){
+    const { loadOpenCv } = await import("../js/cv/opencv.js");
+    const lib = await loadOpenCv();
+    if(!lib) throw new Error("La panorámica precisa necesita OpenCV: elige otra proyección");
+    const { placeMosaic } = await import("./precise.js");
+    const key = JSON.stringify([final, state.order]);
+    if(placedCache?.key !== key){
+      const pics = ordered().map(p => final ? p.full : p.proxy);
+      const r = await placeMosaic(lib.cv, pics, { side: final ? WORK_SIDE : Math.round(PREVIEW_SIDE * .8), maxArea: final ? MAX_AREA : 6e6, interp: final ? "lanczos" : "linear",
+        onStep: (i, n) => sh.setBusy(`Alineando con precisión · ${i} de ${n - 1}`) });
+      if(r.error) throw new Error(r.error);
+      placedCache = { key, r };
+    }
+    const { r } = placedCache;
+    const out = await call({ type: "placed", s: { ...P }, images: r.images.map(im => ({ w: im.w, h: im.h, data: im.data.buffer.slice(0), x: im.x, y: im.y })) });
+    if(r.found.some(f => !f)) out.found = r.found;
+    return out;
   }
 
   let applying = false;
@@ -281,7 +303,7 @@ export function openMergeEditor({ current = null, onAccept }){
       else {
         if(photos.length < 2) throw new Error("Hacen falta al menos 2 fotos para la panorámica");
         sh.setBusy("Uniendo a resolución completa…");
-        const r = await call({ type: "pano", s: { ...P }, side: WORK_SIDE, final: true, maxArea: MAX_AREA });
+        const r = P.projection === "homog" ? await precisePano(true) : await call({ type: "pano", s: { ...P }, side: WORK_SIDE, final: true, maxArea: MAX_AREA });
         canvas = document.createElement("canvas"); canvas.width = r.w; canvas.height = r.h;
         canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
       }

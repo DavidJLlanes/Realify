@@ -34,7 +34,7 @@ const budgetBytes = () => {
 export async function openStack(){
   if(running) return;
   const items = [];                                   // { name, file? | tabId? , thumb }
-  const S = { mode: "noise", reject: true, flow: false };
+  const S = { mode: "noise", reject: true, flow: false, ref: "auto" };
 
   const thumbOf = async file => {
     try{ const bm = await createImageBitmap(file, { resizeWidth: 96 }); const c = document.createElement("canvas"); c.width = bm.width; c.height = bm.height; c.getContext("2d").drawImage(bm, 0, 0); bm.close(); return c.toDataURL("image/jpeg", .7); }catch{ return ""; }
@@ -53,7 +53,8 @@ export async function openStack(){
 
   const addFiles = async () => {
     const { pickFiles } = await import("../ui/fsshell.js");
-    const files = await pickFiles({ gallery: true });
+    const { RAW_EXTENSIONS } = await import("../../raw/formats.js");
+    const files = await pickFiles({ gallery: true, accept: "image/*,.heic,.heif,.tif,.tiff,.jxl," + [...RAW_EXTENSIONS].map(e => "." + e).join(",") });
     for(const f of files){ if(items.length >= MAX) break; items.push({ name: f.name, file: f, thumb: await thumbOf(f) }); }
     render();
   };
@@ -73,6 +74,7 @@ export async function openStack(){
       <div style="display:flex;gap:8px;margin:0 0 8px;flex-wrap:wrap"><button data-a="files">Del dispositivo…</button><button data-a="open">De las abiertas…</button><span class="stk-count hint" style="margin-left:auto;align-self:center"></span></div>
       <div class="stk-list"></div>
       <div class="field"><label>Para</label><select data-k="mode" class="grow"><option value="noise">Reducir ruido</option><option value="focus">Ampliar el enfoque</option></select></div>
+      <div class="field"><label>Referencia</label><select data-k="ref" class="grow"><option value="auto">La toma más nítida (recomendado)</option><option value="first">La primera</option></select></div>
       <label class="check" style="display:flex;gap:8px;align-items:center;margin:8px 0 0"><input type="checkbox" data-k="reject" checked> Quitar lo que se mueve</label>
       <label class="check" style="display:flex;gap:8px;align-items:center;margin:8px 0 0"><input type="checkbox" data-k="flow"> Corregir movimiento fino</label>`,
     buttons: [{ label: "Cancelar", value: null }, { label: "Apilar", primary: true, value: "go" }],
@@ -95,6 +97,7 @@ export async function openStack(){
 
 async function runStack(items, S){
   running = true;
+  let refNote = "";
   const fail = m => toast(m, "err");
   try{
     const { loadOpenCv } = await import("../cv/opencv.js");
@@ -116,7 +119,34 @@ async function runStack(items, S){
       };
     }
     const tabs = tabGrab ? tabGrab(items.filter(i => i.file === undefined).map(i => i.tabId)) : new Map();
-    const load = async it => it.file ? await decodePhoto(it.file, 1e5) : tabs.get(it.tabId);
+    const { isRawFile } = await import("../../raw/formats.js");
+    // Los RAW se revelan aquí mismo (balance de la cámara, motor Premium): las tomas entran ya como fotos
+    const load = async (it, half = false) => {
+      if(!it.file) return tabs.get(it.tabId);
+      if(isRawFile(it.file)){ const { rawToCanvas } = await import("../../raw/index.js"); return rawToCanvas(it.file, { half }); }
+      return decodePhoto(it.file, half ? 1100 : 1e5);
+    };
+
+    /* Referencia: la toma más nítida (las demás se alinean a ella) y las tomas se ordenan de más a menos nítida (cv/stackmath.js › focusScore, el mismo
+       análisis que «Analizar nitidez»). Un RAW se mide a media resolución, que basta y es mucho más rápido. */
+    let order = items.slice(0, MAX);
+    if(S.ref === "auto" && order.length > 1){
+      const scores = [];
+      for(let i = 0; i < order.length; i++){
+        status(`Midiendo la nitidez ${i + 1} de ${order.length}…`); progress(0.01 + 0.03 * i / order.length);
+        await new Promise(r => setTimeout(r, 0));
+        let c = null; try{ c = await load(order[i], true); }catch{}
+        if(!c){ scores.push(-1); continue; }
+        const k = Math.min(1, 1100 / Math.max(c.width, c.height)), s = document.createElement("canvas");
+        s.width = Math.max(1, Math.round(c.width * k)); s.height = Math.max(1, Math.round(c.height * k));
+        const sx = s.getContext("2d", { willReadFrequently: true }); sx.imageSmoothingQuality = "high"; sx.drawImage(c, 0, 0, s.width, s.height);
+        scores.push(M.focusScore(sx.getImageData(0, 0, s.width, s.height).data, s.width, s.height));
+      }
+      const idx = order.map((_, i) => i).sort((a, b) => scores[b] - scores[a]);
+      if(idx[0] !== 0 || idx.some((v, i) => v !== i)){ order = idx.map(i => order[i]); }
+      refNote = `referencia: «${order[0].name}», la más nítida`;
+    }
+    items = order;
 
     // Tamaño de trabajo: el de la primera foto, hasta lo que el editor admite
     status("Abriendo las fotos…");
@@ -163,7 +193,7 @@ async function runStack(items, S){
     const label = S.mode === "noise" ? "Apilado · menos ruido" : "Apilado · más enfoque";
     await resultToLayer(out, { name: label, docName: "Apilado", newDocument: true });
     progress(null);
-    toast(`${used} fotos apiladas (${S.mode === "noise" ? "ruido ÷ " + Math.sqrt(used).toFixed(1) : "enfoque ampliado"}) · ${W} × ${H}` + (notes.length ? ". " + notes.join(". ") : ""), notes.length ? "" : "ok");
+    toast(`${used} fotos apiladas (${S.mode === "noise" ? "ruido ÷ " + Math.sqrt(used).toFixed(1) : "enfoque ampliado"}) · ${W} × ${H}` + (refNote ? " · " + refNote : "") + (notes.length ? ". " + notes.join(". ") : ""), notes.length ? "" : "ok");
   }catch(err){
     console.error(err); progress(null);
     fail("No se pudo apilar: " + (err.message || err));

@@ -6,7 +6,7 @@
    la dirección: mover la transición o el recorte sólo recompone.
    ═══════════════════════════════════════════════════════════════ */
 
-import { resize, cylindrical, layout, compose } from "./engine.js";
+import { resize, cylindrical, layout, compose, placed } from "./engine.js";
 
 let imgs = [], cache = null;
 const post = (m, t) => self.postMessage(m, t || []);
@@ -38,6 +38,12 @@ const handlers = {
   order(m){ const byId = new Map(imgs.map(i => [i.id, i])); imgs = m.ids.map(id => byId.get(id)).filter(Boolean); cache = null; return { ok: true }; },
   remove(m){ imgs = imgs.filter(i => i.id !== m.id); cache = null; return { ok: true }; },
   add(m){ for(const im of m.images) imgs.push({ id: im.id, w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) }); cache = null; return { ok: true }; },
+  /* Panorámica precisa: las fotos llegan ya llevadas a su sitio (RGBA con alfa, posiciones en el mosaico) desde unir/precise.js */
+  placed(m){
+    const set = m.images.map(im => ({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) })), pos = m.images.map(im => ({ x: im.x, y: im.y }));
+    const L = placed(set, pos), out = compose(set, L, { blend: m.s.blend / 100 * Math.max(8, set[0].w * 0.25), useGain: m.s.gain, crop: m.s.crop });
+    return { w: out.w, h: out.h, data: out.data.buffer, found: L.found, dir: "h", transfer: [out.data.buffer] };
+  },
   pano(m){
     if(imgs.length < 2) throw new Error("Hacen falta al menos 2 fotos para una panorámica");
     if(m.final) post({ type: "progress", msg: "Uniendo a resolución completa…" });

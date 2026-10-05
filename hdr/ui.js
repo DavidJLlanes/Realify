@@ -89,7 +89,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
   }
   // Deshacer sustituye `state.s` por una copia: se vuelca en el mismo
   // objeto para que `S` siga siendo el que usan todos los controles.
-  const hist = stateHistory(state, () => { Object.assign(S, state.s); state.s = S; premiumUI(); controls.refresh(); renderPhotos(); schedule(true, true); }, sh);
+  const hist = stateHistory(state, () => { Object.assign(S, state.s); state.s = S; premiumUI(); controls.refresh(); renderPhotos(); schedule(true, true); syncPrecise(); }, sh);
   sh.setApplyEnabled(false);
 
   /* ── Fotos ── */
@@ -277,7 +277,53 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
     thumbs = new Map();
     premiumUI();
     if(!photos.length){ sh.setView(null); sh.setOriginal(null); return; }
+    warpedNow = false;     // el worker rehízo las fotos: la alineación precisa, si está activa, se vuelve a calcular
     schedule(true, true);
+    if(S.precise) syncPrecise();
+  }
+  /* Alineación precisa 👑: homografías ORB + ECC de OpenCV (js/cv/align.js) entre fotos contiguas del horquillado (de la más oscura a la más clara,
+     desde la del medio); el worker las aplica con un solo remuestreo. ECC es insensible a la diferencia de exposición. Si una foto no se deja alinear,
+     conserva su desplazamiento de siempre. */
+  let warpedNow = false, preciseBusy = false;
+  async function syncPrecise(){
+    if(preciseBusy || closed) return;
+    const want = !!(S.precise && S.align && photos.length > 1);
+    if(want === warpedNow){ return; }
+    preciseBusy = true;
+    try{
+      if(!want){ sh.setBusy("Volviendo a la alineación por desplazamientos…"); await call({ type: "unwarp" }); warpedNow = false; schedule(true, true); return; }
+      const { loadOpenCv } = await import("../js/cv/opencv.js");
+      sh.setBusy("Preparando OpenCV…");
+      const lib = await loadOpenCv();
+      if(!lib){ S.precise = false; controls.refresh(); return; }
+      const [{ createAligner, mmul, scaleH }] = await Promise.all([import("../js/cv/align.js")]);
+      sh.setBusy("Alineando con precisión…");
+      const r = await call({ type: "alignCopies" });
+      const cvs = r.frames.map(f => { const c = document.createElement("canvas"); c.width = f.w; c.height = f.h; c.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(f.data), f.w, f.h), 0, 0); return c; });
+      const ord = byEv(r.evs), mid = ord[ord.length >> 1], s = cvs[0].width / r.w, Hs = new Array(cvs.length).fill(null);
+      Hs[mid] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      const chain = async (list) => {
+        let prev = mid;
+        for(const i of list){
+          sh.setBusy(`Alineando con precisión · ${Hs.filter(Boolean).length} de ${cvs.length}`);
+          await new Promise(res => setTimeout(res, 0));
+          const al = createAligner(lib.cv, cvs[prev]);
+          try{
+            const a = await al.align(cvs[i]);
+            if(!a.ok || !Hs[prev]){ prev = i; continue; }
+            Hs[i] = mmul(Hs[prev], scaleH(a.H, s)); prev = i;
+          } finally { al.dispose(); }
+        }
+      };
+      const mi = ord.indexOf(mid);
+      await chain(ord.slice(mi + 1)); await chain(ord.slice(0, mi).reverse());
+      await call({ type: "warp", Hs });
+      warpedNow = true;
+      const ok = Hs.filter(Boolean).length - 1;
+      toast(ok > 0 ? `Fotos alineadas con precisión (${ok} de ${cvs.length - 1})` : "No se pudo alinear con precisión: se mantiene la alineación por desplazamientos", ok > 0 ? "ok" : "err");
+      schedule(true, true);
+    }catch(err){ toast("Alineación precisa: " + err.message, "err"); S.precise = false; warpedNow = false; controls.refresh(); try{ await call({ type: "unwarp" }); }catch{} }
+    finally{ preciseBusy = false; sh.setBusy(null); if(!closed && !!(S.precise && S.align && photos.length > 1) !== warpedNow) syncPrecise(); }
   }
   const round3 = v => Math.round(v * 3) / 3;
   /* Índices de las fotos de la más oscura a la más clara (a igualdad, en el orden en que se añadieron). */
@@ -416,6 +462,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
       ] },
     { id: "merge", label: "Fusión de las fotos", props: [
       { key: "align", label: "Alinear las fotos", type: "toggle" },
+      { key: "precise", label: "Alineación precisa 👑 (OpenCV)", type: "toggle", when: () => S.align && photos.length > 1 },
       { key: "crop", label: "Recortar bordes tras alinear", type: "toggle", when: () => S.align },
       { key: "deghost", label: "Antifantasmas", type: "select", options: [[0, "Desactivado"], [1, "Suave"], [2, "Medio"], [3, "Fuerte"]] },
       { key: "ghostRef", label: "Foto de referencia", type: "select", when: () => S.deghost > 0,
@@ -490,6 +537,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
       if(k === "evSel"){ setEv(state.sel, v, final); return; }
       if(k === "evStep"){ if(v !== -1) setSteps(v); return; }
       S[k] = v;
+      if(k === "precise"){ if(final){ hist.commit(); syncPrecise(); } return; }
       const structural = ["align", "crop", "deghost", "ghostRef", "method"].includes(k);
       if(final){ hist.commit(); if(structural) controls.refresh(); }
       schedule(structural && final, structural && final);

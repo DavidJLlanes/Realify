@@ -176,6 +176,17 @@ export function layout(imgs, dir = "auto"){
   return { pos, gains: gains.map(v => v / g), dir: d === "auto" ? "h" : d, found };
 }
 
+/** Diseño con posiciones ya conocidas (panorámica precisa: unir/precise.js): sólo se calculan las ganancias de exposición entre fotos contiguas. */
+export function placed(imgs, pos){
+  const gains = [1];
+  for(let i = 1; i < imgs.length; i++){
+    const dx = Math.round(pos[i].x - pos[i - 1].x), dy = Math.round(pos[i].y - pos[i - 1].y);
+    gains.push(gains[i - 1] * overlapGain(imgs[i - 1], imgs[i], dx, dy));
+  }
+  const g = Math.exp(gains.reduce((s, v) => s + Math.log(v), 0) / gains.length);
+  return { pos, gains: gains.map(v => v / g), dir: "h", found: imgs.map(() => true) };
+}
+
 /** Mezcla. `blend` (px) = ancho de la transición; `useGain` iguala la
     exposición; `crop` recorta al mayor rectángulo cubierto. */
 export function compose(imgs, L, { blend = 60, useGain = true, crop = true } = {}){

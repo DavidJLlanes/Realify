@@ -28,7 +28,7 @@ export function minv(m){
   return [A * k, -(b * i - c * h) * k, (b * f - c * e) * k, B * k, (a * i - c * g) * k, -(a * f - c * d) * k, C * k, -(a * h - b * g) * k, (a * e - b * d) * k];
 }
 export const apply = (H, x, y) => { const w = H[6] * x + H[7] * y + H[8]; return [(H[0] * x + H[1] * y + H[2]) / w, (H[3] * x + H[4] * y + H[5]) / w]; };
-const scaleH = (H, s) => mmul(mmul([1 / s, 0, 0, 0, 1 / s, 0, 0, 0, 1], H), [s, 0, 0, 0, s, 0, 0, 0, 1]);   // H calculada a escala s → resolución completa
+export const scaleH = (H, s) => mmul(mmul([1 / s, 0, 0, 0, 1 / s, 0, 0, 0, 1], H), [s, 0, 0, 0, s, 0, 0, 0, 1]);   // H calculada a escala s → resolución completa
 
 /** Desplazamiento máximo (px) que una H produce en las esquinas: sirve
     para decidir si hay que resamplear o basta con copiar. */
@@ -92,6 +92,19 @@ function eccRefine(cv, ref, aligned){
     return { W: Array.from(W.data32F), cc };
   }catch(e){ return null; }
   finally{ W.delete(); mask.delete(); }
+}
+
+/** Homografía robusta entre dos fotos que sólo se solapan en parte (panorámicas): lleva un punto de `img` a su sitio en `ref`, a resolución completa
+    de cada una (pueden medir distinto). Devuelve { H, inliers } o null si no hay puntos suficientes en común. */
+export function pairHomography(cv, ref, img, { minInliers = 18 } = {}){
+  const r = grayMat(cv, ref, SIDE.feat), i = grayMat(cv, img, SIDE.feat);
+  try{
+    const fh = featureHomography(cv, r.g, i.g);
+    if(!fh || fh.inliers < minInliers) return null;
+    // H va de la escala de `img` a la de `ref`: ref⁻¹ · H · img
+    const H = mmul(mmul([1 / r.s, 0, 0, 0, 1 / r.s, 0, 0, 0, 1], fh.H), [i.s, 0, 0, 0, i.s, 0, 0, 0, 1]);
+    return { H, inliers: fh.inliers, matches: fh.matches };
+  } finally { r.g.delete(); i.g.delete(); }
 }
 
 /** Compone la imagen en el sistema de la referencia a la escala de análisis. */

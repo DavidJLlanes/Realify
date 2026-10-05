@@ -9,9 +9,11 @@
 
 import { downscale, estimateEvs, alignAll, commonRect, mergeRadiance, fuseMertens,
          toneMap, finish, downRadiance, wbNeutral } from "./engine.js";
+import { minv } from "../js/cv/align.js";
 import { responseCurves, mergePremium, finishPremium, linearFromDisplay, radianceHDR, downscaleLin, wbNeutralPremium } from "./premium.js";
 
 let orig = [], exifEvs = [], previewSide = 1200, alignSide = 2048, stagedFrom = null;
+let shifts0 = null;
 let full = [], proxy = [], draft = null, evs = [], shifts = [], cache = null, small = [], curvesCache = null;
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
@@ -126,7 +128,8 @@ const handlers = {
    modo Premium, sus datos lineales Rec.2020 (Uint16, ver premium.js). */
 const stored = im => ({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data), ...(im.lin ? { lin: new Uint16Array(im.lin), clip: im.clip } : {}) });
 const shrink = (im, side) => { const d = downscale(im, side); return d === im ? im : { ...d, ...(im.lin ? { lin: downscaleLin(im, side), clip: im.clip } : {}) }; };
-function setup(){
+/* Fotos a tamaño común, copia para la vista previa y miniaturas de trabajo (sin tocar exposiciones ni desplazamientos). */
+function buildFrames(){
   {
     full = orig.slice();
     // Mismo tamaño para todas: la menor (si la proporción coincide).
@@ -141,6 +144,12 @@ function setup(){
     proxy = full.map(im => shrink(im, previewSide));
     draft = null; curvesCache = null;
     small = full.map(im => downscale(im, 700));
+    return { w, h };
+  }
+}
+function setup(){
+  {
+    const { w, h } = buildFrames();
     // Exposiciones: EXIF si todas lo tienen y no son iguales; si no, estimadas.
     post({ type: "progress", msg: "Detectando la exposición de cada foto…" });
     const ex = exifEvs;
@@ -153,12 +162,51 @@ function setup(){
     const al = full.map(im => downscale(im, alignSide)), k = full[0].w / al[0].w;
     shifts = alignAll(al, evs, (i, n) => post({ type: "progress", msg: `Alineando las fotos · ${i} de ${n}` }))
       .map(s => ({ dx: Math.round(s.dx * k), dy: Math.round(s.dy * k), fdx: s.fdx * k, fdy: s.fdy * k }));
-    cache = null;
+    shifts0 = shifts; cache = null;
     return { evs, source, shifts, w, h };
   }
 }
 
+/* ── Alineación precisa (OpenCV en el hilo principal, hdr/ui.js): homografías por foto, aplicadas aquí con un solo remuestreo bilineal ── */
+function warpBilinear(src, w, h, ch, Hinv, opaqueAlpha){
+  const out = new src.constructor(src.length), [a, b, c, d, e, f, g, hh, i] = Hinv, rnd = src instanceof Uint16Array ? 0.5 : 0;   // Uint8Clamped redondea solo; Uint16 trunca
+  for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++){
+      const den = g * x + hh * y + i, sx = Math.min(w - 1, Math.max(0, (a * x + b * y + c) / den)), sy = Math.min(h - 1, Math.max(0, (d * x + e * y + f) / den));
+      const x0 = sx | 0, y0 = sy | 0, x1 = Math.min(w - 1, x0 + 1), y1 = Math.min(h - 1, y0 + 1), tx = sx - x0, ty = sy - y0;
+      const w00 = (1 - tx) * (1 - ty), w10 = tx * (1 - ty), w01 = (1 - tx) * ty, w11 = tx * ty, o = (y * w + x) * ch, i00 = (y0 * w + x0) * ch, i10 = (y0 * w + x1) * ch, i01 = (y1 * w + x0) * ch, i11 = (y1 * w + x1) * ch;
+      for(let k = 0; k < ch; k++) out[o + k] = src[i00 + k] * w00 + src[i10 + k] * w10 + src[i01 + k] * w01 + src[i11 + k] * w11 + rnd;
+      if(opaqueAlpha) out[o + 3] = 255;
+    }
+  }
+  return out;
+}
 Object.assign(handlers, {
+  /* Copias a tamaño de alineación para que el hilo principal calcule las homografías */
+  alignCopies(){
+    const al = full.map(im => downscale(im, alignSide));
+    const frames = al.map(a => ({ w: a.w, h: a.h, data: a.data.slice().buffer }));
+    return { frames, evs: evs.slice(), w: full[0].w, h: full[0].h, transfer: frames.map(f => f.data) };
+  },
+  /* `Hs[i]`: homografía (foto → referencia, resolución completa) o null si esa foto no se pudo alinear (queda con su desplazamiento de siempre) */
+  warp(m){
+    const total = m.Hs.filter(Boolean).length; let n = 0;
+    shifts = shifts0 ? shifts0.slice() : shifts;
+    full = full.map((im, i) => {
+      const H = m.Hs[i]; if(!H) return im;
+      post({ type: "progress", msg: `Alineando con precisión · remuestreo ${++n} de ${total}` });
+      const Hinv = minv(H); if(!Hinv) return im;
+      shifts[i] = { dx: 0, dy: 0, fdx: 0, fdy: 0 };
+      const out = { ...im, data: new Uint8ClampedArray(warpBilinear(im.data, im.w, im.h, 4, Hinv, true)) };
+      if(im.lin) out.lin = new Uint16Array(warpBilinear(im.lin, im.w, im.h, 3, Hinv, false));
+      return out;
+    });
+    proxy = full.map(im => shrink(im, previewSide)); small = full.map(im => downscale(im, 700));
+    draft = null; curvesCache = null; cache = null;
+    return { ok: true, warped: m.Hs.map(Boolean) };
+  },
+  /* Vuelve a la alineación por desplazamientos */
+  unwarp(){ buildFrames(); if(shifts0) shifts = shifts0; cache = null; return { ok: true }; },
   setEvs(m){ evs = m.evs.slice(); cache = null; return { ok: true }; },
   /* Qué radiancia usa Premium ahora mismo (para la nota de la ventana). */
   premiumInfo(m){ if(m.evs) evs = m.evs.slice(); if(!full.length) return { kind: "" }; const c = premiumCurves(m.s); return { kind: c.kind, linear: full.filter(im => im.lin).length, total: full.length }; },

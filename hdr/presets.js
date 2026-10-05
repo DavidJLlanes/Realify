@@ -16,7 +16,7 @@ export const METHODS = [
 export const DEFAULTS = {
   method: "details",
   // Fusión de las fotos
-  align: true, crop: true, deghost: 0, ghostRef: -1,
+  align: true, crop: true, deghost: 0, ghostRef: -1, precise: false,
   // Detalles realzados
   strength: 70, sat: 110, luminosity: 0, detail: 30, smooth: 60, micro: 20, smoothHi: 0,
   // Compresor / Fotográfico
@@ -53,6 +53,6 @@ export const PRESETS = [
 /** Ajustes completos de un estilo (manteniendo alineación y antifantasmas). */
 export function presetSettings(id, current = DEFAULTS){
   const p = PRESETS.find(x => x[0] === id);
-  const keep = { align: current.align, crop: current.crop, deghost: current.deghost, ghostRef: current.ghostRef, premium: !!current.premium };
+  const keep = { align: current.align, crop: current.crop, deghost: current.deghost, ghostRef: current.ghostRef, precise: !!current.precise, premium: !!current.premium };
   return { ...DEFAULTS, ...(p ? p[2] : {}), ...keep };
 }
