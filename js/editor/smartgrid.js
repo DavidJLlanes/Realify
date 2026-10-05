@@ -28,6 +28,8 @@ import { on, emit } from "../core/bus.js";
 import { flatten } from "./layertree.js";
 import { view } from "./view.js";
 import { scheduleOverlay } from "./compositor.js";
+import { hiToCanvas8, hiCoversCanvas } from "../core/hisrc.js";
+import { warpHiToQuad } from "./perspective.js";
 import { setCompositionOverlay } from "./rulers.js";
 import { record } from "../core/history.js";
 import { dialog } from "../ui/dialog.js";
@@ -356,12 +358,20 @@ export function straighten(angleDeg){
     x.translate(src.width / 2, src.height / 2); x.rotate(a); x.scale(k, k); x.drawImage(src, -src.width / 2, -src.height / 2);
     return c;
   };
-  const parts = doc.layers.filter(l => l.canvas && l.type !== "group").map(l => ({ l, before: { canvas: l.canvas, ctx: l.ctx, mask: l.mask } }));
+  const parts = doc.layers.filter(l => l.canvas && l.type !== "group").map(l => ({ l, before: { canvas: l.canvas, ctx: l.ctx, mask: l.mask, hiSrc: l.hiSrc } }));
   for(const p of parts){
-    const c = turn(p.l.canvas);
-    p.after = { canvas: c, ctx: c.getContext("2d"), mask: p.l.mask ? (() => { const m = turn(p.l.mask.canvas); return { ...p.l.mask, canvas: m, ctx: m.getContext("2d") }; })() : null };
+    /* 16 bits: la capa con origen de 16 bits se gira también en 16 bits (misma transformación, bilineal en coma flotante) y su lienzo es el
+       redondeo del resultado; el resto (o si es demasiado grande) sigue por el camino de 8 bits y suelta el origen. */
+    let hw = null;
+    if(hiCoversCanvas(p.l)){
+      const w = p.l.canvas.width, h = p.l.canvas.height, cs = Math.cos(a), sn = Math.sin(a);
+      const quad = [[0, 0], [w, 0], [w, h], [0, h]].map(([sx, sy]) => { const dx = (sx - w / 2) * k, dy = (sy - h / 2) * k; return [w / 2 + dx * cs - dy * sn, h / 2 + dx * sn + dy * cs]; });
+      hw = warpHiToQuad(p.l.hiSrc, p.l.canvas, quad, w, h, hiToCanvas8);
+    }
+    const c = hw ? hw.canvas : turn(p.l.canvas);
+    p.after = { canvas: c, ctx: c.getContext("2d"), hiSrc: hw ? hw.hiSrc : undefined, mask: p.l.mask ? (() => { const m = turn(p.l.mask.canvas); return { ...p.l.mask, canvas: m, ctx: m.getContext("2d") }; })() : null };
   }
-  const put = side => { for(const p of parts){ Object.assign(p.l, p[side]); p.l.thumbDirty = true; } emit("doc:structure"); emit("doc:change"); };
+  const put = side => { for(const p of parts){ Object.assign(p.l, p[side]); if(!p.l.hiSrc) delete p.l.hiSrc; p.l.thumbDirty = true; } emit("doc:structure"); emit("doc:change"); };
   put("after");
   record(`Enderezar ${angleDeg.toFixed(1)}°`, () => put("before"), () => put("after"));
   if(result?.horizon) result.horizon = { ...result.horizon, angle: 0 };
