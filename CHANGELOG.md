@@ -9,6 +9,29 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v252 · 16 bits, precisión y rendimiento
+- **El autoguardado lleva los 16 bits** (hasta 12 MP por capa): lo ya codificado se reutiliza entre guardados (caché por los datos de la capa), así que sólo la primera vez
+  cuesta (854 ms → 26 ms en una foto de 1,2 MP) y la recuperación tras un cierre brusco ya no deja la foto en 8 bits.
+- **Redimensionar, Perspectiva y Enderezar conservan los 16 bits**: el origen de la capa se remuestrea con la misma transformación en coma flotante (Lanczos/Mitchell/
+  Catmull-Rom/bilineal en el worker; inversa de la proyectiva con interpolación bilineal en 16 bits y borde suavizado) y el lienzo de 8 bits es su redondeo tramado; deshacer y
+  rehacer devuelven cada versión. Antes los soltaban.
+- **Realify 👑 con salida de 16 bits**: la cadena entera se rehace en coma flotante de 32 bits sobre los 16 bits de la capa (textura RGBA32F por bandas) y el resultado se lee sin
+  pasar por el tramado de 8 bits; la capa de filtro nueva lleva sus 16 bits. Sólo con Premium y sin etapas de CPU (limpieza espectral, JPEG), que trabajan en 8 bits.
+- **Filtro Vintage con salida de 16 bits**: cada tesela se calcula otra vez en coma flotante de 32 bits desde los 16 bits de la capa y se lee sin cuantizar; el lienzo es su
+  redondeo (diferencia con el cálculo de 8 bits: 0,2 niveles de media). **Revelado fotográfico 👑**: parte de los 16 bits de la capa (ráster de 16 bits en el motor Premium) y
+  devuelve 16 bits.
+- **Desenfoque gaussiano, Enfocar y Añadir ruido en coma flotante «de verdad»** (`js/editor/floatspatial.js`): se calculan directamente sobre los 16 bits (gaussiano de tres cajas,
+  error < 1 % del exacto; máscara de enfoque con la misma fórmula; ruido con la misma secuencia y semilla) en vez de sumar el cambio de 8 bits. Un degradado de 16 bits no cambia
+  con el desenfoque (error 0 niveles); hasta 16 MP y capas opacas, y si no cabe, el «delta» de antes.
+- **Compositor GPU de coma flotante**: **caché de texturas por capa** (un contador de revisión por lienzo, `js/core/canvasrev.js`, evita volver a subir las capas que no cambian),
+  **estilos de capa** (sombra, resplandor, trazo y degradado, con las láminas de `collectStyleShapes`) y **trazo en curso** (pincel, borrador) en la vista previa de GPU, y
+  **composición por teselas** (los acumuladores sólo miden una tesela: documentos de hasta 40 MP en el escritorio, con presupuesto de texturas; antes se rechazaba por encima de 4–8 MP).
+  Igual que el oráculo de CPU (`core/precision-stack.js`) con teselas de 64 px, con capa de ajuste, máscara y recorte.
+- Pruebas nuevas: `tests/autoguardado-16.mjs`, `redimensionar-16.mjs`, `perspectiva-16.mjs`, `enderezar-16.mjs`, `realify-16.mjs`, `vintage-16.mjs`, `revelado-16.mjs`,
+  `float-espacial.mjs`, `float-nativo-filtros.mjs`, `gpu-estilos.mjs` y `gpu-teselas-grande.mjs`.
+- **No hecho en esta versión** (queda en `PENDIENTE.md` con el motivo): WebGPU, capas y máscaras con almacenamiento propio de 16 bits/float, y el procesado «lazy» de bloques en la
+  vista de documentos muy grandes.
+
 ### v251 · Fotos, apilado y lente
 - **Apilar fotos**: admite **RAW directamente** (se revelan con el motor Premium con el balance de la cámara) y elige la **referencia por nitidez**: mide cada toma
   (`focusScore`, el análisis de «Analizar nitidez»; un RAW a media resolución), las ordena de más a menos nítida y alinea todas a la mejor (opción «Referencia:

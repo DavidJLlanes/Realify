@@ -273,9 +273,18 @@ tiempo real mientras se pinta.
   puntos)— con las fórmulas de `core/precision-stack.js`, que es la referencia en las pruebas (diferencia
   máxima 0,03 niveles en 32 bits y 0,4 en 16 bits). Las capas con origen de 16 bits muestran esos bits (misma
   regla de `core/hisrc.js`, comprobada en la GPU) y el paso a 8 bits lleva el tramado de la exportación.
-  Sólo se usa si compensa (ajustes, 16 bits, Fusionar si o modos «a mano») y todo está soportado; con estilos
-  de capa, trazo en curso o un documento muy grande, sigue el camino de 8 bits. Documentos Display P3 también
-  (se comprueba una vez que el navegador conserva el P3 por la GPU).
+  Sólo se usa si compensa (ajustes, 16 bits, Fusionar si o modos «a mano») y todo está soportado. Desde la v252
+  admite **estilos de capa** (sombra, resplandor, trazo y degradado), **trazo en curso**, **caché de texturas por
+  capa** (`js/core/canvasrev.js`: un contador de revisión por lienzo, que sube en cada escritura del contexto 2D,
+  evita resubir las capas que no cambian) y **composición por teselas** (`floatTuning.tile`, 1024 px; los
+  acumuladores sólo miden una tesela, el límite lo pone un presupuesto de texturas: hasta 40 MP en escritorio).
+  Documentos Display P3 también (se comprueba una vez que el navegador conserva el P3 por la GPU).
+- **16 bits en más sitios** (v252): el autoguardado lleva los 16 bits (caché por los datos de la capa);
+  Redimensionar (`resampleHi`: Lanczos/Mitchell/Catmull-Rom/bilineal en coma flotante en el worker), Perspectiva y
+  Enderezar (`warpHiToQuad`: inversa de la proyectiva, bilineal en 16 bits) los conservan; **Realify 👑**
+  (`engine.renderHi`: cadena RGBA32F sobre los 16 bits), el **Filtro Vintage** (teselas RGBA32F) y el **Revelado
+  fotográfico 👑** (ráster de 16 bits en el motor Premium) devuelven 16 bits; y el desenfoque gaussiano, Enfocar y
+  Añadir ruido se calculan de verdad en coma flotante (`js/editor/floatspatial.js`).
 - **Exportación en coma flotante con estilos de capa y Fusionar si** (`core/precision-stack.js`): la sombra,
   el resplandor y el trazo se dibujan aparte (láminas de 8 bits de colores sólidos), la capa va encima en
   coma flotante y el degradado y Fusionar si se evalúan sin redondear; ya no se parte del aplanado de 8 bits.

@@ -53,15 +53,12 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [x] Lente: perfiles propios («acm»), recorte del propio archivo, automática (lote/Acciones) y RAW antes del revelado. (v251)
       Pendiente: leer .lcp de Adobe; perfiles propios medidos de móviles concretos; la corrección RAW va después del demosaico (no sobre el mosaico).
 
-**16 bits, precisión y rendimiento (fases 11 a 14)**
-- [ ] Realify (simulación de captura), Filtro Vintage y Revelado fotográfico siguen con salida de 8 bits.
-- [ ] Coma flotante «de verdad» (no por delta) para desenfoque, enfoque y ruido.
-- [ ] Estilos de capa y trazo en curso (pincel, borrador) en la vista previa de GPU.
-- [ ] WebGPU como alternativa; caché de texturas por capa; documentos grandes por mosaicos.
-- [ ] Redimensionar con 16 bits; perspectiva, enderezar y otras operaciones que remuestrean capas siguen soltando los 16 bits.
-- [ ] El autoguardado periódico no lleva los 16 bits.
-- [ ] Capas y máscaras en 16 bits/float propios.
-- [ ] Procesado «lazy» por bloques inspirado en libvips.
+**16 bits, precisión y rendimiento (fases 11 a 14)** — hecho en la v252: Realify 👑, Filtro Vintage y Revelado fotográfico 👑 con salida de 16 bits; desenfoque gaussiano, enfoque y ruido en coma flotante nativa; estilos de capa, trazo en curso, caché de texturas y teselas en la vista previa de GPU; Redimensionar, Perspectiva y Enderezar conservan los 16 bits; el autoguardado los lleva.
+- [ ] Lo que sigue sin 16 bits nativos: los filtros avanzados que usan su propio motor (Desenfoque de lente, Nitidez inteligente, Reducción de ruido por canal, Desenfoque de superficie…; siguen por «delta»), el desenfoque con capas con transparencia (necesita premultiplicar), la **entrada de 16 bits en Realify sin Premium** (los intermedios de 16 bits flotantes no dan 16 bits de verdad) y en el lote/«Acciones» de Realify, Vintage y Revelado (siguen en 8 bits).
+- [ ] WebGPU como alternativa: no se ha hecho; el compositor de WebGL2 ya da coma flotante de 32 bits y teselas, y un motor WebGPU duplicaría todos los shaders (ajustes, 28 modos de fusión, estilos) con soporte aún desigual (Safari y móviles); sólo compensaría con cómputo por bloques (histogramas, desenfoques grandes).
+- [ ] Capas y máscaras con almacenamiento propio de 16 bits/float: las capas siguen siendo lienzos de 8 bits con un origen de 16 bits opcional (`hiSrc`); pintar, borrar o rellenar en 16 bits exigiría cambiar todas las herramientas de pincel y el modelo de capa.
+- [ ] Procesado «lazy» por bloques (libvips) en la vista de documentos muy grandes: el compositor de GPU ya compone por teselas, pero la vista en mosaico de 8 bits para ≥ 18 MP (8 MP en móvil) sigue sin pasar por él (a escala de pantalla las capas necesitarían reducirse en el shader).
+- [ ] Documentos de más de 40 MP (12 MP en móvil) o con texturas por encima del presupuesto de vídeo siguen con la vista previa de 8 bits.
 
 **Metadatos (fase 15)**
 - [ ] Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF (hoy JPEG, PNG y WebP).

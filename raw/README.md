@@ -147,3 +147,10 @@ de color frente a AHD con un tiempo similar.
 
 Límites honestos: no hay perfiles de objetivo (Lensfun) ni reducción de ruido con
 IA; el editor sigue trabajando en 8 bits por canal después de abrir el revelado.
+
+
+## Revelado fotográfico con 16 bits (v252)
+
+Con **Premium 👑** y una capa con origen de 16 bits (`hiSrc`), el *Revelado fotográfico* parte de esos 16 bits —una fuente ráster `{ raster, raster16, data: Uint16Array
+RGB }` en sRGB que lee `sourceReader` con una tabla de 65 536 entradas— en vez del lienzo de 8 bits, y la capa de filtro que crea conserva los 16 bits del resultado
+(`render16`). Prueba: `tests/revelado-16.mjs`.

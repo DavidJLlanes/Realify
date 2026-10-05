@@ -49,6 +49,13 @@ Para añadir uno: una entrada `F(id, categoría, nombre, dibujo)` en `FRAMES`
 `border` cubren la mayoría). No se pueden usar modos `destination-*`: la capa
 «paint» es compartida con los demás elementos dibujados.
 
+## 16 bits (v252)
+
+Si la capa de origen trae un origen de 16 bits (`hiSrc`, ver `js/core/hisrc.js`), `renderFull(src, estado, progreso, hiSrc)` calcula además cada tesela en coma
+flotante de 32 bits (textura RGBA32F por bandas, teselas de hasta 2048 px) y la lee sin cuantizar a 8 bits: el lienzo del resultado es su redondeo tramado y
+`result._hi` lleva los 16 bits, que la capa de filtro conserva. El alfa y el respaldo siguen siendo los del paso de 8 bits (diferencia media 0,2 niveles).
+Prueba: `tests/vintage-16.mjs`.
+
 ## Límites
 
 Necesita WebGL2. Sin él la ventana no se abre y se muestra un aviso; no hay

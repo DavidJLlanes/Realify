@@ -1104,11 +1104,12 @@ const TOPICS = [
           hacen los <b>filtros</b> —desenfoques, enfoques, ruido, Detalle y estructura, Viñeteado,
           Reducción de ruido, PurePixel…— y los <b>Estilos</b> y las <b>Tablas de color</b>: el cambio
           se suma a los 16 bits de la capa de origen. Los filtros que mueven o sustituyen la imagen
-          (distorsiones, pixelar, artísticos…) siguen en 8 bits. Los 16 bits también <b>sobreviven a
-          girar, voltear, recortar y ampliar el lienzo</b> (y a deshacer y rehacer), a <b>duplicar la
-          capa</b> y a <b>guardar el proyecto</b> (.realify, y lo que se guarda antes de actualizar la app).
-          Redimensionar la imagen los suelta (deshacer los devuelve), y el autoguardado periódico no los
-          lleva.</li>
+          (distorsiones, pixelar, artísticos…) siguen en 8 bits. El <b>desenfoque gaussiano, Enfocar y
+          Añadir ruido</b> se calculan directamente sobre los 16 bits. <b>Realify 👑</b>, el <b>Filtro Vintage</b> y
+          el <b>Revelado fotográfico 👑</b> también devuelven 16 bits. Los 16 bits <b>sobreviven a
+          girar, voltear, recortar, ampliar el lienzo, redimensionar, corregir la perspectiva y enderezar</b> (y a
+          deshacer y rehacer), a <b>duplicar la capa</b>, a <b>guardar el proyecto</b> (.realify, y lo que se
+          guarda antes de actualizar la app) y al <b>autoguardado periódico</b>.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas
