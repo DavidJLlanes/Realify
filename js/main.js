@@ -878,6 +878,7 @@ registerAll({
   "an.spectrum":    { run: async () => (await import("./analysis/ui.js")).openSpectrum(),
                       enabled: needsDoc },
   "an.exif":        async () => (await import("./exif/ui.js")).openExif(),
+  "an.meta":        async () => (await import("./exif/inspector.js")).openMetadataInspector(),
   "an.strip":       async () => (await import("./io/stripui.js")).openStrip(),
   "help.guide":     async () => (await import("./ui/guide.js")).openGuide(),
   "help.legal":     async () => (await import("./ui/legal.js")).openLegalNotice(),

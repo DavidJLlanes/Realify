@@ -21,7 +21,7 @@ import { doc } from "../core/doc.js";
 import { dialog } from "../ui/dialog.js";
 import { toast, status } from "../ui/toast.js";
 
-async function stripBytes(file, keepICC, out){
+async function stripBytes(file, keepICC, out, mode = "all"){
   out.textContent = "Procesando…";
   try{
     const u8 = new Uint8Array(await file.arrayBuffer());
@@ -36,12 +36,25 @@ async function stripBytes(file, keepICC, out){
       return;
     }
     const type = isPNG ? "image/png" : "image/jpeg";
-    const blob = new Blob(res.parts, { type });
+    let blob = new Blob(res.parts, { type });
+    /* «Quitar sólo la ubicación y los números de serie»: se vuelve a escribir lo demás (fecha, cámara, autor,
+       descripción y la orientación) desde el propio archivo, filtrado (io/metadata.js). Sin miniatura ni notas
+       del fabricante, que pueden revelar lo mismo. */
+    let kept = "";
+    if(mode === "keep"){
+      const M = await import("./metadata.js");
+      const policy = { ...M.META_PRESETS.nogps };                  // todo salvo ubicación y números de serie
+      const meta = M.filterMetadata(await M.readOriginalMetadata(file), policy, { original: true });
+      const withMeta = await M.embedMetadata(blob, meta);
+      if(withMeta !== blob){ blob = withMeta; kept = M.describeMeta(meta, policy); }
+    }
     await saveOrShare(blob, file.name.replace(/\.[^.]+$/, "") + "-limpio." + (isPNG ? "png" : "jpg"));
 
-    const head = res.removed
-      ? `<b style="color:var(--ok)">${res.removed.toLocaleString("es-ES")} bytes fuera</b>: ${res.kinds.join(", ")}`
-      : "No había metadatos que quitar.";
+    const head = mode === "keep"
+      ? `<b style="color:var(--ok)">Ubicación, números de serie, miniatura y notas del fabricante fuera.</b>` + (kept ? ` Se conserva: ${kept}.` : "")
+      : res.removed
+        ? `<b style="color:var(--ok)">${res.removed.toLocaleString("es-ES")} bytes fuera</b>: ${res.kinds.join(", ")}`
+        : "No había metadatos que quitar.";
     const notes = [];
     if(found.aiDeclared) notes.push(`El original declaraba material generado por un modelo (${found.sourceType}).`);
     if(found.c2pa) notes.push("Llevaba credenciales de contenido C2PA firmadas; se han quitado con el resto.");
@@ -75,6 +88,12 @@ export async function openStrip(){
     <p class="hint">Elimina EXIF, XMP, IPTC, comentarios y perfiles de un JPEG o un
       PNG <b>sin recomprimir</b>: se recorren los segmentos del archivo y se
       descartan los que llevan metadatos. Los datos de imagen quedan intactos.</p>
+    <div class="field"><label>Quitar</label>
+      <select id="stripMode" class="grow">
+        <option value="all">Todo</option>
+        <option value="keep">Sólo ubicación y números de serie</option>
+      </select></div>
+    <p class="hint" id="stripModeHint">«Sólo ubicación…» conserva fecha, cámara, autor, descripción y orientación, sin miniatura ni notas del fabricante.</p>
     <label class="chk"><input type="checkbox" id="keepICC" checked>
       Conservar el perfil de color (ICC)</label>
     <p class="hint">Sin el perfil, algunos visores interpretan mal los colores de
@@ -90,7 +109,7 @@ export async function openStrip(){
   if(hasOpenFile){
     wrap.querySelector("#stripOpen").addEventListener("click", () =>
       stripBytes(doc.source.file, wrap.querySelector("#keepICC").checked,
-                 wrap.querySelector("#outOpen")));
+                 wrap.querySelector("#outOpen"), wrap.querySelector("#stripMode").value));
 
     wrap.querySelector("#exportClean").addEventListener("click", async () => {
       const out = wrap.querySelector("#outOpen");
@@ -114,7 +133,7 @@ export async function openStrip(){
   input.addEventListener("change", () => {
     const f = input.files[0];
     input.value = "";
-    if(f) stripBytes(f, wrap.querySelector("#keepICC").checked, wrap.querySelector("#out"));
+    if(f) stripBytes(f, wrap.querySelector("#keepICC").checked, wrap.querySelector("#out"), wrap.querySelector("#stripMode").value);
   });
 
   await dlg;

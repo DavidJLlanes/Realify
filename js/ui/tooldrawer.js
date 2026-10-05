@@ -276,6 +276,7 @@ const ITEMS = [
   { cmd:"an.palette",    label:"Paleta de colores", ic:"palette",     cat:"analizar color" },
   { cmd:"an.eyedropper", label:"Cuentagotas de pantalla", ic:"pipette", cat:"analizar color" },
   { cmd:"an.exif",       label:"Metadatos EXIF",   ic:"tags",         cat:"analizar" },
+  { cmd:"an.meta",       label:"Inspector de metadatos", ic:"file-search", cat:"analizar" },
   { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"ia" }
 ];
 

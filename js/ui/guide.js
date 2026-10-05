@@ -1130,7 +1130,13 @@ const TOPICS = [
           entrega un PNG sin preguntar nada. En documentos Display P3 aparece <b>Color</b>:
           <b>Display P3</b> (JPEG, PNG y 16 bits, con su perfil incrustado) o <b>sRGB</b> para la
           máxima compatibilidad; WebP, AVIF, TIFF de 8 bits, PDF y «Limpio para web» se guardan
-          siempre en sRGB.</li>
+          siempre en sRGB. <b>Metadatos</b> (JPEG, PNG y WebP, con la foto abierta desde un archivo): por
+          defecto <b>ninguno</b>, como siempre. Puedes volver a escribir, desde el archivo original y filtrado,
+          <b>autor y copyright</b>, la <b>fecha</b>, la <b>cámara</b> y el objetivo, la <b>ubicación GPS</b> y la
+          <b>descripción</b> (título, palabras clave), por separado o con los atajos «Sólo autor y copyright», «Los del
+          original, sin ubicación» y «Todos». Nunca se copian la miniatura incrustada (enseña la foto sin recortar), las
+          notas del fabricante ni la orientación; los números de serie, sólo con «Todos». «Limpio para web» no lleva
+          ninguno.</li>
         <li><b>Exportar como…</b> También permite un <b>PSD con grupos y capas
           rasterizadas</b> para otros editores. La vista compuesta recoge el resultado
           exacto; los ajustes, máscaras y textos de Realify no se convierten en mandos
@@ -1405,7 +1411,15 @@ const TOPICS = [
       { id:"exif", title:"Metadatos EXIF",
         desc:"Qué metadatos escribe la exportación, y qué deja deliberadamente sin escribir.",
         html:`
-          <h3>Metadatos EXIF</h3>
+          <h3>Inspector de metadatos</h3>
+          <p><b>Análisis › Inspector de metadatos…</b> enseña todo lo que lleva escrito el archivo original de la foto
+            abierta (o de otro que elijas): EXIF, ubicación GPS, IPTC, XMP, perfil de color, MPF, Photoshop, notas del
+            fabricante y la miniatura incrustada. Arriba, un resumen de lo que revela de quien la hizo —dónde, cuándo,
+            con qué cámara, números de serie, autor— con los datos personales marcados. Se lee en tu equipo con
+            ExifReader (MPL-2.0). <b>Limpiar metadatos de un archivo…</b> quita los metadatos de un JPEG o PNG sin
+            recomprimir: <b>Todo</b>, o <b>sólo la ubicación y los números de serie</b> (conserva fecha, cámara, autor,
+            descripción y orientación; sin miniatura ni notas del fabricante), y con o sin perfil ICC.</p>
+          <h3>Metadatos EXIF (escribir)</h3>
           <p>La cadena exporta sin metadatos por defecto. El panel EXIF escribe una
             cabecera coherente: cuerpo, objetivo, y una exposición que <b>cuadra consigo
             misma</b>. El modo automático no sortea números sueltos, sino que fija un valor

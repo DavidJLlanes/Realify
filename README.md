@@ -273,6 +273,11 @@ tiempo real mientras se pinta.
   mueven el origen de 16 bits con el lienzo (y lo vuelven a tramar en su sitio), con deshacer y rehacer sin copias en
   el historial; los proyectos `.realify` y el guardado antes de actualizar lo guardan como PNG de 16 bits; duplicar
   capa lo conserva. Exportar tras girar y recortar da los mismos 16 bits que la foto original, bit a bit.
+- **Metadatos y privacidad** (`js/exif/inspector.js`, `js/io/metadata.js`, fase 15): el inspector enseña todo lo que lleva el
+  archivo original (EXIF, GPS, IPTC, XMP, ICC, MPF, Photoshop, notas del fabricante, miniatura) con un resumen de datos
+  personales, leído con ExifReader (MPL-2.0, sin modificar). Al exportar JPEG, PNG o WebP se pueden volver a escribir, desde el
+  original y por lista blanca, autor y copyright, fecha, cámara, GPS y descripción (nunca la miniatura, las notas del fabricante ni
+  la orientación). «Limpiar metadatos» puede quitar sólo la ubicación y los números de serie sin recomprimir.
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

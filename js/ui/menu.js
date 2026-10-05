@@ -480,6 +480,7 @@ export const MENUS = [
       help:"Analiza sujeto, horizonte y rostros y dibuja tercios, proporción áurea, espiral y diagonales adaptadas; propone recorte y enderezado." },
     { sep:true },
     { cmd:"an.exif",      label:"Metadatos EXIF…", help:"Permite revisar o escribir datos de cámara en exportaciones JPEG." },
+    { cmd:"an.meta", ic:"file-search", label:"Inspector de metadatos…", help:"Todo lo que lleva escrito el archivo original (EXIF, ubicación GPS, IPTC, XMP, perfil ICC, notas del fabricante, miniatura) con un resumen de lo que revela. Al exportar puedes elegir qué conservar." },
   ]},
   { label:"Ver", items:[
     { cmd:"view.fit",     label:"Ajustar a la ventana" },

@@ -9,6 +9,26 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v240 · Metadatos y privacidad (fase 15)
+- **Inspector de metadatos** (Análisis › Inspector de metadatos…, `js/exif/inspector.js`; también en el cajón «Herramientas»
+  del móvil): todo lo que lleva el archivo original de la foto abierta, o de otro que se elija —EXIF, ubicación GPS, IPTC,
+  XMP, perfil ICC, MPF, Photoshop, notas del fabricante y miniatura— con un resumen de lo que revela (ubicación, fecha,
+  cámara, autor, números de serie, miniatura incrustada) y los datos personales marcados. Copiar todo como texto.
+  La lectura la hace **ExifReader 4.46.0 (MPL-2.0, sin modificar**, `js/vendor/exifreader`), cargado sólo al usarlo.
+- **Metadatos al exportar** (diálogo Exportar, JPEG, PNG y WebP; `js/io/metadata.js`): por defecto, ninguno (como siempre).
+  Se pueden volver a escribir, desde el original y filtrados, autor y copyright, fecha, cámara y objetivo, ubicación GPS y
+  descripción/palabras clave, por separado o con atajos («Sólo autor y copyright», «Los del original, sin ubicación»,
+  «Todos»). Lista blanca: el EXIF se reescribe etiqueta a etiqueta (original big o little endian), IPTC y XMP se construyen
+  de nuevo con los campos permitidos. **Nunca** se copian la miniatura incrustada (enseña el original sin recortar), las notas
+  del fabricante ni la orientación; los números de serie, sólo con «Todos». Las medidas EXIF son las del archivo exportado.
+  Con el panel EXIF activo mandan sus datos; «Limpio para web» no lleva ninguno. El perfil de color del documento se
+  incrusta como siempre (no se copia el del original: los píxeles ya están convertidos).
+- **Limpiar metadatos de un archivo**: nueva opción «Sólo ubicación y números de serie» (sin recomprimir; los datos de imagen
+  quedan idénticos): conserva fecha, cámara, autor, descripción y orientación.
+- Comprobado con un JPEG de prueba con EXIF (big endian), GPS, miniatura, notas del fabricante, IPTC y XMP: los archivos
+  exportados en JPEG, PNG y WebP abren en Pillow/piexif y ExifReader con exactamente lo que permite cada atajo (sin GPS, sin
+  miniatura, sin MakerNote, sin orientación, medidas del archivo); EXIF little endian también.
+
 ### v239 · Los 16 bits sobreviven al documento (fase 14)
 - **Girar, voltear, recortar y ampliar el lienzo conservan los 16 bits** de la foto (RAW revelado, PNG/TIFF de 16 bits,
   AVIF de 10/12): el origen de 16 bits se mueve con el lienzo (`remapHi` en `core/hisrc.js`) y se vuelve a tramar en su

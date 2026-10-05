@@ -11,6 +11,7 @@ import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
 import { docHasHi } from "../core/hisrc.js";
 import { codecMaxPixels } from "./codecs.js";
+import { META_PRESETS, metaActive } from "./metapresets.js";
 import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 export { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 
@@ -326,6 +327,22 @@ export async function exportDialog(){
       <input type="number" id="exMaxKB" class="grow" min="50" max="10000" step="50" value="500">
       <span class="unit">KB</span></div>
     <p class="hint" id="exCleanHint" hidden style="margin:-2px 0 9px">Convierte a sRGB, limita el lado mayor a 2560 px y ajusta calidad o tamaño hasta acercarse al peso elegido.</p>
+    <div class="field" id="exMetaRow"><label>Metadatos</label>
+      <select id="exMeta" class="grow">
+        <option value="none">Ninguno (como siempre)</option>
+        <option value="author">Sólo autor y copyright</option>
+        <option value="nogps">Los del original, sin ubicación</option>
+        <option value="all">Todos los del original</option>
+        <option value="custom">Personalizado…</option>
+      </select></div>
+    <div id="exMetaOpts" hidden style="margin:-2px 0 6px 2px">
+      <label class="chk"><input type="checkbox" id="exMAuthor"> Autor y copyright</label>
+      <label class="chk"><input type="checkbox" id="exMDate"> Fecha y hora de la toma</label>
+      <label class="chk"><input type="checkbox" id="exMCamera"> Cámara y objetivo (modelo, exposición, ISO…)</label>
+      <label class="chk"><input type="checkbox" id="exMGps"> Ubicación GPS y lugar</label>
+      <label class="chk"><input type="checkbox" id="exMText"> Descripción, título y palabras clave</label>
+    </div>
+    <p class="hint" id="exMetaHint" style="margin:-3px 0 9px"></p>
     <div class="field" id="qRow"><label>Calidad</label>
       <input type="range" id="exQ" class="grow" min="30" max="100" value="90">
       <span class="unit mono" id="exQV">90</span></div>
@@ -418,7 +435,31 @@ export async function exportDialog(){
         qHint.hidden = !lossy;
         if(lossy) qHint.textContent = "100 = sin pérdidas (el archivo pesa mucho más).";
       };
+      /* Metadatos del original (io/metadata.js): sólo JPEG, PNG y WebP, con la foto abierta desde un archivo, y no con
+         «Limpio para web». Por defecto, ninguno: el lienzo exporta sin metadatos, como siempre. */
+      const metaSel = body.querySelector("#exMeta"), metaOpts = body.querySelector("#exMetaOpts"), metaHint = body.querySelector("#exMetaHint");
+      const metaBoxes = { author: "#exMAuthor", date: "#exMDate", camera: "#exMCamera", gps: "#exMGps", text: "#exMText" };
+      const metaPolicy = () => Object.fromEntries(Object.entries(metaBoxes).map(([k, sel]) => [k, body.querySelector(sel).checked]));
+      const syncMeta = () => {
+        const okType = ["image/jpeg", "image/png", "image/webp"].includes(type.value), hasFile = !!(doc.source && doc.source.file);
+        const on = okType && hasFile && !clean.checked;
+        metaSel.disabled = !on;
+        metaOpts.hidden = !on || metaSel.value !== "custom";
+        if(!on){ metaHint.textContent = clean.checked ? "«Limpio para web» no lleva metadatos." : !hasFile ? "Sólo con fotos abiertas desde un archivo." : "Sólo en JPEG, PNG y WebP."; return; }
+        const v = metaSel.value;
+        metaHint.textContent = v === "none" ? "El archivo no lleva metadatos."
+          : "Se copian del archivo original, sin la miniatura (enseña la foto sin retocar), sin las notas del fabricante y sin la orientación." +
+            (v === "all" ? " Incluye números de serie y la ubicación." : v === "nogps" ? " Sin ubicación." : "");
+      };
+      metaSel.addEventListener("change", () => {
+        const preset = META_PRESETS[metaSel.value];
+        if(preset) for(const [k, sel] of Object.entries(metaBoxes)) body.querySelector(sel).checked = !!preset[k];
+        syncMeta();
+      });
+      for(const sel of Object.values(metaBoxes)) body.querySelector(sel).addEventListener("change", () => { metaSel.value = "custom"; syncMeta(); });
+      wrap._metaPolicy = () => metaSel.disabled ? null : { ...(metaSel.value === "all" ? META_PRESETS.all : metaPolicy()) };
       const precisionState=()=>{
+        syncMeta();
         syncColor();
         const possible=highPrecisionAvailableFor(+W.value||doc.w,+H.value||doc.h),cap=highPrecisionCapabilities();
         /* 16 bits: siempre alta precisión y sin tramado (no hace falta) */
@@ -616,6 +657,7 @@ export async function exportDialog(){
   const precision = (wrap.querySelector("#exPrecision").checked || is16(type)) && !clean;
   const dither = precision && wrap.querySelector("#exDither").checked;
   const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
+  const metaPolicy = !clean && wrap._metaPolicy ? wrap._metaPolicy() : null;
 
   status("Exportando…");
   let blob, cleanResult;
@@ -642,6 +684,18 @@ export async function exportDialog(){
     }
   }catch{ /* el panel EXIF no se ha abierto nunca */ }
 
+  // Metadatos del original, filtrados (io/metadata.js); si el panel EXIF ya ha escrito los suyos, mandan esos
+  let metaNote = "";
+  if(metaPolicy && metaActive(metaPolicy) && out === blob && doc.source && doc.source.file){
+    try{
+      const M = await import("./metadata.js");
+      const meta = M.filterMetadata(await M.readOriginalMetadata(doc.source.file), metaPolicy, { w, h, p3: isP3Doc() });
+      const embedded = await M.embedMetadata(out, meta);
+      if(embedded !== out){ out = embedded; metaNote = M.describeMeta(meta, metaPolicy); }
+      else if(!meta.exif && !meta.xmp && !meta.iptc) metaNote = "";
+    }catch(err){ console.warn("[metadatos]", err); }
+  }
+
   const typed = clean ? safeWebFilename(wrap.querySelector("#exName").value)
                       : sanitizeFilename(wrap.querySelector("#exName").value);
   const name = nameEdited && typed ? `${typed}.${ext}`
@@ -661,7 +715,7 @@ export async function exportDialog(){
   const finalW = cleanResult?.w || w, finalH = cleanResult?.h || h;
   const precisionText=is16(type)?depthText(type):precision&&exportPrecisionInfo().mode==="high-precision"?" · alta precisión":precision?" · modo compatible":"";
   toast(`${verb} ${finalW} × ${finalH} · ` +
-        `${(out.size / 1024).toFixed(0)} KB` + (clean ? " · limpio · sRGB" : out !== blob ? " · con EXIF" : "") + precisionText, "ok");
+        `${(out.size / 1024).toFixed(0)} KB` + (clean ? " · limpio · sRGB" : metaNote ? ` · con metadatos (${metaNote})` : out !== blob ? " · con EXIF" : "") + precisionText, "ok");
 }
 
 export async function quickPng(){

@@ -201,11 +201,17 @@ Lo más costoso: ×2–×4 de memoria (12 MP: ~48 MB por capa → 96–192 MB).
 - [ ] Procesado «lazy» por bloques inspirado en libvips: la edición como grafo de operaciones y cálculo sólo de los
       bloques necesarios para la vista o la exportación.
 
-## Fase 15 · Metadatos y privacidad
-ExifReader (MPL-2.0, sin modificar). Revisar antes qué hace ya el módulo EXIF actual.
-- [ ] Leer EXIF, IPTC, XMP, ICC, MPF, Photoshop, MakerNotes y miniaturas en el inspector.
-- [ ] Al exportar: quitar GPS, conservar copyright, conservar o quitar fecha y cámara,
-      limpiar todo, conservar el perfil ICC.
+## Fase 15 · Metadatos y privacidad ✅ en parte (v240)
+ExifReader (MPL-2.0, sin modificar).
+- [x] Inspector: EXIF, IPTC, XMP, ICC, MPF, Photoshop, MakerNotes y miniatura, con resumen de datos personales. (v240)
+- [x] Al exportar JPEG, PNG y WebP: conservar autor/copyright, fecha, cámara, GPS y descripción por separado, o limpiar todo;
+      el perfil ICC del documento se incrusta como siempre. (v240)
+- [x] «Limpiar metadatos»: opción de quitar sólo ubicación y números de serie, sin recomprimir. (v240)
+- [ ] Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF (hoy sólo JPEG, PNG y WebP).
+- [ ] Copiar las notas del fabricante (MakerNote) y el IPTC en PNG/WebP; XMP extendido de JPEG; metadatos de originales
+      HEIC/RAW (hoy se lee el EXIF estándar de cualquier contenedor, pero IPTC sólo de JPEG).
+- [ ] Editar los metadatos (cambiar autor, copyright o descripción) antes de exportar, sin necesidad del panel EXIF.
+- [ ] Mostrar en el inspector la procedencia C2PA (hoy la detecta `analysis/provenance.js` al limpiar).
 
 ## Fase 16 · HEIC, PSD y PSB
 - [ ] Exportar HEIC con libheif (LGPL: módulo WASM separado y sin modificar).
