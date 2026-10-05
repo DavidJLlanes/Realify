@@ -371,10 +371,14 @@ export function compose(dirty=null){
     }
   }
 
-  if(!scratchOn&&floatWorthIt()){
+  const live = {
+    on: scratchOn, ownerId: scratchOwner, canvas: scratch,
+    alpha: scratchAlpha, blend: scratchBlend, x:scratchX, y:scratchY
+  };
+  if(floatWorthIt()){
     const fc=floatModule();
-    const plan=fc&&fc.floatPlan(doc.layers,doc.w,doc.h,{scratchOn});
-    const g=plan&&fc.floatCompose(buildLayerTree(doc.layers),doc.layers,doc.w,doc.h,plan);
+    const plan=fc&&fc.floatPlan(doc.layers,doc.w,doc.h,{live});
+    const g=plan&&fc.floatCompose(buildLayerTree(doc.layers),doc.layers,doc.w,doc.h,plan,{live});
     if(g){
       cx.drawImage(g,0,0);
       if(cpuCv){cpuCv.width=cpuCv.height=0;cpuCv=null;cpuCx=null;}
@@ -389,10 +393,6 @@ export function compose(dirty=null){
   // compartido con `flatten()` (aplanar y exportar): aquí sólo se le
   // pasa el trazo en curso, que es un concepto puramente de la vista
   // en directo y no tiene sentido al exportar.
-  const live = {
-    on: scratchOn, ownerId: scratchOwner, canvas: scratch,
-    alpha: scratchAlpha, blend: scratchBlend, x:scratchX, y:scratchY
-  };
   /* Los modos de fusión resueltos a mano (blend.js) leen con
      getImageData el lienzo sobre el que se compone, una vez por capa y
      por repintado. Sobre `cv`, que vive en la GPU, cada lectura es una

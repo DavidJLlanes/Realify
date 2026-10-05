@@ -37,6 +37,9 @@ import { isBlendIfActive } from "../editor/blendif.js";
 import { isAdjustLayer } from "../editor/adjustlayers.js";
 import { CUSTOM_BLENDS } from "../editor/blend.js";
 import { adjustFunction, unsupportedReason, GRID, STEP } from "../core/precision-stack.js";
+import { collectStyleShapes } from "../editor/layertree.js";
+import { gradientParams } from "../editor/layerstyles.js";
+import { canvasRev } from "../core/canvasrev.js";
 
 const COARSE = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
 const memory = navigator.deviceMemory || 8;
@@ -73,6 +76,11 @@ uniform bool uBI; uniform vec4 uBIThis, uBIUnder;   // negroMin, negroMax, blanc
 uniform float uOpacity;
 uniform int uMode;
 uniform bool uPrep;                 // sólo devuelve la capa preparada (máscara, recorte, «Fusionar si»)
+// Estilos de capa (mismo orden que core/precision-stack.js › applyStylesBand): degradado sobre la capa, sombra y resplandor detrás, trazo encima
+uniform bool uHasStyle, uHasBehind, uHasRing, uGrad;
+uniform sampler2D uBehind, uRing;
+uniform vec4 uGradP; uniform vec3 uGradC1, uGradC2; uniform float uGradOp;
+vec4 plateAt(sampler2D t, ivec2 p){ vec4 c = texelFetch(t, p, 0); return vec4(c.rgb * c.a, c.a); }
 
 float dith(int x, int y, int c){
   uint h = (uint(x * 3 + c) + 0x2545f491u) * 0x9e3779b1u ^ (uint(y) + 0x6a09e667u) * 0x85ebca77u;
@@ -184,6 +192,18 @@ void main(){
   if(uHasMask) src *= texelFetch(uMask, p, 0).a;
   if(uHasClip) src *= texelFetch(uClip, p, 0).a;
   if(uPrep){ outColor = src; return; }
+  if(uHasStyle){
+    if(uGrad && src.a > 0.0){
+      vec2 gd = uGradP.zw - uGradP.xy; float L2 = dot(gd, gd); if(L2 == 0.0) L2 = 1e-9;
+      float t = clamp(dot(vec2(p) + 0.5 - uGradP.xy, gd) / L2, 0.0, 1.0);
+      vec3 cur = src.rgb / src.a * 255.0, gc = mix(uGradC1, uGradC2, t);
+      src.rgb = (cur + (gc - cur) * uGradOp) / 255.0 * src.a;
+    }
+    vec4 acc = uHasBehind ? plateAt(uBehind, p) : vec4(0.0);
+    acc = src + acc * (1.0 - src.a);
+    if(uHasRing){ vec4 r = plateAt(uRing, p); acc = r + acc * (1.0 - r.a); }
+    src = acc;
+  }
   float sa = src.a;
   if(sa <= 0.0){ outColor = dst; return; }
   float as = sa * uOpacity, ab = dst.a;
@@ -315,7 +335,7 @@ function init(){
       canvas, gl, f32, maxTex: gl.getParameter(gl.MAX_TEXTURE_SIZE),
       blend: program(gl, FS_BLEND), adjust: program(gl, FS_ADJUST), out: program(gl, FS_OUT),
       vao: gl.createVertexArray(), fbo: gl.createFramebuffer(),
-      pool: [], poolW: 0, poolH: 0, poolF32: false, hi: new Map(), lut: new Map(), idle: 0, dummyHi: null, dummy3D: null
+      pool: [], poolW: 0, poolH: 0, poolF32: false, hi: new Map(), lut: new Map(), tex8: new Map(), temps: [], plates: null, live: null, idle: 0, dummyHi: null, dummy3D: null
     };
     // Textura de relleno para el muestreador entero cuando la capa no trae 16 bits (WebGL valida el tipo)
     S.dummy3D = gl.createTexture();
@@ -408,6 +428,32 @@ function uploadCanvas(canvas){
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   return t;
 }
+/* Caché de texturas de lienzo (v252): la textura de 8 bits de cada capa y de cada máscara se conserva entre fotogramas mientras el lienzo no
+   cambie (revisión de core/canvasrev.js, que sube en cada escritura). Las que no se usan en una composición se liberan al terminar; el total
+   cacheado tiene tope; lo que no cabe o no tiene revisión se sube como siempre y se borra al acabar. */
+const CACHE_MAX_PX = (COARSE || memory <= 4) ? 24e6 : 96e6;
+function canvasTexture(canvas){
+  const rev = canvasRev(canvas), w = canvas.width, h = canvas.height;
+  if(rev === null){ const t = uploadCanvas(canvas); S.temps.push(t); return t; }
+  const e = S.tex8.get(canvas);
+  if(e && e.rev === rev && e.w === w && e.h === h){ e.seen = true; floatInfo.texHits++; return e.tex; }
+  if(e){ S.gl.deleteTexture(e.tex); S.tex8.delete(canvas); }
+  let used = 0; for(const v of S.tex8.values()) used += v.w * v.h;
+  const tex = uploadCanvas(canvas);
+  floatInfo.texUploads++;
+  if(used + w * h > CACHE_MAX_PX){ S.temps.push(tex); return tex; }
+  S.tex8.set(canvas, { rev, w, h, tex, seen: true });
+  return tex;
+}
+function tempTexture(canvas){ const t = uploadCanvas(canvas); S.temps.push(t); return t; }
+function endCompose(){
+  const { gl } = S;
+  for(const t of S.temps) gl.deleteTexture(t);
+  S.temps = [];
+  for(const [c, e] of S.tex8){ if(e.seen) e.seen = false; else { gl.deleteTexture(e.tex); S.tex8.delete(c); } }
+  S.plates = null; S.live = null;
+}
+
 /* Origen de 16 bits de una capa: se sube una vez por matriz de datos (RGB16UI). */
 function hiTexture(layer){
   const hs = layer.hiSrc;
@@ -505,7 +551,7 @@ function composeLevel(nodes, w, h, f32){
 
     if(isAdjustLayer(l)){
       const mk = effectiveMask(l), hasMask = !!(mk && l.maskEnabled);
-      const lut = lutTexture(l), maskTex = hasMask ? uploadCanvas(mk.canvas) : null;
+      const lut = lutTexture(l), maskTex = hasMask ? canvasTexture(mk.canvas) : null;
       const out = acquire(w, h, f32);
       gl.useProgram(S.adjust.pr);
       bindTex(0, dst); gl.uniform1i(S.adjust.u.uDst, 0);
@@ -517,7 +563,6 @@ function composeLevel(nodes, w, h, f32){
       gl.uniform1f(S.adjust.u.uOpacity, l.opacity); gl.uniform1f(S.adjust.u.uGrid, GRID); gl.uniform1f(S.adjust.u.uStep, STEP);
       drawInto(out, w, h);
       release(dst); dst = out;
-      if(maskTex) gl.deleteTexture(maskTex);
       continue;
     }
 
@@ -525,15 +570,26 @@ function composeLevel(nodes, w, h, f32){
     if(l.type === "group"){
       srcTex = composeLevel(node.children || [], w, h, f32); srcKind = 1;
     } else {
-      srcTex = uploadCanvas(l.canvas);
+      /* Trazo en curso sobre esta capa: la capa y el trazo se funden en un lienzo temporal (como compositeTree); el origen de 16 bits sigue
+         valiendo en los píxeles que no se han tocado (la comparación del shader usa el lienzo donde ya no coincide). */
+      const lv = S.live;
+      if(lv && lv.on && lv.ownerId === l.id && lv.canvas){
+        const m = document.createElement("canvas"); m.width = l.canvas.width; m.height = l.canvas.height;
+        const mx = m.getContext("2d", { colorSpace: "srgb" });
+        mx.drawImage(l.canvas, 0, 0);
+        mx.globalAlpha = lv.alpha; mx.globalCompositeOperation = lv.blend; mx.drawImage(lv.canvas, lv.x || 0, lv.y || 0);
+        srcTex = tempTexture(m);
+      } else srcTex = canvasTexture(l.canvas);
       if(l.hiSrc && (l.hiSrc.canvasW || l.hiSrc.w) === l.canvas.width && (l.hiSrc.canvasH || l.hiSrc.h) === l.canvas.height) hi = hiTexture(l);
     }
     const mk = effectiveMask(l), hasMask = !!(mk && l.maskEnabled);
-    const maskTex = hasMask ? uploadCanvas(mk.canvas) : null;
+    const maskTex = hasMask ? canvasTexture(mk.canvas) : null;
     const hasClip = !!(l.clipped && clipBase);
     const bi = l.type !== "group" && isBlendIfActive(l.blendIf) ? l.blendIf : null;
     const mode = MODES[l.blend || "source-over"] ?? 0;
 
+    const styleTex = {}, plate = S.plates && S.plates.get(l);
+    if(plate && l.styles && hasEnabledStyle(l.styles)){ if(plate.behind) styleTex.behind = tempTexture(plate.behind); if(plate.ring) styleTex.ring = tempTexture(plate.ring); }
     const setup = prep => {
       const P = S.blend;
       gl.useProgram(P.pr);
@@ -555,6 +611,17 @@ function composeLevel(nodes, w, h, f32){
         gl.uniform4f(P.u.uBIUnder, u.blackMin, u.blackMax, u.whiteMin, u.whiteMax);
       }
       gl.uniform1f(P.u.uOpacity, l.opacity); gl.uniform1i(P.u.uMode, mode); gl.uniform1i(P.u.uPrep, prep ? 1 : 0);
+      // estilos de capa (láminas de collectStyleShapes: sombra/resplandor detrás y trazo encima; el degradado se calcula aquí)
+      const st = l.styles, pl = S.plates && S.plates.get(l), styled = !!(st && hasEnabledStyle(st) && pl);
+      gl.uniform1i(P.u.uHasStyle, styled ? 1 : 0);
+      if(styled){
+        gl.uniform1i(P.u.uHasBehind, pl.behind ? 1 : 0); gl.uniform1i(P.u.uHasRing, pl.ring ? 1 : 0);
+        bindTex(5, styleTex.behind || dst); gl.uniform1i(P.u.uBehind, 5);
+        bindTex(6, styleTex.ring || dst); gl.uniform1i(P.u.uRing, 6);
+        const g = st.gradient && st.gradient.enabled ? gradientParams(st.gradient, w, h) : null;
+        gl.uniform1i(P.u.uGrad, g ? 1 : 0);
+        if(g){ gl.uniform4f(P.u.uGradP, g.x0, g.y0, g.x1, g.y1); gl.uniform3f(P.u.uGradC1, g.c1[0], g.c1[1], g.c1[2]); gl.uniform3f(P.u.uGradC2, g.c2[0], g.c2[1], g.c2[2]); gl.uniform1f(P.u.uGradOp, g.opacity); }
+      }
     };
 
     // La nueva base de recorte (si esta capa no está recortada y le sigue alguna recortada): su alfa ya recortada
@@ -568,8 +635,7 @@ function composeLevel(nodes, w, h, f32){
     setup(false);
     drawInto(out, w, h);
     release(dst); dst = out;
-    if(srcKind === 1) release(srcTex); else gl.deleteTexture(srcTex);
-    if(maskTex) gl.deleteTexture(maskTex);
+    if(srcKind === 1) release(srcTex);
     if(!l.clipped){ if(clipBase) release(clipBase); clipBase = newClip; }
   }
   if(clipBase) release(clipBase);
@@ -578,7 +644,7 @@ function composeLevel(nodes, w, h, f32){
 
 /* ── elegibilidad ─────────────────────────────────────────────── */
 /** ¿Compensa y se puede componer este documento en coma flotante en la GPU? Devuelve el formato (true = 32 bits) o null. */
-export function floatPlan(layers, w, h, { scratchOn = false } = {}){
+export function floatPlan(layers, w, h, { scratchOn = false, live = null } = {}){
   if(failed || scratchOn || !init()) return null;
   if(workSpace() !== "srgb" && !p3Ok()) return null;
   const px = w * h;
@@ -589,7 +655,7 @@ export function floatPlan(layers, w, h, { scratchOn = false } = {}){
   for(const l of layers){
     if(!usable(l)) continue;
     if(l.type !== "adjust" && l.type !== "group" && (l.canvas.width !== w || l.canvas.height !== h)) return null;
-    if(l.styles && hasEnabledStyle(l.styles)) return null;
+    if(live && live.on && live.ownerId === l.id && l.styles && hasEnabledStyle(l.styles)) return null;     // trazo en curso sobre una capa con estilos: la lámina quedaría desfasada
     if(isAdjustLayer(l)) worth = true;
     else {
       if(l.hiSrc && l.hiSrc.data) worth = true;
@@ -603,7 +669,7 @@ export function floatPlan(layers, w, h, { scratchOn = false } = {}){
 
 /** Compone el árbol de capas en coma flotante y devuelve un lienzo WebGL (w×h, 8 bits con tramado) listo para
     dibujarlo con drawImage, o null si no se pudo. */
-export function floatCompose(tree, layers, w, h, plan, { dither = true } = {}){
+export function floatCompose(tree, layers, w, h, plan, { dither = true, live = null } = {}){
   if(!init()) return null;
   const { gl } = S;
   try{
@@ -611,6 +677,8 @@ export function floatCompose(tree, layers, w, h, plan, { dither = true } = {}){
     if(S.canvas.width !== w || S.canvas.height !== h){ S.canvas.width = w; S.canvas.height = h; }
     gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST);
     gl.bindVertexArray(S.vao);
+    S.live = live;
+    S.plates = layers.some(l => l.visible && l.opacity > 0 && l.styles && hasEnabledStyle(l.styles)) ? collectStyleShapes(tree, w, h) : null;
     const result = composeLevel(tree, w, h, plan.f32);
     gl.useProgram(S.out.pr);
     bindTex(0, result); gl.uniform1i(S.out.u.uDst, 0);
@@ -625,6 +693,7 @@ export function floatCompose(tree, layers, w, h, plan, { dither = true } = {}){
     failed = true;
     return null;
   }finally{
+    endCompose();
     // limpia las tablas y los orígenes de capas que ya no están
     for(const [id, e] of S.hi) if(!layers.some(l => l.id === id)){ gl.deleteTexture(e.tex); S.hi.delete(id); }
     for(const [id, e] of S.lut) if(!layers.some(l => l.id === id)){ gl.deleteTexture(e.tex); S.lut.delete(id); }
@@ -635,23 +704,26 @@ export function floatCompose(tree, layers, w, h, plan, { dither = true } = {}){
 }
 
 /** Para pruebas: compone y devuelve el resultado SIN pasar a 8 bits: Float32 RGBA premultiplicado (w·h·4), o null. */
-export function _debugFloat(tree, layers, w, h, plan){
+export function _debugFloat(tree, layers, w, h, plan, live = null){
   if(!init()) return null;
   const { gl } = S;
   try{
     setSpace(workSpace());
     gl.disable(gl.BLEND); gl.bindVertexArray(S.vao);
+    S.live = live;
+    S.plates = layers.some(l => l.visible && l.opacity > 0 && l.styles && hasEnabledStyle(l.styles)) ? collectStyleShapes(tree, w, h) : null;
     const result = composeLevel(tree, w, h, plan ? plan.f32 : true);
     gl.bindFramebuffer(gl.FRAMEBUFFER, S.fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, result, 0);
     const out = new Float32Array(w * h * 4);
     gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, out);
     release(result);
+    endCompose();
     return out;
   }catch(err){ console.warn("[compositor GPU]", err); return null; }
 }
 
 /** Para el diagnóstico: cuántas veces se ha compuesto en la GPU y con qué formato. */
-export const floatInfo = { composes: 0, last: null };
+export const floatInfo = { composes: 0, last: null, texHits: 0, texUploads: 0 };
 export const floatAvailable = () => !!init();
 export function floatReset(){ failed = false; }
