@@ -7,6 +7,7 @@ import { clearSnapshots } from "../core/snapshots.js";
 import { defaultText, renderTextLayer } from "../editor/text.js";
 import { defaultStyles } from "../editor/layerstyles.js";
 import { RAW_EXTENSIONS } from "../../raw/formats.js";
+import { hiToCanvas8 } from "../core/hisrc.js";
 
 const ext=file=>(file.name.split(".").pop()||"").toLowerCase();
 export const compatibleFile=file=>file?.type?.startsWith("image/")||["psd","psb","tif","tiff","heic","heif","jxl","svg",...RAW_EXTENSIONS].includes(ext(file));
@@ -33,10 +34,25 @@ function decodeTiff(buffer){
   throw last||new Error("No se pudo revelar la imagen TIFF/DNG");
 }
 
-function parsePsd(buffer){
+function parsePsd(buffer,opts={}){
   const A=globalThis.agPsd;if(!A)throw new Error("El decodificador PSD no está disponible");
   if(A.initializeCanvas)A.initializeCanvas((w,h)=>canvas(w,h));
-  return A.readPsd(buffer,{skipThumbnail:true});
+  return A.readPsd(buffer,{skipThumbnail:true,...opts});
+}
+/* Profundidad de un PSD/PSB (cabecera): con 16 bits se leen los datos tal cual (useImageData) para no bajarlos a 8 */
+const psdDepth=buffer=>buffer.byteLength>=26?new DataView(buffer).getUint16(22):8;
+/** Píxeles de 16 bits de una capa de un PSD (RGBA Uint16 sin asociar) → trozo de lienzo de 8 bits (su redondeo tramado, como exige core/hisrc.js) y origen de 16 bits con su rectángulo. */
+function hiPixels(id,left,top,W,H){
+  const w=id.width,h=id.height,x0=Math.max(0,-left),y0=Math.max(0,-top),x1=Math.min(w,W-left),y1=Math.min(h,H-top);
+  if(x1<=x0||y1<=y0)return null;
+  const cw=x1-x0,ch=y1-y0,data=new Uint16Array(cw*ch*3),img=new ImageData(cw,ch),d=img.data,s=id.data;
+  for(let y=0,k=0;y<ch;y++)for(let x=0;x<cw;x++,k++){
+    const i=((y0+y)*w+x0+x)*4,j=k*3,o=k*4,R=s[i],G=s[i+1],B=s[i+2],A=s[i+3];
+    data[j]=R;data[j+1]=G;data[j+2]=B;
+    d[o+3]=Math.round(A/257);
+    if(A){d[o]=hiToCanvas8(R,x,y,0,true);d[o+1]=hiToCanvas8(G,x,y,1,true);d[o+2]=hiToCanvas8(B,x,y,2,true);}
+  }
+  return {img,px:left+x0,py:top+y0,hiSrc:{data,w:cw,h:ch,dither:true,x:left+x0,y:top+y0,canvasW:W,canvasH:H}};
 }
 
 export async function decodeCompatible(file){
@@ -63,13 +79,13 @@ const rgbaHex=c=>c&&typeof c==="object"?"#"+[c.r,c.g,c.b].map(v=>Math.max(0,Math
 
 /* La máscara de Photoshop es un tono de gris (R); la de Realify, el alfa de su lienzo. Fuera del rectángulo vale «defaultColor». */
 function maskFor(src,w,h){
-  const mc=src?.canvas||src?.imageData;if(!mc)return null;
+  const mc=src?.canvas||src?.imageData;if(!mc)return null;       // `imageData` de un PSD de 16 bits: Uint16 (se baja a 8, que es lo que vale una máscara de Realify)
   const c=canvas(w,h),x=c.getContext("2d",{willReadFrequently:true}),out=x.createImageData(w,h),o=out.data;
   const def=src.defaultColor==null?255:src.defaultColor;
   for(let i=0;i<o.length;i+=4){o[i]=o[i+1]=o[i+2]=0;o[i+3]=def;}
   const mw=mc.width,mh=mc.height,left=src.left||0,top=src.top||0;
-  const d=mc instanceof ImageData?mc.data:mc.getContext("2d",{willReadFrequently:true}).getImageData(0,0,mw,mh).data;
-  for(let y=0;y<mh;y++){const Y=y+top;if(Y<0||Y>=h)continue;for(let X0=0;X0<mw;X0++){const X=X0+left;if(X<0||X>=w)continue;o[(Y*w+X)*4+3]=d[(y*mw+X0)*4];}}
+  const d=mc.data?mc.data:mc.getContext("2d",{willReadFrequently:true}).getImageData(0,0,mw,mh).data,sc=d instanceof Uint16Array?1/257:1;
+  for(let y=0;y<mh;y++){const Y=y+top;if(Y<0||Y>=h)continue;for(let X0=0;X0<mw;X0++){const X=X0+left;if(X<0||X>=w)continue;o[(Y*w+X)*4+3]=Math.round(d[(y*mw+X0)*4]*sc);}}
   x.putImageData(out,0,0);
   return {canvas:c,ctx:x};
 }
@@ -118,13 +134,21 @@ function importPsdNodes(nodes,parentId=null,out=[]){
     if(adj){l.adjustType=adj.type;l.adjustParams=adj.params;}
     l.groupId=parentId;l.visible=!src.hidden;l.opacity=alpha01(src.opacity);l.blend=blend[src.blendMode]||"source-over";l.clipped=!!src.clipping;l.styles=stylesFrom(src.effects);
     if(!src.text&&src.canvas)l.ctx.drawImage(src.canvas,src.left||0,src.top||0);
+    else if(!src.text&&src.imageData&&src.imageData.data instanceof Uint16Array){          // PSD de 16 bits: se conservan los 16 bits (origen parcial con su rectángulo)
+      const r=hiPixels(src.imageData,src.left||0,src.top||0,doc.w,doc.h);if(r){l.ctx.putImageData(r.img,r.px,r.py);l.hiSrc=r.hiSrc;}
+    }else if(!src.text&&src.imageData)l.ctx.putImageData(new ImageData(new Uint8ClampedArray(src.imageData.data),src.imageData.width,src.imageData.height),src.left||0,src.top||0);
     const m=maskFor(src.mask,doc.w,doc.h);if(m){l.mask=m;l.maskEnabled=!src.mask.disabled;}l.thumbDirty=true;out.push(l);
   }return out;
 }
 
 export async function openPsd(file){
-  const psd=parsePsd(await file.arrayBuffer());newDoc(psd.width,psd.height,{name:file.name.replace(/\.[^.]+$/,"")});
-  doc.layers=importPsdNodes(psd.children||[]);if(!doc.layers.length){const l=makeLayer({name:"Composición"});if(psd.canvas)l.ctx.drawImage(psd.canvas,0,0);doc.layers=[l];}
+  const buf=await file.arrayBuffer(),deep=psdDepth(buf)===16;
+  const psd=parsePsd(buf,deep?{useImageData:true}:{});newDoc(psd.width,psd.height,{name:file.name.replace(/\.[^.]+$/,"")});
+  doc.layers=importPsdNodes(psd.children||[]);if(!doc.layers.length){
+    const l=makeLayer({name:"Composición"});
+    if(psd.canvas)l.ctx.drawImage(psd.canvas,0,0);
+    else if(psd.imageData&&psd.imageData.data instanceof Uint16Array){const r=hiPixels(psd.imageData,0,0,doc.w,doc.h);if(r){l.ctx.putImageData(r.img,r.px,r.py);l.hiSrc=r.hiSrc;}}
+    doc.layers=[l];}
   doc.activeId=doc.layers[doc.layers.length-1].id;doc.source={w:psd.width,h:psd.height,type:file.type||"image/vnd.adobe.photoshop",size:file.size,name:file.name,file};
   clearHistory();clearSnapshots();emit("doc:new");emit("doc:structure");emit("doc:change");return psd;
 }
