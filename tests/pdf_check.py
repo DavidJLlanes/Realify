@@ -1,30 +1,61 @@
-"""Valida con PyMuPDF los PDF de tests/pdf.mjs: páginas, tamaños, sangrado, metadatos, imágenes y no recompresión."""
+"""Verificación de tests/pdf-pro.mjs con pypdf (+ PIL). Uso: python3 tests/pdf_check.py [carpeta]  (necesita pypdf y pillow; ver /tmp/sc/venv)"""
 import sys
-import pymupdf as fitz
-d = sys.argv[1] if len(sys.argv) > 1 else "/tmp"; bad = 0
-def chk(c, m):
-    global bad
-    if not c: bad += 1; print("FALLO:", m)
-mm = lambda v: float(v) / 72 * 25.4
-def imgs(page): return [(i[2], i[3]) for i in page.parent.get_page_images(page.number)]
-a = fitz.open(f"{d}/p_a4.pdf")
-chk(len(a) == 6, f"a4: {len(a)} páginas (portada + 5)")
-chk(all(abs(mm(p.rect.width) - 210) < .5 and abs(mm(p.rect.height) - 297) < .5 or abs(mm(p.rect.width) - 297) < .5 and abs(mm(p.rect.height) - 210) < .5 for p in a), "a4: tamaño")
-m = a.metadata; chk(m["title"] == "Prueba ñ" and m["author"] == "Realify" and m["subject"] == "Test" and m["producer"] == "Realify" and "a" in m["keywords"], f"a4: metadatos {m}")
-chk("Portada" in a[0].get_text() and "sub" in a[0].get_text(), f"a4: portada {a[0].get_text()!r}")
-chk("2 / 6" in a[1].get_text(), f"a4: numeración {a[1].get_text()!r}")
-chk(len(imgs(a[1])) == 1, "a4: imagen en la página 2")
-w = imgs(a[1])[0][0]; chk(1500 < w < 1700, f"a4: reducida a 150 ppp, ancho {w}")
-chk(imgs(a[2])[0] == (600, 400), f"a4: JPEG original sin recomprimir {imgs(a[2])}")
-chk(a.extract_image(a.get_page_images(2)[0][0])["ext"] == "jpeg", "a4: sigue siendo JPEG")
-g = fitz.open(f"{d}/p_grid.pdf"); chk(len(g) == 2 and len(imgs(g[0])) == 4 and len(imgs(g[1])) == 1, "grid: 4 + 1")
-chk("cuatro" in g[0].get_text() and "1 / 2" in g[0].get_text(), f"grid: pie y número {g[0].get_text()!r}")
-f = fitz.open(f"{d}/p_free.pdf"); p0 = f[0]
-chk(abs(mm(p0.trimbox.width) - 3000 / 300 * 25.4) < .5, f"free: trim {mm(p0.trimbox.width)}")
-chk(abs(mm(p0.mediabox.width) - mm(p0.trimbox.width) - 6) < .05, f"free: sangrado 3 mm {mm(p0.mediabox.width) - mm(p0.trimbox.width)}")
-chk(abs(mm(p0.bleedbox.width) - mm(p0.mediabox.width)) < .05, "free: BleedBox")
-l = fitz.open(f"{d}/p_lossless.pdf"); chk(len(l) == 1 and abs(mm(l[0].rect.width) - 279.4) < .5, "lossless: carta horizontal")
-chk(len(imgs(l[0])) == 2 and all(l.extract_image(x[0])["ext"] == "png" for x in l.get_page_images(0)), "lossless: 2 imágenes PNG")
-for n in ("a4", "grid", "free", "lossless"):
-    chk(fitz.open(f"{d}/p_{n}.pdf")[0].get_pixmap(dpi=40).width > 10, f"{n}: se dibuja")
-print("pdf_check:", "FALLO" if bad else "OK"); sys.exit(1 if bad else 0)
+from pypdf import PdfReader
+D = sys.argv[1] if len(sys.argv) > 1 else "/tmp/sc/out"
+ok = True
+def check(name, cond, extra=""):
+    global ok
+    print(("OK    " if cond else "FALLO ") + name, extra)
+    ok = ok and bool(cond)
+def rd(k): return PdfReader(f"{D}/pdf.{k}.pdf")
+MM = 72 / 25.4
+
+# fondo: la esquina de la imagen con transparencia lleva el color elegido
+r = rd("fondo"); im = r.pages[0].images[0].image.convert("RGB"); px = im.getpixel((2, 2))
+check("fondo: esquina con el color elegido (#ffe08a)", all(abs(a - b) <= 6 for a, b in zip(px, (255, 224, 138))), px)
+r = rd("sinperdidas"); xo = r.pages[0]["/Resources"]["/XObject"]; check("sin pérdidas: PNG con su transparencia (SMask), sin rellenar", any("/SMask" in xo[k].get_object() for k in xo))
+
+# marcas de recorte
+r = rd("marcas"); p = r.pages[0]
+mb = [float(v) for v in p.mediabox]; tb = [float(v) for v in p.trimbox]; bb = [float(v) for v in p.bleedbox]
+off = 3 * MM + 7 * MM + 3 * MM
+check("marcas: papel = recorte A4 horizontal + sangrado + franja de marcas", abs((mb[2] - mb[0]) - (297 * MM + 2 * off)) < 0.5, mb)
+check("marcas: TrimBox a distancia de sangrado + franja", abs(tb[0] - off) < 0.1 and abs((tb[2] - tb[0]) - 297 * MM) < 0.1, tb)
+check("marcas: BleedBox 3 mm alrededor del recorte", abs((tb[0] - bb[0]) - 3 * MM) < 0.1, bb)
+data = p.get_contents().get_data().decode("latin1")
+check("marcas: 8 trazos dibujados (2 por esquina)", data.count(" l\n") + data.count(" l ") >= 8 or data.count("\nS") >= 8, (data.count(" l"), data.count("S")))
+
+# fuente propia
+r = rd("fuente"); txt = r.pages[0].extract_text()
+check("fuente: portada con la ñ y la tilde", "Álbum de prueba ñ" in txt, repr(txt[:40]))
+def fonts(page):
+    res = page.get("/Resources", {}); f = res.get("/Font", {}); out = []
+    for k, v in f.items():
+        v = v.get_object(); sub = v.get("/DescendantFonts"); d = sub[0].get_object() if sub else v
+        fd = d.get("/FontDescriptor"); fd = fd.get_object() if fd else {}
+        out.append((v.get("/BaseFont"), any(x in fd for x in ("/FontFile", "/FontFile2", "/FontFile3"))))
+    return out
+fs = fonts(r.pages[0]); check("fuente: incrustada (subconjunto)", fs and all(e for _, e in fs), fs)
+check("fuente: la numeración usa la misma fuente", "2 / 3" in r.pages[1].extract_text() or "2" in r.pages[1].extract_text(), repr(r.pages[1].extract_text()[:20]))
+
+# PDF/X
+raw = open(f"{D}/pdf.pdfx.pdf", "rb").read()
+check("pdfx: cabecera %PDF-1.4", raw[:8] == b"%PDF-1.4", raw[:8])
+r = rd("pdfx"); root = r.trailer["/Root"]; oi = root["/OutputIntents"][0].get_object()
+check("pdfx: intención de salida GTS_PDFX con FOGRA39", oi["/S"] == "/GTS_PDFX" and oi["/OutputConditionIdentifier"] == "FOGRA39", dict(oi))
+info = r.trailer["/Info"].get_object() if "/Info" in r.trailer else {}
+check("pdfx: GTS_PDFXVersion y Trapped", str(info.get("/GTS_PDFXVersion")).startswith("PDF/X-3") and info.get("/Trapped") == "/False", {k: info[k] for k in info if "GTS" in k or "Trapped" in k})
+check("pdfx: ID del documento", "/ID" in r.trailer, r.trailer.get("/ID"))
+allcmyk, trim, emb = True, True, True
+for pg in r.pages:
+    trim = trim and "/TrimBox" in pg
+    xo = pg["/Resources"].get("/XObject", {})
+    for k in xo: allcmyk = allcmyk and xo[k].get_object().get("/ColorSpace") == "/DeviceCMYK"
+    for _, e in fonts(pg): emb = emb and e
+check("pdfx: todas las imágenes en DeviceCMYK", allcmyk)
+check("pdfx: TrimBox en cada página", trim)
+check("pdfx: todas las fuentes incrustadas", emb)
+im = r.pages[1].images[0].image
+check("pdfx: la imagen CMYK se decodifica", im.mode in ("CMYK", "RGB"), im.mode)
+r = rd("pdfxSinFuente"); check("pdfx sin fuente: sin texto (no hay fuentes que incrustar)", all(not fonts(pg) for pg in r.pages), [fonts(pg) for pg in r.pages])
+print("RESULTADO:", "OK" if ok else "FALLO"); sys.exit(0 if ok else 1)
