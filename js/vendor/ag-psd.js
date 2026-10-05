@@ -2912,10 +2912,11 @@ addHandler('levl', adjustmentType('levels'), (reader, target, left) => {
     };
     (0, psdWriter_1.writeUint16)(writer, 2); // version
     writeLevelsChannel(writer, info.rgb || defaultChannel);
+    // Realify: orden de la especificación (maestro, rojo, verde, azul) y 29 registros, como escribe Photoshop
     writeLevelsChannel(writer, info.red || defaultChannel);
-    writeLevelsChannel(writer, info.blue || defaultChannel);
     writeLevelsChannel(writer, info.green || defaultChannel);
-    for (let i = 0; i < 59; i++)
+    writeLevelsChannel(writer, info.blue || defaultChannel);
+    for (let i = 0; i < 25; i++)
         writeLevelsChannel(writer, defaultChannel);
 });
 function readCurveChannel(reader) {

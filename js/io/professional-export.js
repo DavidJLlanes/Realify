@@ -14,8 +14,15 @@ import { highPrecisionAvailableFor, renderHighPrecisionCanvas, renderPrecisionAd
 
 const enc=new TextEncoder();
 const cleanName=sanitizeFilename;
-const mimeOf=f=>f==="jpg"?"image/jpeg":f==="png"?"image/png":f==="webp"?"image/webp":f==="avif"?"image/avif":f==="tiff"?"image/tiff":f==="psd"?"image/vnd.adobe.photoshop":"application/pdf";
-const extOf=f=>f==="tiff"?"tif":f;
+const mimeOf=f=>f==="jpg"?"image/jpeg":f==="png"?"image/png":f==="webp"?"image/webp":f==="avif"?"image/avif":f==="tiff"?"image/tiff":f==="psd"?"image/vnd.adobe.photoshop":/^ps[db]/.test(f)?"image/vnd.adobe.photoshop":"application/pdf";
+const extOf=f=>f==="tiff"?"tif":f.startsWith("psb")?"psb":f.startsWith("psd")?"psd":f;
+/* PSD/PSB de 16 bits: la imagen final del motor de precisión (coma flotante) sin pasar por los 8 bits del lienzo */
+async function psd16Of(scale,psb,{alpha,background}){
+  const w=Math.round(doc.w*scale),h=Math.round(doc.h*scale);
+  const precise=await renderPrecisionAdjustmentStack(w,h,{bits16:true,alpha,background,layersOnly:false,srgb:false});
+  if(!precise?.data16)throw new Error(precise?.reason||"No se pudo preparar la exportación de 16 bits");
+  return (await import("./psd16.js")).psd16(precise.data16,{psb});
+}
 const blobOf=(c,type,q)=>new Promise(r=>c.toBlob(r,type,type==="image/png"?undefined:q));
 
 function resizeCanvas(src,w,h){
@@ -107,7 +114,7 @@ export async function professionalExport(){
       <figure style="margin:0"><canvas id="pxAfter" style="width:100%;background:#111"></canvas><figcaption class="mono" id="pxInfo" style="font-size:11px;margin-top:3px">Exportación</figcaption></figure>
     </div>
     <div class="field"><label>Nombre</label><input id="pxName" class="grow" value="${base.replace(/"/g,"&quot;")}"></div>
-    <div class="field"><label>Formato</label><select id="pxFormat" class="grow"><option value="jpg">JPEG</option><option value="png">PNG</option><option value="webp">WebP</option><option value="avif">AVIF</option><option value="tiff">TIFF (sin pérdidas, 8 bits)</option><option value="psd">PSD (capas rasterizadas)</option><option value="pdf">PDF</option></select></div>
+    <div class="field"><label>Formato</label><select id="pxFormat" class="grow"><option value="jpg">JPEG</option><option value="png">PNG</option><option value="webp">WebP</option><option value="avif">AVIF</option><option value="tiff">TIFF (sin pérdidas, 8 bits)</option><option value="psd">PSD (capas, máscaras y estilos)</option><option value="psb">PSB (PSD para documentos enormes)</option><option value="psd16">PSD de 16 bits (sólo imagen final)</option><option value="psb16">PSB de 16 bits (sólo imagen final)</option><option value="pdf">PDF</option></select></div>
     ${alphaFieldsHTML("pxA")}
     <div class="field" id="pxQualityRow"><label>Calidad</label><input id="pxQuality" type="range" class="grow" min="20" max="100" value="88"><span class="unit mono" id="pxQualityV">88</span></div>
     <div class="field"><label>Contenido</label><select id="pxScope" class="grow"><option value="document">Documento compuesto</option><option value="layers">Cada capa y grupo</option></select></div>
@@ -120,9 +127,9 @@ export async function professionalExport(){
   const hasAlpha=hasTransparency(flat);
   const update=()=>{clearTimeout(timer);timer=setTimeout(async()=>{
     const f=body.querySelector("#pxFormat").value,q=+body.querySelector("#pxQuality").value/100;
-    if(f==="psd"){
+    if(/^ps[db]/.test(f)){
       paintPreview(body.querySelector("#pxAfter"),flat);
-      body.querySelector("#pxInfo").textContent="PSD · capas rasterizadas; tamaño según contenido";
+      body.querySelector("#pxInfo").textContent=f.endsWith("16")?`${f.slice(0,3).toUpperCase()} de 16 bits · imagen final sin comprimir (≈ ${(doc.w*doc.h*6/1048576).toFixed(1)} MB a 1×)`:`${f.toUpperCase()} · capas, máscaras y estilos; tamaño según contenido`;
       return;
     }
     const sample=resizeCanvas(flat,Math.min(doc.w,900),Math.max(1,Math.round(Math.min(doc.w,900)*doc.h/doc.w)));
@@ -137,19 +144,19 @@ export async function professionalExport(){
   const result=await dialog({title:"Exportar como",body,wide:true,cls:isMobile()?"dlg-compact":"dlg-export-pro",buttons:[{label:"Cancelar",value:null},{label:"Exportar",primary:true,value:"go"}],onOpen(host){
     const f=host.querySelector("#pxFormat"),q=host.querySelector("#pxQuality"),qv=host.querySelector("#pxQualityV"),row=host.querySelector("#pxQualityRow");
     const precision=host.querySelector("#pxPrecision"),hint=host.querySelector("#pxPrecisionHint");
-    const precisionState=()=>{const biggest=Math.max(...[...host.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale),1),ok=highPrecisionAvailableFor(doc.w*biggest,doc.h*biggest);precision.disabled=!ok.ok||f.value==="psd";hint.textContent=f.value==="psd"?"PSD conserva píxeles de 8 bits por canal y capas rasterizadas.":ok.ok?"Capas y ajustes en coma flotante y remuestreo en RGB lineal al generar los archivos; la previsualización sigue siendo rápida.":`Se usará el motor compatible: ${ok.reason}.`;};
+    const precisionState=()=>{const biggest=Math.max(...[...host.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale),1),ok=highPrecisionAvailableFor(doc.w*biggest,doc.h*biggest);const lay=f.value==="psd"||f.value==="psb";precision.disabled=!ok.ok||lay;hint.textContent=lay?"PSD y PSB conservan píxeles de 8 bits por canal; capas, máscaras y estilos siguen editables en Photoshop.":ok.ok?"Capas y ajustes en coma flotante y remuestreo en RGB lineal al generar los archivos; la previsualización sigue siendo rápida.":`Se usará el motor compatible: ${ok.reason}.`;};
     if(hasAlpha&&f.value==="jpg"){f.value="png";row.hidden=true;}
     alphaUI=wireAlphaFields(host,{id:"pxA",getType:()=>f.value,hasAlpha,onChange:update,switchTo:()=>{f.value="png";f.dispatchEvent(new Event("change"));}});
     f.addEventListener("change",()=>{
-      const psd=f.value==="psd",tiff=f.value==="tiff";
-      row.hidden=["png","tiff","psd"].includes(f.value);
-      host.querySelector("#pxScope").disabled=psd;
-      if(psd)host.querySelector("#pxScope").value="document";
+      const psd=f.value==="psd"||f.value==="psb",tiff=f.value==="tiff";
+      row.hidden=["png","tiff","psd","psb","psd16","psb16"].includes(f.value);
+      host.querySelector("#pxScope").disabled=psd||f.value.endsWith("16");
+      if(psd||f.value.endsWith("16"))host.querySelector("#pxScope").value="document";
       host.querySelector("#pxABox").hidden=psd;
-      host.querySelector("#pxProfileRow").hidden=psd||tiff;
+      host.querySelector("#pxProfileRow").hidden=psd||tiff||f.value.endsWith("16");
       host.querySelector("#pxSupport").textContent=psd
-        ?"PSD conserva grupos y capas rasterizadas. Los efectos propios pueden variar al reabrirlo; la vista compuesta guarda la apariencia final. Guarda también el proyecto .realify para reeditarlo."
-        :tiff?"TIFF RGBA sin pérdidas, 8 bits por canal y sin perfil ICC incrustado.":"PNG recibe una etiqueta sRGB explícita; JPEG, WebP y AVIF usan la gestión de color sRGB del navegador.";
+        ?"Grupos, capas, máscaras reales, sombra/resplandor/trazo/degradado como efectos de Photoshop, los 27 modos de fusión y las capas de ajuste Invertir, Niveles y Curvas. Texto, objetos inteligentes y el resto se rasterizan (copia oculta de referencia). PSB admite hasta 300 000 px por lado. Guarda también el .realify para reeditarlo."
+        :f.value.endsWith("16")?"Imagen final de 16 bits por canal (PSD/PSB RGB sin capas, sin comprimir) con perfil sRGB o Display P3 incrustado y 72 ppp: para no perder los 16 bits del motor de precisión. Con transparencia lleva un canal alfa. Para conservar las capas elige PSD o PSB de capas.":tiff?"TIFF RGBA sin pérdidas, 8 bits por canal y sin perfil ICC incrustado.":"PNG recibe una etiqueta sRGB explícita; JPEG, WebP y AVIF usan la gestión de color sRGB del navegador.";
       alphaUI.sync();precisionState();update();
     });q.addEventListener("input",()=>{qv.textContent=q.value;update();});host.querySelector("#pxProfile").addEventListener("change",update);update();
     host.querySelectorAll("[data-scale]").forEach(x=>x.addEventListener("change",precisionState));precisionState();
@@ -158,14 +165,14 @@ export async function professionalExport(){
   const format=body.querySelector("#pxFormat").value,quality=+body.querySelector("#pxQuality").value/100,scope=body.querySelector("#pxScope").value,profile=body.querySelector("#pxProfile").checked,precision=body.querySelector("#pxPrecision").checked;
   const alphaOpts={alpha:body.querySelector("#pxAAlpha").checked&&!body.querySelector("#pxAAlpha").disabled,background:body.querySelector("#pxABg").value};
   const scales=[...body.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale);if(!scales.length){toast("Selecciona al menos una escala","err");return;}
-  const items=format==="psd"?[{name:doc.name||"documento"}]:exportItems(scope),entries=[];status("Exportando archivos…");
+  const layered=format==="psd"||format==="psb",wide16=format==="psd16"||format==="psb16",items=layered||wide16?[{name:doc.name||"documento"}]:exportItems(scope),entries=[];status("Exportando archivos…");
   try{for(const item of items)for(const scale of scales){
     /* La ruta Float32 completa se puede usar para el documento, donde
        conocemos la pila de filtros. Las salidas de capa/grupo conservan
        su compositor actual hasta que cada tipo de capa se migre. */
-    const precise=precision&&scope==="document"&&format!=="psd"?await renderPrecisionAdjustmentStack(item.canvas.width*scale,item.canvas.height*scale,{layersOnly:false}):null;
-    const c=format==="psd"?null:precise?.canvas||resizeForExport(item.canvas,item.canvas.width*scale,item.canvas.height*scale,precision);
-    const blob=format==="psd"?(await import("./professional-formats.js")).layeredPsd(scale):await encodeCanvas(c,format,quality,profile,alphaOpts);
+    const precise=precision&&scope==="document"&&!layered&&!wide16?await renderPrecisionAdjustmentStack(item.canvas.width*scale,item.canvas.height*scale,{layersOnly:false}):null;
+    const c=layered||wide16?null:precise?.canvas||resizeForExport(item.canvas,item.canvas.width*scale,item.canvas.height*scale,precision);
+    const blob=wide16?await psd16Of(scale,format==="psb16",alphaOpts):layered?(await import("./professional-formats.js")).layeredPsd(scale,{psb:format==="psb"}):await encodeCanvas(c,format,quality,profile,alphaOpts);
     if(!blob){status("");toast(`${format.toUpperCase()} no está disponible en este navegador`,"err");return;}
     const itemName=scope==="document"?(cleanName(body.querySelector("#pxName").value)||base):cleanName(item.name)||"capa";
     entries.push({name:`${itemName}@${scale}x.${extOf(format)}`,data:new Uint8Array(await blob.arrayBuffer())});

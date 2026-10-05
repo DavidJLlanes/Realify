@@ -213,11 +213,15 @@ ExifReader (MPL-2.0, sin modificar).
 - [ ] Editar los metadatos (cambiar autor, copyright o descripción) antes de exportar, sin necesidad del panel EXIF.
 - [ ] Mostrar en el inspector la procedencia C2PA (hoy la detecta `analysis/provenance.js` al limpiar).
 
-## Fase 16 · HEIC, PSD y PSB
-- [ ] Exportar HEIC con libheif (LGPL: módulo WASM separado y sin modificar).
-- [ ] PSD (ag-psd ya integrado): completar grupos, máscaras, modos de fusión, metadatos,
-      efectos de capa y objetos inteligentes; escritura de 16 bits si es posible.
-- [ ] PSB (documentos grandes), extendiendo la infraestructura PSD propia.
+## Fase 16 · HEIC, PSD y PSB ✅ en parte (v241)
+- [ ] Exportar HEIC con libheif (LGPL: módulo WASM separado y sin modificar). **Bloqueado**: libheif-js sólo decodifica y no hay codificador HEVC en WASM con licencia/patentes aceptables (x265 es GPL). Alternativa vigente: AVIF.
+- [x] PSD: grupos, máscaras reales, 27 modos de fusión, efectos de capa (sombra, resplandor, trazo, degradado), ajustes
+      Invertir/Niveles/Curvas, 72 ppp y sRGB; importación de modos, máscaras, efectos y ajustes. (v241)
+- [x] PSB (documentos grandes): exportar y abrir. (v241)
+- [x] PSD/PSB de 16 bits (sólo la imagen final, escritor propio). (v241)
+- [ ] Pendiente: objetos inteligentes (se rasterizan), texto nativo editable, resto de capas de ajuste (brillo, tono,
+      balance de color…), «Fusionar si», capas de 16 bits con capas (hoy sólo compuesto), metadatos XMP/EXIF en el
+      PSD, abrir PSD de 16 bits conservando los 16 bits (hoy ag-psd los baja a 8) y estilos de capa con más opciones.
 
 ## Fase 17 · PDF profesional
 pdf-lib (MIT).

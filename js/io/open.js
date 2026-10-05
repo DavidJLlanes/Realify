@@ -60,7 +60,7 @@ export async function openFile(file){
   status("Abriendo…");
   try{
     if(isRawFile(file)) return await (await import("../../raw/index.js")).openRawFile(file);
-    if(file.name.toLowerCase().endsWith(".psd")){
+    if(/\.ps[db]$/i.test(file.name)){
       await openPsd(file);empty.classList.add("hide");toast(`${file.name} · PSD con capas importado`);return;
     }
     if(file.name.toLowerCase().endsWith(".svg")){

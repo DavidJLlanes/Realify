@@ -9,6 +9,26 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v241 · HEIC, PSD y PSB (fase 16)
+- **PSD de capas completo** (Exportar como… › PSD): las capas ya no llevan la máscara y los estilos «horneados». Ahora
+  se guardan **máscaras de capa reales** (también las vinculadas y las desactivadas), los **efectos de capa** de Realify
+  como efectos de Photoshop (sombra, resplandor exterior, trazo y degradado), los **27 modos de fusión** (antes 12),
+  el recorte, los grupos con su propia máscara y efectos, y las **capas de ajuste Invertir, Niveles y Curvas** como
+  capas de ajuste nativas. Resolución de 72 ppp y perfil sRGB incrustado. Lo que no tiene equivalente fiel (texto,
+  objetos inteligentes, «Fusionar si», el resto de ajustes) va rasterizado y una copia oculta «Vista final · referencia»
+  enseña el aspecto de Realify.
+- **PSB** (PSD para documentos enormes, hasta 300 000 px por lado): exportar (PSD llega a 30 000 px) y **abrir `.psb`**.
+- **PSD y PSB de 16 bits** (`js/io/psd16.js`, escritor propio): la imagen final del motor de precisión sin pasar por los
+  8 bits del lienzo, sin comprimir, con perfil sRGB o Display P3 y canal alfa si hay transparencia (sin capas).
+- **Abrir PSD/PSB**: los 27 modos de fusión (el mapa anterior usaba nombres que ag-psd no emite y varios modos caían a
+  «normal»), las máscaras se leen bien (antes se perdían: Photoshop las guarda en gris y Realify en el alfa), máscara
+  desactivada, efectos de capa → estilos de Realify y capas de ajuste Invertir/Niveles/Curvas → capas de ajuste.
+- Parche en el escritor de Niveles de ag-psd (`levl`): 29 registros en el orden de la especificación; antes escribía 63 y
+  con verde/azul cambiados, y psd-tools no lo leía.
+- **HEIC**: la exportación sigue bloqueada (no hay codificador HEVC en WASM con licencia compatible: libheif-js sólo
+  decodifica, x265 es GPL y con patentes). Se mantiene AVIF, que da la misma calidad con menos peso.
+- Prueba nueva `tests/psd.mjs` + `tests/psd_check.py` (psd-tools): PSD, PSB, ×2 y 16 bits, relectura con ag-psd y reapertura.
+
 ### v240 · Metadatos y privacidad (fase 15)
 - **Inspector de metadatos** (Análisis › Inspector de metadatos…, `js/exif/inspector.js`; también en el cajón «Herramientas»
   del móvil): todo lo que lleva el archivo original de la foto abierta, o de otro que se elija —EXIF, ubicación GPS, IPTC,

@@ -1137,11 +1137,14 @@ const TOPICS = [
           original, sin ubicación» y «Todos». Nunca se copian la miniatura incrustada (enseña la foto sin recortar), las
           notas del fabricante ni la orientación; los números de serie, sólo con «Todos». «Limpio para web» no lleva
           ninguno.</li>
-        <li><b>Exportar como…</b> También permite un <b>PSD con grupos y capas
-          rasterizadas</b> para otros editores. La vista compuesta recoge el resultado
-          exacto; los ajustes, máscaras y textos de Realify no se convierten en mandos
-          nativos de Photoshop. Guarda un <code>.realify</code> para reeditarlos. TIFF y PSD no
-          incrustan perfil ICC.</li>
+        <li><b>Exportar como…</b> También permite un <b>PSD</b> para Photoshop con grupos, capas,
+          <b>máscaras reales</b>, sombra, resplandor, trazo y degradado como <b>efectos de capa</b>, los
+          27 modos de fusión, el recorte y las capas de ajuste <b>Invertir, Niveles y Curvas</b> editables.
+          El texto, los objetos inteligentes y el resto de ajustes se rasterizan (una copia oculta
+          «Vista final · referencia» enseña el aspecto de Realify). <b>PSB</b> es lo mismo para documentos
+          enormes (hasta 300 000 px por lado) y <b>PSD/PSB de 16 bits</b> guarda sólo la imagen final con
+          los 16 bits del motor de precisión. Guarda un <code>.realify</code> para reeditar en Realify.
+          Los PSD/PSB llevan perfil sRGB; el TIFF de 8 bits no. Realify abre también <code>.psb</code>.</li>
         <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
           sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
           número de colores.</li>

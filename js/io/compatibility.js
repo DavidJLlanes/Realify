@@ -5,10 +5,11 @@ import { emit } from "../core/bus.js";
 import { clear as clearHistory } from "../core/history.js";
 import { clearSnapshots } from "../core/snapshots.js";
 import { defaultText, renderTextLayer } from "../editor/text.js";
+import { defaultStyles } from "../editor/layerstyles.js";
 import { RAW_EXTENSIONS } from "../../raw/formats.js";
 
 const ext=file=>(file.name.split(".").pop()||"").toLowerCase();
-export const compatibleFile=file=>file?.type?.startsWith("image/")||["psd","tif","tiff","heic","heif","jxl","svg",...RAW_EXTENSIONS].includes(ext(file));
+export const compatibleFile=file=>file?.type?.startsWith("image/")||["psd","psb","tif","tiff","heic","heif","jxl","svg",...RAW_EXTENSIONS].includes(ext(file));
 const canvas=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c;};
 
 function imageDataCanvas(rgba,w,h){const c=canvas(w,h);c.getContext("2d",{willReadFrequently:true}).putImageData(new ImageData(new Uint8ClampedArray(rgba),w,h),0,0);return c;}
@@ -47,19 +48,56 @@ export async function decodeCompatible(file){
     return (await import("./codecs.js")).decodeJxlToCanvas(await file.arrayBuffer());
   }
   if(e==="tif"||e==="tiff"||e==="dng")return decodeTiff(await file.arrayBuffer());
-  if(e==="psd"){const p=parsePsd(await file.arrayBuffer());if(!p.canvas)throw new Error("El PSD no contiene una composición");return p.canvas;}
+  if((e==="psd"||e==="psb")){const p=parsePsd(await file.arrayBuffer());if(!p.canvas)throw new Error("El PSD no contiene una composición");return p.canvas;}
   return createImageBitmap(file,{colorSpaceConversion:"default",premultiplyAlpha:"default"});
 }
 
-const blend={normal:"source-over",multiply:"multiply",screen:"screen",overlay:"overlay",darken:"darken",lighten:"lighten",difference:"difference",exclusion:"exclusion",colorBurn:"color-burn",colorDodge:"color-dodge",hardLight:"hard-light",softLight:"soft-light"};
+/* Modos de Photoshop (nombres de ag-psd) → los de Realify */
+const blend={normal:"source-over",multiply:"multiply",screen:"screen",overlay:"overlay",darken:"darken",lighten:"lighten",difference:"difference",exclusion:"exclusion",
+  "color burn":"color-burn","color dodge":"color-dodge","hard light":"hard-light","soft light":"soft-light",hue:"hue",saturation:"saturation",color:"color",luminosity:"luminosity",
+  "linear dodge":"lighter","linear light":"linear-light","linear burn":"linear-burn",subtract:"subtract",divide:"divide","pin light":"pin-light","vivid light":"vivid-light",
+  "hard mix":"hard-mix","darker color":"darker-color","lighter color":"lighter-color",dissolve:"dissolve","pass through":"source-over"};
+const val=v=>v&&typeof v==="object"?(v.value??0):(+v||0);
+const alpha01=v=>v==null?1:v>1?v/255:v;
 const rgbaHex=c=>c&&typeof c==="object"?"#"+[c.r,c.g,c.b].map(v=>Math.max(0,Math.min(255,v||0)).toString(16).padStart(2,"0")).join(""):"#ffffff";
 
+/* La máscara de Photoshop es un tono de gris (R); la de Realify, el alfa de su lienzo. Fuera del rectángulo vale «defaultColor». */
 function maskFor(src,w,h){
   const mc=src?.canvas||src?.imageData;if(!mc)return null;
-  const c=canvas(w,h),x=c.getContext("2d",{willReadFrequently:true});x.fillStyle="#fff";x.fillRect(0,0,w,h);
-  if(mc instanceof ImageData){const t=imageDataCanvas(mc.data,mc.width,mc.height);x.drawImage(t,src.left||0,src.top||0);}
-  else x.drawImage(mc,src.left||0,src.top||0);
+  const c=canvas(w,h),x=c.getContext("2d",{willReadFrequently:true}),out=x.createImageData(w,h),o=out.data;
+  const def=src.defaultColor==null?255:src.defaultColor;
+  for(let i=0;i<o.length;i+=4){o[i]=o[i+1]=o[i+2]=0;o[i+3]=def;}
+  const mw=mc.width,mh=mc.height,left=src.left||0,top=src.top||0;
+  const d=mc instanceof ImageData?mc.data:mc.getContext("2d",{willReadFrequently:true}).getImageData(0,0,mw,mh).data;
+  for(let y=0;y<mh;y++){const Y=y+top;if(Y<0||Y>=h)continue;for(let X0=0;X0<mw;X0++){const X=X0+left;if(X<0||X>=w)continue;o[(Y*w+X)*4+3]=d[(y*mw+X0)*4];}}
+  x.putImageData(out,0,0);
   return {canvas:c,ctx:x};
+}
+
+/* Efectos de capa de Photoshop → estilos de Realify (sombra, resplandor exterior, trazo, degradado) */
+function stylesFrom(fx){
+  if(!fx)return null;const st=defaultStyles();let any=false;const on=e=>e&&e.enabled!==false&&e.present!==false;
+  const sh=[].concat(fx.dropShadow||[]).find(on);
+  if(sh){const d=val(sh.distance),a=(+sh.angle||0)*Math.PI/180;st.shadow={enabled:true,color:rgbaHex(sh.color),opacity:Math.round((sh.opacity??.75)*100),blur:val(sh.size),x:+(-d*Math.cos(a)).toFixed(2),y:+(d*Math.sin(a)).toFixed(2)};any=true;}
+  if(on(fx.outerGlow)){st.glow={enabled:true,color:rgbaHex(fx.outerGlow.color),opacity:Math.round((fx.outerGlow.opacity??.75)*100),size:val(fx.outerGlow.size)};any=true;}
+  const sk=[].concat(fx.stroke||[]).find(on);if(sk&&sk.fillType!=="gradient"&&sk.fillType!=="pattern"){st.stroke={enabled:true,color:rgbaHex(sk.color),width:val(sk.size)};any=true;}
+  const gr=[].concat(fx.gradientOverlay||[]).find(on),cs=gr?.gradient?.colorStops;
+  if(gr&&cs&&cs.length>=2){st.gradient={enabled:true,color1:rgbaHex(cs[0].color),color2:rgbaHex(cs[cs.length-1].color),angle:Math.round(-(+gr.angle||0)),opacity:Math.round((gr.opacity??1)*100)};any=true;}
+  return any?st:null;
+}
+
+/* Capa de ajuste de Photoshop → de Realify (invertir, niveles y curvas; el resto no se puede traducir) */
+function adjustFrom(src){
+  const a=src.adjustment;if(!a)return null;
+  if(a.type==="invert")return {type:"invert",params:{}};
+  if(a.type==="levels"){
+    const chans=[["rgb","rgb"],["red","r"],["green","g"],["blue","b"]],id=c=>!c||(c.shadowInput===0&&c.highlightInput===255&&c.shadowOutput===0&&c.highlightOutput===255&&Math.abs((c.midtoneInput??1)-1)<1e-6);
+    const used=chans.filter(([k])=>!id(a[k]));if(used.length>1)return null;
+    const [k,ch]=used[0]||["rgb","rgb"],c=a[k]||{};
+    return {type:"levels",params:{inLow:c.shadowInput??0,inHigh:c.highlightInput??255,gamma:c.midtoneInput??1,outLow:c.shadowOutput??0,outHigh:c.highlightOutput??255,channel:ch}};
+  }
+  if(a.type==="curves"&&a.rgb&&a.rgb.length>=2&&!a.red&&!a.green&&!a.blue)return {type:"curves",params:{points:a.rgb.map(p=>[p.input,p.output])}};
+  return null;
 }
 
 function psdTextLayer(src,parentId){
@@ -74,11 +112,13 @@ function importPsdNodes(nodes,parentId=null,out=[]){
   /* PSD guarda visualmente de arriba abajo; Realify compone de abajo
      arriba, por eso se invierte cada nivel. */
   for(const src of [...(nodes||[])].reverse()){
-    if(src.children){const g=makeLayer({name:src.name||"Grupo",type:"group"});g.groupId=parentId;g.visible=!src.hidden;g.opacity=src.opacity==null?1:(src.opacity>1?src.opacity/255:src.opacity);out.push(g);importPsdNodes(src.children,g.id,out);continue;}
-    const l=src.text?psdTextLayer(src,parentId):makeLayer({name:src.name||"Capa"});
-    l.groupId=parentId;l.visible=!src.hidden;l.opacity=src.opacity==null?1:(src.opacity>1?src.opacity/255:src.opacity);l.blend=blend[src.blendMode]||"source-over";l.clipped=!!src.clipping;
+    if(src.children){const g=makeLayer({name:src.name||"Grupo",type:"group"});g.groupId=parentId;g.visible=!src.hidden;g.opacity=alpha01(src.opacity);g.blend=blend[src.blendMode]||"source-over";g.styles=stylesFrom(src.effects);const gm=maskFor(src.mask,doc.w,doc.h);if(gm){g.mask=gm;g.maskEnabled=!src.mask.disabled;}out.push(g);importPsdNodes(src.children,g.id,out);continue;}
+    const adj=adjustFrom(src);
+    const l=adj?makeLayer({name:src.name||"Ajuste",type:"adjust"}):src.text?psdTextLayer(src,parentId):makeLayer({name:src.name||"Capa"});
+    if(adj){l.adjustType=adj.type;l.adjustParams=adj.params;}
+    l.groupId=parentId;l.visible=!src.hidden;l.opacity=alpha01(src.opacity);l.blend=blend[src.blendMode]||"source-over";l.clipped=!!src.clipping;l.styles=stylesFrom(src.effects);
     if(!src.text&&src.canvas)l.ctx.drawImage(src.canvas,src.left||0,src.top||0);
-    const m=maskFor(src.mask,doc.w,doc.h);if(m)l.mask=m;l.thumbDirty=true;out.push(l);
+    const m=maskFor(src.mask,doc.w,doc.h);if(m){l.mask=m;l.maskEnabled=!src.mask.disabled;}l.thumbDirty=true;out.push(l);
   }return out;
 }
 
