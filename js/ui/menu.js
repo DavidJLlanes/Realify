@@ -510,7 +510,7 @@ export const MENUS = [
   { label:"Ayuda", items:[
     { cmd:"help.guide",   label:"Guía…" },
     { cmd:"help.diag",    label:"Diagnóstico…" },
-    { cmd:"help.report",  label:"Informar de un error…",
+    { cmd:"help.report",  ic:"bug", label:"Informar de un error…",
       help:"Cuéntanos qué ha pasado: se envía tu mensaje, tu correo si quieres que te respondamos y, si lo dejas marcado, el diagnóstico técnico (con vista previa). La imagen sólo se adjunta si lo pides." },
     { sep:true },
     { cmd:"help.update", ic:"refresh-cw", label:"Buscar actualización…" },

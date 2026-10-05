@@ -278,7 +278,8 @@ const ITEMS = [
   { cmd:"an.eyedropper", label:"Cuentagotas de pantalla", ic:"pipette", cat:"analizar color" },
   { cmd:"an.exif",       label:"Metadatos EXIF",   ic:"tags",         cat:"analizar" },
   { cmd:"an.meta",       label:"Inspector de metadatos", ic:"file-search", cat:"analizar" },
-  { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"ia" }
+  { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"ia" },
+  { cmd:"help.report",   label:"Informar de un error", ic:"bug",       cat:"analizar" }
 ];
 
 const KEY = "realify.drawer.cat";

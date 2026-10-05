@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v247 · «Informar de un error» también en el cajón del móvil
+- **Informar de un error** (con icono de bicho) tiene ahora su entrada en el cajón «Herramientas» del móvil (pestañas «Todos» y «Analizar»,
+  y encuentra al buscar «informar» o «error»), además de Ayuda › Informar de un error… (menú de móvil y de escritorio, con el mismo icono).
+  Se había quedado sólo en el menú. Comprobado en móvil con la prueba nueva `tests/cajon-movil.mjs`: Exportar PDF, Inspector de metadatos,
+  Seleccionar por texto, Limpiar metadatos e Informar de un error están en el cajón con icono y en el menú.
+
 ### v246 · Selección por descripción libre con CLIPSeg (fase 20)
 - **Seleccionar por texto** (y Capa › Máscara de capa › «Por texto») ya no se limita a las 150 categorías: lo que no esté en el vocabulario
   («una taza azul con un dibujo», «el logo», «la bufanda roja») se busca con **CLIPSeg** (IA de descripción libre, Apache-2.0). Se mezcla con lo
