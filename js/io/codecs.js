@@ -39,10 +39,12 @@ export const jxlDecoder  = () => once("jxl-dec",  async () => (await import("../
 
 /** Megapíxeles que un códec admite sin agotar la memoria (el codificador
     de AVIF o JPEG XL necesita varias veces el tamaño de la imagen). */
-export function codecMaxPixels(){
+export function codecMaxPixels(tipo){
   const mem = navigator.deviceMemory || 8;
   const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
-  return (coarse || mem <= 4) ? 8e6 : 24e6;
+  // Medido (tests/codec-memoria.mjs): AVIF aguanta 24 MP (pico ≈ 2,4 GB); JPEG XL a 24 MP agota los 4 GB del WASM (se aborta) y a 20 MP rinde bien
+  if(coarse || mem <= 4) return tipo === "jxl" ? 6e6 : 8e6;
+  return tipo === "jxl" ? 16e6 : 24e6;
 }
 
 /* ── Utilidades ──────────────────────────────────────────────── */

@@ -24,17 +24,18 @@
    0-255 sin recortar, para los ajustes que ya la tengan.
    ═══════════════════════════════════════════════════════════════ */
 
-import { hiToCanvas8 } from "../core/hisrc.js";
+import { hiToCanvas8, hiRect } from "../core/hisrc.js";
+
+export { hiRect };
 
 const GRID = 86, STEP = 255 / (GRID - 1), G1 = GRID - 1, S1 = GRID, S2 = GRID * GRID;
 const C255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
 
-/** ¿Se puede calcular en coma flotante sobre esta capa? (origen de 16 bits que cubre todo el lienzo) */
+/** ¿Se puede calcular en coma flotante sobre esta capa? (tiene origen de 16 bits utilizable, entero o parcial; fuera de su
+    rectángulo se calcula en 8 bits y el resultado no lleva 16 bits ahí) */
 export function hiFullCover(layer){
-  const hs = layer?.hiSrc;
-  if(!hs || !hs.data) return false;
-  const W = layer.canvas.width, H = layer.canvas.height;
-  return (hs.canvasW || hs.w) === W && (hs.canvasH || hs.h) === H && hs.w === W && hs.h === H && !(hs.x || 0) && !(hs.y || 0) && W * H <= 24e6;
+  const W = layer?.canvas?.width, H = layer?.canvas?.height;
+  return !!hiRect(layer) && W * H <= 24e6;
 }
 
 /** Rejilla RGB de 86³ nodos (paso 3, enteros exactos) como RGBA de 8 bits, lista para pasarla por cualquier
@@ -75,7 +76,7 @@ export function colorFnFromTable(d){
  */
 export function colorFnFromCompute(compute){
   const { d, n } = gridInput();
-  compute(d, n, 1);
+  compute(d, n, 1, { grid: true });                 // 4.º argumento: se evalúa en la rejilla de colores (nada de atajos «rápidos»)
   return colorFnFromTable(d);
 }
 
@@ -86,7 +87,7 @@ export function colorFnFromCompute(compute){
  * Devuelve null si `fn` da algo que no es un número.
  */
 export async function applyFloatFromBase(base, source, fn, selection = null){
-  const hs = base.hiSrc, W = source.width, H = source.height, out = new Uint16Array(W * H * 3);
+  const hs = base.hiSrc, W = source.width, H = source.height, rc = hiRect(base) || { x: 0, y: 0, w: W, h: H }, out = new Uint16Array(rc.w * rc.h * 3);
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const cx = cv.getContext("2d", { willReadFrequently: true }), sx = source.getContext("2d", { willReadFrequently: true });
   const rows = Math.max(16, Math.floor(1.5e6 / W)), o = [0, 0, 0];
@@ -94,12 +95,14 @@ export async function applyFloatFromBase(base, source, fn, selection = null){
   for(let y0 = 0; y0 < H; y0 += rows){
     const bh = Math.min(rows, H - y0), img = sx.getImageData(0, y0, W, bh), d = img.data;
     for(let p = 0, i = 0; p < W * bh; p++, i += 4){
-      const x = p % W, y = y0 + (p / W | 0), j = (y * W + x) * 3, a = d[i + 3];
-      const R = hs.data[j], G = hs.data[j + 1], B = hs.data[j + 2];
-      if(a === 0){ out[j] = R; out[j + 1] = G; out[j + 2] = B; continue; }
+      const x = p % W, y = y0 + (p / W | 0), a = d[i + 3];
+      // Dentro del rectángulo del origen de 16 bits (casi siempre, todo el lienzo); fuera, sólo hay 8 bits
+      const hx = x - rc.x, hy = y - rc.y, inside = hx >= 0 && hy >= 0 && hx < rc.w && hy < rc.h, j = inside ? (hy * rc.w + hx) * 3 : -1;
+      const R = inside ? hs.data[j] : 0, G = inside ? hs.data[j + 1] : 0, B = inside ? hs.data[j + 2] : 0;
+      if(a === 0){ if(inside){ out[j] = R; out[j + 1] = G; out[j + 2] = B; } continue; }
       // Los 16 bits mandan donde el lienzo sigue siendo su redondeo; si se pintó encima, manda el lienzo
       let r, g, b;
-      if(hiToCanvas8(R, x, y, 0, hs.dither) === d[i] && hiToCanvas8(G, x, y, 1, hs.dither) === d[i + 1] && hiToCanvas8(B, x, y, 2, hs.dither) === d[i + 2]){ r = R / 257; g = G / 257; b = B / 257; }
+      if(inside && hiToCanvas8(R, hx, hy, 0, hs.dither) === d[i] && hiToCanvas8(G, hx, hy, 1, hs.dither) === d[i + 1] && hiToCanvas8(B, hx, hy, 2, hs.dither) === d[i + 2]){ r = R / 257; g = G / 257; b = B / 257; }
       else { r = d[i]; g = d[i + 1]; b = d[i + 2]; }
       fn(r, g, b, o);
       if(!(o[0] === o[0] && o[1] === o[1] && o[2] === o[2])) return null;       // NaN
@@ -108,12 +111,15 @@ export async function applyFloatFromBase(base, source, fn, selection = null){
         const mx = mw === W ? x : Math.min(mw - 1, (x * mw / W) | 0), my = mh === H ? y : Math.min(mh - 1, (y * mh / H) | 0), t = mask[my * mw + mx] / 255;
         if(t < 1){ r2 = r + (r2 - r) * t; g2 = g + (g2 - g) * t; b2 = b + (b2 - b) * t; }
       }
+      if(!inside){                                                    // fuera del origen de 16 bits: resultado de 8 bits, sin 16
+        d[i] = Math.round(r2); d[i + 1] = Math.round(g2); d[i + 2] = Math.round(b2); continue;
+      }
       const nr = Math.round(r2 * 257), ng = Math.round(g2 * 257), nb = Math.round(b2 * 257);
       out[j] = nr; out[j + 1] = ng; out[j + 2] = nb;
-      d[i] = hiToCanvas8(nr, x, y, 0, hs.dither); d[i + 1] = hiToCanvas8(ng, x, y, 1, hs.dither); d[i + 2] = hiToCanvas8(nb, x, y, 2, hs.dither);
+      d[i] = hiToCanvas8(nr, hx, hy, 0, hs.dither); d[i + 1] = hiToCanvas8(ng, hx, hy, 1, hs.dither); d[i + 2] = hiToCanvas8(nb, hx, hy, 2, hs.dither);
     }
     cx.putImageData(img, 0, y0);
     await new Promise(r => setTimeout(r, 0));
   }
-  return { canvas: cv, hi: out };
+  return { canvas: cv, hi: out, rect: rc };
 }

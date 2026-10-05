@@ -26,7 +26,7 @@ export async function autoEnhance(){
   const out = await autoToneColor({ init:{ ...PARAMS }, render:{ src:layer.canvas, isFinal:true } });
   const result = out.getContext("2d").getImageData(0, 0, out.width, out.height).data;
   return applyDirect("Mejora automática", data => data.set(result),
-    { asLayer:true, filterId:"auto-tone-color", filterParams:{ ...PARAMS } });
+    { asLayer:true, filterId:"auto-tone-color", filterParams:{ ...PARAMS }, float:"delta" });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -160,5 +160,5 @@ export async function autoEnhancePremium(opts = {}){
   return applyDirect("Mejora automática Premium", (data, w, h) => {
     Object.assign(params, measurePremium(data, w, h));
     applyPremiumAuto(data, w, h, params);
-  }, { asLayer: true, filterId: "auto-premium", filterParams: params }, opts.edit ? { edit: opts.edit } : {});
+  }, { asLayer: true, filterId: "auto-premium", filterParams: params, float: "delta" }, opts.edit ? { edit: opts.edit } : {});
 }

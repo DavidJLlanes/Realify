@@ -31,7 +31,7 @@ export function shadowsHighlights(opts = {}){
 
   return runAdjust({
     title: "Sombras / Iluminaciones",
-    asLayer: true, filterId: "shadowsHighlights", filterParams: p,
+    asLayer: true, float: "delta", filterId: "shadowsHighlights", filterParams: p,
     previewLimit: 6e5,
     compute(data, w, h){
       // Premium 👑: radio relativo a la imagen completa (vista previa = resultado)

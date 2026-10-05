@@ -21,6 +21,7 @@ import { blendBySelection } from "./selection.js";
 import { isMobile } from "../core/device.js";
 import { view, fitAbove } from "./view.js";
 import { hiFullCover, colorFnFromCompute, applyFloatFromBase } from "./floatadjust.js";
+import { applyDeltaFromBase, attachFloatResult } from "./floatfilter.js";
 
 /* Por encima de este tamaño, la vista previa se calcula sobre una
    versión reducida: al aceptar sí se aplica entera.
@@ -113,7 +114,7 @@ export function drawHistogram(canvas, hist, channel = "l"){
    Estilos: allí lo que se espera es lo mismo que en el resto de
    filtros. Ver editor/filterlayer.js. */
 export async function runAdjust({ title, buildBody, compute, wide = false,
-                                  previewLimit = PREVIEW_LIMIT, dlgCls = "",
+                                  previewLimit = PREVIEW_LIMIT, refineEstMs = 3000, refineRealMs = 700, dlgCls = "",
                                   asLayer = false, filterId, filterParams, fullscreen = false, float = false }, opts = {}){
   /* Modo sin diálogo (registro de filtros): `compute` sobre un lienzo
      cualquiera y se devuelve el resultado. */
@@ -173,7 +174,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
      eso el tope es amplio, y si un recálculo real tarda demasiado, no
      se repite en esta sesión. */
   let refineTimer = 0, lastMs = 0, refineOff = false;
-  const REFINE_EST_MS = 3000, REFINE_REAL_MS = 700;
+  const REFINE_EST_MS = refineEstMs, REFINE_REAL_MS = refineRealMs;
   const refine = () => {
     refineTimer = 0;
     const t0 = performance.now();
@@ -259,12 +260,16 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
     if(big){ status("Aplicando…"); await new Promise(resolve => requestAnimationFrame(resolve)); }
     /* Coma flotante (fase 11, editor/floatadjust.js): si el ajuste es de color puro y la capa de origen trae
        16 bits, el resultado sale de esos 16 bits y la capa de filtro nueva los conserva. */
-    let fres = null;
+    let fres = null, deltaMode = false;
     if(float && asLayer && hiFullCover(base)){
       try{
         const v = typeof float === "function" ? float() : float;
-        const fn = v === true ? colorFnFromCompute(compute) : (typeof v === "function" ? v : null);
-        if(fn) fres = await applyFloatFromBase(base, source, fn, doc.selection);
+        // «delta» (fase 20): efecto local o que analiza la foto; se calcula en 8 bits como siempre y su CAMBIO se suma a los 16 bits
+        if(v === "delta") deltaMode = true;
+        else{
+          const fn = v === true ? colorFnFromCompute(compute) : (typeof v === "function" ? v : null);
+          if(fn) fres = await applyFloatFromBase(base, source, fn, doc.selection);
+        }
       }catch(err){ console.warn("[coma flotante]", err); fres = null; }
     }
     let after;
@@ -277,6 +282,10 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
       layer.ctx.putImageData(out, 0, 0);
       layer.thumbDirty = true;
       after = snapshot(layer);
+      if(deltaMode){
+        try{ fres = await applyDeltaFromBase(base, source, after); if(fres) after = fres.canvas; }
+        catch(err){ console.warn("[coma flotante]", err); fres = null; }
+      }
     }
     status("");
 
@@ -284,11 +293,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
       restore(layer, before);
       const made = commitFilter({ base, edit, result: after, title,
                      filter: filterId || title, params: filterParams || {} });
-      if(fres && made){
-        const hs = base.hiSrc, W = fres.canvas.width, H = fres.canvas.height;
-        made.hiSrc = { data: fres.hi, w: W, h: H, dither: hs.dither, x: 0, y: 0, canvasW: W, canvasH: H };
-        made.thumbDirty = true;
-      }
+      if(fres && made) attachFloatResult(made, base, fres);
       toast(title + (edit ? " · actualizado" : " · capa nueva") + (fres ? " · 16 bits conservados" : ""), "ok");
       return;
     }
@@ -340,7 +345,7 @@ export async function runAdjust({ title, buildBody, compute, wide = false,
 /* Ajustes de un solo paso, sin diálogo. `asLayer` es el mismo
    contrato que en `runAdjust`: el resultado va a una capa nueva en vez
    de sobrescribir la activa. */
-export function applyDirect(title, compute, { asLayer = false, filterId, filterParams } = {}, opts = {}){
+export function applyDirect(title, compute, { asLayer = false, filterId, filterParams, float = false } = {}, opts = {}){
   if(opts.render){
     const src = opts.render.src;
     const d = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, src.width, src.height);
@@ -368,9 +373,26 @@ export function applyDirect(title, compute, { asLayer = false, filterId, filterP
 
   if(asLayer){
     restore(layer, before);
-    commitFilter({ base, edit, result: after, title,
-                   filter: filterId || title, params: filterParams || {} });
-    toast(title + (edit ? " · actualizado" : " · capa nueva"), "ok");
+    const done = (result, fres) => {
+      const made = commitFilter({ base, edit, result, title, filter: filterId || title, params: filterParams || {} });
+      if(fres && made) attachFloatResult(made, base, fres);
+      toast(title + (edit ? " · actualizado" : " · capa nueva") + (fres ? " · 16 bits conservados" : ""), "ok");
+    };
+    /* Coma flotante (fase 20): sobre una capa con origen de 16 bits, `float: true` (color puro: se evalúa en una rejilla) o
+       `float: "delta"` (analiza la foto o es local: su cambio se suma a los 16 bits). Si falla, el camino de 8 bits de siempre. */
+    const mode = float && hiFullCover(base) ? (typeof float === "function" ? float() : float) : null;
+    if(mode){
+      const src8 = edit ? snapshot(base) : before;
+      return (async () => {
+        let fres = null;
+        try{
+          if(mode === "delta") fres = await applyDeltaFromBase(base, src8, after);
+          else{ const fn = mode === true ? colorFnFromCompute(compute) : (typeof mode === "function" ? mode : null); if(fn) fres = await applyFloatFromBase(base, src8, fn, doc.selection); }
+        }catch(err){ console.warn("[coma flotante]", err); fres = null; }
+        done(fres ? fres.canvas : after, fres);
+      })();
+    }
+    done(after, null);
     return;
   }
 

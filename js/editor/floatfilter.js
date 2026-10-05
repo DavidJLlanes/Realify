@@ -25,9 +25,9 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { hiToCanvas8 } from "../core/hisrc.js";
-import { hiFullCover, gridInput, colorFnFromTable } from "./floatadjust.js";
+import { hiFullCover, hiRect, gridInput, colorFnFromTable } from "./floatadjust.js";
 
-export { hiFullCover };
+export { hiFullCover, hiRect };
 
 const tick = () => new Promise(r => setTimeout(r, 0));
 
@@ -56,9 +56,9 @@ export async function colorFnFromFilter(apply){
  * los 16 bits nuevos.
  */
 export async function applyDeltaFromBase(base, source, result){
-  const hs = base.hiSrc, W = source.width, H = source.height;
+  const hs = base.hiSrc, W = source.width, H = source.height, rc = hiRect(base) || { x: 0, y: 0, w: W, h: H };
   if(result.width !== W || result.height !== H) return null;
-  const out = new Uint16Array(W * H * 3);
+  const out = new Uint16Array(rc.w * rc.h * 3);
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const cx = cv.getContext("2d", { willReadFrequently: true });
   const sx = source.getContext("2d", { willReadFrequently: true }), rx = result.getContext("2d", { willReadFrequently: true });
@@ -66,10 +66,12 @@ export async function applyDeltaFromBase(base, source, result){
   for(let y0 = 0; y0 < H; y0 += rows){
     const bh = Math.min(rows, H - y0), s = sx.getImageData(0, y0, W, bh).data, img = rx.getImageData(0, y0, W, bh), r = img.data;
     for(let p = 0, i = 0; p < W * bh; p++, i += 4){
-      const x = p % W, y = y0 + (p / W | 0), j = (y * W + x) * 3;
+      const x = p % W, y = y0 + (p / W | 0), hx = x - rc.x, hy = y - rc.y;
+      if(hx < 0 || hy < 0 || hx >= rc.w || hy >= rc.h) continue;               // fuera del origen de 16 bits: se queda el resultado de 8 bits
+      const j = (hy * rc.w + hx) * 3;
       const R = hs.data[j], G = hs.data[j + 1], B = hs.data[j + 2];
       // Donde el lienzo ya no es el redondeo del origen (se pintó encima) manda el lienzo
-      const keep = hiToCanvas8(R, x, y, 0, hs.dither) === s[i] && hiToCanvas8(G, x, y, 1, hs.dither) === s[i + 1] && hiToCanvas8(B, x, y, 2, hs.dither) === s[i + 2];
+      const keep = hiToCanvas8(R, hx, hy, 0, hs.dither) === s[i] && hiToCanvas8(G, hx, hy, 1, hs.dither) === s[i + 1] && hiToCanvas8(B, hx, hy, 2, hs.dither) === s[i + 2];
       let nr, ng, nb;
       if(keep){
         nr = R + (r[i] - s[i]) * 257; ng = G + (r[i + 1] - s[i + 1]) * 257; nb = B + (r[i + 2] - s[i + 2]) * 257;
@@ -77,19 +79,19 @@ export async function applyDeltaFromBase(base, source, result){
       nr = nr < 0 ? 0 : nr > 65535 ? 65535 : nr; ng = ng < 0 ? 0 : ng > 65535 ? 65535 : ng; nb = nb < 0 ? 0 : nb > 65535 ? 65535 : nb;
       out[j] = nr; out[j + 1] = ng; out[j + 2] = nb;
       if(r[i + 3] === 0) continue;               // transparente: el lienzo no lleva color
-      r[i] = hiToCanvas8(nr, x, y, 0, hs.dither); r[i + 1] = hiToCanvas8(ng, x, y, 1, hs.dither); r[i + 2] = hiToCanvas8(nb, x, y, 2, hs.dither);
+      r[i] = hiToCanvas8(nr, hx, hy, 0, hs.dither); r[i + 1] = hiToCanvas8(ng, hx, hy, 1, hs.dither); r[i + 2] = hiToCanvas8(nb, hx, hy, 2, hs.dither);
     }
     cx.putImageData(img, 0, y0);
     await tick();
   }
-  return { canvas: cv, hi: out };
+  return { canvas: cv, hi: out, rect: rc };
 }
 
 /** Deja en la capa recién creada los 16 bits del resultado (si los hay) con el mismo tramado que el origen. */
 export function attachFloatResult(made, base, fres){
   if(!made || !fres || !base?.hiSrc) return false;
-  const hs = base.hiSrc, W = fres.canvas.width, H = fres.canvas.height;
-  made.hiSrc = { data: fres.hi, w: W, h: H, dither: hs.dither, x: 0, y: 0, canvasW: W, canvasH: H };
+  const hs = base.hiSrc, W = fres.canvas.width, H = fres.canvas.height, rc = fres.rect || { x: 0, y: 0, w: W, h: H };
+  made.hiSrc = { data: fres.hi, w: rc.w, h: rc.h, dither: hs.dither, x: rc.x, y: rc.y, canvasW: W, canvasH: H };
   made.thumbDirty = true;
   return true;
 }

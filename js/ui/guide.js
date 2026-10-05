@@ -1122,7 +1122,7 @@ const TOPICS = [
           <b>PNG 16 bits</b> o <b>TIFF 16 bits</b> —máxima calidad— o <b>PDF</b>, con tamaño de página y
           margen), calidad y metadatos EXIF. En AVIF, JPEG XL, JPEG y WebP el diálogo muestra el
           <b>peso aproximado y la calidad estimada</b> antes de exportar; en AVIF y JPEG XL, calidad 100
-          = sin pérdidas. AVIF profundo y JPEG XL admiten hasta 24 megapíxeles (8 en móvil). También
+          = sin pérdidas. AVIF profundo admite hasta 24 megapíxeles y JPEG XL hasta 16 (8 y 6 en móvil). También
           puedes abrir archivos <b>.jxl</b>. Con <b>«Alta precisión al exportar»</b> (y siempre en
           16 bits) las capas, las capas de ajuste, los modos de fusión, los <b>estilos de capa</b> y
           <b>Fusionar si</b> se recalculan en coma flotante: apilar varios ajustes ya no deja bandas

@@ -27,11 +27,11 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 
 **Fase 20 · cabos sueltos**
 - [x] Vocabulario abierto de «Seleccionar por texto» con CLIPSeg (v246).
-- [ ] Ajustes sin migrar a coma flotante: Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
+- [x] Ajustes migrados a coma flotante (v248): Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
       degradado, Blanco y negro, los de `applyDirect` y los modos Premium con motor propio.
-- [ ] Capas con origen de 16 bits recortado o desplazado.
-- [ ] CLAHE Premium: la vista previa difiere de lo aplicado.
-- [ ] Límite de memoria con imágenes de 12 y 24 MP.
+- [x] Capas con origen de 16 bits recortado o desplazado (v248; los motores y el proyecto lo admiten; girar/recortar aún lo descartan).
+- [x] CLAHE Premium: la vista previa difiere de lo aplicado (v248).
+- [x] Límite de memoria con imágenes de 12 y 24 MP (v248: JPEG XL baja a 16 MP).
 
 **Color y exportación (fases 2 y 6)**
 - [ ] WebP con perfil P3 y TIFF de 8 bits con perfil.
@@ -332,13 +332,18 @@ compensa adoptar ninguna**:
       diccionario ES→EN, foto entera + mosaicos 2×2, borde con filtro guiado). (v246) Pendiente de mejora: la máscara es blanda (352 px por
       vista) y los objetos muy pequeños pueden fallar; probar el modelo con WebGPU (hoy sólo CPU); más palabras en el diccionario ES→EN.
 - [x] «Pelo» y partes de la cara con BiSeNet; excepción no comercial ampliada. (v244)
-- [ ] **Ajustes sin migrar a coma flotante**: Sombras y luces, Tono, Banda tonal, Color selectivo,
-      Equilibrio de color, Mapa de degradado, Blanco y negro, los que usan `applyDirect` y los modos
-      Premium con motor propio. *(pendiente)*
-- [ ] Capas con origen de 16 bits recortado o desplazado (hoy sólo si cubre todo el lienzo). *(pendiente)*
-- [ ] CLAHE Premium: la vista previa difiere de lo aplicado (aviso del test de calidad); hallar la causa. *(pendiente)*
-- [ ] Verificar el límite de memoria con imágenes de 24 MP (`codecMaxPixels()` 24e6/8e6): sólo se
-      probó con tamaños pequeños; repetir con 12 y 24 MP. *(pendiente)*
+- [x] **Ajustes migrados a coma flotante** (v248): Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
+      degradado, Blanco y negro, `applyDirect` (niveles/contraste automáticos, invertir, mejora automática) y los Premium con motor
+      propio (CLAHE, Iluminar foto oscura, Zero-DCE++, ajustes avanzados de color). Prueba `tests/float-ajustes.mjs` (24 ajustes).
+      Límite: en 8 de ellos la prueba usó parámetros por defecto que no cambian la imagen («cambia:false»), así que la suavidad
+      16 bits sólo está comprobada de forma directa en los demás; repetir con parámetros explícitos.
+- [x] **Capas con origen de 16 bits parcial** (v248): `hiRect`, motores (`applyFloatFromBase`, `applyDeltaFromBase`, compositor) y
+      guardado de proyecto con rectángulo (`tests/hi-parcial.mjs`). Ninguna operación produce hoy un origen parcial, y las que
+      mueven píxeles (girar, recortar) lo descartan. *(pendiente: producirlo al pegar/colocar capas)*
+- [x] **CLAHE Premium** (v248): la causa era que, con fotos grandes, la vista previa reducida no se refinaba a resolución completa
+      porque el tiempo estimado superaba 3 s; ahora CLAHE admite hasta 14 s (`refineEstMs`) y el cálculo guarda a/b de OKLab (2× menos raíces cúbicas).
+- [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
+      (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
 ---
 

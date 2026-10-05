@@ -33,7 +33,7 @@ export function gradientMap(opts = {}){
 
   return runAdjust({
     title: "Mapa de degradado",
-    asLayer: true, filterId: "gradientMap", filterParams: p,
+    asLayer: true, filterId: "gradientMap", filterParams: p, float: true,
     compute(data){
       const lut = buildGradientLut(p.dark, p.light);
       for(let i = 0; i < data.length; i += 4){

@@ -56,7 +56,7 @@ export function toneRegions(opts = {}){
 
   return runAdjust({
     title: "Tonos",
-    asLayer: true, filterId: "tone", filterParams: p,
+    asLayer: true, filterId: "tone", filterParams: p, float: true,
     compute(data){
       const lut = buildToneLut(p);
       // Se aplica sobre la luminancia y se reparte a los tres canales

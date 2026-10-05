@@ -173,6 +173,17 @@ export function fillBand(layer, d, out, y0, w, bh){
   return used;
 }
 
+/** Rectángulo del lienzo que cubre el origen de 16 bits de la capa ({ x, y, w, h }), o null si no sirve: no corresponde al lienzo
+    (cambió de tamaño) o se sale de él. Puede ser el lienzo entero (lo habitual) o sólo una parte (recortado o desplazado). */
+export function hiRect(layer){
+  const hs = layer?.hiSrc;
+  if(!hs || !hs.data) return null;
+  const W = layer.canvas.width, H = layer.canvas.height, x = hs.x || 0, y = hs.y || 0;
+  if((hs.canvasW || hs.w) !== W || (hs.canvasH || hs.h) !== H) return null;
+  if(x < 0 || y < 0 || hs.w < 1 || hs.h < 1 || x + hs.w > W || y + hs.h > H || hs.data.length < hs.w * hs.h * 3) return null;
+  return { x, y, w: hs.w, h: hs.h };
+}
+
 /** ¿El origen de 16 bits de la capa corresponde a su lienzo y lo cubre entero? (única forma que sabe mover remapHi) */
 export function hiCoversCanvas(layer){
   const hs = layer?.hiSrc, c = layer?.canvas;

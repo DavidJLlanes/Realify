@@ -41,7 +41,7 @@ export function toneBand(opts = {}){
   const p = { center: 128, width: 56, soft: 60, brightness: 0, contrast: 0, saturation: 0, warmth: 0, showMask: false, ...opts.init };
   return runAdjust({
     title: "Tonos del histograma",
-    asLayer: true, filterId: "tone-band", filterParams: p,
+    asLayer: true, filterId: "tone-band", filterParams: p, float: () => !p.showMask,
     compute(d){
       const W = bandWeights(p.center, p.width, p.soft);
       if(p.showMask){

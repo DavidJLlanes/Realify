@@ -57,7 +57,7 @@ export function selectiveColor(opts = {}){
   return runAdjust({
     title: "Corrección selectiva",
     wide: true,
-    asLayer: true, filterId: "selectiveColor", filterParams: ranges,
+    asLayer: true, filterId: "selectiveColor", filterParams: ranges, float: true,
     previewLimit: 6e5,
     compute(data){
       let any = false;

@@ -1029,7 +1029,7 @@ export function autoLevels(opts = {}){
   return applyDirect("Niveles automáticos", (data, w, h) => {
     const [r, g, b] = levelsLuts(autoLevelsState(data, w, h));
     applyLut(data, { r, g, b });
-  }, { asLayer: true, filterId: "autoLevels" }, opts);
+  }, { asLayer: true, filterId: "autoLevels", float: "delta" }, opts);
 }
 
 /* Niveles automáticos Premium 👑: mide la foto (tonepremium.js), aplica
@@ -1043,7 +1043,7 @@ export function autoLevelsPremium(opts = {}){
     state = autoLevelsState(data, w, h);
     Object.assign(params, state);
     applyLevelsPremium(data, state);
-  }, { asLayer: true, filterId: "levels", filterParams: params }, opts);
+  }, { asLayer: true, filterId: "levels", filterParams: params, float: "delta" }, opts);
 }
 
 /* ── tono y saturación ────────────────────────────────────────── */
@@ -1140,7 +1140,7 @@ export function grayscale(opts = {}){
   return runAdjust({
     title: "Blanco y negro",
     wide: true,
-    asLayer: true, filterId: "bw", filterParams: p,
+    asLayer: true, filterId: "bw", filterParams: p, float: () => p.mode === "manual" ? true : "delta",
     compute(data, w, h){
       if(p.mode === "auto"){
         applyBWRecipe(data, w, h, p.recipe || BW_RECIPES[0]);
@@ -1282,7 +1282,7 @@ export function invert(opts = {}){
       data[i+1] = 255 - data[i+1];
       data[i+2] = 255 - data[i+2];
     }
-  }, { asLayer: true, filterId: "invert" }, opts);
+  }, { asLayer: true, filterId: "invert", float: true }, opts);
 }
 
 /* Contraste automático: sólo la luminancia, los tres canales por igual
@@ -1295,7 +1295,7 @@ export function autoContrast(opts = {}){
   return applyDirect("Contraste automático", (data, w, h) => {
     const [t] = levelsLuts(autoContrastState(data, w, h));
     applyLut(data, { r:t, g:t, b:t });
-  }, { asLayer: true, filterId: "autoContrast" }, opts);
+  }, { asLayer: true, filterId: "autoContrast", float: "delta" }, opts);
 }
 
 /* Contraste automático Premium 👑: el mismo recorte de la luminancia,
@@ -1308,5 +1308,5 @@ export function autoContrastPremium(opts = {}){
     const state = autoContrastState(data, w, h);
     Object.assign(params, state);
     applyLevelsPremium(data, state);
-  }, { asLayer: true, filterId: "levels", filterParams: params }, opts);
+  }, { asLayer: true, filterId: "levels", filterParams: params, float: "delta" }, opts);
 }

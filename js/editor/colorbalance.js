@@ -83,10 +83,11 @@ export function colorBalance(opts = {}){
   return runAdjust({
     title: "Equilibrio de color",
     wide: true,
-    asLayer: true, filterId: "colorBalance", filterParams: p,
+    asLayer: true, filterId: "colorBalance", filterParams: p, float: true,
     previewLimit: 6e5,
-    compute(data, w, h){
-      if(p.premium){ colorBalancePremium(data, p, { fast: w * h < doc.w * doc.h * 0.98 }); return; }
+    compute(data, w, h, hint){
+      // `hint.grid`: se evalúa en la rejilla de colores de la coma flotante (editor/floatadjust.js): nunca el atajo «rápido» de la vista previa
+      if(p.premium){ colorBalancePremium(data, p, { fast: !hint?.grid && w * h < doc.w * doc.h * 0.98 }); return; }
       for(let i = 0; i < data.length; i += 4){
         const r = data[i], g = data[i+1], b = data[i+2];
         const l = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;

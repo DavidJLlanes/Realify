@@ -177,8 +177,8 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/avif", "image/heic"].includes(type));
   const toSrgb = isP3Doc() && !keepP3;
   /* AVIF y JPEG XL necesitan varias veces el tamaño de la imagen en memoria */
-  if((deepAvif || isJxl) && w * h > codecMaxPixels())
-    throw new Error(`${isJxl ? "JPEG XL" : "AVIF de " + deepAvif + " bits"} admite hasta ${Math.round(codecMaxPixels() / 1e6)} megapíxeles en este dispositivo: reduce el tamaño`);
+  if((deepAvif || isJxl) && w * h > codecMaxPixels(isJxl ? "jxl" : "avif"))
+    throw new Error(`${isJxl ? "JPEG XL" : "AVIF de " + deepAvif + " bits"} admite hasta ${Math.round(codecMaxPixels(isJxl ? "jxl" : "avif") / 1e6)} megapíxeles en este dispositivo: reduce el tamaño`);
   if(bits16 || deepAvif || isExr){
     const precise = await renderPrecisionAdjustmentStack(w, h, { bits16: true, alpha, background, layersOnly: false, srgb: toSrgb });
     if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de " + (deepAvif || 16) + " bits");
@@ -545,7 +545,8 @@ export async function exportDialog(){
           if(codec || T === "image/jpeg" || T === "image/webp"){
             try{
               const C = await import("./codecs.js");
-              if(codec && ow * oh > C.codecMaxPixels()){ est.textContent = `Este formato admite hasta ${Math.round(C.codecMaxPixels() / 1e6)} megapíxeles en este dispositivo: reduce el tamaño.`; return; }
+              const lim = C.codecMaxPixels(T === "image/jxl" ? "jxl" : "avif");
+              if(codec && ow * oh > lim){ est.textContent = `Este formato admite hasta ${Math.round(lim / 1e6)} megapíxeles en este dispositivo: reduce el tamaño.`; return; }
               const r = await C.estimateCodec({ type: T, source: flatten(), outW: ow, outH: oh, quality: qual });
               const cal = r.lossless || r.psnr === Infinity ? "sin pérdidas" : `${C.qualityWord(r.psnr)} (PSNR ${r.psnr.toFixed(0)} dB)`;
               est.textContent = `Peso aproximado: ${fmtKb(r.bytes)} · Calidad estimada: ${cal}`;

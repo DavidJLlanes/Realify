@@ -9,6 +9,17 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v248 · Fase 20: cabos sueltos
+- **Coma flotante en el resto de ajustes**: Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de degradado,
+  Blanco y negro, Niveles/Contraste automáticos, Invertir, Mejora automática, CLAHE, Iluminar foto oscura (clásico e IA) y los ajustes avanzados
+  de color (gradación, viraje, filtro fotográfico, curvas Lab, rangos HSL, reemplazar color, desaturar, quitar neblina, HDR, ecualizar…) conservan
+  los 16 bits. `runAdjust` y `applyDirect` aceptan `float` (`true` = color puro, función, o `"delta"` = el cambio del resultado de 8 bits se suma a los 16 bits).
+- **Origen de 16 bits parcial**: una capa cuyo origen cubre sólo un rectángulo (recortado o desplazado) se calcula en 16 bits dentro y en 8 fuera, y el
+  guardado de proyecto lo conserva. Girar o recortar aún lo descartan.
+- **CLAHE Premium**: la vista previa ya se refina a resolución completa en fotos grandes (antes quedaba la copia reducida ampliada) y es más rápido.
+- **Límite de memoria medido** con 12, 16, 20 y 24 MP: AVIF aguanta 24 MP; **JPEG XL se aborta a 24 MP**, así que su límite baja a 16 MP (6 en móvil).
+- Pruebas nuevas: `tests/float-ajustes.mjs`, `tests/hi-parcial.mjs`, `tests/codec-memoria.mjs`.
+
 ### v247 · «Informar de un error» también en el cajón del móvil
 - **Informar de un error** (con icono de bicho) tiene ahora su entrada en el cajón «Herramientas» del móvil (pestañas «Todos» y «Analizar»,
   y encuentra al buscar «informar» o «error»), además de Ayuda › Informar de un error… (menú de móvil y de escritorio, con el mismo icono).

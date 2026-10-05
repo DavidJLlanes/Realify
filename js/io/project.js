@@ -12,7 +12,7 @@ import { saveOrShare, stamp } from "./export.js";
 import { toast, status } from "../ui/toast.js";
 import { openAsNewTab, listTabs, activeTab, switchTo } from "../core/documents.js";
 import { anyDialogOpen } from "../ui/dialog.js";
-import { hiCoversCanvas, hiAllowed } from "../core/hisrc.js";
+import { hiCoversCanvas, hiRect, hiAllowed } from "../core/hisrc.js";
 
 export const PROJECT_MIME = "application/vnd.realify+json";
 export const PROJECT_VERSION = 1;
@@ -66,13 +66,15 @@ function projectThumbnail(){
 /* Origen de 16 bits de una capa (core/hisrc.js) como PNG de 16 bits en base64, o null. Ocupa bastante: el
    autoguardado periódico lo omite (`hi: false`); el guardado de proyecto y el de «antes de actualizar» lo llevan. */
 async function encodeHi(layer){
-  if(!hiCoversCanvas(layer) || layer.canvas.width * layer.canvas.height > 24e6) return null;
+  const rc = hiRect(layer);                                    // el lienzo entero o sólo una parte (recortado o desplazado)
+  if(!rc || layer.canvas.width * layer.canvas.height > 24e6) return null;
   try{
     const { png16, png16Supported } = await import("./formats16.js");
     if(!png16Supported()) return null;
     const hs = layer.hiSrc;
     const blob = await png16({ data: hs.data, channels: 3, w: hs.w, h: hs.h });
-    return { png: bytesToBase64(new Uint8Array(await blob.arrayBuffer())), dither: !!hs.dither };
+    const partial = rc.x || rc.y || rc.w !== layer.canvas.width || rc.h !== layer.canvas.height;
+    return { png: bytesToBase64(new Uint8Array(await blob.arrayBuffer())), dither: !!hs.dither, ...(partial ? { x: rc.x, y: rc.y, w: rc.w, h: rc.h } : {}) };
   }catch(err){ console.warn("[project] no se pudieron guardar los 16 bits de una capa", err); return null; }
 }
 async function decodeHi(saved, w, h){
@@ -81,8 +83,9 @@ async function decodeHi(saved, w, h){
     const { decodePng16 } = await import("./hidepth.js");
     const u8 = base64ToBytes(saved.png);
     const r = await decodePng16(u8.buffer);
-    if(!r || r.w !== w || r.h !== h) return null;
-    return { data: r.data, w, h, dither: !!saved.dither, x: 0, y: 0, canvasW: w, canvasH: h };
+    const x = saved.x || 0, y = saved.y || 0, rw = saved.w || w, rh = saved.h || h;
+    if(!r || r.w !== rw || r.h !== rh || x < 0 || y < 0 || x + rw > w || y + rh > h) return null;
+    return { data: r.data, w: rw, h: rh, dither: !!saved.dither, x, y, canvasW: w, canvasH: h };
   }catch(err){ console.warn("[project] no se pudieron recuperar los 16 bits de una capa", err); return null; }
 }
 

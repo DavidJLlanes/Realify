@@ -158,7 +158,7 @@ export async function aiLowLight(opts = {}){
   const W = await loadWeights();
   const p = { amount: 100, ...opts.init };
   return runAdjust({
-    title: "Iluminar con IA Premium 👑", asLayer: true, filterId: "ai-low-light", filterParams: p, previewLimit: 4e5,
+    title: "Iluminar con IA Premium 👑", asLayer: true, float: "delta", filterId: "ai-low-light", filterParams: p, previewLimit: 4e5,
     compute: (d, w, h) => { if(p.amount > 0) enhance(W, d, w, h, p); },
     buildBody: ({ preview }) => {
       const b = document.createElement("div");
