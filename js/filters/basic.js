@@ -16,7 +16,8 @@ import { hexToRgb } from "../editor/paint.js";
 import { blendBySelection } from "../editor/selection.js";
 import { COARSE, isMobile } from "../core/device.js";
 import { boxBlurFloat } from "../editor/refineedge-math.js";
-import { hiFullCover, colorFnFromFilter, applyDeltaFromBase, attachFloatResult } from "../editor/floatfilter.js";
+import { hiFullCover, colorFnFromFilter, applyDeltaFromBase, applyNativeFromBase, attachFloatResult } from "../editor/floatfilter.js";
+import { gaussianBlurHi, unsharpHi, noiseHi } from "../editor/floatspatial.js";
 import { applyFloatFromBase } from "../editor/floatadjust.js";
 
 function snapshot(layer){
@@ -71,7 +72,7 @@ function clipToSelection(layer, beforeCanvas){
    deslizador y sólo recalcular a resolución completa cuando de verdad
    hace falta guardar el resultado; los demás (el desenfoque nativo,
    que ya va por GPU) la ignoran sin más. */
-export async function runFilter({ title, build, apply, wide = false, id, params, asyncRefine = false, float = false }, opts = {}){
+export async function runFilter({ title, build, apply, wide = false, id, params, asyncRefine = false, float = false, native = null }, opts = {}){
   /* Modo sin diálogo: el registro de filtros pide el resultado para
      un lienzo cualquiera (deslizador de aplicación de la capa). */
   if(opts.render){
@@ -166,6 +167,13 @@ export async function runFilter({ title, build, apply, wide = false, id, params,
         const fn = await colorFnFromFilter(apply);
         fres = await applyFloatFromBase(base, source, fn, doc.selection);
       }catch(err){ console.warn("[coma flotante]", err); fres = null; }
+    }
+    /* «native» (v252, editor/floatspatial.js): el filtro espacial se calcula de verdad en coma flotante sobre los 16 bits, no como cambio de 8 bits */
+    if(!fres && wantHi && mode === "delta" && native){
+      try{
+        const fn = native();
+        if(fn) fres = await applyNativeFromBase(base, source, fn, doc.selection);
+      }catch(err){ console.warn("[coma flotante nativa]", err); fres = null; }
     }
     if(!fres){
       await Promise.resolve(apply(layer, source, true));
@@ -297,6 +305,7 @@ export function blur(opts = {}){
   return runFilter({
     title: "Desenfoque gaussiano",
     id: "blur", params: p, float: "delta",
+    native: () => p.radius > 0 ? (inp, w, h, tick) => gaussianBlurHi(inp, w, h, p.radius, tick) : null,
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Radio", 0, 200, p.radius, v => { p.radius = v; preview(); }, " px"));
@@ -339,6 +348,7 @@ export function sharpen(opts = {}){
   return runFilter({
     title: "Enfocar",
     id: "sharpen", params: p, float: "delta",
+    native: () => (inp, w, h, tick) => unsharpHi(inp, w, h, p, tick),
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Cantidad", 0, 300, p.amount, v => { p.amount = v; preview(); }, "%"));
@@ -650,6 +660,7 @@ export function noise(opts = {}){
   return runFilter({
     title: "Añadir ruido",
     id: "noise", params: p, float: "delta",
+    native: () => (inp, w, h, tick) => noiseHi(inp, w, h, p, tick),
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Cantidad", 0, 100, p.amount, v => { p.amount = v; preview(); }, "%"));

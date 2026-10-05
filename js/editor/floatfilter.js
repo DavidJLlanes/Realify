@@ -87,6 +87,40 @@ export async function applyDeltaFromBase(base, source, result){
   return { canvas: cv, hi: out, rect: rc };
 }
 
+/**
+ * Filtro espacial calculado de verdad en coma flotante (editor/floatspatial.js): `native(inp, W, H, tick)` recibe los 16 bits de `base` (RGB
+ * Uint16Array; donde el lienzo ya no es su redondeo manda el lienzo) y devuelve los 16 bits del resultado. Sólo capas opacas que el origen cubre
+ * entero y de hasta 16 MP (el filtro necesita ~20 bytes por píxel); si no, null y el llamador usa el camino de siempre. `selection` mezcla igual
+ * que `applyFloatFromBase`. Devuelve { canvas, hi, rect } como `applyDeltaFromBase`.
+ */
+export async function applyNativeFromBase(base, source, native, selection = null){
+  const hs = base.hiSrc, W = source.width, H = source.height, rc = hiRect(base);
+  if(!rc || rc.x || rc.y || rc.w !== W || rc.h !== H || W * H > 16e6) return null;
+  const sx = source.getContext("2d", { willReadFrequently: true }), img = sx.getImageData(0, 0, W, H), d = img.data, n = W * H;
+  const inp = new Uint16Array(hs.data);
+  for(let p = 0, i = 0, j = 0; p < n; p++, i += 4, j += 3){
+    if(d[i + 3] !== 255) return null;                       // con transparencia el desenfoque tendría que ir premultiplicado: camino de 8 bits
+    const x = p % W, y = (p / W) | 0;
+    if(hiToCanvas8(inp[j], x, y, 0, hs.dither) !== d[i] || hiToCanvas8(inp[j + 1], x, y, 1, hs.dither) !== d[i + 1] || hiToCanvas8(inp[j + 2], x, y, 2, hs.dither) !== d[i + 2]){
+      inp[j] = d[i] * 257; inp[j + 1] = d[i + 1] * 257; inp[j + 2] = d[i + 2] * 257;     // pintado encima: manda el lienzo
+    }
+  }
+  const out = await native(inp, W, H, tick);
+  if(!out || out.length !== inp.length) return null;
+  const mask = selection?.mask, mw = selection?.w, mh = selection?.h;
+  for(let p = 0, i = 0, j = 0; p < n; p++, i += 4, j += 3){
+    const x = p % W, y = (p / W) | 0;
+    if(mask){
+      const mx = mw === W ? x : Math.min(mw - 1, (x * mw / W) | 0), my = mh === H ? y : Math.min(mh - 1, (y * mh / H) | 0), t = mask[my * mw + mx] / 255;
+      if(t < 1) for(let k = 0; k < 3; k++) out[j + k] = Math.round(inp[j + k] + (out[j + k] - inp[j + k]) * t);
+    }
+    d[i] = hiToCanvas8(out[j], x, y, 0, hs.dither); d[i + 1] = hiToCanvas8(out[j + 1], x, y, 1, hs.dither); d[i + 2] = hiToCanvas8(out[j + 2], x, y, 2, hs.dither);
+  }
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  cv.getContext("2d", { willReadFrequently: true }).putImageData(img, 0, 0);
+  return { canvas: cv, hi: out, rect: rc };
+}
+
 /** Deja en la capa recién creada los 16 bits del resultado (si los hay) con el mismo tramado que el origen. */
 export function attachFloatResult(made, base, fres){
   if(!made || !fres || !base?.hiSrc) return false;
