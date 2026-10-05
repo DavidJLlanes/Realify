@@ -6,6 +6,73 @@ Cada fase es corta y se publica sola. Al terminar una tarea se marca `[x]` con l
 
 Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 
+## Resumen de lo pendiente (actualizado en la v244, 5 oct 2026)
+Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada una (el detalle está en su fase).
+
+**Depende del titular**
+- [ ] Instalar el receptor de informes de error en el VPS (fase 18): usuario `informe`, `informe.service` (ya con
+      `INFORME_TO=djl@djl.red`), bloque de nginx y SPF/DKIM/DMARC de realify.es (`server/informe/README.md`). Sin esto, «Enviar
+      informe» no entrega nada.
+- [ ] Permitir `huggingface.co` en el entorno de desarrollo (Network access › Custom › Allowed domains) para poder hacer el
+      vocabulario abierto de «Seleccionar por texto» con CLIPSeg (fase 20).
+
+**Bloqueado**
+- [ ] Exportar HEIC (fase 16): no hay codificador HEVC en WASM con licencia/patentes aceptables. AVIF lo cubre.
+
+**Fase 20 · cabos sueltos**
+- [ ] Vocabulario abierto de «Seleccionar por texto» (CLIPSeg; ver arriba).
+- [ ] Ajustes sin migrar a coma flotante: Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
+      degradado, Blanco y negro, los de `applyDirect` y los modos Premium con motor propio.
+- [ ] Capas con origen de 16 bits recortado o desplazado.
+- [ ] CLAHE Premium: la vista previa difiere de lo aplicado.
+- [ ] Límite de memoria con imágenes de 12 y 24 MP.
+
+**Color y exportación (fases 2 y 6)**
+- [ ] WebP con perfil P3 y TIFF de 8 bits con perfil.
+- [ ] Herramientas WebGL en P3 (hoy recortan a sRGB).
+- [ ] «Abrir en Realify» desde el revelador RAW en P3.
+
+**IA (fases 3, 5 y 10)**
+- [ ] Eliminar fondo (U²-Net, MODNet, ISNet) también por bloques o con refinado.
+- [ ] Máscara por profundidad como capa de ajuste «viva».
+
+**RAW (fase 4)**
+- [ ] Revelado RAW sin Premium (motor GPU de 8 bits) y RAW en Display P3.
+
+**Fotos, apilado y lente (fases 7, 8 y 9)**
+- [ ] Usar la alineación subpíxel en Fusión HDR y Unir imágenes.
+- [ ] Apilar RAW directamente; ordenar las tomas por nitidez y usar el análisis de nitidez para elegir la referencia.
+- [ ] Documentos: mejora del fondo (aclarar el papel, blanco y negro) y varias páginas.
+- [ ] Perspectiva automática con diagonales y puntos de fuga horizontales.
+- [ ] Lente: móviles y cámaras sin objetivo en la base, modelos «acm» y viñeteo ACM, recorte del propio archivo; aplicarlo a RAW
+      antes del revelado y en lote.
+
+**16 bits, precisión y rendimiento (fases 11 a 14)**
+- [ ] Realify (simulación de captura), Filtro Vintage y Revelado fotográfico siguen con salida de 8 bits.
+- [ ] Coma flotante «de verdad» (no por delta) para desenfoque, enfoque y ruido.
+- [ ] Estilos de capa y trazo en curso (pincel, borrador) en la vista previa de GPU.
+- [ ] WebGPU como alternativa; caché de texturas por capa; documentos grandes por mosaicos.
+- [ ] Redimensionar con 16 bits; perspectiva, enderezar y otras operaciones que remuestrean capas siguen soltando los 16 bits.
+- [ ] El autoguardado periódico no lleva los 16 bits.
+- [ ] Capas y máscaras en 16 bits/float propios.
+- [ ] Procesado «lazy» por bloques inspirado en libvips.
+
+**Metadatos (fase 15)**
+- [ ] Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF (hoy JPEG, PNG y WebP).
+- [ ] Copiar MakerNote e IPTC en PNG/WebP; XMP extendido de JPEG; metadatos de originales no JPEG.
+- [ ] Editar los metadatos antes de exportar.
+- [ ] Mostrar la procedencia C2PA en el inspector.
+
+**PSD/PSB y PDF (fases 16 y 17)**
+- [ ] PSD: objetos inteligentes, texto nativo editable, resto de capas de ajuste (brillo, tono, balance de color…), «Fusionar si»,
+      capas de 16 bits con capas, metadatos XMP/EXIF, abrir PSD de 16 bits conservando los 16 bits, más opciones de estilos.
+- [ ] PDF: una página por capa/artboard, PDF/X (CMYK e intención de salida), marcas de recorte dibujadas, fuentes propias en la
+      portada, fondo a elegir para imágenes con transparencia en JPEG, ordenar/quitar las imágenes añadidas.
+
+**Evaluado y descartado**
+- Pica y Photon (fase 19), cuantizar modelos a INT8/Q4, Fabric.js/TOAST UI como editor completo, Transformers.js como segundo motor,
+  image-js como sustituto del pipeline y libvips completo (ver «Descartado y por qué»).
+
 ## Reglas que mandan en todas las fases
 
 1. **⚠️ Máxima prioridad: ningún efecto puede pixelar la imagen.** Mantener la calidad está
