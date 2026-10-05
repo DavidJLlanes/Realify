@@ -883,6 +883,7 @@ registerAll({
   "an.strip":       async () => (await import("./io/stripui.js")).openStrip(),
   "help.guide":     async () => (await import("./ui/guide.js")).openGuide(),
   "help.legal":     async () => (await import("./ui/legal.js")).openLegalNotice(),
+  "help.report":    async () => (await import("./ui/bugreport.js")).openBugReport(),
   "help.privacy":   async () => (await import("./ui/legal.js")).openPrivacyPolicy(),
   "help.cookies":   async () => (await import("./ui/legal.js")).openCookiesPolicy(),
   "help.diag":      async () => {

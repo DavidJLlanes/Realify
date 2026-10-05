@@ -9,7 +9,7 @@ const CONTACT = "djl@djl.red";
 const OWNER = "David";
 /* Fecha que se enseña al final de los tres documentos: cambiarla en
    cada modificación de cualquiera de ellos. */
-const UPDATED = "1 de octubre de 2026";
+const UPDATED = "5 de octubre de 2026";
 
 const LEGAL_BODY = `<div class="guide">
 
@@ -86,7 +86,8 @@ const PRIVACY_BODY = `<div class="guide">
     <code>${CONTACT}</code>.</p>
 
   <h3>Qué se procesa</h3>
-  <p>Nada sale de tu equipo. Las imágenes que abres, editas y exportas
+  <p>Nada sale de tu equipo, salvo el informe de error que tú decidas
+    enviar (ver más abajo). Las imágenes que abres, editas y exportas
     permanecen en la memoria y el almacenamiento de tu propio navegador en
     todo momento.</p>
 
@@ -122,6 +123,23 @@ const PRIVACY_BODY = `<div class="guide">
       falla, el servidor también anota el error con la IP de origen, con
       el mismo fin y la misma conservación.</li>
   </ul>
+
+  <h3>Informes de error (sólo si tú los envías)</h3>
+  <p>Ayuda › «Informar de un error…» (y el botón «Enviar informe» del
+    panel que aparece si la aplicación no arranca) <b>nunca envía nada por
+    sí solo</b>: sólo se manda lo que ves en el diálogo, cuando pulsas
+    «Enviar informe». Lleva tu mensaje, tu correo <i>si decides escribirlo</i>
+    (se usa únicamente para responderte), el diagnóstico técnico si dejas la
+    casilla marcada (navegador, sistema, versión de Realify, tamaño del
+    documento y errores; puedes leerlo antes en el mismo diálogo) y, sólo si
+    marcas su casilla, una copia reducida de la imagen que tienes abierta
+    (nunca el archivo original). Llega por correo electrónico a Realify, se
+    usa únicamente para entender y corregir el fallo y para contestarte, y
+    no se guarda en ninguna base de datos: queda en el buzón del
+    responsable y se borra cuando el asunto se resuelve. Para evitar abusos
+    el servidor aplica un límite de envíos por dirección IP, que se mantiene
+    sólo en memoria durante una hora. Base jurídica: tu consentimiento al
+    enviarlo (art. 6.1.a RGPD).</p>
 
   <h3>Servicios de terceros (opcionales)</h3>
   <p>Para descargar un recurso de internet, tu navegador tiene que
@@ -176,7 +194,7 @@ const PRIVACY_BODY = `<div class="guide">
     derechos de acceso, supresión, limitación y oposición escribiendo a
     <code>${CONTACT}</code>: indica tu IP y el día y la hora aproximados
     de la visita, porque el registro no contiene ningún otro dato que
-    permita encontrarte. Lo que guarda tu navegador puedes borrarlo tú
+    permita encontrarte. Si enviaste un informe de error, escribe también a esa dirección para pedir que se borre. Lo que guarda tu navegador puedes borrarlo tú
     mismo vaciando los datos del sitio. Frente a Hugging Face puedes ejercer tus derechos
     según su propia política. También puedes reclamar ante la
     Agencia Española de Protección de Datos (<code>aepd.es</code>). Si

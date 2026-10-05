@@ -1742,6 +1742,12 @@ const TOPICS = [
         publicada; el Diagnóstico incluye cuándo se comprobó, el error si lo hubo y un registro
         de lo ocurrido (comprobaciones, avisos y actualizaciones automáticas), para saber por qué
         no llegó un aviso. Sin conexión conserva la sesión.</p>
+      <p id="diag-report"><b>Informar de un error.</b> <b>Ayuda › Informar de un error…</b> envía un aviso al
+        equipo de Realify: escribes qué ha pasado y, si quieres, tu correo (sólo para responderte). El
+        <b>diagnóstico</b> va marcado por defecto y puedes leer su texto exacto antes de enviar; la
+        <b>copia reducida de la imagen</b> sólo se adjunta si la marcas, y nunca se manda el archivo original. No se
+        envía nada sin pulsar «Enviar informe». También aparece «Enviar informe» en el panel de «Realify no ha podido
+        arrancar», y el diagnóstico anota qué archivo no se pudo cargar y con qué código.</p>
       <p id="diag-compat"><b>Avisos automáticos.</b> Al arrancar, la app comprueba que el
         navegador le deja leer los píxeles del lienzo (Firefox con la protección estricta contra
         rastreo, LibreWolf o Mullvad los bloquean o los alteran, y entonces los filtros no hacen

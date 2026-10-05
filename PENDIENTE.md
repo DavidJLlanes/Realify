@@ -232,16 +232,15 @@ pdf-lib (MIT).
       dibujadas, texto de la portada con más estilo y fuentes propias (hoy Helvetica), imágenes con transparencia en
       modo JPEG sobre un color de fondo a elegir, y orden/quitado de las imágenes añadidas.
 
-## Fase 18 · Informe de errores en Ayuda
-- [ ] Diagnóstico: anotar qué archivo no se pudo cargar y con qué código (la
-      autorreparación de `js/boot-guard.js` ya pide todos los módulos uno a uno).
-- [ ] Entrada «Informar de un error» en Ayuda (móvil y escritorio): qué ha pasado, correo
-      opcional y casilla «Adjuntar diagnóstico»; nunca la foto salvo que se pida.
-- [ ] En el VPS: `/api/informe` en nginx → script corto → `sendmail` de Postfix.
-      Destinatario fijo, `limit_req`, tamaño máximo, campo trampa, cabeceras limpias,
-      correo del usuario sólo en `Reply-To`; SPF y DKIM en realify.es. Añadir la sección
-      correspondiente a la Política de privacidad.
-- [ ] Opcional: ofrecer «¿Enviar informe?» si la app no arranca (siempre preguntando).
+## Fase 18 · Informe de errores en Ayuda ✅ en parte (v243)
+- [x] Diagnóstico: anota qué archivo no se pudo cargar y con qué código (también tras la autorreparación). (v243)
+- [x] Entrada «Informar de un error» en Ayuda (móvil y escritorio): qué ha pasado, correo opcional y casilla
+      «Adjuntar diagnóstico»; la imagen sólo si se marca. (v243)
+- [x] Receptor `/api/informe` (`server/informe/`): destinatario fijo, `limit_req`, tamaño máximo, campo trampa,
+      cabeceras limpias, correo sólo en `Reply-To`; sección en la Política de privacidad. (v243)
+- [x] «Enviar informe» en el panel de «no ha podido arrancar», siempre preguntando. (v243)
+- [ ] **Falta instalarlo en el VPS** (lo hace el titular): usuario `informe`, `informe.service` con `INFORME_TO`, bloque de
+      nginx, y SPF/DKIM/DMARC de realify.es (pasos en `server/informe/README.md`). Después, probar un envío real.
 
 ## Fase 19 · Extras de infraestructura
 No mejoran el resultado; sólo si sobra tiempo.

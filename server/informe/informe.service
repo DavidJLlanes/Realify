@@ -1,0 +1,23 @@
+[Unit]
+Description=Informes de error de Realify (/api/informe)
+After=network.target postfix.service
+
+[Service]
+# Usuario sin privilegios: sendmail de Postfix funciona con cualquiera gracias al grupo postdrop
+User=informe
+Group=informe
+SupplementaryGroups=postdrop
+Environment=INFORME_TO=CAMBIA@tu-correo.es
+Environment=INFORME_FROM=informes@realify.es
+Environment=INFORME_PORT=8766
+ExecStart=/usr/bin/python3 /opt/informe/informe.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=false
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/spool/postfix/maildrop /var/spool/postfix/public
+
+[Install]
+WantedBy=multi-user.target

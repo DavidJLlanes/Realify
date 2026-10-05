@@ -27,6 +27,10 @@
                application/manifest+json image/svg+xml application/wasm text/plain
                application/xml;
 
+    # ── Informe de errores (Ayuda › Informar de un error…) ─────────
+    # Ver server/informe/README.md y server/informe/nginx.conf.example
+    # (location = /api/informe con limit_req y proxy a 127.0.0.1:8766).
+
     # ── Nunca públicos ──────────────────────────────────────────────
     location ^~ /log/    { return 404; }
     location ^~ /server/ { return 404; }

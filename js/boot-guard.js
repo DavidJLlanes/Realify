@@ -65,6 +65,7 @@
       feature("OffscreenCanvas", function(){ return typeof OffscreenCanvas === "function"; })
     ];
     if(extra) lines = lines.concat(extra);
+    try{ var prev = JSON.parse(sessionStorage.getItem("realify.prevErrors") || "[]"); if(prev.length) lines = lines.concat(["Errores antes de la autorreparación (" + prev.length + "):"], prev.map(function(e){ return " · " + e; })); }catch(e){}
     lines.push("Errores (" + errors.length + "):");
     lines = lines.concat(errors.length ? errors.map(function(e){ return " · " + e; }) : [" · ninguno"]);
     return lines.join("\n");
@@ -97,11 +98,23 @@
       'muy antiguo o a la protección estricta contra rastreo. En Firefox: pulsa el escudo junto a la dirección y desactiva la protección para esta web.</p>' +
       '<textarea readonly style="width:100%;height:150px;box-sizing:border-box;background:#0f1216;color:#cfd6e2;border:1px solid #3a414b;border-radius:6px;padding:8px;font:12px/1.35 ui-monospace,monospace"></textarea>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">' +
+      '<button type="button" data-a="send" style="padding:8px 14px;border-radius:6px;border:1px solid #4b5563;background:#262b33;color:#e9edf4;font:inherit;cursor:pointer">Enviar informe</button>' +
       '<button type="button" data-a="copy" style="padding:8px 14px;border-radius:6px;border:1px solid #4b5563;background:#262b33;color:#e9edf4;font:inherit;cursor:pointer">Copiar diagnóstico</button>' +
       '<button type="button" data-a="reload" style="padding:8px 14px;border-radius:6px;border:1px solid #7fa6ff;background:#3b63c4;color:#fff;font:inherit;cursor:pointer">Recargar</button>' +
       '</div></div>';
     box.querySelector("textarea").value = text;
     box.querySelector('[data-a="copy"]').addEventListener("click", function(){ var t = box.querySelector("textarea"); t.select(); copy(window.__realifyDiag(), this); });
+    box.querySelector('[data-a="send"]').addEventListener("click", function(){
+      var b = this;
+      if(b.getAttribute("data-ok")) return;
+      // Siempre se pregunta: sólo se envía el texto de arriba (nada de la foto) y sólo si se acepta
+      if(!confirm("Se enviará a Realify únicamente el diagnóstico que ves en el cuadro (navegador, versión y errores), sin ninguna imagen ni dato personal. ¿Enviarlo?")) return;
+      b.textContent = "Enviando…"; b.disabled = true;
+      fetch("/api/informe", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: "Realify no ha podido arrancar (informe enviado desde el panel de arranque).", diag: box.querySelector("textarea").value, version: "arranque", sitio: "" }) })
+        .then(function(r){ if(!r.ok) throw new Error(r.status); b.textContent = "Enviado ✓ Gracias"; b.setAttribute("data-ok", "1"); })
+        .catch(function(){ b.disabled = false; b.textContent = "No se pudo enviar: copia el diagnóstico"; });
+    });
     box.querySelector('[data-a="reload"]').addEventListener("click", function(){ location.reload(); });
     (document.body || document.documentElement).appendChild(box);
   }
@@ -110,6 +123,7 @@
   function repairedBefore(){
     try{ return sessionStorage.getItem("realify.repaired") === "1"; }catch(e){ return true; }   // sin sessionStorage, nunca (evita bucles)
   }
+  function saveErrors(){ try{ sessionStorage.setItem("realify.prevErrors", JSON.stringify(errors.slice(0, 20))); }catch(e){} }
   function markRepaired(){ try{ sessionStorage.setItem("realify.repaired", "1"); return true; }catch(e){ return false; } }
   /* Pide de nuevo (cache: "reload") cada módulo que se importa desde
      `url`, siguiendo los import estáticos y dinámicos del propio código */
@@ -131,10 +145,16 @@
         if(!queue.length && !active){ resolve(count); return; }
         while(active < 8 && queue.length){
           var u = queue.shift(); active++;
-          fetch(u, { cache: "reload", credentials: "same-origin" }).then(function(r){ return /\.m?js(\?|$)/.test(r.url) ? r.text().then(function(t){ return [r.url, t]; }) : [r.url, ""]; })
+          (function(u){
+          fetch(u, { cache: "reload", credentials: "same-origin" }).then(function(r){
+            // Qué archivo falla y con qué código (para el diagnóstico y el informe)
+            if(!r.ok) push("Archivo " + new URL(u).pathname + ": HTTP " + r.status);
+            else if(/\.m?js(\?|$)/.test(u) && !/javascript|ecmascript/i.test(r.headers.get("content-type") || "")) push("Archivo " + new URL(u).pathname + ": tipo " + (r.headers.get("content-type") || "desconocido"));
+            return r.ok && /\.m?js(\?|$)/.test(r.url) ? r.text().then(function(t){ return [r.url, t]; }) : [r.url, ""]; })
             .then(function(res){ var m; RE.lastIndex = 0; while((m = RE.exec(res[1]))) add(new URL(m[1] || m[2] || m[3], res[0]).href); })
-            .catch(function(){})
+            .catch(function(e){ push("Archivo " + new URL(u).pathname + ": sin respuesta (" + (e && e.name || "red") + ")"); })
             .then(function(){ active--; next(); });
+          })(u);
         }
       }
       next();
@@ -151,7 +171,7 @@
     try{ if(window.caches && caches.keys) steps.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }catch(e){}
     Promise.all(steps.map(function(p){ return p.catch(function(){}); }))
       .then(refreshModules)
-      .then(function(){ location.reload(); }, function(){ location.reload(); });
+      .then(function(){ saveErrors(); location.reload(); }, function(){ saveErrors(); location.reload(); });
     return true;
   }
 

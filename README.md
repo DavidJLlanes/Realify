@@ -582,7 +582,7 @@ español e inglés. Cada sticker queda en su propia capa. Detalles en
 - **Guía** interactiva con **buscador** (sin tildes, varias palabras, salta al
   párrafo exacto), página de **novedades** y ayuda directa de cada herramienta
   (botón «?» de la barra de opciones); asistente de bienvenida.
-- **Diagnóstico** del navegador y del equipo.
+- **Diagnóstico** del navegador y del equipo, e **Informar de un error** (`js/ui/bugreport.js`, receptor opcional en `server/informe/`).
 - Aviso legal, política de privacidad y de cookies.
 - Los modelos de IA se ejecutan en local (ONNX Runtime, con WebGPU o
   WebAssembly). Los modelos grandes (Hugging Face) se descargan la
@@ -627,7 +627,7 @@ hojacontactos/          Hoja de contactos
 lote/                   Aplicar una edición a varias fotos
 assets/                 Iconos, imágenes y modelos de IA
 fonts/                  Tipografías libres (catálogo completo de Google Fonts), servidas desde el sitio
-server/                 Configuración de nginx y servidor opcional para Unmark (FastAPI)
+server/                 Configuración de nginx, servidor opcional para Unmark (FastAPI) y receptor de informes de error (`informe/`)
 .github/workflows/      Despliegue automático en realify.es
 ```
 

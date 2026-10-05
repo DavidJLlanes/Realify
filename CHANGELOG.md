@@ -9,6 +9,23 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v243 · Informe de errores en Ayuda (fase 18)
+- **Ayuda › Informar de un error…** (`js/ui/bugreport.js`; en móvil, en el mismo menú Ayuda): qué ha pasado, correo
+  opcional (sólo para responderte), **«Adjuntar diagnóstico»** (marcada, con vista previa del texto exacto, sin el nombre del
+  archivo) y **«Adjuntar una copia reducida de la imagen»** (desmarcada; nunca el original). Nada se envía sin pulsar
+  «Enviar informe»; si no hay conexión o hay demasiados envíos, avisa y ofrece «Copiar informe».
+- **Panel «Realify no ha podido arrancar»**: nuevo botón «Enviar informe» que pregunta antes y manda sólo el diagnóstico.
+- **Diagnóstico**: el vigilante de arranque anota ahora qué archivo falla y con qué código (`Archivo /js/x.js: HTTP 404`,
+  tipo MIME erróneo o sin respuesta) y conserva esos errores tras la autorreparación («Errores antes de la autorreparación»).
+- **Servidor** (`server/informe/`, para el VPS; ver su README): receptor `/api/informe` de sólo biblioteca estándar que
+  reenvía con el `sendmail` de Postfix; destinatario y asunto fijos, correo del usuario sólo en `Reply-To`, tamaño
+  máximo, campo trampa, 5 informes/hora por IP + `limit_req` de nginx, imagen sólo si es un JPEG real; con servicio
+  systemd, bloque de nginx y guía de SPF, DKIM y DMARC de realify.es. **Hay que instalarlo en el VPS** para que el envío
+  funcione; hasta entonces el diálogo avisa de que no se pudo enviar y deja copiar el informe.
+- **Política de privacidad**: nueva sección «Informes de error (sólo si tú los envías)».
+- Pruebas nuevas: `tests/informe.mjs` (diálogo en móvil y escritorio, panel de arranque, 429) y
+  `tests/informe_servidor.py` (receptor con sendmail falso: inyección de cabeceras, trampa, límites, imagen falsa).
+
 ### v242 · PDF profesional (fase 17)
 - **Archivo › Exportar PDF…** (`js/io/pdfexport.js`, motor en `js/io/pdfpro.js`; también en el cajón «Herramientas» del móvil)
   con **pdf-lib** (MIT, `js/vendor/pdf-lib`, sin modificar, se carga sólo al usarlo): el documento y las imágenes que se
