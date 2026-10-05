@@ -40,12 +40,13 @@ export async function openTextSelect({ target = null } = {}){
     const msg = bodyEl.querySelector(".ts-state");
     if(p.empty) msg.textContent = "Escribe qué quieres seleccionar.";
     else if(!p.terms.length) msg.textContent = `No conozco «${p.unknown.join(" ")}». Prueba con: ${T.EXAMPLES.join(", ")}…`;
-    else msg.textContent = p.terms.map(t => `${t.neg ? "sin " : ""}${t.label || "color"}`).join(" · ") + (p.unknown.length ? ` (ignoro: ${p.unknown.join(", ")})` : "");
+    else msg.textContent = p.terms.map(t => `${t.neg ? "sin " : ""}${t.label || "color"}${t.open ? " (IA, descripción libre)" : ""}`).join(" · ") + (p.unknown.length ? ` (ignoro: ${p.unknown.join(", ")})` : "")
+      + (p.terms.some(t => t.open) ? " · La primera vez se descarga el modelo CLIPSeg (273 MB)." : "");
     if(ok) ok.disabled = !p.terms.length || p.terms.every(t => t.neg);
   };
   const go = await dialog({
     title: "Seleccionar por texto · Premium 👑", cls: "dlg-textsel",
-    body: `<div class="field"><label>Qué</label><input type="text" class="grow" data-k="q" placeholder="persona, cielo, coche rojo…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    body: `<div class="field"><label>Qué</label><input type="text" class="grow" data-k="q" placeholder="persona, cielo, pelo, una taza azul…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
       <p class="hint ts-state" style="margin:6px 0"></p>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px">${T.EXAMPLES.map(e => `<button type="button" class="ghost" data-ex="${esc(e)}" style="padding:2px 9px;font-size:12px">${esc(e)}</button>`).join("")}</div>
       ${target ? "" : `<div class="field"><label>Resultado</label><select data-k="out" class="grow"><option value="sel">Selección</option><option value="mask">Máscara de la capa</option></select></div>`}`,
@@ -103,11 +104,63 @@ export async function facePartsMask(src, parts, W, H, title){
   return out;
 }
 
+/**
+ * Descripción libre con CLIPSeg (fase 20): «una taza azul con un dibujo», «el logo»… El texto se traduce al inglés (js/ai/es2en.js),
+ * se pasa por el tokenizador de CLIP y el modelo (fp16, 273 MB, se descarga una vez avisando) da, para una vista de 352×352, la probabilidad
+ * de que cada píxel sea eso. Vista de la foto entera + (si es grande) 2×2 mosaicos con solape, que ven los detalles más finos; se
+ * promedian con ventana suave y la máscara resultante, a tamaño completo, pasa después por el ajuste de borde con filtro guiado.
+ */
+export async function openVocabMask(src, text, W, H, title){
+  const [{ loadClipTokenizer }, { toEnglish }, { runModel }] = await Promise.all([import("../ai/cliptokenizer.js"), import("../ai/es2en.js"), import("../ai/runtime.js")]);
+  const tok = await loadClipTokenizer(), en = toEnglish(text).text || String(text);
+  const { ids, mask } = tok.pad(en);
+  const views = [{ x: 0, y: 0, w: W, h: H, whole: true }];
+  if(Math.min(W, H) >= 640){ const tw = W * 0.6, th = H * 0.6; for(const fy of [0, H - th]) for(const fx of [0, W - tw]) views.push({ x: fx, y: fy, w: tw, h: th }); }
+  const tiles = views.map(v => {
+    const c = document.createElement("canvas"); c.width = c.height = 352;
+    const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
+    x.drawImage(src, v.x, v.y, v.w, v.h, 0, 0, 352, 352);                     // CLIPSeg entrena con recortes estirados a 352×352
+    return x.getImageData(0, 0, 352, 352).data;
+  });
+  const r = await runModel("clipseg", "clipseg", { tiles, ids, mask }, tiles.map(t => t.buffer), { title });
+  // Probabilidades combinadas a una rejilla de trabajo de ≤ 1024 px
+  const k = Math.min(1, 1024 / Math.max(W, H)), gw = Math.max(8, Math.round(W * k)), gh = Math.max(8, Math.round(H * k));
+  const acc = new Float32Array(gw * gh), wsum = new Float32Array(gw * gh);
+  views.forEach((v, vi) => {
+    const lg = r.outs[vi], x0 = Math.max(0, Math.floor(v.x * k)), x1 = Math.min(gw, Math.ceil((v.x + v.w) * k)), y0 = Math.max(0, Math.floor(v.y * k)), y1 = Math.min(gh, Math.ceil((v.y + v.h) * k));
+    for(let y = y0; y < y1; y++){
+      const ty = ((y + 0.5) / k - v.y) / v.h, fy = Math.min(351, Math.max(0, ty * 352 - 0.5)), a0 = fy | 0, a1 = Math.min(351, a0 + 1), dy = fy - a0;
+      for(let xx = x0; xx < x1; xx++){
+        const tx = ((xx + 0.5) / k - v.x) / v.w, fx = Math.min(351, Math.max(0, tx * 352 - 0.5)), b0 = fx | 0, b1 = Math.min(351, b0 + 1), dx = fx - b0;
+        const l = (lg[a0 * 352 + b0] * (1 - dx) + lg[a0 * 352 + b1] * dx) * (1 - dy) + (lg[a1 * 352 + b0] * (1 - dx) + lg[a1 * 352 + b1] * dx) * dy;
+        // peso: la foto entera pesa 1; un mosaico pesa más en su centro y casi nada en sus bordes (sin costuras)
+        const wgt = v.whole ? 1 : 0.15 + 1.35 * Math.sin(Math.PI * Math.min(1, Math.max(0, tx))) * Math.sin(Math.PI * Math.min(1, Math.max(0, ty)));
+        acc[y * gw + xx] += wgt / (1 + Math.exp(-l)); wsum[y * gw + xx] += wgt;
+      }
+    }
+  });
+  let peak = 0; const p = new Float32Array(gw * gh);
+  for(let i = 0; i < p.length; i++){ p[i] = wsum[i] ? acc[i] / wsum[i] : 0; if(p[i] > peak) peak = p[i]; }
+  const out = new Uint8ClampedArray(W * H);
+  if(peak < 0.4) return out;                                                   // el modelo no ve eso en la foto
+  for(let y = 0; y < H; y++){
+    const fy = Math.min(gh - 1, Math.max(0, (y + 0.5) * k - 0.5)), a0 = fy | 0, a1 = Math.min(gh - 1, a0 + 1), dy = fy - a0;
+    for(let xx = 0; xx < W; xx++){
+      const fx = Math.min(gw - 1, Math.max(0, (xx + 0.5) * k - 0.5)), b0 = fx | 0, b1 = Math.min(gw - 1, b0 + 1), dx = fx - b0;
+      const v = (p[a0 * gw + b0] * (1 - dx) + p[a0 * gw + b1] * dx) * (1 - dy) + (p[a1 * gw + b0] * (1 - dx) + p[a1 * gw + b1] * dx) * dy;
+      const t = Math.min(1, Math.max(0, (v - 0.32) / 0.3));
+      out[y * W + xx] = t * t * (3 - 2 * t) * 255 + 0.5;
+    }
+  }
+  return out;
+}
+
 /** Máscara 0-255 del tamaño de `src` para un término (unión de clases, con su color). */
 async function termMask(src, term, px, W, H, SEG, title){
   const n = W * H;
   let m;
-  if(term.parts) m = await facePartsMask(src, term.parts, W, H, title);
+  if(term.open) m = await openVocabMask(src, term.open, W, H, title);
+  else if(term.parts) m = await facePartsMask(src, term.parts, W, H, title);
   else if(term.classes.length) m = (await SEG.segmentClasses(src, term.classes, title)).mask;
   else { m = new Uint8ClampedArray(n); m.fill(255); }
   if(term.color){

@@ -62,7 +62,7 @@ function cancelAll(){
   hideBusy();
 }
 
-const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA", samEncode: "Analizando la foto con IA", faceRestore: "Restaurando caras con IA" };
+const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA", samEncode: "Analizando la foto con IA", faceRestore: "Restaurando caras con IA", clipseg: "Buscando en la foto con IA" };
 
 /* ── Red de seguridad para modelos pesados ──────────────────────
    Un modelo grande (ISNet, LaMa…) puede agotar la memoria de la

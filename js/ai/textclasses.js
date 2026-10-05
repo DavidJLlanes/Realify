@@ -145,7 +145,8 @@ export function colorMembership(r, g, b, name){
 const FILLER = new Set(["el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al", "todo", "toda", "todos", "todas", "selecciona", "seleccionar", "elige", "elegir", "marca", "marcar", "quiero", "solo", "sólo", "el", "mi", "mis", "que", "hay", "en", "foto", "imagen"]);
 
 /**
- * @returns { terms: [{ classes: [canal…], color, neg, label }], unknown: [palabras], empty }
+ * @returns { terms: [{ classes: [canal…], color, neg, label, parts?, open? }], unknown: [palabras], empty }
+ *   `parts`: partes de la cara (BiSeNet); `open`: descripción libre para CLIPSeg (lo que no está en las 150 categorías)
  */
 export function parseQuery(text){
   // Se conservan comas y «+» hasta partir la frase (strip los quitaría)
@@ -167,7 +168,7 @@ export function parseQuery(text){
     }
     // El nombre puede tener varias palabras («mesa de billar»): se prueba entero y, si no, palabra a palabra
     const phrase = rest.filter((w, i) => !(w === "de" && i === rest.length - 1)).join(" ");
-    let cls = [];
+    let cls = []; const localUnknown = [];
     // Partes de la cara (BiSeNet): «pelo», «pelo rojo», «ojos y labios»: término aparte, sin clases ADE20K
     const partWords = rest.filter(w => w !== "de" && partOf(w));
     if(partWords.length && partWords.length === rest.filter(w => w !== "de").length){
@@ -183,12 +184,15 @@ export function parseQuery(text){
       const i = classOf(w);
       if(i >= 0) cls.push(i + 1);
       else if(GROUPS[strip(w)]) cls.push(...GROUPS[strip(w)].map(j => j + 1));
-      else unknown.push(w);
+      else localUnknown.push(w);
     }
     if(!cls.length){
-      if(color && !rest.length) { terms.push({ classes: [], color, neg, label: colorWord || color }); }   // «rojo» a secas: todo lo rojo
+      if(color && !rest.length) { terms.push({ classes: [], color, neg, label: colorWord || color }); continue; }   // «rojo» a secas: todo lo rojo
+      // Nada de esto está en el vocabulario cerrado: descripción libre (CLIPSeg, js/features/textselect.js), con el color dentro del texto
+      if(localUnknown.length){ const txt = words.join(" "); terms.push({ classes: [], open: txt, color: null, neg, label: txt }); }
       continue;
     }
+    unknown.push(...localUnknown);
     const uniq = [...new Set(cls)], name = uniq.length === 1 ? CLASSES[uniq[0] - 1][1] : phrase;     // con tilde, como en la lista
     terms.push({ classes: uniq, color, neg, label: (color ? name + " " + colorWord : name) });
   }
@@ -196,4 +200,4 @@ export function parseQuery(text){
 }
 
 /** Ejemplos de frases para la ayuda de la ventana */
-export const EXAMPLES = ["persona", "cielo", "coche rojo", "césped y árboles", "edificio sin cielo", "agua azul", "pelo", "ojos y labios"];
+export const EXAMPLES = ["persona", "cielo", "coche rojo", "césped y árboles", "edificio sin cielo", "agua azul", "pelo", "ojos y labios", "una taza azul"];

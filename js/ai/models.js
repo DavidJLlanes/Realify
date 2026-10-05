@@ -97,6 +97,14 @@ export const MODELS = {
   depth:    { url: LOCAL + "depthanything/depth_anything_v2_small_fp16.onnx", size: 49981786, store: true, premium: true,
               label: "Depth Anything V2", license: "Apache-2.0" },
 
+  /* ── Selección por descripción libre: CLIPSeg rd64-refined (CIDAS, Apache-2.0), en la conversión a ONNX de Xenova, float16
+        (273 MB; la cuantizada a INT8/Q4 empeora y no se usa). Entradas: input_ids y attention_mask (int64, 1×77, tokenizador de CLIP
+        en js/ai/cliptokenizer.js), pixel_values 1×3×352×352 con media/desviación de ImageNet; salida los «logits» 352×352 (sigmoide =
+        probabilidad de que el píxel sea lo descrito). Sólo se descarga al usarlo, avisando antes. CPU: el resultado con WebGPU no se
+        ha podido validar. ── */
+  clipseg:  { url: "https://huggingface.co/Xenova/clipseg-rd64-refined/resolve/main/onnx/model_fp16.onnx", size: 273352075, store: true, premium: true, cpu: true,
+              label: "CLIPSeg (descripción libre)", license: "Apache-2.0" },
+
   /* ── Restaurar caras: GFPGAN v1.4 (Apache-2.0), float16. Entrada y
         salida 1×3×512×512 RGB en -1…1 con la cara alineada a la plantilla
         FFHQ. 170 MB en dos trozos (GitHub no admite archivos de más de

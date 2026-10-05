@@ -9,6 +9,20 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v246 · Selección por descripción libre con CLIPSeg (fase 20)
+- **Seleccionar por texto** (y Capa › Máscara de capa › «Por texto») ya no se limita a las 150 categorías: lo que no esté en el vocabulario
+  («una taza azul con un dibujo», «el logo», «la bufanda roja») se busca con **CLIPSeg** (IA de descripción libre, Apache-2.0). Se mezcla con lo
+  de siempre en la misma frase: «coche y una taza azul», «persona sin taza». El modelo (**float16, 273 MB**; la versión cuantizada se descarta
+  por calidad) se descarga de Hugging Face **sólo la primera vez que se usa**, avisando antes, y se guarda en el navegador; la foto no sale del equipo.
+- Cómo se calcula: texto → inglés con un diccionario de unas 600 palabras corrientes (CLIP casi sólo entiende inglés; lo que no está pasa tal cual)
+  → tokenizador de CLIP propio (`js/ai/cliptokenizer.js`, idéntico a la referencia de Hugging Face) → modelo en la CPU (WebAssembly) sobre la foto entera
+  y, si es grande, sobre 2×2 mosaicos con solape; se promedian con ventana suave y la máscara, a resolución completa, pasa por el mismo ajuste de borde
+  con filtro guiado. Si el modelo no ve lo descrito, avisa en vez de seleccionar algo al azar.
+- Límites: la máscara de CLIPSeg es blanda (352 px por vista), así que los objetos muy pequeños o muy parecidos entre sí pueden fallar; con el
+  inglés va mejor que con el español. Una descripción es siempre positiva: «sin X» funciona porque se calcula X aparte y se resta.
+- Pruebas nuevas: `tests/cliptokenizer.mjs` (15 frases idénticas a la referencia) y `tests/clipseg.mjs` (modelo real sobre fotos: el autobús rojo a la
+  derecha, el cielo arriba, «un pez» en el centro, una banana que no está no da nada).
+
 ### v245 · Exportar HEIC (fase 16)
 - **HEIC** en Exportar… y Exportar como…, **sólo donde el dispositivo trae un codificador HEVC** (Safari en iPhone, iPad y Mac; Chrome o
   Edge con codificador por hardware): la opción aparece sola tras comprobarlo; si no, no sale y queda AVIF. No hay ningún codificador
