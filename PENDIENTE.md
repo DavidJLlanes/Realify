@@ -46,12 +46,12 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [x] Revelado RAW sin Premium en Display P3 (v250; aproximado, sin 16 bits).
 
 **Fotos, apilado y lente (fases 7, 8 y 9)**
-- [ ] Usar la alineación subpíxel en Fusión HDR y Unir imágenes.
-- [ ] Apilar RAW directamente; ordenar las tomas por nitidez y usar el análisis de nitidez para elegir la referencia.
-- [ ] Documentos: mejora del fondo (aclarar el papel, blanco y negro) y varias páginas.
-- [ ] Perspectiva automática con diagonales y puntos de fuga horizontales.
-- [ ] Lente: móviles y cámaras sin objetivo en la base, modelos «acm» y viñeteo ACM, recorte del propio archivo; aplicarlo a RAW
-      antes del revelado y en lote.
+- [x] Alineación subpíxel en Fusión HDR (precisa, OpenCV) y Unir imágenes (proyección precisa por homografías). (v251)
+- [x] Apilar RAW directamente y elegir la referencia por nitidez (ordena las tomas). (v251)
+- [x] Documentos: acabado (aclarar el papel, gris, blanco y negro) y varias páginas (PDF). (v251)
+- [x] Perspectiva automática con puntos de fuga horizontales (fachadas vistas de lado). (v251)
+- [x] Lente: perfiles propios («acm»), recorte del propio archivo, automática (lote/Acciones) y RAW antes del revelado. (v251)
+      Pendiente: leer .lcp de Adobe; perfiles propios medidos de móviles concretos; la corrección RAW va después del demosaico (no sobre el mosaico).
 
 **16 bits, precisión y rendimiento (fases 11 a 14)**
 - [ ] Realify (simulación de captura), Filtro Vintage y Revelado fotográfico siguen con salida de 8 bits.
@@ -184,9 +184,8 @@ que ya funciona.
 - [x] Reducción de ruido con varias tomas (image stacking). (v230)
 - [x] Focus stacking. (v230) Mezcla por pesos de nitidez; queda la mezcla por pirámides
       laplacianas para zonas con halos.
-- [ ] Usar esta alineación en Fusión HDR y Unir imágenes (hoy siguen con su propia
-      alineación por traslación).
-- [ ] Apilar RAW directamente y ordenar las tomas por nitidez para elegir la referencia.
+- [x] Esta alineación en Fusión HDR y Unir imágenes. (v251)
+- [x] Apilar RAW directamente y ordenar las tomas por nitidez para elegir la referencia. (v251)
 
 ## Fase 8 · Visión clásica (OpenCV.js, parte 2) ✅ (v231, con pendientes)
 - [x] Corrección de perspectiva y detección de horizonte automáticas (botón Automático de
@@ -194,19 +193,18 @@ que ya funciona.
 - [x] CLAHE (contraste local adaptativo), normal y Premium. (v231)
 - [x] Análisis de nitidez (mapa de enfoque, mejor toma). (v231)
 - [x] Detección y enderezado automático de documentos. (v231)
-- [ ] Usar el análisis de nitidez para elegir la referencia en Apilar fotos.
-- [ ] Documentos: mejora opcional del fondo (aclarar el papel, blanco y negro) y varias páginas.
-- [ ] Perspectiva automática con líneas diagonales y puntos de fuga horizontales (fachadas vistas de lado).
+- [x] Usar el análisis de nitidez para elegir la referencia en Apilar fotos. (v251)
+- [x] Documentos: mejora opcional del fondo (aclarar el papel, gris, blanco y negro) y varias páginas (PDF). (v251)
+- [x] Perspectiva automática con puntos de fuga horizontales (fachadas vistas de lado). (v251)
 
 ## Fase 9 · Corrección de lente con perfiles reales ✅ (v233)
 - [x] Base de perfiles por objetivo (distorsión, viñeteo y aberración): Lensfun, CC BY-SA 3.0
       (uso comercial permitido; hay que atribuir y compartir igual la base derivada, que va
       aparte del código: `assets/lensdb/`). (v233)
 - [x] Aplicación automática según los datos EXIF de cámara y objetivo. (v233)
-- [ ] Móviles y cámaras sin objetivo en la base (iPhone, Pixel…): sus perfiles no están en Lensfun;
-      habría que medirlos o aceptar perfiles aportados por el usuario.
-- [ ] Modelos de distorsión «acm» y viñeteo ACM; recorte del propio archivo (fotos ya recortadas).
-- [ ] Aplicarlo a archivos RAW antes del revelado y en lote.
+- [x] Móviles y cámaras sin objetivo en la base: perfiles propios del usuario (crear, importar, exportar; se aplican solos a esa cámara). (v251)
+- [x] Modelo «acm» (radial + tangencial de Adobe) y viñeteo ACM; recorte del propio archivo. (v251) No se leen los .lcp.
+- [x] Aplicarlo a RAW antes del revelado y en lote (Corrección de lente automática). (v251)
 
 ## Fase 10 · Selección por texto ✅ en parte (v234)
 - [x] Selección por texto con vocabulario CERRADO: las 150 categorías de ADE20K del DeepLab que ya

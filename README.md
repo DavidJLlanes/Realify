@@ -237,13 +237,22 @@ tiempo real mientras se pinta.
   misma escena, alineadas con precisión subpíxel con OpenCV.js (puntos ORB + RANSAC +
   afinado ECC, flujo óptico opcional; OpenCV 4.12, Apache-2.0, 11 MB, sólo al usarlo) y
   combinadas por franjas en luz lineal: reducir ruido con rechazo de movimiento (el ruido
-  baja en √N) o ampliar el enfoque (la toma más nítida en cada punto). Foto nueva a
-  resolución completa.
+  baja en √N) o ampliar el enfoque (la toma más nítida en cada punto). Admite RAW (se
+  revelan con el motor Premium) y elige como referencia la toma más nítida. Foto nueva a
+  resolución completa. La misma alineación sirve en la Fusión HDR («Alineación precisa»,
+  homografías ORB + ECC) y en Unir imágenes (proyección «Precisa», `unir/precise.js`).
+- **Escanear documento Premium 👑** (`js/features/docscan.js`, `js/cv/docquad.js`, `js/cv/docclean.js`):
+  detección del papel, enderezado con la proporción real, acabado (papel aclarado, gris,
+  blanco y negro de texto) y varias páginas en un PDF.
 - **Corrección de lente por perfil Premium 👑** (`js/features/lenscorrect.js`, `js/lens/`): EXIF →
   objetivo de la base de Lensfun (`assets/lensdb/lensfun.json`, CC BY-SA 3.0, construida con
   `tools/build-lensdb.mjs`) → distorsión (poly3, poly5, ptlens), aberración cromática (lineal,
   poly3) y viñeteo (pa) a resolución completa, un solo remuestreo bicúbico. Fórmulas
-  reimplementadas y comprobadas contra Lensfun (menos de 1 px).
+  reimplementadas y comprobadas contra Lensfun (menos de 1 px). Perfiles propios (modelo «acm»
+  radial + tangencial de Adobe, `js/lens/userprofiles.js`) para móviles y cámaras fuera de la
+  base, recorte del propio archivo, corrección automática (`filter.lensAuto`, para Acciones y
+  lote) y, en el revelador RAW, corrección sobre los datos lineales antes del revelado
+  (`raw/lens.js`).
 - **Seleccionar por texto Premium 👑** (`js/features/textselect.js`, `js/ai/textclasses.js`): una frase
   («coche rojo», «césped sin personas») → selección o máscara de capa. Usa el DeepLab ADE20K que ya
   viaja con la web (150 categorías, vocabulario y sinónimos en español, colores por HSV), por

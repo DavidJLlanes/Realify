@@ -359,7 +359,7 @@ const TOPICS = [
           para tapar las cuñas transparentes que deja corregir la perspectiva. Mismo
           criterio que Transformación libre: cambiar de herramienta con una corrección
           ya trazada la aplica; <b>Esc</b> o «Cancelar» la descartan de verdad. En el modo Guías, <b>Automático 👑</b> busca solo las líneas casi verticales (y las horizontales
-          ya casi rectas) con OpenCV y las pone como guías; luego puedes arrastrarlas o borrarlas.</li>
+          ya casi rectas) con OpenCV y las pone como guías; luego puedes arrastrarlas o borrarlas. Si es una <b>fachada vista de lado</b>, sus horizontales y diagonales convergen en un punto de fuga: se detecta esa familia (≥ 3 líneas coherentes) y se usa para ponerla de frente.</li>
       </ul>` },
 
   { id:"imagen", title:"Imagen (menú Imagen)",
@@ -419,7 +419,7 @@ const TOPICS = [
         <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. <b>Panorámica</b>: fotos
           solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
           iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:
-          en fila, columna o cuadrícula, con separación, margen, esquinas y fondo.</li>
+          en fila, columna o cuadrícula, con separación, margen, esquinas y fondo. La proyección <b>Precisa · OpenCV</b> une cada pareja de fotos con una homografía (puntos ORB + RANSAC: giro, escala y perspectiva con precisión subpíxel), mejor para panorámicas de campo moderado; la cilíndrica sigue siendo la de los campos muy anchos.</li>
         <li id="img-stack"><b>Apilar fotos Premium 👑…</b> Varias tomas de la misma escena, hechas
           a pulso (del dispositivo o de las abiertas, de 2 a 16). Se <b>alinean con precisión
           subpíxel</b> aunque se hayan girado o movido y se combinan: <b>Reducir ruido</b> (media en
@@ -427,7 +427,7 @@ const TOPICS = [
           <b>Ampliar el enfoque</b> (en cada punto gana la toma más nítida: macro y paisaje).
           «Corregir movimiento fino» añade flujo óptico para lo que el giro y el desplazamiento no
           explican. La primera vez se descarga OpenCV (11 MB, una sola vez). El resultado se abre
-          como una foto nueva, a la resolución completa que admite el editor.</li>
+          como una foto nueva, a la resolución completa que admite el editor. También acepta <b>archivos RAW</b> directamente (se revelan con el motor Premium) y, con «Referencia: la toma más nítida», mide la nitidez de cada toma (el RAW, a media resolución), las ordena de más a menos nítida y alinea todas a la mejor.</li>
         <li id="img-sharp"><b>Análisis de nitidez…</b> <b>Mapa de enfoque</b> de la imagen: una capa
           nueva, a resolución completa, que colorea lo nítido (azul, verde, amarillo, rojo = lo más
           nítido). <b>Mejor toma</b>: de varias fotos parecidas (del dispositivo o abiertas) las ordena de
@@ -435,7 +435,7 @@ const TOPICS = [
         <li id="img-docscan"><b>Escanear documento Premium 👑…</b> Encuentra el papel, la pizarra o el
           cuadro de la foto (OpenCV, se descarga una vez), deja arrastrar las cuatro esquinas, deduce la
           proporción real del papel desde la perspectiva (o la fija a A4 / Carta) y lo endereza a
-          resolución completa. Foto nueva.</li>
+          resolución completa. <b>Acabado</b>: «Aclarar el papel» (quita sombras y el degradado de luz y deja el papel liso y blanco), escala de grises limpia o blanco y negro de texto. <b>Varias páginas</b>: añade más fotos (cada documento se detecta y endereza solo) y el resultado es un PDF con una página por foto. Foto nueva.</li>
         <li id="img-slice"><b>Cortar en partes…</b> Pantalla completa. Cuadrícula, tamaño fijo,
           <b>carrusel</b> (2 a 10 publicaciones seguidas), <b>perfil de Instagram</b> (numerado en
           el orden de subida) o <b>cortes a mano</b> (toca para añadir, arrastra para mover).
@@ -893,7 +893,7 @@ const TOPICS = [
           cromática y viñeteo (en luz lineal), con un único remuestreo bicúbico a resolución completa
           y, si quieres, zoom para no dejar bordes vacíos. Si no la reconoce, escribe el objetivo
           en el cuadro (se sugieren los de la base). Resultado en una capa nueva. La base (1,7 MB)
-          se descarga la primera vez.</li>
+          se descarga la primera vez. Móviles y cámaras que no están en la base: <b>perfil propio</b> (Nuevo / editar…, Importar…, Exportar), con el modelo «acm» (radial + tangencial de Adobe, radio 1 en la esquina); se guarda en el navegador y se aplica solo a las fotos de esa cámara. <b>Foto recortada</b> indica qué parte del ancho original conserva el propio archivo. <b>Corrección de lente automática Premium 👑</b> (mismo menú y cajón «Herramientas») corrige sin diálogo con el perfil de la cámara o el objetivo que dice el EXIF: sirve en «Acciones» y en lote. En el revelador RAW, <b>Óptica › Lente por perfil</b> corrige sobre los datos lineales antes del revelado.</li>
         <li><b>Retoque de retrato.</b> Suaviza la piel respetando poros y bordes, con
           brillo controlado; no es un filtro de belleza agresivo.</li>
         <li><b>Separación de frecuencias…</b> El otro pilar del retoque de piel serio,

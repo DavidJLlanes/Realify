@@ -9,6 +9,26 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v251 · Fotos, apilado y lente
+- **Apilar fotos**: admite **RAW directamente** (se revelan con el motor Premium con el balance de la cámara) y elige la **referencia por nitidez**: mide cada toma
+  (`focusScore`, el análisis de «Analizar nitidez»; un RAW a media resolución), las ordena de más a menos nítida y alinea todas a la mejor (opción «Referencia:
+  la primera» para lo de antes). Probado con tres DNG: elige la nítida.
+- **Alineación subpíxel en Unir y en HDR**:
+  - *Unir imágenes › Panorámica › Proyección «Precisa · OpenCV»*: una homografía por pareja (ORB + RANSAC, `pairHomography`), encadenadas hasta la primera foto y un
+    solo remuestreo Lanczos; la exposición y la mezcla siguen siendo las de siempre (`unir/precise.js`, `placed` en el motor). En tres fotos con giro y escala
+    distintos, el desajuste medio en los solapes baja de 18,8 a 2,2 niveles.
+  - *Fusión HDR › «Alineación precisa 👑 (OpenCV)»*: homografías ORB + ECC entre exposiciones contiguas (ECC no depende de la exposición), aplicadas en el worker con un
+    solo remuestreo (también a los datos lineales de los RAW); una foto que no se deja alinear conserva su desplazamiento de siempre.
+- **Escanear documento**: **acabado** (aclarar el papel, escala de grises limpia, blanco y negro de texto: estimación del papel por bloques y división, `js/cv/docclean.js`) y
+  **varias páginas** (más fotos, cada documento detectado y enderezado solo; el resultado, un PDF con una página por foto).
+- **Perspectiva automática**: la fachada vista de lado (horizontales y diagonales de hasta 40° que **convergen en un punto de fuga**) se detecta y se corrige; la foto
+  frontal sigue con sus horizontales casi rectas (`pickHorizontals`).
+- **Lente**: perfiles **propios** para móviles y cámaras que no están en Lensfun (modelo «acm» radial + tangencial de Adobe, viñeteo y aberración; crear, importar y exportar
+  JSON; se aplican solos a esa cámara); **recorte del propio archivo** (qué parte del ancho original conserva); **Corrección de lente automática** sin diálogo (también para
+  «Acciones» y lote) y **lente por perfil en el revelador RAW**, sobre los datos lineales antes del revelado. Los archivos .lcp de Adobe no se leen (unidades sin contrastar).
+- Pruebas nuevas: `tests/apilar.mjs`, `tests/unir-preciso.mjs`, `tests/hdr-preciso.mjs`, `tests/docclean.mjs`, `tests/docscan.mjs`, `tests/perspectiva-fuga.mjs`,
+  `tests/lente-acm.mjs`, `tests/lente-auto.mjs` y `tests/raw-lente.mjs`.
+
 ### v250 · IA y RAW: eliminar fondo refinado, máscara por profundidad viva y RAW normal en P3
 - **Eliminar fondo con el borde a resolución completa** (`js/ai/matte.js`): tras la pasada global del modelo (U²-Net, MODNet, ISNet) el borde se refina con
   un filtro guiado por la luminosidad de la foto en una franja alrededor del contorno; lo de lejos del borde no se toca (sin halos). Medido con U²-Net
