@@ -24,4 +24,11 @@ for ext in ("psd", "psb"):
     var = np.unique(np.round(a[40, :, 0] * 65535).astype(int)); check(f"{ext}: la fila tiene {len(var)} valores distintos (con 8 bits habría ≤ 256)", len(var) > 100 and any(int(q) % 257 for q in var))
     comp = psd.numpy()
     check(f"{ext}: compuesto de 16 bits", comp.shape[:2] == (H, W) and np.unique(np.round(comp[40, :, 0] * 65535).astype(int)).size > 100, comp.shape)
+from psd_tools.constants import Resource
+for name in ("p16.psd", "p16.psb", "p8.psd"):
+    psd = PSDImage.open(f"{D}/{name}")
+    xmp = psd.image_resources.get_data(Resource.XMP_METADATA); exif = psd.image_resources.get_data(Resource.EXIF_DATA_1)
+    x = xmp.decode("utf-8", "ignore") if isinstance(xmp, (bytes, bytearray)) else str(xmp or "")
+    check(f"{name}: XMP con título, autor y palabras clave", "Título PSD" in x and "Ana PSD" in x and ">a<" in x and ">b<" in x, x[:60])
+    check(f"{name}: EXIF (recurso 1058) con TIFF y el autor", exif is not None and b"Ana PSD" in (exif if isinstance(exif, (bytes, bytearray)) else getattr(exif, "data", b"")), type(exif).__name__)
 print("RESULTADO:", "OK" if ok else "FALLO"); sys.exit(0 if ok else 1)

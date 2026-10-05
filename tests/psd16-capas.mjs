@@ -27,16 +27,20 @@ const res = await page.evaluate(async () => {
   r.styles = { shadow: { enabled: true, color: "#000000", opacity: 75, blur: 4, x: 3, y: 3 }, glow: { enabled: false }, stroke: { enabled: false }, gradient: { enabled: false } };
   const l = D.addLayer({ name: "Niveles", type: "adjust" }); l.adjustType = "levels"; l.adjustParams = { inLow: 10, inHigh: 240, gamma: 1.2, outLow: 0, outHigh: 255, channel: "rgb" };
   const pr = await P.renderPrecisionAdjustmentStack(W, Hh, { bits16: true, alpha: false, background: "#ffffff", layersOnly: false, srgb: false });
-  const blob = F.layeredPsd(1, { hi: { composite: pr.data16 } });
-  const blobB = F.layeredPsd(1, { psb: true, hi: { composite: pr.data16 } });
+  const M = await import("/js/io/metadata.js");
+  const mm = M.filterMetadata(null, { author: false, date: false, camera: false, gps: false, text: false, ids: false, maker: false }, { w: W, h: Hh, over: { title: "Título PSD", author: "Ana PSD", copyright: "© Ana", keywords: ["a", "b"], date: "2024-05-03T18:30", lat: 40.5, lon: -3.25 } });
+  const meta = { xmp: mm.xmp, exif: mm.exif };
+  const blob = F.layeredPsd(1, { hi: { composite: pr.data16 }, meta });
+  const blobB = F.layeredPsd(1, { psb: true, hi: { composite: pr.data16 }, meta });
+  const blob8 = F.layeredPsd(1, { meta });
   // relectura con ag-psd (profundidad y capas)
   const A = globalThis.agPsd; A.initializeCanvas?.((w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; });
   const rp = A.readPsd(new Uint8Array(await blob.arrayBuffer()), { skipThumbnail: true, useImageData: true });
   const names = x => x.children.flatMap(c => [c.name + (c.children ? "[g]" : ""), ...(c.children ? names(c) : [])]);
-  return { psd: await toB64(blob), psb: await toB64(blobB), bits: rp.bitsPerChannel, names: names(rp), size: blob.size, hiSample: Array.from(hi.slice(((40 * W + 60) * 3), ((40 * W + 60) * 3) + 3)) };
+  return { psd: await toB64(blob), psb: await toB64(blobB), p8: await toB64(blob8), bits: rp.bitsPerChannel, names: names(rp), size: blob.size, hiSample: Array.from(hi.slice(((40 * W + 60) * 3), ((40 * W + 60) * 3) + 3)) };
 });
 fs.mkdirSync("/tmp/sc/out", { recursive: true });
-fs.writeFileSync("/tmp/sc/out/p16.psd", Buffer.from(res.psd, "base64")); fs.writeFileSync("/tmp/sc/out/p16.psb", Buffer.from(res.psb, "base64"));
+fs.writeFileSync("/tmp/sc/out/p8.psd", Buffer.from(res.p8, "base64")); fs.writeFileSync("/tmp/sc/out/p16.psd", Buffer.from(res.psd, "base64")); fs.writeFileSync("/tmp/sc/out/p16.psb", Buffer.from(res.psb, "base64"));
 console.log(JSON.stringify({ bits: res.bits, names: res.names, size: res.size, hiSample: res.hiSample }));
 const ok = res.bits === 16 && res.names.some(n => /Foto16/.test(n)) && res.names.some(n => /Grupo\[g\]/.test(n));
 console.log(ok && !errs.length ? "OK (falta psd16_check.py)" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);
