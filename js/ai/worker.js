@@ -569,7 +569,7 @@ async function faces({ model, id, rgba, w, h, threshold = 0.6 }){
    devuelven las PROBABILIDADES (softmax) de cada zona que usa el
    retoque, 0-255, para que los bordes salgan suaves. */
 const PARSE_GROUPS = { skin: [1, 7, 8, 10, 14], brows: [2, 3], eyes: [4, 5], mouth: [11], lips: [12, 13], hair: [17] };
-async function parse({ model, id, rgba }){
+async function parse({ model, id, rgba, parts }){
   const { session } = await getSession(id, model);
   const S = 512, n = S * S;
   const name = session.inputNames[0];
@@ -580,15 +580,16 @@ async function parse({ model, id, rgba }){
   post({ type:"stage", model:id, stage:"run" });
   const out = await runSession(id, model, { [name]: makeTensor(inputType(session, name), x, [1, 3, S, S]) });
   const t = out[session.outputNames[0]], v = readFloats(t), C = t.dims[1];
-  const groups = {};
-  for(const k in PARSE_GROUPS) groups[k] = new Uint8ClampedArray(n);
+  // `parts`: { nombre: [canales…] } a petición (selección por texto: pelo, orejas, cuello…); si no, los grupos del retoque
+  const G = parts || PARSE_GROUPS, groups = {};
+  for(const k in G) groups[k] = new Uint8ClampedArray(n);
   const e = new Float32Array(C);
   for(let p = 0; p < n; p++){
     let mx = -Infinity;
     for(let c = 0; c < C; c++){ e[c] = v[c * n + p]; if(e[c] > mx) mx = e[c]; }
     let sum = 0;
     for(let c = 0; c < C; c++){ e[c] = Math.exp(e[c] - mx); sum += e[c]; }
-    for(const k in PARSE_GROUPS){ let s = 0; for(const c of PARSE_GROUPS[k]) s += e[c]; groups[k][p] = Math.round(s / sum * 255); }
+    for(const k in G){ let s = 0; for(const c of G[k]) s += e[c]; groups[k][p] = Math.round(s / sum * 255); }
   }
   return { groups };
 }

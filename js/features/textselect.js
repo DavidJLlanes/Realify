@@ -63,11 +63,45 @@ export async function openTextSelect({ target = null } = {}){
   await run(T.parseQuery(q), out, target);
 }
 
+/**
+ * Partes de la cara (pelo, ojos, labios, orejas, cuello, gafas, sombrero…) con BiSeNet (fase 20): se buscan las caras
+ * (YuNet), cada una se analiza en un recorte amplio de 512×512 (con margen para el pelo) y las probabilidades se llevan
+ * a la foto con interpolación bilineal. Uso NO comercial del modelo (ver js/ai/models.js › faceparse).
+ */
+export async function facePartsMask(src, parts, W, H, title){
+  const T = await import("../ai/textclasses.js"), { detectFaces } = await import("../ai/faces.js"), { runModel } = await import("../ai/runtime.js");
+  const faces = await detectFaces(src);
+  if(!faces.length) throw new Error("No veo ninguna cara en la foto");
+  const ch = [...new Set(parts.flatMap(k => T.FACE_PARTS[k].ch))];
+  const out = new Uint8ClampedArray(W * H);
+  for(const f of faces){
+    const side = Math.max(f.w, f.h) * 2.6, cx = f.x + f.w / 2, cy = f.y + f.h * 0.38, sx = cx - side / 2, sy = cy - side / 2;
+    const c = document.createElement("canvas"); c.width = c.height = 512;
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.fillStyle = "#808080"; x.fillRect(0, 0, 512, 512); x.imageSmoothingQuality = "high";
+    x.drawImage(src, sx, sy, side, side, 0, 0, 512, 512);
+    const r = await runModel("parse", "faceparse", { rgba: x.getImageData(0, 0, 512, 512).data, parts: { m: ch } }, [], { title });
+    const g = r.groups.m, k = 512 / side;
+    const x0 = Math.max(0, Math.floor(sx)), y0 = Math.max(0, Math.floor(sy)), x1 = Math.min(W, Math.ceil(sx + side)), y1 = Math.min(H, Math.ceil(sy + side));
+    for(let y = y0; y < y1; y++){
+      const fy = Math.min(511, Math.max(0, (y + 0.5 - sy) * k - 0.5)), a0 = fy | 0, a1 = Math.min(511, a0 + 1), ty = fy - a0;
+      for(let xx = x0; xx < x1; xx++){
+        const fx = Math.min(511, Math.max(0, (xx + 0.5 - sx) * k - 0.5)), b0 = fx | 0, b1 = Math.min(511, b0 + 1), tx = fx - b0;
+        const t = g[a0 * 512 + b0] + (g[a0 * 512 + b1] - g[a0 * 512 + b0]) * tx, u = g[a1 * 512 + b0] + (g[a1 * 512 + b1] - g[a1 * 512 + b0]) * tx;
+        const v = t + (u - t) * ty;
+        if(v > out[y * W + xx]) out[y * W + xx] = v;
+      }
+    }
+  }
+  return out;
+}
+
 /** Máscara 0-255 del tamaño de `src` para un término (unión de clases, con su color). */
 async function termMask(src, term, px, W, H, SEG, title){
   const n = W * H;
   let m;
-  if(term.classes.length) m = (await SEG.segmentClasses(src, term.classes, title)).mask;
+  if(term.parts) m = await facePartsMask(src, term.parts, W, H, title);
+  else if(term.classes.length) m = (await SEG.segmentClasses(src, term.classes, title)).mask;
   else { m = new Uint8ClampedArray(n); m.fill(255); }
   if(term.color){
     const T = await import("../ai/textclasses.js");

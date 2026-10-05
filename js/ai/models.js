@@ -86,7 +86,8 @@ export const MODELS = {
   /* ── Zonas de la cara: BiSeNet ResNet-18 (yakhyo/face-parsing, código
         MIT). OJO: entrenado con CelebAMask-HQ, cuyo uso es sólo para
         investigación no comercial: si algún día Premium es de pago, hay
-        que quitarlo o sustituirlo (ver CLAUDE.md y ATTRIBUTIONS.md). ── */
+        que quitarlo o sustituirlo (ver CLAUDE.md y ATTRIBUTIONS.md). Lo
+        usan Retoque de cara y Seleccionar por texto (pelo, ojos, labios…). ── */
   faceparse: { url: LOCAL + "faceparsing/resnet18.onnx", size: 53205364, store: true, premium: true, noncommercial: true,
                label: "BiSeNet (zonas de la cara)", license: "MIT (datos CelebAMask-HQ: no comercial)" },
 

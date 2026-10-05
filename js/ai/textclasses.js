@@ -84,6 +84,27 @@ const GROUPS = {
 const NAME_INDEX = new Map(CLASSES.map((c, i) => [c[0], i]));
 for(const [k, names] of Object.entries(GROUPS)) GROUPS[k] = names.map(n => NAME_INDEX.get(n)).filter(i => i !== undefined);
 
+/* ── Partes de la cara (BiSeNet, fase 20): pelo, ojos, labios… ─────────
+   Canales del modelo (CelebAMask-HQ): 1 piel, 2-3 cejas, 4-5 ojos, 6 gafas, 7-8 orejas, 9 pendiente, 10 nariz,
+   11 interior de la boca, 12-13 labios, 14 cuello, 15 collar, 16 ropa, 17 pelo, 18 sombrero. Uso NO comercial (ver models.js). */
+export const FACE_PARTS = {
+  pelo: { label: "pelo", ch: [17], words: ["pelo", "pelos", "cabello", "cabellos", "melena", "pelazo"] },
+  cara: { label: "cara", ch: [1, 2, 3, 4, 5, 10, 11, 12, 13], words: ["cara", "caras", "rostro", "rostros", "facial"] },
+  piel: { label: "piel", ch: [1, 10, 7, 8, 14], words: ["piel", "pieles"] },
+  ojos: { label: "ojos", ch: [4, 5], words: ["ojo", "ojos"] },
+  cejas: { label: "cejas", ch: [2, 3], words: ["ceja", "cejas"] },
+  nariz: { label: "nariz", ch: [10], words: ["nariz", "narices"] },
+  boca: { label: "boca", ch: [11, 12, 13], words: ["boca", "bocas"] },
+  labios: { label: "labios", ch: [12, 13], words: ["labio", "labios"] },
+  orejas: { label: "orejas", ch: [7, 8], words: ["oreja", "orejas"] },
+  cuello: { label: "cuello", ch: [14], words: ["cuello", "cuellos"] },
+  gafas: { label: "gafas", ch: [6], words: ["gafa", "gafas", "anteojos", "lentes"] },
+  sombrero: { label: "sombrero", ch: [18], words: ["sombrero", "sombreros", "gorra", "gorro", "gorras", "gorros"] }
+};
+const PART_INDEX = new Map();
+for(const [k, p] of Object.entries(FACE_PARTS)) for(const w of p.words) PART_INDEX.set(strip(w), k);
+export const partOf = word => PART_INDEX.get(strip(word)) || null;
+
 /* ── Colores ─────────────────────────────────────────────────── */
 export const COLORS = {
   rojo: ["roj", "red"], naranja: ["naranj", "orange"], amarillo: ["amarill", "yellow"], verde: ["verd", "green"], azul: ["azul", "blue"], morado: ["morad", "violet", "purpur", "purple", "lila"],
@@ -147,6 +168,13 @@ export function parseQuery(text){
     // El nombre puede tener varias palabras («mesa de billar»): se prueba entero y, si no, palabra a palabra
     const phrase = rest.filter((w, i) => !(w === "de" && i === rest.length - 1)).join(" ");
     let cls = [];
+    // Partes de la cara (BiSeNet): «pelo», «pelo rojo», «ojos y labios»: término aparte, sin clases ADE20K
+    const partWords = rest.filter(w => w !== "de" && partOf(w));
+    if(partWords.length && partWords.length === rest.filter(w => w !== "de").length){
+      const keys = [...new Set(partWords.map(partOf))];
+      terms.push({ classes: [], parts: keys, color, neg, label: (keys.length === 1 ? FACE_PARTS[keys[0]].label : keys.map(k => FACE_PARTS[k].label).join(" y ")) + (color ? " " + colorWord : "") });
+      continue;
+    }
     const whole = classOf(phrase);
     if(whole >= 0) cls = [whole + 1];
     else if(GROUPS[strip(phrase)]) cls = GROUPS[strip(phrase)].map(i => i + 1);
@@ -168,4 +196,4 @@ export function parseQuery(text){
 }
 
 /** Ejemplos de frases para la ayuda de la ventana */
-export const EXAMPLES = ["persona", "cielo", "coche rojo", "césped y árboles", "edificio sin cielo", "agua azul"];
+export const EXAMPLES = ["persona", "cielo", "coche rojo", "césped y árboles", "edificio sin cielo", "agua azul", "pelo", "ojos y labios"];

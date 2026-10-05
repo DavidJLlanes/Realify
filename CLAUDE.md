@@ -54,10 +54,11 @@ exactamente igual que antes.
 - **De momento sin pago**: cualquiera puede usarlas.
 - Sus modelos sólo se descargan al usarlas (avisando antes del tamaño) y se
   guardan en IndexedDB; licencias que permitan uso comercial (MIT, Apache…).
-- **Excepción aceptada por el usuario**: «Retoque de cara» usa BiSeNet
+- **Excepción aceptada por el usuario**: «Retoque de cara» y «Seleccionar por
+  texto» (pelo, ojos, labios, orejas, cuello, gafas, sombrero) usan BiSeNet
   (`assets/models/faceparsing/`, entrenado con CelebAMask-HQ, uso NO comercial;
-  `noncommercial: true` en js/ai/models.js). Si algún día se cobra Premium, hay
-  que quitarlo o sustituirlo.
+  `noncommercial: true` en js/ai/models.js). El usuario no hace uso comercial. Si algún
+  día se cobra Premium, hay que quitarlo o sustituirlo (también del vocabulario del texto).
 - Excepción aceptada por el usuario: Zero-DCE++ (CC BY-NC, uso NO comercial) para iluminar fotos oscuras con IA. Si se cobra Premium, quitarlo o sustituirlo.
 
 ## Límites
