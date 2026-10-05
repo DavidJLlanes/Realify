@@ -14,15 +14,14 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
       `/api/informe` (snippet `realify-informe.conf` y `limit_req`) y prueba pública `{"ok": true}`; los informes llegan a
       `djl@djl.red` (el correo se entrega en local en el mismo servidor, así que SPF/DKIM/DMARC de realify.es sólo harían
       falta si algún día se envían a otro proveedor). Falta probarlo una vez desde Ayuda › Informar de un error…
-- [ ] Permitir `huggingface.co` en el entorno de desarrollo (Network access › Custom › Allowed domains) para poder hacer el
-      vocabulario abierto de «Seleccionar por texto» con CLIPSeg (fase 20).
+- [x] `huggingface.co` permitido en el entorno de desarrollo: hecho el vocabulario abierto de «Seleccionar por texto» (v246).
 
 **Bloqueado**
 - [x] Exportar HEIC (v245): con el codificador HEVC del dispositivo (WebCodecs) + empaquetador HEIF propio; sólo aparece donde
       existe. **Falta probarlo en un dispositivo real** (iPhone/Mac con Safari, o Chrome/Edge con codificador por hardware).
 
 **Fase 20 · cabos sueltos**
-- [ ] Vocabulario abierto de «Seleccionar por texto» (CLIPSeg; ver arriba).
+- [x] Vocabulario abierto de «Seleccionar por texto» con CLIPSeg (v246).
 - [ ] Ajustes sin migrar a coma flotante: Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
       degradado, Blanco y negro, los de `applyDirect` y los modos Premium con motor propio.
 - [ ] Capas con origen de 16 bits recortado o desplazado.
@@ -207,11 +206,7 @@ que ya funciona.
 - [x] Selección por texto con vocabulario CERRADO: las 150 categorías de ADE20K del DeepLab que ya
       viaja con la web (Apache-2.0), con sinónimos en español, colores y «sin X». (v234)
 - [x] Máscara editable resultante, a resolución completa (por bloques, fase 3, y borde guiado). (v234)
-- [ ] (→ fase 20) **Vocabulario abierto** («una taza azul», «el pelo», «el logo»): hace falta un modelo tipo CLIPSeg
-      o Grounding-DINO + SAM. No se pudo hacer: el entorno de desarrollo no llega a Hugging Face
-      (proxy 403), así que no se puede descargar ni probar un modelo. Cuando haya acceso:
-      CLIPSeg-rd64-refined en ONNX cuantizado (~150 MB, licencia Apache-2.0 a verificar) en el
-      worker de IA, con tokenizador CLIP (vocabulario BPE), bajo demanda y avisando del tamaño.
+- [x] **Vocabulario abierto** («una taza azul», «el logo»): hecho en la fase 20 con CLIPSeg (v246).
 - [x] «Pelo» y partes de la cara con BiSeNet (pelo, cara, piel, ojos, cejas, nariz, boca, labios, orejas, cuello, gafas,
       sombrero): el titular amplía la excepción de uso no comercial a esta función (no hace uso comercial). (v244)
 
@@ -328,10 +323,9 @@ compensa adoptar ninguna**:
 - Las dos quedan fuera de `js/vendor` (no se incorporó ninguna).
 
 ## Fase 20 · Cabos sueltos de las fases 10 y 11 ✅ en parte (v244)
-- [ ] **Selección por texto con vocabulario abierto** («una taza azul», «el logo»): CLIPSeg u otro modelo.
-      **Bloqueado en este entorno**: la red rechaza `huggingface.co` (403). Para hacerlo, el titular tiene que añadir ese
-      dominio en Network access › Custom › Allowed domains del entorno; entonces: CLIPSeg-rd64-refined ONNX cuantizado
-      (~150 MB, comprobar licencia), tokenizador CLIP (BPE) y aviso del tamaño antes de bajarlo.
+- [x] **Selección por texto con vocabulario abierto** (CLIPSeg rd64-refined, Apache-2.0, fp16, 273 MB, tokenizador CLIP propio,
+      diccionario ES→EN, foto entera + mosaicos 2×2, borde con filtro guiado). (v246) Pendiente de mejora: la máscara es blanda (352 px por
+      vista) y los objetos muy pequeños pueden fallar; probar el modelo con WebGPU (hoy sólo CPU); más palabras en el diccionario ES→EN.
 - [x] «Pelo» y partes de la cara con BiSeNet; excepción no comercial ampliada. (v244)
 - [ ] **Ajustes sin migrar a coma flotante**: Sombras y luces, Tono, Banda tonal, Color selectivo,
       Equilibrio de color, Mapa de degradado, Blanco y negro, los que usan `applyDirect` y los modos

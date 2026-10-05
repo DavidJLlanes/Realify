@@ -14,14 +14,17 @@ que las entradas se agrupan por fecha.
   («una taza azul con un dibujo», «el logo», «la bufanda roja») se busca con **CLIPSeg** (IA de descripción libre, Apache-2.0). Se mezcla con lo
   de siempre en la misma frase: «coche y una taza azul», «persona sin taza». El modelo (**float16, 273 MB**; la versión cuantizada se descarta
   por calidad) se descarga de Hugging Face **sólo la primera vez que se usa**, avisando antes, y se guarda en el navegador; la foto no sale del equipo.
-- Cómo se calcula: texto → inglés con un diccionario de unas 600 palabras corrientes (CLIP casi sólo entiende inglés; lo que no está pasa tal cual)
+- Cómo se calcula: texto → inglés con un diccionario de unas 580 palabras y expresiones corrientes (CLIP casi sólo entiende inglés; lo que no está pasa tal cual)
   → tokenizador de CLIP propio (`js/ai/cliptokenizer.js`, idéntico a la referencia de Hugging Face) → modelo en la CPU (WebAssembly) sobre la foto entera
   y, si es grande, sobre 2×2 mosaicos con solape; se promedian con ventana suave y la máscara, a resolución completa, pasa por el mismo ajuste de borde
   con filtro guiado. Si el modelo no ve lo descrito, avisa en vez de seleccionar algo al azar.
 - Límites: la máscara de CLIPSeg es blanda (352 px por vista), así que los objetos muy pequeños o muy parecidos entre sí pueden fallar; con el
   inglés va mejor que con el español. Una descripción es siempre positiva: «sin X» funciona porque se calcula X aparte y se resta.
-- Pruebas nuevas: `tests/cliptokenizer.mjs` (15 frases idénticas a la referencia) y `tests/clipseg.mjs` (modelo real sobre fotos: el autobús rojo a la
-  derecha, el cielo arriba, «un pez» en el centro, una banana que no está no da nada).
+- Pruebas nuevas: `tests/cliptokenizer.mjs` (15 frases idénticas a la referencia) y `tests/clipseg.mjs` (**con el modelo real** sobre fotos: «a red bus» y
+  «autobús rojo» (traducido) dan el mismo autobús, a la derecha y a media altura (3,8 % de la foto); «el cielo», arriba (27 %); «un pez», en el centro; y
+  «a banana», que no está, no da nada). En la CPU del entorno de pruebas (sin GPU) tarda unos 20–30 s por foto grande (carga del modelo + 5 vistas) y 8 s
+  en una foto pequeña; es lo que cuesta correr 273 MB de modelo en WebAssembly. La prueba sirve el modelo desde un servidor local: Playwright no aguanta
+  entregar 273 MB con `route.fulfill` (el navegador muere), problema del arnés y no de la web.
 
 ### v245 · Exportar HEIC (fase 16)
 - **HEIC** en Exportar… y Exportar como…, **sólo donde el dispositivo trae un codificador HEVC** (Safari en iPhone, iPad y Mac; Chrome o
