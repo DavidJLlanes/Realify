@@ -242,12 +242,19 @@ pdf-lib (MIT).
 - [ ] **Falta instalarlo en el VPS** (lo hace el titular): usuario `informe`, `informe.service` con `INFORME_TO`, bloque de
       nginx, y SPF/DKIM/DMARC de realify.es (pasos en `server/informe/README.md`). Después, probar un envío real.
 
-## Fase 19 · Extras de infraestructura
-No mejoran el resultado; sólo si sobra tiempo.
-- [ ] Pica para miniaturas de interfaz (capas, cielos, LUT, filtros, stickers, marcos);
-      nunca para el remuestreo final.
-- [ ] Photon (Rust/WASM) como respaldo de CPU sin WebGPU/WebGL2, sólo si las pruebas dan
-      el mismo resultado y mejor tiempo.
+## Fase 19 · Extras de infraestructura ✅ evaluada y descartada (5 oct 2026)
+No mejoran el resultado; sólo si sobra tiempo. Se midieron en Chromium (3000×2000, equipo de pruebas sin GPU) y **no
+compensa adoptar ninguna**:
+- [x] **Pica 9.0.1** (MIT) para miniaturas de interfaz. Miniatura de 72×48 frente a una referencia de promedio por área:
+      `drawImage` calidad «high» (y «medium») error medio 1,98/255 en 0,06 ms; Pica (box/hamming/lanczos2) 0,18–0,21/255 en
+      68–78 ms. Es unas 10 veces más exacta pero una diferencia de 2 niveles sobre 255 no se ve en una miniatura de 48 px,
+      cuesta ~1000 veces más y obliga a hacer asíncrono `layerThumb()` (hoy síncrono, usado al pintar el panel de capas).
+      Descartada; las miniaturas siguen con `drawImage`. Reconsiderar sólo si aparecen miniaturas grandes con aliasing visible.
+- [x] **Photon 0.3.3** (Apache-2.0, 1,9 MB de WASM) como respaldo de CPU. Desenfoque gaussiano r=10: 705 ms frente a
+      240 ms del filtro nativo del lienzo (`ctx.filter`, que ya usa Realify), enfoque 452 ms, sólo la conversión
+      de entrada 38 ms. Es más lento, y sus algoritmos (8 bits, sin luz lineal ni OKLab) no dan el mismo resultado que los
+      motores de Realify, así que no puede ser un respaldo equivalente de las rutas GPU/CPU validadas. Descartada.
+- Las dos quedan fuera de `js/vendor` (no se incorporó ninguna).
 
 ## Fase 20 · Cabos sueltos de las fases 10 y 11
 - [ ] **Selección por texto con vocabulario abierto** («una taza azul», «el logo»): CLIPSeg u otro
