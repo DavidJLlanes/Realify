@@ -253,7 +253,7 @@ export async function perspAuto(){
   persp.guides = [...r.v.map(g => ({ ...g, kind: "v" })), ...r.h.map(g => ({ ...g, kind: "h" }))];
   perspStraighten(); perspPreview();
   emit("tool:options"); scheduleOverlay();
-  toast(`${r.v.length} guías verticales y ${r.h.length} horizontales: arrastra o toca una para corregirla`, "ok");
+  toast(`${r.v.length} guías verticales y ${r.h.length} horizontales${r.convergingH ? " (convergen en un punto de fuga: fachada vista de lado)" : ""}: arrastra o toca una para corregirla`, "ok");
 }
 
 export function perspClearGuides(){
