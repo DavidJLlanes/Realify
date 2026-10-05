@@ -22,6 +22,25 @@ let open = false;
 const RATIOS = [["auto", "Automática"], ["a4", "A4 (vertical)"], ["a4h", "A4 (horizontal)"], ["letter", "Carta (vertical)"], ["letterh", "Carta (horizontal)"]];
 const FIXED = { a4: 210 / 297, a4h: 297 / 210, letter: 215.9 / 279.4, letterh: 279.4 / 215.9 };
 
+/** Aplica el acabado elegido («Aclarar el papel», escala de grises, blanco y negro) a un lienzo, en su sitio (js/cv/docclean.js). */
+export async function finishCanvas(canvas, mode){
+  if(!mode || mode === "none") return canvas;
+  const { cleanDocument } = await import("../cv/docclean.js");
+  const x = canvas.getContext("2d", { willReadFrequently: true }), img = x.getImageData(0, 0, canvas.width, canvas.height);
+  cleanDocument(img.data, canvas.width, canvas.height, mode);
+  x.putImageData(img, 0, 0);
+  return canvas;
+}
+
+/** Una página completa a partir de una foto: busca el documento, lo endereza (proporción automática o A4/Carta) y le da el acabado. */
+export async function scanPage(cv, photo, { ratio = "auto", finish = "none", maxSide = 3200 } = {}){
+  const Q = await import("../cv/docquad.js"), W = photo.width, H = photo.height;
+  const found = Q.detectDocument(cv, photo);
+  const quad = found ? found.quad : [[0, 0], [W, 0], [W, H], [0, H]];
+  const r = FIXED[ratio] ?? Q.aspectFromQuad(quad, W, H).ratio, [ow, oh] = Q.outputSize(quad, r, maxSide);
+  return { canvas: await finishCanvas(rectify(cv, photo, quad, ow, oh), finish), found: !!found };
+}
+
 /** Endereza `source` (canvas) a un rectángulo outW×outH con las 4 esquinas dadas (px de `source`). */
 export function rectify(cv, source, quad, outW, outH){
   const x = source.getContext("2d", { willReadFrequently: true });
@@ -41,6 +60,7 @@ export async function openDocScan(){
   const src = await visibleImage(); if(!src) return;
   const { loadOpenCv } = await import("../cv/opencv.js");
   const lib = await loadOpenCv(); if(!lib) return;
+  const { cleanDocument, FINISHES } = await import("../cv/docclean.js");
   const { cv } = lib, Q = await import("../cv/docquad.js"), { docSizeLimit } = await import("../core/device.js");
   open = true;
   status("Buscando el documento…"); await new Promise(r => setTimeout(r, 30));
@@ -48,7 +68,8 @@ export async function openDocScan(){
 
   const W = src.width, H = src.height, small = scaled(src, 1400), k = small.width / W;
   let quad = found ? found.quad : [[W * 0.1, H * 0.1], [W * 0.9, H * 0.1], [W * 0.9, H * 0.9], [W * 0.1, H * 0.9]];
-  const S = { ratio: "auto", view: "photo" };
+  const S = { ratio: "auto", view: "photo", finish: "paper", out: "photo" };
+  const extra = [];                       // páginas añadidas: { name, canvas (ya enderezada y con el acabado), thumb }
   const ratioNow = () => FIXED[S.ratio] ?? Q.aspectFromQuad(quad, W, H).ratio;
 
   const view = document.createElement("canvas"), vx = view.getContext("2d");
@@ -59,13 +80,15 @@ export async function openDocScan(){
       if(id !== busy || sh.closed) return;
       if(S.view === "result"){
         const qs = quad.map(p => [p[0] * k, p[1] * k]), [ow, oh] = Q.outputSize(qs, ratioNow(), 1100);
-        const r = rectify(cv, small, qs, ow, oh); view.width = ow; view.height = oh; vx.drawImage(r, 0, 0);
+        const r = rectify(cv, small, qs, ow, oh); finishSync(r, S.finish); view.width = ow; view.height = oh; vx.drawImage(r, 0, 0);
       } else { view.width = small.width; view.height = small.height; vx.drawImage(small, 0, 0); }
       sh.setView(view, false);
       sh.redraw();
     });
   };
 
+  /* Vista previa: el acabado se aplica en el momento (la imagen es pequeña) */
+  const finishSync = (canvas, mode) => { if(mode === "none") return; const x = canvas.getContext("2d", { willReadFrequently: true }), img = x.getImageData(0, 0, canvas.width, canvas.height); cleanDocument(img.data, canvas.width, canvas.height, mode); x.putImageData(img, 0, 0); };
   const close = () => { open = false; sh.close(); };
   const { sh, mountControls } = await openShell({
     title: "Escanear documento", subtitle: found ? "Premium 👑 · arrastra las esquinas si hace falta" : "Premium 👑 · no he encontrado el documento: coloca las esquinas",
@@ -74,7 +97,17 @@ export async function openDocScan(){
       sh.setBusy("Enderezando a resolución completa…"); await new Promise(r => setTimeout(r, 30));
       try{
         const [lim] = [docSizeLimit(1e5, 1e5)[0]];
-        const [ow, oh] = Q.outputSize(quad, ratioNow(), lim), out = rectify(cv, src, quad, ow, oh);
+        const [ow, oh] = Q.outputSize(quad, ratioNow(), lim), out = await finishCanvas(rectify(cv, src, quad, ow, oh), S.finish);
+        if(extra.length && S.out === "pdf"){
+          // Varias páginas → un PDF (la primera es la foto abierta; el resto, las añadidas), una página por foto
+          sh.setBusy("Creando el PDF…");
+          const { buildPdf } = await import("../io/pdfpro.js"), { download } = await import("../io/export.js");
+          const { blob, pages } = await buildPdf([{ canvas: out, name: "Página 1" }, ...extra.map((p, i) => ({ canvas: p.canvas, name: `Página ${i + 2}` }))], { page: "image", marginMm: 0, dpi: 200, quality: .9, lossless: S.finish === "bw", meta: { title: "Documento escaneado" } });
+          download(blob, "documento-" + new Date().toISOString().slice(0, 10) + ".pdf");
+          close();
+          toast(`PDF de ${pages} páginas guardado`, "ok");
+          return;
+        }
         close();
         const { resultToLayer } = await import("../ui/fsshell.js");
         await resultToLayer(out, { name: "Documento", docName: "Documento", newDocument: true });
@@ -106,10 +139,33 @@ export async function openDocScan(){
     if(type === "up" || type === "cancel") drag = -1;
     return false;
   });
-  mountControls(sh, {
+  /* Más páginas: otras fotos (se detecta y endereza cada documento solo, con el mismo acabado) */
+  const addPages = async () => {
+    const { pickFiles, decodePhoto } = await import("../ui/fsshell.js"), files = await pickFiles({ gallery: true });
+    if(!files.length) return;
+    sh.setBusy("Escaneando las páginas…");
+    try{
+      for(let i = 0; i < files.length; i++){
+        sh.setBusy(`Escaneando la página ${extra.length + 2}…`); await new Promise(r => setTimeout(r, 20));
+        const photo = await decodePhoto(files[i], docSizeLimit(1e5, 1e5)[0]);
+        const r = await scanPage(cv, photo, { ratio: S.ratio, finish: S.finish, maxSide: 2800 });
+        const t = scaled(r.canvas, 120);
+        extra.push({ name: files[i].name, canvas: r.canvas, found: r.found, thumb: t.toDataURL("image/jpeg", .7) });
+        if(!r.found) toast(`En «${files[i].name}» no se encontró el documento: se ha usado la foto entera`);
+      }
+      S.out = "pdf"; ctl.refresh(); sh.setSubtitle(`${extra.length + 1} páginas · Premium 👑`);
+    }catch(err){ toast("No se pudo escanear: " + (err.message || err), "err"); }
+    finally{ sh.setBusy(""); }
+  };
+  const ctl = mountControls(sh, {
     sections: [{ id: "d", label: "Documento", props: [
       { key: "ratio", label: "Proporción", type: "select", options: RATIOS },
+      { key: "finish", label: "Acabado", type: "select", options: FINISHES },
       { key: "view", label: "Ver", type: "seg", options: [["photo", "Foto"], ["result", "Resultado"]] }
+    ] }, { id: "p", label: "Varias páginas", note: () => extra.length ? `${extra.length + 1} páginas: ${extra.map(p => p.name).join(", ")}` : "Añade más fotos para hacer un PDF de varias páginas.", props: [
+      { key: "addPages", label: "Añadir páginas…", type: "button", run: () => addPages() },
+      { key: "out", label: "Resultado", type: "seg", options: [["photo", "Sólo esta página"], ["pdf", "PDF de todas"]], when: () => extra.length > 0 },
+      { key: "clearPages", label: "Quitar las páginas añadidas", type: "button", when: () => extra.length > 0, run: () => { extra.length = 0; S.out = "photo"; ctl.refresh(); sh.setSubtitle("Premium 👑 · arrastra las esquinas si hace falta"); } }
     ] }],
     get: key => S[key], set: (key, v) => { S[key] = v; render(); }
   });
