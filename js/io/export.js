@@ -237,7 +237,14 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
     const px = out.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, out.width, out.height, { colorSpace: "srgb" }).data;
     return (await import("./codecs.js")).encodeJxl(px, out.width, out.height, { quality: Math.round((quality ?? .85) * 100) });
   }
-  if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
+  if(type === "application/pdf"){
+    let pages = [out];
+    if(pdfOptions.perLayer){                      // una página por capa visible, a este tamaño
+      pages = (await import("./pdflayers.js")).layerPages().map(pg => { if(pg.canvas.width === w && pg.canvas.height === h) return pg.canvas; const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d", { colorSpace: "srgb" }); x.imageSmoothingQuality = "high"; x.drawImage(pg.canvas, 0, 0, w, h); return c; });
+      if(!pages.length) throw new Error("No hay capas visibles que exportar");
+    }
+    return (await import("./formats.js")).pdfFromCanvases(pages, { ...pdfOptions, quality: quality ?? .9, background }).catch(() => null);
+  }
   if(type === "image/tiff") return (await import("./professional-formats.js")).tiffFromCanvas(out, keepP3 ? "display-p3" : "srgb");
   const blob = await new Promise(res => out.toBlob(res, type, quality));
   return keepP3 ? (await import("./icc-embed.js")).ensureIcc(blob, "display-p3") : blob;
@@ -301,6 +308,7 @@ export async function exportDialog(){
         <option value="letter">Carta</option><option value="legal">Oficio (Legal)</option>
         <option value="photo10x15">Foto 10 × 15 cm</option>
       </select></div>
+    <label class="chk" id="exPdfLayersRow" hidden><input type="checkbox" id="exPdfLayers"> Una página por capa visible</label>
     <div class="field" id="exPdfMarginRow" hidden><label>Margen</label>
       <input type="number" id="exPdfMargin" class="grow" min="0" max="100" value="10"><span class="unit">mm</span></div>
     <div class="field"><label>Destino</label>
@@ -627,10 +635,12 @@ export async function exportDialog(){
       const syncPdf = () => {
         pdfRow.hidden = type.value !== "application/pdf";
         pdfMarginRow.hidden = type.value !== "application/pdf" || body.querySelector("#exPdfPage").value === "image";
-        pdfOptions = { page: body.querySelector("#exPdfPage").value, orientation: "auto",
+        body.querySelector("#exPdfLayersRow").hidden = type.value !== "application/pdf";
+        pdfOptions = { perLayer: body.querySelector("#exPdfLayers").checked, page: body.querySelector("#exPdfPage").value, orientation: "auto",
                        margin: body.querySelector("#exPdfPage").value === "image" ? 0 : (+body.querySelector("#exPdfMargin").value || 0) * 72 / 25.4 };
       };
       body.querySelector("#exPdfPage").addEventListener("change", syncPdf);
+      body.querySelector("#exPdfLayers").addEventListener("change", syncPdf);
       body.querySelector("#exPdfMargin").addEventListener("input", syncPdf);
       type.addEventListener("change", () => {
         syncPdf(); alphaUI.sync();

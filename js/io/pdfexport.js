@@ -6,7 +6,8 @@ import { toast, status } from "../ui/toast.js";
 import { isMobile } from "../core/device.js";
 import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
 import { saveOrShare, sanitizeFilename } from "./export.js";
-import { buildPdf, PAGES, PER_PAGE } from "./pdfpro.js";
+import { buildPdf, PAGES, PER_PAGE, PDFX_CONDITIONS } from "./pdfpro.js";
+import { layerPages } from "./pdflayers.js";
 
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 const KEY = "realify.pdf";
@@ -55,12 +56,16 @@ async function readImage(file){
 
 export async function exportPdf(){
   if(!doc.open){ toast("No hay documento abierto"); return; }
-  const p = { page: "a4", orientation: "auto", perPage: 1, margin: 10, bleed: 0, dpi: 300, quality: 90, lossless: false, cover: false, numbering: false, captions: false, author: "", ...load() };
-  const extra = [];
+  const p = { page: "a4", orientation: "auto", perPage: 1, margin: 10, bleed: 0, dpi: 300, quality: 90, lossless: false, cover: false, numbering: false, captions: false, author: "", perLayer: false, background: "#ffffff", cropMarks: false, pdfx: false, pdfxCond: "FOGRA39", ...load() };
+  /* Las páginas, en el orden en que saldrán: el documento y las imágenes añadidas; se pueden subir, bajar y quitar. */
+  const items = [{ kind: "doc", name: "Documento" }];
+  let fontBytes = null, fontName = "";
   const body = document.createElement("div");
   const opts = (list, cur) => list.map(([v, l]) => `<option value="${v}"${String(v) === String(cur) ? " selected" : ""}>${l}</option>`).join("");
   body.innerHTML = `
     <div class="field"><label>Páginas</label><span class="grow" id="pdSrc"></span><button type="button" id="pdAdd">Añadir imágenes…</button></div>
+    <div id="pdList" style="margin:-2px 0 6px"></div>
+    <label class="chk"><input id="pdLayers" type="checkbox"${p.perLayer ? " checked" : ""}> Una página por capa (en lugar del documento acoplado)</label>
     <div class="field"><label>Tamaño</label><select id="pdPage" class="grow">${opts([["image", "Como la imagen"], ["a4", "A4"], ["a3", "A3"], ["a5", "A5"], ["letter", "Carta"], ["legal", "Legal"]], p.page)}</select>
       <select id="pdOri">${opts([["auto", "Automática"], ["portrait", "Vertical"], ["landscape", "Horizontal"]], p.orientation)}</select></div>
     <div class="field"><label>Por página</label><select id="pdPer" class="grow">${opts(PER_PAGE.map(n => [n, n === 1 ? "1 imagen" : n + " imágenes"]), p.perPage)}</select></div>
@@ -73,23 +78,48 @@ export async function exportPdf(){
     <div class="field" id="pdCoverRow" hidden><label>Título</label><input id="pdTitle" class="grow" value="${esc(sanitizeFilename(doc.name || "") || "")}"></div>
     <label class="chk"><input id="pdNum" type="checkbox"${p.numbering ? " checked" : ""}> Numerar las páginas</label>
     <label class="chk" id="pdCapRow"><input id="pdCap" type="checkbox"${p.captions ? " checked" : ""}> Nombre bajo cada imagen</label>
+    <details style="margin:6px 0"><summary style="cursor:pointer">Impresión y fuentes</summary>
+      <div class="field"><label>Fondo</label><input id="pdBg" type="color" value="${esc(p.background)}"><span class="unit">bajo las transparencias (JPEG)</span></div>
+      <label class="chk"><input id="pdMarks" type="checkbox"${p.cropMarks ? " checked" : ""}> Marcas de recorte (franja de 7 mm fuera del sangrado)</label>
+      <div class="field"><label>Fuente propia</label><button type="button" id="pdFontBtn">Elegir TTF/OTF…</button><span class="grow mono" id="pdFontName" style="font-size:11px;padding-left:6px"></span><button type="button" id="pdFontClear" hidden>✕</button></div>
+      <label class="chk"><input id="pdX" type="checkbox"${p.pdfx ? " checked" : ""}> PDF/X para imprenta (imágenes en CMYK)</label>
+      <div class="field" id="pdXRow" hidden><label>Condición</label><select id="pdXCond" class="grow">${opts(Object.entries(PDFX_CONDITIONS), p.pdfxCond)}</select></div>
+      <p class="hint" id="pdXHint" hidden style="margin:2px 0 6px">PDF/X-3:2002 con intención de salida registrada. La conversión a CMYK es matemática, sin el perfil de tu imprenta, y el archivo no se ha validado con un preflight: para imprenta profesional, confirma con ella. PDF/X exige fuentes incrustadas: sin «Fuente propia» no hay portada, numeración ni nombres.</p></details>
     <details style="margin:6px 0"><summary style="cursor:pointer">Metadatos del PDF</summary>
       <div class="field"><label>Autor</label><input id="pdAuthor" class="grow" value="${esc(p.author)}"></div>
       <div class="field"><label>Asunto</label><input id="pdSubject" class="grow"></div>
       <div class="field"><label>Palabras clave</label><input id="pdKeys" class="grow" placeholder="separadas por comas"></div></details>
     <div class="mono" id="pdInfo" style="font-size:11px;margin-top:4px"></div>`;
   const $ = s => body.querySelector(s);
-  const total = () => 1 + extra.length;
+  const list = $("#pdList");
+  const total = () => items.length;
+  const drawList = () => {
+    list.innerHTML = items.length < 2 && items[0]?.kind === "doc" ? "" : items.map((it, i) => `<div class="field" data-i="${i}" style="margin:1px 0"><span class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i + 1}. ${esc(it.kind === "doc" ? (body.querySelector("#pdLayers")?.checked ? "Documento (una página por capa)" : "Documento") : it.name)}</span>
+      <button type="button" data-a="up" aria-label="Subir"${i === 0 ? " disabled" : ""}>▲</button><button type="button" data-a="down" aria-label="Bajar"${i === items.length - 1 ? " disabled" : ""}>▼</button><button type="button" data-a="del" aria-label="Quitar"${items.length === 1 ? " disabled" : ""}>✕</button></div>`).join("");
+  };
+  list.addEventListener("click", e => {
+    const b = e.target.closest("button[data-a]"); if(!b) return;
+    const i = +b.closest("[data-i]").dataset.i, a = b.dataset.a;
+    if(a === "up" && i > 0) [items[i - 1], items[i]] = [items[i], items[i - 1]];
+    else if(a === "down" && i < items.length - 1) [items[i + 1], items[i]] = [items[i], items[i + 1]];
+    else if(a === "del" && items.length > 1) items.splice(i, 1);
+    sync();
+  });
   const sync = () => {
-    $("#pdSrc").textContent = extra.length ? `Documento + ${extra.length} imagen${extra.length === 1 ? "" : "es"}` : "Sólo el documento";
+    drawList();
+    const extraN = items.filter(x => x.kind === "img").length;
+    $("#pdSrc").textContent = extraN ? `${items.length} páginas de origen (${extraN} imagen${extraN === 1 ? "" : "es"} añadida${extraN === 1 ? "" : "s"})` : "Sólo el documento";
+    $("#pdXRow").hidden = $("#pdXHint").hidden = !$("#pdX").checked;
+    $("#pdFontClear").hidden = !fontBytes; $("#pdFontName").textContent = fontName;
     const free = $("#pdPage").value === "image";
     if(free) $("#pdPer").value = "1";
     $("#pdPer").disabled = free; $("#pdOri").disabled = free;
     $("#pdQRow").hidden = $("#pdLossless").checked;
     $("#pdCoverRow").hidden = !$("#pdCover").checked;
     $("#pdCapRow").hidden = +$("#pdPer").value === 1;
-    const pages = Math.ceil(total() / +$("#pdPer").value) + ($("#pdCover").checked ? 1 : 0);
-    $("#pdInfo").textContent = `${pages} página${pages === 1 ? "" : "s"}` + (+$("#pdBleed").value > 0 ? " · con sangrado y marcas de recorte en TrimBox" : "");
+    const docPages = body.querySelector("#pdLayers").checked ? Math.max(1, doc.layers.filter(l => !l.groupId && l.type !== "adjust" && l.visible !== false && (l.opacity ?? 1) > 0).length) : 1;
+    const pages = Math.ceil((total() - 1 + docPages) / +$("#pdPer").value) + ($("#pdCover").checked && !($("#pdX").checked && !fontBytes) ? 1 : 0);
+    $("#pdInfo").textContent = `${pages} página${pages === 1 ? "" : "s"}` + (+$("#pdBleed").value > 0 ? " · con sangrado" : "") + ($("#pdMarks").checked ? " · con marcas de recorte" : "") + ($("#pdX").checked ? " · PDF/X (CMYK)" : "");
   };
   body.addEventListener("input", e => { if(e.target.id === "pdQ") $("#pdQv").textContent = e.target.value; sync(); });
   body.addEventListener("change", sync);
@@ -97,26 +127,43 @@ export async function exportPdf(){
   $("#pdAdd").addEventListener("click", () => picker.click());
   picker.addEventListener("change", async () => {
     const files = [...picker.files]; picker.value = "";
-    for(const f of files){ try{ extra.push(await readImage(f)); }catch(err){ toast(String(err.message || err), "err"); } }
+    for(const f of files){ try{ items.push({ kind: "img", ...(await readImage(f)) }); }catch(err){ toast(String(err.message || err), "err"); } }
     sync();
+  });
+  const fontPicker = document.createElement("input"); fontPicker.type = "file"; fontPicker.accept = ".ttf,.otf,.woff,.woff2,font/ttf,font/otf"; fontPicker.hidden = true; body.appendChild(fontPicker);
+  $("#pdFontBtn").addEventListener("click", () => fontPicker.click());
+  $("#pdFontClear").addEventListener("click", () => { fontBytes = null; fontName = ""; sync(); });
+  fontPicker.addEventListener("change", async () => {
+    const f = fontPicker.files[0]; fontPicker.value = ""; if(!f) return;
+    try{
+      const bytes = new Uint8Array(await f.arrayBuffer());
+      const { loadFontkit } = await import("./pdfpro.js"); const fk = await loadFontkit(); fk.create(bytes);       // se comprueba que se puede leer
+      fontBytes = bytes; fontName = f.name; sync();
+    }catch(err){ toast(`No se pudo leer la fuente «${f.name}»`, "err"); }
   });
   sync();
   const r = await dialog({ title: "Exportar PDF", body, wide: true, cls: isMobile() ? "dlg-compact" : "", buttons: [{ label: "Cancelar", value: null }, { label: "Crear PDF", primary: true, value: "go" }] });
   if(r !== "go") return;
   const num = (id, d) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : d; };
   const s = { page: $("#pdPage").value, orientation: $("#pdOri").value, perPage: +$("#pdPer").value, margin: num("#pdMargin", 10), bleed: num("#pdBleed", 0), dpi: +$("#pdDpi").value,
-    quality: +$("#pdQ").value, lossless: $("#pdLossless").checked, cover: $("#pdCover").checked, numbering: $("#pdNum").checked, captions: $("#pdCap").checked, author: $("#pdAuthor").value };
+    quality: +$("#pdQ").value, lossless: $("#pdLossless").checked, cover: $("#pdCover").checked, numbering: $("#pdNum").checked, captions: $("#pdCap").checked, author: $("#pdAuthor").value,
+    perLayer: $("#pdLayers").checked, background: $("#pdBg").value, cropMarks: $("#pdMarks").checked, pdfx: $("#pdX").checked, pdfxCond: $("#pdXCond").value };
   save(s);
   status("Creando PDF…");
   try{
-    let flat = flatten(); if(isP3Doc()) flat = toSrgbCanvas(flat);
     const name = sanitizeFilename(doc.name || "") || "documento";
-    const out = await buildPdf([{ name, canvas: flat }, ...extra], { page: s.page, orientation: s.orientation, perPage: s.perPage, marginMm: s.margin, bleedMm: s.bleed, dpi: s.dpi,
+    const images = [];
+    for(const it of items){
+      if(it.kind !== "doc"){ images.push(it); continue; }
+      if(s.perLayer){ const pages = layerPages(); if(!pages.length) throw new Error("No hay capas visibles que exportar"); images.push(...pages); }
+      else { let flat = flatten(); if(isP3Doc()) flat = toSrgbCanvas(flat); images.push({ name, canvas: flat }); }
+    }
+    const out = await buildPdf(images, { background: s.background, cropMarks: s.cropMarks, font: fontBytes, pdfx: s.pdfx ? { condition: s.pdfxCond } : null, page: s.page, orientation: s.orientation, perPage: s.perPage, marginMm: s.margin, bleedMm: s.bleed, dpi: s.dpi,
       quality: s.quality / 100, lossless: s.lossless, numbering: s.numbering, captions: s.captions,
       cover: s.cover ? { title: $("#pdTitle").value || name } : null,
       meta: { title: $("#pdTitle").value || name, author: s.author, subject: $("#pdSubject").value, keywords: $("#pdKeys").value } });
     status("");
     const saved = await saveOrShare(out.blob, `${name}.pdf`, "auto");
-    if(saved !== "cancelled") toast(`PDF · ${out.pages} página${out.pages === 1 ? "" : "s"} · ${(out.blob.size / 1048576).toFixed(2)} MB`, "ok");
+    if(saved !== "cancelled") toast(`PDF${out.pdfx ? "/X" : ""} · ${out.pages} página${out.pages === 1 ? "" : "s"} · ${(out.blob.size / 1048576).toFixed(2)} MB` + (out.textSkipped ? " · sin portada ni numeración (PDF/X necesita fuente propia)" : ""), "ok");
   }catch(err){ status(""); toast("No se pudo crear el PDF: " + (err.message || err), "err"); }
 }

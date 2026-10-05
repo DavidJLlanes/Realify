@@ -28,7 +28,7 @@ const jpegBytes = (canvas, q) => new Promise((res, rej) => canvas.toBlob(async b
 
 /** Lienzos → PDF (una página por lienzo). opts: { page, orientation
     ("auto"|"portrait"|"landscape"), margin (pt), quality 0-1, dpi } */
-export async function pdfFromCanvases(canvases, { page = "image", orientation = "auto", margin = 0, quality = .9, dpi = 150, info = null, xmp = null } = {}){
+export async function pdfFromCanvases(canvases, { page = "image", orientation = "auto", margin = 0, quality = .9, dpi = 150, info = null, xmp = null, background = "#ffffff" } = {}){
   const objs = [];                    // contenido de cada objeto (Uint8Array o string)
   const enc = new TextEncoder();
   const add = content => { objs.push(content); return objs.length; };
@@ -37,7 +37,7 @@ export async function pdfFromCanvases(canvases, { page = "image", orientation = 
     // Imagen sobre fondo blanco (el JPEG no tiene alfa)
     const flat = document.createElement("canvas"); flat.width = cv.width; flat.height = cv.height;
     // PDF guarda el JPEG como RGB sin perfil: siempre en sRGB
-    const fx = flat.getContext("2d", { colorSpace: "srgb", forceSrgb: true }); fx.fillStyle = "#fff"; fx.fillRect(0, 0, cv.width, cv.height); fx.drawImage(cv, 0, 0);
+    const fx = flat.getContext("2d", { colorSpace: "srgb", forceSrgb: true }); fx.fillStyle = background; fx.fillRect(0, 0, cv.width, cv.height); fx.drawImage(cv, 0, 0);
     const jpg = await jpegBytes(flat, quality);
     let pw, ph;
     if(PAGE_SIZES[page]){
