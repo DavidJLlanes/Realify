@@ -64,18 +64,49 @@ function summarize(tags){
 async function readTags(file){
   const XR = await loadExifReader();
   const buf = await file.slice(0, Math.min(file.size, MAX_READ)).arrayBuffer();
-  let tags;
+  let tags, c2pa = null;
+  try{ c2pa = await (await import("./c2pa.js")).readC2pa(new Uint8Array(buf)); }catch(err){ console.warn("[c2pa]", err); }
   try{ tags = XR.load(buf, { expanded: true, includeUnknown: true }); }
-  catch(err){ throw new Error(/No Exif|Invalid image|metadata/i.test(String(err?.message)) ? "El archivo no lleva metadatos que se puedan leer." : String(err?.message || err)); }
+  catch(err){
+    // un archivo con credenciales C2PA pero sin EXIF sigue teniendo algo que enseñar
+    if(!c2pa) throw new Error(/No Exif|Invalid image|metadata/i.test(String(err?.message)) ? "El archivo no lleva metadatos que se puedan leer." : String(err?.message || err));
+    tags = {};
+  }
+  tags._c2pa = c2pa;
   // Lo que ExifReader no cuenta como grupo: el archivo mismo
   tags.file = { ...(tags.file || {}), Nombre: file.name, Tamaño: (file.size / 1048576 >= 1 ? (file.size / 1048576).toFixed(2) + " MB" : Math.round(file.size / 1024) + " KB"), Tipo: file.type || "?" };
   return tags;
+}
+
+/* Credenciales de contenido (C2PA): ver exif/c2pa.js para lo que se comprueba y lo que no */
+function renderC2pa(c){
+  const row = (k, v, bad) => v ? `<div class="field" style="align-items:flex-start;margin:2px 0"><label style="width:140px;flex:none;${bad ? "color:var(--bad)" : ""}">${esc(k)}</label><div style="flex:1;word-break:break-word">${esc(v)}</div></div>` : "";
+  const who = n => n ? [n.CN, n.O].filter(Boolean).join(" · ") : "";
+  const out = [`<div class="section-label">Credenciales de contenido (C2PA) · ${esc(c.container)}</div>`];
+  if(!c.manifests.length) return out.join("") + `<p class="hint">${esc(c.note)}</p>`;
+  const act = c.manifests.find(m => m.active) || c.manifests[c.manifests.length - 1];
+  const st = act.hash ? (act.hash.status === "match" ? ["Los datos del archivo coinciden con lo firmado", false] : act.hash.status === "mismatch" ? ["¡El archivo se modificó después de firmarse!", true] : ["Hash de los datos sin comprobar", false]) : null;
+  out.push(`<div style="margin:0 0 6px">`
+    + row("Generado con", act.claim.generator) + row("Título", act.claim.title) + row("Formato", act.claim.format)
+    + row("Autor", act.authors.join(", "))
+    + row("Acciones", act.actions.map(a => `${a.action}${a.agent ? " (" + a.agent + ")" : ""}`).join(" → "))
+    + row("Fuente digital", [...new Set(act.sourceTypes)].join(", "), act.aiDeclared)
+    + row("Componentes", act.ingredients.join(", "))
+    + (act.signature ? row("Firma", [act.signature.alg, who(act.signature.cert && act.signature.cert.subject)].filter(Boolean).join(" · ")) + row("Emisor del certificado", who(act.signature.cert && act.signature.cert.issuer))
+        + row("Validez del certificado", act.signature.cert ? `${act.signature.cert.notBefore} → ${act.signature.cert.notAfter}` : "") : "")
+    + (st ? row("Integridad", st[0], st[1]) : "")
+    + `</div>`);
+  if(c.manifests.length > 1) out.push(`<p class="hint" style="margin:0 0 4px">Historial: ${c.manifests.length} manifiestos (el archivo se editó ${c.manifests.length - 1} vez/veces después de crearse).</p>`);
+  out.push(`<details class="meta-group" style="margin:4px 0"><summary style="cursor:pointer"><b>Afirmaciones</b> <span class="hint" style="margin:0">· ${act.assertions.length}</span></summary><div style="margin:4px 0 0 4px">${act.assertions.map(a => row(a.label, a.summary || "—")).join("")}</div></details>`);
+  out.push(`<p class="hint" style="margin:4px 0 8px">Aquí <b>no se verifica la firma</b> ni la cadena de certificados: sólo se lee lo declarado y se comprueba el hash de los datos. Una credencial es una declaración de quien la firmó, no una prueba de que la imagen sea real; y al exportar desde Realify se pierde (cambiar un píxel la invalida).</p>`);
+  return out.join("");
 }
 
 function render(tags, onPick, onClean){
   const wrap = document.createElement("div");
   wrap.className = "meta-inspector";
   const summary = summarize(tags);
+  if(tags._c2pa) summary.push({ risk: tags._c2pa.manifests.some(m => m.aiDeclared), label: "Credenciales de contenido (C2PA)", text: tags._c2pa.manifests.length ? (tags._c2pa.manifests.find(m => m.active)?.claim.generator || "manifiesto") + (tags._c2pa.manifests.some(m => m.aiDeclared) ? " · declara contenido hecho por una IA" : "") : "bloque sin manifiesto legible" });
   const risks = summary.filter(i => i.risk).length;
   const parts = [];
   parts.push(`<div class="field" style="flex-wrap:wrap;gap:6px">
@@ -87,6 +118,7 @@ function render(tags, onPick, onClean){
        <div style="margin:0 0 6px;font-size:var(--fs-sm)">${risks ? `<b style="color:var(--bad)">El archivo revela ${risks} dato${risks > 1 ? "s" : ""} personal${risks > 1 ? "es" : ""}.</b> Al exportar puedes elegir qué conservar.` : "No se ven datos personales en lo más habitual."}</div>
        <div class="meta-sum">${summary.map(i => `<div class="field" style="align-items:flex-start;margin:2px 0"><label style="width:140px;flex:none;${i.risk ? "color:var(--bad)" : ""}">${i.risk ? "⚠ " : ""}${esc(i.label)}</label><span class="grow" style="overflow-wrap:anywhere">${esc(i.text)}</span></div>`).join("")}</div>`
     : `<p class="hint">Este archivo no lleva metadatos legibles: ni ubicación, ni cámara, ni autor.</p>`);
+  if(tags._c2pa) parts.push(renderC2pa(tags._c2pa));
   if(tags.Thumbnail && tags.Thumbnail.base64) parts.push(`<div class="section-label">Miniatura incrustada</div><img alt="Miniatura incrustada" style="max-width:100%;max-height:140px;border-radius:var(--r);border:1px solid var(--line)" src="data:${tags.Thumbnail.type || "image/jpeg"};base64,${tags.Thumbnail.base64}">`);
   for(const [key, title] of GROUPS){
     const g = tags[key];

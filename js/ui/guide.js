@@ -1438,6 +1438,16 @@ const TOPICS = [
             ExifReader (MPL-2.0). <b>Limpiar metadatos de un archivo…</b> quita los metadatos de un JPEG o PNG sin
             recomprimir: <b>Todo</b>, o <b>sólo la ubicación y los números de serie</b> (conserva fecha, cámara, autor,
             descripción y orientación; sin miniatura ni notas del fabricante), y con o sin perfil ICC.</p>
+          <h3>Metadatos al exportar y credenciales C2PA</h3>
+          <p>En <b>Exportar…</b>, «Metadatos» vuelve a escribir (desde el archivo original, por lista blanca) autor, fecha, cámara, ubicación y
+            descripción en <b>JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF</b>. «Todos los del original» incluye la ubicación, los números de serie y
+            las <b>notas del fabricante</b> (también hay una casilla propia en «Personalizado»): se copian en el mismo sitio donde estaban. El IPTC
+            viaja en JPEG, en PNG (perfil «Raw profile type iptc») y, traducido a XMP, en los demás formatos; los XMP de más de 64 KB se parten en
+            «XMP extendido». <b>Editar…</b> (o <b>Análisis › Editar metadatos al exportar…</b>) deja escribir o cambiar título, descripción, autor,
+            copyright, palabras clave, fecha y ubicación: abre con lo que trae el original, manda sobre él y se guarda en el proyecto; con una foto que no
+            viene de un archivo sirve igual. El inspector enseña además las <b>credenciales de contenido (C2PA)</b> si las hay: quién generó o editó el
+            archivo, las acciones declaradas (y si dice que lo hizo una IA), la firma y si los datos siguen siendo los firmados. No verifica la firma ni
+            la cadena de certificados, y al exportar desde Realify las credenciales se pierden.</p>
           <h3>Metadatos EXIF (escribir)</h3>
           <p>La cadena exporta sin metadatos por defecto. El panel EXIF escribe una
             cabecera coherente: cuerpo, objetivo, y una exposición que <b>cuadra consigo

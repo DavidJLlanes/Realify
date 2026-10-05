@@ -297,6 +297,12 @@ tiempo real mientras se pinta.
   personales, leído con ExifReader (MPL-2.0, sin modificar). Al exportar JPEG, PNG o WebP se pueden volver a escribir, desde el
   original y por lista blanca, autor y copyright, fecha, cámara, GPS y descripción (nunca la miniatura, las notas del fabricante ni
   la orientación). «Limpiar metadatos» puede quitar sólo la ubicación y los números de serie sin recomprimir.
+  Desde la v253: también en **AVIF, JPEG XL, TIFF y PDF** (`js/io/metacontainers.js`: elementos Exif/mime en `iinf`/`iloc`/`iref` de HEIF, cajas
+  «Exif» y «xml » de JPEG XL, IFD nuevo al final de un TIFF, Info + XMP en un PDF); la **nota del fabricante** (MakerNote) se copia en el mismo
+  desplazamiento que tenía; el **IPTC** va en PNG (`Raw profile type iptc`) y, como XMP, en WebP/AVIF/JXL/TIFF/PDF; **XMP extendido** de JPEG
+  (lectura y escritura, MD5 de Adobe); **Editar metadatos** (`js/io/metaedit.js`: campos que mandan sobre el original, guardados en el proyecto);
+  y el inspector lee las **credenciales C2PA** (`js/exif/c2pa.js`: JUMBF de APP11/`caBX`/WebP/JXL/AVIF, CBOR, COSE, X.509 y hash de los datos;
+  sin verificar la firma).
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

@@ -160,6 +160,7 @@ export async function serializeProject({ hi = true, hiMaxPixels = 24e6 } = {}){
       source:doc.source ? { w:doc.source.w, h:doc.source.h, type:doc.source.type,
                             size:doc.source.size, name:doc.source.name } : null,
       guides:cloneJson(doc.guides),
+      metaEdit:cloneJson(doc.metaEdit || null),
       selection:doc.selection ? {
         w:doc.selection.w, h:doc.selection.h,
         mask:bytesToBase64(new Uint8Array(doc.selection.mask))
@@ -250,7 +251,7 @@ export async function restoreProject(data){
     layers[i].groupId = saved.groupId != null ? (idMap.get(saved.groupId) ?? null) : null;
   });
   doc.open = true; doc.w = d.width; doc.h = d.height;
-  doc.name = d.name || "Sin título"; doc.source = d.source || null;
+  doc.name = d.name || "Sin título"; doc.source = d.source || null; doc.metaEdit = d.metaEdit && typeof d.metaEdit === "object" ? { ...d.metaEdit } : null;
   doc.layers = layers; doc.activeId = idMap.get(d.activeId) || layers[layers.length - 1].id;
   doc.guides = d.guides || { h:[], v:[] };
   doc.selection = d.selection ? {

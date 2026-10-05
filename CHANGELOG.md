@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v253 · Metadatos
+- **Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF** (además de JPEG, PNG y WebP; `js/io/metacontainers.js`): sin recodificar, se añaden cajas o etiquetas. **AVIF**: elementos «Exif» y «mime»
+  (XMP) en `iinf`, `iloc` y `iref` (referencia `cdsc`) y los datos en una `mdat` nueva (el `iloc` se reescribe y los desplazamientos de lo anterior se corrigen). **JPEG XL**: el flujo
+  desnudo se envuelve en el contenedor ISO con cajas «Exif» y «xml ». **TIFF**: Artist, Copyright, descripción, fecha, IFD Exif y GPS, XMP (700) e IPTC (33723) en un IFD nuevo al final del archivo.
+  **PDF**: diccionario Info (título, autor, asunto, palabras clave, fecha) y flujo XMP en el catálogo. Verificado con PIL, pillow-heif y tifffile (`tests/metadatos_check.py`).
+- **Notas del fabricante (MakerNote)**: casilla propia (y dentro de «Todos los del original»): se copia el bloque **en el mismo desplazamiento** que tenía —casi todas llevan desplazamientos
+  absolutos dentro—, escribiendo los IFD nuevos detrás; sólo en originales little endian y si cabe en un segmento EXIF. Lleva números de serie y contadores: por eso va aparte.
+- **IPTC en PNG** (perfil «Raw profile type iptc», la convención de ImageMagick y ExifTool) **y en WebP/AVIF/JPEG XL/TIFF/PDF vía XMP** (los campos IPTC se traducen a `dc:` y `photoshop:`).
+- **XMP extendido de JPEG**: se lee (varios segmentos recompuestos por desplazamiento) y se escribe cuando el paquete no cabe en 64 KB (paquete principal con `HasExtendedXMP` + segmentos con el GUID, MD5 del paquete).
+- **Editar metadatos al exportar** (Análisis › «Editar metadatos al exportar…», cajón «Herramientas» y botón «Editar…» del diálogo Exportar): título, descripción, autor, copyright, palabras clave, fecha y
+  ubicación; abre con lo que ya trae el original; se escribe en EXIF, IPTC y XMP a la vez, manda sobre el original y se guarda en el proyecto (`doc.metaEdit`). También sirve en documentos sin archivo de origen.
+- **Credenciales de contenido (C2PA) en el inspector** (`js/exif/c2pa.js`): lee el manifiesto JUMBF de JPEG (APP11), PNG (`caBX`), WebP, JPEG XL y AVIF y enseña generador, título, acciones (con programa y
+  tipo de fuente digital: avisa si declara contenido hecho por una IA), autor, componentes, afirmaciones, firma (algoritmo, titular y emisor del certificado, validez) y el historial. Comprueba el **hash de
+  los datos** (SHA-2): si no coincide, el archivo se modificó después de firmarse. **No verifica la firma ni la cadena de certificados** y lo dice. Probado con archivos firmados de verdad (c2pa-python).
+- Pruebas nuevas: `tests/metadatos-formatos.mjs` + `tests/metadatos_check.py`, `tests/metadatos-ui.mjs` (diálogo Exportar real en siete formatos), `tests/c2pa.mjs` (+ `tests/c2pa_gen.py`) y `tests/c2pa-inspector.mjs`.
+
 ### v252 · 16 bits, precisión y rendimiento
 - **El autoguardado lleva los 16 bits** (hasta 12 MP por capa): lo ya codificado se reutiliza entre guardados (caché por los datos de la capa), así que sólo la primera vez
   cuesta (854 ms → 26 ms en una foto de 1,2 MP) y la recuperación tras un cierre brusco ya no deja la foto en 8 bits.

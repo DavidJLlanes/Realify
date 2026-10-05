@@ -26,6 +26,8 @@ export const doc = {
   /* Metadatos de origen: de dónde salió y a qué tamaño, para poder
      avisar cuando se exporta más grande que el original. */
   source: null,
+  /* Campos de metadatos escritos a mano para la exportación (io/metaedit.js): título, descripción, autor, copyright, palabras clave, fecha, lat/lon. */
+  metaEdit: null,
   /* Selección activa: null significa «todo el documento vale», el
      caso normal. Cuando hay una, es { mask, w, h }: una máscara de un
      byte por píxel a la resolución exacta del documento. Se limpia al
@@ -147,6 +149,7 @@ export function newDoc(w, h, opts = {}){
   doc.h = Math.max(1, Math.round(h));
   doc.name = opts.name || "Sin título";
   doc.source = opts.source || null;
+  doc.metaEdit = null;
   doc.layers = [];
   doc.activeId = null;
   doc.open = true;

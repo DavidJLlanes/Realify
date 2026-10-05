@@ -60,11 +60,12 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [ ] Procesado «lazy» por bloques (libvips) en la vista de documentos muy grandes: el compositor de GPU ya compone por teselas, pero la vista en mosaico de 8 bits para ≥ 18 MP (8 MP en móvil) sigue sin pasar por él (a escala de pantalla las capas necesitarían reducirse en el shader).
 - [ ] Documentos de más de 40 MP (12 MP en móvil) o con texturas por encima del presupuesto de vídeo siguen con la vista previa de 8 bits.
 
-**Metadatos (fase 15)**
-- [ ] Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF (hoy JPEG, PNG y WebP).
-- [ ] Copiar MakerNote e IPTC en PNG/WebP; XMP extendido de JPEG; metadatos de originales no JPEG.
-- [ ] Editar los metadatos antes de exportar.
-- [ ] Mostrar la procedencia C2PA en el inspector.
+**Metadatos (fase 15)** — hecho en la v253: AVIF, JPEG XL, TIFF y PDF; MakerNote; IPTC en PNG/WebP; XMP extendido; editor de campos; C2PA en el inspector.
+- [ ] Metadatos al exportar en HEIC y OpenEXR; el PDF de «Exportar PDF…» (pdf-lib) sólo lleva sus propios campos, sin el XMP del original.
+- [ ] Leer el IPTC de originales que no son JPEG (PNG, TIFF, WebP) y los metadatos de originales HEIC/RAW (hoy se lee el EXIF estándar de cualquier contenedor, pero IPTC sólo de JPEG).
+- [ ] MakerNote: sólo se copia de originales little endian y si cabe en un segmento EXIF (≈40 KB); en TIFF/AVIF/JXL no se copia (sus desplazamientos serían otros).
+- [ ] C2PA: verificar la firma y la cadena de certificados (hoy sólo se lee y se comprueba el hash de los datos), mostrar las miniaturas de las afirmaciones y los hashes BMFF de AVIF/HEIC; firmar al exportar.
+- [ ] Editar metadatos: quitar un campo concreto del original (hoy un campo vacío no cambia nada; para quitar algo se apaga su casilla), y editar también en lote/«Acciones».
 
 **PSD/PSB y PDF (fases 16 y 17)**
 - [ ] PSD: objetos inteligentes, texto nativo editable, resto de capas de ajuste (brillo, tono, balance de color…), «Fusionar si»,
@@ -272,11 +273,11 @@ ExifReader (MPL-2.0, sin modificar).
 - [x] Al exportar JPEG, PNG y WebP: conservar autor/copyright, fecha, cámara, GPS y descripción por separado, o limpiar todo;
       el perfil ICC del documento se incrusta como siempre. (v240)
 - [x] «Limpiar metadatos»: opción de quitar sólo ubicación y números de serie, sin recomprimir. (v240)
-- [ ] Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF (hoy sólo JPEG, PNG y WebP).
-- [ ] Copiar las notas del fabricante (MakerNote) y el IPTC en PNG/WebP; XMP extendido de JPEG; metadatos de originales
-      HEIC/RAW (hoy se lee el EXIF estándar de cualquier contenedor, pero IPTC sólo de JPEG).
-- [ ] Editar los metadatos (cambiar autor, copyright o descripción) antes de exportar, sin necesidad del panel EXIF.
-- [ ] Mostrar en el inspector la procedencia C2PA (hoy la detecta `analysis/provenance.js` al limpiar).
+- [x] Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF. (v253)
+- [x] Notas del fabricante (MakerNote) en el mismo desplazamiento, IPTC en PNG (perfil crudo) y WebP (vía XMP), XMP extendido de JPEG. (v253)
+- [x] Editar los metadatos (título, descripción, autor, copyright, palabras clave, fecha, ubicación) antes de exportar. (v253)
+- [x] Procedencia C2PA en el inspector (manifiesto, acciones, firma, hash de los datos; sin verificar la firma). (v253)
+- [ ] Lo que queda está en la lista de arriba («Metadatos (fase 15)»).
 
 ## Fase 16 · HEIC, PSD y PSB ✅ en parte (v241)
 - [x] Exportar HEIC (v245): sin libheif ni x265 (GPL, incompatible con PolyForm Noncommercial, y patentes HEVC): se usa el codificador

@@ -11,7 +11,8 @@ import { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 import { isP3Doc, toSrgbCanvas } from "../core/colorspace.js";
 import { docHasHi } from "../core/hisrc.js";
 import { codecMaxPixels } from "./codecs.js";
-import { META_PRESETS, metaActive } from "./metapresets.js";
+import { META_PRESETS, META_NONE, metaActive } from "./metapresets.js";
+import * as metaEditApi from "./metaedit.js";
 import { highPrecisionAvailableFor, highPrecisionCapabilities, renderHighPrecisionCanvas, renderPrecisionAdjustmentStack } from "../core/high-precision-safe.js?v=4";
 export { sanitizeFilename, safeWebFilename } from "./export-utils.js";
 
@@ -337,13 +338,14 @@ export async function exportDialog(){
         <option value="nogps">Los del original, sin ubicación</option>
         <option value="all">Todos los del original</option>
         <option value="custom">Personalizado…</option>
-      </select></div>
+      </select><button type="button" id="exMetaEdit" title="Escribir o cambiar autor, copyright, descripción, palabras clave, fecha y ubicación del archivo exportado">Editar…</button></div>
     <div id="exMetaOpts" hidden style="margin:-2px 0 6px 2px">
       <label class="chk"><input type="checkbox" id="exMAuthor"> Autor y copyright</label>
       <label class="chk"><input type="checkbox" id="exMDate"> Fecha y hora de la toma</label>
       <label class="chk"><input type="checkbox" id="exMCamera"> Cámara y objetivo (modelo, exposición, ISO…)</label>
       <label class="chk"><input type="checkbox" id="exMGps"> Ubicación GPS y lugar</label>
       <label class="chk"><input type="checkbox" id="exMText"> Descripción, título y palabras clave</label>
+      <label class="chk"><input type="checkbox" id="exMMaker"> Notas del fabricante (MakerNote: números de serie y contadores)</label>
     </div>
     <p class="hint" id="exMetaHint" style="margin:-3px 0 9px"></p>
     <div class="field" id="qRow"><label>Calidad</label>
@@ -448,26 +450,35 @@ export async function exportDialog(){
       /* Metadatos del original (io/metadata.js): sólo JPEG, PNG y WebP, con la foto abierta desde un archivo, y no con
          «Limpio para web». Por defecto, ninguno: el lienzo exporta sin metadatos, como siempre. */
       const metaSel = body.querySelector("#exMeta"), metaOpts = body.querySelector("#exMetaOpts"), metaHint = body.querySelector("#exMetaHint");
-      const metaBoxes = { author: "#exMAuthor", date: "#exMDate", camera: "#exMCamera", gps: "#exMGps", text: "#exMText" };
+      const metaBoxes = { author: "#exMAuthor", date: "#exMDate", camera: "#exMCamera", gps: "#exMGps", text: "#exMText", maker: "#exMMaker" };
       const metaPolicy = () => Object.fromEntries(Object.entries(metaBoxes).map(([k, sel]) => [k, body.querySelector(sel).checked]));
+      /* Formatos que pueden llevar metadatos: JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF (v253) */
+      const META_TYPES = /^(image\/(jpeg|png|webp|avif|jxl|tiff)(;\d+)?|application\/pdf)$/;
+      const edits = () => { const o = metaEditApi.get(); return metaEditApi.count(o); };
       const syncMeta = () => {
-        const okType = ["image/jpeg", "image/png", "image/webp"].includes(type.value), hasFile = !!(doc.source && doc.source.file);
-        const on = okType && hasFile && !clean.checked;
-        metaSel.disabled = !on;
-        metaOpts.hidden = !on || metaSel.value !== "custom";
-        if(!on){ metaHint.textContent = clean.checked ? "«Limpio para web» no lleva metadatos." : !hasFile ? "Sólo con fotos abiertas desde un archivo." : "Sólo en JPEG, PNG y WebP."; return; }
+        const okType = META_TYPES.test(type.value), hasFile = !!(doc.source && doc.source.file), nEdit = edits();
+        const on = okType && (hasFile || nEdit) && !clean.checked;
+        metaSel.disabled = !on || !hasFile;
+        metaEditBtn.disabled = !okType || clean.checked;
+        metaEditBtn.textContent = nEdit ? `Editar… (${nEdit})` : "Editar…";
+        metaOpts.hidden = metaSel.disabled || metaSel.value !== "custom";
+        if(!okType || clean.checked){ metaHint.textContent = clean.checked ? "«Limpio para web» no lleva metadatos." : "Este formato no lleva metadatos."; return; }
+        if(!hasFile){ metaHint.textContent = nEdit ? `Se escriben los ${nEdit} campos editados.` : "El original no es un archivo: puedes escribir tus propios campos con «Editar…»."; return; }
         const v = metaSel.value;
-        metaHint.textContent = v === "none" ? "El archivo no lleva metadatos."
-          : "Se copian del archivo original, sin la miniatura (enseña la foto sin retocar), sin las notas del fabricante y sin la orientación." +
-            (v === "all" ? " Incluye números de serie y la ubicación." : v === "nogps" ? " Sin ubicación." : "");
+        metaHint.textContent = (v === "none" ? "No se copia nada del original." : "Se copian del archivo original, sin la miniatura (enseña la foto sin retocar) y sin la orientación." +
+            (policyMaker() ? " Incluye las notas del fabricante (números de serie)." : " Sin las notas del fabricante.") +
+            (v === "all" ? " Incluye la ubicación." : v === "nogps" ? " Sin ubicación." : "")) + (nEdit ? ` Y los ${nEdit} campos editados.` : "");
       };
+      const policyMaker = () => metaSel.value === "all" || (metaSel.value === "custom" && body.querySelector("#exMMaker").checked);
+      const metaEditBtn = body.querySelector("#exMetaEdit");
+      metaEditBtn.addEventListener("click", async () => { await metaEditApi.open(); syncMeta(); });
       metaSel.addEventListener("change", () => {
         const preset = META_PRESETS[metaSel.value];
         if(preset) for(const [k, sel] of Object.entries(metaBoxes)) body.querySelector(sel).checked = !!preset[k];
         syncMeta();
       });
       for(const sel of Object.values(metaBoxes)) body.querySelector(sel).addEventListener("change", () => { metaSel.value = "custom"; syncMeta(); });
-      wrap._metaPolicy = () => metaSel.disabled ? null : { ...(metaSel.value === "all" ? META_PRESETS.all : metaPolicy()) };
+      wrap._metaPolicy = () => metaSel.disabled ? { ...META_NONE } : { ...(metaSel.value === "all" ? META_PRESETS.all : metaPolicy()) };
       const precisionState=()=>{
         syncMeta();
         syncColor();
@@ -670,6 +681,20 @@ export async function exportDialog(){
   const dither = precision && wrap.querySelector("#exDither").checked;
   const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
   const metaPolicy = !clean && wrap._metaPolicy ? wrap._metaPolicy() : null;
+  const over = clean ? null : metaEditApi.get();
+  const wantMeta = !clean && /^(image\/(jpeg|png|webp|avif|jxl|tiff)(;\d+)?|application\/pdf)$/.test(type) && ((metaPolicy && metaActive(metaPolicy) && doc.source && doc.source.file) || metaEditApi.count(over));
+  // Los metadatos se preparan antes de codificar: el PDF los lleva desde que se construye; los demás formatos los reciben después
+  let meta = null;
+  if(wantMeta){
+    try{
+      const M = await import("./metadata.js");
+      const orig = doc.source && doc.source.file && metaActive(metaPolicy) ? await M.readOriginalMetadata(doc.source.file) : null;
+      meta = M.filterMetadata(orig, metaPolicy || META_NONE, { w, h, p3: isP3Doc(), over });
+      if(!meta.exif && !meta.xmp && !meta.iptc) meta = null;
+      if(meta && type === "application/pdf"){ const fx = M.fieldsFromXmp(meta.xmp); pdfOptions = { ...pdfOptions, info: { title: fx.title, author: fx.author, subject: fx.description, keywords: fx.keywords, date: fx.date }, xmp: meta.xmp }; }
+      else pdfOptions = { ...pdfOptions, info: null, xmp: null };
+    }catch(err){ console.warn("[metadatos]", err); meta = null; }
+  } else pdfOptions = { ...pdfOptions, info: null, xmp: null };
 
   status("Exportando…");
   let blob, cleanResult;
@@ -698,13 +723,14 @@ export async function exportDialog(){
 
   // Metadatos del original, filtrados (io/metadata.js); si el panel EXIF ya ha escrito los suyos, mandan esos
   let metaNote = "";
-  if(metaPolicy && metaActive(metaPolicy) && out === blob && doc.source && doc.source.file){
+  if(meta && out === blob){
     try{
       const M = await import("./metadata.js");
-      const meta = M.filterMetadata(await M.readOriginalMetadata(doc.source.file), metaPolicy, { w, h, p3: isP3Doc() });
-      const embedded = await M.embedMetadata(out, meta);
-      if(embedded !== out){ out = embedded; metaNote = M.describeMeta(meta, metaPolicy); }
-      else if(!meta.exif && !meta.xmp && !meta.iptc) metaNote = "";
+      if(type === "application/pdf") metaNote = M.describeMeta(meta, metaPolicy || META_NONE, over);
+      else {
+        const embedded = await M.embedMetadata(out, meta);
+        if(embedded !== out){ out = embedded; metaNote = M.describeMeta(meta, metaPolicy || META_NONE, over); }
+      }
     }catch(err){ console.warn("[metadatos]", err); }
   }
 

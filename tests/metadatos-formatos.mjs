@@ -45,6 +45,11 @@ const res = await page.evaluate(async () => {
   // XMP extendido: un XMP enorme se parte en segmentos
   const big = M.xmpSegments(`<x:xmpmeta xmlns:x="adobe:ns:meta/">${"a".repeat(150000)}</x:xmpmeta>`);
   out.extSegs = big.length; out.md5 = [M.md5hex(new TextEncoder().encode("")), M.md5hex(new TextEncoder().encode("The quick brown fox jumps over the lazy dog"))];
+  // XMP extendido: ida y vuelta por un JPEG real (descripción de 120 KB)
+  const bigMeta = M.filterMetadata(null, { author: false, date: false, camera: false, gps: false, text: false, ids: false, maker: false }, { w: 64, h: 48, over: { description: "x".repeat(120000), author: "Ext" } });
+  const bj = await M.embedMetadata(await blobOf("image/jpeg"), bigMeta), bu = new Uint8Array(await bj.arrayBuffer());
+  const back = await M.readXmp(bu), ext = M.readXmpExtended(bu);
+  out.ext = { main: back.length, tieneAviso: /HasExtendedXMP="[0-9A-F]{32}"/.test(back), extIgual: ext === bigMeta.xmp, md5: ext && /HasExtendedXMP="([0-9A-F]{32})"/.exec(back)[1] === M.md5hex(new TextEncoder().encode(ext)).toUpperCase() };
   out.fields = fx;
   return out;
 });
@@ -52,6 +57,6 @@ fs.mkdirSync("/tmp/sc/out", { recursive: true });
 for(const k of ["original", "jpg", "png", "webp", "avif", "jxl", "tif", "pdf"]) fs.writeFileSync(`/tmp/sc/out/m.${k}`, Buffer.from(res[k], "base64"));
 const small = { ...res }; for(const k of ["original", "jpg", "png", "webp", "avif", "jxl", "tif", "pdf"]) delete small[k];
 console.log(JSON.stringify(small));
-const ok = res.leido.maker === 200 && res.leido.iptc >= 5 && res.leido.xmp && ["jpg", "png", "webp", "avif", "jxl", "tif"].every(k => res[k + "_cambia"]) && res.extSegs >= 3
+const ok = res.leido.maker === 200 && res.leido.iptc >= 5 && res.leido.xmp && ["jpg", "png", "webp", "avif", "jxl", "tif"].every(k => res[k + "_cambia"]) && res.extSegs >= 3 && res.ext.tieneAviso && res.ext.extIgual && res.ext.md5 && res.ext.main < 2000
   && res.md5[0] === "d41d8cd98f00b204e9800998ecf8427e" && res.md5[1] === "9e107d9d372bb6826bd81d3542a419d6";
 console.log(ok && !errs.length ? "OK (falta metadatos_check.py)" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);

@@ -636,14 +636,15 @@ export async function embedMetadata(blob, meta){
 }
 
 /** Texto corto de lo que lleva `meta`, para el aviso tras exportar. */
-export function describeMeta(meta, policy){
+export function describeMeta(meta, policy, over = null){
   const parts = [];
   if(meta.exif || meta.xmp || meta.iptc){
-    if(policy.author) parts.push("autor");
-    if(policy.date) parts.push("fecha");
+    if(policy.author || (over && (over.author || over.copyright))) parts.push("autor");
+    if(policy.date || (over && over.date)) parts.push("fecha");
     if(policy.camera) parts.push("cámara");
-    if(policy.gps) parts.push("GPS");
-    if(policy.text) parts.push("descripción");
+    if(policy.gps || (over && Number.isFinite(over.lat))) parts.push("GPS");
+    if(policy.text || (over && (over.description || over.title || (over.keywords || []).length))) parts.push("descripción");
+    if(policy.maker) parts.push("notas del fabricante");
   }
   return parts.join(", ");
 }
@@ -657,4 +658,25 @@ export function fieldsFromXmp(xmp){
     const one = (ns, n) => { const v = xmpProp(d, ns, n); return v ? v.items.map(i => i.text).join(", ") : ""; };
     return { title: one(NS.dc, "title"), description: one(NS.dc, "description"), author: one(NS.dc, "creator"), copyright: one(NS.dc, "rights"), keywords: one(NS.dc, "subject"), date: one(NS.xmp, "CreateDate") || one(NS.photoshop, "DateCreated") };
   }catch{ return {}; }
+}
+
+/** Campos que trae el original, en la forma que usa el editor de metadatos (io/metaedit.js): { title, description, author, copyright, keywords[], date, lat, lon }. */
+export function fieldsFromOriginal(orig){
+  if(!orig) return {};
+  const all = { author: true, date: true, camera: false, gps: true, text: true, ids: false };
+  const fx = fieldsFromXmp(buildXmp([orig.xmp, orig.xmpExt], all, { iptc: orig.iptc || [] }));
+  const t = orig.tiff, str = (list, tag) => { const e = list && list.find(x => x.tag === tag); return e && e.type === 2 ? new TextDecoder("latin1").decode(e.bytes).replace(/\0+$/, "").trim() : ""; };
+  const f = {
+    title: fx.title || "", description: fx.description || str(t && t.ifd0, 0x010E), author: fx.author || str(t && t.ifd0, 0x013B), copyright: fx.copyright || str(t && t.ifd0, 0x8298),
+    keywords: fx.keywords ? fx.keywords.split(/,\s*/).filter(Boolean) : [], date: ""
+  };
+  const d = fx.date || str(t && t.exif, 0x9003).replace(/^(\d{4}):(\d{2}):(\d{2}) /, "$1-$2-$3T");
+  if(d) f.date = /T/.test(d) ? d.slice(0, 16) : d.slice(0, 10) + "T00:00";
+  const g = t && t.gps;
+  if(g && g.length){
+    const rat = e => { if(!e || e.type !== 5 || e.bytes.length < 24) return null; const dv = new DataView(e.bytes.buffer, e.bytes.byteOffset, e.bytes.byteLength); const v = i => dv.getUint32(i * 8, true) / (dv.getUint32(i * 8 + 4, true) || 1); return v(0) + v(1) / 60 + v(2) / 3600; };
+    const la = rat(g.find(e => e.tag === 2)), lo = rat(g.find(e => e.tag === 4)), ns = str(g, 1), ew = str(g, 3);
+    if(la != null && lo != null){ f.lat = +(ns === "S" ? -la : la).toFixed(6); f.lon = +(ew === "W" ? -lo : lo).toFixed(6); }
+  }
+  return f;
 }
