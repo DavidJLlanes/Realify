@@ -223,11 +223,14 @@ ExifReader (MPL-2.0, sin modificar).
       balance de color…), «Fusionar si», capas de 16 bits con capas (hoy sólo compuesto), metadatos XMP/EXIF en el
       PSD, abrir PSD de 16 bits conservando los 16 bits (hoy ag-psd los baja a 8) y estilos de capa con más opciones.
 
-## Fase 17 · PDF profesional
+## Fase 17 · PDF profesional ✅ en parte (v242)
 pdf-lib (MIT).
-- [ ] Multipágina, A4/A3/Carta, márgenes, sangrado, resolución objetivo, portada y
-      numeración; varias imágenes por página; fuentes y metadatos.
-- [ ] Imágenes a la resolución objetivo sin recomprimir de más.
+- [x] Multipágina, A5/A4/A3/Carta/Legal, márgenes, sangrado, resolución objetivo, portada y numeración; varias imágenes
+      por página; metadatos. (v242)
+- [x] Imágenes a la resolución objetivo sin recomprimir de más (JPEG que ya cabe → tal cual). (v242)
+- [ ] Pendiente: una página por capa/artboard del documento, PDF/X (perfil de salida CMYK e intención), marcas de recorte
+      dibujadas, texto de la portada con más estilo y fuentes propias (hoy Helvetica), imágenes con transparencia en
+      modo JPEG sobre un color de fondo a elegir, y orden/quitado de las imágenes añadidas.
 
 ## Fase 18 · Informe de errores en Ayuda
 - [ ] Diagnóstico: anotar qué archivo no se pudo cargar y con qué código (la

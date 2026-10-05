@@ -255,6 +255,7 @@ const ITEMS = [
   { cmd:"filter.frames",   label:"Marcos",         ic:"frame",            cat:"pintar estilo" },
   { cmd:"image.beforeAfter", label:"Antes y después", ic:"before-after", cat:"estilo analizar" },
   { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"contact-sheet", cat:"estilo" },
+  { cmd:"file.exportPdf",   label:"Exportar PDF",     ic:"file-pdf",    cat:"estilo" },
   { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos" },
   { cmd:"actions.open",     label:"Acciones",         ic:"clapperboard", cat:"mejorar estilo" },
   { cmd:"file.batchEdit",   label:"Aplicar edición a otras fotos", ic:"layers-2", cat:"basicos mejorar estilo" },

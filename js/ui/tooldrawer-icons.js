@@ -67,6 +67,7 @@ export const ICONS = {
   "before-after": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 2v20"/><path d="m3 20 6-7 3 3"/>',
   "film": '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>',
   "colorize": '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.5-.2-.8-.4-1.1-.2-.3-.4-.6-.4-1.1 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4.1-4-7.6-9-7.6z"/><circle cx="7.5" cy="10.5" r="1.2"/><circle cx="10.5" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/><path d="m18 14 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/>',
+  "file-pdf": '<path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9 17h1.5a1.5 1.5 0 000-3H9v5M14 14v5h1.2a2.5 2.5 0 000-5zM19 14h-2.5v5M16.5 16.5H19"/>',
   "contact-sheet": '<path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><rect x="8.5" y="9.5" width="4" height="3.5" rx=".5"/><rect x="13.5" y="9.5" width="4" height="3.5" rx=".5"/><rect x="8.5" y="15" width="4" height="3.5" rx=".5"/><rect x="13.5" y="15" width="4" height="3.5" rx=".5"/>',
   "denoise-ai": '<path d="M3 12h2l2-5 3 10 3-8 2 5 2-2h4"/><path d="m19 3 .8 1.7L21.5 5.5l-1.7.8L19 8l-.8-1.7L16.5 5.5l1.7-.8z"/>',
   "hdr": '<rect x="2" y="7" width="14" height="12" rx="2"/><path d="M6 4h12a2 2 0 0 1 2 2v9"/><path d="m5.5 16 3-4 2 2.5 1.5-1.5 2 3"/>',

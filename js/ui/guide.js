@@ -1145,6 +1145,10 @@ const TOPICS = [
           enormes (hasta 300 000 px por lado) y <b>PSD/PSB de 16 bits</b> guarda sólo la imagen final con
           los 16 bits del motor de precisión. Guarda un <code>.realify</code> para reeditar en Realify.
           Los PSD/PSB llevan perfil sRGB; el TIFF de 8 bits no. Realify abre también <code>.psb</code>.</li>
+        <li id="file-pdf"><b>Exportar PDF…</b> PDF para imprimir o enviar: el documento y las imágenes que añadas, en una
+          o varias páginas (A5, A4, A3, Carta, Legal o el tamaño de la imagen), con márgenes, <b>sangrado</b>,
+          1 a 9 imágenes por página, portada, numeración, metadatos y <b>resolución objetivo</b> en ppp. Una foto JPEG
+          que ya cabe en esa resolución se incrusta sin volver a comprimirla.</li>
         <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
           sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
           número de colores.</li>

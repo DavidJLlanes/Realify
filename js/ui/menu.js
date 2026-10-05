@@ -34,6 +34,8 @@ export const MENUS = [
     { sep:true },
     { cmd:"file.export",   label:"Exportar…" },
     { cmd:"file.exportAs", label:"Exportar como…" },
+    { cmd:"file.exportPdf", ic:"file-pdf", label:"Exportar PDF…",
+      help:"PDF profesional: varias imágenes, A5/A4/A3/Carta/Legal o el tamaño de la imagen, vertical u horizontal, márgenes, sangrado, varias imágenes por página, portada, numeración, metadatos y resolución objetivo (las fotos JPEG que ya caben se incrustan sin recomprimir)." },
     { cmd:"file.exportPng",label:"Exportar PNG rápido" },
     { cmd:"file.exportGif", ic:"film", label:"Exportar GIF animado…",
       help:"Cada capa visible es un fotograma (sola o acumulada): duración, bucle, ida y vuelta, tamaño y colores." },

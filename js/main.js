@@ -139,6 +139,7 @@ registerAll({
   "ai.colorize":    { run: async () => (await import("./features/aitools.js")).aiColorize(), enabled: needsDoc },
   "ai.expand":      { run: async () => (await import("./features/aitools.js")).aiExpand(), enabled: needsDoc },
   "actions.open":   { run: async () => (await import("./features/actions.js")).openActions() },
+  "file.exportPdf": { run: async () => (await import("./io/pdfexport.js")).exportPdf(), enabled: needsDoc },
   "file.exportGif":  { run: async () => (await import("./io/gifexport.js")).exportGif(), enabled: needsDoc },
   "file.contactSheet": { run: async () => (await import("../hojacontactos/index.js")).openContacts() },
   "image.beforeAfter": { run: async () => (await import("../comparar/index.js")).openCompare(), enabled: needsDoc },

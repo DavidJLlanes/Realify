@@ -9,6 +9,18 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v242 · PDF profesional (fase 17)
+- **Archivo › Exportar PDF…** (`js/io/pdfexport.js`, motor en `js/io/pdfpro.js`; también en el cajón «Herramientas» del móvil)
+  con **pdf-lib** (MIT, `js/vendor/pdf-lib`, sin modificar, se carga sólo al usarlo): el documento y las imágenes que se
+  añadan, en **varias páginas**, A5/A4/A3/Carta/Legal o el tamaño de la imagen, vertical/horizontal/automática,
+  **márgenes** y **sangrado** (MediaBox, BleedBox y TrimBox), **1, 2, 4, 6 o 9 imágenes por página** con el nombre
+  bajo cada una, **portada** (título y fecha), **numeración**, **metadatos** (título, autor, asunto, palabras clave) y
+  **resolución objetivo** (96–600 ppp). Calidad JPEG o PNG sin pérdidas.
+- **Sin recomprimir de más**: una foto JPEG que ya cabe en la resolución objetivo se incrusta tal cual (si no lleva giro EXIF
+  ni un perfil distinto de sRGB); si hay que reducirla se remuestrea una sola vez y se codifica una sola vez.
+- Prueba nueva `tests/pdf.mjs` + `tests/pdf_check.py` (PyMuPDF): páginas, tamaños, sangrado, metadatos, numeración,
+  reducción a ppp y JPEG original intacto. El «PDF» de Exportar y de Exportar como sigue siendo el rápido de una página.
+
 ### v241 · HEIC, PSD y PSB (fase 16)
 - **PSD de capas completo** (Exportar como… › PSD): las capas ya no llevan la máscara y los estilos «horneados». Ahora
   se guardan **máscaras de capa reales** (también las vinculadas y las desactivadas), los **efectos de capa** de Realify
