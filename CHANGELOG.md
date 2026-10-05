@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v254 · PSD/PSB y PDF
+- **PSD/PSB**: **texto editable** (texto simple; los píxeles van aparte), **objetos inteligentes** (original recortado en un PNG enlazado y transformación en `placedLayer`; sólo sin giro, sesgo ni malla), **«Fusionar si»** de gris compuesto (`blendingRanges`), y las capas de ajuste **Exposición** y **Blanco y negro** (mezclador monocromo Rec. 709) exactas; **Tono y saturación** y **Brillo y contraste** se escriben aproximados (la copia «Vista final · referencia» se conserva). Al abrir, todo vuelve a ser texto, objeto inteligente, ajuste y «Fusionar si» de Realify.
+- **PSD/PSB de 16 bits con capas** (`js/io/psdlayers16.js`): ag-psd escribe la estructura y se reescriben los píxeles a 16 bits en el bloque `Lr16` (píxeles reales del origen de 16 bits, máscaras de 16 bits), con **metadatos** XMP y EXIF; los PSD/PSB de 16 bits se **abren conservando los 16 bits** (origen parcial por capa).
+- **PDF** (`js/io/pdfpro.js`, `pdfexport.js`, `pdflayers.js`): una página por capa, reordenar/quitar imágenes, color de fondo para transparencias, marcas de recorte, fuente propia (@pdf-lib/fontkit, MIT) y **PDF/X-3** (intención de salida FOGRA39/SWOP/FOGRA29, imágenes DeviceCMYK, TrimBox/BleedBox). Límite: CMYK matemático sin perfil ICC, no validado con preflight; PDF/X exige fuente propia para el texto.
+- Pruebas: `tests/psd-extras.mjs`, `tests/psd16-capas.mjs` + `psd16_check.py`, `tests/psd16-abrir.mjs`, `tests/pdf-pro.mjs` + `pdf_check.py`, `tests/pdf-dialogo.mjs` + `pdf_dialogo_check.py` (psd-tools y pypdf).
+
 ### v253 · Metadatos
 - **Metadatos al exportar en AVIF, JPEG XL, TIFF y PDF** (además de JPEG, PNG y WebP; `js/io/metacontainers.js`): sin recodificar, se añaden cajas o etiquetas. **AVIF**: elementos «Exif» y «mime»
   (XMP) en `iinf`, `iloc` y `iref` (referencia `cdsc`) y los datos en una `mdat` nueva (el `iloc` se reescribe y los desplazamientos de lo anterior se corrigen). **JPEG XL**: el flujo

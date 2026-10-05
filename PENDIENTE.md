@@ -68,10 +68,9 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [ ] Editar metadatos: quitar un campo concreto del original (hoy un campo vacío no cambia nada; para quitar algo se apaga su casilla), y editar también en lote/«Acciones».
 
 **PSD/PSB y PDF (fases 16 y 17)**
-- [ ] PSD: objetos inteligentes, texto nativo editable, resto de capas de ajuste (brillo, tono, balance de color…), «Fusionar si»,
-      capas de 16 bits con capas, metadatos XMP/EXIF, abrir PSD de 16 bits conservando los 16 bits, más opciones de estilos.
-- [ ] PDF: una página por capa/artboard, PDF/X (CMYK e intención de salida), marcas de recorte dibujadas, fuentes propias en la
-      portada, fondo a elegir para imágenes con transparencia en JPEG, ordenar/quitar las imágenes añadidas.
+**Hecho en la v254**: PSD con objetos inteligentes (sin giro/sesgo), texto editable (texto simple), Exposición y Blanco y negro exactos, Tono/Brillo aproximados, «Fusionar si» (gris compuesto), capas de 16 bits, metadatos XMP/EXIF y abrir PSD de 16 bits sin bajarlos a 8. PDF: una página por capa, PDF/X con CMYK, marcas de recorte, fuentes propias, fondo de transparencias y reordenar imágenes.
+- [ ] PSD: objetos inteligentes con giro, sesgo o malla (hoy se rasterizan); texto con círculo, giro, marco o caja de fondo, y fuentes por su nombre PostScript real (hoy el nombre de la familia); Balance de blancos y Bandas sin equivalente; «Fusionar si» por canal; abrir objetos inteligentes de Photoshop con contenido no raster; más opciones de estilos.
+- [ ] PDF/X: el CMYK sale de una conversión matemática sin perfil ICC (no se incrusta ninguno) y no se ha validado con un preflight profesional (Acrobat/callas); el texto exige fuente propia; sin PDF/X-4 ni transparencias vivas.
 
 **Evaluado y descartado**
 - Pica y Photon (fase 19), cuantizar modelos a INT8/Q4, Fabric.js/TOAST UI como editor completo, Transformers.js como segundo motor,
@@ -287,16 +286,15 @@ ExifReader (MPL-2.0, sin modificar).
       Invertir/Niveles/Curvas, 72 ppp y sRGB; importación de modos, máscaras, efectos y ajustes. (v241)
 - [x] PSB (documentos grandes): exportar y abrir. (v241)
 - [x] PSD/PSB de 16 bits (sólo la imagen final, escritor propio). (v241)
-- [ ] Pendiente: objetos inteligentes (se rasterizan), texto nativo editable, resto de capas de ajuste (brillo, tono,
-      balance de color…), «Fusionar si», capas de 16 bits con capas (hoy sólo compuesto), metadatos XMP/EXIF en el
-      PSD, abrir PSD de 16 bits conservando los 16 bits (hoy ag-psd los baja a 8) y estilos de capa con más opciones.
+- [x] PSD: objetos inteligentes, texto editable, Exposición/Blanco y negro/Tono/Brillo, «Fusionar si», capas de 16 bits, metadatos y abrir 16 bits sin bajarlos a 8. (v254)
 
 ## Fase 17 · PDF profesional ✅ en parte (v242)
 pdf-lib (MIT).
 - [x] Multipágina, A5/A4/A3/Carta/Legal, márgenes, sangrado, resolución objetivo, portada y numeración; varias imágenes
       por página; metadatos. (v242)
 - [x] Imágenes a la resolución objetivo sin recomprimir de más (JPEG que ya cabe → tal cual). (v242)
-- [ ] Pendiente: una página por capa/artboard del documento, PDF/X (perfil de salida CMYK e intención), marcas de recorte
+- [x] Una página por capa, PDF/X con CMYK (sin perfil ICC), marcas de recorte, fuentes propias, fondo de transparencias y reordenar imágenes. (v254)
+- [ ] (Antes de la v254) una página por capa/artboard del documento, PDF/X (perfil de salida CMYK e intención), marcas de recorte
       dibujadas, texto de la portada con más estilo y fuentes propias (hoy Helvetica), imágenes con transparencia en
       modo JPEG sobre un color de fondo a elegir, y orden/quitado de las imágenes añadidas.
 

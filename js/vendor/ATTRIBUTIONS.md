@@ -2,6 +2,7 @@
 
 - `ag-psd.js`: ag-psd, copyright Agamnentzar y colaboradores, licencia MIT. Parche de Realify en el escritor de Niveles (`levl`): 29 registros en el orden de la especificación, como escribe Photoshop.
 - `pdf-lib/`: pdf-lib 1.17.1, © Andrew Dillon, licencia MIT (incluye `LICENSE`); sin modificar. Se carga sólo al exportar un PDF.
+- `pdf-lib/fontkit.umd.min.js`: @pdf-lib/fontkit 1.1.1, © Devon Govett, licencia MIT; sin modificar. Se carga sólo al exportar un PDF con una fuente propia (TTF/OTF).
 - `utif.js`: UTIF.js, Photopea/Ivan Kuckir, licencia MIT.
 - `heic2any.min.js`: heic2any, Alex Corvi, licencia MIT.
 - `exifreader/exif-reader.js`: ExifReader 4.46.0, Mattias Wallander, licencia **MPL-2.0** (texto en `exifreader/LICENSE`), **sin modificar** (el archivo es el de `dist/` del paquete npm, con su comentario final tal cual). Lee EXIF, IPTC, XMP, ICC, MPF, Photoshop y notas del fabricante en el Inspector de metadatos; se carga sólo al abrirlo o al exportar conservando metadatos del original. El código fuente completo está en https://github.com/mattiasw/ExifReader.

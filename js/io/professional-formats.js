@@ -77,7 +77,79 @@ export function psdAdjustment(l){
     const pts = (p.points && p.points.length >= 2 ? p.points : [[0,0],[255,255]]).map(([x, y]) => ({ input:Math.round(x), output:Math.round(y) }));
     return { type:"curves", rgb:pts };
   }
+  if(l.adjustType === "exposure") return { type:"exposure", exposure:+(p.ev || 0), offset:0, gamma:1 };
+  if(l.adjustType === "gray"){          // Rec.709 sobre valores codificados, como el mezclador de canales en monocromo
+    const gray = { red:21, green:72, blue:7, constant:0 };
+    return { type:"channel mixer", monochrome:true, gray };
+  }
   return null;
+}
+
+/** Ajustes con equivalente sólo aproximado: se escriben (se pueden retocar en Photoshop) pero la capa «Vista final · referencia» se conserva. */
+export function psdApproxAdjustment(l){
+  const p = l.adjustParams || {};
+  if(l.adjustType === "hsl" && !p.colorize && !p.premium){
+    const h = Math.max(-180, Math.min(180, Math.round(p.hue || 0))), s = Math.max(-100, Math.min(100, Math.round(p.sat || 0))), li = Math.max(-100, Math.min(100, Math.round(p.light || 0)));
+    return { type:"hue/saturation", master:{ a:0, b:0, c:0, d:0, hue:h, saturation:s, lightness:li } };
+  }
+  if(l.adjustType === "bc" && !p.premium)
+    return { type:"brightness/contrast", brightness:Math.round(p.brightness || 0), contrast:Math.round(p.contrast || 0), useLegacy:!!p.useLegacy };
+  return null;
+}
+
+/** «Fusionar si» de Realify → blendingRanges de Photoshop (gris compuesto: esta capa / capas de debajo). */
+export function psdBlendingRanges(b){
+  if(!b) return null;
+  const a = x => [x.blackMin ?? 0, x.blackMax ?? 0, x.whiteMin ?? 255, x.whiteMax ?? 255].map(v => Math.max(0, Math.min(255, Math.round(v))));
+  const t = a(b.thisLayer || {}), u = a(b.underlying || {});
+  if(t.join() === "0,0,255,255" && u.join() === "0,0,255,255") return null;
+  const d = [0, 0, 255, 255];
+  return { compositeGrayBlendSource:t, compositeGraphBlendDestinationRange:u, ranges:[0, 1, 2].map(() => ({ sourceRange:d.slice(), destRange:d.slice() })) };
+}
+
+/** Texto de Realify → texto editable de Photoshop (los píxeles de la capa van aparte, para quien no lo lea). */
+export function psdText(l, scale = 1){
+  const t = l.text;
+  if(!t || t.circle || t.angle || t.bg || t.boxW) return null;     // sólo el texto simple tiene equivalente fiel
+  const hex = (t.color || "#000000").replace("#", ""), n = parseInt(hex.length === 3 ? hex.replace(/./g, "$&$&") : hex, 16);
+  const fill = { r:(n >> 16) & 255, g:(n >> 8) & 255, b:n & 255 };
+  const fam = String(t.font || "Arial").split(",")[0].replace(/["']/g, "").trim();
+  const size = (t.size || 24) * scale;
+  const just = { left:"left", center:"center", right:"right" }[t.align] || "left";
+  const content = t.allCaps ? String(t.content || "").toUpperCase() : String(t.content || "");
+  const lines = content.split("\n"), w = Math.max(1, ...lines.map(x => x.length)) * size * 0.55, hgt = lines.length * size * (t.lineHeight || 1.25);
+  const dx = just === "center" ? 0 : just === "left" ? -w / 2 : w / 2;
+  return { text:content, transform:[1, 0, 0, 1, (t.x || 0) * scale + dx, (t.y || 0) * scale - hgt / 2 + size], antiAlias:"smooth", orientation:"horizontal",
+    left:-w / 2 - dx, right:w / 2 - dx, top:-size, bottom:hgt - size, warp:{ style:"none", value:0, perspective:0, perspectiveOther:0, rotate:"horizontal" },
+    style:{ font:{ name:fam.replace(/\s+/g, "") }, fontSize:size, fillColor:fill, tracking:Math.round((t.tracking || 0) * 1000 / Math.max(1, size)),
+      leading:size * (t.lineHeight || 1.25), fauxBold:(t.weight || 400) >= 600, fauxItalic:!!t.italic },
+    paragraphStyle:{ justification:just } };
+}
+
+const opaqueBox = c => {
+  const w = c.width, h = c.height, d = c.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++) if(d[(y * w + x) * 4 + 3]){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  return x1 < 0 ? null : { x:x0, y:y0, w:x1 - x0 + 1, h:y1 - y0 + 1 };
+};
+
+/** Objetos inteligentes que se pueden escribir como objeto inteligente de Photoshop: el original recortado a su contenido en un PNG enlazado.
+    Sólo los que están girados 0° y sin sesgo ni malla (el resto queda rasterizado: la transformación general no cabe en una caja). */
+export async function smartLinked(){
+  const out = new Map();
+  for(const l of doc.layers){
+    if(!l.smart || !l.smartSource || l.type === "adjust") continue;
+    const t = l.smartTransform;
+    if(t && (t.mode === "warp" || t.angle || t.skewX || t.skewY)) continue;
+    const src = l.smartSource, sb = opaqueBox(src), db = opaqueBox(l.canvas);
+    if(!sb || !db) continue;
+    const c = document.createElement("canvas"); c.width = sb.w; c.height = sb.h;
+    c.getContext("2d").drawImage(src, sb.x, sb.y, sb.w, sb.h, 0, 0, sb.w, sb.h);
+    const blob = await new Promise(r => c.toBlob(r, "image/png"));
+    if(!blob) continue;
+    out.set(l.id, { bytes:new Uint8Array(await blob.arrayBuffer()), w:sb.w, h:sb.h, box:db, flipH:!!t?.flipH, flipV:!!t?.flipV });
+  }
+  return out;
 }
 
 /** Píxeles de 16 bits de una capa rasterizada (recortados a su caja): RGB del origen de 16 bits donde el lienzo sigue siendo su redondeo (misma regla que core/hisrc.js) y
@@ -124,7 +196,8 @@ function addIccResource(u8, icc){
  * Lo que no se traduce (texto, objetos inteligentes, Fusionar si, el resto de ajustes) va rasterizado, y una copia oculta
  * «Vista final · referencia» enseña el aspecto de Realify.
  */
-export function layeredPsd(scale = 1, { psb = false, hi = null, meta = null } = {}){
+export function layeredPsd(scale = 1, { psb = false, hi = null, meta = null, smart = null } = {}){
+  const linkedFiles = [];
   const A = globalThis.agPsd;
   if(!A?.writePsdUint8Array) throw new Error("El codificador PSD no está disponible");
   const width = Math.round(doc.w * scale), height = Math.round(doc.h * scale);
@@ -153,32 +226,42 @@ export function layeredPsd(scale = 1, { psb = false, hi = null, meta = null } = 
     const common = { name:l.name || "Capa", hidden:!l.visible, opacity:l.opacity ?? 1, blendMode:PSD_BLEND[l.blend] || "normal" };
     if(!PSD_BLEND[l.blend] && l.blend) unsupported = true;
     if(l.type === "adjust"){
-      const adjustment = psdAdjustment(l);
-      if(!adjustment){ unsupported = true; return []; }
+      let adjustment = psdAdjustment(l);
+      if(!adjustment){ adjustment = psdApproxAdjustment(l); unsupported = true; }
+      if(!adjustment) return [];
       const m = maskOf(l), node = { ...common, adjustment, ...(m ? { mask:m } : {}) };
       provs.set(node, { mask:m && m.__src });
       return [node];
     }
     const effects = psdEffects(l.styles && hasEnabledStyle(l.styles) ? l.styles : null, scale), m = maskOf(l);
-    if(l.blendIf) unsupported = true;
+    const blendingRanges = psdBlendingRanges(l.blendIf);
     if(children){
-      const node = { ...common, children:nodes(children), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}) };
+      const node = { ...common, children:nodes(children), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}), ...(blendingRanges ? { blendingRanges } : {}) };
       provs.set(node, { mask:m && m.__src, group:true });
       return [node];
     }
     // Los píxeles de la capa SIN máscara, estilos, recorte ni «Fusionar si» (van aparte, como en Photoshop)
     const raster = flatten(null, [{ ...l, groupId:null, visible:true, opacity:1, blend:"source-over", clipped:false,
       mask:null, maskRef:null, styles:null, blendIf:null }], doc.w, doc.h);
-    const node = { ...common, clipping:!!l.clipped, imageData:hi ? tiny() : dataOf(raster), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}) };
+    const node = { ...common, clipping:!!l.clipped, imageData:hi ? tiny() : dataOf(raster), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}), ...(blendingRanges ? { blendingRanges } : {}) };
+    const tx = l.type === "text" ? psdText(l, scale) : null;
+    if(tx) node.text = tx; else if(l.type === "text") unsupported = true;
+    const sm = smart && smart.get(l.id);
+    if(sm){
+      const id = crypto.randomUUID(), b = sm.box, x0 = b.x * scale, y0 = b.y * scale, x1 = (b.x + b.w) * scale, y1 = (b.y + b.h) * scale;
+      const L = sm.flipH ? x1 : x0, R = sm.flipH ? x0 : x1, T = sm.flipV ? y1 : y0, B = sm.flipV ? y0 : y1;
+      linkedFiles.push({ id, name:(l.name || "Objeto") + ".png", type:"png", data:sm.bytes });
+      node.placedLayer = { id, placed:id, type:"raster", pageNumber:1, totalPages:1, transform:[L, T, R, T, R, B, L, B], width:sm.w, height:sm.h, resolution:{ value:72, units:"Density" } };
+    }
     if(hi) provs.set(node, { layer:l, raster, mask:m && m.__src });
     return [node];
   });
   const imageData = hi ? null : dataOf(flatten());
-  const psd = { width, height, ...(imageData ? { imageData } : {}), children:nodes(buildLayerTree(doc.layers)),
+  const psd = { width, height, ...(imageData ? { imageData } : {}), children:nodes(buildLayerTree(doc.layers)), ...(linkedFiles.length ? { linkedFiles } : {}),
     imageResources:{ resolutionInfo:{ horizontalResolution:72, horizontalResolutionUnit:"PPI", widthUnit:"Centimeters",
       verticalResolution:72, verticalResolutionUnit:"PPI", heightUnit:"Centimeters" } } };
   // Una copia oculta facilita comparar la apariencia final si algo propio de Realify no se traduce a PSD.
-  if(!hi && (unsupported || doc.layers.some(l => l.type === "text" || l.smart)))
+  if(!hi && (unsupported || doc.layers.some(l => (l.smart && !(smart && smart.has(l.id))))))
     psd.children.unshift({ name:"Vista final · referencia", hidden:true, imageData });
   if(meta && meta.xmp) psd.imageResources.xmpMetadata = meta.xmp;
   let bytes = A.writePsdUint8Array(psd, { noBackground:true, trimImageData:!hi, psb });

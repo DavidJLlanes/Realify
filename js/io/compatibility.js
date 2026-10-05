@@ -112,6 +112,10 @@ function adjustFrom(src){
     const [k,ch]=used[0]||["rgb","rgb"],c=a[k]||{};
     return {type:"levels",params:{inLow:c.shadowInput??0,inHigh:c.highlightInput??255,gamma:c.midtoneInput??1,outLow:c.shadowOutput??0,outHigh:c.highlightOutput??255,channel:ch}};
   }
+  if(a.type==="exposure"&&!a.offset&&Math.abs((a.gamma??1)-1)<1e-6)return {type:"exposure",params:{ev:a.exposure||0}};
+  if(a.type==="channel mixer"&&a.monochrome&&a.gray&&Math.abs(a.gray.red-21)<=1&&Math.abs(a.gray.green-72)<=1&&Math.abs(a.gray.blue-7)<=1&&!a.gray.constant)return {type:"gray",params:{}};
+  if(a.type==="hue/saturation"&&a.master&&!a.colorize)return {type:"hsl",params:{hue:a.master.hue||0,sat:a.master.saturation||0,light:a.master.lightness||0,colorize:false}};
+  if(a.type==="brightness/contrast")return {type:"bc",params:{brightness:a.brightness||0,contrast:a.contrast||0,protect:100,pivot:"auto",useLegacy:!!a.useLegacy}};
   if(a.type==="curves"&&a.rgb&&a.rgb.length>=2&&!a.red&&!a.green&&!a.blue)return {type:"curves",params:{points:a.rgb.map(p=>[p.input,p.output])}};
   return null;
 }
@@ -121,9 +125,13 @@ function psdTextLayer(src,parentId){
   const t=src.text||{},style=t.style||t.styleRuns?.[0]?.style||{};
   const rawSize=style.fontSize, size=typeof rawSize==="number"?rawSize:rawSize?.value;
   l.text={...defaultText(),content:t.text||t.value||src.name||"Texto",x:(src.left||0)+Math.max(1,(src.right-src.left||0))/2,y:(src.top||0)+Math.max(1,(src.bottom-src.top||0))/2,size:Math.round(size||defaultText().size),color:rgbaHex(style.fillColor||style.color)};
+  const just=src.text?.paragraphStyle?.justification;if(just==="left"||just==="center"||just==="right")l.text.align=just;
+  if(style.fauxBold)l.text.weight=700;if(style.fauxItalic)l.text.italic=true;
+  const fam=style.font?.name;if(fam)l.text.font=fam;
   renderTextLayer(l);return l;
 }
 
+let smartFiles=null;
 function importPsdNodes(nodes,parentId=null,out=[]){
   /* PSD guarda visualmente de arriba abajo; Realify compone de abajo
      arriba, por eso se invierte cada nivel. */
@@ -133,18 +141,29 @@ function importPsdNodes(nodes,parentId=null,out=[]){
     const l=adj?makeLayer({name:src.name||"Ajuste",type:"adjust"}):src.text?psdTextLayer(src,parentId):makeLayer({name:src.name||"Capa"});
     if(adj){l.adjustType=adj.type;l.adjustParams=adj.params;}
     l.groupId=parentId;l.visible=!src.hidden;l.opacity=alpha01(src.opacity);l.blend=blend[src.blendMode]||"source-over";l.clipped=!!src.clipping;l.styles=stylesFrom(src.effects);
+    const br=src.blendingRanges,bi=a=>({blackMin:a[0],blackMax:a[1],whiteMin:a[2],whiteMax:a[3]});
+    if(br&&br.compositeGrayBlendSource&&br.compositeGraphBlendDestinationRange&&(br.compositeGrayBlendSource.join()!=="0,0,255,255"||br.compositeGraphBlendDestinationRange.join()!=="0,0,255,255"))l.blendIf={thisLayer:bi(br.compositeGrayBlendSource),underlying:bi(br.compositeGraphBlendDestinationRange)};
     if(!src.text&&src.canvas)l.ctx.drawImage(src.canvas,src.left||0,src.top||0);
     else if(!src.text&&src.imageData&&src.imageData.data instanceof Uint16Array){          // PSD de 16 bits: se conservan los 16 bits (origen parcial con su rectángulo)
       const r=hiPixels(src.imageData,src.left||0,src.top||0,doc.w,doc.h);if(r){l.ctx.putImageData(r.img,r.px,r.py);l.hiSrc=r.hiSrc;}
     }else if(!src.text&&src.imageData)l.ctx.putImageData(new ImageData(new Uint8ClampedArray(src.imageData.data),src.imageData.width,src.imageData.height),src.left||0,src.top||0);
-    const m=maskFor(src.mask,doc.w,doc.h);if(m){l.mask=m;l.maskEnabled=!src.mask.disabled;}l.thumbDirty=true;out.push(l);
+    const m=maskFor(src.mask,doc.w,doc.h);if(m){l.mask=m;l.maskEnabled=!src.mask.disabled;}const sm=smartFiles&&src.placedLayer&&smartFiles.get(src.placedLayer.placed||src.placedLayer.id);
+    if(sm&&!src.text){const q=src.placedLayer.transform||[];       // sólo cuadros sin giro: el original ocupa la caja de la transformación
+      if(q.length===8&&Math.abs(q[1]-q[3])<.5&&Math.abs(q[2]-q[4])<.5&&Math.abs(q[5]-q[7])<.5&&Math.abs(q[0]-q[6])<.5){
+        const x0=Math.min(q[0],q[2]),x1=Math.max(q[0],q[2]),y0=Math.min(q[1],q[5]),y1=Math.max(q[1],q[5]),c=canvas(doc.w,doc.h),x=c.getContext("2d");
+        x.save();x.translate(q[0]<q[2]?x0:x1,q[1]<q[5]?y0:y1);x.scale((q[0]<q[2]?1:-1)*(x1-x0)/sm.width,(q[1]<q[5]?1:-1)*(y1-y0)/sm.height);x.drawImage(sm,0,0);x.restore();
+        l.smart=true;l.smartSource=c;l.smartTransform=null;l.smartBox={x:Math.floor(x0),y:Math.floor(y0),w:Math.ceil(x1-x0),h:Math.ceil(y1-y0)};}}
+    l.thumbDirty=true;out.push(l);
   }return out;
 }
 
 export async function openPsd(file){
   const buf=await file.arrayBuffer(),deep=psdDepth(buf)===16;
   const psd=parsePsd(buf,deep?{useImageData:true}:{});newDoc(psd.width,psd.height,{name:file.name.replace(/\.[^.]+$/,"")});
-  doc.layers=importPsdNodes(psd.children||[]);if(!doc.layers.length){
+  smartFiles=new Map();
+  for(const f of psd.linkedFiles||[]){if(!f.data||!/^(png|jpg|jpeg|webp|gif)$/i.test(f.type||""))continue;
+    try{const bm=await createImageBitmap(new Blob([f.data]));const c=canvas(bm.width,bm.height);c.getContext("2d").drawImage(bm,0,0);smartFiles.set(f.id,c);}catch{}}
+  doc.layers=importPsdNodes(psd.children||[]);smartFiles=null;if(!doc.layers.length){
     const l=makeLayer({name:"Composición"});
     if(psd.canvas)l.ctx.drawImage(psd.canvas,0,0);
     else if(psd.imageData&&psd.imageData.data instanceof Uint16Array){const r=hiPixels(psd.imageData,0,0,doc.w,doc.h);if(r){l.ctx.putImageData(r.img,r.px,r.py);l.hiSrc=r.hiSrc;}}

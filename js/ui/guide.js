@@ -1151,16 +1151,24 @@ const TOPICS = [
           ninguno.</li>
         <li><b>Exportar como…</b> También permite un <b>PSD</b> para Photoshop con grupos, capas,
           <b>máscaras reales</b>, sombra, resplandor, trazo y degradado como <b>efectos de capa</b>, los
-          27 modos de fusión, el recorte y las capas de ajuste <b>Invertir, Niveles y Curvas</b> editables.
-          El texto, los objetos inteligentes y el resto de ajustes se rasterizan (una copia oculta
-          «Vista final · referencia» enseña el aspecto de Realify). <b>PSB</b> es lo mismo para documentos
-          enormes (hasta 300 000 px por lado) y <b>PSD/PSB de 16 bits</b> guarda sólo la imagen final con
-          los 16 bits del motor de precisión. Guarda un <code>.realify</code> para reeditar en Realify.
+          27 modos de fusión, el recorte, el <b>texto editable</b> (texto simple: sin círculo, giro, caja de fondo ni marco),
+          los <b>objetos inteligentes</b> sin giro ni sesgo (el original va dentro como PNG enlazado), el
+          <b>«Fusionar si»</b> de gris y las capas de ajuste <b>Invertir, Niveles, Curvas, Exposición y Blanco y negro</b>
+          editables (Tono y saturación y Brillo y contraste salen como ajustes de Photoshop pero sólo aproximados).
+          Lo que no se traduce se rasteriza y una copia oculta «Vista final · referencia» enseña el aspecto de Realify.
+          Al abrir, esos textos, objetos, ajustes y «Fusionar si» vuelven a ser lo que eran. <b>PSB</b> es lo mismo para documentos
+          enormes (hasta 300 000 px por lado) y <b>PSD/PSB de 16 bits</b> guarda las <b>capas con sus 16 bits reales</b> y
+          el compuesto del motor de precisión; los PSD de 16 bits se abren <b>conservando los 16 bits</b>. «Copiar metadatos»
+          escribe XMP y EXIF en el PSD. Guarda un <code>.realify</code> para reeditar en Realify.
           Los PSD/PSB llevan perfil sRGB; el TIFF de 8 bits no. Realify abre también <code>.psb</code>.</li>
         <li id="file-pdf"><b>Exportar PDF…</b> PDF para imprimir o enviar: el documento y las imágenes que añadas, en una
           o varias páginas (A5, A4, A3, Carta, Legal o el tamaño de la imagen), con márgenes, <b>sangrado</b>,
           1 a 9 imágenes por página, portada, numeración, metadatos y <b>resolución objetivo</b> en ppp. Una foto JPEG
-          que ya cabe en esa resolución se incrusta sin volver a comprimirla.</li>
+          que ya cabe en esa resolución se incrusta sin volver a comprimirla. Además: <b>una página por capa</b>, <b>reordenar o quitar</b>
+          las imágenes añadidas (▲ ▼ ✕), <b>color de fondo</b> para las imágenes con transparencia, <b>marcas de recorte</b> (con
+          sangrado), <b>fuente propia</b> (TTF/OTF) para portada, numeración y pies, y <b>PDF/X</b> con imágenes CMYK, intención
+          de salida (FOGRA39, SWOP/CGATS TR 001 o FOGRA29), TrimBox/BleedBox. El CMYK sale de una conversión matemática sin perfil
+          ICC y no está validado con un preflight profesional; PDF/X necesita una fuente propia para el texto.</li>
         <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
           sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
           número de colores.</li>

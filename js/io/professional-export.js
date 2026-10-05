@@ -37,7 +37,8 @@ async function psd16Layers(scale,psb,{alpha,background},meta){
   const precise=await renderPrecisionAdjustmentStack(w,h,{bits16:true,alpha,background,layersOnly:false,srgb:false});
   if(!precise?.data16)throw new Error(precise?.reason||"No se pudo preparar la exportación de 16 bits");
   const d=precise.data16;
-  return (await import("./professional-formats.js")).layeredPsd(scale,{psb,hi:{composite:{data:d.data,channels:d.channels,w:d.w||w,h:d.h||h}},meta});
+  const PF=await import("./professional-formats.js");
+  return PF.layeredPsd(scale,{psb,hi:{composite:{data:d.data,channels:d.channels,w:d.w||w,h:d.h||h}},meta,smart:await PF.smartLinked()});
 }
 const blobOf=(c,type,q)=>new Promise(r=>c.toBlob(r,type,type==="image/png"?undefined:q));
 
@@ -201,7 +202,7 @@ export async function professionalExport(){
        su compositor actual hasta que cada tipo de capa se migre. */
     const precise=precision&&scope==="document"&&!layered&&!wide16?await renderPrecisionAdjustmentStack(item.canvas.width*scale,item.canvas.height*scale,{layersOnly:false}):null;
     const c=layered||wide16?null:precise?.canvas||resizeForExport(item.canvas,item.canvas.width*scale,item.canvas.height*scale,precision);
-    const blob=wide16?await psd16Of(scale,format==="psb16",alphaOpts):layered16?await psd16Layers(scale,format==="psb16c",alphaOpts,metaForPsd):layered?(await import("./professional-formats.js")).layeredPsd(scale,{psb:format==="psb",meta:metaForPsd}):await encodeCanvas(c,format,quality,profile,alphaOpts);
+    const blob=wide16?await psd16Of(scale,format==="psb16",alphaOpts):layered16?await psd16Layers(scale,format==="psb16c",alphaOpts,metaForPsd):layered?await(async()=>{const PF=await import("./professional-formats.js");return PF.layeredPsd(scale,{psb:format==="psb",meta:metaForPsd,smart:await PF.smartLinked()});})():await encodeCanvas(c,format,quality,profile,alphaOpts);
     if(!blob){status("");toast(`${format.toUpperCase()} no está disponible en este navegador`,"err");return;}
     const itemName=scope==="document"?(cleanName(body.querySelector("#pxName").value)||base):cleanName(item.name)||"capa";
     entries.push({name:`${itemName}@${scale}x.${extOf(format)}`,data:new Uint8Array(await blob.arrayBuffer())});
