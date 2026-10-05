@@ -9,6 +9,20 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v245 · Exportar HEIC (fase 16)
+- **HEIC** en Exportar… y Exportar como…, **sólo donde el dispositivo trae un codificador HEVC** (Safari en iPhone, iPad y Mac; Chrome o
+  Edge con codificador por hardware): la opción aparece sola tras comprobarlo; si no, no sale y queda AVIF. No hay ningún codificador
+  en la web (x265 es GPL, incompatible con la licencia de Realify, y HEVC tiene patentes): el HEVC lo pone el sistema del usuario
+  mediante WebCodecs (`VideoEncoder`, `hvc1`) y Realify sólo lo empaqueta (`js/io/heic.js`, `js/io/heif.js`).
+- Empaquetador HEIF propio: `ftyp`/`meta`/`mdat` con `hvcC`, `ispe`, `clap` (tamaños impares), `colr` (sRGB o Display P3) y `pixi`;
+  acepta la salida en formato HEVC y también Annex B (construye el `hvcC` desde VPS/SPS/PPS). La conversión RGB→YUV (4:2:0,
+  BT.709 de rango limitado) es nuestra, para que la etiqueta de color sea exacta. 8 bits y sin metadatos (privacidad); calidad
+  0–100 → tasa de bits por píxel; niveles HEVC 3.1 a 6.2 según el tamaño (hasta ~140 MP).
+- Prueba nueva `tests/heic.mjs`: con un HEIC real de libheif (sólo para la prueba) se reempaqueta su flujo recto, recortado con `clap`,
+  vía Annex B y con ICC, y se comprueba que libheif lo decodifica con los **mismos píxeles**; ida y vuelta de color RGB↔YUV; y el
+  flujo completo en el navegador con un `VideoEncoder` simulado (configuración, fotograma, tamaño impar). **No se ha podido probar la
+  codificación real**: el Chromium del entorno de desarrollo no trae codificador HEVC; hay que probarla en un iPhone, Mac o Windows.
+
 ### v244 · Pelo y partes de la cara en «Seleccionar por texto» (fase 20)
 - **Seleccionar por texto** (y Capa › Máscara de capa › «Por texto») entiende ahora **pelo, cara, piel, ojos, cejas, nariz, boca,
   labios, orejas, cuello, gafas y sombrero** («pelo», «ojos y labios», «cuello sin orejas»…). Usa BiSeNet (zonas de la

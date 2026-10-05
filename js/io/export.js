@@ -54,6 +54,7 @@ function pickerTypes(type){
   }
   if(type === "image/avif") return [{ description: "AVIF", accept: { "image/avif": [".avif"] } }];
   if(type === "image/jxl") return [{ description: "JPEG XL", accept: { "image/jxl": [".jxl"] } }];
+  if(type === "image/heic") return [{ description: "HEIC", accept: { "image/heic": [".heic"] } }];
   if(type === "image/x-exr") return [{ description: "OpenEXR", accept: { "image/x-exr": [".exr"] } }];
   if(type === "image/tiff") return [{ description: "TIFF", accept: { "image/tiff": [".tif", ".tiff"] } }];
   if(type === "image/gif") return [{ description: "GIF", accept: { "image/gif": [".gif"] } }];
@@ -154,7 +155,7 @@ let lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
    los 16 bits del motor de alta precisión, así que lo piden siempre. */
 const is16 = t => /;(10|12|16)$/.test(t) || t === "image/x-exr";
 const avifDepth = t => { const m = /^image\/avif;(10|12)$/.exec(t); return m ? +m[1] : 0; };
-const extOfType = t => ({ "image/png": "png", "image/png;16": "png", "image/webp": "webp", "image/avif": "avif",
+const extOfType = t => ({ "image/png": "png", "image/png;16": "png", "image/webp": "webp", "image/avif": "avif", "image/heic": "heic",
   "image/avif;10": "avif", "image/avif;12": "avif", "image/jxl": "jxl", "image/x-exr": "exr",
   "image/tiff": "tif", "image/tiff;16": "tif", "application/pdf": "pdf" })[t] || "jpg";
 const depthText = t => /;16$/.test(t) ? " · 16 bits" : avifDepth(t) ? ` · ${avifDepth(t)} bits` : t === "image/x-exr" ? " · EXR half" : "";
@@ -173,7 +174,7 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
      de 16 bits se guardan en P3 con su perfil o etiqueta de color; el resto
      de formatos (sin perfil: WebP, JPEG XL, TIFF de 8 bits, PDF) y quien
      pida sRGB, convertidos a sRGB. */
-  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/avif"].includes(type));
+  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/avif", "image/heic"].includes(type));
   const toSrgb = isP3Doc() && !keepP3;
   /* AVIF y JPEG XL necesitan varias veces el tamaño de la imagen en memoria */
   if((deepAvif || isJxl) && w * h > codecMaxPixels())
@@ -228,6 +229,8 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   if(toSrgb) out = toSrgbCanvas(out);
   out = prepareForType(out, type, { alpha, background });
   /* AVIF, JPEG XL y PDF no los genera `toBlob`: ver io/formats.js y io/codecs.js */
+  // HEIC: el codificador HEVC del propio dispositivo (io/heic.js); si no puede, el error explica por qué
+  if(type === "image/heic") return (await import("./heic.js")).encodeHeic(out, { quality: quality ?? .85, space: keepP3 ? "display-p3" : "srgb" });
   if(type === "image/avif") return (await import("./formats.js")).avifFromCanvas(out, quality ?? .6, keepP3 ? "display-p3" : "srgb").catch(() => null);
   if(isJxl){
     const px = out.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, out.width, out.height, { colorSpace: "srgb" }).data;
@@ -414,13 +417,20 @@ export async function exportDialog(){
       compat.innerHTML = `<strong>${compatibilityInfo().device}:</strong> ${compatibilityInfo().message}`;
       // PNG de 16 bits necesita la compresión nativa del navegador
       if(typeof CompressionStream !== "function") type.querySelector('option[value="image/png;16"]')?.remove();
+      /* HEIC sólo donde el dispositivo trae un codificador HEVC (Safari en Apple, Chrome/Edge con hardware): se comprueba y
+         la opción aparece si se puede (io/heic.js). */
+      import("./heic.js").then(H => H.heicSupported()).then(ok => {
+        if(!ok || type.querySelector('option[value="image/heic"]')) return;
+        const o = document.createElement("option"); o.value = "image/heic"; o.textContent = "HEIC (Apple, ligero y de alta calidad)";
+        type.querySelector('option[value="image/avif"]')?.after(o);
+      }).catch(() => {});
       /* Color en documentos P3: P3 con perfil en JPEG, PNG y 16 bits;
          el resto de formatos no lleva perfil y se guarda en sRGB. */
       const colorSel = body.querySelector("#exColor"), colorHint = body.querySelector("#exColorHint");
       let colorChoice = "display-p3";   // lo elegido por el usuario, para volver a ello
       const syncColor = () => {
         if(!colorSel) return;
-        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16","image/avif","image/avif;10","image/avif;12","image/x-exr"].includes(type.value) && !clean.checked;
+        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16","image/avif","image/avif;10","image/avif;12","image/heic","image/x-exr"].includes(type.value) && !clean.checked;
         colorSel.disabled = !ok;
         colorSel.value = ok ? colorChoice : "srgb";
         colorHint.textContent = !ok ? (clean.checked ? "«Limpio para web» guarda en sRGB." : "Este formato no lleva perfil de color: se guarda en sRGB.")
@@ -527,6 +537,7 @@ export async function exportDialog(){
           }
           const ow = +W.value || 1, oh = +H.value || 1, fmtKb = bytes => { const kb = bytes / 1024; return kb > 1024 ? (kb/1024).toFixed(2) + " MB" : Math.round(kb) + " KB"; };
           const qual = +q.value / 100, T = type.value;
+          if(T === "image/heic"){ est.textContent = "HEIC con el codificador HEVC de este dispositivo (8 bits, sin metadatos): el peso lo decide él."; return; }
           const codec = T === "image/jxl" || T.startsWith("image/avif");
           /* Códecs pesados (AVIF, JPEG XL): se codifican sólo unos recortes
              representativos y se extrapola el peso; de paso se mide el

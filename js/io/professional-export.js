@@ -14,7 +14,7 @@ import { highPrecisionAvailableFor, renderHighPrecisionCanvas, renderPrecisionAd
 
 const enc=new TextEncoder();
 const cleanName=sanitizeFilename;
-const mimeOf=f=>f==="jpg"?"image/jpeg":f==="png"?"image/png":f==="webp"?"image/webp":f==="avif"?"image/avif":f==="tiff"?"image/tiff":f==="psd"?"image/vnd.adobe.photoshop":/^ps[db]/.test(f)?"image/vnd.adobe.photoshop":"application/pdf";
+const mimeOf=f=>f==="jpg"?"image/jpeg":f==="png"?"image/png":f==="webp"?"image/webp":f==="avif"?"image/avif":f==="tiff"?"image/tiff":f==="psd"?"image/vnd.adobe.photoshop":/^ps[db]/.test(f)?"image/vnd.adobe.photoshop":f==="heic"?"image/heic":"application/pdf";
 const extOf=f=>f==="tiff"?"tif":f.startsWith("psb")?"psb":f.startsWith("psd")?"psd":f;
 /* PSD/PSB de 16 bits: la imagen final del motor de precisión (coma flotante) sin pasar por los 8 bits del lienzo */
 async function psd16Of(scale,psb,{alpha,background}){
@@ -86,10 +86,11 @@ async function tagPngSRGB(blob){
 async function encodeCanvas(canvas,format,quality,profile=true,opts={}){
   /* Documento en Display P3: PNG y JPEG lo conservan con su perfil; el
      resto de formatos (sin perfil) se guarda en sRGB. */
-  const keepP3=isP3Doc()&&(format==="png"||format==="jpg");
+  const keepP3=isP3Doc()&&(format==="png"||format==="jpg"||format==="heic");
   if(isP3Doc()&&!keepP3)canvas=toSrgbCanvas(canvas);
   canvas=prepareForType(canvas,mimeOf(format),opts);
   if(format==="tiff") return (await import("./professional-formats.js")).tiffFromCanvas(canvas);
+  if(format==="heic") return (await import("./heic.js")).encodeHeic(canvas,{quality,space:keepP3?"display-p3":"srgb"});
   if(format==="pdf"){
     const jpg=await blobOf(canvas,"image/jpeg",quality);
     return pdfFromJpeg(await jpg.arrayBuffer(),canvas.width,canvas.height);
@@ -127,6 +128,11 @@ export async function professionalExport(){
   const hasAlpha=hasTransparency(flat);
   const update=()=>{clearTimeout(timer);timer=setTimeout(async()=>{
     const f=body.querySelector("#pxFormat").value,q=+body.querySelector("#pxQuality").value/100;
+    if(f==="heic"){
+      paintPreview(body.querySelector("#pxAfter"),flat);
+      body.querySelector("#pxInfo").textContent="HEIC · lo codifica el HEVC de este dispositivo; el peso lo decide él (8 bits, sin metadatos)";
+      return;
+    }
     if(/^ps[db]/.test(f)){
       paintPreview(body.querySelector("#pxAfter"),flat);
       body.querySelector("#pxInfo").textContent=f.endsWith("16")?`${f.slice(0,3).toUpperCase()} de 16 bits · imagen final sin comprimir (≈ ${(doc.w*doc.h*6/1048576).toFixed(1)} MB a 1×)`:`${f.toUpperCase()} · capas, máscaras y estilos; tamaño según contenido`;
@@ -145,6 +151,8 @@ export async function professionalExport(){
     const f=host.querySelector("#pxFormat"),q=host.querySelector("#pxQuality"),qv=host.querySelector("#pxQualityV"),row=host.querySelector("#pxQualityRow");
     const precision=host.querySelector("#pxPrecision"),hint=host.querySelector("#pxPrecisionHint");
     const precisionState=()=>{const biggest=Math.max(...[...host.querySelectorAll("[data-scale]:checked")].map(x=>+x.dataset.scale),1),ok=highPrecisionAvailableFor(doc.w*biggest,doc.h*biggest);const lay=f.value==="psd"||f.value==="psb";precision.disabled=!ok.ok||lay;hint.textContent=lay?"PSD y PSB conservan píxeles de 8 bits por canal; capas, máscaras y estilos siguen editables en Photoshop.":ok.ok?"Capas y ajustes en coma flotante y remuestreo en RGB lineal al generar los archivos; la previsualización sigue siendo rápida.":`Se usará el motor compatible: ${ok.reason}.`;};
+    /* HEIC sólo donde el dispositivo trae un codificador HEVC (io/heic.js) */
+    import("./heic.js").then(H=>H.heicSupported()).then(ok=>{if(!ok||f.querySelector('option[value="heic"]'))return;const o=document.createElement("option");o.value="heic";o.textContent="HEIC (Apple, ligero y de alta calidad)";f.querySelector('option[value="avif"]')?.after(o);}).catch(()=>{});
     if(hasAlpha&&f.value==="jpg"){f.value="png";row.hidden=true;}
     alphaUI=wireAlphaFields(host,{id:"pxA",getType:()=>f.value,hasAlpha,onChange:update,switchTo:()=>{f.value="png";f.dispatchEvent(new Event("change"));}});
     f.addEventListener("change",()=>{

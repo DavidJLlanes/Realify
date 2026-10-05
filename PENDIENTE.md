@@ -18,7 +18,8 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
       vocabulario abierto de «Seleccionar por texto» con CLIPSeg (fase 20).
 
 **Bloqueado**
-- [ ] Exportar HEIC (fase 16): no hay codificador HEVC en WASM con licencia/patentes aceptables. AVIF lo cubre.
+- [x] Exportar HEIC (v245): con el codificador HEVC del dispositivo (WebCodecs) + empaquetador HEIF propio; sólo aparece donde
+      existe. **Falta probarlo en un dispositivo real** (iPhone/Mac con Safari, o Chrome/Edge con codificador por hardware).
 
 **Fase 20 · cabos sueltos**
 - [ ] Vocabulario abierto de «Seleccionar por texto» (CLIPSeg; ver arriba).
@@ -282,7 +283,9 @@ ExifReader (MPL-2.0, sin modificar).
 - [ ] Mostrar en el inspector la procedencia C2PA (hoy la detecta `analysis/provenance.js` al limpiar).
 
 ## Fase 16 · HEIC, PSD y PSB ✅ en parte (v241)
-- [ ] Exportar HEIC con libheif (LGPL: módulo WASM separado y sin modificar). **Bloqueado**: libheif-js sólo decodifica y no hay codificador HEVC en WASM con licencia/patentes aceptables (x265 es GPL). Alternativa vigente: AVIF.
+- [x] Exportar HEIC (v245): sin libheif ni x265 (GPL, incompatible con PolyForm Noncommercial, y patentes HEVC): se usa el codificador
+      HEVC del dispositivo vía WebCodecs y un empaquetador HEIF propio (`js/io/heic.js`, `js/io/heif.js`). Limitaciones: sólo donde el
+      dispositivo codifica HEVC; 8 bits (HEIC de 10 bits y metadatos EXIF/ICC propios, pendientes); sin probar en dispositivo real.
 - [x] PSD: grupos, máscaras reales, 27 modos de fusión, efectos de capa (sombra, resplandor, trazo, degradado), ajustes
       Invertir/Niveles/Curvas, 72 ppp y sRGB; importación de modos, máscaras, efectos y ajustes. (v241)
 - [x] PSB (documentos grandes): exportar y abrir. (v241)

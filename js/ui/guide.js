@@ -1114,7 +1114,9 @@ const TOPICS = [
         <li><b>Exportar… / Exportar PNG rápido.</b> El primero deja elegir formato (JPEG,
           PNG, WebP, <b>AVIF</b> —más ligero a igual calidad; también de <b>10 o 12 bits</b>—, <b>JPEG XL</b>
           (con o sin pérdidas), <b>OpenEXR</b> (luz lineal de 16 bits en coma flotante, para vídeo y 3D),
-          <b>TIFF</b> sin pérdidas a 8 bits,
+          <b>TIFF</b> sin pérdidas a 8 bits, <b>HEIC</b> —sólo si este dispositivo trae un codificador
+          HEVC (Safari en iPhone, iPad y Mac; Chrome o Edge con codificador por hardware): lo codifica el propio
+          dispositivo, a 8 bits y sin metadatos; si no aparece en la lista, usa AVIF—,
           <b>PNG 16 bits</b> o <b>TIFF 16 bits</b> —máxima calidad— o <b>PDF</b>, con tamaño de página y
           margen), calidad y metadatos EXIF. En AVIF, JPEG XL, JPEG y WebP el diálogo muestra el
           <b>peso aproximado y la calidad estimada</b> antes de exportar; en AVIF y JPEG XL, calidad 100

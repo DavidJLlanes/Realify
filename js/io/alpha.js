@@ -14,7 +14,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 const ALPHA_TYPES = new Set(["image/png", "image/webp", "image/avif", "image/gif", "image/tiff", "image/jxl", "image/x-exr"]);
-const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/tiff":"TIFF", "image/jxl": "JPEG XL", "image/x-exr": "OpenEXR",
+const NAMES = { "image/jpeg": "JPEG", "application/pdf": "PDF", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/tiff":"TIFF", "image/jxl": "JPEG XL", "image/heic": "HEIC", "image/x-exr": "OpenEXR",
                 jpg: "JPEG", jpeg: "JPEG", pdf: "PDF", png: "PNG", webp: "WebP", avif: "AVIF", gif: "GIF", tiff:"TIFF" };
 
 /** ¿El formato (tipo MIME, o «png», «jpg»…) admite transparencia? */
