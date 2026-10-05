@@ -16,6 +16,8 @@ import { toast } from "../../ui/toast.js";
 import { PRESETS } from "./presets.js";
 import { normalizeState, presetStages } from "./state.js";
 import { commitFilter, filterBase } from "../../editor/filterlayer.js";
+import { attachFloatResult } from "../../editor/floatfilter.js";
+import { hiCoversCanvas } from "../../core/hisrc.js";
 import { matchCamera } from "./exifmatch.js";
 import { exifState, saveExif } from "../../exif/ui.js";
 import { spectralStats } from "./spectralclean.js";
@@ -437,7 +439,8 @@ export async function openCamera(opts = {}){
     source: original, state: filterState, editing: !!edit,
     title: "Realify — simulación de captura",
     recommend: () => computeRecommendation(original),
-    onAccept: async result => {
+    hiSrc: hiCoversCanvas(base) && base.hiSrc.w === original.width && base.hiSrc.h === original.height ? base.hiSrc : null,
+    onAccept: async (result, fres) => {
       // No toca un píxel: sólo deja marcado en el panel EXIF el cuerpo
       // y objetivo cuyos rasgos físicos mejor casan con esta cadena.
       if(filterState.stages.exifmatch.on){
@@ -452,13 +455,14 @@ export async function openCamera(opts = {}){
          antes debajo del después, se puede dosificar con opacidad sin
          recalcular la cadena, y una máscara aplica Realify sólo donde
          interese —manos, texto o caras suelen pedir otra dosis—. */
-      commitFilter({
+      const made = commitFilter({
         base, edit, result, title: "Realify", filter: "realify",
         params: { stages: filterState.stages, seed: filterState.seed,
                    camSeed: filterState.camSeed, dose: filterState.dose, premium: !!filterState.premium }
       });
+      if(fres && made){ attachFloatResult(made, { hiSrc: { dither: true } }, fres); } else if(made && edit) delete made.hiSrc;
       save();
-      toast(edit ? "Realify · actualizado" : "Realify · capa nueva", "ok");
+      toast((edit ? "Realify · actualizado" : "Realify · capa nueva") + (fres ? " · 16 bits conservados" : ""), "ok");
     },
     onClose: () => { filterState.solo = null; engine.invalidateCache(); }
   });

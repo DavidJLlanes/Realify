@@ -36,7 +36,7 @@ const REC = "__rec__";
  * cadena, se modifica en el sitio. `recommend()` → { state, report }.
  * `onAccept(resultCanvas)`; `onClose()`.
  */
-export function openRealifyEditor({ source, state, title = "Realify", editing = false, recommend, onAccept, onClose }){
+export function openRealifyEditor({ source, state, title = "Realify", editing = false, recommend, onAccept, onClose, hiSrc = null }){
   const W = source.width, H = source.height;
   const work = document.createElement("canvas"); work.width = W; work.height = H;
   const wctx = work.getContext("2d", { willReadFrequently: true });
@@ -456,7 +456,22 @@ export function openRealifyEditor({ source, state, title = "Realify", editing = 
       setStatus("aplicando etapas de CPU…");
       await applyCpuStages(work, state.stages, state.dose / 100, () => {});
       if(closed) return;
-      await onAccept(work);
+      /* Premium + origen de 16 bits: la cadena se rehace en coma flotante de 32 bits sobre los 16 bits y el resultado conserva los 16 bits
+         (el lienzo pasa a ser su redondeo). Las etapas de CPU (limpieza espectral, JPEG) trabajan en 8 bits y lo impiden. */
+      let fres = null;
+      if(hiSrc && state.premium && !cpuStagesActive(state.stages, state.dose / 100)){
+        setStatus("16 bits…");
+        const r = engine.renderHi(hiSrc, state.stages, { dose: state.dose / 100 });
+        if(r){
+          const { hiToCanvas8 } = await import("../../core/hisrc.js");
+          const img = new ImageData(W, H), d = img.data;
+          for(let y = 0, i = 0; y < H; y++) for(let x = 0; x < W; x++, i++){ const j = i * 3, q = i * 4;
+            d[q] = hiToCanvas8(r.hi[j], x, y, 0, true); d[q + 1] = hiToCanvas8(r.hi[j + 1], x, y, 1, true); d[q + 2] = hiToCanvas8(r.hi[j + 2], x, y, 2, true); d[q + 3] = 255; }
+          wctx.putImageData(img, 0, 0);
+          fres = { canvas: work, hi: r.hi, rect: { x: 0, y: 0, w: W, h: H } };
+        }
+      }
+      await onAccept(work, fres);
       close(true);
     }catch(error){
       toast(error?.message || "No se pudo aplicar Realify", "err");

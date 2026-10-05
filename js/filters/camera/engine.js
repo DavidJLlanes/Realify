@@ -583,6 +583,53 @@ export function renderTo(ctx2d, stages, { dose = 1, solo = null, stable = false 
   return performance.now() - t0;
 }
 
+/* Salida de 16 bits (Premium): la cadena entera sobre el origen de 16 bits de la capa (`hs`: RGB Uint16Array del tamaño del origen cargado),
+   subido como textura RGBA32F por bandas, y el resultado leído en coma flotante de 32 bits desde el último búfer —sin pasar por los 8 bits ni
+   por el tramado de salida— y cuantizado a 16 bits. Devuelve `{ hi: Uint16Array RGB, w, h }` o null si no se puede (motor no Premium o sin
+   texturas de 32 bits, tamaño distinto, nada activo). El llamador reparte el redondeo a 8 bits (hiToCanvas8) para que el lienzo case. */
+export function renderHi(hs, stages, { dose = 1 } = {}){
+  ensure();
+  if(!gl || initError || !premium || !float32OK || !srcTex || !hs?.data || hs.w !== W || hs.h !== H) return null;
+  if(dose <= 0 || !STEPS.some(s => stages[s.id]?.on)) return null;
+  const w = hs.w, h = hs.h, BAND = 256, rgb = hs.data;
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  // la fila r de la imagen va a la fila h-1-r de la textura (igual que la subida con FLIP_Y de setSource)
+  const band = new Float32Array(w * BAND * 4), K = 1 / 65535;
+  for(let y0 = 0; y0 < h; y0 += BAND){
+    const y1 = Math.min(h, y0 + BAND);
+    for(let r = y0; r < y1; r++){
+      let q = (y1 - 1 - r) * w * 4, p = r * w * 3;
+      for(let x = 0; x < w; x++, q += 4, p += 3){ band[q] = rgb[p] * K; band[q + 1] = rgb[p + 1] * K; band[q + 2] = rgb[p + 2] * K; band[q + 3] = 1; }
+    }
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, h - y1, w, y1 - y0, gl.RGBA, gl.FLOAT, band, 0);
+  }
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  const keep = srcTex; srcTex = tex; invalidateCache();
+  try{
+    const cur = runChain(stages, dose, null, 0, STEPS.length);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, cur.fb);
+    const out = new Uint16Array(w * h * 3), buf = new Float32Array(w * BAND * 4);
+    const q16 = v => v <= 0 ? 0 : v >= 1 ? 65535 : Math.round(v * 65535);
+    for(let y0 = 0; y0 < h; y0 += BAND){                 // lectura por bandas (desde abajo: la fila i del búfer es la h-1-i de la imagen)
+      const rows = Math.min(BAND, h - y0), ty = h - y0 - rows;
+      gl.readPixels(0, ty, w, rows, gl.RGBA, gl.FLOAT, buf);
+      for(let i = 0; i < rows; i++){
+        const r = y0 + rows - 1 - i, o = r * w * 3; let q = i * w * 4;
+        for(let x = 0; x < w; x++, q += 4){ out[o + x * 3] = q16(buf[q]); out[o + x * 3 + 1] = q16(buf[q + 1]); out[o + x * 3 + 2] = q16(buf[q + 2]); }
+      }
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return gl.getError() === gl.NO_ERROR ? { hi: out, w, h } : null;
+  } finally { srcTex = keep; invalidateCache(); gl.deleteTexture(tex); }
+}
+
 /* ── etapa de CPU: ida y vuelta real por el códec ────────────── */
 export function jpegRoundTrip(canvas, quality, gens){
   return new Promise(resolve => {
