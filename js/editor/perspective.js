@@ -224,6 +224,37 @@ export function warpRectToQuad(ctx, image, quad, outW, outH, cols = 24, rows = 2
   }
 }
 
+/* La misma deformación que `warpRectToQuad`, pero sobre el origen de 16 bits de una capa (RGB `Uint16Array`; el alfa sale del lienzo original
+   `alphaCanvas`): para cada píxel del destino se calcula con la inversa de la proyectiva dónde cae en el origen y se interpola en bilineal en coma
+   flotante, con el alfa premultiplicado y el borde del cuadrilátero suavizado. Devuelve el lienzo —el redondeo de los 16 bits (core/hisrc.js)— y el
+   origen nuevo, o null si es demasiado grande. */
+export function warpHiToQuad(hs, alphaCanvas, quad, outW, outH, hiToCanvas8){
+  const iw = hs.w, ih = hs.h;
+  if(outW * outH > 24e6 || iw * ih > 24e6) return null;
+  const toUV = quadToUnitSquare(quad), a8 = alphaCanvas.getContext("2d").getImageData(0, 0, iw, ih).data, src = hs.data, dither = !!hs.dither;
+  const hi = new Uint16Array(outW * outH * 3), img = new ImageData(outW, outH), d = img.data;
+  for(let y = 0; y < outH; y++) for(let x = 0; x < outW; x++){
+    const [u, v] = toUV(x + 0.5, y + 0.5), px = u * iw, py = v * ih;
+    const cov = Math.min(1, Math.max(0, Math.min(px, iw - px, py, ih - py) + 0.5));      // borde antialias: ~1 píxel de origen
+    if(!(cov > 0)) continue;
+    const sx = Math.min(iw - 1, Math.max(0, px - 0.5)), sy = Math.min(ih - 1, Math.max(0, py - 0.5));
+    const x0 = Math.floor(sx), y0 = Math.floor(sy), x1 = Math.min(iw - 1, x0 + 1), y1 = Math.min(ih - 1, y0 + 1), fx = sx - x0, fy = sy - y0;
+    let R = 0, G = 0, B = 0, A = 0;
+    for(let k = 0; k < 4; k++){
+      const xx = k & 1 ? x1 : x0, yy = k & 2 ? y1 : y0, w = (k & 1 ? fx : 1 - fx) * (k & 2 ? fy : 1 - fy);
+      if(!w) continue;
+      const q = yy * iw + xx, al = a8[q * 4 + 3] * w; if(!al) continue;
+      R += src[q * 3] * al; G += src[q * 3 + 1] * al; B += src[q * 3 + 2] * al; A += al;
+    }
+    const o = y * outW + x, al8 = Math.round(A * cov);
+    if(!al8) continue;
+    hi[o * 3] = Math.min(65535, Math.round(R / A)); hi[o * 3 + 1] = Math.min(65535, Math.round(G / A)); hi[o * 3 + 2] = Math.min(65535, Math.round(B / A));
+    d[o * 4] = hiToCanvas8(hi[o * 3], x, y, 0, dither); d[o * 4 + 1] = hiToCanvas8(hi[o * 3 + 1], x, y, 1, dither); d[o * 4 + 2] = hiToCanvas8(hi[o * 3 + 2], x, y, 2, dither); d[o * 4 + 3] = al8;
+  }
+  const c = document.createElement("canvas"); c.width = outW; c.height = outH; c.getContext("2d").putImageData(img, 0, 0);
+  return { canvas: c, hiSrc: { data: hi, w: outW, h: outH, dither, x: 0, y: 0, canvasW: outW, canvasH: outH } };
+}
+
 /* ═══════════════════════════════════════════════════════════════
    ENDEREZADO A PARTIR DE LÍNEAS GUÍA
 

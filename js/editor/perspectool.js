@@ -32,7 +32,8 @@ import { COARSE } from "../core/device.js";
 import { scheduleCompose, scheduleOverlay } from "./compositor.js";
 import { toast, status } from "../ui/toast.js";
 import { view } from "./view.js";
-import { warpRectToQuad, unitSquareToQuad, quadToUnitSquare,
+import { hiToCanvas8 } from "../core/hisrc.js";
+import { warpHiToQuad, warpRectToQuad, unitSquareToQuad, quadToUnitSquare,
          homographyFromGuides, quadFromHomography, fillScaleFor } from "./perspective.js";
 
 /* La vista previa trabaja sobre una copia reducida. Deformar 24 MP en
@@ -429,10 +430,14 @@ export function perspApply(){
   status("Aplicando perspectiva…");
   const before = src.map(s => ({ id: s.id, c: s.full }));
 
+  const hiBefore = new Map(), hiAfter = new Map();      // 16 bits: se deforman también (la capa conserva su origen de 16 bits)
   for(const s of src){
     const l = doc.layers.find(x => x.id === s.id);
     if(!l) continue;
-    warpRectToQuad(l.ctx, s.full, q, doc.w, doc.h, MESH_APPLY, MESH_APPLY);
+    const hs = l.hiSrc, hw = hs && hs.w === s.full.width && hs.h === s.full.height && (hs.canvasW || hs.w) === doc.w && (hs.canvasH || hs.h) === doc.h && !(hs.x || 0) && !(hs.y || 0) && s.full.width === doc.w && s.full.height === doc.h
+      ? warpHiToQuad(hs, s.full, q, doc.w, doc.h, hiToCanvas8) : null;
+    if(hw){ l.ctx.save(); l.ctx.globalCompositeOperation = "copy"; l.ctx.drawImage(hw.canvas, 0, 0); l.ctx.restore(); hiBefore.set(l.id, hs); hiAfter.set(l.id, hw.hiSrc); l.hiSrc = hw.hiSrc; }
+    else { if(hs) hiBefore.set(l.id, hs); delete l.hiSrc; warpRectToQuad(l.ctx, s.full, q, doc.w, doc.h, MESH_APPLY, MESH_APPLY); }
     // Una capa de texto deformada ya son píxeles: si conservara sus
     // datos de texto, el primer retoque la volvería a dibujar plana y
     // se perdería la corrección sin avisar.
@@ -447,10 +452,11 @@ export function perspApply(){
     return { id: l.id, c };
   });
 
-  const restore = snaps => {
+  const restore = (snaps, hiMap) => {
     for(const s of snaps){
       const l = doc.layers.find(x => x.id === s.id);
       if(!l) continue;
+      if(hiMap.has(l.id)) l.hiSrc = hiMap.get(l.id); else delete l.hiSrc;
       const x = l.ctx;
       x.save(); x.globalCompositeOperation = "copy"; x.globalAlpha = 1;
       x.drawImage(s.c, 0, 0); x.restore();
@@ -459,7 +465,7 @@ export function perspApply(){
     emit("doc:structure"); emit("doc:change");
   };
 
-  record("Corregir perspectiva", () => restore(before), () => restore(after));
+  record("Corregir perspectiva", () => restore(before, hiBefore), () => restore(after, hiAfter));
 
   perspEnd();
   status("");
