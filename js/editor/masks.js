@@ -106,11 +106,12 @@ export function makeMaskFromArray(arr, w, h){
     historial. Es lo que usan las herramientas que calculan una máscara
     (profundidad…) y no deben dejar «Añadir máscara» + «Pintar» como dos
     pasos distintos. */
-export function setMaskFromArray(layer, arr, title = "Máscara"){
+export function setMaskFromArray(layer, arr, title = "Máscara", { record: rec = true } = {}){
   if(!layer) return false;
   const w = layer.canvas.width, h = layer.canvas.height;
   if(arr.length !== w * h) return false;
   const before = layer.mask ? cloneMask(layer.mask) : null, hadEnabled = layer.maskEnabled;
+  if(rec) delete layer.depthMask;      // una máscara nueva por otro camino deja de ser «viva» (features/depthlive.js)
   const m = makeMaskFromArray(arr, w, h);
   const after = cloneMask(m);
   layer.mask = m; layer.maskEnabled = true; layer.thumbDirty = true;
@@ -120,13 +121,14 @@ export function setMaskFromArray(layer, arr, title = "Máscara"){
     layer.thumbDirty = true;
     emit("doc:structure"); emit("doc:change");
   };
-  record(title, () => put(before), () => put(after));
+  if(rec) record(title, () => put(before), () => put(after));
   emit("doc:structure"); emit("doc:change");
   return true;
 }
 
 export function removeMask(layer, apply){
   if(!layer || !layer.mask) return;
+  delete layer.depthMask;
   const before = layer.mask;
   if(apply){
     // Aplicar de verdad: la máscara se funde con el canal alfa de la

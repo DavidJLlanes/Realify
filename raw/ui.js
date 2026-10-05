@@ -93,6 +93,8 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
   const schedule=()=>{if(closed)return;renderer.update(state,showingOriginal);root.querySelector(".raw-zoom").textContent=`${Math.round(previewZoom*100)} %`;};
   const engineChange=(next,item)=>{
     if(!item.engine||!onSettingChange||closed)return;
+    // Premium parte siempre de Rec.2020: cambiar sólo el espacio de salida no obliga a revelar de nuevo con LibRaw
+    if(item.key==='space'&&next.premium)return;
     enginePending={next,item,version:++engineVersion};
     clearTimeout(engineTimer);
     const launch=async()=>{

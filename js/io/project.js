@@ -109,6 +109,7 @@ export async function serializeProject({ hi = true } = {}){
       adjustParams: cloneJson(layer.adjustParams || null),
       pixels: await encodeCanvas(layer.canvas),
       maskEnabled: layer.maskEnabled !== false,
+      depthMask: cloneJson(layer.depthMask || null),   // máscara por profundidad «viva» (features/depthlive.js)
       mask: layer.mask ? await encodeCanvas(layer.mask.canvas) : null,
       // Grupos, recorte y estilos de capa: `groupId` va con el id
       // ORIGINAL tal cual, porque al restaurar cada capa recibe un id
@@ -194,6 +195,10 @@ export async function restoreProject(data){
       layer.mask = { canvas, ctx:canvas.getContext("2d", { colorSpace:"srgb", willReadFrequently:true }) };
     }
     layer.maskEnabled = saved.maskEnabled !== false;
+    if(saved.depthMask && layer.mask){
+      layer.depthMask = { ...saved.depthMask };
+      Object.defineProperty(layer.depthMask, "sig", { value: null, writable: true, enumerable: false });
+    }
     layer.collapsed = !!saved.collapsed;
     layer.clipped = !!saved.clipped;
     layer.styles = cloneJson(saved.styles || null);

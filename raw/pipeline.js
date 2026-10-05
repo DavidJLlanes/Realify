@@ -1,5 +1,6 @@
 import { buildToneLUT, toneGain, wbGains, toLinear } from './tone.js';
-import { isLinearSource, linearReader } from './source.js';
+import { isLinearSource, linearReader, toOutputMatrix } from './source.js';
+import { outSpaceOf } from './premium/core.js';
 import { normalize } from './state.js';
 import { renderPremiumCanvas } from './premium/render.js';
 const clamp = value => Math.max(0, Math.min(255, value));
@@ -52,7 +53,9 @@ export function renderPhoto(source, settings, { preview = false, region = null }
   const ox=region?.x||0,oy=region?.y||0,w=region?.width||sw,h=region?.height||sh;
   const canvas=typeof document==='undefined'?new OffscreenCanvas(w,h):document.createElement('canvas');
   canvas.width=w;canvas.height=h;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  // Salida en Display P3 (sólo RAW): lienzo, datos y matriz de Rec.2020 → P3 (los mandos son los de siempre; ver raw/README.md)
+  const space=linear?outSpaceOf(settings):'srgb',conv=linear?toOutputMatrix(source,space):null;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true,colorSpace:space,forceSrgb:space==='srgb'&&linear});
   if(!linear)ctx.drawImage(source,0,0);
   const image=linear?ctx.createImageData(w,h):ctx.getImageData(0,0,w,h),data=image.data;
   const input=linear?source.data:new Uint8ClampedArray(data),channels=linear?source.channels:4,scale=source.scale||65535;
@@ -60,7 +63,10 @@ export function renderPhoto(source, settings, { preview = false, region = null }
   const angle=settings.hue*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle),max=Math.max(sw,sh),ca=settings.ca*.000015;
   // Luz lineal real: los datos de LibRaw llevan la curva BT.709 (ver source.js › linearReader)
   const read=linear?linearReader(source):null;
-  const component=(x,y,k)=>{const i=(y*sw+x)*channels+(channels===1?0:k);return linear?read(i):LINEAR[input[i]];};
+  const raw3=(x,y)=>{const i=(y*sw+x)*channels;return channels===1?[read(i),read(i),read(i)]:[read(i),read(i+1),read(i+2)];};
+  const component=(x,y,k)=>{
+    if(conv){const v=raw3(x,y);return Math.max(0,conv[k][0]*v[0]+conv[k][1]*v[1]+conv[k][2]*v[2]);}
+    const i=(y*sw+x)*channels+(channels===1?0:k);return linear?read(i):LINEAR[input[i]];};
   const sample=(x,y,k)=>{
     x=Math.max(0,Math.min(sw-1,x));y=Math.max(0,Math.min(sh-1,y));
     const x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(sw-1,x0+1),y1=Math.min(sh-1,y0+1),tx=x-x0,ty=y-y0;
@@ -71,7 +77,9 @@ export function renderPhoto(source, settings, { preview = false, region = null }
   for(let y=0; y<h; y++) for(let x=0; x<w; x++) {
     const i=(y*w+x)*4;
     const gx=x+ox,gy=y+oy;
-    let r=component(gx,gy,0),g=component(gx,gy,1),b=component(gx,gy,2);
+    let r,g,b;
+    if(conv){const v=raw3(gx,gy);r=Math.max(0,conv[0][0]*v[0]+conv[0][1]*v[1]+conv[0][2]*v[2]);g=Math.max(0,conv[1][0]*v[0]+conv[1][1]*v[1]+conv[1][2]*v[2]);b=Math.max(0,conv[2][0]*v[0]+conv[2][1]*v[1]+conv[2][2]*v[2]);}
+    else{r=component(gx,gy,0);g=component(gx,gy,1);b=component(gx,gy,2);}
     if(ca){r=sample(gx+(gx+.5-sw/2)*ca,gy+(gy+.5-sh/2)*ca,0);b=sample(gx-(gx+.5-sw/2)*ca,gy-(gy+.5-sh/2)*ca,2);}
     r*=gains[0];g*=gains[1];b*=gains[2];
     const lum=.2126*r+.7152*g+.0722*b,gain=toneGain(lum,lut);

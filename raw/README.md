@@ -94,6 +94,13 @@ Se ejecuta con Node y `RAW_PLAYWRIGHT` apuntando al `index.mjs` de Playwright;
 Las medidas corresponden al equipo de prueba, no garantizan una tasa de
 fotogramas fija en todos los dispositivos.
 
+## Revelado de siempre en Display P3 (v250)
+
+Sin Premium, el mismo mando **Espacio de color** pide a LibRaw salida Rec.2020 (`outputColor` 8, sin recortar a sRGB; `decoder.js › wideStandard`) y el
+revelado pasa a P3 con la matriz Rec.2020 → P3 (`source.js › toOutputMatrix`, `legacyFromPremium(…, space)`; CPU en `pipeline.js`, GPU con la vista previa
+ya convertida y `drawingBufferColorSpace`). Los mandos son los de siempre: las ponderaciones de luminosidad siguen siendo las de sRGB (en P3 apenas
+cambian), así que el resultado es aproximado frente al exacto del Premium (matrices de OKLab y mapeo de gama en P3). Sin los 16 bits de Premium.
+
 ## Salida en Display P3 (v249)
 
 Con Premium, el mando **Color › Espacio de color 👑** (sRGB / Display P3, sólo al revelar un RAW y sólo si el navegador admite lienzos P3)

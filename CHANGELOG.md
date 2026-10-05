@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v250 · IA y RAW: eliminar fondo refinado, máscara por profundidad viva y RAW normal en P3
+- **Eliminar fondo con el borde a resolución completa** (`js/ai/matte.js`): tras la pasada global del modelo (U²-Net, MODNet, ISNet) el borde se refina con
+  un filtro guiado por la luminosidad de la foto en una franja alrededor del contorno; lo de lejos del borde no se toca (sin halos). Medido con U²-Net
+  real (`tests/matte.mjs`, fotos de 2000 px): el sujeto no cambia (IoU 0,99) y el contorno sigue mucho mejor los bordes de la foto (correlación del
+  gradiente 0,18 → 0,34, 0,07 → 0,15, 0,33 → 0,53). **Por bloques** se probó (bloques del tamaño del modelo a mayor resolución, sólo en la franja dudosa):
+  no mejora —el modelo da bordes igual de blandos con más resolución— y tarda el triple, así que queda como opción apagada.
+- **Máscara por profundidad «viva»** (`js/features/depthlive.js`): la capa recuerda cómo se hizo (zona, intervalo, suavidad, invertir) y, si cambia lo que
+  hay debajo (una capa de ajuste se evalúa sin ella; una de imagen, con su máscara apagada), se recalcula sola tras 1,5 s sin tocar nada, sin entradas de
+  historial. Las zonas «primer plano / medio / fondo» se vuelven a repartir con la foto nueva. En las propiedades de la máscara: «mantener al día»,
+  «Actualizar ahora» y «Dejar fija». Se guarda en el proyecto. Poner otra máscara por otro camino la suelta.
+- **Revelado RAW sin Premium en Display P3**: el mando **Color › Espacio de color** ya vale también sin Premium: LibRaw entrega Rec.2020 (sin recortar a
+  sRGB) y el revelado de siempre lo pasa a P3 en la vista previa (GPU y CPU) y en el resultado; el documento se abre en P3. Aproximado (las ponderaciones de
+  luminosidad siguen siendo las de sRGB) y sin los 16 bits de Premium.
+- Pruebas nuevas: `tests/matte.mjs`, `tests/depth-viva.mjs` (con Depth Anything real: sin cambios no recalcula; con cambios sí; proyecto; suelta) y
+  `tests/raw-p3.mjs` ampliada a los cuatro casos (Premium/normal × sRGB/P3, con comprobación de colores).
+
 ### v249 · Display P3 de punta a punta (color y exportación)
 - **WebP y TIFF de 8 bits con perfil Display P3**: en un documento P3 ya no se convierten a sRGB al exportar; llevan su perfil ICC incrustado
   (WebP: contenedor VP8X + fragmento ICCP, `webpWithIcc` en `js/io/icc-embed.js`, que completa el perfil si el navegador no lo pone;

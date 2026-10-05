@@ -277,30 +277,11 @@ const BG_METHODS = [
 ];
 const BG_KEY = "realify.bgMethod";
 
-/* Alfa 0-255 del sujeto a tamaño de documento. La imagen se estira al
-   cuadrado de entrada del modelo (igual que ImageToolbox) y la máscara
-   vuelve a su proporción al escalarla: el modelo ve la escena entera,
-   sin recortes. */
+/* Alfa 0-255 del sujeto a tamaño de documento (js/ai/matte.js): pasada
+   global del modelo + borde refinado con filtro guiado a resolución completa. */
 async function aiBackgroundMask(layer, id){
-  const [{ MODELS }, { runModel }] = await Promise.all([import("../ai/models.js"), import("../ai/runtime.js")]);
-  const n = MODELS[id].input;
-  const thumb = document.createElement("canvas"); thumb.width = thumb.height = n;
-  const tx = thumb.getContext("2d", { willReadFrequently:true });
-  tx.imageSmoothingQuality = "high";
-  tx.drawImage(layer.canvas, 0, 0, n, n);
-  const rgba = tx.getImageData(0, 0, n, n).data;
-  const { mask } = await runModel("matte", id, { rgba, size: n }, [rgba.buffer]);
-
-  const small = tx.createImageData(n, n);
-  for(let i = 0; i < mask.length; i++){ small.data[i*4] = small.data[i*4+1] = small.data[i*4+2] = 255; small.data[i*4+3] = mask[i]; }
-  tx.clearRect(0, 0, n, n); tx.putImageData(small, 0, 0);
-  const big = document.createElement("canvas"); big.width = doc.w; big.height = doc.h;
-  const bx = big.getContext("2d", { willReadFrequently:true });
-  bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = "high";
-  bx.drawImage(thumb, 0, 0, doc.w, doc.h);
-  const alpha = bx.getImageData(0, 0, doc.w, doc.h).data, out = new Uint8ClampedArray(doc.w * doc.h);
-  for(let p = 0; p < out.length; p++) out[p] = alpha[p*4+3];
-  return out;
+  const { matteAlpha } = await import("../ai/matte.js");
+  return matteAlpha(layer.canvas, id);
 }
 
 export async function removeBackground(){

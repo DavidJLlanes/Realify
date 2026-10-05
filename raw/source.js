@@ -1,3 +1,4 @@
+import { OUT_SPACES } from './premium/core.js';
 // RAW stays linear and 16 bit until the display/export transform. Raster inputs
 // continue to use canvases; the worker accepts either representation.
 export const isLinearSource=source=>!!source?.linear&&!!source?.data;
@@ -34,9 +35,9 @@ export function linearReader(source){
      mientras LibRaw vuelve a revelar.
    · target "premium": media por área en luz lineal real, Rec.2020 y con
      el margen de altas luces ya devuelto. */
-export function resizeLinear(source,width,height,target='standard'){
+export function resizeLinear(source,width,height,target='standard',space='srgb'){
   if(target==='premium')return resizePremium(source,width,height,true);
-  if(isPremiumSource(source))return legacyFromPremium(resizePremium(source,width,height,true));
+  if(isPremiumSource(source))return legacyFromPremium(resizePremium(source,width,height,true),space);
   return resizeStandard(source,width,height);
 }
 function resizeStandard(source,width,height){
@@ -93,11 +94,16 @@ const W2S=(()=>{const [[a,b,c],[d,e,f],[g,h,i]]=S2W,A=e*i-f*h,B=-(d*i-f*g),C=d*h
 /* Vista previa del revelado de siempre a partir de una fuente Premium
    (mientras LibRaw vuelve a revelar en sRGB): Rec.2020 → sRGB lineal,
    con los colores fuera de sRGB recortados como hace el motor. */
-function legacyFromPremium(p){
-  const d=p.data;
+function legacyFromPremium(p,space='srgb'){
+  const d=p.data,M=space==='display-p3'?OUT_SPACES['display-p3'].T:W2S;
   for(let i=0;i<d.length;i+=4){
     const r=d[i],gg=d[i+1],b=d[i+2];
-    for(let c=0;c<3;c++)d[i+c]=Math.max(0,W2S[c][0]*r+W2S[c][1]*gg+W2S[c][2]*b);
+    for(let c=0;c<3;c++)d[i+c]=Math.max(0,M[c][0]*r+M[c][1]*gg+M[c][2]*b);
   }
-  return {...p,encoding:'linear',space:'srgb'};
+  return {...p,encoding:'linear',space};
+}
+/* Matriz de la fuente RAW (Rec.2020 lineal) al espacio de salida del revelado de siempre, o null si no hace falta convertir */
+export function toOutputMatrix(source,space='srgb'){
+  if(source?.space!=='rec2020')return null;
+  return space==='display-p3'?OUT_SPACES['display-p3'].T:W2S;
 }

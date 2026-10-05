@@ -69,7 +69,9 @@ let open = false;
 export async function openDepthSelect({ target = null } = {}){
   if(open) return;
   if(target && (target.type === "group" || !target.canvas)){ toast("Elige una capa de imagen o de ajuste"); return; }
-  const src = await visibleImage(); if(!src) return;
+  // Con capa destino, la fuente es lo que hay DEBAJO de ella (depthlive.js): así la máscara puede mantenerse al día
+  const live = await import("./depthlive.js");
+  const src = target ? await live.liveSource(target) : await visibleImage(); if(!src) return;
   const map = await getDepth(src); if(!map) return;
   open = true;
 
@@ -133,7 +135,9 @@ export async function openDepthSelect({ target = null } = {}){
           if(!layer || !setMaskFromArray(layer, arr, "Máscara por profundidad")){ sh.setBusy(""); toast("No se pudo poner la máscara en esa capa", "err"); return; }
           close();
           if(layer.id === doc.activeId) setMaskTarget(layer.id);
-          toast("Máscara por profundidad puesta en «" + layer.name + "»", "ok");
+          // Viva: la capa recuerda cómo se hizo y se recalcula si cambia la foto de debajo
+          try{ live.makeLive(layer, { zone: S.zone, from: S.from, to: S.to, soft: S.soft, invert: S.invert, auto: true }, live.signature(target ? src : await live.liveSource(layer))); }catch(e){ console.warn(e); }
+          toast("Máscara por profundidad puesta en «" + layer.name + "» · se actualiza sola si cambias la foto de debajo", "ok");
         } else {
           close();
           commitSelection(arr, "new");

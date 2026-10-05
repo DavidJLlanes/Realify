@@ -463,7 +463,9 @@ const TOPICS = [
           propio equipo —rápido (U²-Net), retratos (MODNet) y máxima calidad (ISNet)— y
           «Color de los bordes», el de siempre para fondos lisos. El recorte va a una
           <b>capa nueva</b> con el fondo transparente y la original se oculta, sin borrarla.
-          Los modelos se descargan una vez y quedan guardados en el navegador.</li>
+          Los modelos se descargan una vez y quedan guardados en el navegador. El borde del recorte
+          se <b>refina a la resolución de la foto</b> (filtro guiado por la luminosidad real alrededor
+          del contorno: pelo y pelusa siguen la imagen, no la rejilla del modelo).</li>
         <li id="sky-replace"><b>Reemplazar cielo…</b> Detecta el cielo con IA (el mismo modelo que
           «Seleccionar cielo»), ajusta el borde a los contornos reales de la foto (sin halo
           del cielo antiguo) y deja el reemplazo en una capa nueva con su propia máscara,
@@ -839,7 +841,10 @@ const TOPICS = [
           es una <b>selección</b> o la <b>máscara de la capa</b> (de imagen o de ajuste: así haces un
           ajuste local según la distancia); se calcula a tamaño real, con el borde ajustado a la
           foto, y es un solo paso de historial. En las propiedades de una máscara, el botón
-          «Por profundidad 👑» hace lo mismo sobre esa capa.</li>
+          «Por profundidad 👑» hace lo mismo sobre esa capa. Esa máscara es <b>viva</b>: recuerda
+          cómo se hizo y, si cambias la foto que hay debajo (o la apagas y vuelves a encenderla), se
+          <b>recalcula sola</b> tras un momento sin tocar nada; en las propiedades de la máscara puedes
+          quitar «mantener al día», pulsar «Actualizar ahora» o «Dejar fija». Se guarda en el proyecto.</li>
         <li><b>Luz por profundidad 👑.</b> Sube o baja la luz según la distancia: <b>Lo cercano</b> y
           <b>Lo lejano</b> en pasos EV, <b>Punto de giro</b> (toca la imagen para ponerlo) y
           <b>Transición</b>. Se aplica en luz lineal con un hombro suave, así que las luces no se
@@ -1087,7 +1092,7 @@ const TOPICS = [
           otro día; una imagen abierta directamente empieza como una sola capa. Si la foto trae
           colores de <b>gama amplia</b> (Display P3, como las de iPhone y muchos Android) y el
           navegador lo permite, el documento trabaja en <b>Display P3</b> para no perder esos rojos,
-          verdes y naranjas intensos; se avisa al abrirla. Los filtros de GPU (Cámara y Vintage) también trabajan en P3. Al revelar un RAW con <b>Premium 👑</b> puedes elegir <b>Color › Espacio de color › Display P3</b>: el documento se abre en P3 con sus 16 bits. Si trae <b>más de 8 bits por canal</b>
+          verdes y naranjas intensos; se avisa al abrirla. Los filtros de GPU (Cámara y Vintage) también trabajan en P3. Al revelar un RAW con <b>Premium 👑</b> puedes elegir <b>Color › Espacio de color › Display P3</b>: el documento se abre en P3 con sus 16 bits. También sin Premium (el revelado de siempre pasa de Rec.2020 a P3 sin recortar a sRGB, sin 16 bits). Si trae <b>más de 8 bits por canal</b>
           (PNG o TIFF de 16 bits, AVIF de 10 o 12 bits, o un RAW abierto desde el revelador con
           Premium), la capa de fondo guarda esos bits («· 16 bits por canal» al abrir) y Exportar
           los usa con «Alta precisión», ya marcada: sin bandas en cielos y sombras aunque apliques

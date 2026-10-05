@@ -404,6 +404,27 @@ export function mountMaskProperties(layer, container){
 
   row.append(viewBtn, subjBtn, skyBtn, depthBtn, refineBtn);
   box.appendChild(row);
+
+  /* Máscara por profundidad «viva» (features/depthlive.js): se recalcula sola si cambia la foto de debajo */
+  if(layer.depthMask){
+    const live = document.createElement("div"); live.className = "row maskDepthLive";
+    const auto = document.createElement("label"); auto.className = "inline";
+    const chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = layer.depthMask.auto !== false;
+    chk.addEventListener("change", () => { layer.depthMask.auto = chk.checked; emit("doc:structure"); });
+    auto.append(chk, document.createTextNode(" Máscara por profundidad viva: mantener al día"));
+    auto.title = "Si cambias la foto que hay debajo, la máscara se recalcula sola (con la IA de profundidad). Pintar sobre la máscara no la desconecta: el siguiente cálculo la sustituye.";
+    const upd = document.createElement("button"); upd.textContent = "Actualizar ahora";
+    upd.addEventListener("click", async () => {
+      upd.disabled = true; const t = upd.textContent; upd.textContent = "Calculando…";
+      try{ const m = await import("../features/depthlive.js"); if(await m.updateLive(layer)) toast("Máscara por profundidad actualizada", "ok"); }
+      finally{ upd.disabled = false; upd.textContent = t; }
+    });
+    const fix = document.createElement("button"); fix.textContent = "Dejar fija";
+    fix.title = "La máscara se queda como está y ya no se recalcula";
+    fix.addEventListener("click", async () => { (await import("../features/depthlive.js")).release(layer); toast("Máscara fija"); });
+    live.append(auto, upd, fix);
+    box.appendChild(live);
+  }
   container.appendChild(box);
 
   return {

@@ -34,14 +34,14 @@ export class Preview {
     const budget=this.gpu?(mobile?650000:1400000):180000;
     const scale=Math.min(1,Math.max(1,box.width)*dpr/this.source.width,Math.max(1,box.height)*dpr/this.source.height,Math.sqrt(budget/(this.source.width*this.source.height)));
     const w=Math.max(1,Math.round(this.source.width*scale)),h=Math.max(1,Math.round(this.source.height*scale));
-    if(this.proxy.width===w&&this.proxy.height===h&&!this.dirtySource&&this.proxyTarget===this.target)return false;
-    this.proxyTarget=this.target;
-    if(isLinearSource(this.source))this.proxy=resizeLinear(this.source,w,h,this.target);
+    if(this.proxy.width===w&&this.proxy.height===h&&!this.dirtySource&&this.proxyTarget===this.target&&(this.proxyTarget==='premium'||this.proxySpace===this.space))return false;
+    this.proxyTarget=this.target;this.proxySpace=this.space;
+    if(isLinearSource(this.source))this.proxy=resizeLinear(this.source,w,h,this.target,this.space);
     else{this.proxy.width=w;this.proxy.height=h;this.proxyCtx.drawImage(this.source,0,0,w,h);}
     this.dirtySource=false;
     return true;
   }
-  update(settings,original=false){this.settings={...settings};this.target=settings.premium?'premium':'standard';this.original=original;this.version++;this.request();}
+  update(settings,original=false){this.settings={...settings};this.target=settings.premium?'premium':'standard';this.space=outSpaceOf(settings);this.original=original;this.version++;this.request();}
   setSource(source){this.source=source;this.dirtySource=true;this.version++;this.request();}
   request(){if(!this.closed&&!this.frame&&!this.busy&&this.settings)this.frame=requestAnimationFrame(()=>this.draw());}
   async draw(){
@@ -59,18 +59,18 @@ export class Preview {
         if(changed){this.gpu.setSource(this.proxy);this.gpu.sourceVersion=(this.gpu.sourceVersion||0)+1;}
         if(settings.premium)this.premium.render(settings,original,[this.source.width,this.source.height]);
         else{
-          const gl=this.gpu.gl;
-          if(gl&&"drawingBufferColorSpace" in gl&&gl.drawingBufferColorSpace!=="srgb"){try{gl.drawingBufferColorSpace="srgb";}catch{}}
+          const gl=this.gpu.gl,want=isLinearSource(this.proxy)?outSpaceOf(settings):"srgb";
+          if(gl&&"drawingBufferColorSpace" in gl&&gl.drawingBufferColorSpace!==want){try{gl.drawingBufferColorSpace=want;}catch{}}
           this.gpu.render(settings,original);
         }
       }else{
         if(changed)await this.worker.setSource(this.proxy);
         if(this.closed)return;
-        let result=original&&!isLinearSource(this.proxy)?this.proxy:await this.worker.render(original?{...defaults(),premium:settings.premium}:settings);
+        let result=original&&!isLinearSource(this.proxy)?this.proxy:await this.worker.render(original?{...defaults(),premium:settings.premium,space:settings.space}:settings);
         if(this.closed||version!==this.version){if(result!==this.proxy)result.close();return;}
         if(this.canvas.width!==result.width||this.canvas.height!==result.height){this.canvas.width=result.width;this.canvas.height=result.height;}
         // Vista previa en el espacio de salida del revelado Premium (Display P3 sin recortar a sRGB)
-        const want=settings.premium?outSpaceOf(settings):"srgb";
+        const want=isLinearSource(this.proxy)?outSpaceOf(settings):"srgb";
         if(this.ctxSpace!==want){
           const old=this.canvas,next=old.cloneNode(false);old.replaceWith(next);this.canvas=next;
           this.ctx=next.getContext("2d",{colorSpace:want,forceSrgb:want==="srgb"});this.ctxSpace=want;

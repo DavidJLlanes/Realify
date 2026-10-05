@@ -42,7 +42,8 @@ export class RenderWorker {
      no cabe en memoria ni en el límite de lienzo de Safari). */
   async renderToCanvas(settings, width, height, onProgress = ()=>{}, outW = width, outH = height) {
     const canvas=document.createElement('canvas');canvas.width=outW;canvas.height=outH;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    const space=outSpaceOf(settings);
+    const ctx=canvas.getContext('2d',{willReadFrequently:true,colorSpace:space,forceSrgb:space==='srgb'});
     if(!ctx)throw new Error('No se pudo crear el lienzo de salida');
     const sx=outW/width, sy=outH/height, scaled=outW!==width||outH!==height;
     if(scaled){ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';}

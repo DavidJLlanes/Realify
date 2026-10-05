@@ -1,6 +1,6 @@
 import LibRaw from "./vendor/libraw-wasm/dist/index.js";
 import { linearSource } from './source.js';
-import { premiumEngine, PREMIUM_OUTPUT_COLOR, RAW_BASE_EV } from './premium/core.js';
+import { premiumEngine, PREMIUM_OUTPUT_COLOR, RAW_BASE_EV, outSpaceOf } from './premium/core.js';
 export { RAW_EXTENSIONS, isRawFile } from "./formats.js";
 
 const drawData = image => {
@@ -33,10 +33,12 @@ const listNumbers=value=>{
 const optionalText=value=>typeof value==='string'&&value.trim()?value.trim():null;
 /* Premium: Rec.2020, demosaico DHT y margen de altas luces (ver
    premium/core.js › premiumEngine). */
-const engineSettings = settings => settings.premium ? { ...settings, ...premiumEngine(settings) } : settings;
+/* Revelado de siempre en Display P3: LibRaw entrega Rec.2020 (sin recortar a sRGB) y el revelado lo pasa a P3 (raw/pipeline.js, raw/source.js) */
+const wideStandard = settings => !settings.premium && outSpaceOf(settings) === 'display-p3';
+const engineSettings = settings => settings.premium ? { ...settings, ...premiumEngine(settings) } : wideStandard(settings) ? { ...settings, outputColor: PREMIUM_OUTPUT_COLOR } : settings;
 const sourceMeta = settings => {
   const e = engineSettings(settings);
-  return { space: e.outputColor === PREMIUM_OUTPUT_COLOR && settings.premium ? 'rec2020' : 'srgb',
+  return { space: e.outputColor === PREMIUM_OUTPUT_COLOR && (settings.premium || wideStandard(settings)) ? 'rec2020' : 'srgb',
            gain: settings.premium && e.expCorrec && !settings.expCorrec ? 1 / e.expShift : 1,
            base: 2 ** RAW_BASE_EV };
 };

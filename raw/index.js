@@ -50,10 +50,10 @@ export async function openRawFile(file) {
          primer repintado provocaba cierres por presión de memoria. */
       decoder.dispose();
       const hi=result.hi16;
-      const base=newDoc(result.width,result.height,{colorSpace:settings.premium&&settings.space==="display-p3"&&p3Supported()?"display-p3":"srgb",image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});
+      const base=newDoc(result.width,result.height,{colorSpace:settings.space==="display-p3"&&p3Supported()?"display-p3":"srgb",image:result,adoptImage:true,name:file.name.replace(/\.[^.]+$/,""),layerName:"RAW revelado",source:{w:result.width,h:result.height,type:file.type||"image/x-raw",size:file.size,name:file.name,file,raw:true,rawSettings:settings,rawMetadata}});
       // Premium: la capa conserva los 16 bits del revelado (js/core/hisrc.js)
       const kept=!!(hi&&attachHi(base,hi.data,hi.w,hi.h));delete result.hi16;
-      clearHistory();clearSnapshots();emit("doc:change");toast((limited?`RAW revelado y abierto a ${result.width} × ${result.height} (reducido para esta pantalla)`:"RAW revelado y abierto en Realify")+(kept?" · 16 bits por canal":"")+(settings.premium&&settings.space==="display-p3"&&p3Supported()?" · Display P3":""),"ok");
+      clearHistory();clearSnapshots();emit("doc:change");toast((limited?`RAW revelado y abierto a ${result.width} × ${result.height} (reducido para esta pantalla)`:"RAW revelado y abierto en Realify")+(kept?" · 16 bits por canal":"")+(settings.space==="display-p3"&&p3Supported()?" · Display P3":""),"ok");
     }});
     // The developer owns the linear source now; do not retain the first
     // decode after engine settings replace it with a new one.

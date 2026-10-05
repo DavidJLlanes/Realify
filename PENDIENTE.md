@@ -39,11 +39,11 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [x] «Abrir en Realify» desde el revelador RAW en P3 (Premium). (v249)
 
 **IA (fases 3, 5 y 10)**
-- [ ] Eliminar fondo (U²-Net, MODNet, ISNet) también por bloques o con refinado.
-- [ ] Máscara por profundidad como capa de ajuste «viva».
+- [x] Eliminar fondo (U²-Net, MODNet, ISNet): borde refinado a resolución completa (v250); por bloques medido y descartado.
+- [x] Máscara por profundidad «viva»: se recalcula sola si cambia la foto de debajo (v250).
 
 **RAW (fase 4)**
-- [ ] Revelado RAW sin Premium (motor GPU de 8 bits) en Display P3 (con Premium ya es posible, v249).
+- [x] Revelado RAW sin Premium en Display P3 (v250; aproximado, sin 16 bits).
 
 **Fotos, apilado y lente (fases 7, 8 y 9)**
 - [ ] Usar la alineación subpíxel en Fusión HDR y Unir imágenes.
@@ -142,8 +142,9 @@ Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampl
       bloques en la franja dudosa del borde. (v202)
 - [x] Caras (GFPGAN, retoque) a la resolución real del rostro. (v202)
 - [x] Cancelar tareas de IA de varias pasadas y progreso uniforme (`aiSession`). (v202)
-- [ ] Pendiente: Eliminar fondo (U²-Net, MODNet, ISNet) también por bloques o con refinado
-      de borde a resolución completa.
+- [x] Eliminar fondo (U²-Net, MODNet, ISNet): refinado de borde con filtro guiado a resolución completa (`js/ai/matte.js`, v250).
+      La pasada por bloques (opcional, apagada) se midió con `tests/matte.mjs` y no mejora el borde (el modelo da bordes igual de blandos con más
+      resolución) y tarda el triple.
 
 ## Fase 4 · Entrada de alta profundidad ✅ (v203)
 - [x] «Abrir en Realify» desde el revelador RAW (Premium) sin bajar a 8 bits: la capa guarda
@@ -151,7 +152,7 @@ Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampl
 - [x] Conservar los 16 bits de TIFF y PNG, y los 10/12 bits de AVIF, como origen de la capa
       base (`js/core/hisrc.js`, `js/io/hidepth.js`); la exportación en coma flotante los usa
       píxel a píxel donde la capa no se ha tocado. (v203)
-- [ ] Pendiente: revelado RAW sin Premium (motor GPU de 8 bits) en Display P3 (con Premium, hecho en v249).
+- [x] Revelado RAW sin Premium en Display P3 (v250; aproximado: ponderaciones de luminosidad de sRGB).
 - [ ] Pendiente: guardar el origen de 16 bits en el proyecto `.realify` y conservarlo al
       recortar o girar (hoy se descarta); el documento entero en 16 bits es la fase 14.
 
@@ -163,8 +164,8 @@ Reutiliza Depth Anything V2 (ya estaban Desenfoque por profundidad, Niebla y Fot
       profundidad y botón en las propiedades de la máscara, en capas de imagen y de ajuste. (v228)
 - [x] Iluminación dependiente de la profundidad (Luz por profundidad) y separación de planos
       en capas (`js/features/depthlight.js`). (v228)
-- [ ] Pendiente: máscara por profundidad como capa de ajuste «viva» (que se recalcule al
-      cambiar la foto de debajo); hoy la máscara se calcula una vez.
+- [x] Máscara por profundidad «viva» (`js/features/depthlive.js`, v250): se recalcula sola (1,5 s sin tocar nada) si cambia lo que hay debajo; se guarda en el
+      proyecto. Límite: pintar sobre la máscara no la desconecta (se sustituye al recalcular; «Dejar fija» la congela).
 
 ## Fase 6 · Formatos modernos de alta calidad ✅ (v229)
 - [x] Gestor de códecs WASM (cada uno se carga al elegir el formato) con estimación de

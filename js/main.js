@@ -1405,6 +1405,8 @@ function syncStatus(){
 
 on("view:change", syncStatus);
 on("doc:change", syncStatus);
+/* Máscaras por profundidad «vivas»: si la foto de debajo cambia, se recalculan (cargado sólo cuando hay alguna) */
+on("doc:change", () => { if(doc.open && doc.layers.some(l => l.depthMask)) import("./features/depthlive.js").then(m => m.schedule()); });
 on("doc:structure", syncStatus);
 on("doc:active", syncStatus);
 

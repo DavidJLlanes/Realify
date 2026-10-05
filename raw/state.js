@@ -56,7 +56,7 @@ export const CONTROLS = [
   { group:"color", key:"vibrance", label:"Intensidad", min:-100, max:100, unit:"" },
   { group:"color", key:"saturation", label:"Saturación", min:-100, max:100, unit:"" },
   { group:"color", key:"hue", label:"Tono global", min:-180, max:180, unit:"°" },
-  { group:"color", key:"space", label:"Espacio de color 👑", type:"choice", options:[["srgb","sRGB"],["display-p3","Display P3 (gama amplia)"]] },
+  { group:"color", key:"space", label:"Espacio de color", type:"choice", engine:true, options:[["srgb","sRGB"],["display-p3","Display P3 (gama amplia)"]] },
   { group:"detalle", key:"sharpen", label:"Enfoque", min:0, max:100, unit:"" },
   { group:"detalle", key:"noise", label:"Reducir ruido", min:0, max:100, unit:"" },
   { group:"detalle", key:"colorNoise", label:"Ruido de color", min:0, max:100, unit:"" },
