@@ -10,9 +10,10 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada una (el detalle está en su fase).
 
 **Depende del titular**
-- [ ] Instalar el receptor de informes de error en el VPS (fase 18): usuario `informe`, `informe.service` (ya con
-      `INFORME_TO=djl@djl.red`), bloque de nginx y SPF/DKIM/DMARC de realify.es (`server/informe/README.md`). Sin esto, «Enviar
-      informe» no entrega nada.
+- [x] Receptor de informes de error instalado en el VPS (fase 18, 5 oct 2026): servicio `informe` activo, nginx con
+      `/api/informe` (snippet `realify-informe.conf` y `limit_req`) y prueba pública `{"ok": true}`; los informes llegan a
+      `djl@djl.red` (el correo se entrega en local en el mismo servidor, así que SPF/DKIM/DMARC de realify.es sólo harían
+      falta si algún día se envían a otro proveedor). Falta probarlo una vez desde Ayuda › Informar de un error…
 - [ ] Permitir `huggingface.co` en el entorno de desarrollo (Network access › Custom › Allowed domains) para poder hacer el
       vocabulario abierto de «Seleccionar por texto» con CLIPSeg (fase 20).
 
@@ -306,8 +307,8 @@ pdf-lib (MIT).
 - [x] Receptor `/api/informe` (`server/informe/`): destinatario fijo, `limit_req`, tamaño máximo, campo trampa,
       cabeceras limpias, correo sólo en `Reply-To`; sección en la Política de privacidad. (v243)
 - [x] «Enviar informe» en el panel de «no ha podido arrancar», siempre preguntando. (v243)
-- [ ] **Falta instalarlo en el VPS** (lo hace el titular): usuario `informe`, `informe.service` con `INFORME_TO`, bloque de
-      nginx, y SPF/DKIM/DMARC de realify.es (pasos en `server/informe/README.md`). Después, probar un envío real.
+- [x] **Instalado en el VPS** (5 oct 2026): usuario `informe`, `informe.service` (`INFORME_TO=djl@djl.red`), nginx con
+      `/api/informe`; prueba pública correcta. SPF/DKIM/DMARC opcionales (el destino es un buzón local del mismo servidor).
 
 ## Fase 19 · Extras de infraestructura ✅ evaluada y descartada (5 oct 2026)
 No mejoran el resultado; sólo si sobra tiempo. Se midieron en Chromium (3000×2000, equipo de pruebas sin GPU) y **no
