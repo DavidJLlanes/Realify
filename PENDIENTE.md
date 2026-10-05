@@ -6,7 +6,7 @@ Cada fase es corta y se publica sola. Al terminar una tarea se marca `[x]` con l
 
 Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 
-## Resumen de lo pendiente (actualizado en la v244, 5 oct 2026)
+## Resumen de lo pendiente (actualizado en la v246, 5 oct 2026)
 Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada una (el detalle está en su fase).
 
 **Depende del titular**
@@ -15,6 +15,11 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
       `djl@djl.red` (el correo se entrega en local en el mismo servidor, así que SPF/DKIM/DMARC de realify.es sólo harían
       falta si algún día se envían a otro proveedor). Falta probarlo una vez desde Ayuda › Informar de un error…
 - [x] `huggingface.co` permitido en el entorno de desarrollo: hecho el vocabulario abierto de «Seleccionar por texto» (v246).
+
+**Mejoras de lo último (v245 y v246)**
+- [ ] HEIC: versión de 10 bits y metadatos propios (EXIF/ICC); probarlo en un dispositivo real.
+- [ ] CLIPSeg: máscara blanda para objetos muy pequeños, probarlo con WebGPU (hoy sólo CPU), más palabras en el diccionario ES→EN.
+- [ ] Probar «Informar de un error» desde la web en móvil y escritorio.
 
 **Bloqueado**
 - [x] Exportar HEIC (v245): con el codificador HEVC del dispositivo (WebCodecs) + empaquetador HEIF propio; sólo aparece donde
