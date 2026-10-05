@@ -27,7 +27,8 @@ for(const mp of mps.length ? mps : [12, 24]) for(const tipo of ["avif8", "avif10
     }catch(e){ return { ok: false, err: String(e && e.message || e) }; }
   }, { tipo, w, h }).catch(e => ({ ok: false, err: "página caída: " + e.message }));
   clearInterval(timer); await b.close().catch(() => {});
-  if(!r.ok) bad++;
-  console.log(r.ok ? "APTO " : "FALLO", `· ${mp} MP (${w}×${h}) · ${tipo} · ${((Date.now() - t0) / 1000).toFixed(0)} s · pico ≈ ${peak.toFixed(0)} MB · ${r.ok ? r.bytes + " B, límite " + r.max / 1e6 + " MP" : r.err}`);
+  const fuera = !r.ok && tipo === "jxl" && mp > 16;       // por encima del límite de JPEG XL (codecMaxPixels('jxl') = 16 MP): se aborta, y está medido
+  if(!r.ok && !fuera) bad++;
+  console.log(r.ok ? "APTO " : fuera ? "FUERA" : "FALLO", `· ${mp} MP (${w}×${h}) · ${tipo} · ${((Date.now() - t0) / 1000).toFixed(0)} s · pico ≈ ${peak.toFixed(0)} MB · ${r.ok ? r.bytes + " B, límite " + r.max / 1e6 + " MP" : r.err}`);
 }
 srv.close(); console.log(bad ? "codec-memoria: FALLO" : "codec-memoria: OK"); process.exit(bad ? 1 : 0);

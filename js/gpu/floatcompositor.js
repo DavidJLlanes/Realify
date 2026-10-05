@@ -43,9 +43,11 @@ import { canvasRev } from "../core/canvasrev.js";
 
 const COARSE = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
 const memory = navigator.deviceMemory || 8;
-/* Tope de píxeles según el formato de los acumuladores (4–6 texturas de ese tamaño a la vez). */
-const MAX_PX_F32 = (COARSE || memory <= 4) ? 2e6 : 4e6;
-const MAX_PX_F16 = (COARSE || memory <= 4) ? 4e6 : 8e6;
+/* Composición por TESELAS (v252): los acumuladores (4–6 texturas a la vez) sólo miden una tesela, así que el límite ya no lo pone el tamaño del
+   documento sino las texturas de las capas (8 bits + origen de 16 bits + máscaras, a tamaño completo): presupuesto de memoria de vídeo. */
+const MAX_DOC_PX = (COARSE || memory <= 4) ? 12e6 : 40e6;
+const TEX_BUDGET = (COARSE || memory <= 4) ? 160e6 : 640e6;
+export const floatTuning = { tile: (COARSE || memory <= 4) ? 512 : 1024 };
 
 const MODES = {
   "source-over": 0, multiply: 1, screen: 2, overlay: 3, darken: 4, lighten: 5, "color-dodge": 6, "color-burn": 7,
@@ -75,12 +77,13 @@ uniform sampler2D uClip; uniform bool uHasClip;
 uniform bool uBI; uniform vec4 uBIThis, uBIUnder;   // negroMin, negroMax, blancoMin, blancoMax (0..255)
 uniform float uOpacity;
 uniform int uMode;
+uniform ivec2 uOff;                 // esquina de la tesela en el lienzo: el origen, la máscara y las láminas se leen en coordenadas globales (p + uOff)
 uniform bool uPrep;                 // sólo devuelve la capa preparada (máscara, recorte, «Fusionar si»)
 // Estilos de capa (mismo orden que core/precision-stack.js › applyStylesBand): degradado sobre la capa, sombra y resplandor detrás, trazo encima
 uniform bool uHasStyle, uHasBehind, uHasRing, uGrad;
 uniform sampler2D uBehind, uRing;
 uniform vec4 uGradP; uniform vec3 uGradC1, uGradC2; uniform float uGradOp;
-vec4 plateAt(sampler2D t, ivec2 p){ vec4 c = texelFetch(t, p, 0); return vec4(c.rgb * c.a, c.a); }
+vec4 plateAt(sampler2D t, ivec2 g){ vec4 c = texelFetch(t, g, 0); return vec4(c.rgb * c.a, c.a); }
 
 float dith(int x, int y, int c){
   uint h = (uint(x * 3 + c) + 0x2545f491u) * 0x9e3779b1u ^ (uint(y) + 0x6a09e667u) * 0x85ebca77u;
@@ -90,14 +93,14 @@ float dith(int x, int y, int c){
 int q8(uint v){ return int((v + 128u) / 257u); }
 int d8(uint v, int x, int y, int c){ float r = floor(float(v) * (255.0 / 65535.0) + dith(x, y, c) + 0.5); return int(clamp(r, 0.0, 255.0)); }
 
-vec4 fetchSrc(ivec2 p){
-  vec4 t = texelFetch(uSrc, p, 0);
-  if(uSrcKind == 1) return t;
+vec4 fetchSrc(ivec2 p, ivec2 g){
+  if(uSrcKind == 1) return texelFetch(uSrc, p, 0);          // grupo: textura de la tesela
+  vec4 t = texelFetch(uSrc, g, 0);
   float a = t.a;
   if(a <= 0.0) return vec4(0.0);
   vec3 c = t.rgb;
   if(uHasHi){
-    ivec2 s = p - uHiOff;
+    ivec2 s = g - uHiOff;
     if(s.x >= 0 && s.y >= 0 && s.x < uHiSize.x && s.y < uHiSize.y){
       uvec3 h = texelFetch(uHi, s, 0).rgb;
       ivec3 c8 = ivec3(floor(c * 255.0 + 0.5));
@@ -180,28 +183,28 @@ float hash2i(int x, int y){
 }
 
 void main(){
-  ivec2 p = ivec2(gl_FragCoord.xy);
+  ivec2 p = ivec2(gl_FragCoord.xy), g = p + uOff;
   vec4 dst = texelFetch(uDst, p, 0);
-  vec4 src = fetchSrc(p);
+  vec4 src = fetchSrc(p, g);
   // «Fusionar si»: antes de máscara y recorte
   if(uBI){
     float tl = src.a > 0.0 ? (src.r * 0.2126 + src.g * 0.7152 + src.b * 0.0722) / src.a * 255.0 : 0.0;
     float ul = dst.a > 0.0 ? (dst.r * 0.2126 + dst.g * 0.7152 + dst.b * 0.0722) / dst.a * 255.0 : 0.0;
     src *= ramp(tl, uBIThis) * ramp(ul, uBIUnder);
   }
-  if(uHasMask) src *= texelFetch(uMask, p, 0).a;
+  if(uHasMask) src *= texelFetch(uMask, g, 0).a;
   if(uHasClip) src *= texelFetch(uClip, p, 0).a;
   if(uPrep){ outColor = src; return; }
   if(uHasStyle){
     if(uGrad && src.a > 0.0){
       vec2 gd = uGradP.zw - uGradP.xy; float L2 = dot(gd, gd); if(L2 == 0.0) L2 = 1e-9;
-      float t = clamp(dot(vec2(p) + 0.5 - uGradP.xy, gd) / L2, 0.0, 1.0);
+      float t = clamp(dot(vec2(g) + 0.5 - uGradP.xy, gd) / L2, 0.0, 1.0);
       vec3 cur = src.rgb / src.a * 255.0, gc = mix(uGradC1, uGradC2, t);
       src.rgb = (cur + (gc - cur) * uGradOp) / 255.0 * src.a;
     }
-    vec4 acc = uHasBehind ? plateAt(uBehind, p) : vec4(0.0);
+    vec4 acc = uHasBehind ? plateAt(uBehind, g) : vec4(0.0);
     acc = src + acc * (1.0 - src.a);
-    if(uHasRing){ vec4 r = plateAt(uRing, p); acc = r + acc * (1.0 - r.a); }
+    if(uHasRing){ vec4 r = plateAt(uRing, g); acc = r + acc * (1.0 - r.a); }
     src = acc;
   }
   float sa = src.a;
@@ -220,7 +223,7 @@ void main(){
   }
   if(m == 30){ outColor = vec4(min(vec3(1.0), dst.rgb + as * cs), min(1.0, ab + as)); return; }
   if(m == 29){
-    if(hash2i(p.x, p.y) >= as){ outColor = dst; return; }
+    if(hash2i(g.x, g.y) >= as){ outColor = dst; return; }
     outColor = vec4(cs, 1.0); return;
   }
   vec3 d = cb; float na;
@@ -244,6 +247,7 @@ uniform int uKind, uN;              // 0: tabla 3D, 1: tablas 1D
 uniform sampler2D uMask; uniform bool uHasMask;
 uniform float uOpacity;
 uniform float uGrid, uStep;
+uniform ivec2 uOff;
 vec3 lutAt(ivec3 i){ return texelFetch(uLut, i, 0).rgb; }
 vec3 lookup(vec3 c){
   vec3 f = clamp(c, 0.0, 255.0) / uStep;
@@ -270,7 +274,7 @@ void main(){
   vec4 dst = texelFetch(uDst, p, 0);
   float a = dst.a;
   if(a <= 0.0){ outColor = dst; return; }
-  float f = uOpacity * (uHasMask ? texelFetch(uMask, p, 0).a : 1.0);
+  float f = uOpacity * (uHasMask ? texelFetch(uMask, p + uOff, 0).a : 1.0);
   if(f <= 0.0){ outColor = dst; return; }
   vec3 c = dst.rgb / a * 255.0;
   vec3 t = clamp(uKind == 1 ? lookup1(c) : lookup(c), 0.0, 255.0);
@@ -279,7 +283,7 @@ void main(){
 
 const FS_OUT = HEAD + `
 uniform sampler2D uDst;
-uniform ivec2 uSize;
+uniform ivec2 uSize, uOff;
 uniform bool uDither;
 float ditherNoise(int x, int y, int c){
   uint n = (uint(x + 1) * 0x9e3779b1u) ^ (uint(y + 1) * 0x85ebca77u) ^ (uint(c + 1) * 0xc2b2ae35u);
@@ -288,8 +292,8 @@ float ditherNoise(int x, int y, int c){
   return float(n ^ (n >> 16)) / 4294967296.0 - 0.5;
 }
 void main(){
-  ivec2 p = ivec2(int(gl_FragCoord.x), uSize.y - 1 - int(gl_FragCoord.y));   // el lienzo se lee de arriba abajo
-  vec4 d = texelFetch(uDst, p, 0);
+  ivec2 p = ivec2(int(gl_FragCoord.x), uSize.y - 1 - int(gl_FragCoord.y));   // el lienzo se lee de arriba abajo (coordenadas globales)
+  vec4 d = texelFetch(uDst, p - uOff, 0);                                    // la textura es la de la tesela
   float a = clamp(d.a, 0.0, 1.0);
   if(a <= 0.0){ outColor = vec4(0.0); return; }
   vec3 c = clamp(d.rgb / a, 0.0, 1.0) * 255.0;
@@ -515,13 +519,13 @@ function lutTexture(layer){
 
 /* ── pasadas ──────────────────────────────────────────────────── */
 function bindTex(unit, tex, target = null){ const { gl } = S; gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(target || gl.TEXTURE_2D, tex); }
-function drawInto(target, w, h){
+function drawInto(target, w, h, vx = 0, vy = 0){
   const { gl } = S;
   if(target){
     gl.bindFramebuffer(gl.FRAMEBUFFER, S.fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
   } else gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, w, h);
+  gl.viewport(vx, vy, w, h);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 function clearTex(tex, w, h){
@@ -538,12 +542,48 @@ const effectiveMask = layer => {
 };
 const usable = l => l.visible && l.opacity > 0 && !l.__editing;
 
-/* Compone un nivel del árbol y devuelve su textura (premultiplicada, coma flotante). Misma regla de recorte
-   que compositeTree: la última capa no recortada sirve de base a las recortadas que la siguen. */
-function composeLevel(nodes, w, h, f32){
-  const { gl } = S;
-  let dst = acquire(w, h, f32);
-  clearTex(dst, w, h);
+/* Recursos de textura de una composición (v252): la de cada capa, la de cada máscara y las láminas de estilo se preparan UNA vez y sirven a
+   todas las teselas. */
+function layerRes(l, R){
+  let r = R.layers.get(l);
+  if(r) return r;
+  r = { srcTex: null, hi: null };
+  /* Trazo en curso sobre esta capa: la capa y el trazo se funden en un lienzo temporal (como compositeTree); el origen de 16 bits sigue
+     valiendo en los píxeles que no se han tocado (la comparación del shader usa el lienzo donde ya no coincide). */
+  const lv = S.live;
+  if(lv && lv.on && lv.ownerId === l.id && lv.canvas){
+    const m = document.createElement("canvas"); m.width = l.canvas.width; m.height = l.canvas.height;
+    const mx = m.getContext("2d", { colorSpace: "srgb" });
+    mx.drawImage(l.canvas, 0, 0);
+    mx.globalAlpha = lv.alpha; mx.globalCompositeOperation = lv.blend; mx.drawImage(lv.canvas, lv.x || 0, lv.y || 0);
+    r.srcTex = tempTexture(m);
+  } else r.srcTex = canvasTexture(l.canvas);
+  if(l.hiSrc && (l.hiSrc.canvasW || l.hiSrc.w) === l.canvas.width && (l.hiSrc.canvasH || l.hiSrc.h) === l.canvas.height) r.hi = hiTexture(l);
+  R.layers.set(l, r);
+  return r;
+}
+function maskRes(canvas, R){
+  let t = R.masks.get(canvas);
+  if(!t){ t = canvasTexture(canvas); R.masks.set(canvas, t); }
+  return t;
+}
+function styleRes(l, R){
+  let r = R.styles.get(l);
+  if(r) return r;
+  r = {};
+  const plate = S.plates && S.plates.get(l);
+  if(plate && l.styles && hasEnabledStyle(l.styles)){ if(plate.behind) r.behind = tempTexture(plate.behind); if(plate.ring) r.ring = tempTexture(plate.ring); }
+  R.styles.set(l, r);
+  return r;
+}
+
+/* Compone un nivel del árbol para UNA tesela y devuelve su textura (premultiplicada, coma flotante). `tile` = { ox, oy, tw, th, aw, ah }: esquina,
+   tamaño de la zona y tamaño de los acumuladores. Misma regla de recorte que compositeTree: la última capa no recortada sirve de base a las
+   recortadas que la siguen. */
+function composeLevel(nodes, tile, f32, R){
+  const { gl } = S, { tw, th, aw, ah } = tile;
+  let dst = acquire(aw, ah, f32);
+  clearTex(dst, tw, th);
   let clipBase = null;            // textura con el alfa de la última capa no recortada (o null)
   for(let ni = 0; ni < nodes.length; ni++){
     const node = nodes[ni], l = node.layer;
@@ -551,8 +591,8 @@ function composeLevel(nodes, w, h, f32){
 
     if(isAdjustLayer(l)){
       const mk = effectiveMask(l), hasMask = !!(mk && l.maskEnabled);
-      const lut = lutTexture(l), maskTex = hasMask ? canvasTexture(mk.canvas) : null;
-      const out = acquire(w, h, f32);
+      const lut = lutTexture(l), maskTex = hasMask ? maskRes(mk.canvas, R) : null;
+      const out = acquire(aw, ah, f32);
       gl.useProgram(S.adjust.pr);
       bindTex(0, dst); gl.uniform1i(S.adjust.u.uDst, 0);
       // Cada muestreador necesita una textura de su tipo en su unidad aunque no se use
@@ -561,35 +601,25 @@ function composeLevel(nodes, w, h, f32){
       gl.uniform1i(S.adjust.u.uKind, lut.kind); gl.uniform1i(S.adjust.u.uN, N1);
       bindTex(2, maskTex || dst); gl.uniform1i(S.adjust.u.uMask, 2); gl.uniform1i(S.adjust.u.uHasMask, hasMask ? 1 : 0);
       gl.uniform1f(S.adjust.u.uOpacity, l.opacity); gl.uniform1f(S.adjust.u.uGrid, GRID); gl.uniform1f(S.adjust.u.uStep, STEP);
-      drawInto(out, w, h);
+      gl.uniform2i(S.adjust.u.uOff, tile.ox, tile.oy);
+      drawInto(out, tw, th);
       release(dst); dst = out;
       continue;
     }
 
     let srcTex, srcKind = 0, hi = null;
     if(l.type === "group"){
-      srcTex = composeLevel(node.children || [], w, h, f32); srcKind = 1;
+      srcTex = composeLevel(node.children || [], tile, f32, R); srcKind = 1;
     } else {
-      /* Trazo en curso sobre esta capa: la capa y el trazo se funden en un lienzo temporal (como compositeTree); el origen de 16 bits sigue
-         valiendo en los píxeles que no se han tocado (la comparación del shader usa el lienzo donde ya no coincide). */
-      const lv = S.live;
-      if(lv && lv.on && lv.ownerId === l.id && lv.canvas){
-        const m = document.createElement("canvas"); m.width = l.canvas.width; m.height = l.canvas.height;
-        const mx = m.getContext("2d", { colorSpace: "srgb" });
-        mx.drawImage(l.canvas, 0, 0);
-        mx.globalAlpha = lv.alpha; mx.globalCompositeOperation = lv.blend; mx.drawImage(lv.canvas, lv.x || 0, lv.y || 0);
-        srcTex = tempTexture(m);
-      } else srcTex = canvasTexture(l.canvas);
-      if(l.hiSrc && (l.hiSrc.canvasW || l.hiSrc.w) === l.canvas.width && (l.hiSrc.canvasH || l.hiSrc.h) === l.canvas.height) hi = hiTexture(l);
+      const r = layerRes(l, R); srcTex = r.srcTex; hi = r.hi;
     }
     const mk = effectiveMask(l), hasMask = !!(mk && l.maskEnabled);
-    const maskTex = hasMask ? canvasTexture(mk.canvas) : null;
+    const maskTex = hasMask ? maskRes(mk.canvas, R) : null;
     const hasClip = !!(l.clipped && clipBase);
     const bi = l.type !== "group" && isBlendIfActive(l.blendIf) ? l.blendIf : null;
     const mode = MODES[l.blend || "source-over"] ?? 0;
+    const styleTex = styleRes(l, R);
 
-    const styleTex = {}, plate = S.plates && S.plates.get(l);
-    if(plate && l.styles && hasEnabledStyle(l.styles)){ if(plate.behind) styleTex.behind = tempTexture(plate.behind); if(plate.ring) styleTex.ring = tempTexture(plate.ring); }
     const setup = prep => {
       const P = S.blend;
       gl.useProgram(P.pr);
@@ -602,6 +632,7 @@ function composeLevel(nodes, w, h, f32){
       gl.uniform1i(P.u.uDither, hs && hs.dither ? 1 : 0);
       gl.uniform2i(P.u.uHiOff, hs ? (hs.x || 0) : 0, hs ? (hs.y || 0) : 0);
       gl.uniform2i(P.u.uHiSize, hs ? hs.w : 0, hs ? hs.h : 0);
+      gl.uniform2i(P.u.uOff, tile.ox, tile.oy);
       bindTex(3, maskTex || dst); gl.uniform1i(P.u.uMask, 3); gl.uniform1i(P.u.uHasMask, hasMask ? 1 : 0);
       bindTex(4, hasClip ? clipBase : dst); gl.uniform1i(P.u.uClip, 4); gl.uniform1i(P.u.uHasClip, hasClip ? 1 : 0);
       gl.uniform1i(P.u.uBI, bi ? 1 : 0);
@@ -618,7 +649,7 @@ function composeLevel(nodes, w, h, f32){
         gl.uniform1i(P.u.uHasBehind, pl.behind ? 1 : 0); gl.uniform1i(P.u.uHasRing, pl.ring ? 1 : 0);
         bindTex(5, styleTex.behind || dst); gl.uniform1i(P.u.uBehind, 5);
         bindTex(6, styleTex.ring || dst); gl.uniform1i(P.u.uRing, 6);
-        const g = st.gradient && st.gradient.enabled ? gradientParams(st.gradient, w, h) : null;
+        const g = st.gradient && st.gradient.enabled ? gradientParams(st.gradient, tile.W, tile.H) : null;
         gl.uniform1i(P.u.uGrad, g ? 1 : 0);
         if(g){ gl.uniform4f(P.u.uGradP, g.x0, g.y0, g.x1, g.y1); gl.uniform3f(P.u.uGradC1, g.c1[0], g.c1[1], g.c1[2]); gl.uniform3f(P.u.uGradC2, g.c2[0], g.c2[1], g.c2[2]); gl.uniform1f(P.u.uGradOp, g.opacity); }
       }
@@ -629,11 +660,11 @@ function composeLevel(nodes, w, h, f32){
     if(!l.clipped){
       let needs = false;
       for(let k = ni + 1; k < nodes.length; k++){ const o = nodes[k].layer; if(!usable(o) || isAdjustLayer(o)) continue; if(o.clipped){ needs = true; break; } if(!o.clipped) break; }
-      if(needs){ newClip = acquire(w, h, f32); setup(true); drawInto(newClip, w, h); }
+      if(needs){ newClip = acquire(aw, ah, f32); setup(true); drawInto(newClip, tw, th); }
     }
-    const out = acquire(w, h, f32);
+    const out = acquire(aw, ah, f32);
     setup(false);
-    drawInto(out, w, h);
+    drawInto(out, tw, th);
     release(dst); dst = out;
     if(srcKind === 1) release(srcTex);
     if(!l.clipped){ if(clipBase) release(clipBase); clipBase = newClip; }
@@ -648,12 +679,13 @@ export function floatPlan(layers, w, h, { scratchOn = false, live = null } = {})
   if(failed || scratchOn || !init()) return null;
   if(workSpace() !== "srgb" && !p3Ok()) return null;
   const px = w * h;
-  if(w > S.maxTex || h > S.maxTex) return null;
-  let f32 = S.f32 && px <= MAX_PX_F32;
-  if(!f32 && px > MAX_PX_F16) return null;
-  let worth = false;
+  if(w > S.maxTex || h > S.maxTex || px > MAX_DOC_PX) return null;
+  const f32 = S.f32;                  // los acumuladores son de una tesela, no del documento: 32 bits siempre que se pueda
+  let worth = false, texBytes = 0;
   for(const l of layers){
     if(!usable(l)) continue;
+    if(l.type !== "adjust" && l.type !== "group"){ texBytes += px * 4 + (l.hiSrc && l.hiSrc.data ? l.hiSrc.w * l.hiSrc.h * 6 : 0); }
+    if((l.mask || l.maskRef) && l.maskEnabled) texBytes += px * 4;
     if(l.type !== "adjust" && l.type !== "group" && (l.canvas.width !== w || l.canvas.height !== h)) return null;
     if(live && live.on && live.ownerId === l.id && l.styles && hasEnabledStyle(l.styles)) return null;     // trazo en curso sobre una capa con estilos: la lámina quedaría desfasada
     if(isAdjustLayer(l)) worth = true;
@@ -662,7 +694,7 @@ export function floatPlan(layers, w, h, { scratchOn = false, live = null } = {})
       if(CUSTOM_BLENDS.has(l.blend) || (l.type !== "group" && isBlendIfActive(l.blendIf))) worth = true;
     }
   }
-  if(!worth) return null;
+  if(!worth || texBytes > TEX_BUDGET) return null;
   if(unsupportedReason(layers)) return null;
   return { f32 };
 }
@@ -679,14 +711,18 @@ export function floatCompose(tree, layers, w, h, plan, { dither = true, live = n
     gl.bindVertexArray(S.vao);
     S.live = live;
     S.plates = layers.some(l => l.visible && l.opacity > 0 && l.styles && hasEnabledStyle(l.styles)) ? collectStyleShapes(tree, w, h) : null;
-    const result = composeLevel(tree, w, h, plan.f32);
-    gl.useProgram(S.out.pr);
-    bindTex(0, result); gl.uniform1i(S.out.u.uDst, 0);
-    gl.uniform2i(S.out.u.uSize, w, h); gl.uniform1i(S.out.u.uDither, dither ? 1 : 0);
-    drawInto(null, w, h);
-    release(result);
+    const T = Math.max(64, floatTuning.tile | 0), aw = Math.min(w, T), ah = Math.min(h, T), R = { layers: new Map(), masks: new Map(), styles: new Map() };
+    for(let oy = 0; oy < h; oy += T) for(let ox = 0; ox < w; ox += T){
+      const tw = Math.min(T, w - ox), th = Math.min(T, h - oy);
+      const result = composeLevel(tree, { ox, oy, tw, th, aw, ah, W: w, H: h }, plan.f32, R);
+      gl.useProgram(S.out.pr);
+      bindTex(0, result); gl.uniform1i(S.out.u.uDst, 0);
+      gl.uniform2i(S.out.u.uSize, w, h); gl.uniform2i(S.out.u.uOff, ox, oy); gl.uniform1i(S.out.u.uDither, dither ? 1 : 0);
+      drawInto(null, tw, th, ox, h - oy - th);       // la tesela va a su sitio del lienzo (el origen de la ventana está abajo)
+      release(result);
+    }
     if(gl.getError() !== gl.NO_ERROR) throw new Error("error de WebGL");
-    floatInfo.composes++; floatInfo.last = { w, h, f32: plan.f32 };
+    floatInfo.composes++; floatInfo.last = { w, h, f32: plan.f32, tile: T };
     return S.canvas;
   }catch(err){
     console.warn("[compositor GPU]", err);
@@ -712,12 +748,18 @@ export function _debugFloat(tree, layers, w, h, plan, live = null){
     gl.disable(gl.BLEND); gl.bindVertexArray(S.vao);
     S.live = live;
     S.plates = layers.some(l => l.visible && l.opacity > 0 && l.styles && hasEnabledStyle(l.styles)) ? collectStyleShapes(tree, w, h) : null;
-    const result = composeLevel(tree, w, h, plan ? plan.f32 : true);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, S.fbo);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, result, 0);
+    const T = Math.max(64, floatTuning.tile | 0), aw = Math.min(w, T), ah = Math.min(h, T), R = { layers: new Map(), masks: new Map(), styles: new Map() };
     const out = new Float32Array(w * h * 4);
-    gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, out);
-    release(result);
+    for(let oy = 0; oy < h; oy += T) for(let ox = 0; ox < w; ox += T){
+      const tw = Math.min(T, w - ox), th = Math.min(T, h - oy);
+      const result = composeLevel(tree, { ox, oy, tw, th, aw, ah, W: w, H: h }, plan ? plan.f32 : true, R);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, S.fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, result, 0);
+      const buf = new Float32Array(tw * th * 4);
+      gl.readPixels(0, 0, tw, th, gl.RGBA, gl.FLOAT, buf);
+      for(let y = 0; y < th; y++) out.set(buf.subarray(y * tw * 4, (y + 1) * tw * 4), ((oy + y) * w + ox) * 4);
+      release(result);
+    }
     endCompose();
     return out;
   }catch(err){ console.warn("[compositor GPU]", err); return null; }

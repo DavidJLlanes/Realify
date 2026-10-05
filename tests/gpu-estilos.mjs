@@ -45,8 +45,27 @@ const res = await page.evaluate(async () => {
     // el compositor de 8 bits dibuja el trazo: comparamos el píxel del trazo y uno intacto de 16 bits
     const at = (x, y) => [0, 1, 2, 3].map(k => gl2[(y * W + x) * 4 + k]);
     o.trazo = at(160, 110).map(v => +v.toFixed(2)); const px = at(20, 100); o.intacto16 = Math.abs(px[0] - hi[(100 * W + 20) * 3] / 65535) < 0.002; }
+  // teselas: con teselas de 64 px (4×3 con bordes parciales) el resultado es el mismo, también con capa de ajuste, máscara y recorte
+  const AL = await import("/js/editor/adjustlayers.js");
+  const adj = AL.addAdjustmentLayer("exposure"); if(adj){ adj.adjustParams = { ...adj.adjustParams, ev: 0.6 }; }
+  const mk = D.addLayer({ name: "Mascarada" }); mk.ctx.fillStyle = "#22c55e"; mk.ctx.fillRect(20, 20, 140, 90);
+  const mc = document.createElement("canvas"); mc.width = W; mc.height = Hh; const mxc = mc.getContext("2d"); const gr = mxc.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,1)"); mxc.fillStyle = gr; mxc.fillRect(0, 0, W, Hh);
+  mk.mask = { canvas: mc, ctx: mxc }; mk.maskEnabled = true; mk.blend = "multiply";
+  const clipL = D.addLayer({ name: "Recortada" }); clipL.ctx.fillStyle = "#f59e0b"; clipL.ctx.fillRect(60, 40, 120, 80); clipL.clipped = true;
+  const T0 = G.floatTuning.tile;
+  const planT = G.floatPlan(D.doc.layers, W, Hh, {}); o.planT = !!planT;
+  const stT = await PS._debugStore();
+  G.floatTuning.tile = 4096; const g1 = G._debugFloat(LT.buildLayerTree(D.doc.layers), D.doc.layers, W, Hh, planT);
+  G.floatTuning.tile = 64; const g64 = G._debugFloat(LT.buildLayerTree(D.doc.layers), D.doc.layers, W, Hh, planT);
+  G.floatTuning.tile = T0;
+  o.teselas = { vsOraculo1: cmp(g1, stT), vsOraculo64: cmp(g64, stT) };
+  // y el lienzo de salida (con tramado) también por teselas: píxeles iguales a los de una sola tesela
+  G.floatTuning.tile = 4096; const cA = G.floatCompose(LT.buildLayerTree(D.doc.layers), D.doc.layers, W, Hh, planT); const pa = new Uint8ClampedArray(cA.getContext ? 0 : 0);
+  const readOut = c => { const t = document.createElement("canvas"); t.width = W; t.height = Hh; const x = t.getContext("2d"); x.drawImage(c, 0, 0); return x.getImageData(0, 0, W, Hh).data; };
+  const oA = readOut(cA); G.floatTuning.tile = 64; const cB = G.floatCompose(LT.buildLayerTree(D.doc.layers), D.doc.layers, W, Hh, planT); const oB = readOut(cB); G.floatTuning.tile = T0;
+  let dif = 0; for(let i = 0; i < oA.length; i++) if(oA[i] !== oB[i]) dif++; o.salidaDif = dif;
   return o;
 });
 console.log(JSON.stringify(res));
-const ok = res.disp && res.plan && res.estilos.max < 0.02 && res.estilos.media < 0.002 && res.cache.subidas2 === 0 && res.cache.aciertos2 > 0 && res.cache.subidas3 >= 1 && res.trasEscribir.max < 0.02 && res.planLive && res.trazo[1] > 0.9 && res.trazo[0] < 0.1 && res.intacto16;
+const ok = res.disp && res.planT && res.teselas.vsOraculo1.max < 0.02 && res.teselas.vsOraculo64.max < 0.02 && res.salidaDif === 0 && res.plan && res.estilos.max < 0.02 && res.estilos.media < 0.002 && res.cache.subidas2 === 0 && res.cache.aciertos2 > 0 && res.cache.subidas3 >= 1 && res.trasEscribir.max < 0.02 && res.planLive && res.trazo[1] > 0.9 && res.trazo[0] < 0.1 && res.intacto16;
 console.log(ok && !errs.length ? "OK" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);
