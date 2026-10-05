@@ -69,3 +69,29 @@ export async function resampleCanvas(src, w, h, method = "lanczos3", onProgress)
   c.getContext("2d").putImageData(new ImageData(out, w, h), 0, 0);
   return c;
 }
+
+/** Remuestrea el origen de 16 bits de una capa (RGB `Uint16Array`, el alfa sale del lienzo) con el mismo método y en coma flotante, y devuelve
+ *  el lienzo nuevo —el redondeo de los 16 bits, como exige la invariante de core/hisrc.js— junto al origen nuevo; o null si no se puede
+ *  (método «navegador», sin worker, o demasiado grande). */
+export async function resampleHi(layer, w, h, method = "lanczos3", onProgress){
+  const hs = layer.hiSrc, sw = layer.canvas.width, sh = layer.canvas.height;
+  if(method === "browser" || typeof Worker === "undefined" || !hs?.data || sw * sh > 24e6 || w * h > 24e6) return null;
+  const px = layer.ctx.getImageData(0, 0, sw, sh).data, rgb = hs.data, rgba = new Uint16Array(sw * sh * 4);
+  for(let i = 0, j = 0, q = 0; i < sw * sh; i++, j += 3, q += 4){ rgba[q] = rgb[j]; rgba[q + 1] = rgb[j + 1]; rgba[q + 2] = rgb[j + 2]; rgba[q + 3] = px[q + 3]; }
+  let out;
+  try{
+    out = await new Promise((resolve, reject) => {
+      const id = nextId++;
+      pending.set(id, { resolve, reject, onProgress });
+      ensureWorker().postMessage({ id, data: rgba, sw, sh, dw: w, dh: h, method, maxv: 65535 }, [rgba.buffer]);
+    });
+  }catch{ return null; }
+  const { hiToCanvas8 } = await import("../core/hisrc.js");
+  const dither = !!hs.dither, hi = new Uint16Array(w * h * 3), img = new ImageData(w, h), d = img.data;
+  for(let y = 0, i = 0; y < h; y++) for(let x = 0; x < w; x++, i++){
+    const q = i * 4, j = i * 3; hi[j] = out[q]; hi[j + 1] = out[q + 1]; hi[j + 2] = out[q + 2]; d[q + 3] = out[q + 3];
+    if(d[q + 3]){ d[q] = hiToCanvas8(hi[j], x, y, 0, dither); d[q + 1] = hiToCanvas8(hi[j + 1], x, y, 1, dither); d[q + 2] = hiToCanvas8(hi[j + 2], x, y, 2, dither); }
+  }
+  const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").putImageData(img, 0, 0);
+  return { canvas: c, hiSrc: { data: hi, w, h, dither, x: 0, y: 0, canvasW: w, canvasH: h } };
+}

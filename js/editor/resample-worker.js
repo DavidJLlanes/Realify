@@ -71,7 +71,8 @@ function contributions(srcLen, dstLen, filter){
   return { first, count, weights, stride: maxN };
 }
 
-function resample(src, sw, sh, dw, dh, method){
+/* `maxv`: valor máximo del color (255, o 65535 para el origen de 16 bits: el alfa va siempre de 0 a 255). Con 16 bits la salida es Uint16Array. */
+function resample(src, sw, sh, dw, dh, method, maxv = 255){
   const filter = FILTERS[method] || FILTERS.lanczos3;
   const H = contributions(sw, dw, filter), V = contributions(sh, dh, filter);
 
@@ -102,7 +103,8 @@ function resample(src, sw, sh, dw, dh, method){
     return r;
   };
 
-  const out = new Uint8ClampedArray(dw * dh * 4);
+  const wide = maxv > 255, scale = maxv / 255, rnd = wide ? 0.5 : 0;
+  const out = wide ? new Uint16Array(dw * dh * 4) : new Uint8ClampedArray(dw * dh * 4);
   for(let y = 0; y < dh; y++){
     const f = V.first[y], n = V.count[y], wo = y * V.stride;
     // Fuera de la ventana ya no hacen falta: la vertical avanza en orden.
@@ -121,9 +123,10 @@ function resample(src, sw, sh, dw, dh, method){
       // Lanczos y Catmull-Rom sobrepasan un poco en los bordes duros:
       // el alfa se limita a 255 y el color a su propio alfa.
       const a = Math.min(255, A), inv = 1 / (a / 255);
-      out[di]     = Math.min(a, Math.max(0, R)) * inv;
-      out[di + 1] = Math.min(a, Math.max(0, G)) * inv;
-      out[di + 2] = Math.min(a, Math.max(0, B)) * inv;
+      const cap = a * scale;
+      out[di]     = Math.min(cap, Math.max(0, R)) * inv + rnd;
+      out[di + 1] = Math.min(cap, Math.max(0, G)) * inv + rnd;
+      out[di + 2] = Math.min(cap, Math.max(0, B)) * inv + rnd;
       out[di + 3] = a;
     }
     if((y & 63) === 0) self.postMessage({ type: "progress", id: currentId, frac: y / dh });
@@ -133,10 +136,10 @@ function resample(src, sw, sh, dw, dh, method){
 
 let currentId = 0;
 self.onmessage = e => {
-  const { id, data, sw, sh, dw, dh, method } = e.data || {};
+  const { id, data, sw, sh, dw, dh, method, maxv } = e.data || {};
   currentId = id;
   try{
-    const out = resample(data, sw, sh, dw, dh, method);
+    const out = resample(data, sw, sh, dw, dh, method, maxv || 255);
     self.postMessage({ type: "result", id, data: out }, [out.buffer]);
   }catch(err){
     self.postMessage({ type: "error", id, message: String(err?.message || err) });

@@ -8,7 +8,7 @@ import { emit } from "../core/bus.js";
 import { dialog } from "../ui/dialog.js";
 import { toast, status, progress } from "../ui/toast.js";
 import { fit } from "./view.js";
-import { resampleCanvas, RESAMPLE_METHODS } from "./resample.js";
+import { resampleCanvas, resampleHi, RESAMPLE_METHODS } from "./resample.js";
 import { remapHi, hiCoversCanvas } from "../core/hisrc.js";
 
 /* Último método de remuestreo elegido: preferencia de este navegador. */
@@ -46,7 +46,7 @@ const readPixels = c => c.getContext("2d", { willReadFrequently: true }).getImag
    capa y otra para su máscara (`isMask = true`), por si la operación
    tiene que tratarla distinto —p. ej. el color de relleno de «Tamaño
    de lienzo» no pinta máscaras—. */
-function transformAll(fn, newW, newH, label, hiOp = null){
+function transformAll(fn, newW, newH, label, hiOp = null, hiNew = null){
   const snaps = doc.layers.map(l => snapLayer(l, !hiOp));
   const oldW = doc.w, oldH = doc.h;
 
@@ -69,6 +69,7 @@ function transformAll(fn, newW, newH, label, hiOp = null){
   // 16 bits: se mueven con el lienzo (o se sueltan si la operación cambia los píxeles)
   doc.layers.forEach((l, i) => {
     if(!l.hiSrc) return;
+    if(hiNew?.has(l.id)){ l.hiSrc = hiNew.get(l.id); return; }       // ya remuestreado en 16 bits (el lienzo ya es su redondeo)
     let moved = null;
     if(hiOp && hiCoversCanvas({ hiSrc: l.hiSrc, canvas: { width: oldW, height: oldH } })) moved = remapHi(l, readPixels(snaps[i].c), oldW, oldH, hiOp.fwd);
     if(moved) l.hiSrc = moved; else delete l.hiSrc;
@@ -103,7 +104,7 @@ function transformAll(fn, newW, newH, label, hiOp = null){
           if(moved) l.hiSrc = moved; else delete l.hiSrc;
         }
       } else if(!forward && s.hi) l.hiSrc = s.hi;
-      else if(forward) delete l.hiSrc;
+      else if(forward){ if(hiNew?.has(l.id)) l.hiSrc = hiNew.get(l.id); else delete l.hiSrc; }
     }
     emit("doc:resize"); emit("doc:structure"); emit("doc:change");
   };
@@ -243,10 +244,13 @@ export async function resizeDialog(){
   // Píxeles y máscaras, con el mismo método: una máscara remuestreada
   // de otra forma que su capa dejaría un halo en el borde.
   const sources = doc.layers.flatMap(l => l.mask ? [l.canvas, l.mask.canvas] : [l.canvas]);
+  const hiNew = new Map();         // capas con origen de 16 bits que cubre el lienzo: se remuestrean también en 16 bits (coma flotante)
   for(let i = 0; i < sources.length; i++){
-    const src = sources[i];
-    done.set(src, await resampleCanvas(src, w, h, method,
-      f => progress((i + f) / sources.length)));
+    const src = sources[i], owner = doc.layers.find(l => l.canvas === src);
+    const prog = f => progress((i + f) / sources.length);
+    const hr = owner && hiCoversCanvas(owner) ? await resampleHi(owner, w, h, method, prog) : null;
+    if(hr){ done.set(src, hr.canvas); hiNew.set(owner.id, hr.hiSrc); }
+    else done.set(src, await resampleCanvas(src, w, h, method, prog));
     progress((i + 1) / sources.length);
   }
   progress(null); status("");
@@ -256,7 +260,7 @@ export async function resizeDialog(){
     x.imageSmoothingEnabled = true;
     x.imageSmoothingQuality = "high";
     x.drawImage(src, 0, 0, w, h);
-  }, w, h, "Redimensionar");
+  }, w, h, "Redimensionar", null, hiNew);
   toast(`Redimensionado a ${w} × ${h}`);
 }
 
