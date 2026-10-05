@@ -8,13 +8,15 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."), [
 if(!fish){ console.log("Uso: node tests/clipseg.mjs <model_fp16.onnx> <calle.jpg> <pez.jpg>"); process.exit(2); }
 let chromium; for(const s of ["playwright", "/opt/node22/lib/node_modules/playwright/index.mjs"]){ try{ ({ chromium } = await import(s)); break; }catch{} }
 const T = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json", ".wasm": "application/wasm", ".onnx": "application/octet-stream" };
-const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.url, "http://x").pathname); if(p.endsWith("/")) p += "index.html"; const f = path.join(ROOT, p);
+const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.url, "http://x").pathname);
+  if(p === "/__modelo.onnx"){ r.writeHead(200, { "Content-Type": "application/octet-stream", "Content-Length": fs.statSync(modelPath).size, "Access-Control-Allow-Origin": "*" }); fs.createReadStream(modelPath).pipe(r); return; } if(p.endsWith("/")) p += "index.html"; const f = path.join(ROOT, p);
   if(!fs.existsSync(f) || fs.statSync(f).isDirectory()){ r.writeHead(404); r.end(); return; } r.writeHead(200, { "Content-Type": T[path.extname(f)] || "application/octet-stream" }); fs.createReadStream(f).pipe(r); });
 await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch({ args: ["--disable-dev-shm-usage"] }); b.on("disconnected", () => console.log("NAVEGADOR DESCONECTADO")); const ctx = await b.newContext({ viewport: { width: 1200, height: 800 } }), errs = [];
-await ctx.route(/clipseg-rd64-refined\/resolve\/main\/onnx\/model_fp16\.onnx/, route => route.fulfill({ path: modelPath, headers: { "access-control-allow-origin": "*", "content-type": "application/octet-stream" } }));
 const page = await ctx.newPage(); page.on("pageerror", e => errs.push(e.message)); page.on("crash", () => console.log("PÁGINA CAÍDA (crash)")); page.on("worker", w => { console.log("worker", w.url().slice(-40)); w.on("close", () => console.log("worker cerrado")); }); page.on("console", m => { if(m.type() === "error") errs.push(m.text().slice(0, 160)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
+// la web pide el modelo a Hugging Face; aquí se apunta al servidor local (el worker recibe la URL en el mensaje)
+await page.evaluate(async port => { (await import("/js/ai/models.js")).MODELS.clipseg.url = `http://127.0.0.1:${port}/__modelo.onnx`; }, srv.address().port);
 const watcher = setInterval(async () => { try{ const bt = page.locator("button:visible", { hasText: /^(Descargar|Probar otra vez|Continuar)$/ }); if(await bt.count()) await bt.first().click({ timeout: 1000 }); }catch{} }, 700);
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 async function mask(file, text){
