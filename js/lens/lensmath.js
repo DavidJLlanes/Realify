@@ -209,8 +209,11 @@ function vignettingIDW(set, l, crop, focal, aperture, distance, realFocal){
  * @param opts     { crop, W, H, distortion, tca, vignette, autoScale }
  * @returns { map(x, y, out), gain(x, y), scale }  `map` escribe [xR, yR, xG, yG, xB, yB] en píxeles de la foto original
  */
-export function makeCorrector(profile, { crop, W, H, distortion = true, tca = true, vignette = true, autoScale = true }){
-  const ns = DIAG35 / crop / Math.hypot(W, H) / profile.realFocal;       // píxeles → distancias focales
+export function makeCorrector(profile, { crop, W, H, distortion = true, tca = true, vignette = true, autoScale = true, keep = 1 }){
+  /* Coordenadas normalizadas: en distancias focales (perfiles de Lensfun) o, en los perfiles propios (`profile.normDiag`, modelo «acm»), con el radio 1 en
+     la esquina de la foto original. `keep` (0,1-1) es la fracción del ancho original que conserva el propio archivo cuando ya viene recortado (recorte
+     centrado): las posiciones se miden respecto a la foto completa, así que los radios se reducen en esa proporción. */
+  const ns = (profile.normDiag ? 2 / Math.hypot(W, H) : DIAG35 / crop / Math.hypot(W, H) / profile.realFocal) * Math.min(1, Math.max(0.05, keep));       // píxeles → unidades de la normalización
   const cx = (W - 1) / 2, cy = (H - 1) / 2, un = 1 / ns;
   const dist = distortion ? profile.dist : null, ta = tca ? profile.tca : null, vg = vignette ? profile.vig : null;
   let scale = 1;
@@ -219,6 +222,11 @@ export function makeCorrector(profile, { crop, W, H, distortion = true, tca = tr
     if(!dist) return [x, y];
     const t = dist.terms, r2 = x * x + y * y;
     let p;
+    if(dist.model === "acm"){
+      /* Modelo de cámara de Adobe (WarpRectilinear del DNG): radial 1 + k1·r² + k2·r⁴ + k3·r⁶ y tangencial p1, p2 (Brown-Conrady) */
+      const [k1, k2, k3, p1 = 0, p2 = 0] = t, rad = 1 + k1 * r2 + k2 * r2 * r2 + k3 * r2 * r2 * r2;
+      return [x * rad + 2 * p1 * x * y + p2 * (r2 + 2 * x * x), y * rad + p1 * (r2 + 2 * y * y) + 2 * p2 * x * y];
+    }
     if(dist.model === "poly3") p = t[0] * r2 + dist.d;
     else if(dist.model === "poly5") p = 1 + t[0] * r2 + t[1] * r2 * r2;
     else { const r = Math.sqrt(r2); p = t[0] * r2 * r + t[1] * r2 + t[2] * r + dist.d; }

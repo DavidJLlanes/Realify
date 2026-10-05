@@ -83,6 +83,19 @@ const rawOptionsFor = settings => ({
   highlight: settings.highlight
 });
 
+/* «Corrección de lente por perfil» (raw/lens.js): sobre los datos lineales, antes del revelado. Sin perfil, el RAW sigue como estaba y se avisa. */
+async function lensStep(source, settings, file, metadata){
+  if(!settings.lensProfile) return source;
+  try{
+    const { correctLinearSource } = await import("./lens.js"), { toast, status } = await import("../js/ui/toast.js");
+    status("Corrigiendo la lente…");
+    const r = await correctLinearSource(source, file, metadata, { onProgress: p => status(`Corrigiendo la lente… ${Math.round(p * 100)} %`) });
+    status("");
+    toast(r.name ? `Lente corregida antes del revelado · ${r.name}` : "No hay perfil de lente para este RAW: se revela sin corregirla", r.name ? "ok" : "");
+    return r.source;
+  }catch(err){ console.error(err); return source; }
+}
+
 export class RawDecoder {
   static async open(file, settings = {}, { thumbnailOnly = false } = {}) {
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -93,8 +106,9 @@ export class RawDecoder {
       await raw.open(bytes, rawOptions(settings));
       const metadata = await raw.metadata(true);
       if(thumbnailOnly) return new RawDecoder(file, null, raw, metadata || {}, null);
-      const source = linearSource(await raw.imageData(), sourceMeta(settings));
+      let source = linearSource(await raw.imageData(), sourceMeta(settings));
       raw.dispose();
+      source = await lensStep(source, settings, file, metadata || {});
       return new RawDecoder(file, null, null, metadata || {}, source);
     } catch(error) {
       raw.dispose();
@@ -114,7 +128,7 @@ export class RawDecoder {
       const bytes = new Uint8Array(await this.file.arrayBuffer());
       if(this.closed) throw new Error('Decodificador cerrado');
       await raw.open(bytes, rawOptions(settings));
-      return linearSource(await raw.imageData(), sourceMeta(settings));
+      return await lensStep(linearSource(await raw.imageData(), sourceMeta(settings)), settings, this.file, this.metadata || {});
     } finally {
       raw.dispose();
       if(this.raw === raw) this.raw = null;

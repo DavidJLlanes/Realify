@@ -710,6 +710,7 @@ registerAll({
   "filter.aiDenoise": { run: photoTool("aiDenoise"), enabled: needsDoc },
   "filter.aiDejpeg":  { run: photoTool("aiDejpeg"),  enabled: needsDoc },
   "filter.lensProfile": { run: async () => (await import("./features/lenscorrect.js")).openLensProfile(), enabled: needsDoc },
+  "filter.lensAuto": { run: async () => (await import("./features/lenscorrect.js")).applyLensAuto(), enabled: needsDoc },
   "filter.lensCorrection": { run: photoTool("lensCorrection"), enabled: needsDoc },
   "filter.selectiveSharpen": { run: photoTool("selectiveSharpen"), enabled: needsDoc },
   "filter.portrait": { run: photoTool("portraitRetouch"), enabled: needsDoc },

@@ -60,6 +60,7 @@ export const CONTROLS = [
   { group:"detalle", key:"sharpen", label:"Enfoque", min:0, max:100, unit:"" },
   { group:"detalle", key:"noise", label:"Reducir ruido", min:0, max:100, unit:"" },
   { group:"detalle", key:"colorNoise", label:"Ruido de color", min:0, max:100, unit:"" },
+  { group:"optica", key:"lensProfile", label:"Lente por perfil: distorsión, viñeteo y aberración (antes del revelado)", type:"toggle", engine:true },
   { group:"optica", key:"ca", label:"Aberración cromática", min:-100, max:100, unit:"" },
   { group:"optica", key:"lensVignette", label:"Viñeteado de lente", min:-100, max:100, unit:"" },
   { group:"efectos", key:"clarity", label:"Claridad", min:-100, max:100, unit:"" },
@@ -82,7 +83,7 @@ export const defaults = () => ({
   exposure:0, contrast:0, highlights:0, shadows:0, whites:0, blacks:0,
   vibrance:0, saturation:0, hue:0, sharpen:0, noise:0, colorNoise:0,
   ca:0, lensVignette:0, clarity:0, texture:0, dehaze:0, vignette:0, grain:0,
-  premium:false, space:"srgb"
+  premium:false, space:"srgb", lensProfile:false
 });
 
 export const normalize = value => {
