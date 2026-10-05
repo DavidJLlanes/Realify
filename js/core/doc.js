@@ -7,6 +7,7 @@
    el lienzo entero de todas formas.
    ═══════════════════════════════════════════════════════════════ */
 
+import { remapHi, hiCoversCanvas } from "./hisrc.js";
 import { emit } from "./bus.js";
 import { drawWithBlend } from "../editor/blend.js";
 
@@ -218,6 +219,9 @@ export function duplicateLayer(id = doc.activeId){
   l.filters = src.filters.map(f => ({ ...f, params: { ...f.params } }));
   l.smart = src.smart;
   l.dodgeBurn = src.dodgeBurn;
+  // Los 16 bits (core/hisrc.js): el lienzo copiado es idéntico, así que el origen sigue valiendo. Los datos no se
+  // modifican nunca en su sitio (cada operación crea los suyos), por eso se comparten.
+  if(src.hiSrc) l.hiSrc = { ...src.hiSrc };
   // El patrón de una capa de relleno guarda un <canvas> aparte (la
   // imagen cargada) que JSON.parse/stringify no puede clonar: se copia
   // a mano, igual que smartSource más abajo. Color y degradado son
@@ -381,13 +385,20 @@ export function cropDoc(rect){
   const w = Math.min(doc.w - x, Math.round(rect.w));
   const h = Math.min(doc.h - y, Math.round(rect.h));
   if(w < 1 || h < 1) return;
+  const oldW = doc.w, oldH = doc.h;
   for(const l of doc.layers){
     const tmp = document.createElement("canvas");
     tmp.width = w; tmp.height = h;
+    const old = l.canvas, hiCovers = l.hiSrc && hiCoversCanvas(l);
     tmp.getContext("2d", { willReadFrequently: true, colorSpace:"srgb" }).drawImage(l.canvas, x, y, w, h, 0, 0, w, h);
     l.canvas = tmp;
     l.ctx = tmp.getContext("2d", { willReadFrequently: true, colorSpace:"srgb" });
     l.thumbDirty = true;
+    // Los 16 bits (core/hisrc.js) se recortan con el lienzo; el historial del recorte (tools.js) guarda el origen entero
+    if(l.hiSrc){
+      const moved = hiCovers ? remapHi(l, old.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, oldW, oldH).data, oldW, oldH, (nx, ny) => (ny + y) * oldW + nx + x) : null;
+      if(moved) l.hiSrc = moved; else delete l.hiSrc;
+    }
     // La máscara de capa es un lienzo aparte del tamaño de la capa (ver
     // editor/masks.js): se recorta con el mismo rectángulo, o quedaría
     // con las medidas viejas tapando lo que no le toca.

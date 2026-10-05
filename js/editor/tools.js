@@ -3136,7 +3136,7 @@ function cropSnap(l){
     c.getContext("2d").drawImage(src, 0, 0);
     return c;
   };
-  return { id: l.id, c: copy(l.canvas), m: l.mask ? copy(l.mask.canvas) : null };
+  return { id: l.id, c: copy(l.canvas), m: l.mask ? copy(l.mask.canvas) : null, hi: l.hiSrc };   // los 16 bits (core/hisrc.js), por referencia
 }
 
 function restoreAll(snaps, w, h){
@@ -3146,6 +3146,7 @@ function restoreAll(snaps, w, h){
     if(!l) continue;
     l.canvas.width = w; l.canvas.height = h;
     l.ctx.drawImage(s.c, 0, 0);
+    if(s.hi) l.hiSrc = s.hi; else delete l.hiSrc;
     // Sólo si la capa sigue teniendo máscara: quitarla después es un
     // paso de historial aparte.
     if(s.m && l.mask){

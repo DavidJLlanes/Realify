@@ -9,6 +9,22 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v239 · Los 16 bits sobreviven al documento (fase 14)
+- **Girar, voltear, recortar y ampliar el lienzo conservan los 16 bits** de la foto (RAW revelado, PNG/TIFF de 16 bits,
+  AVIF de 10/12): el origen de 16 bits se mueve con el lienzo (`remapHi` en `core/hisrc.js`) y se vuelve a tramar en su
+  sitio nuevo en los píxeles sin tocar; lo pintado a mano se respeta. Antes cualquier recorte o giro los tiraba y la
+  exportación en 16 bits salía de un lienzo de 8.
+- **Deshacer y rehacer los recolocan** sin guardar copias de 6 bytes por píxel en el historial (giros y volteos se
+  deshacen con la permutación inversa); recortar guarda el origen entero. **Redimensionar** y reducir el lienzo
+  siguen soltándolos (cambian los píxeles), pero deshacer los devuelve.
+- **Proyectos `.realify` y «guardar antes de actualizar» guardan los 16 bits** de las capas (PNG de 16 bits dentro
+  del proyecto, hasta 24 MP) y los recuperan al abrir. El autoguardado periódico no los lleva (pesan mucho para repetirlo
+  cada pocos segundos). Los proyectos antiguos se abren igual; los nuevos se abren en versiones anteriores sin los 16 bits.
+- **Duplicar capa** conserva el origen de 16 bits.
+- Comprobado con una foto de 16 bits: tras girar a la derecha y recortar, el PNG de 16 bits exportado coincide
+  **bit a bit** con el original (150 000 valores, diferencia 0); lienzo, origen y deshacer/rehacer coherentes en todos los
+  casos, con y sin tramado.
+
 ### v238 · Vista previa en coma flotante en GPU (fase 13)
 - **Compositor de coma flotante en GPU** (`js/gpu/floatcompositor.js`): el árbol de capas se recompone en WebGL2
   con texturas RGBA32F (RGBA16F si el equipo no puede dibujar en 32) y sólo se pasa a 8 bits al mostrarlo, con

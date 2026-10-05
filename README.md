@@ -269,6 +269,10 @@ tiempo real mientras se pinta.
 - **Exportación en coma flotante con estilos de capa y Fusionar si** (`core/precision-stack.js`): la sombra,
   el resplandor y el trazo se dibujan aparte (láminas de 8 bits de colores sólidos), la capa va encima en
   coma flotante y el degradado y Fusionar si se evalúan sin redondear; ya no se parte del aplanado de 8 bits.
+- **Los 16 bits sobreviven al documento** (`js/core/hisrc.js`, fase 14): girar, voltear, recortar y ampliar el lienzo
+  mueven el origen de 16 bits con el lienzo (y lo vuelven a tramar en su sitio), con deshacer y rehacer sin copias en
+  el historial; los proyectos `.realify` y el guardado antes de actualizar lo guardan como PNG de 16 bits; duplicar
+  capa lo conserva. Exportar tras girar y recortar da los mismos 16 bits que la foto original, bit a bit.
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

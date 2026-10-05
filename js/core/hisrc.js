@@ -148,12 +148,11 @@ export function adoptHi(layer, data, w, h){
     origen en los píxeles que no se han tocado. `d` es la banda de 8 bits
     (RGBA) ya leída del lienzo. Devuelve cuántos píxeles usaron 16 bits. */
 export function fillBand(layer, d, out, y0, w, bh){
+  /* Si la capa cambió de tamaño el origen no corresponde: se IGNORA, pero no se borra —deshacer esa operación
+     devuelve el lienzo a su tamaño y con él los 16 bits—. */
   const hs = layer.hiSrc;
-  if(hs){
-    const expectedW = hs.canvasW || hs.w, expectedH = hs.canvasH || hs.h;
-    if(expectedW !== layer.canvas.width || expectedH !== layer.canvas.height) delete layer.hiSrc;
-  }
-  const hi = layer.hiSrc, ox = hi ? (hi.x || 0) : 0, oy = hi ? (hi.y || 0) : 0;
+  const matches = !!hs && (hs.canvasW || hs.w) === layer.canvas.width && (hs.canvasH || hs.h) === layer.canvas.height;
+  const hi = matches ? hs : null, ox = hi ? (hi.x || 0) : 0, oy = hi ? (hi.y || 0) : 0;
   let used = 0;
   for(let i = 0, p = 0; i < d.length; i += 4, p++){
     const a = d[i + 3] / 255;
@@ -172,6 +171,52 @@ export function fillBand(layer, d, out, y0, w, bh){
     out[i] = r * a; out[i + 1] = g * a; out[i + 2] = b * a; out[i + 3] = a;
   }
   return used;
+}
+
+/** ¿El origen de 16 bits de la capa corresponde a su lienzo y lo cubre entero? (única forma que sabe mover remapHi) */
+export function hiCoversCanvas(layer){
+  const hs = layer?.hiSrc, c = layer?.canvas;
+  return !!hs && !!hs.data && !!c && hs.w === c.width && hs.h === c.height && (hs.canvasW || hs.w) === c.width && (hs.canvasH || hs.h) === c.height && !(hs.x || 0) && !(hs.y || 0);
+}
+
+/**
+ * Lleva el origen de 16 bits de una capa a su lienzo NUEVO tras mover píxeles sin cambiarlos (girar, voltear, recortar,
+ * ampliar el lienzo, y sus inversas al deshacer). `inv(nx, ny)` da el índice (fila·ancho + columna) del píxel de
+ * origen en el lienzo anterior, o -1 si el píxel nuevo no viene de ninguno (zona añadida). `oldData`: los píxeles de
+ * 8 bits del lienzo anterior (RGBA), para saber qué píxeles seguían siendo el redondeo de sus 16 bits (los pintados
+ * encima no lo son y se quedan como están). La capa ya debe llevar su lienzo nuevo, que se vuelve a tramar en su
+ * sitio nuevo en los píxeles sin tocar (el tramado depende de la posición). Devuelve el origen nuevo o null.
+ */
+export function remapHi(layer, oldData, oW, oH, inv){
+  const hs = layer?.hiSrc;
+  if(!hs || !hs.data || hs.w !== oW || hs.h !== oH || (hs.canvasW || hs.w) !== oW || (hs.canvasH || hs.h) !== oH || (hs.x || 0) || (hs.y || 0)) return null;
+  const nW = layer.canvas.width, nH = layer.canvas.height;
+  if(nW * nH > 64e6) return null;
+  const src = hs.data, out = new Uint16Array(nW * nH * 3), dither = !!hs.dither;
+  const cx = layer.ctx, img = dither ? cx.getImageData(0, 0, nW, nH) : null;
+  const d = img ? img.data : null;
+  let patched = false;
+  for(let ny = 0, i = 0; ny < nH; ny++) for(let nx = 0; nx < nW; nx++, i++){
+    const o = inv(nx, ny), j = i * 3;
+    if(o < 0){
+      // zona añadida: lo que haya en el lienzo (si es transparente, sin color)
+      if(d && d[i * 4 + 3]){ out[j] = d[i * 4] * 257; out[j + 1] = d[i * 4 + 1] * 257; out[j + 2] = d[i * 4 + 2] * 257; }
+      continue;
+    }
+    const p = o * 3, R = src[p], G = src[p + 1], B = src[p + 2];
+    out[j] = R; out[j + 1] = G; out[j + 2] = B;
+    if(!dither) continue;                 // el redondeo no depende del sitio: el lienzo ya vale
+    const q = o * 4;
+    if(oldData[q + 3] === 0) continue;
+    const oy = (o / oW) | 0, ox = o - oy * oW;
+    if(d8(R, ox, oy, 0) === oldData[q] && d8(G, ox, oy, 1) === oldData[q + 1] && d8(B, ox, oy, 2) === oldData[q + 2]){
+      const k = i * 4;
+      d[k] = d8(R, nx, ny, 0); d[k + 1] = d8(G, nx, ny, 1); d[k + 2] = d8(B, nx, ny, 2);
+      patched = true;
+    }
+  }
+  if(patched) cx.putImageData(img, 0, 0);
+  return { ...hs, data: out, w: nW, h: nH, x: 0, y: 0, canvasW: nW, canvasH: nH };
 }
 
 /** ¿Tiene el documento alguna capa visible con origen de alta profundidad? */

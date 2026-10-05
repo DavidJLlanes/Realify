@@ -32,7 +32,7 @@ export async function sniffHighDepth(file){
 async function inflate(u8){
   return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer());
 }
-async function decodePng16(buf){
+export async function decodePng16(buf){
   const u8 = new Uint8Array(buf), v = new DataView(buf);
   let i = 8, w = 0, h = 0, depth = 0, type = 0, interlace = 0;
   const idat = [];

@@ -185,12 +185,21 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
 - [ ] Caché de texturas por capa (hoy se suben las capas en cada composición); documentos grandes por mosaicos
       (≥ 18 MP en escritorio, ≥ 8 MP en móvil) siguen en 8 bits.
 
-## Fase 14 · Documento en alta precisión
+## Fase 14 · Documento en alta precisión ✅ en parte (v239)
 Lo más costoso: ×2–×4 de memoria (12 MP: ~48 MB por capa → 96–192 MB).
-- [ ] Capas y máscaras en 16 bits/float, por bloques en el móvil.
-- [ ] Historial y proyectos en alta precisión.
-- [ ] Procesado «lazy» por bloques inspirado en libvips: la edición como grafo de
-      operaciones y cálculo sólo de los bloques necesarios para la vista o la exportación.
+- [x] Los 16 bits de origen viajan con el lienzo al girar, voltear, recortar y ampliar el lienzo, con deshacer y rehacer
+      (`remapHi`, `hiCoversCanvas` en `core/hisrc.js`; `transformAll` en `imageops.js`, `cropDoc`). (v239)
+- [x] Proyectos `.realify` y guardado antes de actualizar con los 16 bits (PNG de 16 bits dentro del proyecto). (v239)
+- [x] Duplicar capa conserva el origen de 16 bits. (v239)
+- [ ] Redimensionar con 16 bits: remuestreo en 16 bits/float con el método elegido (hoy se sueltan; el lienzo de 8 bits
+      se remuestrea en el worker y el origen no corresponde). Requiere versiones en coma flotante de los núcleos de
+      `resample.js` y volver a tramar el lienzo desde el resultado.
+- [ ] El autoguardado periódico no lleva los 16 bits: recuperarlo tras un cierre brusco deja la foto en 8 bits.
+- [ ] Capas y máscaras en 16 bits/float PROPIOS (hoy sólo la capa de fondo, o la de un filtro, lleva origen de 16 bits;
+      pintar, clonar o pegar trabajan sobre 8 bits), por bloques en el móvil.
+- [ ] Perspectiva, enderezar y otras operaciones que remuestrean capas siguen soltando los 16 bits.
+- [ ] Procesado «lazy» por bloques inspirado en libvips: la edición como grafo de operaciones y cálculo sólo de los
+      bloques necesarios para la vista o la exportación.
 
 ## Fase 15 · Metadatos y privacidad
 ExifReader (MPL-2.0, sin modificar). Revisar antes qué hace ya el módulo EXIF actual.

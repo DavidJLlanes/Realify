@@ -12,6 +12,7 @@ import { saveOrShare, stamp } from "./export.js";
 import { toast, status } from "../ui/toast.js";
 import { openAsNewTab, listTabs, activeTab, switchTo } from "../core/documents.js";
 import { anyDialogOpen } from "../ui/dialog.js";
+import { hiCoversCanvas, hiAllowed } from "../core/hisrc.js";
 
 export const PROJECT_MIME = "application/vnd.realify+json";
 export const PROJECT_VERSION = 1;
@@ -62,11 +63,35 @@ function projectThumbnail(){
   return c.toDataURL("image/jpeg",.72);
 }
 
-export async function serializeProject(){
+/* Origen de 16 bits de una capa (core/hisrc.js) como PNG de 16 bits en base64, o null. Ocupa bastante: el
+   autoguardado periódico lo omite (`hi: false`); el guardado de proyecto y el de «antes de actualizar» lo llevan. */
+async function encodeHi(layer){
+  if(!hiCoversCanvas(layer) || layer.canvas.width * layer.canvas.height > 24e6) return null;
+  try{
+    const { png16, png16Supported } = await import("./formats16.js");
+    if(!png16Supported()) return null;
+    const hs = layer.hiSrc;
+    const blob = await png16({ data: hs.data, channels: 3, w: hs.w, h: hs.h });
+    return { png: bytesToBase64(new Uint8Array(await blob.arrayBuffer())), dither: !!hs.dither };
+  }catch(err){ console.warn("[project] no se pudieron guardar los 16 bits de una capa", err); return null; }
+}
+async function decodeHi(saved, w, h){
+  if(!saved || !saved.png || !hiAllowed(w, h)) return null;
+  try{
+    const { decodePng16 } = await import("./hidepth.js");
+    const u8 = base64ToBytes(saved.png);
+    const r = await decodePng16(u8.buffer);
+    if(!r || r.w !== w || r.h !== h) return null;
+    return { data: r.data, w, h, dither: !!saved.dither, x: 0, y: 0, canvasW: w, canvasH: h };
+  }catch(err){ console.warn("[project] no se pudieron recuperar los 16 bits de una capa", err); return null; }
+}
+
+export async function serializeProject({ hi = true } = {}){
   if(!doc.open) throw new Error("No hay documento abierto");
   const layers = [];
   for(const layer of doc.layers){
     layers.push({
+      hi: hi && layer.hiSrc ? await encodeHi(layer) : null,
       id: layer.id,
       name: layer.name,
       type: layer.type || "raster",
@@ -160,6 +185,7 @@ export async function restoreProject(data){
     if(saved.adjustParams) layer.adjustParams = cloneJson(saved.adjustParams);
     layer.canvas = await decodeCanvas(saved.pixels, d.width, d.height);
     layer.ctx = layer.canvas.getContext("2d", { colorSpace:"srgb", willReadFrequently:true });
+    if(saved.hi){ const hiSrc = await decodeHi(saved.hi, d.width, d.height); if(hiSrc) layer.hiSrc = hiSrc; }   // los 16 bits de origen
     if(saved.mask){
       const canvas = await decodeCanvas(saved.mask, d.width, d.height);
       layer.mask = { canvas, ctx:canvas.getContext("2d", { colorSpace:"srgb", willReadFrequently:true }) };
@@ -386,7 +412,7 @@ export function initProjects(){
     if(!doc.open||saving||anyDialogOpen()){pending=true;scheduleAuto();return;}
     saving=true;pending=false;
     try{
-      const data=await serializeProject();
+      const data=await serializeProject({hi:false});      // sin los 16 bits: pesan mucho para repetirlo cada pocos segundos
       const blob=new Blob([JSON.stringify(data)],{type:PROJECT_MIME});
       const safe=String(doc.name||"proyecto").replace(/[^a-z0-9áéíóúüñ _-]+/gi,"").trim()||"proyecto";
       await putRecent(blob,`${safe} · autoguardado.realify`,data.document.thumbnail);

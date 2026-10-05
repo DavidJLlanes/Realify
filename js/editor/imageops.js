@@ -9,6 +9,7 @@ import { dialog } from "../ui/dialog.js";
 import { toast, status, progress } from "../ui/toast.js";
 import { fit } from "./view.js";
 import { resampleCanvas, RESAMPLE_METHODS } from "./resample.js";
+import { remapHi, hiCoversCanvas } from "../core/hisrc.js";
 
 /* Último método de remuestreo elegido: preferencia de este navegador. */
 const RESAMPLE_KEY = "realify.resample";
@@ -29,17 +30,24 @@ function copyCanvas(src){
    (ver editor/masks.js), así que tiene que girar, voltear y cambiar de
    tamaño con ella: si no, tras «Tamaño de imagen» quedaba con las
    medidas viejas y ya no casaba con lo que tapa. */
-function snapLayer(l){
-  return { id: l.id, c: copyCanvas(l.canvas), m: l.mask ? copyCanvas(l.mask.canvas) : null };
+function snapLayer(l, keepHi = false){
+  return { id: l.id, c: copyCanvas(l.canvas), m: l.mask ? copyCanvas(l.mask.canvas) : null, hi: keepHi ? l.hiSrc : undefined };
 }
+
+/* Origen de 16 bits (core/hisrc.js): las operaciones que sólo MUEVEN píxeles (girar, voltear, ampliar el lienzo)
+   llevan `hiOp` = { fwd, back }, las funciones índice-de-origen de `remapHi` hacia delante y de vuelta: así los 16 bits
+   se mueven con el lienzo y deshacer/rehacer los recolocan sin guardar copias (de 6 bytes por píxel) en el historial.
+   Las que cambian los píxeles (redimensionar, escala según contenido) o pierden parte (reducir el lienzo) los
+   sueltan, y el historial guarda el origen para devolverlo al deshacer. */
+const readPixels = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 
 /* `fn(x, src, isMask)` dibuja `src` transformado en el contexto `x`,
    que ya mide `newW`×`newH`. Se llama una vez para los píxeles de cada
    capa y otra para su máscara (`isMask = true`), por si la operación
    tiene que tratarla distinto —p. ej. el color de relleno de «Tamaño
    de lienzo» no pinta máscaras—. */
-function transformAll(fn, newW, newH, label){
-  const snaps = doc.layers.map(snapLayer);
+function transformAll(fn, newW, newH, label, hiOp = null){
+  const snaps = doc.layers.map(l => snapLayer(l, !hiOp));
   const oldW = doc.w, oldH = doc.h;
 
   const transformed = (src, isMask) => {
@@ -58,9 +66,17 @@ function transformAll(fn, newW, newH, label){
   }
   doc.w = newW; doc.h = newH;
 
-  const after = doc.layers.map(snapLayer);
+  // 16 bits: se mueven con el lienzo (o se sueltan si la operación cambia los píxeles)
+  doc.layers.forEach((l, i) => {
+    if(!l.hiSrc) return;
+    let moved = null;
+    if(hiOp && hiCoversCanvas({ hiSrc: l.hiSrc, canvas: { width: oldW, height: oldH } })) moved = remapHi(l, readPixels(snaps[i].c), oldW, oldH, hiOp.fwd);
+    if(moved) l.hiSrc = moved; else delete l.hiSrc;
+  });
 
-  const restore = (snapList, w, h) => () => {
+  const after = doc.layers.map(l => snapLayer(l, false));
+
+  const restore = (snapList, w, h, forward) => () => {
     doc.w = w; doc.h = h;
     for(const s of snapList){
       const l = doc.layers.find(x => x.id === s.id);
@@ -78,34 +94,46 @@ function transformAll(fn, newW, newH, label){
         l.mask = { canvas: mc, ctx: mc.getContext("2d", { willReadFrequently: true }) };
       }
       l.thumbDirty = true;
+      // 16 bits: deshacer/rehacer los recoloca (operaciones de movimiento) o los devuelve (las que los soltaron)
+      if(hiOp){
+        if(l.hiSrc){
+          const from = forward ? snaps : after, fromW = forward ? oldW : newW, fromH = forward ? oldH : newH;
+          const src = from.find(x => x.id === s.id);
+          const moved = src ? remapHi(l, readPixels(src.c), fromW, fromH, forward ? hiOp.fwd : hiOp.back) : null;
+          if(moved) l.hiSrc = moved; else delete l.hiSrc;
+        }
+      } else if(!forward && s.hi) l.hiSrc = s.hi;
+      else if(forward) delete l.hiSrc;
     }
     emit("doc:resize"); emit("doc:structure"); emit("doc:change");
   };
 
-  record(label, restore(snaps, oldW, oldH), restore(after, newW, newH));
+  record(label, restore(snaps, oldW, oldH, false), restore(after, newW, newH, true));
   emit("doc:resize"); emit("doc:structure"); emit("doc:change");
   fit();
 }
 
-export const rotateLeft = () => transformAll((x, src) => {
+/* Índices de origen de cada giro/volteo (ver `hiOp`): `fwd(nx, ny)` = píxel del lienzo anterior que cae en (nx, ny) del
+   nuevo; `back(x, y)` = píxel del lienzo nuevo al que fue a parar el (x, y) anterior (para deshacer). W×H = medidas antiguas. */
+export const rotateLeft = () => { const W = doc.w, H = doc.h; transformAll((x, src) => {
   x.translate(0, doc.w); x.rotate(-Math.PI / 2); x.drawImage(src, 0, 0);
-}, doc.h, doc.w, "Girar 90° izquierda");
+}, doc.h, doc.w, "Girar 90° izquierda", { fwd: (nx, ny) => nx * W + (W - 1 - ny), back: (x, y) => (W - 1 - x) * H + y }); };
 
-export const rotateRight = () => transformAll((x, src) => {
+export const rotateRight = () => { const W = doc.w, H = doc.h; transformAll((x, src) => {
   x.translate(doc.h, 0); x.rotate(Math.PI / 2); x.drawImage(src, 0, 0);
-}, doc.h, doc.w, "Girar 90° derecha");
+}, doc.h, doc.w, "Girar 90° derecha", { fwd: (nx, ny) => (H - 1 - nx) * W + ny, back: (x, y) => x * H + (H - 1 - y) }); };
 
-export const rotate180 = () => transformAll((x, src) => {
+export const rotate180 = () => { const W = doc.w, H = doc.h; transformAll((x, src) => {
   x.translate(doc.w, doc.h); x.rotate(Math.PI); x.drawImage(src, 0, 0);
-}, doc.w, doc.h, "Girar 180°");
+}, doc.w, doc.h, "Girar 180°", { fwd: (nx, ny) => (H - 1 - ny) * W + (W - 1 - nx), back: (x, y) => (H - 1 - y) * W + (W - 1 - x) }); };
 
-export const flipH = () => transformAll((x, src) => {
+export const flipH = () => { const W = doc.w, H = doc.h; transformAll((x, src) => {
   x.translate(doc.w, 0); x.scale(-1, 1); x.drawImage(src, 0, 0);
-}, doc.w, doc.h, "Voltear horizontal");
+}, doc.w, doc.h, "Voltear horizontal", { fwd: (nx, ny) => ny * W + (W - 1 - nx), back: (x, y) => y * W + (W - 1 - x) }); };
 
-export const flipV = () => transformAll((x, src) => {
+export const flipV = () => { const W = doc.w, H = doc.h; transformAll((x, src) => {
   x.translate(0, doc.h); x.scale(1, -1); x.drawImage(src, 0, 0);
-}, doc.w, doc.h, "Voltear vertical");
+}, doc.w, doc.h, "Voltear vertical", { fwd: (nx, ny) => (H - 1 - ny) * W + nx, back: (x, y) => (H - 1 - y) * W + x }); };
 
 export async function resizeDialog(){
   if(!doc.open) return;
@@ -270,7 +298,10 @@ export async function canvasSizeDialog(){
   /* En una máscara, el lienzo nuevo queda «revelado» (blanco opaco,
      ver editor/masks.js): la extensión se ve según su propio relleno,
      no escondida por una máscara que nunca la cubrió. */
-  transformAll((x,src,isMask)=>{if(isMask){x.fillStyle="#fff";x.fillRect(0,0,nw,nh);x.clearRect(ox,oy,src.width,src.height);}else if(!transparent){x.fillStyle=color;x.fillRect(0,0,nw,nh);}x.drawImage(src,ox,oy);},nw,nh,"Tamaño de lienzo");
+  // Sólo si el lienzo crece (o se desplaza sin perder nada) los 16 bits viajan con él; si recorta, se sueltan
+  const W0=doc.w,H0=doc.h,lossless=ox>=0&&oy>=0&&ox+W0<=nw&&oy+H0<=nh;
+  transformAll((x,src,isMask)=>{if(isMask){x.fillStyle="#fff";x.fillRect(0,0,nw,nh);x.clearRect(ox,oy,src.width,src.height);}else if(!transparent){x.fillStyle=color;x.fillRect(0,0,nw,nh);}x.drawImage(src,ox,oy);},nw,nh,"Tamaño de lienzo",
+    lossless?{fwd:(nx,ny)=>{const X=nx-ox,Y=ny-oy;return X>=0&&Y>=0&&X<W0&&Y<H0?Y*W0+X:-1;},back:(x,y)=>(y+oy)*nw+(x+ox)}:null);
   toast(`Lienzo ${nw} × ${nh}`,"ok");
 }
 
