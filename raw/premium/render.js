@@ -14,7 +14,10 @@ const canvasOf = (w, h) => {
   const c = typeof document === "undefined" ? new OffscreenCanvas(w, h) : document.createElement("canvas");
   c.width = w; c.height = h; return c;
 };
+/* Contexto 2D en el espacio de color indicado (sRGB o Display P3): los números del revelado Premium están ya en el espacio de salida */
+const ctxOf = (c, space, opts = {}) => c.getContext("2d", { ...opts, colorSpace: space, forceSrgb: space === "srgb" });
 
+export { ctxOf };
 export function premiumSource(source){
   if(source?.linear && source?.data) return source;
   let r = rasters.get(source);
@@ -40,8 +43,8 @@ export function renderPremiumCanvas(source, settings, { region = null } = {}){
   const { src, P, maps } = prepare(source, settings), W = src.width;
   const y0 = region?.y || 0, y1 = region ? region.y + region.height : src.height;
   const lin = renderRows(src, P, maps, y0, y1);
-  const c = canvasOf(W, y1 - y0), x = c.getContext("2d", { willReadFrequently: true });
-  x.putImageData(new ImageData(encode8(lin, W, y1 - y0, y0, P.grain), W, y1 - y0), 0, 0);
+  const c = canvasOf(W, y1 - y0), x = ctxOf(c, P.space, { willReadFrequently: true });
+  x.putImageData(new ImageData(encode8(lin, W, y1 - y0, y0, P.grain), W, y1 - y0, { colorSpace: P.space }), 0, 0);
   return c;
 }
 

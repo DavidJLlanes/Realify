@@ -47,6 +47,8 @@ export const SHOULDER = 4;                      // dureza del hombro de la curva
 export const epsChroma = colorNoise => (0.01 + 0.3 * colorNoise / 100) ** 2;
 export const epsFine = noise => (0.015 + 0.4 * noise / 100) ** 2;
 
+import { rgbMatrix } from "../../js/core/icc.js";
+
 /* ── matrices (lineales) ─────────────────────────────────────── */
 export const SRGB_TO_2020 = [
   [0.6274040, 0.3292820, 0.0433136],
@@ -71,6 +73,15 @@ export const OK_M1_INV_SRGB = [
   [-1.2684380046, 2.6097574011, -0.3413193965],
   [-0.0041960863, -0.7034186147, 1.7076147010]];
 export const OK_M1_2020 = mul3(OK_M1, REC2020_TO_SRGB);   // Rec.2020 lineal → LMS
+
+/* Espacio de SALIDA del revelado: sRGB (por defecto) o Display P3. Sólo cambian la matriz de Rec.2020 a la pantalla y la de OKLab a la pantalla
+   (el mapeo de gama reduce el croma hasta caber en ESA gama); la curva de transferencia de P3 es la de sRGB. */
+const SRGB_TO_P3 = rgbMatrix("srgb", "display-p3"), P3_TO_SRGB = rgbMatrix("display-p3", "srgb");
+export const OUT_SPACES = {
+  srgb: { T: REC2020_TO_SRGB, M1i: OK_M1_INV_SRGB },
+  "display-p3": { T: mul3(SRGB_TO_P3, REC2020_TO_SRGB), M1i: invert3(mul3(OK_M1, P3_TO_SRGB)) }
+};
+export const outSpaceOf = s => (s && s.space === "display-p3") ? "display-p3" : "srgb";
 
 export function mul3(a, b){
   return a.map((row, i) => [0, 1, 2].map(j => row[0] * b[0][j] + row[1] * b[1][j] + row[2] * b[2][j]));
@@ -125,7 +136,9 @@ export const srgbEncode = v => v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.
    cambie el brillo. */
 export function premiumParams(s, wb){
   const norm = Y2020[0] * wb[0] + Y2020[1] * wb[1] + Y2020[2] * wb[2];
+  const space = outSpaceOf(s);
   return {
+    space, out: OUT_SPACES[space],
     wb: wb.map(v => v / norm),
     exposure: 2 ** (s.exposure || 0),
     noise: (s.noise || 0) / 100, colorNoise: (s.colorNoise || 0) / 100,

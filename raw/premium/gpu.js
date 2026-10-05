@@ -256,6 +256,8 @@ export class PremiumGPU {
     const gl = this.gl, b = this.base, W = b.canvas.width, H = b.canvas.height;
     this.size = [W, H];
     const P = premiumParams(s, wbGains(s));
+    // La vista previa se muestra en el espacio de salida elegido (Display P3: sin recortar a sRGB)
+    if("drawingBufferColorSpace" in gl && gl.drawingBufferColorSpace !== P.space){ try{ gl.drawingBufferColorSpace = P.space; }catch{} }
     const prepT = this.target("prep", W, H);
     this.pass(this.p.prep, prepT, [["image", b.input]], u => {
       gl.uniform1i(u.linearSource, b.linearSource ? 1 : 0);
@@ -288,9 +290,9 @@ export class PremiumGPU {
       gl.uniform1i(u.original, original ? 1 : 0);
       for(const k of ["exposure", "noise", "colorNoise", "dehaze", "shadows", "highlights", "clarity", "sharpen", "contrast", "white", "blacks", "saturation", "vibrance", "hue", "vignette", "grain"]) gl.uniform1f(u[k], P[k]);
       gl.uniform1f(u.texture_, P.texture);
-      gl.uniformMatrix3fv(u.toSrgb, false, glMat3(REC2020_TO_SRGB));
+      gl.uniformMatrix3fv(u.toSrgb, false, glMat3(P.out.T));
       gl.uniformMatrix3fv(u.okM1, false, glMat3(OK_M1_2020)); gl.uniformMatrix3fv(u.okM2, false, glMat3(OK_M2));
-      gl.uniformMatrix3fv(u.okM2i, false, glMat3(OK_M2_INV)); gl.uniformMatrix3fv(u.okM1i, false, glMat3(OK_M1_INV_SRGB));
+      gl.uniformMatrix3fv(u.okM2i, false, glMat3(OK_M2_INV)); gl.uniformMatrix3fv(u.okM1i, false, glMat3(P.out.M1i));
     });
   }
   invalidate(){ this.mapsKey = null; }

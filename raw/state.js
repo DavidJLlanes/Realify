@@ -56,6 +56,7 @@ export const CONTROLS = [
   { group:"color", key:"vibrance", label:"Intensidad", min:-100, max:100, unit:"" },
   { group:"color", key:"saturation", label:"Saturación", min:-100, max:100, unit:"" },
   { group:"color", key:"hue", label:"Tono global", min:-180, max:180, unit:"°" },
+  { group:"color", key:"space", label:"Espacio de color 👑", type:"choice", options:[["srgb","sRGB"],["display-p3","Display P3 (gama amplia)"]] },
   { group:"detalle", key:"sharpen", label:"Enfoque", min:0, max:100, unit:"" },
   { group:"detalle", key:"noise", label:"Reducir ruido", min:0, max:100, unit:"" },
   { group:"detalle", key:"colorNoise", label:"Ruido de color", min:0, max:100, unit:"" },
@@ -81,7 +82,7 @@ export const defaults = () => ({
   exposure:0, contrast:0, highlights:0, shadows:0, whites:0, blacks:0,
   vibrance:0, saturation:0, hue:0, sharpen:0, noise:0, colorNoise:0,
   ca:0, lensVignette:0, clarity:0, texture:0, dehaze:0, vignette:0, grain:0,
-  premium:false
+  premium:false, space:"srgb"
 });
 
 export const normalize = value => {

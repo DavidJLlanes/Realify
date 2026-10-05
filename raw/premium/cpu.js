@@ -167,11 +167,10 @@ function sampleMap(M, mw, mh, u, v, out){           // bilineal, 4 canales
 
 /* ── color: OKLab y ajuste de gama a sRGB ─────────────────────── */
 const _lab = new Float64Array(3), _rgb = new Float64Array(3);
-function labToSrgb(L, a, b){
+function labToSrgb(L, a, b, M){
   let l = L + OK_M2_INV[0][1] * a + OK_M2_INV[0][2] * b; l = l * l * l;
   let m = L + OK_M2_INV[1][1] * a + OK_M2_INV[1][2] * b; m = m * m * m;
   let s = L + OK_M2_INV[2][1] * a + OK_M2_INV[2][2] * b; s = s * s * s;
-  const M = OK_M1_INV_SRGB;
   _rgb[0] = M[0][0] * l + M[0][1] * m + M[0][2] * s;
   _rgb[1] = M[1][0] * l + M[1][1] * m + M[1][2] * s;
   _rgb[2] = M[2][0] * l + M[2][1] * m + M[2][2] * s;
@@ -188,14 +187,14 @@ function toLab(r, g, b){
   _lab[2] = OK_M2[2][0] * l + OK_M2[2][1] * m + OK_M2[2][2] * s;
 }
 /* Deja en _rgb el sRGB lineal dentro de gama: croma reducido lo justo. */
-export function gamutMapLab(L, a, b){
+export function gamutMapLab(L, a, b, M = OK_M1_INV_SRGB){
   if(L >= 1){ _rgb[0] = _rgb[1] = _rgb[2] = 1; return; }
   if(L <= 0){ _rgb[0] = _rgb[1] = _rgb[2] = 0; return; }
-  labToSrgb(L, a, b);
+  labToSrgb(L, a, b, M);
   if(inGamut()) return;
   let lo = 0, hi = 1;
-  for(let k = 0; k < 14; k++){ const t = (lo + hi) / 2; labToSrgb(L, a * t, b * t); if(inGamut()) lo = t; else hi = t; }
-  labToSrgb(L, a * lo, b * lo);
+  for(let k = 0; k < 14; k++){ const t = (lo + hi) / 2; labToSrgb(L, a * t, b * t, M); if(inGamut()) lo = t; else hi = t; }
+  labToSrgb(L, a * lo, b * lo, M);
   for(let c = 0; c < 3; c++) _rgb[c] = Math.max(0, Math.min(1, _rgb[c]));
 }
 
@@ -265,7 +264,7 @@ export function renderRows(src, P, maps, y0, y1, sceneOnly = false){
   const out = new Float32Array((y1 - y0) * W * 3);
   const E = Math.log2(P.exposure), c = P.contrast, LN2 = Math.LN2, WS = P.white;
   const cosH = Math.cos(P.hue), sinH = Math.sin(P.hue);
-  const T = REC2020_TO_SRGB;
+  const T = P.out.T, M1i = P.out.M1i;
   for(let y = y0; y < y1; y++){
     const v = Math.max(0, Math.min(mh - 1, (y + 0.5) * mh / H - 0.5)), ry0 = Math.floor(v), ry1 = Math.min(mh - 1, ry0 + 1), ty = v - ry0;
     const dy = (y + 0.5 - H / 2) / half, ey = dy * dy;
@@ -332,7 +331,7 @@ export function renderRows(src, P, maps, y0, y1, sceneOnly = false){
           const C = Math.hypot(A, Bb), sc = P.saturation * (1 + P.vibrance * 0.8 * (1 - smooth(0, 0.18, C)));
           A *= sc; Bb *= sc;
         }
-        gamutMapLab(_lab[0], A, Bb); sr = _rgb[0]; sg = _rgb[1]; sb = _rgb[2];
+        gamutMapLab(_lab[0], A, Bb, M1i); sr = _rgb[0]; sg = _rgb[1]; sb = _rgb[2];
       }
       // 8. viñeteado creativo
       if(P.vignette){ const e = Math.min(1, colE[x] + ey), vg = Math.exp(-P.vignette * e * e * 0.8 * LN2); sr *= vg; sg *= vg; sb *= vg; }

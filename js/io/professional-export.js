@@ -86,10 +86,10 @@ async function tagPngSRGB(blob){
 async function encodeCanvas(canvas,format,quality,profile=true,opts={}){
   /* Documento en Display P3: PNG y JPEG lo conservan con su perfil; el
      resto de formatos (sin perfil) se guarda en sRGB. */
-  const keepP3=isP3Doc()&&(format==="png"||format==="jpg"||format==="heic");
+  const keepP3=isP3Doc()&&(format==="png"||format==="jpg"||format==="webp"||format==="tiff"||format==="heic");
   if(isP3Doc()&&!keepP3)canvas=toSrgbCanvas(canvas);
   canvas=prepareForType(canvas,mimeOf(format),opts);
-  if(format==="tiff") return (await import("./professional-formats.js")).tiffFromCanvas(canvas);
+  if(format==="tiff") return (await import("./professional-formats.js")).tiffFromCanvas(canvas,keepP3?"display-p3":"srgb");
   if(format==="heic") return (await import("./heic.js")).encodeHeic(canvas,{quality,space:keepP3?"display-p3":"srgb"});
   if(format==="pdf"){
     const jpg=await blobOf(canvas,"image/jpeg",quality);

@@ -76,9 +76,9 @@ export function resizeHi(data, w, h, W, H){
 
 /** Lienzo de 8 bits (opaco, sRGB) con los datos de 16 bits tramados
     (el revelado RAW, que sale en sRGB). */
-export function canvasFromHi(data, w, h){
+export function canvasFromHi(data, w, h, space = "srgb"){
   const c = document.createElement("canvas"); c.width = w; c.height = h;
-  const x = c.getContext("2d", { willReadFrequently: true, colorSpace: "srgb", forceSrgb: true });
+  const x = c.getContext("2d", { willReadFrequently: true, colorSpace: space, forceSrgb: space === "srgb" });
   const img = x.createImageData(w, h), d = img.data;
   for(let y = 0, i = 0; y < h; y++) for(let xx = 0; xx < w; xx++, i++){
     const o = i * 4, j = i * 3;

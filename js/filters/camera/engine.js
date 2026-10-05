@@ -11,6 +11,7 @@
 
 import { VS, PRE, SH } from "./shaders.js";
 import { CHAIN, CHAIN_BY_ID } from "./chain.js";
+import { workSpace } from "../../core/colorspace.js";
 
 let gl = null, glCanvas = null, floatOK = false, float32OK = false, premium = false;
 let PROG = {}, quadVAO = null, srcTex = null;
@@ -514,10 +515,23 @@ export function buildCache(stages, dose, solo, k){
   cacheValid = true;
 }
 
+/* Espacio de color del contexto: el del documento. En un documento Display P3 la subida (unpack) y el volcado (drawingBuffer) se hacen en P3,
+   de modo que los colores de gama amplia no se recortan a sRGB al pasar por la GPU. Los números P3 y sRGB comparten curva, así que los
+   shaders (que trabajan sobre valores codificados) no cambian. */
+let glSpace = "srgb";
+export const glColorSpace = () => glSpace;
+function syncColorSpace(){
+  const want = workSpace();
+  if(want === glSpace || !("drawingBufferColorSpace" in gl)) return;
+  try{ gl.drawingBufferColorSpace = want; gl.unpackColorSpace = want; glSpace = want; }catch{}
+  invalidateCache();
+}
+
 /* Sube el lienzo de origen a la GPU. */
 export function setSource(canvas){
   ensure();
   if(!gl || initError) return false;
+  syncColorSpace();
   sourceCanvas = canvas;
   invalidateCache();
   const w = canvas.width, h = canvas.height;

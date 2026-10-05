@@ -63,6 +63,44 @@ function jpegWithIcc(u8, profile){
   return [u8.subarray(0, at), seg, u8.subarray(at)];
 }
 
+/* ── WebP: contenedor RIFF. Un WebP simple (VP8 / VP8L) pasa a «extendido» (VP8X) con un fragmento ICCP ── */
+const fourcc = (u8, i) => String.fromCharCode(u8[i], u8[i + 1], u8[i + 2], u8[i + 3]);
+const le32 = (u8, i) => (u8[i] | (u8[i + 1] << 8) | (u8[i + 2] << 16) | (u8[i + 3] * 16777216)) >>> 0;
+function riffChunk(type, body){
+  const pad = body.length & 1, out = new Uint8Array(8 + body.length + pad);
+  out.set(new TextEncoder().encode(type)); new DataView(out.buffer).setUint32(4, body.length, true); out.set(body, 8);
+  return out;
+}
+/** Anchura y altura de un WebP simple (VP8 con pérdidas, VP8L sin pérdidas) a partir de su primer fragmento */
+function webpSize(u8, i){
+  const t = fourcc(u8, i), b = i + 8;
+  if(t === "VP8 ") return { w: ((u8[b + 6] | (u8[b + 7] << 8)) & 0x3fff), h: ((u8[b + 8] | (u8[b + 9] << 8)) & 0x3fff) };
+  if(t === "VP8L"){ const v = le32(u8, b + 1); return { w: (v & 0x3fff) + 1, h: ((v >>> 14) & 0x3fff) + 1 }; }
+  return null;
+}
+export function webpWithIcc(u8, profile){
+  if(u8.length < 20 || fourcc(u8, 0) !== "RIFF" || fourcc(u8, 8) !== "WEBP") return null;
+  const first = fourcc(u8, 12), parts = [];
+  if(first === "VP8X"){
+    // Ya extendido: se pone el indicador ICC y se inserta ICCP justo después de VP8X (si no lo tenía)
+    const vp8x = u8.slice(12, 12 + 18); if(vp8x[8] & 0x20) return null;
+    vp8x[8] |= 0x20;
+    parts.push(vp8x, riffChunk("ICCP", profile), u8.subarray(12 + 18));
+  } else {
+    const sz = webpSize(u8, 12); if(!sz) return null;
+    const body = new Uint8Array(10);
+    // Indicadores: ICC (0x20) y, si el VP8L declara alfa, alfa (0x10); un VP8 simple no lleva alfa
+    body[0] = 0x20 | (first === "VP8L" && (u8[12 + 8 + 4] & 0x10) ? 0x10 : 0);
+    body[4] = (sz.w - 1) & 255; body[5] = ((sz.w - 1) >> 8) & 255; body[6] = ((sz.w - 1) >> 16) & 255;
+    body[7] = (sz.h - 1) & 255; body[8] = ((sz.h - 1) >> 8) & 255; body[9] = ((sz.h - 1) >> 16) & 255;
+    parts.push(riffChunk("VP8X", body), riffChunk("ICCP", profile), u8.subarray(12));
+  }
+  const total = parts.reduce((n, p) => n + p.length, 0), out = new Uint8Array(12 + total);
+  out.set(u8.subarray(0, 12)); new DataView(out.buffer).setUint32(4, 4 + total, true);
+  let o = 12; for(const p of parts){ out.set(p, o); o += p.length; }
+  return out;
+}
+
 /** Devuelve `blob` con el perfil de `space` incrustado (si no lo tenía). */
 export async function ensureIcc(blob, space){
   if(!blob || space !== "display-p3") return blob;
@@ -74,6 +112,10 @@ export async function ensureIcc(blob, space){
   if(blob.type === "image/jpeg"){
     if(jpegHasIcc(u8)) return blob;
     return new Blob(jpegWithIcc(u8, profileFor(space)), { type: "image/jpeg" });
+  }
+  if(blob.type === "image/webp"){
+    const out = webpWithIcc(u8, profileFor(space));
+    return out ? new Blob([out], { type: "image/webp" }) : blob;
   }
   return blob;
 }

@@ -94,6 +94,14 @@ Se ejecuta con Node y `RAW_PLAYWRIGHT` apuntando al `index.mjs` de Playwright;
 Las medidas corresponden al equipo de prueba, no garantizan una tasa de
 fotogramas fija en todos los dispositivos.
 
+## Salida en Display P3 (v249)
+
+Con Premium, el mando **Color › Espacio de color 👑** (sRGB / Display P3, sólo al revelar un RAW y sólo si el navegador admite lienzos P3)
+cambia el espacio de **salida**: `premium/core.js › OUT_SPACES` da la matriz Rec.2020 → pantalla y la de OKLab → pantalla de cada gama (el mapeo de
+gama reduce el croma hasta caber en ésa; la curva de transferencia de P3 es la de sRGB). Lo usan por igual la GPU (uniformes `toSrgb`/`okM1i`,
+`drawingBufferColorSpace`), la CPU (`P.out`), el lienzo del worker, el resultado final (`canvasFromHi(…, space)`), el TIFF de 16 bits (perfil ICC
+incrustado) y el documento (`newDoc({ colorSpace })`). Prueba: `raw/tests/premium-p3.mjs` y `tests/raw-p3.mjs`.
+
 ## Revelado Premium (`premium/`)
 
 Un interruptor con corona en la barra superior cambia de motor sin cambiar los

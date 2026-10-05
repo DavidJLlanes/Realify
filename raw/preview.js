@@ -3,6 +3,7 @@ import { RenderWorker } from "./render-client.js";
 import { isLinearSource, resizeLinear } from './source.js';
 import { defaults } from './state.js';
 import { PremiumGPU } from './premium/gpu.js';
+import { outSpaceOf } from './premium/core.js';
 
 /** Bounded preview, one pending state, no queue of obsolete slider frames. */
 export class Preview {
@@ -24,7 +25,7 @@ export class Preview {
     // A canvas cannot switch from WebGL to 2D; retain its presentation styles.
     const old=this.canvas, next=old.cloneNode(false);
     old.removeEventListener("webglcontextlost",this.onLost);old.replaceWith(next);this.canvas=next;
-    this.ctx=next.getContext("2d");this.worker=new RenderWorker();this.dirtySource=true;
+    this.ctx=next.getContext("2d",{forceSrgb:true});this.ctxSpace="srgb";this.worker=new RenderWorker();this.dirtySource=true;
   }
   resize(){
     const box=this.canvas.parentElement.getBoundingClientRect();
@@ -57,13 +58,24 @@ export class Preview {
       if(this.gpu){
         if(changed){this.gpu.setSource(this.proxy);this.gpu.sourceVersion=(this.gpu.sourceVersion||0)+1;}
         if(settings.premium)this.premium.render(settings,original,[this.source.width,this.source.height]);
-        else this.gpu.render(settings,original);
+        else{
+          const gl=this.gpu.gl;
+          if(gl&&"drawingBufferColorSpace" in gl&&gl.drawingBufferColorSpace!=="srgb"){try{gl.drawingBufferColorSpace="srgb";}catch{}}
+          this.gpu.render(settings,original);
+        }
       }else{
         if(changed)await this.worker.setSource(this.proxy);
         if(this.closed)return;
         let result=original&&!isLinearSource(this.proxy)?this.proxy:await this.worker.render(original?{...defaults(),premium:settings.premium}:settings);
         if(this.closed||version!==this.version){if(result!==this.proxy)result.close();return;}
         if(this.canvas.width!==result.width||this.canvas.height!==result.height){this.canvas.width=result.width;this.canvas.height=result.height;}
+        // Vista previa en el espacio de salida del revelado Premium (Display P3 sin recortar a sRGB)
+        const want=settings.premium?outSpaceOf(settings):"srgb";
+        if(this.ctxSpace!==want){
+          const old=this.canvas,next=old.cloneNode(false);old.replaceWith(next);this.canvas=next;
+          this.ctx=next.getContext("2d",{colorSpace:want,forceSrgb:want==="srgb"});this.ctxSpace=want;
+          if(this.canvas.width!==result.width||this.canvas.height!==result.height){this.canvas.width=result.width;this.canvas.height=result.height;}
+        }
         this.ctx.clearRect(0,0,result.width,result.height);this.ctx.drawImage(result,0,0);
         if(result!==this.proxy)result.close();
       }

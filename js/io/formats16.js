@@ -55,19 +55,22 @@ export async function png16(img){
     chunk("IDAT", zipped), chunk("IEND", new Uint8Array(0))], { type: "image/png" });
 }
 
-export function tiff16(img){
-  const { data, channels: ch, w, h } = img;
-  const tags = [];
+export function tiff16(img){ return tiffWrite(img.data, img.channels, img.w, img.h, 16, img.space === "display-p3" ? profileFor("display-p3") : null); }
+
+/** TIFF de 8 bits (RGBA sin asociar del lienzo) con el perfil de `space` si es Display P3 */
+export function tiff8(rgba, w, h, space){ return tiffWrite(rgba, 4, w, h, 8, space === "display-p3" ? profileFor("display-p3") : null); }
+
+function tiffWrite(data, ch, w, h, bits, icc){
+  const B = bits / 8, tags = [];
   const tag = (id, type, count, value) => tags.push({ id, type, count, value });
-  const icc = img.space === "display-p3" ? profileFor("display-p3") : null;
   const nTags = (ch === 4 ? 15 : 14) + (icc ? 1 : 0);
   const ifd = 8, ifdSize = 2 + nTags * 12 + 4;
-  const bpsOff = ifd + ifdSize, resOff = bpsOff + ch * 2, iccOff = resOff + 16;
+  const bpsOff = ifd + ifdSize, resOff = bpsOff + ((ch * 2 + 1) & ~1), iccOff = resOff + 16;
   const dataOff = (iccOff + (icc ? icc.length : 0) + 1) & ~1;
-  const bytes = w * h * ch * 2;
+  const bytes = w * h * ch * B;
   tag(256, 4, 1, w);                       // ImageWidth
   tag(257, 4, 1, h);                       // ImageLength
-  tag(258, 3, ch, bpsOff);                 // BitsPerSample (16 por canal)
+  tag(258, 3, ch, bpsOff);                 // BitsPerSample
   tag(259, 3, 1, 1);                       // sin compresión
   tag(262, 3, 1, 2);                       // RGB
   tag(273, 4, 1, dataOff);                 // StripOffsets
@@ -90,10 +93,10 @@ export function tiff16(img){
     if(t.type === 3 && t.count === 1) v.setUint16(p + 8, t.value, true); else v.setUint32(p + 8, t.value, true);
   });
   v.setUint32(ifd + 2 + tags.length * 12, 0, true);
-  for(let k = 0; k < ch; k++) v.setUint16(bpsOff + k * 2, 16, true);
+  for(let k = 0; k < ch; k++) v.setUint16(bpsOff + k * 2, bits, true);
   v.setUint32(resOff, 72, true); v.setUint32(resOff + 4, 1, true);
   v.setUint32(resOff + 8, 72, true); v.setUint32(resOff + 12, 1, true);
   if(icc) new Uint8Array(buf, iccOff, icc.length).set(icc);
-  new Uint16Array(buf, dataOff, w * h * ch).set(data);   // little-endian, como el resto del archivo
+  (bits === 16 ? new Uint16Array(buf, dataOff, w * h * ch) : new Uint8Array(buf, dataOff, w * h * ch)).set(data);   // little-endian, como el resto del archivo
   return new Blob([buf], { type: "image/tiff" });
 }

@@ -1,3 +1,5 @@
+import { outSpaceOf } from './premium/core.js';
+
 /** A worker owns its source; callers keep at most one render in flight. */
 export class RenderWorker {
   constructor() {
@@ -72,7 +74,8 @@ export class RenderWorker {
      resolución original y se reduce en luz lineal en el worker. */
   async renderPremium(settings, width, height, onProgress = ()=>{}, outW = width, outH = height) {
     const canvas=document.createElement('canvas');canvas.width=outW;canvas.height=outH;
-    const ctx=canvas.getContext('2d');
+    const space=outSpaceOf(settings);
+    const ctx=canvas.getContext('2d',{colorSpace:space,forceSrgb:space==='srgb'});
     if(!ctx)throw new Error('No se pudo crear el lienzo de salida');
     const rows=Math.max(1,Math.min(256,Math.floor(262144*outH/height/Math.max(1,width))));
     try{

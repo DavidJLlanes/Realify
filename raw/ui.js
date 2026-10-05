@@ -1,11 +1,15 @@
-import { GROUPS, CONTROLS, control, controlsFor, normalize, valueText } from "./state.js";
+import { GROUPS, CONTROLS, control, controlsFor as allControlsFor, normalize, valueText } from "./state.js";
+import { p3Supported } from "../js/core/colorspace.js";
+// «Espacio de color» (sólo Premium, sólo al revelar un RAW) sólo se ofrece si el navegador trabaja con lienzos Display P3
+let offerSpace = false;
+const controlsFor = group => allControlsFor(group).filter(item => item.key !== "space" || offerSpace);
 import { Preview } from "./preview.js";
 import { RenderWorker } from "./render-client.js";
 import { toast } from "../js/ui/toast.js";
 import { autoWhiteBalance, wbPickNeutral, toLinear } from './tone.js';
 import { isLinearSource, linearReader } from './source.js';
 import { PIPETTE_SVG } from '../js/ui/wbpick.js';
-import { SRGB_TO_2020 } from './premium/core.js';
+import { SRGB_TO_2020, outSpaceOf } from './premium/core.js';
 import { premiumSwitch, premiumPref, dockPremium } from "../js/ui/premium.js";
 import { outputSharpen, outputSharpen16, tiff16 } from "./premium/output.js";
 import { canvasFromHi, hiAllowed } from "../js/core/hisrc.js";
@@ -25,6 +29,7 @@ const metaLine = metadata => {
 };
 
 export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify", fileName="revelado" }) {
+  offerSpace = p3Supported() && isLinearSource(source);
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
   let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;
   state.autoWb=autoWhiteBalance(source);
@@ -176,7 +181,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
       await worker.setSource(workingSource);
       const pixels=await worker.render16(settings,width,height,percent=>{if(!closed)tiffButton.textContent=`TIFF… ${percent} %`;});
       const { download }=await import("../js/io/export.js");
-      download(tiff16(pixels,width,height),`${fileName}-16bits.tif`);
+      download(tiff16(pixels,width,height,settings.premium?outSpaceOf(settings):"srgb"),`${fileName}-16bits.tif`);
       toast(`TIFF de 16 bits guardado (${width} × ${height})`,"ok");
     }catch(error){if(!closed)toast(error?.message||"No se pudo guardar el TIFF de 16 bits","err");}
     finally{worker?.dispose();accepting=false;if(!closed){tiffButton.disabled=false;tiffButton.textContent=label;}}
@@ -207,7 +212,7 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
              para la exportación en coma flotante (js/core/hisrc.js). */
           const pixels=await finalWorker.render16(settings,width,height,progress,outW,outH);
           outputSharpen16(pixels,outW,outH,outW/width);
-          result=canvasFromHi(pixels,outW,outH);
+          result=canvasFromHi(pixels,outW,outH,outSpaceOf(settings));
           result.hi16={data:pixels,w:outW,h:outH};
         }else if(settings.premium){
           result=await finalWorker.renderPremium(settings,width,height,progress,outW,outH);

@@ -1087,7 +1087,7 @@ const TOPICS = [
           otro día; una imagen abierta directamente empieza como una sola capa. Si la foto trae
           colores de <b>gama amplia</b> (Display P3, como las de iPhone y muchos Android) y el
           navegador lo permite, el documento trabaja en <b>Display P3</b> para no perder esos rojos,
-          verdes y naranjas intensos; se avisa al abrirla. Si trae <b>más de 8 bits por canal</b>
+          verdes y naranjas intensos; se avisa al abrirla. Los filtros de GPU (Cámara y Vintage) también trabajan en P3. Al revelar un RAW con <b>Premium 👑</b> puedes elegir <b>Color › Espacio de color › Display P3</b>: el documento se abre en P3 con sus 16 bits. Si trae <b>más de 8 bits por canal</b>
           (PNG o TIFF de 16 bits, AVIF de 10 o 12 bits, o un RAW abierto desde el revelador con
           Premium), la capa de fondo guarda esos bits («· 16 bits por canal» al abrir) y Exportar
           los usa con «Alta precisión», ya marcada: sin bandas en cielos y sombras aunque apliques
@@ -1134,8 +1134,8 @@ const TOPICS = [
           (Ayuda › Diagnóstico dice si está activo). <b>«Tramado a 8 bits»</b> añade un ruido
           imperceptible que reparte los tonos intermedios al guardar en 8 bits. El segundo
           entrega un PNG sin preguntar nada. En documentos Display P3 aparece <b>Color</b>:
-          <b>Display P3</b> (JPEG, PNG y 16 bits, con su perfil incrustado) o <b>sRGB</b> para la
-          máxima compatibilidad; WebP, AVIF, TIFF de 8 bits, PDF y «Limpio para web» se guardan
+          <b>Display P3</b> (JPEG, PNG, WebP, TIFF y 16 bits, con su perfil incrustado) o <b>sRGB</b> para la
+          máxima compatibilidad; JPEG XL, PDF y «Limpio para web» se guardan
           siempre en sRGB. <b>Metadatos</b> (JPEG, PNG y WebP, con la foto abierta desde un archivo): por
           defecto <b>ninguno</b>, como siempre. Puedes volver a escribir, desde el archivo original y filtrado,
           <b>autor y copyright</b>, la <b>fecha</b>, la <b>cámara</b> y el objetivo, la <b>ubicación GPS</b> y la

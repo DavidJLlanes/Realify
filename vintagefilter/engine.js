@@ -23,6 +23,7 @@
 
 import { CONTROLS, normalize } from "./state.js";
 import { drawOverlays, overlayKey, rng } from "./overlays.js";
+import { workSpace } from "../js/core/colorspace.js";
 
 const LOW = 640;
 const N = CONTROLS.length;
@@ -368,8 +369,16 @@ export class VintageGL {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     return t;
   }
+  /* En un documento Display P3 la GPU sube y devuelve en P3 (no recorta los colores de gama amplia a sRGB); los shaders trabajan sobre valores
+     codificados y P3 y sRGB comparten curva. */
+  syncSpace(){
+    const gl = this.gl, want = workSpace();
+    if(this.space === want || !("drawingBufferColorSpace" in gl)) return;
+    try{ gl.drawingBufferColorSpace = want; gl.unpackColorSpace = want; this.space = want; }catch{}
+  }
   upload(tex, source){
     const gl = this.gl;
+    this.syncSpace();
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);

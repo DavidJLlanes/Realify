@@ -170,11 +170,11 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   /* «image/png;16» y «image/tiff;16»: 16 bits por canal, siempre con el
      motor de alta precisión (core/precision-stack.js). */
   const bits16 = /;16$/.test(type), deepAvif = avifDepth(type), isExr = type === "image/x-exr", isJxl = type === "image/jxl";
-  /* Documento en Display P3 (core/colorspace.js): JPEG, PNG, AVIF, EXR y los
+  /* Documento en Display P3 (core/colorspace.js): JPEG, PNG, WebP, TIFF, AVIF, EXR y los
      de 16 bits se guardan en P3 con su perfil o etiqueta de color; el resto
-     de formatos (sin perfil: WebP, JPEG XL, TIFF de 8 bits, PDF) y quien
+     de formatos (sin perfil: JPEG XL, PDF) y quien
      pida sRGB, convertidos a sRGB. */
-  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/avif", "image/heic"].includes(type));
+  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/avif", "image/heic"].includes(type));
   const toSrgb = isP3Doc() && !keepP3;
   /* AVIF y JPEG XL necesitan varias veces el tamaño de la imagen en memoria */
   if((deepAvif || isJxl) && w * h > codecMaxPixels(isJxl ? "jxl" : "avif"))
@@ -237,7 +237,7 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
     return (await import("./codecs.js")).encodeJxl(px, out.width, out.height, { quality: Math.round((quality ?? .85) * 100) });
   }
   if(type === "application/pdf") return (await import("./formats.js")).pdfFromCanvases([out], { ...pdfOptions, quality: quality ?? .9 }).catch(() => null);
-  if(type === "image/tiff") return (await import("./professional-formats.js")).tiffFromCanvas(out);
+  if(type === "image/tiff") return (await import("./professional-formats.js")).tiffFromCanvas(out, keepP3 ? "display-p3" : "srgb");
   const blob = await new Promise(res => out.toBlob(res, type, quality));
   return keepP3 ? (await import("./icc-embed.js")).ensureIcc(blob, "display-p3") : blob;
 }

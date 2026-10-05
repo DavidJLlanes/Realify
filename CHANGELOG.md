@@ -9,6 +9,21 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v249 · Display P3 de punta a punta (color y exportación)
+- **WebP y TIFF de 8 bits con perfil Display P3**: en un documento P3 ya no se convierten a sRGB al exportar; llevan su perfil ICC incrustado
+  (WebP: contenedor VP8X + fragmento ICCP, `webpWithIcc` en `js/io/icc-embed.js`, que completa el perfil si el navegador no lo pone;
+  TIFF: escritor propio de 8 bits que comparte código con el de 16, etiqueta 34675). También en «Exportar como». Quien pide sRGB lo sigue teniendo.
+- **Filtros WebGL en P3**: el filtro **Cámara** y el **Filtro Vintage** subían la foto a la GPU y la devolvían recortada a sRGB (un rojo P3 puro
+  salía 255,0,0 en vez de 255,40,20). Ahora el contexto de la GPU sube y devuelve en el espacio del documento. Antes y después comprobado con
+  `tests/p3-webgl.mjs` (el centro de la imagen sale idéntico; sin el arreglo, diferencia de 40 niveles).
+- **«Abrir en Realify» desde el revelador RAW en P3**: nuevo mando **Color › Espacio de color 👑 (sRGB / Display P3)** en el revelado RAW con Premium.
+  En P3 el revelado cambia sólo lo necesario: la matriz Rec.2020 → pantalla y el mapeo de gama de OKLab apuntan a la gama P3 (la curva es la de sRGB),
+  en la vista previa de la GPU, en la de la CPU y en el resultado final; el documento nace en Display P3 con los 16 bits conservados (el lienzo es
+  su redondeo) y el TIFF de 16 bits del revelador lleva el perfil. Sólo en RAW (el revelado fotográfico de una capa sigue en el espacio del
+  documento) y sólo si el navegador admite lienzos P3. Por defecto sigue siendo sRGB.
+- Pruebas nuevas: `tests/p3-formatos.mjs`, `tests/p3-webgl.mjs`, `raw/tests/premium-p3.mjs` (GPU ≡ CPU en P3, verde de Rec.2020 con más croma que
+  en sRGB y mismo tono, colores dentro de sRGB iguales) y `tests/raw-p3.mjs` (de punta a punta con un DNG sintético: documento y lienzo P3, 16 bits, invariante).
+
 ### v248 · Fase 20: cabos sueltos
 - **Coma flotante en el resto de ajustes**: Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de degradado,
   Blanco y negro, Niveles/Contraste automáticos, Invertir, Mejora automática, CLAHE, Iluminar foto oscura (clásico e IA) y los ajustes avanzados

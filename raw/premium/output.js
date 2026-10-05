@@ -8,6 +8,8 @@
      Lightroom, GIMP, Affinity, darktable…), con los datos en sRGB.
    ═══════════════════════════════════════════════════════════════ */
 
+import { profileFor } from "../../js/core/icc.js";
+
 export function outputSharpen(canvas, scale){
   if(!(scale < 0.98)) return;
   const amount = Math.min(0.6, 0.15 + 0.6 * (1 - scale));
@@ -44,12 +46,13 @@ export function outputSharpen16(data, w, h, scale){
   }
 }
 
-export function tiff16(pixels, width, height){
+export function tiff16(pixels, width, height, space = "srgb"){
+  const icc = space === "display-p3" ? profileFor("display-p3") : null;
   const entries = [];
   const tag = (id, type, count, value) => entries.push({ id, type, count, value });
-  const dataSize = width * height * 6, nTags = 12;
+  const dataSize = width * height * 6, nTags = 12 + (icc ? 1 : 0);
   const ifdOffset = 8, ifdSize = 2 + nTags * 12 + 4;
-  const bpsOffset = ifdOffset + ifdSize, resOffset = bpsOffset + 8, dataOffset = resOffset + 16;
+  const bpsOffset = ifdOffset + ifdSize, resOffset = bpsOffset + 8, iccOffset = resOffset + 16, dataOffset = (iccOffset + (icc ? icc.length : 0) + 1) & ~1;
   tag(256, 4, 1, width); tag(257, 4, 1, height);
   tag(258, 3, 3, bpsOffset);                    // BitsPerSample 16,16,16
   tag(259, 3, 1, 1);                            // sin compresión
@@ -60,6 +63,7 @@ export function tiff16(pixels, width, height){
   tag(279, 4, 1, dataSize);                     // StripByteCounts
   tag(282, 5, 1, resOffset); tag(283, 5, 1, resOffset + 8);
   tag(296, 3, 1, 2);                            // pulgadas
+  if(icc) tag(34675, 7, icc.length, iccOffset); // perfil ICC (Display P3)
   const buf = new ArrayBuffer(dataOffset + dataSize), v = new DataView(buf);
   v.setUint16(0, 0x4949); v.setUint16(2, 42, true); v.setUint32(4, ifdOffset, true);
   v.setUint16(ifdOffset, nTags, true);
@@ -71,6 +75,7 @@ export function tiff16(pixels, width, height){
   v.setUint32(ifdOffset + 2 + nTags * 12, 0, true);
   for(let k = 0; k < 3; k++) v.setUint16(bpsOffset + k * 2, 16, true);
   v.setUint32(resOffset, 300, true); v.setUint32(resOffset + 4, 1, true); v.setUint32(resOffset + 8, 300, true); v.setUint32(resOffset + 12, 1, true);
+  if(icc) new Uint8Array(buf, iccOffset, icc.length).set(icc);
   new Uint16Array(buf, dataOffset, width * height * 3).set(pixels);   // dataOffset es par: alineado
   return new Blob([buf], { type: "image/tiff" });
 }

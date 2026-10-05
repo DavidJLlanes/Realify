@@ -1,5 +1,6 @@
 import { renderPhoto } from "./pipeline.js";
 import { renderPremiumRows, renderPremiumLinear } from "./premium/render.js";
+import { outSpaceOf } from "./premium/core.js";
 
 let source;
 self.onmessage = ({ data }) => {
@@ -26,7 +27,8 @@ self.onmessage = ({ data }) => {
       const px = renderPremiumRows(source, settings, d0, d1, outW, outH, bits);
       if (bits === 16) { self.postMessage({ id, pixels: px }, [px.buffer]); return; }
       const c = new OffscreenCanvas(outW, d1 - d0);
-      c.getContext("2d").putImageData(new ImageData(px, outW, d1 - d0), 0, 0);
+      const space = outSpaceOf(settings);
+      c.getContext("2d", { colorSpace: space }).putImageData(new ImageData(px, outW, d1 - d0, { colorSpace: space }), 0, 0);
       const bitmap = c.transferToImageBitmap();
       self.postMessage({ id, bitmap }, [bitmap]);
       return;

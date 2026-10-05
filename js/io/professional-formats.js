@@ -6,12 +6,11 @@ import { buildLayerTree, flatten } from "../editor/layertree.js";
 import { profileFor } from "../core/icc.js";
 import { hasEnabledStyle } from "../editor/layerstyles.js";
 
-export function tiffFromCanvas(canvas){
-  const U = globalThis.UTIF;
-  if(!U?.encodeImage) throw new Error("El codificador TIFF no está disponible");
-  // TIFF de 8 bits sin perfil: siempre en sRGB (en documentos P3 el navegador convierte)
-  const rgba = canvas.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, canvas.width, canvas.height, { colorSpace:"srgb" }).data;
-  return new Blob([U.encodeImage(rgba, canvas.width, canvas.height)], { type:"image/tiff" });
+export async function tiffFromCanvas(canvas, space = "srgb"){
+  // Display P3: se guardan los números P3 con su perfil ICC incrustado; si no, sRGB (en documentos P3 el navegador convierte)
+  const p3 = space === "display-p3";
+  const rgba = canvas.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, canvas.width, canvas.height, { colorSpace: p3 ? "display-p3" : "srgb" }).data;
+  return (await import("./formats16.js")).tiff8(rgba, canvas.width, canvas.height, space);
 }
 
 /* Modos de fusión de Realify → los de Photoshop (los 27, más «sumar» = linear dodge). */

@@ -34,16 +34,16 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [x] Límite de memoria con imágenes de 12 y 24 MP (v248: JPEG XL baja a 16 MP).
 
 **Color y exportación (fases 2 y 6)**
-- [ ] WebP con perfil P3 y TIFF de 8 bits con perfil.
-- [ ] Herramientas WebGL en P3 (hoy recortan a sRGB).
-- [ ] «Abrir en Realify» desde el revelador RAW en P3.
+- [x] WebP con perfil P3 y TIFF de 8 bits con perfil. (v249)
+- [x] Herramientas WebGL en P3: Cámara y Vintage (el compositor ya lo era). (v249)
+- [x] «Abrir en Realify» desde el revelador RAW en P3 (Premium). (v249)
 
 **IA (fases 3, 5 y 10)**
 - [ ] Eliminar fondo (U²-Net, MODNet, ISNet) también por bloques o con refinado.
 - [ ] Máscara por profundidad como capa de ajuste «viva».
 
 **RAW (fase 4)**
-- [ ] Revelado RAW sin Premium (motor GPU de 8 bits) y RAW en Display P3.
+- [ ] Revelado RAW sin Premium (motor GPU de 8 bits) en Display P3 (con Premium ya es posible, v249).
 
 **Fotos, apilado y lente (fases 7, 8 y 9)**
 - [ ] Usar la alineación subpíxel en Fusión HDR y Unir imágenes.
@@ -129,10 +129,10 @@ Las fotos de iPhone y de muchos Android vienen en P3; hasta la v199 todos los li
 - [x] Exportar con el perfil incrustado: JPEG, PNG, PNG 16 y TIFF 16 en P3, o sRGB a
       elección; el resto se convierte a sRGB. (v200)
 - [x] AVIF con etiqueta P3 (fase 6, v229).
-- [ ] Pendiente: WebP con perfil P3 y TIFF de 8 bits con perfil.
-- [ ] Pendiente: herramientas WebGL en P3 (hoy recortan a sRGB; con la fase 13) y color de
-      pintura en P3 (selector y cuentagotas fuera de sRGB).
-- [ ] Pendiente: «Abrir en Realify» desde el revelador RAW en P3 (con la fase 4).
+- [x] WebP con perfil P3 y TIFF de 8 bits con perfil. (v249)
+- [x] Herramientas WebGL en P3: Cámara y Vintage. (v249)
+- [ ] Pendiente: color de pintura en P3 (selector y cuentagotas fuera de sRGB).
+- [x] «Abrir en Realify» desde el revelador RAW en P3 (Premium, mando Color › Espacio de color). (v249)
 
 ## Fase 3 · IA a resolución completa por bloques ✅ (v202)
 Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampliaba.
@@ -151,7 +151,7 @@ Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampl
 - [x] Conservar los 16 bits de TIFF y PNG, y los 10/12 bits de AVIF, como origen de la capa
       base (`js/core/hisrc.js`, `js/io/hidepth.js`); la exportación en coma flotante los usa
       píxel a píxel donde la capa no se ha tocado. (v203)
-- [ ] Pendiente: revelado RAW sin Premium (motor GPU de 8 bits) y RAW en Display P3.
+- [ ] Pendiente: revelado RAW sin Premium (motor GPU de 8 bits) en Display P3 (con Premium, hecho en v249).
 - [ ] Pendiente: guardar el origen de 16 bits en el proyecto `.realify` y conservarlo al
       recortar o girar (hoy se descarta); el documento entero en 16 bits es la fase 14.
 
@@ -172,7 +172,7 @@ Reutiliza Depth Anything V2 (ya estaban Desenfoque por profundidad, Niebla y Fot
 - [x] AVIF de 10/12 bits, con etiqueta de color sRGB / Display P3 (también en el de 8 bits). (v229)
 - [x] JPEG XL (exportar y abrir). Sólo 8 bits por límite del códec. (v229)
 - [x] OpenEXR (luz lineal, half, ZIP, cromaticidades; escritor propio). (v229)
-- Queda: JPEG XL de más de 8 bits; etiqueta P3 en WebP (el formato no la admite sin ICC).
+- Queda: JPEG XL de más de 8 bits; WebP ya lleva el perfil ICC P3 incrustado (v249).
 
 ## Fase 7 · Apilado de fotos (OpenCV.js, parte 1) ✅ (v230, con pendientes)
 OpenCV.js (Apache-2.0, ~8–10 MB) sólo bajo demanda y como motor Premium; no sustituye lo
