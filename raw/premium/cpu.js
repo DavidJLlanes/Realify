@@ -14,6 +14,8 @@ import { Y2020, MID, R_COARSE, R_CHROMA, EPS_COARSE, EPS_HAZE, R_FINE, HALO,
 const RY = Y2020[0], GY = Y2020[1], BY = Y2020[2];
 const smooth = (a, b, x) => { const t = x <= a ? 0 : x >= b ? 1 : (x - a) / (b - a); return t * t * (3 - 2 * t); };
 const SRGB8 = Float32Array.from({ length: 256 }, (_, i) => srgbDecode(i / 255));
+let _srgb16 = null;                        // sRGB de 16 bits (ráster con origen de 16 bits) → lineal
+const srgb16 = () => _srgb16 || (_srgb16 = Float32Array.from({ length: 65536 }, (_, i) => srgbDecode(i / 65535)));
 let _enc = null;
 function encTable(){                      // lineal (0..1, 16 384 pasos, índice en raíz) → sRGB 0..1
   if(!_enc){
@@ -42,13 +44,15 @@ const ditherAt = (x, y, c) => {
    Tipos de fuente:
    · LibRaw: { linear, data: Uint16Array, channels, scale, encoding:"bt709", space, gain }
    · vista previa ya preparada: { linear, data: Float32Array RGBA, encoding:"linear", space:"rec2020" }
-   · ráster (Revelado fotográfico): { raster:true, data: Uint8ClampedArray RGBA } en sRGB */
+   · ráster (Revelado fotográfico): { raster:true, data: Uint8ClampedArray RGBA } en sRGB
+   · ráster de 16 bits (capa con origen de 16 bits): { raster:true, raster16:true, data: Uint16Array RGB } en sRGB */
 export function sourceReader(src){
-  const W = src.width, ch = src.raster ? 4 : (src.channels || 3), data = src.data;
+  const W = src.width, ch = src.raster16 ? 3 : src.raster ? 4 : (src.channels || 3), data = src.data;
   const toWide = !src.raster && src.space === "rec2020" ? null : SRGB_TO_2020;
   const gain = (src.gain || 1) * (src.base || 1);
   let dec;
-  if(src.raster) dec = i => SRGB8[data[i]];
+  if(src.raster16){ const lut = srgb16(); dec = i => lut[data[i]]; }
+  else if(src.raster) dec = i => SRGB8[data[i]];
   else if(src.encoding === "bt709"){
     const lut = decodeLut16(), s = (src.scale || 65535) === 255 ? 256 : 1;
     dec = i => lut[data[i] * s];

@@ -11,7 +11,7 @@ import { emit } from "../js/core/bus.js";
 import { commitFilter, filterBase } from "../js/editor/filterlayer.js";
 import { docSizeLimit } from "../js/core/device.js";
 import { premiumPref } from "../js/ui/premium.js";
-import { attachHi } from "../js/core/hisrc.js";
+import { attachHi, hiCoversCanvas } from "../js/core/hisrc.js";
 import { p3Supported } from "../js/core/colorspace.js";
 
 const canvasCopy=source=>{const c=document.createElement("canvas");c.width=source.width;c.height=source.height;c.getContext("2d",{willReadFrequently:true}).drawImage(source,0,0);return c;};
@@ -66,9 +66,12 @@ export async function openPhotoDevelop(opts={}) {
   const edit=opts.edit||null, layer=edit?filterBase(edit):activeLayer();
   if(!layer){toast("No hay una capa que revelar","err");return;}
   const source=canvasCopy(layer.canvas), initial=normalize(opts.init||{premium:premiumPref.get('raw')});
-  openDeveloper({title:"Revelado fotográfico",source,initial,onAccept:async(result,settings)=>{
-    commitFilter({base:layer,edit,result,title:"Revelado fotográfico",filter:"photo-develop",params:settings});
-    toast(edit?"Revelado fotográfico actualizado":"Revelado fotográfico · capa nueva","ok");
+  openDeveloper({title:"Revelado fotográfico",source,initial,hiSrc:hiCoversCanvas(layer)?layer.hiSrc:null,onAccept:async(result,settings)=>{
+    const hi=result.hi16;delete result.hi16;
+    const made=commitFilter({base:layer,edit,result,title:"Revelado fotográfico",filter:"photo-develop",params:settings});
+    const kept=!!(hi&&made&&attachHi(made,hi.data,hi.w,hi.h));
+    if(!kept&&made&&edit)delete made.hiSrc;
+    toast((edit?"Revelado fotográfico actualizado":"Revelado fotográfico · capa nueva")+(kept?" · 16 bits conservados":""),"ok");
   }});
 }
 

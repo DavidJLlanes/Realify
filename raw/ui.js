@@ -28,7 +28,7 @@ const metaLine = metadata => {
   return [make,lens,iso ? `ISO ${Math.round(iso)}` : ""].filter(Boolean).join(" · ");
 };
 
-export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify", fileName="revelado" }) {
+export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify", fileName="revelado", hiSrc=null }) {
   offerSpace = p3Supported() && isLinearSource(source);
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
   let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;
@@ -220,6 +220,14 @@ export function openDeveloper({ title="Revelado fotográfico", source, metadata=
           result=await finalWorker.renderPremium(settings,width,height,progress,outW,outH);
           outputSharpen(result,outW/width);
         }else result=await finalWorker.renderToCanvas(settings,width,height,progress,outW,outH);
+      }else if(settings.premium&&hiSrc&&hiSrc.w===workingSource.width&&hiSrc.h===workingSource.height&&hiAllowed(hiSrc.w,hiSrc.h)){
+        /* Foto con origen de 16 bits (Revelado fotográfico Premium): el revelado parte de los 16 bits, no del lienzo de 8, y sale en 16 bits */
+        const w=hiSrc.w,h=hiSrc.h;
+        await finalWorker.setSource({raster16:true,width:w,height:h,data:hiSrc.data});
+        const pixels=await finalWorker.render16(settings,w,h,percent=>{if(!closed)button.textContent=`Revelando… ${percent} %`;});
+        outputSharpen16(pixels,w,h,1);
+        result=canvasFromHi(pixels,w,h,outSpaceOf(settings));
+        result.hi16={data:pixels,w,h};
       }else{
         await finalWorker.setSource(workingSource);
         bitmap=await finalWorker.render(settings);

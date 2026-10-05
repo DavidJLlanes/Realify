@@ -19,7 +19,7 @@ const ctxOf = (c, space, opts = {}) => c.getContext("2d", { ...opts, colorSpace:
 
 export { ctxOf };
 export function premiumSource(source){
-  if(source?.linear && source?.data) return source;
+  if((source?.linear || source?.raster16) && source?.data) return source;
   let r = rasters.get(source);
   if(!r){
     const c = canvasOf(source.width, source.height), x = c.getContext("2d", { willReadFrequently: true });

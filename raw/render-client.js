@@ -26,6 +26,7 @@ export class RenderWorker {
     });
   }
   async setSource(source, { transfer = false } = {}) {
+    if(source.raster16&&source.data){await this.request('source',{source:{...source,data:source.data.slice()}});return;}   // ráster de 16 bits: copia (el origen sigue siendo de la capa)
     if(source.linear&&source.data){
       const data=transfer?source.data:source.data.slice();
       await this.request('source',{source:{...source,data}},[data.buffer]);return;
