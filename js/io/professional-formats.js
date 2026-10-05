@@ -5,6 +5,8 @@ import { doc } from "../core/doc.js";
 import { buildLayerTree, flatten } from "../editor/layertree.js";
 import { profileFor } from "../core/icc.js";
 import { hasEnabledStyle } from "../editor/layerstyles.js";
+import { hiToCanvas8, hiCoversCanvas } from "../core/hisrc.js";
+import { rebuildPsd16, addImageResource } from "./psdlayers16.js";
 
 export async function tiffFromCanvas(canvas, space = "srgb"){
   // Display P3: se guardan los números P3 con su perfil ICC incrustado; si no, sRGB (en documentos P3 el navegador convierte)
@@ -78,6 +80,28 @@ export function psdAdjustment(l){
   return null;
 }
 
+/** Píxeles de 16 bits de una capa rasterizada (recortados a su caja): RGB del origen de 16 bits donde el lienzo sigue siendo su redondeo (misma regla que core/hisrc.js) y
+    8 bits × 257 en el resto; el alfa, el del lienzo × 257. */
+function hiPlanes(l, raster, W, H, scale){
+  const d = raster.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, W, H, { colorSpace:"srgb" }).data;
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++) if(d[(y * W + x) * 4 + 3]){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  if(x1 < 0) return { rect:{ top:0, left:0, bottom:0, right:0 }, planes:null };
+  const w = x1 - x0 + 1, h = y1 - y0 + 1, n = w * h, r = new Uint16Array(n), g = new Uint16Array(n), b = new Uint16Array(n), a = new Uint16Array(n);
+  const hs = scale === 1 && hiCoversCanvas(l) ? l.hiSrc : null;
+  for(let y = 0, k = 0; y < h; y++) for(let x = 0; x < w; x++, k++){
+    const X = x0 + x, Y = y0 + y, i = (Y * W + X) * 4;
+    a[k] = d[i + 3] * 257;
+    if(!d[i + 3]) continue;
+    if(hs){
+      const j = (Y * W + X) * 3, R = hs.data[j], G = hs.data[j + 1], B = hs.data[j + 2];
+      if(hiToCanvas8(R, X, Y, 0, hs.dither) === d[i] && hiToCanvas8(G, X, Y, 1, hs.dither) === d[i + 1] && hiToCanvas8(B, X, Y, 2, hs.dither) === d[i + 2]){ r[k] = R; g[k] = G; b[k] = B; continue; }
+    }
+    r[k] = d[i] * 257; g[k] = d[i + 1] * 257; b[k] = d[i + 2] * 257;
+  }
+  return { rect:{ top:y0, left:x0, bottom:y1 + 1, right:x1 + 1 }, planes:{ r, g, b, a } };
+}
+
 /* Inserta un recurso de imagen (el perfil ICC, id 1039) en un PSD/PSB ya escrito: ag-psd no lo hace. */
 function addIccResource(u8, icc){
   const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
@@ -100,7 +124,7 @@ function addIccResource(u8, icc){
  * Lo que no se traduce (texto, objetos inteligentes, Fusionar si, el resto de ajustes) va rasterizado, y una copia oculta
  * «Vista final · referencia» enseña el aspecto de Realify.
  */
-export function layeredPsd(scale = 1, { psb = false } = {}){
+export function layeredPsd(scale = 1, { psb = false, hi = null, meta = null } = {}){
   const A = globalThis.agPsd;
   if(!A?.writePsdUint8Array) throw new Error("El codificador PSD no está disponible");
   const width = Math.round(doc.w * scale), height = Math.round(doc.h * scale);
@@ -114,9 +138,13 @@ export function layeredPsd(scale = 1, { psb = false } = {}){
   };
   const dataOf = canvas => resize(canvas).getContext("2d", { willReadFrequently:true }).getImageData(0, 0, width, height, { colorSpace:"srgb" });
   let unsupported = false;
+  /* 16 bits (hi = { composite }): ag-psd escribe la estructura con una imagen mínima por capa y psdlayers16.js la reescribe con los píxeles de 16 bits;
+     `provs` lleva, por nodo, de dónde salen esos píxeles (la capa rasterizada y la capa cuya máscara cuenta). */
+  const provs = new Map(), tiny = () => new ImageData(1, 1, { colorSpace:"srgb" });
   const maskOf = l => {
     const m = effectiveMask(l);
     if(!m) return null;
+    if(hi) return { top:0, left:0, bottom:1, right:1, defaultColor:255, disabled:l.maskEnabled === false, imageData:tiny(), __src:m.canvas };
     const src = dataOf(m.canvas), d = new Uint8ClampedArray(src.data.length);
     for(let i = 0; i < d.length; i += 4){ d[i] = d[i + 1] = d[i + 2] = src.data[i + 3]; d[i + 3] = 255; }    // el dato de la máscara vive en el alfa
     return { top:0, left:0, bottom:height, right:width, defaultColor:255, disabled:l.maskEnabled === false, imageData:new ImageData(d, width, height, { colorSpace:"srgb" }) };
@@ -127,25 +155,54 @@ export function layeredPsd(scale = 1, { psb = false } = {}){
     if(l.type === "adjust"){
       const adjustment = psdAdjustment(l);
       if(!adjustment){ unsupported = true; return []; }
-      const m = maskOf(l);
-      return [{ ...common, adjustment, ...(m ? { mask:m } : {}) }];
+      const m = maskOf(l), node = { ...common, adjustment, ...(m ? { mask:m } : {}) };
+      provs.set(node, { mask:m && m.__src });
+      return [node];
     }
     const effects = psdEffects(l.styles && hasEnabledStyle(l.styles) ? l.styles : null, scale), m = maskOf(l);
     if(l.blendIf) unsupported = true;
-    if(children) return [{ ...common, children:nodes(children), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}) }];
+    if(children){
+      const node = { ...common, children:nodes(children), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}) };
+      provs.set(node, { mask:m && m.__src, group:true });
+      return [node];
+    }
     // Los píxeles de la capa SIN máscara, estilos, recorte ni «Fusionar si» (van aparte, como en Photoshop)
     const raster = flatten(null, [{ ...l, groupId:null, visible:true, opacity:1, blend:"source-over", clipped:false,
       mask:null, maskRef:null, styles:null, blendIf:null }], doc.w, doc.h);
-    return [{ ...common, clipping:!!l.clipped, imageData:dataOf(raster), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}) }];
+    const node = { ...common, clipping:!!l.clipped, imageData:hi ? tiny() : dataOf(raster), ...(m ? { mask:m } : {}), ...(effects ? { effects } : {}) };
+    if(hi) provs.set(node, { layer:l, raster, mask:m && m.__src });
+    return [node];
   });
-  const imageData = dataOf(flatten());
-  const psd = { width, height, imageData, children:nodes(buildLayerTree(doc.layers)),
+  const imageData = hi ? null : dataOf(flatten());
+  const psd = { width, height, ...(imageData ? { imageData } : {}), children:nodes(buildLayerTree(doc.layers)),
     imageResources:{ resolutionInfo:{ horizontalResolution:72, horizontalResolutionUnit:"PPI", widthUnit:"Centimeters",
       verticalResolution:72, verticalResolutionUnit:"PPI", heightUnit:"Centimeters" } } };
   // Una copia oculta facilita comparar la apariencia final si algo propio de Realify no se traduce a PSD.
-  if(unsupported || doc.layers.some(l => l.type === "text" || l.smart))
+  if(!hi && (unsupported || doc.layers.some(l => l.type === "text" || l.smart)))
     psd.children.unshift({ name:"Vista final · referencia", hidden:true, imageData });
-  let bytes = A.writePsdUint8Array(psd, { noBackground:true, trimImageData:true, psb });
+  if(meta && meta.xmp) psd.imageResources.xmpMetadata = meta.xmp;
+  let bytes = A.writePsdUint8Array(psd, { noBackground:true, trimImageData:!hi, psb });
+  if(hi){
+    // los orígenes de píxeles, en el orden del archivo (un grupo = divisor, hijos, grupo)
+    const order = [];
+    const walk = list => { for(const n of list){ const pv = provs.get(n);            // ag-psd escribe `children` en el orden dado (de abajo arriba)
+      if(n.children){ order.push(null); walk(n.children); order.push(pv || null); } else order.push(pv || null); } };
+    walk(psd.children);
+    const grab = c => { const d = c.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, c.width, c.height).data; return d; };
+    const providers = order.map(pv => {
+      if(!pv) return null;
+      const out = { rect:null, planes:null, mask:null };
+      if(pv.layer) Object.assign(out, hiPlanes(pv.layer, resize(pv.raster), width, height, scale));
+      if(pv.mask){
+        const md = grab(resize(pv.mask)), data = new Uint16Array(width * height);
+        for(let i = 0; i < data.length; i++) data[i] = md[i * 4 + 3] * 257;
+        out.mask = { rect:{ top:0, left:0, bottom:height, right:width }, data };
+      }
+      return out;
+    });
+    bytes = rebuildPsd16(bytes, providers, { width, height, psb, composite:hi.composite });
+  }
   try{ bytes = addIccResource(bytes, profileFor("srgb")); }catch(err){ console.warn("[psd] sin perfil ICC", err); }
+  if(meta && meta.exif){ try{ bytes = addImageResource(bytes, 1058, meta.exif); }catch(err){ console.warn("[psd] sin EXIF", err); } }
   return new Blob([bytes], { type:"image/vnd.adobe.photoshop" });
 }
