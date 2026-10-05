@@ -247,7 +247,7 @@ tiempo real mientras se pinta.
 - **Seleccionar por texto Premium 👑** (`js/features/textselect.js`, `js/ai/textclasses.js`): una frase
   («coche rojo», «césped sin personas») → selección o máscara de capa. Usa el DeepLab ADE20K que ya
   viaja con la web (150 categorías, vocabulario y sinónimos en español, colores por HSV), por
-  bloques y con borde ajustado por filtro guiado; sin descargas. Vocabulario cerrado.
+  bloques y con borde ajustado por filtro guiado; sin descargas. Además entiende **pelo, cara, ojos, labios, orejas, cuello, gafas y sombrero** con BiSeNet (`faceparsing`, uso no comercial; se descarga una vez). Vocabulario cerrado.
 - **Ajustes en coma flotante** (`js/editor/floatadjust.js`, opción `float` de `runAdjust`): los ajustes
   de color puro (Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y saturación, Exposición, Color por
   canales, Mezclador, Vibrance) calculan en coma flotante desde el origen de 16 bits de la capa y la capa de

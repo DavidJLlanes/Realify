@@ -9,6 +9,19 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v244 · Pelo y partes de la cara en «Seleccionar por texto» (fase 20)
+- **Seleccionar por texto** (y Capa › Máscara de capa › «Por texto») entiende ahora **pelo, cara, piel, ojos, cejas, nariz, boca,
+  labios, orejas, cuello, gafas y sombrero** («pelo», «ojos y labios», «cuello sin orejas»…). Usa BiSeNet (zonas de la
+  cara) con YuNet para encontrar las caras: los rasgos pequeños se calculan con la cara ampliada y el pelo, orejas, cuello y
+  sombrero con margen alrededor; sirve con varias caras, y el borde se ajusta a los contornos de la foto con el mismo filtro
+  guiado de siempre. Se descarga el modelo una sola vez (53 MB), avisando antes.
+- **Excepción de licencia ampliada** (decisión del titular, que no hace uso comercial): BiSeNet (entrenado con CelebAMask-HQ, uso
+  no comercial) ya no sólo sirve al Retoque de cara, también a esta función. Si algún día se cobra Premium hay que quitarlo o
+  sustituirlo de las dos (anotado en `CLAUDE.md`, `models.js` y `ATTRIBUTIONS.md`).
+- Prueba nueva `tests/textoparte.mjs <foto-con-cara>`: pelo sobre la frente, ojos pequeños dentro de la cara, labios en el tercio
+  inferior, orejas y cuello bajo los labios.
+- El vocabulario abierto (CLIPSeg) sigue pendiente: el entorno de desarrollo no puede descargar de Hugging Face.
+
 ### v243 · Informe de errores en Ayuda (fase 18)
 - **Ayuda › Informar de un error…** (`js/ui/bugreport.js`; en móvil, en el mismo menú Ayuda): qué ha pasado, correo
   opcional (sólo para responderte), **«Adjuntar diagnóstico»** (marcada, con vista previa del texto exacto, sin el nombre del

@@ -14,9 +14,12 @@
    reales de la foto con un filtro guiado, y un adjetivo de color
    («rojo», «azul»…) deja sólo los píxeles de ese color dentro de la
    clase. «Sin X» resta. Todo en el equipo, sin descargas.
-   LÍMITE: el vocabulario es cerrado (esas 150 categorías); no entiende
-   «una taza con un dibujo». Un modelo de vocabulario abierto (CLIPSeg…)
-   exigiría descargarlo de Hugging Face: ver PENDIENTE.
+   Partes de la cara (fase 20): «pelo», «ojos y labios», «cuello»… se
+   resuelven con BiSeNet (js/ai/textclasses.js › FACE_PARTS), de uso NO
+   comercial (ver js/ai/models.js › faceparse).
+   LÍMITE: el vocabulario es cerrado (esas 150 categorías más las partes de
+   la cara); no entiende «una taza con un dibujo». Un modelo de vocabulario
+   abierto (CLIPSeg…) exigiría descargarlo de Hugging Face: ver PENDIENTE.
    ═══════════════════════════════════════════════════════════════ */
 
 import { dialog } from "../ui/dialog.js";

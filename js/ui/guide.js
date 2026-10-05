@@ -255,8 +255,10 @@ const TOPICS = [
           sinónimos en español: pared, edificio, cielo, árbol, césped, persona, coche, mesa, silla, agua,
           montaña, flor, bicicleta, semáforo…) y <b>colores</b> (rojo, azul, verde, blanco, negro…) que
           dejan sólo los píxeles de ese color dentro de la cosa. «Sin X» resta. Se calcula en tu equipo,
-          por bloques, con el borde ajustado a los contornos de la foto. El vocabulario es cerrado: no
-          entiende descripciones libres como «una taza con un dibujo». Se encuentra también en Capa ›
+          por bloques, con el borde ajustado a los contornos de la foto. También entiende <b>partes de la
+          cara</b>: pelo, cara, piel, ojos, cejas, nariz, boca, labios, orejas, cuello, gafas y sombrero
+          («pelo», «ojos y labios»; descarga una vez el modelo BiSeNet, de uso no comercial). El vocabulario
+          es cerrado: no entiende descripciones libres como «una taza con un dibujo». Se encuentra también en Capa ›
           Máscara de capa › «Por texto».</li>
         <li><b>Seleccionar cielo.</b> Igual de local, con otro modelo (DeepLab, entrenado
           sobre ADE20K): reconoce el cielo por lo que ES —no por ser azul o blanco—, así
