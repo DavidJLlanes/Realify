@@ -42,7 +42,7 @@ let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } 
 const f = res.faces[0]; chk(!!f, "no se detectó la cara");
 if(f){
   const [fx, fy, fw, fh] = f;
-  chk(res["pelo"].pct > 0.5 && res["pelo"].cy < fy + fh * 0.6, `el pelo debe estar sobre la cara (cy=${res["pelo"].cy}, cara y=${fy}..${fy + fh})`);
+  chk(res["pelo"].pct > 0.5 && res["pelo"].box[1] < fy + fh * 0.35 && res["pelo"].box[0] < fx + fw && res["pelo"].box[2] > fx, `el pelo debe empezar sobre la frente y tocar la cara (caja=${res["pelo"].box}, cara=${fx},${fy},${fw},${fh})`);
   chk(res["ojos"].pct > 0.01 && res["ojos"].pct < res["cara"].pct * 0.25 && res["ojos"].cx > fx && res["ojos"].cx < fx + fw, "ojos pequeños y dentro de la cara");
   chk(res["labios"].pct > 0.005 && res["labios"].cy > fy + fh * 0.55 && res["labios"].cy < fy + fh * 1.1, `labios en el tercio inferior (cy=${res["labios"].cy})`);
   chk(res["cara"].pct > res["ojos"].pct && res["cara"].pct > res["labios"].pct, "la cara es mayor que ojos y labios");
