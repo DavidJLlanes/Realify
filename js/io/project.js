@@ -65,16 +65,23 @@ function projectThumbnail(){
 
 /* Origen de 16 bits de una capa (core/hisrc.js) como PNG de 16 bits en base64, o null. Ocupa bastante: el
    autoguardado periódico lo omite (`hi: false`); el guardado de proyecto y el de «antes de actualizar» lo llevan. */
-async function encodeHi(layer){
+/* Los datos de 16 bits de una capa no se modifican nunca en su sitio (cada operación crea los suyos): lo ya codificado se guarda por identidad de los
+   datos, así el autoguardado periódico sólo paga la compresión la primera vez (o cuando la capa cambia de verdad) y no en cada guardado. */
+const hiCache = new WeakMap();
+async function encodeHi(layer, maxPixels = 24e6){
   const rc = hiRect(layer);                                    // el lienzo entero o sólo una parte (recortado o desplazado)
-  if(!rc || layer.canvas.width * layer.canvas.height > 24e6) return null;
+  if(!rc || layer.canvas.width * layer.canvas.height > maxPixels) return null;
+  const cached = hiCache.get(layer.hiSrc.data);
+  if(cached && cached.key === `${rc.x},${rc.y},${rc.w},${rc.h},${!!layer.hiSrc.dither}`) return cached.value;
   try{
     const { png16, png16Supported } = await import("./formats16.js");
     if(!png16Supported()) return null;
     const hs = layer.hiSrc;
     const blob = await png16({ data: hs.data, channels: 3, w: hs.w, h: hs.h });
     const partial = rc.x || rc.y || rc.w !== layer.canvas.width || rc.h !== layer.canvas.height;
-    return { png: bytesToBase64(new Uint8Array(await blob.arrayBuffer())), dither: !!hs.dither, ...(partial ? { x: rc.x, y: rc.y, w: rc.w, h: rc.h } : {}) };
+    const value = { png: bytesToBase64(new Uint8Array(await blob.arrayBuffer())), dither: !!hs.dither, ...(partial ? { x: rc.x, y: rc.y, w: rc.w, h: rc.h } : {}) };
+    hiCache.set(hs.data, { key: `${rc.x},${rc.y},${rc.w},${rc.h},${!!hs.dither}`, value });
+    return value;
   }catch(err){ console.warn("[project] no se pudieron guardar los 16 bits de una capa", err); return null; }
 }
 async function decodeHi(saved, w, h){
@@ -89,12 +96,12 @@ async function decodeHi(saved, w, h){
   }catch(err){ console.warn("[project] no se pudieron recuperar los 16 bits de una capa", err); return null; }
 }
 
-export async function serializeProject({ hi = true } = {}){
+export async function serializeProject({ hi = true, hiMaxPixels = 24e6 } = {}){
   if(!doc.open) throw new Error("No hay documento abierto");
   const layers = [];
   for(const layer of doc.layers){
     layers.push({
-      hi: hi && layer.hiSrc ? await encodeHi(layer) : null,
+      hi: hi && layer.hiSrc ? await encodeHi(layer, hiMaxPixels) : null,
       id: layer.id,
       name: layer.name,
       type: layer.type || "raster",
@@ -420,7 +427,9 @@ export function initProjects(){
     if(!doc.open||saving||anyDialogOpen()){pending=true;scheduleAuto();return;}
     saving=true;pending=false;
     try{
-      const data=await serializeProject({hi:false});      // sin los 16 bits: pesan mucho para repetirlo cada pocos segundos
+      // Con los 16 bits (hasta 12 MP por capa): lo ya codificado se reutiliza (hiCache), así que sólo la primera vez cuesta; antes se omitían y la
+      // recuperación tras un cierre brusco dejaba la foto en 8 bits.
+      const data=await serializeProject({hi:true,hiMaxPixels:12e6});
       const blob=new Blob([JSON.stringify(data)],{type:PROJECT_MIME});
       const safe=String(doc.name||"proyecto").replace(/[^a-z0-9áéíóúüñ _-]+/gi,"").trim()||"proyecto";
       await putRecent(blob,`${safe} · autoguardado.realify`,data.document.thumbnail);
