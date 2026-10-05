@@ -459,11 +459,11 @@ export class VintageGL {
 
   /** Dibuja en el lienzo WebGL (de `cw`×`ch` píxeles) la zona `region`
       de la imagen completa. */
-  render(state, { region = { x: 0, y: 0, w: this.W, h: this.H }, cw, ch, original = false } = {}){
+  render(state, { region = { x: 0, y: 0, w: this.W, h: this.H }, cw, ch, original = false, target = null } = {}){
     const s = normalize(state), gl = this.gl, m = this.main, u = m.u;
     if(gl.isContextLost()) throw new Error("Se ha perdido el contexto gráfico");
     if(this.canvas.width !== cw || this.canvas.height !== ch){ this.canvas.width = cw; this.canvas.height = ch; }
-    this.overlays(s, region, cw, ch);
+    this.overlays(s, region, cw, ch);       // (con `target` —una textura— se dibuja en ella en vez de en el lienzo)
     const rnd = seeded(s);
     gl.useProgram(m.p);
     const bind = (unit, tex, name) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(u[name], unit); };
@@ -480,18 +480,24 @@ export class VintageGL {
     gl.uniform4fv(u.uLeak, rnd.leaks);
     gl.uniform1fv(u.A, new Float32Array(CONTROLS.map(c => s[c.key])));
     gl.uniform1i(u.uOriginal, original ? 1 : 0);
-    this.draw(m, null, cw, ch);
+    this.draw(m, target, cw, ch);
   }
 
   /** Resultado a resolución completa, por teselas. `src` es el lienzo
       original; devuelve un lienzo nuevo del mismo tamaño. */
-  async renderFull(src, state, onProgress = () => {}){
-    const s = normalize(state), W = src.width, H = src.height, L = Math.max(W, H);
+  async renderFull(src, state, onProgress = () => {}, hs = null){
+    const s = normalize(state), gl = this.gl, W = src.width, H = src.height, L = Math.max(W, H);
     this.setImage(src, W, H);
     const out = document.createElement("canvas"); out.width = W; out.height = H;
     const octx = out.getContext("2d");
     const margin = Math.ceil(marginFrac(s) * L) + 4;
-    let tile = Math.max(256, this.maxTex - 2 * margin - 8);
+    /* Origen de 16 bits (`hs`: RGB Uint16Array del tamaño del original): además del paso de 8 bits (que da el alfa y es el respaldo), cada
+       tesela se calcula otra vez con la imagen subida en coma flotante de 32 bits y se lee de vuelta sin cuantizar a 8 bits; el lienzo final es
+       el redondeo de esos 16 bits. Teselas de hasta 2048 px (la textura de 32 bits pesa 16 bytes por píxel). */
+    const hiOK = !!(hs && hs.data && hs.w === W && hs.h === H && gl.getExtension("EXT_color_buffer_float") && gl.getExtension("OES_texture_float_linear"));
+    const hiOut = hiOK ? new Uint16Array(W * H * 3) : null;
+    let hiFail = false;
+    let tile = Math.max(256, Math.min(hiOK ? 2048 : this.maxTex, this.maxTex) - 2 * margin - 8);
     const tmp = document.createElement("canvas"), tctx = tmp.getContext("2d");
     const tiles = [];
     for(let y = 0; y < H; y += tile) for(let x = 0; x < W; x += tile)
@@ -514,11 +520,61 @@ export class VintageGL {
       this.setTexture(tmp, [bx, by], [bw, bh]);
       this.render(s, { region: { x: t.x, y: t.y, w: t.w, h: t.h }, cw: t.w, ch: t.h });
       octx.drawImage(this.canvas, t.x, t.y);
+      if(hiOut && !hiFail && scale === 1) this.renderHiTile(hs, hiOut, s, t, bx, by, bw, bh, W);
+      else if(hiOut) hiFail = true;                   // una tesela reducida no tiene equivalente de 16 bits: se queda sin ellos
       onProgress(Math.round((i + 1) / tiles.length * 100));
       await new Promise(r => setTimeout(r, 0));
     }
     tmp.width = tmp.height = 1;
+    if(hiOut && !hiFail && !gl.isContextLost()){
+      const { hiToCanvas8 } = await import("../js/core/hisrc.js");
+      const img = octx.getImageData(0, 0, W, H), d = img.data;
+      for(let y = 0, i = 0; y < H; y++) for(let x = 0; x < W; x++, i++){
+        const q = i * 4, j = i * 3; if(!d[q + 3]) continue;
+        d[q] = hiToCanvas8(hiOut[j], x, y, 0, true); d[q + 1] = hiToCanvas8(hiOut[j + 1], x, y, 1, true); d[q + 2] = hiToCanvas8(hiOut[j + 2], x, y, 2, true);
+      }
+      octx.putImageData(img, 0, 0);
+      out._hi = hiOut;
+    }
     return out;
+  }
+
+  /* Una tesela en coma flotante: sube la zona (bx,by,bw,bh) del origen de 16 bits como RGBA32F por bandas, dibuja la tesela `t` en una textura
+     RGBA32F y la lee por bandas hacia `hiOut` (RGB de 16 bits del tamaño completo, W de ancho). */
+  renderHiTile(hs, hiOut, s, t, bx, by, bw, bh, W){
+    const gl = this.gl, BAND = 256, K = 1 / 65535, rgb = hs.data;
+    const mk = (w, h) => { const x = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, x);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, null);
+      for(const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+      return x; };
+    const inTex = mk(bw, bh), outTex = mk(t.w, t.h);
+    try{
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.bindTexture(gl.TEXTURE_2D, inTex);
+      const band = new Float32Array(bw * BAND * 4);
+      for(let y0 = 0; y0 < bh; y0 += BAND){
+        const rows = Math.min(BAND, bh - y0);
+        for(let r = 0; r < rows; r++){
+          let q = r * bw * 4, p = ((by + y0 + r) * W + bx) * 3;
+          for(let x = 0; x < bw; x++, q += 4, p += 3){ band[q] = rgb[p] * K; band[q + 1] = rgb[p + 1] * K; band[q + 2] = rgb[p + 2] * K; band[q + 3] = 1; }
+        }
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, y0, bw, rows, gl.RGBA, gl.FLOAT, band, 0);
+      }
+      const keep = this.tex.image; this.tex.image = inTex;
+      try{ this.render(s, { region: { x: t.x, y: t.y, w: t.w, h: t.h }, cw: t.w, ch: t.h, target: outTex }); }
+      finally{ this.tex.image = keep; }
+      const buf = new Float32Array(t.w * BAND * 4), q16 = v => v <= 0 ? 0 : v >= 1 ? 65535 : Math.round(v * 65535);
+      for(let y0 = 0; y0 < t.h; y0 += BAND){            // la fila i del búfer (desde abajo) es la fila t.h-1-i de la tesela
+        const rows = Math.min(BAND, t.h - y0), ty = t.h - y0 - rows;
+        gl.readPixels(0, ty, t.w, rows, gl.RGBA, gl.FLOAT, buf);
+        for(let i = 0; i < rows; i++){
+          const r = t.y + y0 + rows - 1 - i; let o = (r * W + t.x) * 3, q = i * t.w * 4;
+          for(let x = 0; x < t.w; x++, q += 4, o += 3){ hiOut[o] = q16(buf[q]); hiOut[o + 1] = q16(buf[q + 1]); hiOut[o + 2] = q16(buf[q + 2]); }
+        }
+      }
+    } finally {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.deleteTexture(inTex); gl.deleteTexture(outTex);
+    }
   }
 
   dispose(){

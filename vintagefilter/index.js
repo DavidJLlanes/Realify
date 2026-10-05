@@ -15,6 +15,8 @@ import { dateText } from "./overlays.js";
 import { toast } from "../js/ui/toast.js";
 import { doc, activeLayer } from "../js/core/doc.js";
 import { commitFilter, filterBase } from "../js/editor/filterlayer.js";
+import { attachFloatResult } from "../js/editor/floatfilter.js";
+import { hiCoversCanvas } from "../js/core/hisrc.js";
 
 const canvasCopy = source => {
   const c = document.createElement("canvas"); c.width = source.width; c.height = source.height;
@@ -49,9 +51,13 @@ export async function openVintageFilter(opts = {}){
   const { openVintageEditor } = await import("./ui.js");
   openVintageEditor({
     source: canvasCopy(layer.canvas), initial,
+    hiSrc: hiCoversCanvas(layer) ? layer.hiSrc : null,       // con 16 bits en el origen, el resultado también los conserva
     onAccept: async (result, settings) => {
-      commitFilter({ base: layer, edit, result, title: "Filtro Vintage", filter: "vintage", params: settings });
-      toast(edit ? "Filtro Vintage actualizado" : "Filtro Vintage · capa nueva", "ok");
+      const made = commitFilter({ base: layer, edit, result, title: "Filtro Vintage", filter: "vintage", params: settings });
+      const hi = result._hi;
+      if(hi && made) attachFloatResult(made, { hiSrc: { dither: true } }, { canvas: result, hi, rect: { x: 0, y: 0, w: result.width, h: result.height } });
+      else if(made && edit) delete made.hiSrc;
+      toast((edit ? "Filtro Vintage actualizado" : "Filtro Vintage · capa nueva") + (hi ? " · 16 bits conservados" : ""), "ok");
     }
   });
 }

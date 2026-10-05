@@ -70,7 +70,7 @@ class Preview {
   }
 }
 
-export function openVintageEditor({ source, initial = null, onAccept, onClose = null }){
+export function openVintageEditor({ source, initial = null, onAccept, onClose = null, hiSrc = null }){
   const state = normalize(initial), history = [], future = [];
   let activeGroup = GROUPS[0][0], activeKey = CONTROLS[0].key, showingOriginal = false;
   let closed = false, accepting = false, histogramTimer = 0, previewZoom = 1, previewPan = { x: 0, y: 0 };
@@ -380,7 +380,7 @@ export function openVintageEditor({ source, initial = null, onAccept, onClose = 
     let finalGL = null;
     try{
       finalGL = new VintageGL();
-      const result = await finalGL.renderFull(source, settings, p => { if(!closed) button.textContent = `Aplicando… ${p} %`; });
+      const result = await finalGL.renderFull(source, settings, p => { if(!closed) button.textContent = `Aplicando… ${p} %`; }, hiSrc);
       finalGL.dispose(); finalGL = null;
       if(closed){ result.width = result.height = 1; return; }
       await onAccept(result, settings);
