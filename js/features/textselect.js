@@ -72,10 +72,14 @@ export async function facePartsMask(src, parts, W, H, title){
   const T = await import("../ai/textclasses.js"), { detectFaces } = await import("../ai/faces.js"), { runModel } = await import("../ai/runtime.js");
   const faces = await detectFaces(src);
   if(!faces.length) throw new Error("No veo ninguna cara en la foto");
-  const ch = [...new Set(parts.flatMap(k => T.FACE_PARTS[k].ch))];
+  /* Dos recortes: los rasgos pequeños (ojos, cejas, nariz, boca, labios, gafas) necesitan la cara ampliada (como el retoque,
+     2× el lado de la cara) o el modelo no los ve; el pelo, las orejas, el cuello y el sombrero necesitan margen (2,6×). */
+  const FINE = new Set(["ojos", "cejas", "nariz", "boca", "labios", "cara", "gafas"]);
+  const groups = [[parts.filter(k => FINE.has(k)), 2.0, 0.45], [parts.filter(k => !FINE.has(k)), 2.6, 0.38]].filter(g => g[0].length);
   const out = new Uint8ClampedArray(W * H);
-  for(const f of faces){
-    const side = Math.max(f.w, f.h) * 2.6, cx = f.x + f.w / 2, cy = f.y + f.h * 0.38, sx = cx - side / 2, sy = cy - side / 2;
+  for(const f of faces) for(const [keys, mult, cyk] of groups){
+    const ch = [...new Set(keys.flatMap(k => T.FACE_PARTS[k].ch))];
+    const side = Math.max(f.w, f.h) * mult, cx = f.x + f.w / 2, cy = f.y + f.h * cyk, sx = cx - side / 2, sy = cy - side / 2;
     const c = document.createElement("canvas"); c.width = c.height = 512;
     const x = c.getContext("2d", { willReadFrequently: true });
     x.fillStyle = "#808080"; x.fillRect(0, 0, 512, 512); x.imageSmoothingQuality = "high";
