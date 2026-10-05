@@ -12,6 +12,8 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage({ viewport:{ width:1200, height:800 } }), errs = [];
 page.on("pageerror", e => errs.push(e.message)); page.on("dialog", d => d.accept());
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1200);
+// El modelo pide confirmar la descarga/uso: se acepta solo
+const watcher = setInterval(async () => { try{ const bt = page.locator("button:visible", { hasText: /^(Descargar|Probar otra vez|Continuar)$/ }); if(await bt.count()) await bt.first().click({ timeout: 1000 }); }catch{} }, 700);
 await page.setInputFiles("#filePicker", photo); await page.waitForTimeout(2000);
 const res = await page.evaluate(async () => {
   const D = await import("/js/core/doc.js"), TS = await import("/js/features/textselect.js"), TX = await import("/js/ai/textclasses.js");
@@ -47,4 +49,4 @@ if(f){
   chk(res["cuello"].cy > res["labios"].cy, "el cuello está bajo los labios");
 }
 chk(errs.length === 0, "errores de página " + errs);
-await b.close(); srv.close(); console.log(bad ? "textoparte: FALLO" : "textoparte: OK"); process.exit(bad ? 1 : 0);
+clearInterval(watcher); await b.close(); srv.close(); console.log(bad ? "textoparte: FALLO" : "textoparte: OK"); process.exit(bad ? 1 : 0);
