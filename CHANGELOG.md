@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v260 · Estilos a pantalla completa y 138 estilos nuevos de acciones de Photoshop
+- **Estilos** (`js/filters/looksfs.js`) pasa a **pantalla completa** en móvil y escritorio, como Collage: cuadrícula con buscador y categorías, intensidad, Antes/Después, deshacer/rehacer, vista previa en tiempo real y resultado en **capa nueva editable (botón fx)**; en coma flotante, sin empeorar la imagen final.
+- **Motor de recetas** (`js/filters/styleengine.js`): evalúa por píxel pilas de capas de ajuste, rellenos, degradados, grupos e instantáneas con los modos de fusión de Photoshop; tabla 3D para las recetas puras en la vista previa y cálculo exacto al aplicar.
+- **Conversor ATN** (`tools/atn/`): lee los `.atn` y genera `assets/estilos/atn-*.json` (Matte 44 · Retro y destellos 94).
+- **No convertido** (se anota en `tools/atn/omitidos-*.json`): 62 acciones retro que usan filtros de deformación/píxel (medios tonos, remolino, onda…), y los **Painting FX Canvas 1000–5000**, que son cadenas de filtros de píxeles (Diffuse, High Pass, Reduce Noise, Emboss, Ripple, Smart Sharpen). Fórmulas de curvas, color selectivo, balance de color y filtro fotográfico aproximadas (sin Photoshop no se pueden contrastar).
+- **Licencia**: los packs proceden de PhotoshopActs.com y «SS -» (comerciales); quitar `assets/estilos/atn-*.json` los elimina sin afectar al resto.
+- Pruebas: `tests/estilos-motor.mjs`, `tests/estilos-ui.mjs`.
+
 ### v259 · Color por rangos: círculos de color, Difusión y Premium
 - **Selector de colores** (`js/editor/advanced-color.js`): **cuentagotas + ocho círculos de color** (el elegido lleva aro; un punto marca los que ya tienen cambios), igual en móvil y escritorio. El cuentagotas toca un color de la propia foto: elige su rango y lo centra en ese tono.
 - **Mandos** como en un mezclador profesional: **Matiz, Saturación, Luminancia, Difusión e Intervalo** (la anchura del rango). **Difusión** es nueva: cuánto del intervalo cae suavemente (100 % = como hasta ahora, así que las capas hechas antes se ven igual; 0 % = borde duro). Se quitan el desplegable de rango, el centro manual y «＋ Ampliar / − Estrechar», que Intervalo y el cuentagotas sustituyen.

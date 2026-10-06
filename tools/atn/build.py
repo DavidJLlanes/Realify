@@ -37,6 +37,7 @@ RULES_VINTAGE = [
     (r"^Glitch FX - Bad Signal$", "Glitch", lambda m: "Glitch señal mala"),
     (r"^Sharpen$", "Nitidez", lambda m: "Nitidez retro"),
 ]
+RULES_NONE = []   # Painting FX: cadenas de filtros de píxeles (Diffuse, High Pass, Reduce Noise, Emboss, Ripple, Smart Sharpen) que el motor por píxel no reproduce
 PACKS = [
     # id, patrón del archivo, etiqueta, reglas, ref (lado mayor de la imagen para la que se grabaron las medidas en píxeles)
     ("matte", r"Matte", "Matte", RULES_MATTE, 3000),

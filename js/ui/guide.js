@@ -74,7 +74,7 @@ const TOPICS = [
           diagonal), con textura procedural y de degradado a mano alzada.</li>
         <li><a data-go="pintura#tool-dodgeburn">Dodge &amp; Burn</a> con vista de la capa gris en
           tiempo real.</li>
-        <li><a data-go="especiales#sp-looks">Estilos</a>: 160 acabados en 16 categorías, con buscador.</li>
+        <li><a data-go="especiales#sp-looks">Estilos</a>: 160 acabados + 138 de acciones de Photoshop (Matte, Retro, destellos, marcos…), en pantalla completa y con vista previa en tiempo real.</li>
         <li><a data-go="especiales#sp-vintage">Filtro Vintage</a>: 215 estilos en 19 categorías y
           119 marcos con miniatura.</li>
         <li><a data-go="ajustes#adj-rangehsl">Color por rangos</a> rehecho como mezclador HSL de
@@ -1625,7 +1625,11 @@ const TOPICS = [
           paisaje, cine, películas, urbano, comida, moda y editorial, redes sociales, blanco
           y negro, noche, estaciones, suaves y pastel, dramáticos, duotonos y creativos y
           vintage. Filtra por categoría o escribe en el buscador; cada miniatura muestra tu
-          propia foto con ese estilo, y la intensidad se regula después.</li>
+          propia foto con ese estilo, y la intensidad se regula después. Se abre a pantalla
+          completa (móvil y escritorio) con vista previa en tiempo real, Antes/Después y
+          deshacer; el resultado va a una capa nueva editable con el botón fx. Incluye
+          138 estilos convertidos de acciones de Photoshop (Matte, Retro VR, destellos de luz,
+          bokeh, marcos, glitch…), calculados en coma flotante sin perder calidad.</li>
         <li><b>Adaptive Photo Lens…</b> Reconoce el tipo de foto con un modelo local
           (retrato, paisaje, comida…) y aplica el revelado que le va.</li>
         <li><b>Tabla de color (LUT)…</b> Carga un archivo <code>.cube</code> de etalonaje

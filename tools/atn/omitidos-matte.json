@@ -2,5 +2,9 @@
  {
   "action": "-->> PLAY ALL <<--",
   "reason": "Play"
+ },
+ {
+  "action": "-->> PLAY ALL <<--",
+  "reason": "Play"
  }
 ]
