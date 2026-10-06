@@ -310,6 +310,8 @@ export function mergeDown(id = doc.activeId){
   // silencio en vez de avisar.
   if(top.visible && top.opacity > 0) drawWithBlend(bottom.ctx, source, top.blend, top.opacity, bottom.canvas.width, bottom.canvas.height);
   bottom.thumbDirty = true;
+  /* La de abajo recibe píxeles nuevos: si era el resultado de un filtro, su anotación ya no describe lo que contiene (un recálculo lo borraría). */
+  if(bottom.filters?.length){ bottom.filters = []; bottom._fxFull = null; }
   doc.layers.splice(i, 1);
   doc.activeId = bottom.id;
   emit("doc:structure");

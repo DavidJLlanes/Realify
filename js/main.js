@@ -270,8 +270,8 @@ registerAll({
                            toast("No se pueden combinar capas de grupos distintos; desagrupa o elige una capa del mismo grupo.", "err");
                            return;
                          }
-                         if(top && (top.clipped || top.styles || top.blendIf || top.filters?.length)){
-                           toast(`«${top.name}» tiene recorte, estilos, filtros o Fusionar si; aplícalos antes de combinar.`, "err");
+                         if(top && (top.clipped || top.styles || top.blendIf)){
+                           toast(`«${top.name}» tiene recorte, estilos o Fusionar si; aplícalos antes de combinar.`, "err");
                            return;
                          }
                          if(below && (canRasterize(below))){
@@ -285,12 +285,13 @@ registerAll({
                          const copyOf = c => { const o = document.createElement("canvas");
                            o.width = c.width; o.height = c.height;
                            o.getContext("2d").drawImage(c, 0, 0); return o; };
-                         const pixBefore = copyOf(below.canvas);
+                         const pixBefore = copyOf(below.canvas), fxBefore = structuredClone(below.filters || []);
                          const prevLayers = doc.layers.slice(), prevActive = doc.activeId;
                          if(!mergeDown()){ toast("No hay capa debajo"); return; }
-                         const pixAfter = copyOf(below.canvas);
+                         const pixAfter = copyOf(below.canvas), fxAfter = structuredClone(below.filters || []);
                          const nextLayers = doc.layers.slice(), nextActive = doc.activeId;
-                         const put = (pix, layers, active) => {
+                         const put = (pix, layers, active, fx) => {
+                           below.filters = structuredClone(fx); below._fxFull = null;
                            const x = below.ctx;
                            x.save(); x.setTransform(1, 0, 0, 1, 0, 0);
                            x.globalCompositeOperation = "copy";
@@ -300,8 +301,8 @@ registerAll({
                            emit("doc:structure"); emit("doc:change");
                          };
                          record("Combinar hacia abajo",
-                           () => put(pixBefore, prevLayers, prevActive),
-                           () => put(pixAfter, nextLayers, nextActive));
+                           () => put(pixBefore, prevLayers, prevActive, fxBefore),
+                           () => put(pixAfter, nextLayers, nextActive, fxAfter));
                        },
                        enabled: () => { const l = activeLayer(); return needsDoc() && l && l.type !== "group" && l.type !== "adjust"; } },
   "layer.mergeSelected": { run: () => {
@@ -340,14 +341,14 @@ registerAll({
                            }
                          }
                          for(const l of layers.slice(1)){
-                           if(l.clipped || l.styles || l.blendIf || l.filters?.length){
-                             toast(`«${l.name}» tiene recorte, estilos, filtros o Fusionar si; aplícalos antes de combinar.`, "err");
+                           if(l.clipped || l.styles || l.blendIf){
+                             toast(`«${l.name}» tiene recorte, estilos o Fusionar si; aplícalos antes de combinar.`, "err");
                              return;
                            }
                          }
                          const copyOf = c => { const o = document.createElement("canvas");
                            o.width = c.width; o.height = c.height; o.getContext("2d").drawImage(c, 0, 0); return o; };
-                         const beforePixels = new Map(layers.map(l => [l.id, copyOf(l.canvas)]));
+                         const beforePixels = new Map(layers.map(l => [l.id, copyOf(l.canvas)])), fxBefore = structuredClone(layers[0].filters || []);
                          const prevLayers = doc.layers.slice(), prevActive = doc.activeId;
                          for(let k = layers.length - 1; k > 0; k--){
                            if(!mergeDown(layers[k].id)){
@@ -355,7 +356,7 @@ registerAll({
                              return;
                            }
                          }
-                         const bottom = layers[0], afterPixel = copyOf(bottom.canvas);
+                         const bottom = layers[0], afterPixel = copyOf(bottom.canvas), fxAfter = structuredClone(bottom.filters || []);
                          const nextLayers = doc.layers.slice(), nextActive = doc.activeId;
                          const restoreCanvas = (layer, pix) => {
                            const x = layer.ctx; x.save(); x.setTransform(1,0,0,1,0,0);
@@ -364,11 +365,13 @@ registerAll({
                          record("Combinar capas seleccionadas",
                            () => {
                              for(const l of layers) restoreCanvas(l, beforePixels.get(l.id));
+                             bottom.filters = structuredClone(fxBefore); bottom._fxFull = null;
                              doc.layers = prevLayers.slice(); doc.activeId = prevActive;
                              emit("doc:structure"); emit("doc:change");
                            },
                            () => {
                              restoreCanvas(bottom, afterPixel);
+                             bottom.filters = structuredClone(fxAfter); bottom._fxFull = null;
                              doc.layers = nextLayers.slice(); doc.activeId = nextActive;
                              emit("doc:structure"); emit("doc:change");
                            });
