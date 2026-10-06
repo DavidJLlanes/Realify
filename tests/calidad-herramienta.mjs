@@ -99,6 +99,13 @@ for(const cmd of cmds) for(const mobile of [false, true]){
     page.evaluate(c => import("/js/ui/commands.js").then(m => m.run(c)), cmd).catch(e => errs.push(String(e)));
     await page.waitForTimeout(2500);
 
+    if(cmd === "filter.looks"){   /* Estilos no se aplica hasta elegir uno: se elige «Soft Matte» como lo haría una persona */
+      if(await page.locator(".fsp-mobile select:visible").count()){
+        await page.locator(".fsp-mobile select").first().selectOption({ label: "Matte" }); await page.waitForTimeout(500);
+        await page.locator(".fsp-sheet:not([hidden]) .fsp-thumb", { hasText: /Soft Matte/i }).first().click().catch(() => {});
+      } else await page.locator(".fsp-left .fsp-thumb", { hasText: /Soft Matte/i }).first().click().catch(() => {});
+      await page.waitForTimeout(1500);
+    }
     const apply = page.locator("button:visible", { hasText: /^(Aplicar|Aceptar|Abrir en Realify)$/ }).or(page.locator('[data-a="apply"]:visible'));
     if(await apply.count()){
       /* El deslizador de la herramienta: primero el del diálogo o editor
