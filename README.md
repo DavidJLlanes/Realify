@@ -301,8 +301,11 @@ tiempo real mientras se pinta.
   «Exif» y «xml » de JPEG XL, IFD nuevo al final de un TIFF, Info + XMP en un PDF); la **nota del fabricante** (MakerNote) se copia en el mismo
   desplazamiento que tenía; el **IPTC** va en PNG (`Raw profile type iptc`) y, como XMP, en WebP/AVIF/JXL/TIFF/PDF; **XMP extendido** de JPEG
   (lectura y escritura, MD5 de Adobe); **Editar metadatos** (`js/io/metaedit.js`: campos que mandan sobre el original, guardados en el proyecto);
-  y el inspector lee las **credenciales C2PA** (`js/exif/c2pa.js`: JUMBF de APP11/`caBX`/WebP/JXL/AVIF, CBOR, COSE, X.509 y hash de los datos;
-  sin verificar la firma).
+  y el inspector lee las **credenciales C2PA** (`js/exif/c2pa.js`: JUMBF de APP11/`caBX`/WebP/JXL/AVIF/HEIC, CBOR, COSE, X.509 y hash de los datos).
+  Desde la v255: el inspector **verifica la firma COSE y la cadena de certificados** (WebCrypto; no consulta la lista de confianza ni la revocación), enseña
+  las miniaturas firmadas y comprueba el hash BMFF de AVIF/HEIC; **Firmar…** al exportar (`js/exif/c2pasign.js`, `js/io/c2paui.js`: manifiesto C2PA nuevo con
+  tu certificado y clave en JPEG/PNG/AVIF/HEIC, validado con c2pa-python); IPTC de PNG/TIFF/RAW; MakerNote en AVIF/JXL/TIFF (Canon, Nikon); quitar campos
+  del original; metadatos en el lote y las Acciones (`js/io/batchmeta.js`) y el XMP del original en «Exportar PDF…».
 - **Análisis de nitidez** (`js/features/sharpness.js`): mapa de enfoque a resolución completa en
   una capa nueva y ranking de tomas con nota 0-100 (varianza del Laplaciano en los bloques más
   nítidos, a 1024 px).

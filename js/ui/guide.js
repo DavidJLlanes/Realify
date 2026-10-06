@@ -1453,9 +1453,16 @@ const TOPICS = [
             viaja en JPEG, en PNG (perfil «Raw profile type iptc») y, traducido a XMP, en los demás formatos; los XMP de más de 64 KB se parten en
             «XMP extendido». <b>Editar…</b> (o <b>Análisis › Editar metadatos al exportar…</b>) deja escribir o cambiar título, descripción, autor,
             copyright, palabras clave, fecha y ubicación: abre con lo que trae el original, manda sobre él y se guarda en el proyecto; con una foto que no
-            viene de un archivo sirve igual. El inspector enseña además las <b>credenciales de contenido (C2PA)</b> si las hay: quién generó o editó el
-            archivo, las acciones declaradas (y si dice que lo hizo una IA), la firma y si los datos siguen siendo los firmados. No verifica la firma ni
-            la cadena de certificados, y al exportar desde Realify las credenciales se pierden.</p>
+            viene de un archivo sirve igual. Si vacías un campo que venía relleno con lo del original, se <b>quita</b> del archivo
+            exportado. La nota del fabricante también va en AVIF, JPEG XL y TIFF (en TIFF sólo de Canon y Nikon: hay que reubicarla), y se lee el IPTC de PNG,
+            TIFF y RAW. En el <b>lote</b> y las <b>Acciones en lote</b> (ZIP) cada foto conserva sus metadatos sin ubicación y se le pueden aplicar tus campos; en
+            «Exportar PDF…» puede llevar el XMP del original. El inspector enseña además las <b>credenciales de contenido (C2PA)</b> si las hay (JPEG, PNG,
+            WebP, JPEG XL, AVIF y HEIC): quién generó o editó el archivo, las acciones declaradas (y si dice que lo hizo una IA), la miniatura firmada y tres
+            comprobaciones: la <b>firma</b> del manifiesto, la <b>cadena de certificados</b> (cada uno firmado por el siguiente) y que los datos
+            sigan siendo los firmados (hash de datos o BMFF). No comprueba que el emisor esté en la lista de confianza de C2PA ni la revocación.
+            <b>Firmar…</b> (en Exportar, para JPEG, PNG, AVIF y HEIC) escribe un manifiesto nuevo firmado con tu certificado (cadena PEM) y tu clave
+            (PKCS#8); la clave sólo vive en la memoria de la pestaña, y el resultado se comprueba antes de entregarlo. Las credenciales que trajera el
+            original no se conservan.</p>
           <h3>Metadatos EXIF (escribir)</h3>
           <p>La cadena exporta sin metadatos por defecto. El panel EXIF escribe una
             cabecera coherente: cuerpo, objetivo, y una exposición que <b>cuadra consigo

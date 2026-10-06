@@ -425,3 +425,6 @@ export async function readC2pa(u8){
   }
   return { container: f.container, manifests, active: active.label, note };
 }
+
+/** Para las pruebas: piezas internas del lector. */
+export const _internals = { boxesOf, superbox, findC2pa };

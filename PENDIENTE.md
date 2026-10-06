@@ -60,12 +60,9 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [ ] Procesado «lazy» por bloques (libvips) en la vista de documentos muy grandes: el compositor de GPU ya compone por teselas, pero la vista en mosaico de 8 bits para ≥ 18 MP (8 MP en móvil) sigue sin pasar por él (a escala de pantalla las capas necesitarían reducirse en el shader).
 - [ ] Documentos de más de 40 MP (12 MP en móvil) o con texturas por encima del presupuesto de vídeo siguen con la vista previa de 8 bits.
 
-**Metadatos (fase 15)** — hecho en la v253: AVIF, JPEG XL, TIFF y PDF; MakerNote; IPTC en PNG/WebP; XMP extendido; editor de campos; C2PA en el inspector.
-- [ ] Metadatos al exportar en HEIC y OpenEXR; el PDF de «Exportar PDF…» (pdf-lib) sólo lleva sus propios campos, sin el XMP del original.
-- [ ] Leer el IPTC de originales que no son JPEG (PNG, TIFF, WebP) y los metadatos de originales HEIC/RAW (hoy se lee el EXIF estándar de cualquier contenedor, pero IPTC sólo de JPEG).
-- [ ] MakerNote: sólo se copia de originales little endian y si cabe en un segmento EXIF (≈40 KB); en TIFF/AVIF/JXL no se copia (sus desplazamientos serían otros).
-- [ ] C2PA: verificar la firma y la cadena de certificados (hoy sólo se lee y se comprueba el hash de los datos), mostrar las miniaturas de las afirmaciones y los hashes BMFF de AVIF/HEIC; firmar al exportar.
-- [ ] Editar metadatos: quitar un campo concreto del original (hoy un campo vacío no cambia nada; para quitar algo se apaga su casilla), y editar también en lote/«Acciones».
+**Metadatos (fase 15)** — hecho en la v253 y la v255: AVIF, JPEG XL, TIFF y PDF; MakerNote (también AVIF/JXL/TIFF Canon y Nikon); IPTC en PNG/WebP y lectura de PNG/TIFF/RAW; XMP extendido; editor de campos (también quitar y en lote/Acciones); C2PA con firma, cadena, miniaturas y BMFF, y firmar al exportar (JPEG/PNG/AVIF/HEIC).
+- [ ] Metadatos al exportar en HEIC y OpenEXR.
+- [ ] MakerNote: sólo originales little endian; en TIFF sólo Canon y Nikon (otros fabricantes tienen desplazamientos que habría que conocer uno a uno); sin firmar en WebP, JPEG XL, TIFF ni PDF; C2PA: sin lista de confianza ni revocación; las credenciales del original no se conservan al firmar (sin ingredientes).
 
 **PSD/PSB y PDF (fases 16 y 17)**
 **Hecho en la v254**: PSD con objetos inteligentes (sin giro/sesgo), texto editable (texto simple), Exposición y Blanco y negro exactos, Tono/Brillo aproximados, «Fusionar si» (gris compuesto), capas de 16 bits, metadatos XMP/EXIF y abrir PSD de 16 bits sin bajarlos a 8. PDF: una página por capa, PDF/X con CMYK, marcas de recorte, fuentes propias, fondo de transparencias y reordenar imágenes.

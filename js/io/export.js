@@ -356,6 +356,7 @@ export async function exportDialog(){
       <label class="chk"><input type="checkbox" id="exMMaker"> Notas del fabricante (MakerNote: números de serie y contadores)</label>
     </div>
     <p class="hint" id="exMetaHint" style="margin:-3px 0 9px"></p>
+    <div class="field" id="exC2paRow" hidden><label>Credenciales</label><span class="grow" id="exC2paState" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><button type="button" id="exC2pa" title="Firmar el archivo exportado con credenciales de contenido (C2PA) usando tu certificado">Firmar…</button></div>
     <div class="field" id="qRow"><label>Calidad</label>
       <input type="range" id="exQ" class="grow" min="30" max="100" value="90">
       <span class="unit mono" id="exQV">90</span></div>
@@ -478,6 +479,14 @@ export async function exportDialog(){
             (v === "all" ? " Incluye la ubicación." : v === "nogps" ? " Sin ubicación." : "")) + (nEdit ? ` Y los ${nEdit} campos editados.` : "");
       };
       const policyMaker = () => metaSel.value === "all" || (metaSel.value === "custom" && body.querySelector("#exMMaker").checked);
+      const c2paRow = body.querySelector("#exC2paRow"), c2paState = body.querySelector("#exC2paState");
+      const syncC2pa = async () => {
+        const C = await import("./c2paui.js");
+        c2paRow.hidden = !C.SIGNABLE.test(type.value) || clean.checked;
+        c2paState.textContent = C.state();
+      };
+      body.querySelector("#exC2pa").addEventListener("click", async () => { const C = await import("./c2paui.js"); await C.openSign(); syncC2pa(); });
+      type.addEventListener("change", syncC2pa); clean.addEventListener("change", syncC2pa); syncC2pa();
       const metaEditBtn = body.querySelector("#exMetaEdit");
       metaEditBtn.addEventListener("click", async () => { await metaEditApi.open(); syncMeta(); });
       metaSel.addEventListener("change", () => {
@@ -742,6 +751,14 @@ export async function exportDialog(){
         if(embedded !== out){ out = embedded; metaNote = M.describeMeta(meta, metaPolicy || META_NONE, over); }
       }
     }catch(err){ console.warn("[metadatos]", err); }
+  }
+
+  // credenciales de contenido (C2PA): lo último, porque cualquier cambio posterior de los bytes invalidaría el hash
+  if(!clean){
+    try{
+      const C = await import("./c2paui.js");
+      if(C.active() && C.SIGNABLE.test(type)){ status("Firmando…"); out = await C.signIfWanted(out, { title: sanitizeFilename(wrap.querySelector("#exName").value) }); status(""); }
+    }catch(err){ status(""); toast("No se pudo firmar: " + (err.message || err), "err"); return; }
   }
 
   const typed = clean ? safeWebFilename(wrap.querySelector("#exName").value)
