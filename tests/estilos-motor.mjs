@@ -3,7 +3,7 @@
    TODAS las recetas convertidas (assets/estilos/*.json) se evalúan sin errores, sin NaN y sin elementos ignorados. Uso: node tests/estilos-motor.mjs */
 import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const { renderStyle, styleIsPure, styleColorFn } = await import(path.join(ROOT, "js/filters/styleengine.js"));
+const { renderStyle, styleIsPure, styleColorFn, registerTexture, hasTexture, recipeTextures } = await import(path.join(ROOT, "js/filters/styleengine.js"));
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 const near = (a, b, t = 1.01) => Math.abs(a - b) <= t;
 const img = (w, h, f) => { const d = new Uint8ClampedArray(w * h * 4); for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){ const c = f(x, y), i = (y * w + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; } return d; };
@@ -84,7 +84,7 @@ const run = (recipe, f, w = 8, h = 8, o = {}) => { const d = img(w, h, f); const
 // 14. todas las recetas convertidas
 { const dir = path.join(ROOT, "assets/estilos"), idx = JSON.parse(fs.readFileSync(path.join(dir, "index.json"))); let n = 0, slow = [], ig = [];
   for(const p of idx.packs){ const j = JSON.parse(fs.readFileSync(path.join(dir, p.file)));
-    for(const s of j.styles){ n++; const w = 96, h = 64, d = img(w, h, (x, y) => [40 + x * 2, 30 + y * 3 + (x & 7) * 4, 90 + ((x + y) & 15) * 7]);
+    for(const s of j.styles){ n++; for(const u of recipeTextures(s.recipe)) if(!hasTexture(u)){ const td = new Uint8ClampedArray(64 * 44 * 4).fill(60); for(let q = 3; q < td.length; q += 4) td[q] = 255; registerTexture(u, 64, 44, td); } const w = 96, h = 64, d = img(w, h, (x, y) => [40 + x * 2, 30 + y * 3 + (x & 7) * 4, 90 + ((x + y) & 15) * 7]);
       const t0 = performance.now(); let sk; try{ sk = renderStyle(d, w, h, s.recipe, {}); }catch(e){ chk(false, `${s.id}: ${e.message}`); continue; } const ms = performance.now() - t0; if(ms > 400) slow.push(`${s.id} ${ms | 0} ms`);
       if(sk.length) ig.push(`${s.id}: ${sk.join(",")}`); let nan = false, mn = 255, mx = 0; for(let i = 0; i < d.length; i += 4){ for(let c = 0; c < 3; c++){ const v = d[i + c]; if(!(v >= 0 && v <= 255)) nan = true; mn = Math.min(mn, v); mx = Math.max(mx, v); } }
       chk(!nan, `${s.id}: valores fuera de rango`); } }
@@ -104,4 +104,7 @@ const run = (recipe, f, w = 8, h = 8, o = {}) => { const d = img(w, h, f); const
   a = run(R, () => [100, 100, 100], 100, 70, { intensity: 0.5 }); const H = px(a.d, 100, 97, 35); chk(H[0] > 100 && H[0] < S[0], `intensidad 50 %: a medio camino (${H} entre 100 y ${S})`);
   a = run({ ref: 100, layers: [{ k: "tex", src: "t/falta.jpg", bm: "screen" }] }, () => [10, 20, 30]); chk(a.sk.length === 1 && px(a.d, 8, 3, 3)[2] === 30, "textura sin cargar: se anota como ignorada y la foto no cambia");
   const g = run(R, () => [0, 0, 0], 1000, 700, { exact: true }); chk(px(g.d, 1000, 997, 350)[0] > 200 && px(g.d, 1000, 5, 350)[0] < 3, "1000×700: mismo resultado a otra escala"); }
+{ const tx = []; for(const f of fs.readdirSync(path.join(ROOT, "assets/estilos")).filter(f => /^atn-.*\.json$/.test(f))) for(const st of JSON.parse(fs.readFileSync(path.join(ROOT, "assets/estilos", f), "utf8")).styles) tx.push(...recipeTextures(st.recipe));
+  const miss = tx.filter(u => !fs.existsSync(path.join(ROOT, "assets/estilos", u)) || !fs.existsSync(path.join(ROOT, "assets/estilos", u.replace(/\.jpg$/, "-t.jpg"))));
+  console.log(`texturas referidas: ${tx.length}`); chk(tx.length === 50 && !miss.length, "las 50 texturas (y sus miniaturas) existen en assets/estilos: faltan " + miss.join(",")); }
 console.log(bad ? "FALLO" : "OK"); process.exit(bad ? 1 : 0);

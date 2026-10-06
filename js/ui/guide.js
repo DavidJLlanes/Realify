@@ -1629,7 +1629,9 @@ const TOPICS = [
           completa (móvil y escritorio) con vista previa en tiempo real, Antes/Después y
           deshacer; el resultado va a una capa nueva editable con el botón fx. Incluye
           138 estilos convertidos de acciones de Photoshop (Matte, Retro VR, destellos de luz,
-          bokeh, marcos, glitch…), calculados en coma flotante sin perder calidad.</li>
+          bokeh, marcos, glitch…), calculados en coma flotante sin perder calidad. Los
+          45 destellos de luz y los 5 bokeh usan las imágenes originales a 4000 px, que se
+          descargan sólo al elegir el estilo.</li>
         <li><b>Adaptive Photo Lens…</b> Reconoce el tipo de foto con un modelo local
           (retrato, paisaje, comida…) y aplica el revelado que le va.</li>
         <li><b>Tabla de color (LUT)…</b> Carga un archivo <code>.cube</code> de etalonaje

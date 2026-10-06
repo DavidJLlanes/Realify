@@ -9,11 +9,18 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v261 · Destellos de luz y Bokeh con las imágenes originales
+- **50 texturas originales a máxima resolución** (`assets/estilos/tex/`, 4000 px, las de los zips «Light Leaks» y «Bokeh»): los 45 Destellos y los 5 Bokeh. Se mezclan en modo **Trama** y se añaden como capa nueva editable (botón fx), con intensidad regulable.
+- Las acciones los construían con degradados sobre negro y las imágenes son su resultado exacto. Mi conversión por degradados de la v260 se desviaba del original entre 4 y 78 niveles de 255, así que los 37 Destellos y 3 Bokeh que ya existían **conservan nombre e id pero usan ya la imagen original**; los que faltaban (Destello 01, 09, 10, 14, 15, 17, 23, 24, 32, 35, 42 y Bokeh 04 y 05) se añaden al final.
+- **Motor** (`js/filters/styleengine.js`): capa `tex` que gira la textura si el formato es el contrario, la estira si las proporciones difieren menos de 1,5× (los destellos de borde no se pierden) y si no la recorta centrada; para reducir usa una pirámide sin dentado.
+- **Descarga bajo demanda**: la cuadrícula usa miniaturas de 320 px (unos 10 KB); la textura de 4000 px sólo se baja al elegir el estilo y queda en la caché sin conexión.
+- Pruebas: `tests/estilos-texturas.mjs` (escritorio y móvil) y las nuevas del motor en `tests/estilos-motor.mjs`.
+
 ### v260 · Estilos a pantalla completa y 138 estilos nuevos de acciones de Photoshop
 - **Estilos** (`js/filters/looksfs.js`) pasa a **pantalla completa** en móvil y escritorio, como Collage: cuadrícula con buscador y categorías, intensidad, Antes/Después, deshacer/rehacer, vista previa en tiempo real y resultado en **capa nueva editable (botón fx)**; en coma flotante, sin empeorar la imagen final.
 - **Motor de recetas** (`js/filters/styleengine.js`): evalúa por píxel pilas de capas de ajuste, rellenos, degradados, grupos e instantáneas con los modos de fusión de Photoshop; tabla 3D para las recetas puras en la vista previa y cálculo exacto al aplicar.
 - **Conversor ATN** (`tools/atn/`): lee los `.atn` y genera `assets/estilos/atn-*.json` (Matte 44 · Retro y destellos 94).
-- **No convertido** (se anota en `tools/atn/omitidos-*.json`): 62 acciones retro que usan filtros de deformación/píxel (medios tonos, remolino, onda…), y los **Painting FX Canvas 1000–5000**, que son cadenas de filtros de píxeles (Diffuse, High Pass, Reduce Noise, Emboss, Ripple, Smart Sharpen). Fórmulas de curvas, color selectivo, balance de color y filtro fotográfico aproximadas (sin Photoshop no se pueden contrastar).
+- **No convertido** (se anota en `tools/atn/omitidos-*.json`): 36 acciones retro que usan filtros de deformación/píxel o marcos y texturas (medios tonos, remolino, onda, Quick Render…), y los **Painting FX Canvas 1000–5000**, que son cadenas de filtros de píxeles (Diffuse, High Pass, Reduce Noise, Emboss, Ripple, Smart Sharpen). Fórmulas de curvas, color selectivo, balance de color y filtro fotográfico aproximadas (sin Photoshop no se pueden contrastar).
 - **Licencia**: los packs proceden de PhotoshopActs.com y «SS -» (comerciales); quitar `assets/estilos/atn-*.json` los elimina sin afectar al resto.
 - Pruebas: `tests/estilos-motor.mjs`, `tests/estilos-ui.mjs`.
 

@@ -44,6 +44,18 @@ PACKS = [
     ("vintage", r"Vintage_Retro|Vintage-Retro|Vintage Retro", "Retro y destellos", RULES_VINTAGE, 3000),
 ]
 
+def apply_textures(styles):
+    """Destellos y Bokeh: las acciones los construyen con degradados sobre un fondo negro; las imágenes de los zips «Light Leaks» y «Bokeh» son su resultado
+    EXACTO sobre negro (assets/estilos/tex/). Los estilos que ya existían conservan id, nombre y posición pero pasan a usar la imagen original (la
+    aproximación con degradados se desviaba entre 4 y 78 niveles de 255); los que faltaban se añaden AL FINAL. Se mezclan en modo Trama."""
+    byid = {st["id"]: st for st in styles}
+    def rec(name): return {"ref": 3000, "layers": [{"k": "tex", "src": f"tex/{name}.jpg", "bm": "screen", "op": 1}]}
+    def put(sid, nm, cat, tex):
+        if sid in byid: byid[sid]["recipe"] = rec(tex)
+        else: st = {"id": sid, "name": nm, "cat": cat, "recipe": rec(tex)}; styles.append(st); byid[sid] = st
+    for n in range(1, 46): put(f"vintage:light-leaks-ss-{n:02d}", f"Destello {n:02d}", "Destellos de luz", f"leak-{n:02d}")
+    for n in range(1, 6): put(f"vintage:bokeh-ss-{n:02d}", f"Bokeh {n:02d}", "Bokeh", f"bokeh-{n:02d}")
+
 def categorize(rules, name):
     for pat, cat, fn in rules:
         m = re.match(pat, name.strip())
@@ -68,6 +80,9 @@ for pid, fpat, label, rules, ref in PACKS:
             if un: skipped.append({"action": a["name"].strip(), "reason": "; ".join(un)}); continue
             names.add(nm); r["ref"] = ref
             styles.append({"id": f"{pid}:{slug(a['name'])}", "name": nm, "cat": cat, "recipe": r})
+    if pid == "vintage":
+        apply_textures(styles)
+        skipped = [x for x in skipped if not re.match(r"^(Light Leaks - SS\.|Bokeh - SS\.)\d+$", x["action"].strip())]   # ya cubiertas con la imagen original
     path = os.path.join(OUT, f"atn-{pid}.json")
     json.dump({"pack": pid, "label": label, "styles": styles}, open(path, "w"), separators=(",", ":"), ensure_ascii=False)
     json.dump(skipped, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"omitidos-{pid}.json"), "w"), indent=1, ensure_ascii=False)

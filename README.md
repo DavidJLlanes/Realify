@@ -81,7 +81,7 @@ nunca falle un resultado.
 <td valign="top">
 
 ### ✨ Creatividad
-Fusión HDR de hasta 11 fotos, panorámicas, 160 estilos (+138 convertidos de acciones .atn), 215 estilos vintage, 119 marcos,
+Fusión HDR de hasta 11 fotos, panorámicas, 160 estilos (+138 convertidos de acciones .atn, con 50 destellos y bokeh originales a 4000 px), 215 estilos vintage, 119 marcos,
 LUT `.cube`, recortes en ~60 formas, memes, stickers, collages y publicaciones
 para más de 29 formatos de redes sociales.
 
