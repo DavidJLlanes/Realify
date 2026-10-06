@@ -55,7 +55,6 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 
 **16 bits, precisión y rendimiento (fases 11 a 14)** — hecho en la v252: Realify 👑, Filtro Vintage y Revelado fotográfico 👑 con salida de 16 bits; desenfoque gaussiano, enfoque y ruido en coma flotante nativa (y en la v257 también Desenfoque de superficie, Reducción de ruido por canal, Nitidez inteligente y Desenfoque de lente); estilos de capa, trazo en curso, caché de texturas y teselas en la vista previa de GPU; Redimensionar, Perspectiva y Enderezar conservan los 16 bits; el autoguardado los lleva.
 - [ ] Lo que sigue sin 16 bits nativos: el desenfoque con capas con transparencia (necesita premultiplicar), la **entrada de 16 bits en Realify sin Premium** (los intermedios de 16 bits flotantes no dan 16 bits de verdad) y en el lote/«Acciones» de Realify, Vintage y Revelado (siguen en 8 bits).
-- [ ] WebGPU como alternativa: no se ha hecho; el compositor de WebGL2 ya da coma flotante de 32 bits y teselas, y un motor WebGPU duplicaría todos los shaders (ajustes, 28 modos de fusión, estilos) con soporte aún desigual (Safari y móviles); sólo compensaría con cómputo por bloques (histogramas, desenfoques grandes).
 - [ ] Capas y máscaras con almacenamiento propio de 16 bits/float: las capas siguen siendo lienzos de 8 bits con un origen de 16 bits opcional (`hiSrc`); pintar, borrar o rellenar en 16 bits exigiría cambiar todas las herramientas de pincel y el modelo de capa.
 - [ ] Procesado «lazy» por bloques (libvips) en la vista de documentos muy grandes: el compositor de GPU ya compone por teselas, pero la vista en mosaico de 8 bits para ≥ 18 MP (8 MP en móvil) sigue sin pasar por él (a escala de pantalla las capas necesitarían reducirse en el shader).
 - [ ] Documentos de más de 40 MP (12 MP en móvil) o con texturas por encima del presupuesto de vídeo siguen con la vista previa de 8 bits.
@@ -244,7 +243,6 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
 - [x] Estilos de capa (sombra, resplandor, trazo, degradado) en la vista previa de GPU: hoy, con estilos, el
       documento se compone en 8 bits. Las láminas de 8 bits de `collectStyleShapes` ya valen como entrada.
 - [x] Trazo en curso (pincel, borrador) en la GPU: hoy mientras se pinta se compone en 8 bits.
-- [x] WebGPU como alternativa (los modos «a mano» ya tienen su versión en `webgpu.js`). (hecho en parte; lo que falta sigue en «16 bits, precisión y rendimiento» más arriba)
 - [x] Caché de texturas por capa (hoy se suben las capas en cada composición); documentos grandes por mosaicos
       (≥ 18 MP en escritorio, ≥ 8 MP en móvil) siguen en 8 bits.
 
