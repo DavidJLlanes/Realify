@@ -114,33 +114,39 @@ export async function openVocabMask(src, text, W, H, title){
   const [{ loadClipTokenizer }, { toEnglish }, { runModel }] = await Promise.all([import("../ai/cliptokenizer.js"), import("../ai/es2en.js"), import("../ai/runtime.js")]);
   const tok = await loadClipTokenizer(), en = toEnglish(text).text || String(text);
   const { ids, mask } = tok.pad(en);
+  const big = Math.min(W, H) >= 640;
+  /* Vistas de la foto: entera y, si es grande, cuatro mosaicos de 0,6 (objetos medianos). Si con eso no se ve claro (probabilidad máxima < 0,7), se busca un
+     objeto PEQUEÑO con nueve mosaicos de 0,4 más: en esa escala el modelo ve, p. ej., un semáforo o una señal (0,1 → 0,8) que en la foto entera se le pierde. */
+  const mk = (list, f, n) => { const tw = W * f, th = H * f; for(let iy = 0; iy < n; iy++) for(let ix = 0; ix < n; ix++) list.push({ x: (W - tw) * ix / (n - 1), y: (H - th) * iy / (n - 1), w: tw, h: th }); return list; };
   const views = [{ x: 0, y: 0, w: W, h: H, whole: true }];
-  if(Math.min(W, H) >= 640){ const tw = W * 0.6, th = H * 0.6; for(const fy of [0, H - th]) for(const fx of [0, W - tw]) views.push({ x: fx, y: fy, w: tw, h: th }); }
-  const tiles = views.map(v => {
-    const c = document.createElement("canvas"); c.width = c.height = 352;
-    const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
-    x.drawImage(src, v.x, v.y, v.w, v.h, 0, 0, 352, 352);                     // CLIPSeg entrena con recortes estirados a 352×352
-    return x.getImageData(0, 0, 352, 352).data;
-  });
-  const r = await runModel("clipseg", "clipseg", { tiles, ids, mask }, tiles.map(t => t.buffer), { title });
+  if(big) mk(views, 0.6, 2);
+  const crop = v => { const c = document.createElement("canvas"); c.width = c.height = 352; const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
+    x.drawImage(src, v.x, v.y, v.w, v.h, 0, 0, 352, 352); return x.getImageData(0, 0, 352, 352).data; };            // CLIPSeg entrena con recortes estirados a 352×352
+  const infer = async list => { const tiles = list.map(crop); return (await runModel("clipseg", "clipseg", { tiles, ids, mask }, tiles.map(t => t.buffer), { title })).outs; };
+  const outs = await infer(views);
+  const peakOf = lg => { let m = 0; for(let i = 0; i < lg.length; i++){ const v = 1 / (1 + Math.exp(-lg[i])); if(v > m) m = v; } return m; };
+  let fine = [], fineOuts = [];
+  if(big && Math.min(W, H) >= 900 && Math.max(...outs.map(peakOf)) < 0.7){ fine = mk([], 0.4, 3); fineOuts = await infer(fine); }
   // Probabilidades combinadas a una rejilla de trabajo de ≤ 1024 px
   const k = Math.min(1, 1024 / Math.max(W, H)), gw = Math.max(8, Math.round(W * k)), gh = Math.max(8, Math.round(H * k));
-  const acc = new Float32Array(gw * gh), wsum = new Float32Array(gw * gh);
-  views.forEach((v, vi) => {
-    const lg = r.outs[vi], x0 = Math.max(0, Math.floor(v.x * k)), x1 = Math.min(gw, Math.ceil((v.x + v.w) * k)), y0 = Math.max(0, Math.floor(v.y * k)), y1 = Math.min(gh, Math.ceil((v.y + v.h) * k));
+  const acc = new Float32Array(gw * gh), wsum = new Float32Array(gw * gh), small = new Float32Array(gw * gh);
+  const paint = (v, lg, edge, into) => {
+    const x0 = Math.max(0, Math.floor(v.x * k)), x1 = Math.min(gw, Math.ceil((v.x + v.w) * k)), y0 = Math.max(0, Math.floor(v.y * k)), y1 = Math.min(gh, Math.ceil((v.y + v.h) * k));
     for(let y = y0; y < y1; y++){
       const ty = ((y + 0.5) / k - v.y) / v.h, fy = Math.min(351, Math.max(0, ty * 352 - 0.5)), a0 = fy | 0, a1 = Math.min(351, a0 + 1), dy = fy - a0;
       for(let xx = x0; xx < x1; xx++){
         const tx = ((xx + 0.5) / k - v.x) / v.w, fx = Math.min(351, Math.max(0, tx * 352 - 0.5)), b0 = fx | 0, b1 = Math.min(351, b0 + 1), dx = fx - b0;
         const l = (lg[a0 * 352 + b0] * (1 - dx) + lg[a0 * 352 + b1] * dx) * (1 - dy) + (lg[a1 * 352 + b0] * (1 - dx) + lg[a1 * 352 + b1] * dx) * dy;
-        // peso: la foto entera pesa 1; un mosaico pesa más en su centro y casi nada en sus bordes (sin costuras)
-        const wgt = v.whole ? 1 : 0.15 + 1.35 * Math.sin(Math.PI * Math.min(1, Math.max(0, tx))) * Math.sin(Math.PI * Math.min(1, Math.max(0, ty)));
-        acc[y * gw + xx] += wgt / (1 + Math.exp(-l)); wsum[y * gw + xx] += wgt;
+        into(y * gw + xx, 1 / (1 + Math.exp(-l)), edge(Math.min(1, Math.max(0, tx)), Math.min(1, Math.max(0, ty))), v);
       }
     }
-  });
+  };
+  views.forEach((v, vi) => paint(v, outs[vi], (tx, ty) => v.whole ? 1 : 0.15 + 1.35 * Math.sin(Math.PI * tx) * Math.sin(Math.PI * ty), (i, p, w) => { acc[i] += w * p; wsum[i] += w; }));
+  // mosaicos finos: sólo cuentan los que ven algo con claridad (≥ 0,5), con un fundido de 15 % en los bordes para que no se vean costuras; se toma el máximo
+  fine.forEach((v, vi) => { if(peakOf(fineOuts[vi]) < 0.5) return;
+    paint(v, fineOuts[vi], (tx, ty) => Math.min(1, Math.min(tx, 1 - tx, ty, 1 - ty) / 0.15), (i, p, w) => { const q = p * w; if(q > small[i]) small[i] = q; }); });
   let peak = 0; const p = new Float32Array(gw * gh);
-  for(let i = 0; i < p.length; i++){ p[i] = wsum[i] ? acc[i] / wsum[i] : 0; if(p[i] > peak) peak = p[i]; }
+  for(let i = 0; i < p.length; i++){ p[i] = Math.max(wsum[i] ? acc[i] / wsum[i] : 0, small[i]); if(p[i] > peak) peak = p[i]; }
   const out = new Uint8ClampedArray(W * H);
   if(peak < 0.4) return out;                                                   // el modelo no ve eso en la foto
   for(let y = 0; y < H; y++){

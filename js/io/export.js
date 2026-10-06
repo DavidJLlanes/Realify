@@ -157,9 +157,9 @@ let lastPrecisionInfo={mode:"compatible",reason:"Motor rápido"};
 const is16 = t => /;(10|12|16)$/.test(t) || t === "image/x-exr";
 const avifDepth = t => { const m = /^image\/avif;(10|12)$/.exec(t); return m ? +m[1] : 0; };
 const extOfType = t => ({ "image/png": "png", "image/png;16": "png", "image/webp": "webp", "image/avif": "avif", "image/heic": "heic",
-  "image/avif;10": "avif", "image/avif;12": "avif", "image/jxl": "jxl", "image/x-exr": "exr",
+  "image/avif;10": "avif", "image/avif;12": "avif", "image/heic;10": "heic", "image/jxl": "jxl", "image/x-exr": "exr",
   "image/tiff": "tif", "image/tiff;16": "tif", "application/pdf": "pdf" })[t] || "jpg";
-const depthText = t => /;16$/.test(t) ? " · 16 bits" : avifDepth(t) ? ` · ${avifDepth(t)} bits` : t === "image/x-exr" ? " · EXR half" : "";
+const depthText = t => /;16$/.test(t) ? " · 16 bits" : avifDepth(t) ? ` · ${avifDepth(t)} bits` : t === "image/heic;10" ? " · 10 bits" : t === "image/x-exr" ? " · EXR half" : "";
 export const exportPrecisionInfo=()=>({...lastPrecisionInfo});
 
 /* `alpha`: conservar la transparencia si el formato la admite (PNG, WebP,
@@ -170,21 +170,22 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
   let flat = null, out = null;
   /* «image/png;16» y «image/tiff;16»: 16 bits por canal, siempre con el
      motor de alta precisión (core/precision-stack.js). */
-  const bits16 = /;16$/.test(type), deepAvif = avifDepth(type), isExr = type === "image/x-exr", isJxl = type === "image/jxl";
+  const bits16 = /;16$/.test(type), deepAvif = avifDepth(type), deepHeic = type === "image/heic;10", isExr = type === "image/x-exr", isJxl = type === "image/jxl";
   /* Documento en Display P3 (core/colorspace.js): JPEG, PNG, WebP, TIFF, AVIF, EXR y los
      de 16 bits se guardan en P3 con su perfil o etiqueta de color; el resto
      de formatos (sin perfil: JPEG XL, PDF) y quien
      pida sRGB, convertidos a sRGB. */
-  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || isExr || ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/avif", "image/heic"].includes(type));
+  const keepP3 = isP3Doc() && colorSpace !== "srgb" && (bits16 || deepAvif || deepHeic || isExr || ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/avif", "image/heic"].includes(type));
   const toSrgb = isP3Doc() && !keepP3;
   /* AVIF y JPEG XL necesitan varias veces el tamaño de la imagen en memoria */
   if((deepAvif || isJxl) && w * h > codecMaxPixels(isJxl ? "jxl" : "avif"))
     throw new Error(`${isJxl ? "JPEG XL" : "AVIF de " + deepAvif + " bits"} admite hasta ${Math.round(codecMaxPixels(isJxl ? "jxl" : "avif") / 1e6)} megapíxeles en este dispositivo: reduce el tamaño`);
-  if(bits16 || deepAvif || isExr){
+  if(bits16 || deepAvif || deepHeic || isExr){
     const precise = await renderPrecisionAdjustmentStack(w, h, { bits16: true, alpha, background, layersOnly: false, srgb: toSrgb });
-    if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de " + (deepAvif || 16) + " bits");
+    if(!precise?.data16) throw new Error(precise?.reason || "No se pudo preparar la exportación de " + (deepAvif || (deepHeic && 10) || 16) + " bits");
     lastPrecisionInfo = { mode: precise.mode, reason: precise.reason };
     const d16 = precise.data16, space = d16.space === "display-p3" ? "display-p3" : "srgb";
+    if(deepHeic) return (await import("./heic.js")).encodeHeicDeep({ data: d16.data, channels: d16.channels, width: d16.w || w, height: d16.h || h }, { quality: quality ?? .85, space });
     if(deepAvif) return (await import("./codecs.js")).encodeAvifDeep({ data: d16.data, channels: d16.channels, width: d16.w || w, height: d16.h || h }, deepAvif, { quality: Math.round((quality ?? .8) * 100), space });
     if(isExr){
       const X = await import("./exr.js");
@@ -435,13 +436,18 @@ export async function exportDialog(){
         const o = document.createElement("option"); o.value = "image/heic"; o.textContent = "HEIC (Apple, ligero y de alta calidad)";
         type.querySelector('option[value="image/avif"]')?.after(o);
       }).catch(() => {});
+      import("./heic.js").then(H => H.heicSupported(10)).then(ok => {            // HEIC de 10 bits: sólo con HEVC Main 10 en el dispositivo
+        if(!ok || type.querySelector('option[value="image/heic;10"]')) return;
+        const o = document.createElement("option"); o.value = "image/heic;10"; o.textContent = "HEIC de 10 bits (desde los 16 bits del motor)";
+        (type.querySelector('option[value="image/heic"]') || type.querySelector('option[value="image/avif;12"]') || type.querySelector('option[value="image/avif"]'))?.after(o);
+      }).catch(() => {});
       /* Color en documentos P3: P3 con perfil en JPEG, PNG y 16 bits;
          el resto de formatos no lleva perfil y se guarda en sRGB. */
       const colorSel = body.querySelector("#exColor"), colorHint = body.querySelector("#exColorHint");
       let colorChoice = "display-p3";   // lo elegido por el usuario, para volver a ello
       const syncColor = () => {
         if(!colorSel) return;
-        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16","image/avif","image/avif;10","image/avif;12","image/heic","image/x-exr"].includes(type.value) && !clean.checked;
+        const ok = ["image/jpeg","image/png","image/png;16","image/tiff;16","image/avif","image/avif;10","image/avif;12","image/heic","image/heic;10","image/x-exr"].includes(type.value) && !clean.checked;
         colorSel.disabled = !ok;
         colorSel.value = ok ? colorChoice : "srgb";
         colorHint.textContent = !ok ? (clean.checked ? "«Limpio para web» guarda en sRGB." : "Este formato no lleva perfil de color: se guarda en sRGB.")
@@ -462,7 +468,7 @@ export async function exportDialog(){
       const metaBoxes = { author: "#exMAuthor", date: "#exMDate", camera: "#exMCamera", gps: "#exMGps", text: "#exMText", maker: "#exMMaker" };
       const metaPolicy = () => Object.fromEntries(Object.entries(metaBoxes).map(([k, sel]) => [k, body.querySelector(sel).checked]));
       /* Formatos que pueden llevar metadatos: JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF (v253) */
-      const META_TYPES = /^(image\/(jpeg|png|webp|avif|jxl|tiff)(;\d+)?|application\/pdf)$/;
+      const META_TYPES = /^(image\/(jpeg|png|webp|avif|heic|jxl|tiff)(;\d+)?|application\/pdf)$/;
       const edits = () => { const o = metaEditApi.get(); return metaEditApi.count(o); };
       const syncMeta = () => {
         const okType = META_TYPES.test(type.value), hasFile = !!(doc.source && doc.source.file), nEdit = edits();
@@ -565,7 +571,7 @@ export async function exportDialog(){
           }
           const ow = +W.value || 1, oh = +H.value || 1, fmtKb = bytes => { const kb = bytes / 1024; return kb > 1024 ? (kb/1024).toFixed(2) + " MB" : Math.round(kb) + " KB"; };
           const qual = +q.value / 100, T = type.value;
-          if(T === "image/heic"){ est.textContent = "HEIC con el codificador HEVC de este dispositivo (8 bits, sin metadatos): el peso lo decide él."; return; }
+          if(T === "image/heic" || T === "image/heic;10"){ est.textContent = `HEIC con el codificador HEVC de este dispositivo (${T === "image/heic" ? "8" : "10"} bits; EXIF y XMP si los pides): el peso lo decide él.`; return; }
           const codec = T === "image/jxl" || T.startsWith("image/avif");
           /* Códecs pesados (AVIF, JPEG XL): se codifican sólo unos recortes
              representativos y se extrapola el peso; de paso se mide el
@@ -701,7 +707,7 @@ export async function exportDialog(){
   const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
   const metaPolicy = !clean && wrap._metaPolicy ? wrap._metaPolicy() : null;
   const over = clean ? null : metaEditApi.get();
-  const wantMeta = !clean && /^(image\/(jpeg|png|webp|avif|jxl|tiff)(;\d+)?|application\/pdf)$/.test(type) && ((metaPolicy && metaActive(metaPolicy) && doc.source && doc.source.file) || metaEditApi.count(over));
+  const wantMeta = !clean && /^(image\/(jpeg|png|webp|avif|heic|jxl|tiff)(;\d+)?|application\/pdf)$/.test(type) && ((metaPolicy && metaActive(metaPolicy) && doc.source && doc.source.file) || metaEditApi.count(over));
   // Los metadatos se preparan antes de codificar: el PDF los lleva desde que se construye; los demás formatos los reciben después
   let meta = null;
   if(wantMeta){

@@ -85,7 +85,41 @@ export function installColorSpace(){
       static [Symbol.hasInstance](o){ return o instanceof NativeImageData; }
     }
     globalThis.ImageData = DocImageData;
+    installP3Colors();
   }catch(err){ console.warn("[color] no se pudo activar el espacio de color del documento", err); }
+}
+
+/* ── colores de pintura en P3 (v257) ────────────────────────────────────────────
+   En un documento P3 un color «#rrggbb» (o rgb()/rgba()) son SUS números —los del lienzo—, no sRGB: así el cuentagotas, que lee números P3, y el pincel, el relleno, el texto y las
+   formas que usan esos mismos números dan el mismo color, y se alcanza toda la gama P3 (antes todo color de texto pasaba por sRGB: el rojo P3 puro del cuentagotas salía más
+   apagado al pintar). Sólo afecta a lienzos 2D en P3; los de sRGB (y los de conversión con `forceSrgb`) siguen igual. */
+const COLOR_RE = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i, RGB_RE = /^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*(?:,\s*(\d*\.?\d+)\s*)?\)$/i;
+/** `color` convertido a «color(display-p3 …)» si es un hex o un rgb()/rgba() sencillo; el resto, igual. */
+export function toP3Css(color){
+  if(typeof color !== "string") return color;
+  let m = COLOR_RE.exec(color), r, g, b, a = 1;
+  if(m){
+    let h = m[1]; if(h.length <= 4) h = h.replace(/./g, "$&$&");
+    r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16); if(h.length === 8) a = parseInt(h.slice(6, 8), 16) / 255;
+  } else if((m = RGB_RE.exec(color))){ r = +m[1]; g = +m[2]; b = +m[3]; if(m[4] !== undefined) a = +m[4]; }
+  else return color;
+  const f = v => +(Math.max(0, Math.min(255, v)) / 255).toFixed(5);
+  return `color(display-p3 ${f(r)} ${f(g)} ${f(b)}${a < 1 ? ` / ${+a.toFixed(4)}` : ""})`;
+}
+/** Color CSS para pintar en pantalla (muestras, vistas previas) lo que el documento entiende como números P3. */
+export const docCss = color => isP3Doc() ? toP3Css(color) : color;
+const csOf = ctx => { let c = ctx.__realifyCs; if(c === undefined){ try{ c = ctx.getContextAttributes().colorSpace; }catch{ c = "srgb"; } ctx.__realifyCs = c; } return c; };
+function installP3Colors(){
+  for(const ctor of [globalThis.CanvasRenderingContext2D, globalThis.OffscreenCanvasRenderingContext2D]){
+    if(!ctor) continue;
+    for(const prop of ["fillStyle", "strokeStyle", "shadowColor"]){
+      const d = Object.getOwnPropertyDescriptor(ctor.prototype, prop); if(!d || !d.set) continue;
+      Object.defineProperty(ctor.prototype, prop, { configurable: true, enumerable: d.enumerable, get(){ return d.get.call(this); },
+        set(v){ d.set.call(this, typeof v === "string" && v.charCodeAt(0) !== 99 && isP3Doc() && csOf(this) === "display-p3" ? toP3Css(v) : v); } });
+    }
+  }
+  const cg = globalThis.CanvasGradient && CanvasGradient.prototype.addColorStop;
+  if(cg) CanvasGradient.prototype.addColorStop = function(o, c){ return cg.call(this, o, isP3Doc() ? toP3Css(c) : c); };
 }
 
 /** Copia del lienzo convertida a sRGB (para formatos sin perfil ICC) */

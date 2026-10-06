@@ -2,6 +2,7 @@
    herramienta activa. Añadir un control nuevo a una herramienta es
    añadir una línea a su array de opciones, no tocar la interfaz. */
 
+import { docCss } from "../core/colorspace.js";
 import { on, emit } from "../core/bus.js";
 import { current, state, toolChosen } from "../editor/tools.js";
 import { loadFontFile, FONTS, FONT_SEPARATOR } from "../editor/text.js";
@@ -22,8 +23,8 @@ const bar = document.getElementById("optsbar");
 const SWATCH_TOOLS = new Set(["brush", "eraser", "fill", "picker"]);
 
 function paintSwatch(btn){
-  btn.querySelector(".osw-fg").style.background = state.fg;
-  btn.querySelector(".osw-bg").style.background = state.bg;
+  btn.querySelector(".osw-fg").style.background = docCss(state.fg);
+  btn.querySelector(".osw-bg").style.background = docCss(state.bg);
 }
 on("color:change", () => { const b = bar.querySelector(".opts-swatch"); if(b) paintSwatch(b); });
 
@@ -278,7 +279,7 @@ function buildControl(o){
     btn.style.cssText =
       "width:30px;height:22px;padding:0;border-radius:3px;position:relative;overflow:hidden";
     const sw = document.createElement("span");
-    sw.style.cssText = "position:absolute;inset:2px;border-radius:2px;background:" + state[o.key];
+    sw.style.cssText = "position:absolute;inset:2px;border-radius:2px;background:" + docCss(state[o.key]);
     btn.appendChild(sw);
     const input = document.createElement("input");
     input.type = "color";
@@ -286,7 +287,7 @@ function buildControl(o){
     input.style.cssText = "position:absolute;inset:0;opacity:0;cursor:pointer;padding:0;border:0";
     input.addEventListener("input", () => {
       state[o.key] = input.value;
-      sw.style.background = input.value;
+      sw.style.background = docCss(input.value);
       emit("tool:paramchange", o.key);
     });
     btn.appendChild(input);

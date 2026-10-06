@@ -9,6 +9,7 @@
 import { emit, on } from "../core/bus.js";
 import { doc, activeLayer, cropDoc, addLayer } from "../core/doc.js";
 import { flatten } from "./layertree.js";
+import { isP3Doc } from "../core/colorspace.js";
 import { beginPixels, expandPendingPixels, commitPixels, cancelPixels, abortPixels, record, recordLayers } from "../core/history.js";
 import { view, toImage, zoomAt, zoomToRect, fit } from "./view.js";
 import { grabDoc, drawPx, nearest, rectHandleAt, rectHandleOffset, offset } from "./grab.js";
@@ -1947,7 +1948,7 @@ export const TOOLS = [
       if(!c || c.a === 0) return;
       state.color = "#" + [c.r, c.g, c.b].map(v => v.toString(16).padStart(2, "0")).join("");
       emit("tool:options");
-      toast("Color " + state.color);
+      toast("Color " + state.color + (isP3Doc() ? " (Display P3)" : ""));
     }
   },
 

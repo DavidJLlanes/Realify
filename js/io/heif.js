@@ -64,7 +64,7 @@ export function annexBToHevc(u8, { chroma = 1, bitDepth = 8 } = {}){
  * @param width,height  tamaño visible; `codedWidth`/`codedHeight`: tamaño codificado (si es mayor se recorta con `clap`)
  * @param colr      { primaries, transfer, matrix, fullRange } (CICP) o { icc: Uint8Array }
  */
-export function writeHeic({ sample, hvcc, width, height, codedWidth = width, codedHeight = height, colr = { primaries: 1, transfer: 13, matrix: 1, fullRange: false } }){
+export function writeHeic({ sample, hvcc, width, height, codedWidth = width, codedHeight = height, bitDepth = 8, colr = { primaries: 1, transfer: 13, matrix: 1, fullRange: false } }){
   const props = [box("hvcC", hvcc), fullbox("ispe", 0, 0, u32(codedWidth), u32(codedHeight))];
   const assoc = [0x80 | 1, 2];                                                // hvcC (esencial), ispe
   if(codedWidth !== width || codedHeight !== height){
@@ -75,7 +75,7 @@ export function writeHeic({ sample, hvcc, width, height, codedWidth = width, cod
   props.push(colr.icc ? box("colr", enc.encode("prof"), colr.icc)
                       : box("colr", enc.encode("nclx"), u16(colr.primaries), u16(colr.transfer), u16(colr.matrix), Uint8Array.of(colr.fullRange ? 0x80 : 0)));
   assoc.push(props.length);
-  props.push(fullbox("pixi", 0, 0, Uint8Array.of(3, 8, 8, 8)));
+  props.push(fullbox("pixi", 0, 0, Uint8Array.of(3, bitDepth, bitDepth, bitDepth)));
   assoc.push(props.length);
   const ftyp = box("ftyp", enc.encode("heic"), u32(0), enc.encode("mif1"), enc.encode("heic"));
   const build = offset => fullbox("meta", 0, 0,

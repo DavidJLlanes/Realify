@@ -260,7 +260,8 @@ const TOPICS = [
           («pelo», «ojos y labios»; descarga una vez el modelo BiSeNet, de uso no comercial). Lo que no esté en
           esas categorías se busca con <b>IA de descripción libre</b> (CLIPSeg: «una taza azul con un dibujo»,
           «el logo», «la bufanda roja»; descarga una vez 273 MB, avisando antes; va mejor con palabras corrientes
-          o en inglés y puede fallar con objetos muy pequeños). Se encuentra también en Capa ›
+          o en inglés; los objetos pequeños —un semáforo, una señal— se buscan aparte con mosaicos más finos si no se ven claros a la
+          primera, algo más lento). Se encuentra también en Capa ›
           Máscara de capa › «Por texto».</li>
         <li><b>Seleccionar cielo.</b> Igual de local, con otro modelo (DeepLab, entrenado
           sobre ADE20K): reconoce el cielo por lo que ES —no por ser azul o blanco—, así
@@ -1094,7 +1095,8 @@ const TOPICS = [
           otro día; una imagen abierta directamente empieza como una sola capa. Si la foto trae
           colores de <b>gama amplia</b> (Display P3, como las de iPhone y muchos Android) y el
           navegador lo permite, el documento trabaja en <b>Display P3</b> para no perder esos rojos,
-          verdes y naranjas intensos; se avisa al abrirla. Los filtros de GPU (Cámara y Vintage) también trabajan en P3. Al revelar un RAW con <b>Premium 👑</b> puedes elegir <b>Color › Espacio de color › Display P3</b>: el documento se abre en P3 con sus 16 bits. También sin Premium (el revelado de siempre pasa de Rec.2020 a P3 sin recortar a sRGB, sin 16 bits). Si trae <b>más de 8 bits por canal</b>
+          verdes y naranjas intensos; se avisa al abrirla. Los filtros de GPU (Cámara y Vintage) también trabajan en P3. En un documento P3 los colores de pintura («#rrggbb» del frontal, texto, formas…) son los
+          números del propio lienzo: el cuentagotas y el pincel dan el mismo color y se alcanza toda la gama P3 (la muestra se ve en P3). Al revelar un RAW con <b>Premium 👑</b> puedes elegir <b>Color › Espacio de color › Display P3</b>: el documento se abre en P3 con sus 16 bits. También sin Premium (el revelado de siempre pasa de Rec.2020 a P3 sin recortar a sRGB, sin 16 bits). Si trae <b>más de 8 bits por canal</b>
           (PNG o TIFF de 16 bits, AVIF de 10 o 12 bits, o un RAW abierto desde el revelador con
           Premium), la capa de fondo guarda esos bits («· 16 bits por canal» al abrir) y Exportar
           los usa con «Alta precisión», ya marcada: sin bandas en cielos y sombras aunque apliques
@@ -1126,7 +1128,8 @@ const TOPICS = [
           (con o sin pérdidas), <b>OpenEXR</b> (luz lineal de 16 bits en coma flotante, para vídeo y 3D),
           <b>TIFF</b> sin pérdidas a 8 bits, <b>HEIC</b> —sólo si este dispositivo trae un codificador
           HEVC (Safari en iPhone, iPad y Mac; Chrome o Edge con codificador por hardware): lo codifica el propio
-          dispositivo, a 8 bits y sin metadatos; si no aparece en la lista, usa AVIF—,
+          dispositivo, a 8 bits —o a <b>10 bits</b> desde los 16 bits del motor si trae HEVC Main 10— y con
+          los metadatos que pidas (EXIF y XMP); si no aparece en la lista, usa AVIF—,
           <b>PNG 16 bits</b> o <b>TIFF 16 bits</b> —máxima calidad— o <b>PDF</b>, con tamaño de página y
           margen), calidad y metadatos EXIF. En AVIF, JPEG XL, JPEG y WebP el diálogo muestra el
           <b>peso aproximado y la calidad estimada</b> antes de exportar; en AVIF y JPEG XL, calidad 100

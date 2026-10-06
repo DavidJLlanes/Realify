@@ -101,8 +101,9 @@ export const MODELS = {
         (273 MB; la cuantizada a INT8/Q4 empeora y no se usa). Entradas: input_ids y attention_mask (int64, 1×77, tokenizador de CLIP
         en js/ai/cliptokenizer.js), pixel_values 1×3×352×352 con media/desviación de ImageNet; salida los «logits» 352×352 (sigmoide =
         probabilidad de que el píxel sea lo descrito). Sólo se descarga al usarlo, avisando antes. CPU: el resultado con WebGPU no se
-        ha podido validar. ── */
-  clipseg:  { url: "https://huggingface.co/Xenova/clipseg-rd64-refined/resolve/main/onnx/model_fp16.onnx", size: 273352075, store: true, premium: true, cpu: true,
+        ha podido validar (no hay GPU en el entorno de pruebas); quien quiera probarlo en su dispositivo puede activar `localStorage["realify.clipsegGpu"] = "1"`
+        y recargar: el modelo pasa a WebGPU y la consola del worker avisa del backend; si el resultado sale distinto, se quita. ── */
+  clipseg:  { url: "https://huggingface.co/Xenova/clipseg-rd64-refined/resolve/main/onnx/model_fp16.onnx", size: 273352075, store: true, premium: true, cpu: !(() => { try{ return localStorage.getItem("realify.clipsegGpu") === "1"; }catch{ return false; } })(),
               label: "CLIPSeg (descripción libre)", license: "Apache-2.0" },
 
   /* ── Restaurar caras: GFPGAN v1.4 (Apache-2.0), float16. Entrada y

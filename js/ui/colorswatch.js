@@ -11,6 +11,7 @@
 import { on, emit } from "../core/bus.js";
 import { state, swapColors, resetColors } from "../editor/tools.js";
 import { isMobile, haptic } from "../core/device.js";
+import { docCss } from "../core/colorspace.js";
 
 /* Abre el popover de frontal/fondo anclado a otro botón: lo usa el
    selector compacto de la barra de opciones en móvil (optionsbar.js),
@@ -42,8 +43,8 @@ export function initColorSwatch(host){
   const bgBtn = wrap.querySelector(".cs-bg"), bgInput = bgBtn.querySelector("input");
 
   function render(){
-    fgBtn.style.background = state.fg;
-    bgBtn.style.background = state.bg;
+    fgBtn.style.background = docCss(state.fg);
+    bgBtn.style.background = docCss(state.bg);
     fgInput.value = state.fg;
     bgInput.value = state.bg;
     if(pop) renderPop();
@@ -77,8 +78,8 @@ export function initColorSwatch(host){
   function onKey(e){ if(e.key === "Escape") closePop(); }
 
   function renderPop(){
-    popFg.querySelector(".cp-box").style.background = state.fg;
-    popBg.querySelector(".cp-box").style.background = state.bg;
+    popFg.querySelector(".cp-box").style.background = docCss(state.fg);
+    popBg.querySelector(".cp-box").style.background = docCss(state.bg);
     popFg.querySelector("input").value = state.fg;
     popBg.querySelector("input").value = state.bg;
   }

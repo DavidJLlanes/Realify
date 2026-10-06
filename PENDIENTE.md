@@ -17,8 +17,8 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [x] `huggingface.co` permitido en el entorno de desarrollo: hecho el vocabulario abierto de «Seleccionar por texto» (v246).
 
 **Mejoras de lo último (v245 y v246)**
-- [ ] HEIC: versión de 10 bits y metadatos propios (EXIF/ICC); probarlo en un dispositivo real.
-- [ ] CLIPSeg: máscara blanda para objetos muy pequeños, probarlo con WebGPU (hoy sólo CPU), más palabras en el diccionario ES→EN.
+- [x] HEIC: 10 bits (HEVC Main 10) y metadatos EXIF/XMP. (v257) — falta probar el codificador en un dispositivo real con HEVC.
+- [x] CLIPSeg: búsqueda de objetos pequeños con mosaicos finos y diccionario ES→EN ampliado. (v257) — WebGPU sigue sin probar (no hay GPU en el entorno): `localStorage["realify.clipsegGpu"]="1"` para probarlo.
 - [ ] Probar «Informar de un error» desde la web en móvil y escritorio.
 
 **Bloqueado**
@@ -61,7 +61,7 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [ ] Documentos de más de 40 MP (12 MP en móvil) o con texturas por encima del presupuesto de vídeo siguen con la vista previa de 8 bits.
 
 **Metadatos (fase 15)** — hecho en la v253 y la v255: AVIF, JPEG XL, TIFF y PDF; MakerNote (también AVIF/JXL/TIFF Canon y Nikon); IPTC en PNG/WebP y lectura de PNG/TIFF/RAW; XMP extendido; editor de campos (también quitar y en lote/Acciones); C2PA con firma, cadena, miniaturas y BMFF, y firmar al exportar (JPEG/PNG/AVIF/HEIC).
-- [ ] Metadatos al exportar en HEIC y OpenEXR.
+- [x] Metadatos al exportar en HEIC (v257). [ ] OpenEXR (sus atributos propios).
 - [ ] MakerNote: sólo originales little endian; en TIFF sólo Canon y Nikon (otros fabricantes tienen desplazamientos que habría que conocer uno a uno); sin firmar en WebP, JPEG XL, TIFF ni PDF; C2PA: sin lista de confianza ni revocación; las credenciales del original no se conservan al firmar (sin ingredientes).
 
 **PSD/PSB y PDF (fases 16 y 17)**
@@ -126,7 +126,7 @@ Las fotos de iPhone y de muchos Android vienen en P3; hasta la v199 todos los li
 - [x] AVIF con etiqueta P3 (fase 6, v229).
 - [x] WebP con perfil P3 y TIFF de 8 bits con perfil. (v249)
 - [x] Herramientas WebGL en P3: Cámara y Vintage. (v249)
-- [ ] Pendiente: color de pintura en P3 (selector y cuentagotas fuera de sRGB).
+- [x] Color de pintura en P3: en un documento P3, los colores son los números del lienzo (cuentagotas y pincel coinciden; muestra en P3). (v257)
 - [x] «Abrir en Realify» desde el revelador RAW en P3 (Premium, mando Color › Espacio de color). (v249)
 
 ## Fase 3 · IA a resolución completa por bloques ✅ (v202)

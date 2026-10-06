@@ -35,10 +35,16 @@ out.busEs = await mask(street, "autobús rojo"); console.log("autobús rojo", JS
 out.sky = await mask(street, "el cielo"); console.log("el cielo", JSON.stringify(out.sky));
 out.none = await mask(street, "a banana"); console.log("a banana", JSON.stringify(out.none));
 out.fish = await mask(fish, "un pez"); console.log("un pez", JSON.stringify(out.fish));
+out.light = await mask(street, "un semáforo"); console.log("un semáforo", JSON.stringify(out.light));
+out.stop = await mask(street, "a stop sign"); console.log("a stop sign", JSON.stringify(out.stop));
+out.banana2 = await mask(street, "a banana"); console.log("a banana (otra vez, con la búsqueda fina)", JSON.stringify(out.banana2));
 chk(out.bus.pct > 0.5 && out.bus.pct < 12 && out.bus.cx > 0.65 && out.bus.cx < 0.95 && out.bus.cy > 0.4 && out.bus.cy < 0.85, "el autobús rojo debe estar a la derecha y a media altura " + JSON.stringify(out.bus));
 chk(out.busEs.pct > 0.5 && out.busEs.cx > 0.65 && out.busEs.cx < 0.95, "«autobús rojo» en español (traducido) debe dar lo mismo " + JSON.stringify(out.busEs));
 chk(out.sky.pct > 12 && out.sky.cy < 0.35, "el cielo debe estar arriba " + JSON.stringify(out.sky));
 chk(out.none.pct < 0.5, "una banana que no está no debe dar nada " + JSON.stringify(out.none));
 chk(out.fish.pct > 10 && out.fish.cx > 0.3 && out.fish.cx < 0.75, "el pez debe estar en el centro " + JSON.stringify(out.fish));
+chk(out.light.pct > 0.02 && out.light.pct < 1.5 && out.light.cx > 0.85 && out.light.cy < 0.15, "un semáforo pequeño (arriba a la derecha) debe encontrarse con la búsqueda de objetos pequeños " + JSON.stringify(out.light));
+chk(out.stop.pct > 0.03 && out.stop.pct < 2 && out.stop.cx > 0.25 && out.stop.cx < 0.5 && out.stop.cy > 0.25 && out.stop.cy < 0.5, "una señal de stop pequeña debe encontrarse " + JSON.stringify(out.stop));
+chk(out.banana2.pct < 0.5, "la búsqueda fina no debe inventar una banana " + JSON.stringify(out.banana2));
 chk(errs.filter(e => !/favicon|manifest/i.test(e)).length === 0, "errores de página " + errs.slice(0, 3));
 clearInterval(watcher); await b.close(); srv.close(); console.log(bad ? "clipseg: FALLO" : "clipseg: OK"); process.exit(bad ? 1 : 0);
