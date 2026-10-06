@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const fontB64 = fs.readFileSync("/mnt/skills/examples/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf").toString("base64");
-const res = await page.evaluate(async fontB64 => {
+const res = await page.evaluate(async ([fontB64, ICC]) => {
   const P = await import("/js/io/pdfpro.js");
   const toB64 = async b => { const u = new Uint8Array(await b.arrayBuffer()); let s = ""; for(let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s); };
   const mk = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); return c; };
@@ -27,11 +27,13 @@ const res = await page.evaluate(async fontB64 => {
   await run("fuente", { font, cover: { title: "Álbum de prueba ñ", subtitle: "Subtítulo" }, numbering: true });
   await run("pdfx", { bleedMm: 3, cropMarks: true, font, pdfx: { condition: "FOGRA39" }, cover: { title: "Portada X" }, numbering: true });
   await run("pdfxSinFuente", { pdfx: { condition: "FOGRA39" }, numbering: true, cover: { title: "no sale" } });
+  const icc = Uint8Array.from(atob(ICC), c => c.charCodeAt(0));
+  await run("pdfxIcc", { bleedMm: 3, font, pdfx: { condition: "FOGRA39", icc }, cover: { title: "Con perfil" }, numbering: true });
   await run("sinperdidas", { lossless: true, background: "#ffffff" });
   await run("xmp", { xmp: '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:creator><rdf:Seq><rdf:li>Ana XMP</rdf:li></rdf:Seq></dc:creator></rdf:Description></rdf:RDF></x:xmpmeta>', meta: { title: "Con XMP", author: "Ana XMP" } });
   return o;
-}, fontB64);
-for(const k of ["fondo", "marcas", "fuente", "pdfx", "pdfxSinFuente", "sinperdidas", "xmp"]) fs.writeFileSync(`/tmp/sc/out/pdf.${k}.pdf`, Buffer.from(res[k], "base64"));
+}, [fontB64, fs.readFileSync("/tmp/sc/test_cmyk.icc").toString("base64")]);
+for(const k of ["fondo", "marcas", "fuente", "pdfx", "pdfxSinFuente", "sinperdidas", "xmp", "pdfxIcc"]) fs.writeFileSync(`/tmp/sc/out/pdf.${k}.pdf`, Buffer.from(res[k], "base64"));
 console.log(JSON.stringify({ fondo: res.fondo_i, marcas: res.marcas_i, fuente: res.fuente_i, pdfx: res.pdfx_i, pdfxSinFuente: res.pdfxSinFuente_i }));
 const ok = res.fondo_i.pages === 2 && res.fuente_i.pages === 3 && res.pdfx_i.pdfx && res.pdfxSinFuente_i.textSkipped;
 console.log(ok && !errs.length ? "OK (falta pdf_check.py)" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);

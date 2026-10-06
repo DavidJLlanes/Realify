@@ -4,7 +4,8 @@ import { doc, newDoc, makeLayer } from "../core/doc.js";
 import { emit } from "../core/bus.js";
 import { clear as clearHistory } from "../core/history.js";
 import { clearSnapshots } from "../core/snapshots.js";
-import { defaultText, renderTextLayer } from "../editor/text.js";
+import { defaultText, renderTextLayer, FONTS } from "../editor/text.js";
+import { fromPsName } from "./psdfonts.js";
 import { defaultStyles } from "../editor/layerstyles.js";
 import { RAW_EXTENSIONS } from "../../raw/formats.js";
 import { hiToCanvas8 } from "../core/hisrc.js";
@@ -116,6 +117,14 @@ function adjustFrom(src){
   if(a.type==="channel mixer"&&a.monochrome&&a.gray&&Math.abs(a.gray.red-21)<=1&&Math.abs(a.gray.green-72)<=1&&Math.abs(a.gray.blue-7)<=1&&!a.gray.constant)return {type:"gray",params:{}};
   if(a.type==="hue/saturation"&&a.master&&!a.colorize)return {type:"hsl",params:{hue:a.master.hue||0,sat:a.master.saturation||0,light:a.master.lightness||0,colorize:false}};
   if(a.type==="brightness/contrast")return {type:"bc",params:{brightness:a.brightness||0,contrast:a.contrast||0,protect:100,pivot:"auto",useLegacy:!!a.useLegacy}};
+  if(a.type==="curves"&&(a.red||a.green||a.blue)){            // curvas por canal con la forma de un balance de blancos (ganancia por canal): Realify lo reconoce
+    const gain=pts=>{if(!pts||pts.length<2)return 1;const p=pts.map(q=>[q.input,q.output]).sort((x,y)=>x[0]-y[0]),last=p[p.length-1];
+      if(p.length===2)return p[0][0]===0&&p[0][1]===0&&last[0]===255?last[1]/255:NaN;
+      return p.length===3&&p[1][1]===255&&last[1]===255&&p[0][0]===0&&p[0][1]===0&&p[1][0]>0?255/p[1][0]:NaN;};
+    const r=gain(a.red),g=gain(a.green),b=gain(a.blue);
+    if([r,g,b].every(Number.isFinite)&&Math.abs(r+b-2)<.03){const temp=Math.round((r-b)/.8*100),tint=Math.round((1-g)/.25*100);if(temp||tint)return {type:"wb",params:{temp,tint}};}
+    return null;
+  }
   if(a.type==="curves"&&a.rgb&&a.rgb.length>=2&&!a.red&&!a.green&&!a.blue)return {type:"curves",params:{points:a.rgb.map(p=>[p.input,p.output])}};
   return null;
 }
@@ -124,14 +133,38 @@ function psdTextLayer(src,parentId){
   const l=makeLayer({name:src.name||"Texto",type:"text"});l.groupId=parentId;l.visible=!src.hidden;l.opacity=src.opacity==null?1:(src.opacity>1?src.opacity/255:src.opacity);
   const t=src.text||{},style=t.style||t.styleRuns?.[0]?.style||{};
   const rawSize=style.fontSize, size=typeof rawSize==="number"?rawSize:rawSize?.value;
-  l.text={...defaultText(),content:t.text||t.value||src.name||"Texto",x:(src.left||0)+Math.max(1,(src.right-src.left||0))/2,y:(src.top||0)+Math.max(1,(src.bottom-src.top||0))/2,size:Math.round(size||defaultText().size),color:rgbaHex(style.fillColor||style.color)};
-  const just=src.text?.paragraphStyle?.justification;if(just==="left"||just==="center"||just==="right")l.text.align=just;
+  const m=t.transform||[1,0,0,1,0,0],angle=Math.atan2(m[1],m[0]),scale=Math.hypot(m[0],m[1])||1;
+  const d=defaultText(),sz=Math.round((size||d.size)*scale);
+  l.text={...d,content:t.text||t.value||src.name||"Texto",x:(src.left||0)+Math.max(1,(src.right-src.left||0))/2,y:(src.top||0)+Math.max(1,(src.bottom-src.top||0))/2,size:sz,color:rgbaHex(style.fillColor||style.color)};
+  const just=t.paragraphStyle?.justification;if(just==="left"||just==="center"||just==="right")l.text.align=just;else if(typeof just==="string"&&/^justify/.test(just))l.text.align="left";
+  const f=fromPsName(style.font?.name,FONTS.map(x=>x[0]).filter(x=>typeof x==="string"));
+  if(f){l.text.font=f.stack;if(f.bold)l.text.weight=700;if(f.italic)l.text.italic=true;}else if(style.font?.name)l.text.font=style.font.name;
   if(style.fauxBold)l.text.weight=700;if(style.fauxItalic)l.text.italic=true;
-  const fam=style.font?.name;if(fam)l.text.font=fam;
+  if(Number.isFinite(style.tracking)&&sz)l.text.tracking=+(style.tracking*sz/1000).toFixed(2);
+  const lead=style.leading;if(Number.isFinite(lead)&&lead>0&&!style.autoLeading&&sz)l.text.lineHeight=+Math.min(4,Math.max(.5,lead*scale/sz)).toFixed(3);
+  if(style.strokeFlag&&style.outlineWidth>0){l.text.strokeWidth=+(style.outlineWidth*scale).toFixed(2);l.text.strokeColor=rgbaHex(style.strokeColor);}
+  if(Math.abs(angle)>1e-4)l.text.angle=+(angle*180/Math.PI).toFixed(2);
+  if(t.shapeType==="box"&&Array.isArray(t.boxBounds)){      // texto de párrafo: el marco y su centro (el origen es su esquina superior izquierda; el giro, alrededor de su centro)
+    const bw=(t.boxBounds[2]-t.boxBounds[0])*scale,bh=(t.boxBounds[3]-t.boxBounds[1])*scale,cs=Math.cos(angle),sn=Math.sin(angle);
+    if(bw>0&&bh>0){l.text.boxW=Math.round(bw);l.text.boxH=Math.round(bh);l.text.x=m[4]+(bw/2)*cs-(bh/2)*sn;l.text.y=m[5]+(bw/2)*sn+(bh/2)*cs;}
+  }
   renderTextLayer(l);return l;
 }
 
 let smartFiles=null;
+/* Objeto inteligente de Photoshop → de Realify: el original es el PNG/JPEG enlazado (caja = su tamaño) y la transformación sale de las esquinas
+   (arriba-izquierda, arriba-derecha, abajo-derecha, abajo-izquierda) como giro·escala·sesgo del centro (la misma descomposición que usa affineQuad() de
+   editor/transformtool.js, con el sesgo sólo en X y el volteo vertical si la orientación se invierte). null si no es un paralelogramo. */
+function smartFromQuad(q,img){
+  if(!q||q.length!==8||!q.every(Number.isFinite))return null;
+  const w=img.width,h=img.height,P=[[q[0],q[1]],[q[2],q[3]],[q[4],q[5]],[q[6],q[7]]];
+  if(Math.abs(P[0][0]+P[2][0]-P[1][0]-P[3][0])>.75||Math.abs(P[0][1]+P[2][1]-P[1][1]-P[3][1])>.75)return null;
+  const a=(P[1][0]-P[0][0])/w,c=(P[1][1]-P[0][1])/w,b=(P[3][0]-P[0][0])/h,d=(P[3][1]-P[0][1])/h;       // L = [[a,b],[c,d]]
+  const sx=Math.hypot(a,c);if(!(sx>1e-6))return null;
+  const angle=Math.atan2(c,a),cs=Math.cos(angle),sn=Math.sin(angle),u12=cs*b+sn*d,u22=-sn*b+cs*d;       // R^T·L = [[sx, sx·tanX],[0, sy]]
+  const cx=(P[0][0]+P[1][0]+P[2][0]+P[3][0])/4,cy=(P[0][1]+P[1][1]+P[2][1]+P[3][1])/4;
+  return {t:{mode:"free",sx,sy:Math.abs(u22),angle,skewX:Math.atan(u12/sx),skewY:0,tx:cx-w/2,ty:cy-h/2,flipH:false,flipV:u22<0,meshCols:3,meshRows:3,grid:null},box:{x:0,y:0,w,h}};
+}
 function importPsdNodes(nodes,parentId=null,out=[]){
   /* PSD guarda visualmente de arriba abajo; Realify compone de abajo
      arriba, por eso se invierte cada nivel. */
@@ -141,18 +174,19 @@ function importPsdNodes(nodes,parentId=null,out=[]){
     const l=adj?makeLayer({name:src.name||"Ajuste",type:"adjust"}):src.text?psdTextLayer(src,parentId):makeLayer({name:src.name||"Capa"});
     if(adj){l.adjustType=adj.type;l.adjustParams=adj.params;}
     l.groupId=parentId;l.visible=!src.hidden;l.opacity=alpha01(src.opacity);l.blend=blend[src.blendMode]||"source-over";l.clipped=!!src.clipping;l.styles=stylesFrom(src.effects);
-    const br=src.blendingRanges,bi=a=>({blackMin:a[0],blackMax:a[1],whiteMin:a[2],whiteMax:a[3]});
-    if(br&&br.compositeGrayBlendSource&&br.compositeGraphBlendDestinationRange&&(br.compositeGrayBlendSource.join()!=="0,0,255,255"||br.compositeGraphBlendDestinationRange.join()!=="0,0,255,255"))l.blendIf={thisLayer:bi(br.compositeGrayBlendSource),underlying:bi(br.compositeGraphBlendDestinationRange)};
+    const br=src.blendingRanges,bi=a=>({blackMin:a[0],blackMax:a[1],whiteMin:a[2],whiteMax:a[3]}),isDef=a=>!a||a.join()==="0,0,255,255";
+    if(br&&br.compositeGrayBlendSource&&br.compositeGraphBlendDestinationRange){
+      const bf={thisLayer:bi(br.compositeGrayBlendSource),underlying:bi(br.compositeGraphBlendDestinationRange)};
+      (br.ranges||[]).slice(0,3).forEach((r,k)=>{if(r&&(!isDef(r.sourceRange)||!isDef(r.destRange))){bf.channels=bf.channels||{};bf.channels["rgb"[k]]={thisLayer:r.sourceRange?bi(r.sourceRange):bi([0,0,255,255]),underlying:r.destRange?bi(r.destRange):bi([0,0,255,255])};}});
+      if(!isDef(br.compositeGrayBlendSource)||!isDef(br.compositeGraphBlendDestinationRange)||bf.channels)l.blendIf=bf;
+    }
     if(!src.text&&src.canvas)l.ctx.drawImage(src.canvas,src.left||0,src.top||0);
     else if(!src.text&&src.imageData&&src.imageData.data instanceof Uint16Array){          // PSD de 16 bits: se conservan los 16 bits (origen parcial con su rectángulo)
       const r=hiPixels(src.imageData,src.left||0,src.top||0,doc.w,doc.h);if(r){l.ctx.putImageData(r.img,r.px,r.py);l.hiSrc=r.hiSrc;}
     }else if(!src.text&&src.imageData)l.ctx.putImageData(new ImageData(new Uint8ClampedArray(src.imageData.data),src.imageData.width,src.imageData.height),src.left||0,src.top||0);
     const m=maskFor(src.mask,doc.w,doc.h);if(m){l.mask=m;l.maskEnabled=!src.mask.disabled;}const sm=smartFiles&&src.placedLayer&&smartFiles.get(src.placedLayer.placed||src.placedLayer.id);
-    if(sm&&!src.text){const q=src.placedLayer.transform||[];       // sólo cuadros sin giro: el original ocupa la caja de la transformación
-      if(q.length===8&&Math.abs(q[1]-q[3])<.5&&Math.abs(q[2]-q[4])<.5&&Math.abs(q[5]-q[7])<.5&&Math.abs(q[0]-q[6])<.5){
-        const x0=Math.min(q[0],q[2]),x1=Math.max(q[0],q[2]),y0=Math.min(q[1],q[5]),y1=Math.max(q[1],q[5]),c=canvas(doc.w,doc.h),x=c.getContext("2d");
-        x.save();x.translate(q[0]<q[2]?x0:x1,q[1]<q[5]?y0:y1);x.scale((q[0]<q[2]?1:-1)*(x1-x0)/sm.width,(q[1]<q[5]?1:-1)*(y1-y0)/sm.height);x.drawImage(sm,0,0);x.restore();
-        l.smart=true;l.smartSource=c;l.smartTransform=null;l.smartBox={x:Math.floor(x0),y:Math.floor(y0),w:Math.ceil(x1-x0),h:Math.ceil(y1-y0)};}}
+    if(sm&&!src.text){const st=smartFromQuad(src.placedLayer.transform,sm);       // sólo transformaciones afines (con giro y sesgo): la malla no cabe
+      if(st){l.smart=true;l.smartSource=sm;l.smartTransform=st.t;l.smartBox=st.box;}}
     l.thumbDirty=true;out.push(l);
   }return out;
 }

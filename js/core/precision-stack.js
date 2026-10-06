@@ -37,7 +37,7 @@ import { ADJUST_TYPES, exposureFunction } from "../editor/adjustlayers.js";
 import { levelsFunctions, wbGains } from "../editor/adjustments.js";
 import { curveFunction } from "../editor/curves.js";
 import { hasEnabledStyle, gradientParams } from "../editor/layerstyles.js";
-import { isBlendIfActive, rampFactor } from "../editor/blendif.js";
+import { isBlendIfActive, rampFactor, CHANNELS, channelActive, channelSides } from "../editor/blendif.js";
 import { workSpace } from "./colorspace.js";
 import { rgbMatrix } from "./icc.js";
 
@@ -393,12 +393,13 @@ function composeLevel(nodes, out, y0, w, bh, fns, plates, H){
     /* «Fusionar si»: la visibilidad sale de la luminosidad de esta capa (antes de máscara y recorte) y de la de lo
        que hay compuesto debajo, en coma flotante y sin redondear. */
     if(l.type !== "group" && isBlendIfActive(l.blendIf)){
-      const bi = l.blendIf;
+      const bi = l.blendIf, chans = CHANNELS.map((c, k) => channelActive(bi, c) ? [k, ...channelSides(bi, c)] : null).filter(Boolean);
       for(let p = 0, i = 0; p < n; p++, i += 4){
         const sa = src[i + 3], da = out[i + 3];
         const tl = sa > 0 ? (src[i] * .2126 + src[i + 1] * .7152 + src[i + 2] * .0722) / sa * 255 : 0;
         const ul = da > 0 ? (out[i] * .2126 + out[i + 1] * .7152 + out[i + 2] * .0722) / da * 255 : 0;
-        const f = rampFactor(tl, bi.thisLayer) * rampFactor(ul, bi.underlying);
+        let f = rampFactor(tl, bi.thisLayer) * rampFactor(ul, bi.underlying);
+        for(const [k, ts, us] of chans) f *= rampFactor(sa > 0 ? src[i + k] / sa * 255 : 0, ts) * rampFactor(da > 0 ? out[i + k] / da * 255 : 0, us);
         src[i] *= f; src[i + 1] *= f; src[i + 2] *= f; src[i + 3] *= f;
       }
     }

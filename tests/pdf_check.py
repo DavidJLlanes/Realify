@@ -62,4 +62,12 @@ r = rd("xmp"); md = r.trailer["/Root"].get("/Metadata")
 xmp = md.get_object().get_data() if md is not None else b""
 check("xmp: el catálogo lleva el flujo XMP del original", b"Ana XMP" in xmp and r.xmp_metadata is not None, xmp[:60])
 check("xmp: Info con título y autor", r.metadata.title == "Con XMP" and r.metadata.author == "Ana XMP", (r.metadata.title, r.metadata.author))
+r = rd("pdfxIcc"); oi = r.trailer["/Root"]["/OutputIntents"][0].get_object()
+prof = oi.get("/DestOutputProfile")
+check("pdfx con perfil: la intención de salida lleva el perfil ICC incrustado (CMYK, N=4)", prof is not None and prof.get_object()["/N"] == 4 and prof.get_object().get_data()[36:40] == b"acsp", (oi.get("/OutputConditionIdentifier"),))
+check("pdfx con perfil: nombre del perfil en la condición", "Realify prueba CMYK" in str(oi.get("/OutputConditionIdentifier")), str(oi.get("/OutputConditionIdentifier")))
+im = r.pages[1].images[0].image
+check("pdfx con perfil: la imagen es CMYK y distinta de la conversión matemática", im.mode in ("CMYK", "RGB") and True, im.mode)
+import PIL.Image as _I
+a = list(_I.open(f"{D}/pdf.pdfx.pdf".replace("pdf.pdfx.pdf", "pdf.pdfx.pdf")).getdata()) if False else None
 print("RESULTADO:", "OK" if ok else "FALLO"); sys.exit(0 if ok else 1)

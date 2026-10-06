@@ -388,7 +388,7 @@ tiempo real mientras se pinta.
 
 - Nueva, duplicar, eliminar, subir y bajar.
 - **Grupos** (Ctrl+G / Ctrl+Mayús+G).
-- **Modos de fusión**, opacidad y **Fusionar si** (blend-if por luminosidad).
+- **Modos de fusión**, opacidad y **Fusionar si** (blend-if por luminosidad y, desde la v256, por canal rojo, verde y azul, también en el compositor de coma flotante y en la GPU).
 - **Estilos de capa**: sombra, contorno, resplandor, bisel, superposición…
 - **Objetos inteligentes**: transformaciones y filtros sin perder calidad;
   rasterizar cuando haga falta.

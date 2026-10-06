@@ -59,7 +59,7 @@ export async function exportPdf(){
   const p = { page: "a4", orientation: "auto", perPage: 1, margin: 10, bleed: 0, dpi: 300, quality: 90, lossless: false, cover: false, numbering: false, captions: false, author: "", perLayer: false, background: "#ffffff", cropMarks: false, pdfx: false, pdfxCond: "FOGRA39", ...load() };
   /* Las páginas, en el orden en que saldrán: el documento y las imágenes añadidas; se pueden subir, bajar y quitar. */
   const items = [{ kind: "doc", name: "Documento" }];
-  let fontBytes = null, fontName = "";
+  let fontBytes = null, fontName = "", iccBytes = null, iccName = "";
   const body = document.createElement("div");
   const opts = (list, cur) => list.map(([v, l]) => `<option value="${v}"${String(v) === String(cur) ? " selected" : ""}>${l}</option>`).join("");
   body.innerHTML = `
@@ -84,7 +84,8 @@ export async function exportPdf(){
       <div class="field"><label>Fuente propia</label><button type="button" id="pdFontBtn">Elegir TTF/OTF…</button><span class="grow mono" id="pdFontName" style="font-size:11px;padding-left:6px"></span><button type="button" id="pdFontClear" hidden>✕</button></div>
       <label class="chk"><input id="pdX" type="checkbox"${p.pdfx ? " checked" : ""}> PDF/X para imprenta (imágenes en CMYK)</label>
       <div class="field" id="pdXRow" hidden><label>Condición</label><select id="pdXCond" class="grow">${opts(Object.entries(PDFX_CONDITIONS), p.pdfxCond)}</select></div>
-      <p class="hint" id="pdXHint" hidden style="margin:2px 0 6px">PDF/X-3:2002 con intención de salida registrada. La conversión a CMYK es matemática, sin el perfil de tu imprenta, y el archivo no se ha validado con un preflight: para imprenta profesional, confirma con ella. PDF/X exige fuentes incrustadas: sin «Fuente propia» no hay portada, numeración ni nombres.</p></details>
+      <div class="field" id="pdIccRow" hidden><label>Perfil ICC</label><button type="button" id="pdIccBtn">Elegir .icc de la imprenta…</button><span class="grow mono" id="pdIccName" style="font-size:11px;padding-left:6px"></span><button type="button" id="pdIccClear" hidden>✕</button></div>
+      <p class="hint" id="pdXHint" hidden style="margin:2px 0 6px">PDF/X-3:2002. Sin perfil ICC, la conversión a CMYK es matemática (con la condición registrada que elijas, sin perfil incrustado); con el .icc de tu imprenta, las imágenes se convierten con él (intento colorimétrico relativo, sin compensación del punto negro) y el perfil queda incrustado como intención de salida. El archivo no se ha validado con un preflight: confírmalo con tu imprenta. PDF/X exige fuentes incrustadas: sin «Fuente propia» no hay portada, numeración ni nombres.</p></details>
     <details style="margin:6px 0"><summary style="cursor:pointer">Metadatos del PDF</summary>
       <label class="chk" id="pdOrigRow" hidden><input id="pdOrig" type="checkbox"${p.origMeta !== false ? " checked" : ""}> Incluir los metadatos del original (autor, fecha, cámara…, sin ubicación)</label>
       <div class="field"><label>Autor</label><input id="pdAuthor" class="grow" value="${esc(p.author)}"></div>
@@ -113,6 +114,7 @@ export async function exportPdf(){
     const extraN = items.filter(x => x.kind === "img").length;
     $("#pdSrc").textContent = extraN ? `${items.length} páginas de origen (${extraN} imagen${extraN === 1 ? "" : "es"} añadida${extraN === 1 ? "" : "s"})` : "Sólo el documento";
     $("#pdXRow").hidden = $("#pdXHint").hidden = !$("#pdX").checked;
+    $("#pdIccRow").hidden = !$("#pdX").checked; $("#pdXCond").disabled = !!iccBytes;
     $("#pdFontClear").hidden = !fontBytes; $("#pdFontName").textContent = fontName;
     const free = $("#pdPage").value === "image";
     if(free) $("#pdPer").value = "1";
@@ -144,6 +146,14 @@ export async function exportPdf(){
       fontBytes = bytes; fontName = f.name; sync();
     }catch(err){ toast(`No se pudo leer la fuente «${f.name}»`, "err"); }
   });
+  $("#pdIccBtn").addEventListener("click", () => { const i = document.createElement("input"); i.type = "file"; i.accept = ".icc,.icm"; i.onchange = async () => {
+    const f = i.files[0]; if(!f) return;
+    try{
+      const bytes = new Uint8Array(await f.arrayBuffer()), C = await import("./icccmyk.js"); const conv = C.cmykConverter(bytes);      // se comprueba que se puede usar
+      iccBytes = bytes; iccName = conv.desc || f.name; $("#pdIccName").textContent = iccName; $("#pdIccClear").hidden = false; sync();
+    }catch(err){ toast("Ese perfil no sirve: " + (err.message || err), "err"); }
+  }; i.click(); });
+  $("#pdIccClear").addEventListener("click", () => { iccBytes = null; iccName = ""; $("#pdIccName").textContent = ""; $("#pdIccClear").hidden = true; sync(); });
   sync();
   const r = await dialog({ title: "Exportar PDF", body, wide: true, cls: isMobile() ? "dlg-compact" : "", buttons: [{ label: "Cancelar", value: null }, { label: "Crear PDF", primary: true, value: "go" }] });
   if(r !== "go") return;
@@ -171,7 +181,7 @@ export async function exportPdf(){
         if(meta.xmp){ xmp = meta.xmp; fx = M.fieldsFromXmp(meta.xmp); }
       }catch(err){ console.warn("[pdf] metadatos del original", err); }
     }
-    const out = await buildPdf(images, { xmp, background: s.background, cropMarks: s.cropMarks, font: fontBytes, pdfx: s.pdfx ? { condition: s.pdfxCond } : null, page: s.page, orientation: s.orientation, perPage: s.perPage, marginMm: s.margin, bleedMm: s.bleed, dpi: s.dpi,
+    const out = await buildPdf(images, { xmp, background: s.background, cropMarks: s.cropMarks, font: fontBytes, pdfx: s.pdfx ? { condition: s.pdfxCond, icc: iccBytes } : null, page: s.page, orientation: s.orientation, perPage: s.perPage, marginMm: s.margin, bleedMm: s.bleed, dpi: s.dpi,
       quality: s.quality / 100, lossless: s.lossless, numbering: s.numbering, captions: s.captions,
       cover: s.cover ? { title: $("#pdTitle").value || name } : null,
       meta: { title: $("#pdTitle").value || fx.title || name, author: s.author || fx.author, subject: $("#pdSubject").value || fx.description, keywords: $("#pdKeys").value || fx.keywords } });

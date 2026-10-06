@@ -33,7 +33,7 @@
 import { doc } from "../core/doc.js";
 import { workSpace } from "../core/colorspace.js";
 import { hasEnabledStyle } from "../editor/layerstyles.js";
-import { isBlendIfActive } from "../editor/blendif.js";
+import { isBlendIfActive, CHANNELS, channelSides } from "../editor/blendif.js";
 import { isAdjustLayer } from "../editor/adjustlayers.js";
 import { CUSTOM_BLENDS } from "../editor/blend.js";
 import { adjustFunction, unsupportedReason, GRID, STEP } from "../core/precision-stack.js";
@@ -75,6 +75,7 @@ uniform ivec2 uHiOff, uHiSize;
 uniform sampler2D uMask; uniform bool uHasMask;
 uniform sampler2D uClip; uniform bool uHasClip;
 uniform bool uBI; uniform vec4 uBIThis, uBIUnder;   // negroMin, negroMax, blancoMin, blancoMax (0..255)
+uniform vec4 uBIRT, uBIRU, uBIGT, uBIGU, uBIBT, uBIBU;   // canales sueltos (rojo, verde, azul): esta capa / subyacente; sin efecto = 0,0,255,255
 uniform float uOpacity;
 uniform int uMode;
 uniform ivec2 uOff;                 // esquina de la tesela en el lienzo: el origen, la máscara y las láminas se leen en coordenadas globales (p + uOff)
@@ -114,6 +115,7 @@ vec4 fetchSrc(ivec2 p, ivec2 g){
 }
 
 float ramp(float v, vec4 s){
+  if(s.x == 0.0 && s.y == 0.0 && s.z == 255.0 && s.w == 255.0) return 1.0;     // sin efecto: sin redondeos de coma flotante pasando de 255
   float lo = 1.0;
   if(s.y > s.x) lo = clamp((v - s.x) / (s.y - s.x), 0.0, 1.0); else if(v < s.x) lo = 0.0;
   float hi = 1.0;
@@ -190,7 +192,8 @@ void main(){
   if(uBI){
     float tl = src.a > 0.0 ? (src.r * 0.2126 + src.g * 0.7152 + src.b * 0.0722) / src.a * 255.0 : 0.0;
     float ul = dst.a > 0.0 ? (dst.r * 0.2126 + dst.g * 0.7152 + dst.b * 0.0722) / dst.a * 255.0 : 0.0;
-    src *= ramp(tl, uBIThis) * ramp(ul, uBIUnder);
+    vec3 sc = src.a > 0.0 ? src.rgb / src.a * 255.0 : vec3(0.0), dc = dst.a > 0.0 ? dst.rgb / dst.a * 255.0 : vec3(0.0);
+    src *= ramp(tl, uBIThis) * ramp(ul, uBIUnder) * ramp(sc.r, uBIRT) * ramp(dc.r, uBIRU) * ramp(sc.g, uBIGT) * ramp(dc.g, uBIGU) * ramp(sc.b, uBIBT) * ramp(dc.b, uBIBU);
   }
   if(uHasMask) src *= texelFetch(uMask, g, 0).a;
   if(uHasClip) src *= texelFetch(uClip, p, 0).a;
@@ -640,6 +643,7 @@ function composeLevel(nodes, tile, f32, R){
         const t = bi.thisLayer, u = bi.underlying;
         gl.uniform4f(P.u.uBIThis, t.blackMin, t.blackMax, t.whiteMin, t.whiteMax);
         gl.uniform4f(P.u.uBIUnder, u.blackMin, u.blackMax, u.whiteMin, u.whiteMax);
+        CHANNELS.forEach((c, k) => { const [ct, cu] = channelSides(bi, c), N = ["R", "G", "B"][k]; gl.uniform4f(P.u["uBI" + N + "T"], ct.blackMin, ct.blackMax, ct.whiteMin, ct.whiteMax); gl.uniform4f(P.u["uBI" + N + "U"], cu.blackMin, cu.blackMax, cu.whiteMin, cu.whiteMax); });
       }
       gl.uniform1f(P.u.uOpacity, l.opacity); gl.uniform1i(P.u.uMode, mode); gl.uniform1i(P.u.uPrep, prep ? 1 : 0);
       // estilos de capa (láminas de collectStyleShapes: sombra/resplandor detrás y trazo encima; el degradado se calcula aquí)

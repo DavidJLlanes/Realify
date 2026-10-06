@@ -150,10 +150,12 @@ export async function buildPdf(images, o = {}){
   }
 
   let embedded = 0;
+  // perfil ICC de la imprenta (opcional): las imágenes se convierten con su tabla B2A y el perfil se incrusta como intención de salida
+  const iccConv = opt.pdfx && opt.pdfx.icc ? (await import("./icccmyk.js")).cmykConverter(opt.pdfx.icc) : null;
   /* PDF/X: la imagen se guarda como DeviceCMYK (Flate) en vez de JPEG RGB. Devuelve algo que `drawImg` sabe colocar. */
   const cmykImage = c => {
     const rgba = c.getContext("2d", { willReadFrequently:true }).getImageData(0, 0, c.width, c.height, { colorSpace:"srgb" }).data;
-    const stream = pdf.context.flateStream(rgbaToCmyk(rgba, bg), { Type:"XObject", Subtype:"Image", Width:c.width, Height:c.height, ColorSpace:"DeviceCMYK", BitsPerComponent:8 });
+    const stream = pdf.context.flateStream(iccConv ? iccConv.apply(rgba, bg) : rgbaToCmyk(rgba, bg), { Type:"XObject", Subtype:"Image", Width:c.width, Height:c.height, ColorSpace:"DeviceCMYK", BitsPerComponent:8 });
     return { cmykRef:pdf.context.register(stream) };
   };
   const drawImg = (p, e, x, y, width, height) => {
@@ -207,7 +209,10 @@ export async function buildPdf(images, o = {}){
   if(opt.pdfx){
     /* PDF/X-3:2002 (sin verificar con un preflight): intención de salida registrada, Trapped, GTS_PDFXVersion, ID del documento, sin flujos de objetos y cabecera 1.4 */
     const { PDFName, PDFString, PDFHexString } = PDFLib, cond = PDFX_CONDITIONS[opt.pdfx.condition] ? opt.pdfx.condition : "FOGRA39", ctx = pdf.context;
-    const oi = ctx.obj({ Type:"OutputIntent", S:"GTS_PDFX", OutputConditionIdentifier:PDFString.of(cond), Info:PDFString.of(PDFX_CONDITIONS[cond]), RegistryName:PDFString.of("http://www.color.org") });
+    const oi = iccConv
+      ? ctx.obj({ Type:"OutputIntent", S:"GTS_PDFX", OutputConditionIdentifier:PDFString.of((iccConv.desc || "Custom").slice(0, 60)), Info:PDFString.of(iccConv.desc || "Perfil de la imprenta"),
+          DestOutputProfile:ctx.register(ctx.flateStream(opt.pdfx.icc, { N:4, Alternate:"DeviceCMYK" })) })
+      : ctx.obj({ Type:"OutputIntent", S:"GTS_PDFX", OutputConditionIdentifier:PDFString.of(cond), Info:PDFString.of(PDFX_CONDITIONS[cond]), RegistryName:PDFString.of("http://www.color.org") });
     pdf.catalog.set(PDFName.of("OutputIntents"), ctx.obj([oi]));
     const info = ctx.lookup(ctx.trailerInfo.Info);
     info.set(PDFName.of("GTS_PDFXVersion"), PDFString.of("PDF/X-3:2002")); info.set(PDFName.of("Trapped"), PDFName.of("False"));

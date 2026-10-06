@@ -30,9 +30,14 @@ export const blendIfDefault = () => ({ thisLayer: blendIfSideDefault(), underlyi
 
 const isDefaultSide = s => !s || (s.blackMin === 0 && s.blackMax === 0 && s.whiteMin === 255 && s.whiteMax === 255);
 
+/* Canales sueltos (v256, «Fusionar si» por canal de Photoshop): `blendIf.channels = { r, g, b }`, cada uno { thisLayer, underlying }; lo que falte va sin efecto. */
+export const CHANNELS = ["r", "g", "b"];
+export const channelSides = (blendIf, c) => { const ch = blendIf && blendIf.channels && blendIf.channels[c]; return ch ? [ch.thisLayer || blendIfSideDefault(), ch.underlying || blendIfSideDefault()] : [blendIfSideDefault(), blendIfSideDefault()]; };
+export const channelActive = (blendIf, c) => { const [t, u] = channelSides(blendIf, c); return !isDefaultSide(t) || !isDefaultSide(u); };
+
 export function isBlendIfActive(blendIf){
   if(!blendIf) return false;
-  return !isDefaultSide(blendIf.thisLayer) || !isDefaultSide(blendIf.underlying);
+  return !isDefaultSide(blendIf.thisLayer) || !isDefaultSide(blendIf.underlying) || CHANNELS.some(c => channelActive(blendIf, c));
 }
 
 /* Sólo tiene sentido sobre una capa con lienzo propio de verdad: un
@@ -47,6 +52,7 @@ export const blendIfEligible = l => !!l && l.type !== "group" && l.type !== "adj
    —cuando el punto está partido, blackMin<blackMax o
    whiteMin<whiteMax—, una transición lineal en vez de un corte duro. */
 export function rampFactor(value, side){
+  if(isDefaultSide(side)) return 1;                      // sin efecto (y sin que un redondeo de coma flotante por encima de 255 lo oculte)
   let lo = 1;
   if(side.blackMax > side.blackMin) lo = clamp((value - side.blackMin) / (side.blackMax - side.blackMin), 0, 1);
   else if(value < side.blackMin) lo = 0;
@@ -74,10 +80,12 @@ export function buildBlendIfAlphaCanvas(thisCanvas, underlyingImg, w, h, blendIf
   const s = thisCanvas.getContext("2d", { colorSpace:"srgb" }).getImageData(0, 0, w, h).data;
   const u = underlyingImg.data;
   const od = out.data;
+  const chans = CHANNELS.map((c, k) => channelActive(blendIf, c) ? [k, ...channelSides(blendIf, c)] : null).filter(Boolean);
   for(let i = 0; i < od.length; i += 4){
     const thisLum = luminosity(s[i], s[i+1], s[i+2]);
     const underLum = luminosity(u[i], u[i+1], u[i+2]);
-    const f = rampFactor(thisLum, blendIf.thisLayer) * rampFactor(underLum, blendIf.underlying);
+    let f = rampFactor(thisLum, blendIf.thisLayer) * rampFactor(underLum, blendIf.underlying);
+    for(const [k, ts, us] of chans) f *= rampFactor(s[i + k], ts) * rampFactor(u[i + k], us);
     od[i+3] = Math.round(f * 255);
   }
   cx.putImageData(out, 0, 0);
@@ -269,19 +277,31 @@ export function mountBlendIfEditor(layer, container){
   hint.textContent = "Arrastra un punto para cortar por brillo; mantén Alt al empezar a arrastrar para partirlo en una rampa suave. Doble clic en un lado lo quita.";
   box.appendChild(hint);
 
-  const rowThis = blendIfRow("Esta capa", () => p.thisLayer,
-    v => { p.thisLayer = v; }, preview);
-  const rowUnder = blendIfRow("Capa subyacente", () => p.underlying,
-    v => { p.underlying = v; }, preview);
-  box.append(rowThis.el, rowUnder.el);
+  // Gris (luminosidad) o un canal suelto: Rojo, Verde, Azul
+  let cur = "gray";
+  const chan = c => { p.channels = p.channels || {}; p.channels[c] = p.channels[c] || { thisLayer: blendIfSideDefault(), underlying: blendIfSideDefault() }; return p.channels[c]; };
+  const getSide = which => cur === "gray" ? p[which] : channelSides(p, cur)[which === "thisLayer" ? 0 : 1];
+  const setSide = (which, v) => { if(cur === "gray") p[which] = v; else chan(cur)[which] = v; };
+  const tabs = document.createElement("div");
+  tabs.style.cssText = "display:flex;gap:4px;margin:0 0 8px";
+  const TAB = [["gray", "Gris"], ["r", "Rojo"], ["g", "Verde"], ["b", "Azul"]];
+  const refreshTabs = () => tabs.querySelectorAll("button").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.c === cur)); b.style.fontWeight = b.dataset.c === cur ? "600" : "400"; b.style.outline = (b.dataset.c !== "gray" && channelActive(p, b.dataset.c)) || (b.dataset.c === "gray" && (!isDefaultSide(p.thisLayer) || !isDefaultSide(p.underlying))) ? "2px solid var(--accent, #4c8dff)" : ""; });
+  for(const [c, lab] of TAB){ const b = document.createElement("button"); b.type = "button"; b.dataset.c = c; b.textContent = lab; b.style.flex = "1"; b.addEventListener("click", () => { cur = c; rowThis.draw(); rowUnder.draw(); refreshTabs(); }); tabs.appendChild(b); }
+  const rowThis = blendIfRow("Esta capa", () => getSide("thisLayer"),
+    v => { setSide("thisLayer", v); refreshTabs(); }, preview);
+  const rowUnder = blendIfRow("Capa subyacente", () => getSide("underlying"),
+    v => { setSide("underlying", v); refreshTabs(); }, preview);
+  box.append(tabs, rowThis.el, rowUnder.el);
+  refreshTabs();
 
   const clearBtn = document.createElement("button");
   clearBtn.textContent = "Quitar";
-  clearBtn.title = "Vuelve las dos franjas a su rango completo, sin efecto";
+  clearBtn.title = "Vuelve todas las franjas (gris y canales) a su rango completo, sin efecto";
   clearBtn.addEventListener("click", () => {
     p.thisLayer = blendIfSideDefault();
     p.underlying = blendIfSideDefault();
-    rowThis.draw(); rowUnder.draw();
+    delete p.channels;
+    rowThis.draw(); rowUnder.draw(); refreshTabs();
     preview();
   });
   box.appendChild(clearBtn);

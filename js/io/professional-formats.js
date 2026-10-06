@@ -7,6 +7,8 @@ import { profileFor } from "../core/icc.js";
 import { hasEnabledStyle } from "../editor/layerstyles.js";
 import { hiToCanvas8, hiCoversCanvas } from "../core/hisrc.js";
 import { rebuildPsd16, addImageResource } from "./psdlayers16.js";
+import { psFont } from "./psdfonts.js";
+import { wbGains } from "../editor/adjustments.js";
 
 export async function tiffFromCanvas(canvas, space = "srgb"){
   // Display P3: se guardan los números P3 con su perfil ICC incrustado; si no, sRGB (en documentos P3 el navegador convierte)
@@ -92,38 +94,56 @@ export function psdApproxAdjustment(l){
     const h = Math.max(-180, Math.min(180, Math.round(p.hue || 0))), s = Math.max(-100, Math.min(100, Math.round(p.sat || 0))), li = Math.max(-100, Math.min(100, Math.round(p.light || 0)));
     return { type:"hue/saturation", master:{ a:0, b:0, c:0, d:0, hue:h, saturation:s, lightness:li } };
   }
+  if(l.adjustType === "wb" && (p.temp || p.tint)){          // ganancias por canal (r·g, g·g, b·g recortadas a 255): una curva por canal con el codo donde se satura
+    const g = wbGains({ temp:p.temp || 0, tint:p.tint || 0 }), pts = k => { const v = g[k]; return v > 1 ? [[0, 0], [Math.round(255 / v), 255], [255, 255]] : [[0, 0], [255, Math.round(255 * v)]]; };
+    const cv = k => pts(k).map(([input, output]) => ({ input, output }));
+    return { type:"curves", rgb:[{ input:0, output:0 }, { input:255, output:255 }], red:cv("r"), green:cv("g"), blue:cv("b") };
+  }
   if(l.adjustType === "bc" && !p.premium)
     return { type:"brightness/contrast", brightness:Math.round(p.brightness || 0), contrast:Math.round(p.contrast || 0), useLegacy:!!p.useLegacy };
   return null;
 }
 
-/** «Fusionar si» de Realify → blendingRanges de Photoshop (gris compuesto: esta capa / capas de debajo). */
+/** «Fusionar si» de Realify → blendingRanges de Photoshop: gris compuesto (esta capa / capas de debajo) y, por canal, los de rojo, verde y azul. */
 export function psdBlendingRanges(b){
   if(!b) return null;
   const a = x => [x.blackMin ?? 0, x.blackMax ?? 0, x.whiteMin ?? 255, x.whiteMax ?? 255].map(v => Math.max(0, Math.min(255, Math.round(v))));
   const t = a(b.thisLayer || {}), u = a(b.underlying || {});
-  if(t.join() === "0,0,255,255" && u.join() === "0,0,255,255") return null;
-  const d = [0, 0, 255, 255];
-  return { compositeGrayBlendSource:t, compositeGraphBlendDestinationRange:u, ranges:[0, 1, 2].map(() => ({ sourceRange:d.slice(), destRange:d.slice() })) };
+  const chans = ["r", "g", "b"].map(c => { const ch = b.channels && b.channels[c]; return ch ? { sourceRange:a(ch.thisLayer || {}), destRange:a(ch.underlying || {}) } : { sourceRange:[0, 0, 255, 255], destRange:[0, 0, 255, 255] }; });
+  const isDef = r => r.join() === "0,0,255,255";
+  if(isDef(t) && isDef(u) && chans.every(c => isDef(c.sourceRange) && isDef(c.destRange))) return null;
+  return { compositeGrayBlendSource:t, compositeGraphBlendDestinationRange:u, ranges:chans };
 }
 
-/** Texto de Realify → texto editable de Photoshop (los píxeles de la capa van aparte, para quien no lo lea). */
+/** Texto de Realify → texto editable de Photoshop (los píxeles de la capa van aparte, para quien no lo lea). Equivalente: texto de punto o de párrafo (marco) con giro,
+    fuente por su nombre PostScript, tamaño, color, interlineado, tracking, alineación y contorno. Sin equivalente (la capa queda rasterizada): texto en círculo o
+    sobre trazado, y caja de fondo. La sombra del texto se queda sólo en los píxeles (como efecto de capa saldría duplicada). */
 export function psdText(l, scale = 1){
   const t = l.text;
-  if(!t || t.circle || t.angle || t.bg || t.boxW) return null;     // sólo el texto simple tiene equivalente fiel
-  const hex = (t.color || "#000000").replace("#", ""), n = parseInt(hex.length === 3 ? hex.replace(/./g, "$&$&") : hex, 16);
-  const fill = { r:(n >> 16) & 255, g:(n >> 8) & 255, b:n & 255 };
-  const fam = String(t.font || "Arial").split(",")[0].replace(/["']/g, "").trim();
-  const size = (t.size || 24) * scale;
-  const just = { left:"left", center:"center", right:"right" }[t.align] || "left";
+  if(!t || t.circle || t.bg || (t.path && t.path.p0)) return null;
+  const hexRgb = h => { const x = String(h || "#000000").replace("#", ""), n = parseInt(x.length === 3 ? x.replace(/./g, "$&$&") : x, 16); return { r:(n >> 16) & 255, g:(n >> 8) & 255, b:n & 255 }; };
+  const size = (t.size || 24) * scale, lh = size * (t.lineHeight || 1.25);
+  const just = { left:"left", center:"center", right:"right", justify:"justify-left" }[t.align] || "left";
   const content = t.allCaps ? String(t.content || "").toUpperCase() : String(t.content || "");
-  const lines = content.split("\n"), w = Math.max(1, ...lines.map(x => x.length)) * size * 0.55, hgt = lines.length * size * (t.lineHeight || 1.25);
-  const dx = just === "center" ? 0 : just === "left" ? -w / 2 : w / 2;
-  return { text:content, transform:[1, 0, 0, 1, (t.x || 0) * scale + dx, (t.y || 0) * scale - hgt / 2 + size], antiAlias:"smooth", orientation:"horizontal",
-    left:-w / 2 - dx, right:w / 2 - dx, top:-size, bottom:hgt - size, warp:{ style:"none", value:0, perspective:0, perspectiveOther:0, rotate:"horizontal" },
-    style:{ font:{ name:fam.replace(/\s+/g, "") }, fontSize:size, fillColor:fill, tracking:Math.round((t.tracking || 0) * 1000 / Math.max(1, size)),
-      leading:size * (t.lineHeight || 1.25), fauxBold:(t.weight || 400) >= 600, fauxItalic:!!t.italic },
+  const f = psFont(t.font, t.weight, t.italic);
+  const boxed = Number.isFinite(t.boxW) && t.boxW > 0, ax = (t.x || 0) * scale, ay = (t.y || 0) * scale;
+  const lines = boxed ? null : content.split("\n"), total = boxed ? 0 : lh * lines.length;
+  const w = boxed ? t.boxW * scale : Math.max(1, ...lines.map(x => x.length)) * size * 0.55, hgt = boxed ? (Number.isFinite(t.boxH) ? t.boxH * scale : lh * 3) : total;
+  // origen del texto en PS: arranque de la primera línea de base (punto) o esquina superior izquierda del marco (párrafo); el giro es alrededor del ancla (centro)
+  let ox, oy;
+  if(boxed){ ox = ax - w / 2; oy = ay - hgt / 2; }
+  else { ox = just === "center" ? ax : just === "right" ? ax : ax; oy = ay - total / 2 + lh / 2 + 0.3 * size; }
+  const th = (t.angle || 0) * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th);
+  const dx = ox - ax, dy = oy - ay, rx = ax + dx * cs - dy * sn, ry = ay + dx * sn + dy * cs;
+  const out = { text:content, transform:[cs, sn, -sn, cs, rx, ry], antiAlias:"smooth", orientation:"horizontal",
+    left:boxed ? 0 : -w / 2, right:boxed ? w : w / 2, top:boxed ? 0 : -size, bottom:boxed ? hgt : total - size,
+    warp:{ style:"none", value:0, perspective:0, perspectiveOther:0, rotate:"horizontal" },
+    style:{ font:{ name:f.name }, fontSize:size, fillColor:hexRgb(t.color), fillFlag:true, tracking:Math.round((t.tracking || 0) * 1000 / Math.max(1, size)),
+      leading:lh, autoLeading:false, fauxBold:f.fauxBold, fauxItalic:f.fauxItalic,
+      ...(t.strokeWidth > 0 ? { strokeFlag:true, strokeColor:hexRgb(t.strokeColor), outlineWidth:t.strokeWidth * scale } : {}) },
     paragraphStyle:{ justification:just } };
+  if(boxed){ out.shapeType = "box"; out.boxBounds = [0, 0, w, hgt]; out.pointBase = [0, 0]; }
+  return out;
 }
 
 const opaqueBox = c => {
@@ -133,21 +153,35 @@ const opaqueBox = c => {
   return x1 < 0 ? null : { x:x0, y:y0, w:x1 - x0 + 1, h:y1 - y0 + 1 };
 };
 
-/** Objetos inteligentes que se pueden escribir como objeto inteligente de Photoshop: el original recortado a su contenido en un PNG enlazado.
-    Sólo los que están girados 0° y sin sesgo ni malla (el resto queda rasterizado: la transformación general no cabe en una caja). */
+/** Esquinas (arriba-izquierda, arriba-derecha, abajo-derecha, abajo-izquierda) de la caja `box` tras la transformación libre `t` de un objeto inteligente: la misma
+    cuenta que `affineQuad()` de editor/transformtool.js (pivote en el centro de la caja; sesgo, escala con volteos, giro y desplazamiento del centro). */
+export function smartQuad(box, t){
+  const { x, y, w, h } = box, px = x + w / 2, py = y + h / 2, tt = t || {};
+  const cs = Math.cos(tt.angle || 0), sn = Math.sin(tt.angle || 0), sx = (tt.sx ?? 1) * (tt.flipH ? -1 : 1), sy = (tt.sy ?? 1) * (tt.flipV ? -1 : 1);
+  return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].map(([cx0, cy0]) => {
+    let dx = cx0 - px, dy = cy0 - py;
+    dx = dx + dy * Math.tan(tt.skewX || 0); dy = dy + dx * Math.tan(tt.skewY || 0);
+    dx *= sx; dy *= sy;
+    return [px + dx * cs - dy * sn + (tt.tx || 0), py + dx * sn + dy * cs + (tt.ty || 0)];
+  });
+}
+
+/** Objetos inteligentes que se pueden escribir como objeto inteligente de Photoshop: el original recortado a su caja de referencia en un PNG enlazado y las esquinas de
+    la transformación (también con giro y sesgo). Con malla (modo Deformar) quedan rasterizados. */
 export async function smartLinked(){
   const out = new Map();
   for(const l of doc.layers){
-    if(!l.smart || !l.smartSource || l.type === "adjust") continue;
+    if(!l.smart || !l.smartSource || l.type === "adjust" || !l.smartBox) continue;
     const t = l.smartTransform;
-    if(t && (t.mode === "warp" || t.angle || t.skewX || t.skewY)) continue;
-    const src = l.smartSource, sb = opaqueBox(src), db = opaqueBox(l.canvas);
-    if(!sb || !db) continue;
-    const c = document.createElement("canvas"); c.width = sb.w; c.height = sb.h;
-    c.getContext("2d").drawImage(src, sb.x, sb.y, sb.w, sb.h, 0, 0, sb.w, sb.h);
+    if(t && t.mode === "warp") continue;
+    const src = l.smartSource, bx = Math.max(0, Math.floor(l.smartBox.x)), by = Math.max(0, Math.floor(l.smartBox.y));
+    const bw = Math.min(src.width - bx, Math.ceil(l.smartBox.w)), bh = Math.min(src.height - by, Math.ceil(l.smartBox.h));
+    if(bw < 1 || bh < 1 || !opaqueBox(src)) continue;
+    const c = document.createElement("canvas"); c.width = bw; c.height = bh;
+    c.getContext("2d").drawImage(src, bx, by, bw, bh, 0, 0, bw, bh);
     const blob = await new Promise(r => c.toBlob(r, "image/png"));
     if(!blob) continue;
-    out.set(l.id, { bytes:new Uint8Array(await blob.arrayBuffer()), w:sb.w, h:sb.h, box:db, flipH:!!t?.flipH, flipV:!!t?.flipV });
+    out.set(l.id, { bytes:new Uint8Array(await blob.arrayBuffer()), w:bw, h:bh, quad:smartQuad({ x:bx, y:by, w:bw, h:bh }, t) });
   }
   return out;
 }
@@ -248,10 +282,9 @@ export function layeredPsd(scale = 1, { psb = false, hi = null, meta = null, sma
     if(tx) node.text = tx; else if(l.type === "text") unsupported = true;
     const sm = smart && smart.get(l.id);
     if(sm){
-      const id = crypto.randomUUID(), b = sm.box, x0 = b.x * scale, y0 = b.y * scale, x1 = (b.x + b.w) * scale, y1 = (b.y + b.h) * scale;
-      const L = sm.flipH ? x1 : x0, R = sm.flipH ? x0 : x1, T = sm.flipV ? y1 : y0, B = sm.flipV ? y0 : y1;
+      const id = crypto.randomUUID();
       linkedFiles.push({ id, name:(l.name || "Objeto") + ".png", type:"png", data:sm.bytes });
-      node.placedLayer = { id, placed:id, type:"raster", pageNumber:1, totalPages:1, transform:[L, T, R, T, R, B, L, B], width:sm.w, height:sm.h, resolution:{ value:72, units:"Density" } };
+      node.placedLayer = { id, placed:id, type:"raster", pageNumber:1, totalPages:1, transform:sm.quad.flat().map(v => v * scale), width:sm.w, height:sm.h, resolution:{ value:72, units:"Density" } };
     }
     if(hi) provs.set(node, { layer:l, raster, mask:m && m.__src });
     return [node];

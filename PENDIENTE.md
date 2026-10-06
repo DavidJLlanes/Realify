@@ -66,8 +66,9 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 
 **PSD/PSB y PDF (fases 16 y 17)**
 **Hecho en la v254**: PSD con objetos inteligentes (sin giro/sesgo), texto editable (texto simple), Exposición y Blanco y negro exactos, Tono/Brillo aproximados, «Fusionar si» (gris compuesto), capas de 16 bits, metadatos XMP/EXIF y abrir PSD de 16 bits sin bajarlos a 8. PDF: una página por capa, PDF/X con CMYK, marcas de recorte, fuentes propias, fondo de transparencias y reordenar imágenes.
-- [ ] PSD: objetos inteligentes con giro, sesgo o malla (hoy se rasterizan); texto con círculo, giro, marco o caja de fondo, y fuentes por su nombre PostScript real (hoy el nombre de la familia); Balance de blancos y Bandas sin equivalente; «Fusionar si» por canal; abrir objetos inteligentes de Photoshop con contenido no raster; más opciones de estilos.
-- [ ] PDF/X: el CMYK sale de una conversión matemática sin perfil ICC (no se incrusta ninguno) y no se ha validado con un preflight profesional (Acrobat/callas); el texto exige fuente propia; sin PDF/X-4 ni transparencias vivas.
+**Hecho en la v256**: «Fusionar si» por canal (en los tres motores y en PSD), objetos inteligentes con giro/sesgo, texto de punto y de párrafo con giro y fuentes PostScript, Balance de blancos en PSD, y PDF/X con el perfil ICC de la imprenta.
+- [ ] PSD: objetos inteligentes con malla (Deformar); texto en círculo, sobre trazado o con caja de fondo; sombra de texto como efecto; fuentes que no estén en la tabla (salen con el nombre de la familia); Bandas sin equivalente; abrir objetos inteligentes de Photoshop cuyo contenido no sea una imagen (PSB, vectores); más opciones de estilos.
+- [ ] PDF/X: el perfil ICC se usa sólo para convertir imágenes (intento colorimétrico relativo, sin compensación del punto negro, PCS Lab); sin perfil, el CMYK es matemático; sin validar con un preflight profesional (Acrobat/callas); el texto exige fuente propia; sin PDF/X-4 ni transparencias vivas.
 
 **Evaluado y descartado**
 - Pica y Photon (fase 19), cuantizar modelos a INT8/Q4, Fabric.js/TOAST UI como editor completo, Transformers.js como segundo motor,

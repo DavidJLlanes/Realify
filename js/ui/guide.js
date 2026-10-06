@@ -1040,7 +1040,9 @@ const TOPICS = [
           resultado que en cualquier otro editor.</li>
         <li><b>Fusionar si…</b> La vía más rápida para mezclar dos capas por brillo
           sin pintar ninguna máscara a mano: dos franjas negro→blanco, «Esta capa» y
-          «Capa subyacente», cada una con su punto negro y su punto blanco. Bajar el
+          «Capa subyacente», cada una con su punto negro y su punto blanco. Las pestañas
+          <b>Gris · Rojo · Verde · Azul</b> eligen si el corte es por luminosidad o por un canal suelto
+          (se combinan: la capa se ve donde se cumplen todos). Bajar el
           punto negro de «Esta capa» oculta sus zonas oscuras y deja ver lo de abajo
           en su lugar; subir el punto blanco de «Capa subyacente» hace que las luces
           de lo que hay debajo se abran paso ATRAVESANDO esta capa. Por defecto cada
@@ -1151,10 +1153,11 @@ const TOPICS = [
           ninguno.</li>
         <li><b>Exportar como…</b> También permite un <b>PSD</b> para Photoshop con grupos, capas,
           <b>máscaras reales</b>, sombra, resplandor, trazo y degradado como <b>efectos de capa</b>, los
-          27 modos de fusión, el recorte, el <b>texto editable</b> (texto simple: sin círculo, giro, caja de fondo ni marco),
-          los <b>objetos inteligentes</b> sin giro ni sesgo (el original va dentro como PNG enlazado), el
-          <b>«Fusionar si»</b> de gris y las capas de ajuste <b>Invertir, Niveles, Curvas, Exposición y Blanco y negro</b>
-          editables (Tono y saturación y Brillo y contraste salen como ajustes de Photoshop pero sólo aproximados).
+          27 modos de fusión, el recorte, el <b>texto editable</b> (de punto o de párrafo, con giro, fuente por su nombre PostScript, tamaño, color, interlineado, tracking y contorno; el texto en
+          círculo y el de caja de fondo se rasterizan), los <b>objetos inteligentes</b> (también girados, escalados y sesgados; con malla se rasterizan; el
+          original va dentro como PNG enlazado), el <b>«Fusionar si»</b> de gris y por canal y las capas de ajuste <b>Invertir, Niveles, Curvas,
+          Exposición y Blanco y negro</b> editables (Tono y saturación, Brillo y contraste y Balance de blancos salen como ajustes de Photoshop pero sólo
+          aproximados; Balance de blancos lo reconoce Realify al volver a abrirlo).
           Lo que no se traduce se rasteriza y una copia oculta «Vista final · referencia» enseña el aspecto de Realify.
           Al abrir, esos textos, objetos, ajustes y «Fusionar si» vuelven a ser lo que eran. <b>PSB</b> es lo mismo para documentos
           enormes (hasta 300 000 px por lado) y <b>PSD/PSB de 16 bits</b> guarda las <b>capas con sus 16 bits reales</b> y
@@ -1167,8 +1170,9 @@ const TOPICS = [
           que ya cabe en esa resolución se incrusta sin volver a comprimirla. Además: <b>una página por capa</b>, <b>reordenar o quitar</b>
           las imágenes añadidas (▲ ▼ ✕), <b>color de fondo</b> para las imágenes con transparencia, <b>marcas de recorte</b> (con
           sangrado), <b>fuente propia</b> (TTF/OTF) para portada, numeración y pies, y <b>PDF/X</b> con imágenes CMYK, intención
-          de salida (FOGRA39, SWOP/CGATS TR 001 o FOGRA29), TrimBox/BleedBox. El CMYK sale de una conversión matemática sin perfil
-          ICC y no está validado con un preflight profesional; PDF/X necesita una fuente propia para el texto.</li>
+          de salida (FOGRA39, SWOP/CGATS TR 001 o FOGRA29), TrimBox/BleedBox. Con <b>Perfil ICC</b> (el «.icc» de tu imprenta) las imágenes se convierten
+          con él (intento colorimétrico relativo, sin compensación del punto negro) y el perfil se incrusta como intención de salida; sin perfil, el CMYK
+          es una conversión matemática. No está validado con un preflight profesional; PDF/X necesita una fuente propia para el texto.</li>
         <li id="file-gif"><b>Exportar GIF animado…</b> Cada capa visible es un fotograma, sola o
           sumada a las de debajo: duración de cada fotograma, bucle, ida y vuelta, tamaño y
           número de colores.</li>
