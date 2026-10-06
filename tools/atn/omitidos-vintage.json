@@ -1,0 +1,126 @@
+[
+ {
+  "action": "Quick Render: All 'VR'",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Quick Render: VR_01-10",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Quick Render: VR_11-20",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Quick Render: VR_21-30",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Quick Render: VR_31-40",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Quick Render: VR_41-55",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Light Leaks Pack.01",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Light Leaks Pack.02",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Light Leaks Pack.03",
+  "reason": "fuera de las categorías convertidas"
+ },
+ {
+  "action": "Bokeh - SS.04",
+  "reason": "ocultar «BGrad 1 copy 36» inexistente; seleccionar «BGrad 1 copy 22» inexistente; seleccionar «BGrad 1 copy 36» inexistente; seleccionar «BGrad 1 copy 6» inexistente; seleccionar «BGrad 1 copy 7» inexistente"
+ },
+ {
+  "action": "Bokeh - SS.05",
+  "reason": "evento «Duplicate»; ocultar «BGrad 1 copy 42» inexistente; seleccionar «BG-B1 copy 4» inexistente; seleccionar «BGrad 1 copy 15» inexistente; seleccionar «BGrad 1 copy 21» inexistente; seleccionar «BGrad 1 copy 42» inexistente; seleccionar «BGrad 1 copy 43» inexistente; seleccionar «BGrad 1 copy 7» inexistente"
+ },
+ {
+  "action": "Dirty Textures",
+  "reason": "evento «Crystallize»; evento «Filter Gallery»; evento «Ocean Ripple»"
+ },
+ {
+  "action": "Vignette",
+  "reason": "estilos de capa IrGl; evento «Lens Correction»"
+ },
+ {
+  "action": "Frame : Polaroid",
+  "reason": "Fill con FrgC; Set HSBC sobre group; estilos de capa DrSh,IrSh,IrGl,FrFX; evento «Canvas Size»; evento «Create Clipping Mask»; evento «Exchange»; evento «Intersect»; evento «Link Selected Layers»"
+ },
+ {
+  "action": "Frame : Rectangle 20px",
+  "reason": "Color Range; Merge Visible sobre solid; estilos de capa IrGl; evento «Crystallize»; seleccionar «Temporary frame layer» inexistente"
+ },
+ {
+  "action": "Frame : Rectangle 40px",
+  "reason": "Color Range; Merge Visible sobre solid; estilos de capa IrGl; evento «Crystallize»; fusionar sobre la imagen original; seleccionar «Temporary Frame Layer» inexistente"
+ },
+ {
+  "action": "Frame : Rounded 20px",
+  "reason": "Color Range; Delete None; Inverse (selección); Merge Visible sobre solid; Show Enmr; estilos de capa IrGl; evento «Add»; evento «Clear Effects»; evento «Crystallize»; ocultar «20px Rounded Frame» inexistente; relleno sin tipo; seleccionar «20px Rounded Frame» inexistente"
+ },
+ {
+  "action": "Frame : Rounded 40px",
+  "reason": "Color Range; Delete None; Inverse (selección); Merge Visible sobre solid; estilos de capa IrGl; evento «Clear Styles»; evento «Crystallize»; ocultar «40px Rounded Frame» inexistente; relleno sin tipo; seleccionar «40px Rounded Frame» inexistente"
+ },
+ {
+  "action": "Sharpen",
+  "reason": "evento «High Pass»; evento «Unsharp Mask»"
+ },
+ {
+  "action": "Glitch FX - Bad Signal",
+  "reason": "Fill con Ptrn; Make None None; Set Rctn sobre pix; Set Rctn sobre solid; evento «Close»; evento «Wave»"
+ },
+ {
+  "action": "Light Leaks - SS.01",
+  "reason": "evento «Twirl»"
+ },
+ {
+  "action": "Light Leaks - SS.09",
+  "reason": "seleccionar «Gradient Fill 1» inexistente"
+ },
+ {
+  "action": "Light Leaks - SS.10",
+  "reason": "Transform con deformación warpArc"
+ },
+ {
+  "action": "Light Leaks - SS.14",
+  "reason": "evento «Spherize»"
+ },
+ {
+  "action": "Light Leaks - SS.15",
+  "reason": "Transform con deformación warpInflate"
+ },
+ {
+  "action": "Light Leaks - SS.17",
+  "reason": "grupo de capas no contiguas"
+ },
+ {
+  "action": "Light Leaks - SS.23",
+  "reason": "evento «Color Halftone»"
+ },
+ {
+  "action": "Light Leaks - SS.24",
+  "reason": "evento «Color Halftone»"
+ },
+ {
+  "action": "Light Leaks - SS.32",
+  "reason": "Transform con sesgo"
+ },
+ {
+  "action": "Light Leaks - SS.35",
+  "reason": "evento «Shear»"
+ },
+ {
+  "action": "Light Leaks - SS.42",
+  "reason": "evento «Wave»"
+ }
+]

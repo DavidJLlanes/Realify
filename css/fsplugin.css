@@ -164,3 +164,8 @@
 .fsp-right .face-ctl{margin:14px 0;grid-template-columns:1fr}
 .smartcrop-ctl{grid-template-columns:1fr}
 .straighten-val{min-width:54px;text-align:center;color:#eef3ff;font-size:14px}
+
+/* ── Estilos (v260): buscador del panel izquierdo ── */
+.lkf-search{position:sticky;top:0;z-index:2;padding:10px 0 8px;background:#1a1d21}
+.lkf-search input{width:100%;height:34px;box-sizing:border-box;background:#252a31;border:1px solid #414852;border-radius:5px;color:#e9edf4;padding:0 10px;font:13px var(--sans,sans-serif)}
+.lkf .fsp-left h3{margin:14px 0 6px}
