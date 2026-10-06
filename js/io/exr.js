@@ -58,6 +58,22 @@ const i32 = v => { const b = new Uint8Array(4); new DataView(b.buffer).setInt32(
 const f32le = v => { const b = new Uint8Array(4); new DataView(b.buffer).setFloat32(0, v, true); return b; };
 const attr = (name, type, value) => concat([cstr(name), cstr(type), i32(value.length), value]);
 
+/* Atributos estándar de OpenEXR para los metadatos: `owner` (autor y copyright), `comments` (descripción), `capDate` («AAAA:MM:DD HH:MM:SS»), `latitude`/`longitude`
+   (grados, floats). Los atributos van en orden alfabético por costumbre: «capDate»/«comments» antes de «compression»; «latitude», «longitude» y «owner» después de
+   «lineOrder». `meta` = { owner, comments, capDate, latitude, longitude }; lo que falte no se escribe. */
+const strAttr = (name, text) => attr(name, "string", enc.encode(String(text)));
+function metaAttrs(meta, where){
+  if(!meta) return [];
+  const out = [];
+  if(where === "before"){ if(meta.capDate) out.push(strAttr("capDate", meta.capDate)); if(meta.comments) out.push(strAttr("comments", meta.comments)); }
+  else {
+    if(Number.isFinite(meta.latitude)) out.push(attr("latitude", "float", f32le(meta.latitude)));
+    if(Number.isFinite(meta.longitude)) out.push(attr("longitude", "float", f32le(meta.longitude)));
+    if(meta.owner) out.push(strAttr("owner", meta.owner));
+  }
+  return out;
+}
+
 async function deflate(u8){
   return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer());
 }
@@ -81,7 +97,7 @@ function zipPrepare(raw){
  * @param compression "zip" (por defecto) | "none"
  * @returns Blob (image/x-exr)
  */
-export async function encodeExr({ width, height, hasAlpha = false, getLine, space = "srgb", pixelType = "half", compression = "zip", onProgress = null }){
+export async function encodeExr({ width, height, hasAlpha = false, getLine, space = "srgb", pixelType = "half", compression = "zip", onProgress = null, meta = null }){
   const names = hasAlpha ? ["A", "B", "G", "R"] : ["B", "G", "R"];      // el orden alfabético lo exige el formato
   const half = pixelType !== "float", bpp = half ? 2 : 4, ptype = half ? 1 : 2;
   const linesPerBlock = compression === "zip" ? 16 : 1, ccode = compression === "zip" ? 3 : 0;
@@ -96,10 +112,12 @@ export async function encodeExr({ width, height, hasAlpha = false, getLine, spac
     new Uint8Array([0x76, 0x2f, 0x31, 0x01]), new Uint8Array([2, 0, 0, 0]),          // número mágico y versión 2 (una parte, por líneas)
     attr("channels", "chlist", chlist),
     attr("chromaticities", "chromaticities", chroma),
+    ...metaAttrs(meta, "before"),
     attr("compression", "compression", new Uint8Array([ccode])),
     attr("dataWindow", "box2i", box),
     attr("displayWindow", "box2i", box),
     attr("lineOrder", "lineOrder", new Uint8Array([0])),
+    ...metaAttrs(meta, "after"),
     attr("pixelAspectRatio", "float", f32le(1)),
     attr("screenWindowCenter", "v2f", concat([f32le(0), f32le(0)])),
     attr("screenWindowWidth", "float", f32le(1)),

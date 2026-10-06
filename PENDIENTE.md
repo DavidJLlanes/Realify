@@ -61,7 +61,7 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 - [ ] Documentos de más de 40 MP (12 MP en móvil) o con texturas por encima del presupuesto de vídeo siguen con la vista previa de 8 bits.
 
 **Metadatos (fase 15)** — hecho en la v253 y la v255: AVIF, JPEG XL, TIFF y PDF; MakerNote (también AVIF/JXL/TIFF Canon y Nikon); IPTC en PNG/WebP y lectura de PNG/TIFF/RAW; XMP extendido; editor de campos (también quitar y en lote/Acciones); C2PA con firma, cadena, miniaturas y BMFF, y firmar al exportar (JPEG/PNG/AVIF/HEIC).
-- [x] Metadatos al exportar en HEIC (v257). [ ] OpenEXR (sus atributos propios).
+- [x] Metadatos al exportar en HEIC y OpenEXR (atributos owner, comments, capDate y GPS). (v257)
 - [ ] MakerNote: sólo originales little endian; en TIFF sólo Canon y Nikon (otros fabricantes tienen desplazamientos que habría que conocer uno a uno); sin firmar en WebP, JPEG XL, TIFF ni PDF; C2PA: sin lista de confianza ni revocación; las credenciales del original no se conservan al firmar (sin ingredientes).
 
 **PSD/PSB y PDF (fases 16 y 17)**

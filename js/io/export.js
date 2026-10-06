@@ -189,7 +189,7 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
     if(deepAvif) return (await import("./codecs.js")).encodeAvifDeep({ data: d16.data, channels: d16.channels, width: d16.w || w, height: d16.h || h }, deepAvif, { quality: Math.round((quality ?? .8) * 100), space });
     if(isExr){
       const X = await import("./exr.js");
-      return X.encodeExr({ width: d16.w || w, height: d16.h || h, hasAlpha: d16.channels === 4, space,
+      return X.encodeExr({ width: d16.w || w, height: d16.h || h, hasAlpha: d16.channels === 4, space, meta: exrMeta,
         getLine: X.lineReaderFromData16({ data: d16.data, channels: d16.channels, width: d16.w || w }) });
     }
     const f16 = await import("./formats16.js");
@@ -252,6 +252,8 @@ export async function renderExport({ w, h, type, quality, precision = false, dit
 }
 /* Página del PDF (la elige el diálogo de exportar) */
 let pdfOptions = { page: "image", orientation: "auto", margin: 0 };
+/* Metadatos de OpenEXR (atributos owner, comments, capDate…): los fija el diálogo antes de codificar, como las opciones del PDF */
+let exrMeta = null;
 
 /* Codifica repetidamente hasta respetar el peso pedido. Primero baja la
    calidad de JPEG/WebP y, sólo si hace falta, reduce dimensiones. PNG no
@@ -468,7 +470,7 @@ export async function exportDialog(){
       const metaBoxes = { author: "#exMAuthor", date: "#exMDate", camera: "#exMCamera", gps: "#exMGps", text: "#exMText", maker: "#exMMaker" };
       const metaPolicy = () => Object.fromEntries(Object.entries(metaBoxes).map(([k, sel]) => [k, body.querySelector(sel).checked]));
       /* Formatos que pueden llevar metadatos: JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF (v253) */
-      const META_TYPES = /^(image\/(jpeg|png|webp|avif|heic|jxl|tiff)(;\d+)?|application\/pdf)$/;
+      const META_TYPES = /^(image\/(jpeg|png|webp|avif|heic|jxl|tiff|x-exr)(;\d+)?|application\/pdf)$/;
       const edits = () => { const o = metaEditApi.get(); return metaEditApi.count(o); };
       const syncMeta = () => {
         const okType = META_TYPES.test(type.value), hasFile = !!(doc.source && doc.source.file), nEdit = edits();
@@ -707,7 +709,7 @@ export async function exportDialog(){
   const alphaOpts = { alpha: wrap.querySelector("#exAAlpha").checked && !wrap.querySelector("#exAAlpha").disabled, background: wrap.querySelector("#exABg").value };
   const metaPolicy = !clean && wrap._metaPolicy ? wrap._metaPolicy() : null;
   const over = clean ? null : metaEditApi.get();
-  const wantMeta = !clean && /^(image\/(jpeg|png|webp|avif|heic|jxl|tiff)(;\d+)?|application\/pdf)$/.test(type) && ((metaPolicy && metaActive(metaPolicy) && doc.source && doc.source.file) || metaEditApi.count(over));
+  const wantMeta = !clean && /^(image\/(jpeg|png|webp|avif|heic|jxl|tiff|x-exr)(;\d+)?|application\/pdf)$/.test(type) && ((metaPolicy && metaActive(metaPolicy) && doc.source && doc.source.file) || metaEditApi.count(over));
   // Los metadatos se preparan antes de codificar: el PDF los lleva desde que se construye; los demás formatos los reciben después
   let meta = null;
   if(wantMeta){
@@ -718,8 +720,13 @@ export async function exportDialog(){
       if(!meta.exif && !meta.xmp && !meta.iptc) meta = null;
       if(meta && type === "application/pdf"){ const fx = M.fieldsFromXmp(meta.xmp); pdfOptions = { ...pdfOptions, info: { title: fx.title, author: fx.author, subject: fx.description, keywords: fx.keywords, date: fx.date }, xmp: meta.xmp }; }
       else pdfOptions = { ...pdfOptions, info: null, xmp: null };
-    }catch(err){ console.warn("[metadatos]", err); meta = null; }
-  } else pdfOptions = { ...pdfOptions, info: null, xmp: null };
+      if(meta && type === "image/x-exr"){
+        const fx = M.fieldsFromXmp(meta.xmp), d = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(fx.date || "");
+        exrMeta = { owner: [fx.author, fx.copyright].filter(Boolean).join(" · "), comments: [fx.title, fx.description].filter(Boolean).join(" — "), capDate: d ? `${d[1]}:${d[2]}:${d[3]} ${d[4]}:${d[5]}:${d[6] || "00"}` : "",
+          latitude: Number.isFinite(over?.lat) ? over.lat : NaN, longitude: Number.isFinite(over?.lon) ? over.lon : NaN };
+      } else exrMeta = null;
+    }catch(err){ console.warn("[metadatos]", err); meta = null; exrMeta = null; }
+  } else { pdfOptions = { ...pdfOptions, info: null, xmp: null }; exrMeta = null; }
 
   status("Exportando…");
   let blob, cleanResult;
@@ -751,7 +758,7 @@ export async function exportDialog(){
   if(meta && out === blob){
     try{
       const M = await import("./metadata.js");
-      if(type === "application/pdf") metaNote = M.describeMeta(meta, metaPolicy || META_NONE, over);
+      if(type === "application/pdf" || type === "image/x-exr") metaNote = M.describeMeta(meta, metaPolicy || META_NONE, over);
       else {
         const embedded = await M.embedMetadata(out, meta);
         if(embedded !== out){ out = embedded; metaNote = M.describeMeta(meta, metaPolicy || META_NONE, over); }
