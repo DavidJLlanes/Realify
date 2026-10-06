@@ -85,3 +85,54 @@ export async function noiseHi(inp, w, h, { amount = 12, mono = true, gaussian = 
   }
   return out;
 }
+
+/* ── filtros avanzados (v258): superficie, reducción de ruido por canal, nitidez inteligente y desenfoque de lente ─────────────────────────────────────────────
+   Las mismas cuentas que los filtros de 8 bits de filters/advanced.js (que mezclan el original con su versión borrosa), pero sobre los 16 bits y en coma flotante:
+   el desenfoque es el gaussiano de tres cajas de arriba (sigma = radio, igual que el `blur(Npx)` de CSS de la vista previa), los umbrales se dan en niveles de 8 bits (× 257). */
+const lum16 = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+async function blurAll(inp, w, h, sigma, tick){ return [await blurChannel(inp, w, h, 0, sigma, tick), await blurChannel(inp, w, h, 1, sigma, tick), await blurChannel(inp, w, h, 2, sigma, tick)]; }
+
+/** Desenfoque de superficie: mezcla con el desenfoque donde el brillo cambia poco (|l − lb| < umbral). */
+export async function surfaceBlurHi(inp, w, h, { radius = 8, threshold = 24 } = {}, tick = tickDefault){
+  if(!(radius > 0)) return null;
+  const [R, G, B] = await blurAll(inp, w, h, radius, tick), out = new Uint16Array(inp.length), n = w * h, th = Math.max(1, threshold) * 257;
+  for(let i = 0, j = 0; i < n; i++, j += 3){
+    const v0 = inp[j], v1 = inp[j + 1], v2 = inp[j + 2], f = Math.max(0, 1 - Math.abs(lum16(v0, v1, v2) - lum16(R[i], G[i], B[i])) / th);
+    out[j] = to16(v0 + (R[i] - v0) * f); out[j + 1] = to16(v1 + (G[i] - v1) * f); out[j + 2] = to16(v2 + (B[i] - v2) * f);
+  }
+  return out;
+}
+
+/** Reducción de ruido por canal: cada canal se mezcla con su versión borrosa en la proporción pedida. */
+export async function channelDenoiseHi(inp, w, h, { red = 25, green = 20, blue = 40, radius = 2 } = {}, tick = tickDefault){
+  if(!(radius > 0)) return null;
+  const P = await blurAll(inp, w, h, radius, tick), out = new Uint16Array(inp.length), n = w * h, k = [red / 100, green / 100, blue / 100];
+  for(let c = 0; c < 3; c++) for(let i = 0, j = c; i < n; i++, j += 3) out[j] = to16(inp[j] + (P[c][i] - inp[j]) * k[c]);
+  return out;
+}
+
+/** Nitidez inteligente: realza la diferencia con el desenfoque si pasa el umbral, con los halos limitados. */
+export async function smartSharpenHi(inp, w, h, { amount = 90, radius = 1.5, threshold = 4, halo = 35 } = {}, tick = tickDefault){
+  if(!(radius > 0)) return null;
+  const P = await blurAll(inp, w, h, radius, tick), out = new Uint16Array(inp.length), n = w * h, a = amount / 100, limit = (255 - (halo / 100) * 220) * 257, th = threshold * 257;
+  for(let c = 0; c < 3; c++) for(let i = 0, j = c; i < n; i++, j += 3){
+    const v = inp[j], diff = v - P[c][i];
+    out[j] = Math.abs(diff) > th ? to16(v + Math.max(-limit, Math.min(limit, diff * a))) : v;
+  }
+  return out;
+}
+
+/** Desenfoque de lente: mezcla con el desenfoque según la «profundidad» (luminancia o distancia al centro) respecto al plano enfocado. */
+export async function lensBlurHi(inp, w, h, { radius = 14, focus = 50, range = 18, map = "luminance", invert = false } = {}, tick = tickDefault){
+  if(!(radius > 0)) return null;
+  const [R, G, B] = await blurAll(inp, w, h, radius, tick), out = new Uint16Array(inp.length), cx = (w - 1) / 2, cy = (h - 1) / 2, max = Math.hypot(cx, cy) || 1, rg = Math.max(1, range);
+  for(let y = 0, i = 0, j = 0; y < h; y++) for(let x = 0; x < w; x++, i++, j += 3){
+    const v0 = inp[j], v1 = inp[j + 1], v2 = inp[j + 2];
+    let depth = map === "radial" ? Math.hypot(x - cx, y - cy) / max : lum16(v0, v1, v2) / 65535;
+    if(invert) depth = 1 - depth;
+    const f = Math.min(1, Math.abs(depth * 100 - focus) / rg);
+    out[j] = to16(v0 + (R[i] - v0) * f); out[j + 1] = to16(v1 + (G[i] - v1) * f); out[j + 2] = to16(v2 + (B[i] - v2) * f);
+    if((i & 0x3ffff) === 0x3ffff) await tick();
+  }
+  return out;
+}

@@ -3,6 +3,7 @@
    reeditables y porcentaje independiente en el panel de capas. */
 import { runFilter } from "./basic.js";
 import { slider, pickerGroup } from "../editor/adjust.js";
+import { surfaceBlurHi, channelDenoiseHi, smartSharpenHi, lensBlurHi } from "../editor/floatspatial.js";
 
 const clamp = v => v < 0 ? 0 : v > 255 ? 255 : v;
 const PREVIEW_PIXELS = 5e5;
@@ -71,6 +72,7 @@ function copyAlpha(out, src){ for(let i=3;i<out.length;i+=4) out[i]=src[i]; }
 export function lensBlur(opts = {}){
   const p={ radius:14, focus:50, range:18, map:"luminance", invert:false, ...opts.init };
   return runFilter({ title:"Desenfoque de lente", id:"lens-blur", params:p,float:"delta",
+    native: () => p.radius > 0 ? (inp, w, h, tick) => lensBlurHi(inp, w, h, p, tick) : null,
     build(preview){
       const box=controls([
         {label:"Radio",node:slider("Radio",0,60,p.radius,v=>{p.radius=v;preview();}," px")},
@@ -109,6 +111,7 @@ export function radialBlur(opts = {}){
 export function surfaceBlur(opts = {}){
   const p={ radius:8, threshold:24, ...opts.init };
   return runFilter({title:"Desenfoque de superficie",id:"surface-blur",params:p,float:"delta",
+    native: () => (inp, w, h, tick) => surfaceBlurHi(inp, w, h, p, tick),
     build:preview=>controls([
       {label:"Radio",node:slider("Radio",1,50,p.radius,v=>{p.radius=v;preview();}," px")},
       {label:"Umbral",node:slider("Umbral",0,100,p.threshold,v=>{p.threshold=v;preview();})}
@@ -131,6 +134,7 @@ export function highPass(opts = {}){
 export function channelDenoise(opts = {}){
   const p={ red:25, green:20, blue:40, radius:2, ...opts.init };
   return runFilter({title:"Reducción de ruido por canal",id:"channel-denoise",params:p,float:"delta",
+    native: () => (inp, w, h, tick) => channelDenoiseHi(inp, w, h, p, tick),
     build:preview=>controls([
       {label:"Canal rojo",node:slider("Canal rojo",0,100,p.red,v=>{p.red=v;preview();},"%")},
       {label:"Canal verde",node:slider("Canal verde",0,100,p.green,v=>{p.green=v;preview();},"%")},
@@ -144,6 +148,7 @@ export function channelDenoise(opts = {}){
 export function smartSharpen(opts = {}){
   const p={ amount:90, radius:1.5, threshold:4, halo:35, ...opts.init };
   return runFilter({title:"Nitidez inteligente",id:"smart-sharpen",params:p,float:"delta",
+    native: () => (inp, w, h, tick) => smartSharpenHi(inp, w, h, p, tick),
     build:preview=>controls([
       {label:"Cantidad",node:slider("Cantidad",0,300,p.amount,v=>{p.amount=v;preview();},"%")},
       {label:"Radio",node:slider("Radio",.5,12,p.radius,v=>{p.radius=v;preview();}," px",.5)},
