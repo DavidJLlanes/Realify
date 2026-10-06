@@ -1309,3 +1309,17 @@ body.wb-picking .modal,body.wb-picking #stage,body.wb-picking #stage canvas{curs
 .compat-bar ol{margin:4px 0 8px;padding-left:20px}
 .compat-bar p{margin:8px 0 2px}
 .compat-copy{margin-top:4px;padding:6px 12px;border-radius:6px;border:1px solid #4b5563;background:#262b33;color:#e9edf4;font:inherit;cursor:pointer}
+
+/* ── Color por rangos (v259): cuentagotas + ocho círculos de color, igual en móvil y escritorio ── */
+.rh-dots{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin:0 0 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.rh-dots::-webkit-scrollbar{display:none}
+.rh-eye{flex:none;width:34px;height:34px;padding:0;display:grid;place-items:center;background:transparent;border:0;color:var(--tx-dim);border-radius:50%}
+.rh-eye:hover{color:var(--tx)}
+.rh-eye.on{color:var(--ac);background:var(--ac-ghost)}
+.rh-sep{flex:none;width:1px;height:22px;background:var(--line-strong)}
+.rh-dot,.rh-eye{min-width:0;min-height:0;box-sizing:border-box;aspect-ratio:1}
+.rh-dot{flex:none;position:relative;width:30px;height:30px;padding:0;border-radius:50%;border:0;background:var(--c);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.rh-dot.on{box-shadow:0 0 0 2px var(--s-700),0 0 0 4px var(--tx)}
+.rh-dot.mod::after{content:"";position:absolute;right:-1px;top:-1px;width:9px;height:9px;border-radius:50%;background:var(--ac);border:2px solid var(--s-700)}
+.rh-reset{margin-top:6px}
+@media (pointer:coarse){.rh-dot{width:32px;height:32px}.rh-eye{width:38px;height:38px}.rh-reset{min-height:34px}}

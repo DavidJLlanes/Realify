@@ -429,8 +429,8 @@ medios, luces o blancos) eligiéndola en el histograma; brillo, contraste,
 saturación y calidez con bordes suaves.
 
 **Color avanzado**: gradación de color, virado dividido, filtro fotográfico,
-**tono y saturación por rangos** (mezclador HSL de ocho rangos con cuentagotas;
-no afecta a grises), reemplazar color, igualar color, curvas Lab y de
+**tono y saturación por rangos** (mezclador de ocho rangos con círculos de color,
+cuentagotas, Difusión e Intervalo, y modo Premium 👑 en OKLCh; no afecta a grises), reemplazar color, igualar color, curvas Lab y de
 luminosidad, color por canales, equilibrio de color, corrección selectiva,
 mezclador de canales y mapa de degradado.
 

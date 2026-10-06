@@ -648,10 +648,15 @@ const TOPICS = [
               densidad y «Conservar luminosidad».</li>
             <li id="adj-rangehsl"><b>Tono y saturación por rangos</b> («Color por rangos» en el
               móvil). Un mezclador HSL de ocho rangos —rojos, naranjas, amarillos, verdes,
-              aguamarinas, azules, púrpuras y magentas— con tono, saturación y luminancia
-              propios. Los grises, blancos y negros no pertenecen a ningún rango, así que
-              no cambian. Con el <b>cuentagotas</b>, toca un color de la miniatura y se elige
-              su rango; «Ampliar» y «Estrechar» ajustan su anchura desde la foto.</li>
+              aguamarinas, azules, púrpuras y magentas— con <b>matiz, saturación y luminancia</b>
+              propios. Se elige el color tocando uno de los <b>ocho círculos</b>; con el
+              <b>cuentagotas</b> (a su izquierda) tocas un color de la propia foto y se elige su
+              rango, centrado en ese tono. <b>Intervalo</b> es cuántos grados de tono abarca el
+              rango y <b>Difusión</b> cuánto de ese intervalo cae suavemente (100&nbsp;% = caída
+              suave en todo el intervalo; 0&nbsp;% = borde duro). Los grises, blancos y negros no
+              pertenecen a ningún rango, así que no cambian. Con <b>Premium 👑</b> el mismo
+              ajuste se calcula en OKLCh y luz lineal: girar el tono conserva la luminosidad,
+              la saturación actúa sobre el croma, hay mapeo de gama y tramado (sin bandas).</li>
             <li><b>Reemplazar color.</b> Elige un tono en la miniatura y cámbialo por otro,
               con tolerancia, saturación y luminosidad.</li>
             <li><b>Igualar color.</b> Copia el color y la luz de otra capa o de otra imagen

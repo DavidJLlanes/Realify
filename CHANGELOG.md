@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v259 · Color por rangos: círculos de color, Difusión y Premium
+- **Selector de colores** (`js/editor/advanced-color.js`): **cuentagotas + ocho círculos de color** (el elegido lleva aro; un punto marca los que ya tienen cambios), igual en móvil y escritorio. El cuentagotas toca un color de la propia foto: elige su rango y lo centra en ese tono.
+- **Mandos** como en un mezclador profesional: **Matiz, Saturación, Luminancia, Difusión e Intervalo** (la anchura del rango). **Difusión** es nueva: cuánto del intervalo cae suavemente (100 % = como hasta ahora, así que las capas hechas antes se ven igual; 0 % = borde duro). Se quitan el desplegable de rango, el centro manual y «＋ Ampliar / − Estrechar», que Intervalo y el cuentagotas sustituyen.
+- **Modo Premium 👑** (`js/editor/rangehsl.js`): los mismos rangos y pesos, con el cambio calculado en **OKLCh sobre luz lineal** (girar el tono conserva la luminosidad percibida, la saturación actúa sobre el croma, la luminosidad apaga el croma hacia el blanco y el negro), mapeo de gama y tramado; vista previa por tabla interpolada y resultado final exacto. Interruptor con corona en la barra de Aplicar (móvil) o encima de los mandos (escritorio); apagado, queda como antes.
+- Pruebas: `tests/rango-hsl.mjs` (motor básico y Premium, Difusión, interfaz móvil y escritorio, cuentagotas, interruptor) y `node tests/calidad-herramienta.mjs adj.rangeHsl` (APTO en móvil y escritorio).
+
 ### v258 · Arreglos: Restaurar caras y combinar capas
 - **Restaurar caras**: ya no tapa la foto con un cuadrado. Antes se pegaba la plantilla entera de 512×512 (con fondo, pelo y cuello inventados por el modelo) con un borde de 64 px; ahora sólo se pega el **óvalo de la cara** (frente, mejillas y barbilla) con un borde suave, y fondo, pelo y orejas quedan tal cual la foto. Comprobado con el modelo real (`tests/restaurar-caras.mjs`, con una foto grande y con una cara pequeña y degradada).
 - **Combinar capas** (hacia abajo y «Combinar capas seleccionadas»): una capa de resultado de un filtro o de la IA («Retoque de cara», etc.) ya no se rechaza con «tiene recorte, estilos, filtros o Fusionar si»: sus píxeles ya están aplicados, así que se combina; la capa que recibe pierde la anotación de filtro (si no, un recálculo posterior borraría lo combinado) y deshacer la devuelve. Siguen bloqueados el recorte, los estilos y «Fusionar si». `tests/combinar-filtro.mjs`.
