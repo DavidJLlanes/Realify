@@ -22,3 +22,6 @@ node_modules/
 .vscode/
 .idea/
 *.swp
+
+# Paquetes de Python de las pruebas (no son parte de la web)
+*.whl
