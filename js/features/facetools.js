@@ -459,7 +459,7 @@ export async function openFaceRetouch(){
    su sitio) con una semejanza (giro, escala y desplazamiento), GFPGAN la
    reconstruye a 512×512 y se devuelve a la foto. Premium:
      · Bueno: la cara se recorta de la foto a resolución completa y se
-       pega en luz lineal con un borde amplio y suave.
+       pega en luz lineal sólo dentro del óvalo de la cara, con un borde suave.
      · Mejor: si la cara es pequeña, la restauración se filtra antes de
        reducirla (sin dientes de sierra); si es mayor que los 512 px del
        modelo, se le suma el detalle de la foto por encima de esa
@@ -514,8 +514,9 @@ function prepareRestored(M, out512, rgba, W, H){
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
     const X = x0 + x + 0.5, Y = y0 + y + 0.5, u = a * X - b * Y + tx - 0.5, v = b * X + a * Y + ty - 0.5;
     if(u < 0 || v < 0 || u > 511 || v > 511) continue;
-    // Borde suave: 24 px de margen y 64 de fundido (en la plantilla)
-    const e = Math.min(u, v, 511 - u, 511 - v), mk = Math.min(1, Math.max(0, (e - 24) / 64));
+    /* Sólo el óvalo de la cara (frente, mejillas y barbilla), con borde suave: la plantilla de 512×512 incluye fondo, pelo y cuello que el modelo
+       inventa y que, pegados como un rectángulo, tapaban la foto con un cuadrado borroso. */
+    const d = Math.hypot((u - 256) / 168, (v - 292) / 214), mk = Math.min(1, Math.max(0, (1 - d) / 0.3));
     if(mk <= 0) continue;
     const u0 = u | 0, v0 = v | 0, u1 = Math.min(511, u0 + 1), v1 = Math.min(511, v0 + 1), fu = u - u0, fv = v - v0, p = y * w + x;
     for(let c = 0; c < 3; c++){
@@ -524,7 +525,7 @@ function prepareRestored(M, out512, rgba, W, H){
     }
     m[p] = mk;
     // Color medio del centro de la cara (restaurado y original)
-    if(mk >= 1 && Math.abs(u - 256) < 110 && Math.abs(v - 300) < 110){
+    if(mk >= 1 && Math.abs(u - 256) < 90 && Math.abs(v - 300) < 100){
       const i = ((y0 + y) * W + x0 + x) * 4;
       for(let c = 0; c < 3; c++){ sum[c] += col[c][p]; sum[3 + c] += DEC[rgba[i + c]]; } cnt++;
     }
