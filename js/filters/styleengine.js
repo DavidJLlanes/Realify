@@ -21,7 +21,7 @@
 
 import { curveFunction } from "../editor/curves.js";
 
-const GEN = 1280;                    // lado máximo del lienzo donde se generan las capas espaciales
+const GEN = 800;                     // lado máximo del lienzo donde se generan las capas espaciales (son luces suaves)
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const clamp255 = v => v < 0 ? 0 : v > 255 ? 255 : v;
 const lum = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
@@ -251,7 +251,8 @@ function makeHue(L){
       const c = hslToRgb(h, s, l); o[0] = c[0]; o[1] = c[1]; o[2] = c[2]; return;
     }
     let H = ms[0], S = ms[1], Lg = ms[2];
-    for(const R of rg){ const w = wgt(h, R) * (s > 0.02 ? Math.min(1, s * 4) : 0); if(w > 0){ H += R.h * w; S += R.s * w; Lg += R.l * w; } }
+    // el peso por saturación es continuo: los grises no pertenecen a ningún rango, sin escalones
+    for(const R of rg){ const w = wgt(h, R) * Math.min(1, s * 8); if(w > 0){ H += R.h * w; S += R.s * w; Lg += R.l * w; } }
     if(!H && !S && !Lg){ o[0] = r; o[1] = g; o[2] = b; return; }
     h += H;
     s = S >= 0 ? clamp(s * (1 + S / 100), 0, 1) : s * (1 + S / 100);
@@ -364,18 +365,51 @@ function blurRGBA(px, w, h, sigma){
   const p = premul(px, w * h), o = gaussian(p, w, h, sigma, 4);
   return unpremul(o === p ? p : o, w * h);
 }
-function motionBlur(px, w, h, angle, dist){
-  const n = w * h, p = premul(px, n), o = new Float32Array(n * 4), a = angle * Math.PI / 180, dx = Math.cos(a), dy = -Math.sin(a), steps = Math.max(1, Math.round(dist));
+function motionBlurPremul(p, w, h, angle, dist){
+  const o = new Float32Array(w * h * 4), a = angle * Math.PI / 180, dx = Math.cos(a), dy = -Math.sin(a), steps = Math.max(1, Math.min(Math.round(dist) + 1, 41));
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
     let r = 0, g = 0, b = 0, al = 0;
     for(let s = 0; s < steps; s++){
       const t = (s / (steps - 1 || 1) - 0.5) * dist, sx = x + dx * t, sy = y + dy * t;
-      const ix = clamp(Math.round(sx), 0, w - 1), iy = clamp(Math.round(sy), 0, h - 1), q = (iy * w + ix) * 4;
+      const ix = sx < 0 ? 0 : sx > w - 1 ? w - 1 : (sx + 0.5) | 0, iy = sy < 0 ? 0 : sy > h - 1 ? h - 1 : (sy + 0.5) | 0, q = (iy * w + ix) * 4;
       r += p[q]; g += p[q + 1]; b += p[q + 2]; al += p[q + 3];
     }
     const i = (y * w + x) * 4; o[i] = r / steps; o[i + 1] = g / steps; o[i + 2] = b / steps; o[i + 3] = al / steps;
   }
-  return unpremul(o, n);
+  return o;
+}
+/** Reduce un buffer premultiplicado por un factor entero (promedio de cada bloque) */
+function downsample(p, w, h, f){
+  const w2 = Math.max(1, Math.floor(w / f)), h2 = Math.max(1, Math.floor(h / f)), o = new Float32Array(w2 * h2 * 4);
+  for(let y = 0; y < h2; y++) for(let x = 0; x < w2; x++){
+    let r = 0, g = 0, b = 0, a = 0, n = 0;
+    for(let yy = y * f; yy < Math.min(h, (y + 1) * f); yy++) for(let xx = x * f; xx < Math.min(w, (x + 1) * f); xx++){ const q = (yy * w + xx) * 4; r += p[q]; g += p[q + 1]; b += p[q + 2]; a += p[q + 3]; n++; }
+    const i = (y * w2 + x) * 4; o[i] = r / n; o[i + 1] = g / n; o[i + 2] = b / n; o[i + 3] = a / n;
+  }
+  return { p: o, w: w2, h: h2 };
+}
+/** Amplía (interpolación bilineal) un buffer premultiplicado a w × h */
+function upsample(p, w2, h2, w, h){
+  const o = new Float32Array(w * h * 4);
+  for(let y = 0; y < h; y++){
+    const fy = clamp((y + 0.5) * h2 / h - 0.5, 0, h2 - 1), y0 = fy | 0, y1 = Math.min(h2 - 1, y0 + 1), ty = fy - y0;
+    for(let x = 0; x < w; x++){
+      const fx = clamp((x + 0.5) * w2 / w - 0.5, 0, w2 - 1), x0 = fx | 0, x1 = Math.min(w2 - 1, x0 + 1), tx = fx - x0;
+      const a = (y0 * w2 + x0) * 4, b = (y0 * w2 + x1) * 4, c = (y1 * w2 + x0) * 4, d = (y1 * w2 + x1) * 4, i = (y * w + x) * 4;
+      for(let k = 0; k < 4; k++) o[i + k] = (p[a + k] * (1 - tx) + p[b + k] * tx) * (1 - ty) + (p[c + k] * (1 - tx) + p[d + k] * tx) * ty;
+    }
+  }
+  return o;
+}
+function motionBlur(px, w, h, angle, dist){
+  const n = w * h; let p = premul(px, n);
+  // con distancias grandes se desenfoca una copia reducida (la imagen que sale es igual de suave y cuesta una fracción)
+  let f = 1; while(dist / f > 20 && f < 16) f *= 2;
+  if(f > 1){
+    const d = downsample(p, w, h, f), b = motionBlurPremul(d.p, d.w, d.h, angle, dist / f);
+    p = upsample(b, d.w, d.h, w, h);
+  } else p = motionBlurPremul(p, w, h, angle, dist);
+  return unpremul(p, n);
 }
 function radialBlur(px, w, h, amount, mode){
   const n = w * h, p = premul(px, n), o = new Float32Array(n * 4), cx = w / 2, cy = h / 2, steps = Math.max(4, Math.min(24, Math.round(amount * 0.8 + 4)));
@@ -423,10 +457,9 @@ function transform(px, w, h, op, k){
     const ux = (dx * cr + dy * sr) / sx + cx - 0.5, uy = (-dx * sr + dy * cr) / sy + cy - 0.5;
     if(ux < -0.5 || uy < -0.5 || ux > w - 0.5 || uy > h - 0.5) continue;
     const x0 = Math.floor(ux), y0 = Math.floor(uy), fx = ux - x0, fy = uy - y0, i = (y * w + x) * 4;
-    for(let c = 0; c < 4; c++){
-      const g = (xx, yy) => (xx < 0 || yy < 0 || xx >= w || yy >= h) ? 0 : P[(yy * w + xx) * 4 + c];
-      out[i + c] = (g(x0, y0) * (1 - fx) + g(x0 + 1, y0) * fx) * (1 - fy) + (g(x0, y0 + 1) * (1 - fx) + g(x0 + 1, y0 + 1) * fx) * fy;
-    }
+    const in00 = x0 >= 0 && y0 >= 0 && x0 < w && y0 < h, in10 = x0 + 1 >= 0 && y0 >= 0 && x0 + 1 < w && y0 < h, in01 = x0 >= 0 && y0 + 1 >= 0 && x0 < w && y0 + 1 < h, in11 = x0 + 1 >= 0 && y0 + 1 >= 0 && x0 + 1 < w && y0 + 1 < h;
+    const q00 = (y0 * w + x0) * 4, q10 = q00 + 4, q01 = q00 + w * 4, q11 = q01 + 4, w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+    for(let c = 0; c < 4; c++) out[i + c] = (in00 ? P[q00 + c] * w00 : 0) + (in10 ? P[q10 + c] * w10 : 0) + (in01 ? P[q01 + c] * w01 : 0) + (in11 ? P[q11 + c] * w11 : 0);
   }
   return unpremul(out, w * h);
 }
@@ -519,7 +552,8 @@ function buildNode(L, W, H, k, ctx){
 /** Un nodo de contenido (relleno, copia, grupo fusionado). Sin filtros espaciales se evalúa por píxel; con ellos, se genera en un lienzo reducido. */
 function contentNode(L, meta, W, H, k, ctx){
   const ops = L.ops || [];
-  const spatial = !isPointwiseOps(ops);
+  // un grupo que se compone como un todo (destellos, copias fusionadas…) no depende del color de la foto: se genera UNA vez en el lienzo reducido
+  const spatial = !isPointwiseOps(ops) || L.k === "group";
   // Grupo que se compone como un todo (con modo propio, fusionado o con filtros) frente a «paso a través»
   if(L.k === "group"){
     const passThrough = (L.bm || "pass") === "pass" && !L.iso && !ops.length;
@@ -691,6 +725,36 @@ export function styleIsPure(recipe){
   return walk(recipe.layers);
 }
 
+/* Recetas «puras» (sólo dependen del color de cada píxel): se evalúan una vez sobre una rejilla de colores 49³ y la imagen se resuelve por interpolación
+   trilineal. Es unas 20 veces más rápido que recorrer las capas por cada píxel, y el error frente al cálculo exacto es menor que un nivel de 8 bits
+   (tests/estilos-motor.mjs lo comprueba). `opts.exact` fuerza el cálculo píxel a píxel. */
+const LUT_N = 49, lutCache = new WeakMap(), planCache = new WeakMap();
+function lutFor(recipe){
+  let t = lutCache.get(recipe);
+  if(t) return t;
+  const f = styleColorFn(recipe, 1), N = LUT_N, S = 255 / (N - 1);
+  t = new Float32Array(N * N * N * 3);
+  for(let r = 0, o = 0; r < N; r++) for(let g = 0; g < N; g++) for(let b = 0; b < N; b++, o += 3){ const c = f(r * S, g * S, b * S); t[o] = c[0]; t[o + 1] = c[1]; t[o + 2] = c[2]; }
+  lutCache.set(recipe, t); return t;
+}
+function applyLut(data, W, H, recipe, t){
+  const lut = lutFor(recipe), N = LUT_N, S = (N - 1) / 255, N2 = N * N, f32 = data instanceof Float32Array, clamped = data instanceof Uint8ClampedArray;
+  for(let i = 0, n = W * H * 4; i < n; i += 4){
+    const r0 = data[i], g0 = data[i + 1], b0 = data[i + 2], fr = r0 * S, fg = g0 * S, fb = b0 * S;
+    const ri = Math.min(N - 2, fr | 0), gi = Math.min(N - 2, fg | 0), bi = Math.min(N - 2, fb | 0), tr = fr - ri, tg = fg - gi, tb = fb - bi;
+    const o = (ri * N2 + gi * N + bi) * 3, oG = N * 3, oR = N2 * 3;
+    let R = 0, G = 0, B = 0;
+    for(let c = 0; c < 3; c++){
+      const c00 = lut[o + c] + (lut[o + 3 + c] - lut[o + c]) * tb, c01 = lut[o + oG + c] + (lut[o + oG + 3 + c] - lut[o + oG + c]) * tb;
+      const c10 = lut[o + oR + c] + (lut[o + oR + 3 + c] - lut[o + oR + c]) * tb, c11 = lut[o + oR + oG + c] + (lut[o + oR + oG + 3 + c] - lut[o + oR + oG + c]) * tb;
+      const v = (c00 + (c01 - c00) * tg) * (1 - tr) + (c10 + (c11 - c10) * tg) * tr;
+      if(c === 0) R = v; else if(c === 1) G = v; else B = v;
+    }
+    if(t < 1){ R = r0 + (R - r0) * t; G = g0 + (G - g0) * t; B = b0 + (B - b0) * t; }
+    if(f32 || clamped){ data[i] = R; data[i + 1] = G; data[i + 2] = B; } else { data[i] = clamp255(R) + 0.5; data[i + 1] = clamp255(G) + 0.5; data[i + 2] = clamp255(B) + 0.5; }
+  }
+}
+
 /**
  * Aplica una receta a una imagen RGBA de 8 bits (en su sitio).
  * @param data  Uint8ClampedArray RGBA (o Float32Array 0-255)
@@ -699,6 +763,7 @@ export function styleIsPure(recipe){
  */
 export function renderStyle(data, W, H, recipe, opts = {}){
   const intensity = opts.intensity ?? 1, ref = recipe.ref || opts.ref || 2000, k = Math.max(W, H) / ref;
+  if(!opts.exact && W * H >= 120000 && styleIsPure(recipe)){ applyLut(data, W, H, recipe, clamp(intensity, 0, 1)); return []; }
   const ctx = { skipped: new Set(), spatialSnaps: [], cur: null, lowPhoto: null };
   // foto reducida para las copias espaciales (se calcula sólo si hace falta)
   let low = null, lowKey = "";
@@ -716,10 +781,18 @@ export function renderStyle(data, W, H, recipe, opts = {}){
     }
     return low;
   };
-  const nodes = buildNodes(recipe.layers || [], W, H, k, ctx);
-  for(const n of ctx.spatialSnaps) n.prepare(nodes);
+  const key = W + "x" + H + "@" + ref;
+  let plan = planCache.get(recipe);
+  let nodes;
+  if(plan && plan.key === key) nodes = plan.nodes;
+  else {
+    nodes = buildNodes(recipe.layers || [], W, H, k, ctx);
+    for(const n of ctx.spatialSnaps) n.prepare(nodes);
+    // lo que se genera (destellos, rellenos…) sólo depende de la receta y del tamaño: se reutiliza al mover la intensidad. Las copias con filtros espaciales dependen de la foto.
+    if(!ctx.spatialSnaps.length) planCache.set(recipe, { key, nodes });
+  }
   const st = [0, 0, 0, 1], cur = { base: [0, 0, 0], snaps: new Map() };
-  const t = clamp(intensity, 0, 1), f32 = data instanceof Float32Array;
+  const t = clamp(intensity, 0, 1), f32 = data instanceof Float32Array, clamped = data instanceof Uint8ClampedArray;
   for(let y = 0; y < H; y++){
     for(let x = 0; x < W; x++){
       const i = (y * W + x) * 4, r = data[i], g = data[i + 1], b = data[i + 2];
@@ -728,8 +801,8 @@ export function renderStyle(data, W, H, recipe, opts = {}){
       runNodes(nodes, st, x, y, cur);
       let R = st[0], G = st[1], B = st[2];
       if(t < 1){ R = r + (R - r) * t; G = g + (G - g) * t; B = b + (B - b) * t; }
-      if(f32){ data[i] = R; data[i + 1] = G; data[i + 2] = B; }
-      else { data[i] = R + 0.5; data[i + 1] = G + 0.5; data[i + 2] = B + 0.5; }
+      if(f32 || clamped){ data[i] = R; data[i + 1] = G; data[i + 2] = B; }          // un Uint8ClampedArray ya redondea al asignar
+      else { data[i] = clamp255(R) + 0.5; data[i + 1] = clamp255(G) + 0.5; data[i + 2] = clamp255(B) + 0.5; }
     }
   }
   return [...ctx.skipped];
