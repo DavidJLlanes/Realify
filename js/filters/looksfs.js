@@ -21,7 +21,7 @@ const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "
 export function lookFullscreen({ state, preview, source, edit, onApplied, api }){
   const { styleAt, styleCount, allStyleCats, makeThumbs } = api;
   let sh = null, resolve = null, closed = false, layerRef = null;
-  const th = makeThumbs(source, 112);
+  const th = makeThumbs(source, 112, i => { if(closed) return; const b = cells.get(i); if(b){ const im = b.querySelector("img"); if(im) im.src = th.canvas(i).toDataURL("image/jpeg", .8); } sh?.redraw(); });
   const cats = allStyleCats();
   let cat = (styleAt(state.picked)?.cat) || cats[0], query = "";
 
@@ -35,7 +35,9 @@ export function lookFullscreen({ state, preview, source, edit, onApplied, api })
   };
   const hist = stateHistory(state, () => { syncAll(); preview(); }, { setUndo: (u, r) => sh?.setUndo(u, r) });
 
-  const pick = idx => {
+  const pick = async idx => {
+    if(idx >= 0 && !(await api.prepareStyle(idx))) return;          // descarga la textura (si el estilo la lleva) antes de calcular
+    if(closed) return;
     state.picked = idx;
     if(idx >= api.LOOKS.length) state.id = styleAt(idx).id; else delete state.id;
     if(idx >= 0) cat = styleAt(idx).cat;

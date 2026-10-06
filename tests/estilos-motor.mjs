@@ -89,4 +89,19 @@ const run = (recipe, f, w = 8, h = 8, o = {}) => { const d = img(w, h, f); const
       if(sk.length) ig.push(`${s.id}: ${sk.join(",")}`); let nan = false, mn = 255, mx = 0; for(let i = 0; i < d.length; i += 4){ for(let c = 0; c < 3; c++){ const v = d[i + c]; if(!(v >= 0 && v <= 255)) nan = true; mn = Math.min(mn, v); mx = Math.max(mx, v); } }
       chk(!nan, `${s.id}: valores fuera de rango`); } }
   console.log(`recetas evaluadas: ${n}`); chk(n >= 130, "hay al menos 130 recetas convertidas: " + n); chk(ig.length === 0, "elementos ignorados por el motor: " + ig.slice(0, 5).join(" | ")); if(slow.length) console.log("lentas (miniatura 96×64):", slow.slice(0, 6).join(", ")); }
+// texturas (destellos y bokeh): capa «tex» en modo trama, con una imagen sintética de 200×140 con un destello rojo pegado al borde derecho
+{ const { registerTexture, recipeTextures } = await import(path.join(ROOT, "js/filters/styleengine.js"));
+  const tw = 200, th2 = 140, td = new Uint8ClampedArray(tw * th2 * 4); for(let y = 0; y < th2; y++) for(let x = 0; x < tw; x++){ const i = (y * tw + x) * 4, v = Math.max(0, (x - 150) / 50) * 255; td[i] = v; td[i + 1] = v * 0.2; td[i + 2] = 0; td[i + 3] = 255; }
+  registerTexture("t/sint.jpg", tw, th2, td);
+  const R = { ref: 100, layers: [{ k: "tex", src: "t/sint.jpg", bm: "screen", op: 1 }] };
+  chk(recipeTextures(R).join() === "t/sint.jpg", "recipeTextures lista las texturas de una receta");
+  chk(!styleIsPure(R), "una receta con textura no es «pura» (depende de la posición)");
+  let a = run(R, () => [0, 0, 0], 100, 70), L = px(a.d, 100, 2, 35), Rr = px(a.d, 100, 97, 35);
+  chk(L[0] < 3 && Rr[0] > 200 && Rr[1] > 30 && Rr[1] < 70, `apaisado: el destello queda a la derecha y no a la izquierda (izq ${L}, der ${Rr})`);
+  a = run(R, () => [0, 0, 0], 70, 100); const T = px(a.d, 70, 35, 2), B = px(a.d, 70, 35, 97), Rt = px(a.d, 70, 67, 50);
+  chk(!a.sk.length && (Math.max(T[0], B[0], Rt[0]) > 150), `vertical: la textura se gira y sigue habiendo destello (sup ${T}, inf ${B}, der ${Rt})`);
+  a = run(R, () => [100, 100, 100], 100, 70); const S = px(a.d, 100, 97, 35); chk(near(S[0], 255 - (255 - 100) * (255 - px(run(R, () => [0, 0, 0], 100, 70).d, 100, 97, 35)[0]) / 255, 1.5), "trama sobre gris: 1 − (1 − base)(1 − textura)");
+  a = run(R, () => [100, 100, 100], 100, 70, { intensity: 0.5 }); const H = px(a.d, 100, 97, 35); chk(H[0] > 100 && H[0] < S[0], `intensidad 50 %: a medio camino (${H} entre 100 y ${S})`);
+  a = run({ ref: 100, layers: [{ k: "tex", src: "t/falta.jpg", bm: "screen" }] }, () => [10, 20, 30]); chk(a.sk.length === 1 && px(a.d, 8, 3, 3)[2] === 30, "textura sin cargar: se anota como ignorada y la foto no cambia");
+  const g = run(R, () => [0, 0, 0], 1000, 700, { exact: true }); chk(px(g.d, 1000, 997, 350)[0] > 200 && px(g.d, 1000, 5, 350)[0] < 3, "1000×700: mismo resultado a otra escala"); }
 console.log(bad ? "FALLO" : "OK"); process.exit(bad ? 1 : 0);

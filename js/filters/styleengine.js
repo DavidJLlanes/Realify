@@ -524,6 +524,46 @@ function layerMeta(L){
   return { bm: L.bm || "normal", op: (L.op ?? 1) * (L.fo ?? 1), hid: !!L.hid, kind: L.k };
 }
 
+/* ── Texturas (imágenes de destellos y bokeh) ──────────────────────────────────
+   Una capa {k:"tex", src, bm:"screen"} mezcla una imagen sobre la foto. Las imágenes las decodifica quien llama (looks.js) y las registra aquí con
+   registerTexture(src, w, h, RGBA); la miniatura (misma ruta + "#t") se usa si la grande aún no está. Se ajusta al documento: se gira si el formato
+   es el contrario, se estira si la proporción difiere menos de 1,5× (los destellos de borde no se pierden) y, si no, se recorta centrada. Para
+   reducir sin dentado se usa la copia a mitad de tamaño más cercana (pirámide). */
+const TEX = new Map(); let texVersion = 0;
+export function registerTexture(src, w, h, data, thumb = false){ TEX.set(thumb ? src + "#t" : src, { w, h, data, mips: null }); texVersion++; }
+export const hasTexture = (src, thumb = false) => TEX.has(thumb ? src + "#t" : src);
+export function recipeTextures(recipe){ const out = []; const walk = ls => (ls || []).forEach(L => { if(L.k === "tex") out.push(L.src); if(L.kids) walk(L.kids); }); walk(recipe && recipe.layers); return out; }
+function texMip(t, n){
+  if(!t.mips) t.mips = [{ w: t.w, h: t.h, data: t.data }];
+  while(t.mips.length <= n){
+    const s = t.mips[t.mips.length - 1], w = Math.max(1, s.w >> 1), h = Math.max(1, s.h >> 1), d = new Uint8ClampedArray(w * h * 4);
+    for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+      const x0 = Math.min(s.w - 1, x * 2), x1 = Math.min(s.w - 1, x0 + 1), y0 = Math.min(s.h - 1, y * 2), y1 = Math.min(s.h - 1, y0 + 1), o = (y * w + x) * 4;
+      for(let c = 0; c < 4; c++) d[o + c] = (s.data[(y0 * s.w + x0) * 4 + c] + s.data[(y0 * s.w + x1) * 4 + c] + s.data[(y1 * s.w + x0) * 4 + c] + s.data[(y1 * s.w + x1) * 4 + c] + 2) >> 2;
+    }
+    t.mips.push({ w, h, data: d });
+  }
+  return t.mips[n];
+}
+function texSampler(t, W, H){
+  const tr = (W >= H) !== (t.w >= t.h) && Math.abs(W / H - 1) > 0.05, ew = tr ? t.h : t.w, eh = tr ? t.w : t.h, r = (W / H) / (ew / eh);
+  let sx, sy;                                           // doc px → px de la textura efectiva
+  if(r >= 1 / 1.5 && r <= 1.5){ sx = ew / W; sy = eh / H; }
+  else { const s = Math.min(ew / W, eh / H); sx = sy = s; }
+  const ox = (ew - W * sx) / 2, oy = (eh - H * sy) / 2;
+  const n = Math.max(0, Math.floor(Math.log2(Math.max(1, Math.min(sx, sy))))), f = 2 ** n, m = texMip(t, n), out = [0, 0, 0];
+  return (x, y) => {
+    const ex = ((x + 0.5) * sx + ox) / f - 0.5, ey = ((y + 0.5) * sy + oy) / f - 0.5;
+    let u, v;
+    if(tr){ u = ey; v = m.h - 1 - ex; } else { u = ex; v = ey; }   // giro de 90° en sentido horario
+    u = clamp(u, 0, m.w - 1); v = clamp(v, 0, m.h - 1);
+    const x0 = u | 0, y0 = v | 0, x1 = Math.min(m.w - 1, x0 + 1), y1 = Math.min(m.h - 1, y0 + 1), tx = u - x0, ty = v - y0, d = m.data;
+    const a = (y0 * m.w + x0) * 4, b = (y0 * m.w + x1) * 4, c = (y1 * m.w + x0) * 4, e = (y1 * m.w + x1) * 4;
+    for(let i = 0; i < 3; i++) out[i] = (d[a + i] * (1 - tx) + d[b + i] * tx) * (1 - ty) + (d[c + i] * (1 - tx) + d[e + i] * tx) * ty;
+    return out;
+  };
+}
+
 function buildNode(L, W, H, k, ctx){
   const meta = layerMeta(L);
   if(L.k === "adj"){
@@ -544,6 +584,12 @@ function buildNode(L, W, H, k, ctx){
   }
   if(L.k === "solid" || L.k === "grad" || L.k === "pix" || L.k === "snap" || L.k === "group"){
     return contentNode(L, meta, W, H, k, ctx);
+  }
+  if(L.k === "tex"){
+    const t = TEX.get(L.src) || TEX.get(L.src + "#t");
+    if(!t){ ctx.skipped.add("textura sin cargar " + L.src); return null; }
+    const sample = texSampler(t, W, H), bm = meta.bm, op = meta.op;
+    return { ...meta, run(st, x, y){ if(op <= 0) return; const c = sample(x, y); composite(st, c[0], c[1], c[2], op, bm); } };
   }
   ctx.skipped.add("capa " + L.k);
   return null;
@@ -717,7 +763,7 @@ function renderSnapBuffer(L, stack, node, W, H, k, ctx){
 /** ¿La receta sólo depende del color de cada píxel (no de su posición ni de sus vecinos)? Entonces se puede evaluar como una función de color. */
 export function styleIsPure(recipe){
   const walk = layers => (layers || []).every(L => {
-    if(L.k === "grad" || L.k === "pix") return false;
+    if(L.k === "grad" || L.k === "pix" || L.k === "tex") return false;
     if(L.ops && !isPointwiseOps(L.ops)) return false;
     if(L.k === "group") return (L.iso ? false : walk(L.kids));
     return true;
@@ -781,7 +827,7 @@ export function renderStyle(data, W, H, recipe, opts = {}){
     }
     return low;
   };
-  const key = W + "x" + H + "@" + ref;
+  const key = W + "x" + H + "@" + ref + "#" + texVersion;
   let plan = planCache.get(recipe);
   let nodes;
   if(plan && plan.key === key) nodes = plan.nodes;
