@@ -6,7 +6,7 @@ Cada fase es corta y se publica sola. Al terminar una tarea se marca `[x]` con l
 
 Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 
-## Resumen de lo pendiente (actualizado en la v246, 5 oct 2026)
+## Resumen de lo pendiente (actualizado en la v260, 6 oct 2026)
 Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada una (el detalle está en su fase).
 
 **Depende del titular**
@@ -24,6 +24,13 @@ Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada 
 **Bloqueado**
 - [x] Exportar HEIC (v245): con el codificador HEVC del dispositivo (WebCodecs) + empaquetador HEIF propio; sólo aparece donde
       existe. **Falta probarlo en un dispositivo real** (iPhone/Mac con Safari, o Chrome/Edge con codificador por hardware).
+
+**Estilos desde acciones de Photoshop (v260)**
+- [x] Lector propio de `.atn`, conversor (`tools/atn/`) y motor de recetas; Estilos a pantalla completa con capa fx. (v260) — 44 Matte + 94 Retro/destellos/bokeh/marcos/glitch.
+- [ ] Acciones sin convertir (`tools/atn/omitidos-*.json`): 62 de Retro con filtros de deformación o píxel (medios tonos, remolino, esfera, onda, inclinación, desenfoque Bokeh, texturas), los **Painting FX Canvas 1000–5000** (Diffuse, High Pass, Reduce Noise, Emboss, Ripple, Smart Sharpen, Apply Image, Sombras/luces) y el «Play all» de Matte. Requieren un motor de filtros espaciales en las recetas.
+- [ ] Contrastar con Photoshop las fórmulas aproximadas (curvas, color selectivo, balance de color, filtro fotográfico; escala de balance calibrada a 0,35) y la referencia de 3000 px para las medidas en píxeles.
+- [ ] Prueba con vista previa en dispositivo real de móvil; las miniaturas se calculan al abrir la hoja.
+- [x] Licencia de los packs: comprados por el titular (PhotoshopActs.com y «SS -»); datos separables en `assets/estilos/atn-*.json`.
 
 **Fase 20 · cabos sueltos**
 - [x] Vocabulario abierto de «Seleccionar por texto» con CLIPSeg (v246).
