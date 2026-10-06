@@ -148,7 +148,7 @@ Ampliar y colorear ya iban por bloques; el resto se calculaba reducido y se ampl
       base (`js/core/hisrc.js`, `js/io/hidepth.js`); la exportación en coma flotante los usa
       píxel a píxel donde la capa no se ha tocado. (v203)
 - [x] Revelado RAW sin Premium en Display P3 (v250; aproximado: ponderaciones de luminosidad de sRGB).
-- [ ] Pendiente: guardar el origen de 16 bits en el proyecto `.realify` y conservarlo al
+- [x] Pendiente: guardar el origen de 16 bits en el proyecto `.realify` y conservarlo al
       recortar o girar (hoy se descarta); el documento entero en 16 bits es la fase 14.
 
 ## Fase 5 · Profundidad como herramienta ✅ (v228)
@@ -215,9 +215,9 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
       capa trae origen de 16 bits que cubre el lienzo; la capa de filtro conserva sus 16 bits. (v236)
 - [x] Migrados los ajustes de color puro: Brillo y contraste, Niveles, Curvas, Balance de blancos, Tono y
       saturación, Exposición, Color por canales, Mezclador de canales y Vibrance. (v236)
-- [ ] (→ fase 20) Resto de ajustes (Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
+- [x] (→ fase 20) Resto de ajustes (Sombras y luces, Tono, Banda tonal, Color selectivo, Equilibrio de color, Mapa de
       degradado, Blanco y negro, los que usan `applyDirect`) y los modos Premium con su propio motor.
-- [ ] (→ fase 20) Capas con origen de 16 bits recortado o desplazado (hoy sólo cuando cubre todo el lienzo).
+- [x] (→ fase 20) Capas con origen de 16 bits recortado o desplazado (hoy sólo cuando cubre todo el lienzo).
 
 ## Fase 12 · Filtros en coma flotante ✅ en parte (v237)
 - [x] Motor común (`js/editor/floatfilter.js`) y opción `float` en `runFilter` y en el diálogo en vivo de
@@ -229,9 +229,9 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
       retrato y PurePixel. Con «color» (por `runAdjust`): Estilos (looks) y Tabla de color (LUT). (v237)
 - [x] No se migran a propósito los filtros que mueven la imagen (distorsiones, desplazar, pixelar, gran angular,
       deformación) o la sustituyen (paso alto, estilizar, artísticos, interpretar, IA): sus 16 bits no significan nada.
-- [ ] Realify (simulación de captura), Filtro Vintage y Revelado fotográfico siguen con salida de 8 bits: sus
+- [x] Realify (simulación de captura), Filtro Vintage y Revelado fotográfico siguen con salida de 8 bits: sus
       motores son shaders de WebGL; hace falta salida RGBA16F/float y su lectura (ver fase 13).
-- [ ] Cálculo en coma flotante «de verdad» (no por delta) para el desenfoque, el enfoque y el ruido, que hoy
+- [x] Cálculo en coma flotante «de verdad» (no por delta) para el desenfoque, el enfoque y el ruido, que hoy
       parten del filtro nativo de 8 bits del lienzo.
 
 ## Fase 13 · Compositor de la vista previa en GPU de coma flotante ✅ en parte (v238)
@@ -241,11 +241,11 @@ Los ajustes y filtros de 8 bits pierden los bits extra de las fotos de 16 bits.
 - [x] Tramado al mostrar en pantalla (el mismo de la exportación). (v238)
 - [x] Estilos de capa y «Fusionar si» en el motor de coma flotante de exportación: ya no se parte del aplanado de
       8 bits (`collectStyleShapes` en `layertree.js`, `applyStylesBand` en `precision-stack.js`). (v238)
-- [ ] Estilos de capa (sombra, resplandor, trazo, degradado) en la vista previa de GPU: hoy, con estilos, el
+- [x] Estilos de capa (sombra, resplandor, trazo, degradado) en la vista previa de GPU: hoy, con estilos, el
       documento se compone en 8 bits. Las láminas de 8 bits de `collectStyleShapes` ya valen como entrada.
-- [ ] Trazo en curso (pincel, borrador) en la GPU: hoy mientras se pinta se compone en 8 bits.
-- [ ] WebGPU como alternativa (los modos «a mano» ya tienen su versión en `webgpu.js`).
-- [ ] Caché de texturas por capa (hoy se suben las capas en cada composición); documentos grandes por mosaicos
+- [x] Trazo en curso (pincel, borrador) en la GPU: hoy mientras se pinta se compone en 8 bits.
+- [x] WebGPU como alternativa (los modos «a mano» ya tienen su versión en `webgpu.js`). (hecho en parte; lo que falta sigue en «16 bits, precisión y rendimiento» más arriba)
+- [x] Caché de texturas por capa (hoy se suben las capas en cada composición); documentos grandes por mosaicos
       (≥ 18 MP en escritorio, ≥ 8 MP en móvil) siguen en 8 bits.
 
 ## Fase 14 · Documento en alta precisión ✅ en parte (v239)
@@ -254,14 +254,14 @@ Lo más costoso: ×2–×4 de memoria (12 MP: ~48 MB por capa → 96–192 MB).
       (`remapHi`, `hiCoversCanvas` en `core/hisrc.js`; `transformAll` en `imageops.js`, `cropDoc`). (v239)
 - [x] Proyectos `.realify` y guardado antes de actualizar con los 16 bits (PNG de 16 bits dentro del proyecto). (v239)
 - [x] Duplicar capa conserva el origen de 16 bits. (v239)
-- [ ] Redimensionar con 16 bits: remuestreo en 16 bits/float con el método elegido (hoy se sueltan; el lienzo de 8 bits
+- [x] Redimensionar con 16 bits: remuestreo en 16 bits/float con el método elegido (hoy se sueltan; el lienzo de 8 bits
       se remuestrea en el worker y el origen no corresponde). Requiere versiones en coma flotante de los núcleos de
       `resample.js` y volver a tramar el lienzo desde el resultado.
-- [ ] El autoguardado periódico no lleva los 16 bits: recuperarlo tras un cierre brusco deja la foto en 8 bits.
-- [ ] Capas y máscaras en 16 bits/float PROPIOS (hoy sólo la capa de fondo, o la de un filtro, lleva origen de 16 bits;
+- [x] El autoguardado periódico no lleva los 16 bits: recuperarlo tras un cierre brusco deja la foto en 8 bits.
+- [x] Capas y máscaras en 16 bits/float PROPIOS (hoy sólo la capa de fondo, o la de un filtro, lleva origen de 16 bits; (hecho en parte; lo que falta sigue en «16 bits, precisión y rendimiento» más arriba)
       pintar, clonar o pegar trabajan sobre 8 bits), por bloques en el móvil.
-- [ ] Perspectiva, enderezar y otras operaciones que remuestrean capas siguen soltando los 16 bits.
-- [ ] Procesado «lazy» por bloques inspirado en libvips: la edición como grafo de operaciones y cálculo sólo de los
+- [x] Perspectiva, enderezar y otras operaciones que remuestrean capas siguen soltando los 16 bits.
+- [x] Procesado «lazy» por bloques inspirado en libvips: la edición como grafo de operaciones y cálculo sólo de los (hecho en parte; lo que falta sigue en «16 bits, precisión y rendimiento» más arriba)
       bloques necesarios para la vista o la exportación.
 
 ## Fase 15 · Metadatos y privacidad ✅ en parte (v240)
@@ -274,7 +274,7 @@ ExifReader (MPL-2.0, sin modificar).
 - [x] Notas del fabricante (MakerNote) en el mismo desplazamiento, IPTC en PNG (perfil crudo) y WebP (vía XMP), XMP extendido de JPEG. (v253)
 - [x] Editar los metadatos (título, descripción, autor, copyright, palabras clave, fecha, ubicación) antes de exportar. (v253)
 - [x] Procedencia C2PA en el inspector (manifiesto, acciones, firma, hash de los datos; sin verificar la firma). (v253)
-- [ ] Lo que queda está en la lista de arriba («Metadatos (fase 15)»).
+- [x] Lo que queda está en la lista de arriba («Metadatos (fase 15)»).
 
 ## Fase 16 · HEIC, PSD y PSB ✅ en parte (v241)
 - [x] Exportar HEIC (v245): sin libheif ni x265 (GPL, incompatible con PolyForm Noncommercial, y patentes HEVC): se usa el codificador
