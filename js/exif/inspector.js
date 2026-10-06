@@ -85,6 +85,7 @@ function renderC2pa(c){
   const out = [`<div class="section-label">Credenciales de contenido (C2PA) · ${esc(c.container)}</div>`];
   if(!c.manifests.length) return out.join("") + `<p class="hint">${esc(c.note)}</p>`;
   const act = c.manifests.find(m => m.active) || c.manifests[c.manifests.length - 1];
+  const v = act.verify;
   const st = act.hash ? (act.hash.status === "match" ? ["Los datos del archivo coinciden con lo firmado", false] : act.hash.status === "mismatch" ? ["¡El archivo se modificó después de firmarse!", true] : ["Hash de los datos sin comprobar", false]) : null;
   out.push(`<div style="margin:0 0 6px">`
     + row("Generado con", act.claim.generator) + row("Título", act.claim.title) + row("Formato", act.claim.format)
@@ -95,10 +96,14 @@ function renderC2pa(c){
     + (act.signature ? row("Firma", [act.signature.alg, who(act.signature.cert && act.signature.cert.subject)].filter(Boolean).join(" · ")) + row("Emisor del certificado", who(act.signature.cert && act.signature.cert.issuer))
         + row("Validez del certificado", act.signature.cert ? `${act.signature.cert.notBefore} → ${act.signature.cert.notAfter}` : "") : "")
     + (st ? row("Integridad", st[0], st[1]) : "")
+    + (v ? row("Firma criptográfica", v.signature === "valid" ? "Válida: el manifiesto no se ha alterado desde que se firmó" : v.signature === "invalid" ? "¡NO válida: el manifiesto se alteró o la firma no es de ese certificado!" : "Sin comprobar" + (v.detail ? " (" + v.detail + ")" : ""), v.signature === "invalid") : "")
+    + (v ? row("Cadena de certificados", v.chain === "ok" ? "Cada certificado está firmado por el siguiente y acaba en una raíz autofirmada" : v.chain === "broken" ? "¡Rota: un certificado no está firmado por el siguiente!" : v.chain === "incomplete" ? "No acaba en una raíz autofirmada (el archivo no la incluye)" : "Sin comprobar", v.chain === "broken") : "")
+    + (v && v.expired ? row("Fechas", "Algún certificado no está vigente hoy (la firma pudo ser válida cuando se hizo)", true) : "")
     + `</div>`);
+  if(act.thumbnails && act.thumbnails.length) out.push(`<div style="margin:0 0 6px">${act.thumbnails.map(t => `<img alt="Miniatura firmada" src="${URL.createObjectURL(new Blob([t.bytes], { type: t.mime }))}" style="max-width:120px;max-height:120px;border-radius:4px;margin:2px 6px 2px 0" title="${esc(t.label)}">`).join("")}<span class="hint" style="margin:0">Miniatura firmada del manifiesto</span></div>`);
   if(c.manifests.length > 1) out.push(`<p class="hint" style="margin:0 0 4px">Historial: ${c.manifests.length} manifiestos (el archivo se editó ${c.manifests.length - 1} vez/veces después de crearse).</p>`);
   out.push(`<details class="meta-group" style="margin:4px 0"><summary style="cursor:pointer"><b>Afirmaciones</b> <span class="hint" style="margin:0">· ${act.assertions.length}</span></summary><div style="margin:4px 0 0 4px">${act.assertions.map(a => row(a.label, a.summary || "—")).join("")}</div></details>`);
-  out.push(`<p class="hint" style="margin:4px 0 8px">Aquí <b>no se verifica la firma</b> ni la cadena de certificados: sólo se lee lo declarado y se comprueba el hash de los datos. Una credencial es una declaración de quien la firmó, no una prueba de que la imagen sea real; y al exportar desde Realify se pierde (cambiar un píxel la invalida).</p>`);
+  out.push(`<p class="hint" style="margin:4px 0 8px">Se comprueban la <b>firma</b>, la <b>cadena de certificados</b> (cada uno firmado por el siguiente) y el <b>hash de los datos</b>. <b>No</b> se comprueba que el emisor esté en la lista de confianza de C2PA ni si el certificado fue revocado: un certificado cualquiera puede firmar un manifiesto correcto. Una credencial es una declaración de quien la firmó, no una prueba de que la imagen sea real; y al exportar desde Realify se pierde (cambiar un píxel la invalida).</p>`);
   return out.join("");
 }
 

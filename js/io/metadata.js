@@ -127,6 +127,17 @@ export function buildFilteredExif(parsed, policy, { w, h, p3 = false, original =
     return keep(c);
   });
   let gps = policy.gps ? src.gps.slice() : [];
+  // campos que la persona ha pedido quitar del original (se vaciaron en «Editar metadatos»): se quitan aunque su casilla esté encendida
+  const rm = new Set((over && over.remove) || []);
+  if(rm.size){
+    const dropI = new Set(), dropE = new Set();
+    if(rm.has("description")) dropI.add(0x010E);
+    if(rm.has("author")) dropI.add(0x013B);
+    if(rm.has("copyright")) dropI.add(0x8298);
+    if(rm.has("date")){ dropI.add(0x0132); for(const t of [0x9003, 0x9004, 0x9010, 0x9011, 0x9012, 0x9290, 0x9291, 0x9292]) dropE.add(t); }
+    ifd0 = ifd0.filter(e => !dropI.has(e.tag)); exif = exif.filter(e => !dropE.has(e.tag));
+    if(rm.has("gps")) gps = [];
+  }
   // campos editados: mandan sobre el original aunque la casilla de su clase esté apagada (la persona los ha escrito)
   const setE = (list, e) => { const i = list.findIndex(x => x.tag === e.tag); if(i >= 0) list.splice(i, 1); list.push(e); };
   if(over){
@@ -146,9 +157,9 @@ export function buildFilteredExif(parsed, policy, { w, h, p3 = false, original =
     if(w && h){ exif.push(longEntry(0xA002, w)); exif.push(longEntry(0xA003, h)); }       // medidas del archivo, no del original
   }
   if(!ifd0.length && !exif.length && !gps.length) return null;
-  // nota del fabricante: sólo con la casilla, en el mismo sitio, y si cabe en un segmento EXIF de JPEG
+  // nota del fabricante: sólo con la casilla y en el mismo sitio (el JPEG, que sólo admite ≈64 KB de EXIF, usa la versión sin ella si no cabe: ver filterMetadata)
   let extra = null, start = 8;
-  if(policy.maker && maker && maker.bytes && maker.bytes.length && maker.off >= 8 && parsed && parsed.le && maker.off + maker.bytes.length < 40000 && !original){
+  if(policy.maker && maker && maker.bytes && maker.bytes.length && maker.off >= 8 && parsed && parsed.le && !original){
     const inline = new Uint8Array(4); new DataView(inline.buffer).setUint32(0, maker.off, true);
     exif.push(bytesOf(0x927C, 7, maker.bytes.length, inline));
     start = (maker.off + maker.bytes.length + 1) & ~1;
@@ -183,34 +194,98 @@ function* jpegSegments(u){
   }
 }
 
+/** Conjuntos IIM [{ rec, ds, bytes }] de unos datos IIM en bruto (empiezan por 0x1C). */
+export function parseIim(body){
+  const out = [];
+  let i = 0;
+  while(i + 5 <= body.length && body[i] === 0x1C){
+    const rec = body[i + 1], ds = body[i + 2];
+    let n = (body[i + 3] << 8) | body[i + 4], hdr = 5;
+    if(n & 0x8000){ const k = n & 0x7FFF; n = 0; for(let j = 0; j < k; j++) n = n * 256 + body[i + 5 + j]; hdr = 5 + k; }
+    out.push({ rec, ds, bytes: body.slice(i + hdr, i + hdr + n) });
+    i += hdr + n;
+  }
+  return out;
+}
+
+/** Recursos «8BIM» de Photoshop desde `p` (cada uno: firma, id, nombre Pascal par, tamaño, datos): conjuntos IIM del recurso 0x0404. */
+function iimFromResources(d, p){
+  const out = [];
+  while(p + 12 <= d.length && ascii(d, p, 4) === "8BIM"){
+    const id = (d[p + 4] << 8) | d[p + 5];
+    const nameLen = d[p + 6], nameTotal = 1 + nameLen + ((1 + nameLen) & 1);
+    const q = p + 6 + nameTotal;
+    const size = u32be(d, q);
+    if(id === 0x0404) out.push(...parseIim(d.subarray(q + 4, q + 4 + size)));
+    p = q + 4 + size + (size & 1);
+  }
+  return out;
+}
+
+/** Conjuntos IIM de un perfil IPTC suelto: IIM en bruto, o recursos de Photoshop (con o sin la cabecera «Photoshop 3.0»). */
+export function iimFromProfile(u){
+  if(u[0] === 0x1C) return parseIim(u);
+  if(ascii(u, 0, 13) === "Photoshop 3.0") return iimFromResources(u, 14);
+  return iimFromResources(u, 0);
+}
+
+/* Perfiles «Raw profile type X» de un PNG (tEXt, o zTXt comprimido): bytes decodificados del hexadecimal */
+async function pngRawProfiles(u8, name){
+  const out = [], key = `Raw profile type ${name}`;
+  let i = 8;
+  while(i + 12 <= u8.length){
+    const n = u32be(u8, i), type = ascii(u8, i + 4, 4);
+    if((type === "tEXt" || type === "zTXt") && ascii(u8, i + 8, key.length) === key && u8[i + 8 + key.length] === 0){
+      let body = u8.subarray(i + 8 + key.length + 1, i + 8 + n);
+      if(type === "zTXt"){
+        if(typeof DecompressionStream !== "function") { i += 12 + n; continue; }
+        try{ body = new Uint8Array(await new Response(new Blob([body.subarray(1)]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer()); }catch{ i += 12 + n; continue; }
+      }
+      // «\n<tipo> profile\n<tamaño>\n<hex en líneas>»
+      const lines = td.decode(body).split("\n").filter(Boolean), size = parseInt(lines[1], 10), hex = lines.slice(2).join("").replace(/[^0-9a-fA-F]/g, "");
+      const bytes = new Uint8Array(Math.min(size || hex.length / 2, hex.length >> 1));
+      for(let k = 0; k < bytes.length; k++) bytes[k] = parseInt(hex.substr(k * 2, 2), 16);
+      out.push(bytes);
+    }
+    if(type === "IEND") break;
+    i += 12 + n;
+  }
+  return out;
+}
+
+/** Conjuntos de datos IIM del archivo: JPEG (APP13 de Photoshop), PNG («Raw profile type iptc»/«8bim») y TIFF/RAW basados en TIFF
+    (etiqueta 33723, o el recurso de Photoshop 34377), [{ rec, ds, bytes }]. `tiff` es el resultado de parseTiff si ya se tiene. */
+export async function readIptcAny(u8, tiff = null){
+  if(u8[0] === 0xFF && u8[1] === 0xD8) return readIptc(u8);
+  if(u8[0] === 0x89 && u8[1] === 0x50){
+    const out = [];
+    for(const name of ["iptc", "8bim"]) for(const prof of await pngRawProfiles(u8, name)) out.push(...iimFromProfile(prof));
+    return out;
+  }
+  if(tiff){
+    const raw = (e) => { if(!e) return null; const b = e.bytes.slice(); if(!tiff.le && e.type === 4) for(let k = 0; k + 4 <= b.length; k += 4) b.subarray(k, k + 4).reverse(); return b; };
+    const a = raw(tiff.ifd0.find(e => e.tag === 0x83BB));
+    if(a && a.length) return parseIim(a);
+    const b = raw(tiff.ifd0.find(e => e.tag === 0x8649));
+    if(b && b.length) return iimFromResources(b, 0);
+  }
+  return [];
+}
+
 /** Conjuntos de datos IIM del archivo (JPEG con APP13 de Photoshop): [{ rec, ds, bytes }] */
 export function readIptc(u8){
   const out = [];
   for(const seg of jpegSegments(u8)){
     if(seg.marker !== 0xED || ascii(seg.data, 0, 13) !== "Photoshop 3.0") continue;
-    const d = seg.data;
-    let p = 14;
-    while(p + 12 <= d.length && ascii(d, p, 4) === "8BIM"){
-      const id = (d[p + 4] << 8) | d[p + 5];
-      const nameLen = d[p + 6], nameTotal = 1 + nameLen + ((1 + nameLen) & 1);
-      const q = p + 6 + nameTotal;
-      const size = u32be(d, q);
-      const body = d.subarray(q + 4, q + 4 + size);
-      if(id === 0x0404){
-        let i = 0;
-        while(i + 5 <= body.length && body[i] === 0x1C){
-          const rec = body[i + 1], ds = body[i + 2];
-          let n = (body[i + 3] << 8) | body[i + 4], hdr = 5;
-          if(n & 0x8000){ const k = n & 0x7FFF; n = 0; for(let j = 0; j < k; j++) n = n * 256 + body[i + 5 + j]; hdr = 5 + k; }
-          out.push({ rec, ds, bytes: body.slice(i + hdr, i + hdr + n) });
-          i += hdr + n;
-        }
-      }
-      p = q + 4 + size + (size & 1);
-    }
+    out.push(...iimFromResources(seg.data, 14));
   }
   return out;
 }
+
+/* Qué conjuntos IPTC y propiedades XMP corresponden a cada campo que se puede quitar del original */
+const IPTC_REMOVE = { title: [5], description: [120], author: [80], copyright: [116], keywords: [25], date: [55, 60, 62, 63], gps: [26, 90, 92, 95, 100, 101] };
+const XMP_REMOVE = { title: ["dc:title"], description: ["dc:description"], author: ["dc:creator"], copyright: ["dc:rights"], keywords: ["dc:subject"],
+  date: ["xmp:CreateDate", "photoshop:DateCreated"], gps: ["photoshop:City", "photoshop:State", "photoshop:Country", "Iptc4xmpCore:Location", "Iptc4xmpCore:CountryCode", "exif:GPSLatitude", "exif:GPSLongitude"] };
 
 /* Conjuntos IPTC que salen de los campos editados (ver io/metaedit.js) */
 const iptcOver = (over, utf8) => {
@@ -227,7 +302,9 @@ const iptcOver = (over, utf8) => {
 export function buildIim(sets, policy, over = null){
   const allowed = new Set();
   for(const cls of Object.keys(IPTC_SETS)) if(policy[cls]) for(const d of IPTC_SETS[cls]) allowed.add(d);
-  let kept = sets.filter(s => s.rec === 2 && allowed.has(s.ds) && s.bytes.length < 32768);
+  const rmDs = new Set();
+  for(const k of (over && over.remove) || []) for(const d of IPTC_REMOVE[k] || []) rmDs.add(d);
+  let kept = sets.filter(s => s.rec === 2 && allowed.has(s.ds) && !rmDs.has(s.ds) && s.bytes.length < 32768);
   const charset = sets.find(s => s.rec === 1 && s.ds === 90);          // codificación de caracteres (UTF-8 o la antigua)
   const isUtf8 = !charset || (charset.bytes.length === 3 && charset.bytes[0] === 0x1B && charset.bytes[1] === 0x25 && charset.bytes[2] === 0x47);
   const mine = iptcOver(over, isUtf8);
@@ -395,6 +472,7 @@ export function buildXmp(xmpTexts, policy, { iptc = [], over = null } = {}){
     const dts = iptc.find(x => x.rec === 2 && x.ds === 55), m = dts && /^(\d{4})(\d{2})(\d{2})/.exec(txt(dts.bytes));
     if(m) props.set("photoshop:DateCreated", { pfx: "photoshop", name: "DateCreated", kind: "text", items: [{ text: `${m[1]}-${m[2]}-${m[3]}` }] });
   }
+  if(over && over.remove) for(const k of over.remove) for(const key of XMP_REMOVE[k] || []) props.delete(key);
   // campos editados
   if(over){
     const one = (pfx, name, text, kind) => { if(text) props.set(pfx + ":" + name, { pfx, name, kind, items: [{ text, lang: kind === "Alt" ? "x-default" : null }] }); };
@@ -430,7 +508,7 @@ export async function readOriginalMetadata(file){
   const u8 = new Uint8Array(buf);
   const at = findTiff(buf), tiff = at >= 0 ? parseTiff(buf, at) : null;
   const mk = tiff && tiff.exif.find(e => e.tag === 0x927C);
-  return { tiff, xmp: await readXmp(u8), xmpExt: readXmpExtended(u8), iptc: readIptc(u8), maker: mk && mk.off >= 0 ? { off: mk.off, bytes: mk.bytes } : null };
+  return { tiff, xmp: await readXmp(u8), xmpExt: readXmpExtended(u8), iptc: await readIptcAny(u8, tiff), maker: mk && mk.off >= 0 ? { off: mk.off, bytes: mk.bytes } : null };
 }
 
 /** { exif (TIFF), xmp (texto), iptc (APP13), iim (IPTC en bruto) } listos para incrustar según `policy`, más los campos editados `over`
@@ -439,8 +517,14 @@ export async function readOriginalMetadata(file){
 export function filterMetadata(orig, policy, opts = {}){
   const o = orig || { tiff: null, xmp: null, xmpExt: null, iptc: [], maker: null };
   const over = opts.over && Object.values(opts.over).some(v => Array.isArray(v) ? v.length : v !== "" && v != null && !Number.isNaN(v)) ? opts.over : null;
+  const exif = buildFilteredExif(o.tiff, policy, { ...opts, over, maker: o.maker });
+  // con la nota del fabricante el EXIF puede pasar de los ≈64 KB de un segmento JPEG: ese formato usa la versión sin ella
+  const exifJpeg = exif && exif.length > 65000 ? buildFilteredExif(o.tiff, { ...policy, maker: false }, { ...opts, over, maker: null }) : exif;
+  const make = o.tiff && o.tiff.ifd0.find(e => e.tag === 0x010F);
+  const useMaker = !!(exif && policy.maker && o.maker && o.tiff && o.tiff.le && !opts.original);
   return {
-    exif: buildFilteredExif(o.tiff, policy, { ...opts, over, maker: o.maker }),
+    exif, exifJpeg,
+    maker: useMaker ? { off: o.maker.off, bytes: o.maker.bytes, make: make ? td.decode(make.bytes).replace(/\0.*$/s, "") : "" } : null,
     xmp: buildXmp([o.xmp, o.xmpExt], policy, { iptc: o.iptc || [], over }),
     iptc: buildIptc(o.iptc || [], policy, over),
     iim: buildIim(o.iptc || [], policy, over)
@@ -619,11 +703,11 @@ function injectWebp(u8, { exif, xmp }){
     construye: ver pdfFromCanvases). El formato se reconoce por los primeros bytes. Si algo falla, devuelve el archivo tal cual. */
 export async function embedMetadata(blob, meta){
   try{
-    if(!meta || (!meta.exif && !meta.xmp && !meta.iptc)) return blob;
+    if(!meta || (!meta.exif && !meta.xmp && !meta.iptc && !meta.iim)) return blob;
     const u8 = new Uint8Array(await blob.arrayBuffer());
     let out = null;
     if(u8[0] === 0xFF && u8[1] === 0xD8){
-      const segs = [meta.exif && app1Exif(meta.exif), ...(meta.xmp ? xmpSegments(meta.xmp) : []), meta.iptc && app13(meta.iptc)].filter(Boolean);
+      const segs = [(meta.exifJpeg || meta.exif) && app1Exif(meta.exifJpeg || meta.exif), ...(meta.xmp ? xmpSegments(meta.xmp) : []), meta.iptc && app13(meta.iptc)].filter(Boolean);
       out = segs.length ? injectJpeg(u8, segs) : null;
     } else if(u8[0] === 0x89 && u8[1] === 0x50) out = injectPng(u8, meta);
     else if(ascii(u8, 0, 4) === "RIFF" && ascii(u8, 8, 4) === "WEBP") out = injectWebp(u8, meta);

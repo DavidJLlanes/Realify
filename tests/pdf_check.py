@@ -58,4 +58,8 @@ check("pdfx: todas las fuentes incrustadas", emb)
 im = r.pages[1].images[0].image
 check("pdfx: la imagen CMYK se decodifica", im.mode in ("CMYK", "RGB"), im.mode)
 r = rd("pdfxSinFuente"); check("pdfx sin fuente: sin texto (no hay fuentes que incrustar)", all(not fonts(pg) for pg in r.pages), [fonts(pg) for pg in r.pages])
+r = rd("xmp"); md = r.trailer["/Root"].get("/Metadata")
+xmp = md.get_object().get_data() if md is not None else b""
+check("xmp: el catálogo lleva el flujo XMP del original", b"Ana XMP" in xmp and r.xmp_metadata is not None, xmp[:60])
+check("xmp: Info con título y autor", r.metadata.title == "Con XMP" and r.metadata.author == "Ana XMP", (r.metadata.title, r.metadata.author))
 print("RESULTADO:", "OK" if ok else "FALLO"); sys.exit(0 if ok else 1)

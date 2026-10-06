@@ -167,7 +167,23 @@ function injectJxl(u8, { exif, xmp }){
 const TS = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8, 11: 4, 12: 8 };
 const IFD0_ADD = new Set([0x010E, 0x010F, 0x0110, 0x0131, 0x0132, 0x013B, 0x8298]);      // lo que el EXIF filtrado aporta al IFD principal de un TIFF
 
-function injectTiff(u8, { exif, xmp, iim }){
+/* Nota del fabricante en un TIFF: en el EXIF de un JPEG/AVIF/JXL va en el mismo desplazamiento que tenía, pero un TIFF ya tiene sus datos ahí.
+   Se añade al final y se corrigen los desplazamientos que lleva dentro: Canon los cuenta desde el principio del archivo (se suma lo que se ha movido);
+   Nikon (tipo 3) los cuenta desde su propia cabecera y sirve donde sea. Otros fabricantes no se copian a un TIFF. */
+function relocateMaker(maker, newOff){
+  const b = maker.bytes.slice();
+  if(/^Nikon\0\x02/.test(String.fromCharCode(...b.subarray(0, 7)))) return b;
+  if(!/^Canon/i.test(maker.make)) return null;
+  const dv = new DataView(b.buffer), delta = newOff - maker.off, n = dv.getUint16(0, true);
+  if(2 + n * 12 > b.length) return null;
+  for(let i = 0; i < n; i++){
+    const e = 2 + i * 12, size = (TS[dv.getUint16(e + 2, true)] || 0) * dv.getUint32(e + 4, true);
+    if(size > 4) dv.setUint32(e + 8, (dv.getUint32(e + 8, true) + delta) >>> 0, true);
+  }
+  return b;
+}
+
+function injectTiff(u8, { exif, xmp, iim, maker }){
   if(!exif && !xmp && !iim) return null;
   const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
   const ifd = dv.getUint32(4, true), n = dv.getUint16(ifd, true);
@@ -187,6 +203,10 @@ function injectTiff(u8, { exif, xmp, iim }){
   const chunks = [u8], pos = { v: u8.length };
   const push = b => { const at = pos.v; chunks.push(b); pos.v += b.length; return at; };
   if(pos.v & 1) push(new Uint8Array(1));
+  if(maker && maker.bytes && maker.bytes.length){
+    const at = pos.v, moved = relocateMaker(maker, at);
+    if(moved){ push(moved); if(pos.v & 1) push(new Uint8Array(1)); addEx.push({ tag: 0x927C, type: 7, count: moved.length, bytes: moved, ext: at }); }
+  }
   // un IFD con sus valores largos detrás; devuelve su posición
   const writeIfd = entries => {
     const list = entries.slice().sort((a, b) => a.tag - b.tag), start = pos.v + (pos.v & 1);
@@ -199,7 +219,8 @@ function injectTiff(u8, { exif, xmp, iim }){
       const p = 2 + i * 12;
       if(e.raw){ head.set(e.raw, p); return; }
       hv.setUint16(p, e.tag, true); hv.setUint16(p + 2, e.type, true); hv.setUint32(p + 4, e.count, true);
-      if(e.bytes.length <= 4) head.set(e.bytes, p + 8);
+      if(e.ext != null) hv.setUint32(p + 8, e.ext, true);          // datos ya escritos en otro sitio
+      else if(e.bytes.length <= 4) head.set(e.bytes, p + 8);
       else { hv.setUint32(p + 8, dp, true); tail.push(e.bytes); dp += e.bytes.length; if(e.bytes.length & 1){ tail.push(new Uint8Array(1)); dp++; } }
     });
     push(head); for(const t of tail) push(t);

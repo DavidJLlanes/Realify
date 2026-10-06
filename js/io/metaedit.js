@@ -2,7 +2,7 @@
    EDITAR METADATOS ANTES DE EXPORTAR (v253)
    Título, descripción, autor, copyright, palabras clave, fecha y ubicación que se escribirán en el archivo exportado (EXIF, IPTC y XMP a la vez;
    en PDF, el diccionario Info y el XMP). Lo escrito aquí MANDA sobre lo que traiga el original aunque la casilla de su tipo esté apagada; un campo
-   vacío no cambia nada (para quitar algo del original, se apaga su casilla). Viven en el documento (`doc.metaEdit`): se guardan en el proyecto.
+   vacío no cambia nada, salvo uno que venía relleno con lo del original: vaciarlo lo QUITA del archivo exportado (`over.remove`). Viven en el documento (`doc.metaEdit`): se guardan en el proyecto.
    El editor abre con lo que ya trae el archivo original, para retocarlo en vez de escribirlo desde cero.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -16,12 +16,12 @@ const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").re
 /** Campos editados del documento (copia limpia) o null. */
 export function get(){
   const o = doc.metaEdit;
-  return o && count(o) ? { ...o, keywords: [...(o.keywords || [])] } : null;
+  return o && count(o) ? { ...o, keywords: [...(o.keywords || [])], remove: [...(o.remove || [])] } : null;
 }
 /** Cuántos campos hay escritos. */
 export function count(o){
   if(!o) return 0;
-  return ["title", "description", "author", "copyright", "date"].filter(k => o[k]).length + ((o.keywords || []).length ? 1 : 0) + (Number.isFinite(o.lat) && Number.isFinite(o.lon) ? 1 : 0);
+  return ["title", "description", "author", "copyright", "date"].filter(k => o[k]).length + ((o.keywords || []).length ? 1 : 0) + (Number.isFinite(o.lat) && Number.isFinite(o.lon) ? 1 : 0) + (o.remove || []).length;
 }
 export function clear(){ doc.metaEdit = null; }
 
@@ -44,6 +44,8 @@ export async function open(){
     <p class="hint" id="meHint" style="margin-top:9px"></p>`;
   const $ = s => body.querySelector(s);
   let pending = null;
+  const had = {};                    // lo que traía el original (para saber qué se ha vaciado a propósito)
+  const gone = new Set(cur.remove || []);
   const r = await dialog({
     title: "Editar metadatos", body, cls: isMobile() ? "dlg-compact" : "",
     buttons: [{ label: "Cancelar", value: null }, { label: "Quitar los campos", value: "clear" }, { label: "Guardar", primary: true, value: "ok" }],
@@ -55,14 +57,15 @@ export async function open(){
       pending = (async () => {
         try{
           const M = await import("./metadata.js"), f = M.fieldsFromOriginal(await M.readOriginalMetadata(doc.source.file));
-          const set = (sel, v) => { const el = b.querySelector(sel); if(el && !el.value && v !== "" && v != null) el.value = v; };
-          set("#meTitle", f.title); set("#meDesc", f.description); set("#meAuthor", f.author); set("#meCopy", f.copyright);
-          set("#meKeys", (f.keywords || []).join(", ")); set("#meDate", f.date); set("#meLat", f.lat); set("#meLon", f.lon);
-          hint.textContent += " Los campos vienen del original: cámbialos o déjalos.";
+          const set = (key, sel, v) => { if(v === "" || v == null || (Array.isArray(v) && !v.length)) return; had[key] = true; const el = b.querySelector(sel); if(el && !el.value && !gone.has(key)) el.value = v; };
+          set("title", "#meTitle", f.title); set("description", "#meDesc", f.description); set("author", "#meAuthor", f.author); set("copyright", "#meCopy", f.copyright);
+          set("keywords", "#meKeys", (f.keywords || []).join(", ")); set("date", "#meDate", f.date); set("gps", "#meLat", f.lat); set("gps", "#meLon", f.lon);
+          hint.textContent += " Los campos vienen del original: cámbialos, déjalos o vacíalos para quitarlos.";
         }catch(err){ console.warn("[metadatos]", err); }
       })();
     }
   });
+  if(pending) await pending;           // si se cierra deprisa, que no falte saber qué traía el original
   if(r === "clear"){ clear(); toast("Campos de metadatos quitados"); return true; }
   if(r !== "ok") return false;
   const num = s => { const v = parseFloat(s); return Number.isFinite(v) ? v : null; };
@@ -72,6 +75,9 @@ export async function open(){
     keywords: $("#meKeys").value.split(/[,;\n]/).map(x => x.trim()).filter(Boolean).slice(0, 60), date: $("#meDate").value || ""
   };
   if(lat != null && lon != null && Math.abs(lat) <= 90 && Math.abs(lon) <= 180){ o.lat = lat; o.lon = lon; }
+  // lo que venía del original y se ha vaciado se quita del archivo exportado (también si ya estaba marcado y se sigue sin rellenar)
+  const empty = { title: !o.title, description: !o.description, author: !o.author, copyright: !o.copyright, keywords: !o.keywords.length, date: !o.date, gps: o.lat == null };
+  o.remove = Object.keys(empty).filter(k => empty[k] && (had[k] || gone.has(k)));
   doc.metaEdit = count(o) ? o : null;
   toast(doc.metaEdit ? `Metadatos: ${count(o)} campo${count(o) > 1 ? "s" : ""} para la exportación` : "Sin campos de metadatos", "ok");
   return true;

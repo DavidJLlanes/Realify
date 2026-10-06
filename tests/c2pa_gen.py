@@ -15,3 +15,12 @@ for ext, mime in (("jpg", "image/jpeg"), ("png", "image/png")):
     with c2pa.Signer.from_info(signer_info) as signer, c2pa.Builder(manifest) as builder:
         builder.sign_file(f"c2pa_in.{ext}", f"c2pa_out.{ext}", signer) if hasattr(builder, "sign_file") else None
         print(ext, "ok")
+
+# AVIF y HEIC (hash BMFF): se parten de imágenes creadas con pillow-heif (python del sistema); ver tests/c2pa.mjs
+import os
+for ext in ("avif", "heic"):
+    if not os.path.exists(f"c2pa_in.{ext}"): continue
+    manifest_b = {"claim_generator_info": [{"name": "Realify C2PA test", "version": "1.0"}], "title": "Foto BMFF",
+      "assertions": [{"label": "c2pa.actions", "data": {"actions": [{"action": "c2pa.created", "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture"}]}}]}
+    with c2pa.Signer.from_info(signer_info) as signer, c2pa.Builder(manifest_b) as builder:
+        builder.sign_file(f"c2pa_in.{ext}", f"c2pa_out.{ext}", signer); print(ext, "ok")

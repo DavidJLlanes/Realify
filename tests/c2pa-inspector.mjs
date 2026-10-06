@@ -28,5 +28,5 @@ for(const [f, mime] of [["c2pa_out.jpg", "image/jpeg"], ["c2pa_out.png", "image/
 const t = out["c2pa_out.jpg"], tp = out["c2pa_out.png"], tt = out["c2pa_tamper.jpg"];
 console.log(t.split("\n").filter(l => /C2PA|Generado|Acciones|Fuente|Firma|Emisor|Integridad|Autor|declara/.test(l)).join(" | ").slice(0, 900));
 const ok = /Credenciales de contenido \(C2PA\)/.test(t) && /Realify C2PA test/.test(t) && /c2pa\.created \(Modelo X\)/.test(t) && /trainedAlgorithmicMedia/.test(t) && /ES256/.test(t) && /C2PA Signer/.test(t) && /coinciden con lo firmado/.test(t) && /Ana Autora/.test(t)
-  && /Credenciales de contenido/.test(tp) && /coinciden con lo firmado/.test(tp) && /modificó después de firmarse/.test(tt) && /no se verifica la firma/.test(t);
+  && /Credenciales de contenido/.test(tp) && /coinciden con lo firmado/.test(tp) && /modificó después de firmarse/.test(tt) && /Firma criptográfica/.test(t) && /Válida: el manifiesto no se ha alterado/.test(t) && /Cadena de certificados/.test(t) && /lista de confianza de C2PA/.test(t);
 console.log(ok && !errs.length ? "OK" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);

@@ -16,6 +16,7 @@ export async function openBatchEdit(){
   if(!doc.open){ toast("Abre y edita una foto: su edición es la que se copia", "err"); return; }
   await ensureShellStyles();
   const edit = captureEdit();
+  const shared = (await import("../js/io/batchmeta.js")).sharedFields();          // campos de «Editar metadatos» de la foto de referencia
   const master = docs.activeTab()?.tabId;
   // Miniaturas de las demás pestañas (se visitan un instante cada una)
   const tabs = [];
@@ -28,10 +29,11 @@ export async function openBatchEdit(){
 
   const { openBatchEditor } = await import("./ui.js");
   openBatchEditor({
-    edit, tabs,
+    edit, tabs, hasFields: !!shared,
     onApply: async (list, S) => {
       const [{ openFile }, { renderExport, saveOrShare, stamp }] = await Promise.all([import("../js/io/open.js"), import("../js/io/export.js")]);
       const zip = S.output === "zip", entries = [], failed = [];
+      const BM = await import("../js/io/batchmeta.js"), fields = S.metaFields ? shared : null;
       const ext = { "image/png": "png", "image/webp": "webp", "image/avif": "avif" }[S.format] || "jpg";
       for(let i = 0; i < list.length; i++){
         const t = list[i];
@@ -44,7 +46,8 @@ export async function openBatchEdit(){
           if(zip){
             const blob = await renderExport({ w: doc.w, h: doc.h, type: S.format, quality: S.format === "image/png" ? undefined : S.quality / 100, alpha: S.alpha, background: S.bg });
             if(!blob) throw new Error("no se pudo exportar");
-            entries.push({ name: `${t.name}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) });
+            const withMeta = await BM.embedForBatch(blob, { keep: S.metaKeep, fields });
+            entries.push({ name: `${t.name}.${ext}`, data: new Uint8Array(await withMeta.arrayBuffer()) });
             if(opened){ const a = docs.activeTab(); if(a) await docs.closeTab(a.tabId, { confirm: false }); }
             else res.undo();   // en modo ZIP las pestañas abiertas quedan como estaban
           }

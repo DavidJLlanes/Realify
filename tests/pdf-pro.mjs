@@ -28,9 +28,10 @@ const res = await page.evaluate(async fontB64 => {
   await run("pdfx", { bleedMm: 3, cropMarks: true, font, pdfx: { condition: "FOGRA39" }, cover: { title: "Portada X" }, numbering: true });
   await run("pdfxSinFuente", { pdfx: { condition: "FOGRA39" }, numbering: true, cover: { title: "no sale" } });
   await run("sinperdidas", { lossless: true, background: "#ffffff" });
+  await run("xmp", { xmp: '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:creator><rdf:Seq><rdf:li>Ana XMP</rdf:li></rdf:Seq></dc:creator></rdf:Description></rdf:RDF></x:xmpmeta>', meta: { title: "Con XMP", author: "Ana XMP" } });
   return o;
 }, fontB64);
-for(const k of ["fondo", "marcas", "fuente", "pdfx", "pdfxSinFuente", "sinperdidas"]) fs.writeFileSync(`/tmp/sc/out/pdf.${k}.pdf`, Buffer.from(res[k], "base64"));
+for(const k of ["fondo", "marcas", "fuente", "pdfx", "pdfxSinFuente", "sinperdidas", "xmp"]) fs.writeFileSync(`/tmp/sc/out/pdf.${k}.pdf`, Buffer.from(res[k], "base64"));
 console.log(JSON.stringify({ fondo: res.fondo_i, marcas: res.marcas_i, fuente: res.fuente_i, pdfx: res.pdfx_i, pdfxSinFuente: res.pdfxSinFuente_i }));
 const ok = res.fondo_i.pages === 2 && res.fuente_i.pages === 3 && res.pdfx_i.pdfx && res.pdfxSinFuente_i.textSkipped;
 console.log(ok && !errs.length ? "OK (falta pdf_check.py)" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);

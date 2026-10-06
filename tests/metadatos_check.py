@@ -95,6 +95,30 @@ check("JXL: la caja Exif lleva un TIFF y el autor", tiff[:2] == b"II" and b"Beto
 check("JXL: la caja xml lleva el XMP", b"Beto Editor" in b[next(bx for bx in boxes if bx[0] == 'xml ')[1]:])
 cs = next(bx for bx in boxes if bx[0] == "jxlc"); check("JXL: flujo de código intacto (FF 0A)", b[cs[1]+8:cs[1]+10] == b"\xff\x0a")
 
+# --- nota del fabricante en AVIF, JXL y TIFF (Canon) ---
+if not UI:
+    imc = Image.open(io.BytesIO(open(f"{D}/{P}.avif", "rb").read())); exa = imc.info.get("exif") or b""
+    check("AVIF: MakerNote (MAKERTEST) en el mismo desplazamiento (200)", exa[200:209] == b"MAKERTEST", exa[190:215])
+    bj = open(f"{D}/{P}.jxl", "rb").read(); o = 0; tj = None
+    while o + 8 <= len(bj):
+        s_, ty = struct.unpack(">I4s", bj[o:o+8])
+        if ty == b"Exif": tj = bj[o+12:o+s_]
+        o += s_ if s_ else len(bj) - o
+    check("JXL: MakerNote en el mismo desplazamiento (200)", tj is not None and tj[200:209] == b"MAKERTEST")
+    for nm, ext in (("AVIF Canon", "avifCanon"), ("JXL Canon", "jxlCanon")):
+        pass
+    bt = open(f"{D}/tifCanon", "rb").read() if False else open(f"{D}/{P}.tifCanon", "rb").read()
+    le = bt[:2] == b"II"; u16 = lambda o: struct.unpack("<H", bt[o:o+2])[0]; u32 = lambda o: struct.unpack("<I", bt[o:o+4])[0]
+    def ifd(off):
+        n = u16(off); return {u16(off+2+i*12): (u16(off+4+i*12), u32(off+6+i*12), u32(off+10+i*12)) for i in range(n)}
+    i0 = ifd(u32(4)); ex = ifd(i0[0x8769][2]); mk = ex.get(0x927C)
+    check("TIFF Canon: la nota del fabricante está", mk is not None and mk[1] == 40, mk)
+    if mk:
+        note = mk[2]; n = struct.unpack("<H", bt[note:note+2])[0]
+        tag, typ, cnt, off = struct.unpack("<HHII", bt[note+2:note+14])
+        check("TIFF Canon: el desplazamiento interno apunta a los datos reubicados", tag == 1 and off == note + 18 and struct.unpack("<8H", bt[off:off+16]) == tuple(0x1100 + i for i in range(8)), (note, off))
+    im2 = Image.open(f"{D}/{P}.tifCanon"); check("TIFF Canon: sigue abriéndose", im2.size == (64, 48))
+
 # --- PDF ---
 b = open(f"{D}/{P}.pdf", "rb").read()
 check("PDF: Info con título/autor en UTF-16", "Beto Editor".encode("utf-16-be").hex().upper().encode() in b.upper() or b"FEFF" in b)

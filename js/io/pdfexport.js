@@ -86,11 +86,14 @@ export async function exportPdf(){
       <div class="field" id="pdXRow" hidden><label>Condición</label><select id="pdXCond" class="grow">${opts(Object.entries(PDFX_CONDITIONS), p.pdfxCond)}</select></div>
       <p class="hint" id="pdXHint" hidden style="margin:2px 0 6px">PDF/X-3:2002 con intención de salida registrada. La conversión a CMYK es matemática, sin el perfil de tu imprenta, y el archivo no se ha validado con un preflight: para imprenta profesional, confirma con ella. PDF/X exige fuentes incrustadas: sin «Fuente propia» no hay portada, numeración ni nombres.</p></details>
     <details style="margin:6px 0"><summary style="cursor:pointer">Metadatos del PDF</summary>
+      <label class="chk" id="pdOrigRow" hidden><input id="pdOrig" type="checkbox"${p.origMeta !== false ? " checked" : ""}> Incluir los metadatos del original (autor, fecha, cámara…, sin ubicación)</label>
       <div class="field"><label>Autor</label><input id="pdAuthor" class="grow" value="${esc(p.author)}"></div>
       <div class="field"><label>Asunto</label><input id="pdSubject" class="grow"></div>
       <div class="field"><label>Palabras clave</label><input id="pdKeys" class="grow" placeholder="separadas por comas"></div></details>
     <div class="mono" id="pdInfo" style="font-size:11px;margin-top:4px"></div>`;
   const $ = s => body.querySelector(s);
+  const metaEditApi = await import("./metaedit.js");
+  if((doc.source && doc.source.file) || metaEditApi.count(metaEditApi.get())) $("#pdOrigRow").hidden = false;
   const list = $("#pdList");
   const total = () => items.length;
   const drawList = () => {
@@ -147,7 +150,7 @@ export async function exportPdf(){
   const num = (id, d) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : d; };
   const s = { page: $("#pdPage").value, orientation: $("#pdOri").value, perPage: +$("#pdPer").value, margin: num("#pdMargin", 10), bleed: num("#pdBleed", 0), dpi: +$("#pdDpi").value,
     quality: +$("#pdQ").value, lossless: $("#pdLossless").checked, cover: $("#pdCover").checked, numbering: $("#pdNum").checked, captions: $("#pdCap").checked, author: $("#pdAuthor").value,
-    perLayer: $("#pdLayers").checked, background: $("#pdBg").value, cropMarks: $("#pdMarks").checked, pdfx: $("#pdX").checked, pdfxCond: $("#pdXCond").value };
+    origMeta: $("#pdOrig").checked, perLayer: $("#pdLayers").checked, background: $("#pdBg").value, cropMarks: $("#pdMarks").checked, pdfx: $("#pdX").checked, pdfxCond: $("#pdXCond").value };
   save(s);
   status("Creando PDF…");
   try{
@@ -158,10 +161,20 @@ export async function exportPdf(){
       if(s.perLayer){ const pages = layerPages(); if(!pages.length) throw new Error("No hay capas visibles que exportar"); images.push(...pages); }
       else { let flat = flatten(); if(isP3Doc()) flat = toSrgbCanvas(flat); images.push({ name, canvas: flat }); }
     }
-    const out = await buildPdf(images, { background: s.background, cropMarks: s.cropMarks, font: fontBytes, pdfx: s.pdfx ? { condition: s.pdfxCond } : null, page: s.page, orientation: s.orientation, perPage: s.perPage, marginMm: s.margin, bleedMm: s.bleed, dpi: s.dpi,
+    // metadatos del original (XMP filtrado) y campos editados en «Editar metadatos al exportar»
+    let xmp = null, fx = {};
+    if(!$("#pdOrigRow").hidden && s.origMeta){
+      try{
+        const M = await import("./metadata.js"), P = await import("./metapresets.js"), over = metaEditApi.get();
+        const orig = doc.source && doc.source.file ? await M.readOriginalMetadata(doc.source.file) : null;
+        const meta = M.filterMetadata(orig, orig ? P.META_PRESETS.nogps : P.META_NONE, { w: doc.w, h: doc.h, over });
+        if(meta.xmp){ xmp = meta.xmp; fx = M.fieldsFromXmp(meta.xmp); }
+      }catch(err){ console.warn("[pdf] metadatos del original", err); }
+    }
+    const out = await buildPdf(images, { xmp, background: s.background, cropMarks: s.cropMarks, font: fontBytes, pdfx: s.pdfx ? { condition: s.pdfxCond } : null, page: s.page, orientation: s.orientation, perPage: s.perPage, marginMm: s.margin, bleedMm: s.bleed, dpi: s.dpi,
       quality: s.quality / 100, lossless: s.lossless, numbering: s.numbering, captions: s.captions,
       cover: s.cover ? { title: $("#pdTitle").value || name } : null,
-      meta: { title: $("#pdTitle").value || name, author: s.author, subject: $("#pdSubject").value, keywords: $("#pdKeys").value } });
+      meta: { title: $("#pdTitle").value || fx.title || name, author: s.author || fx.author, subject: $("#pdSubject").value || fx.description, keywords: $("#pdKeys").value || fx.keywords } });
     status("");
     const saved = await saveOrShare(out.blob, `${name}.pdf`, "auto");
     if(saved !== "cancelled") toast(`PDF${out.pdfx ? "/X" : ""} · ${out.pages} página${out.pages === 1 ? "" : "s"} · ${(out.blob.size / 1048576).toFixed(2)} MB` + (out.textSkipped ? " · sin portada ni numeración (PDF/X necesita fuente propia)" : ""), "ok");

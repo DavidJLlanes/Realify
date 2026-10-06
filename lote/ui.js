@@ -17,10 +17,10 @@ const TOUCH = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:9
 const THUMB = TOUCH ? 240 : 320;
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
-export function openBatchEditor({ edit, tabs, onApply }){
+export function openBatchEditor({ edit, tabs, onApply, hasFields = false }){
   // tabs: [{ tabId, name, proxy }] — las otras pestañas abiertas
   const targets = tabs.map(t => ({ ...t, kind: "tab", on: true, preview: null }));
-  const S = { expo: true, expoStrength: 100, output: "tabs", format: "image/jpeg", quality: 90, alpha: true, bg: "#ffffff" };
+  const S = { expo: true, expoStrength: 100, output: "tabs", format: "image/jpeg", quality: 90, alpha: true, bg: "#ffffff", metaKeep: true, metaFields: true, hasFields };
   let closed = false, seq = 0, grid = null;
 
   const sh = createShell({ title: "Aplicar esta edición a otras fotos", subtitle: `Referencia: ${edit.name}`, applyLabel: "Aplicar",
@@ -146,7 +146,9 @@ export function openBatchEditor({ edit, tabs, onApply }){
       { key: "quality", label: "Calidad", type: "range", min: 40, max: 100, unit: " %", def: 90, when: () => S.output === "zip" && S.format !== "image/png" },
       // Transparencia (ver js/io/alpha.js): se conserva en los formatos que la admiten.
       { key: "alpha", label: "Conservar la transparencia", type: "toggle", when: () => S.output === "zip" && S.format !== "image/jpeg" },
-      { key: "bg", label: "Fondo de las zonas transparentes", type: "color", when: () => S.output === "zip" && (S.format === "image/jpeg" || !S.alpha) }
+      { key: "bg", label: "Fondo de las zonas transparentes", type: "color", when: () => S.output === "zip" && (S.format === "image/jpeg" || !S.alpha) },
+      { key: "metaKeep", label: "Conservar los metadatos de cada foto (sin ubicación)", type: "toggle", when: () => S.output === "zip" },
+      { key: "metaFields", label: "Aplicar mis campos de «Editar metadatos»", type: "toggle", when: () => S.output === "zip" && !!S.hasFields }
     ], note: () => S.output === "tabs" ? "Cada foto queda en su pestaña con la edición como capas nuevas que puedes retocar." : "Se exporta cada foto editada y se entrega todo en un ZIP; las pestañas abiertas no se modifican." }
   ];
   const controls = mountControls(sh, { sections, get: k => S[k],

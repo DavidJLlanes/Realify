@@ -51,12 +51,44 @@ const res = await page.evaluate(async () => {
   const back = await M.readXmp(bu), ext = M.readXmpExtended(bu);
   out.ext = { main: back.length, tieneAviso: /HasExtendedXMP="[0-9A-F]{32}"/.test(back), extIgual: ext === bigMeta.xmp, md5: ext && /HasExtendedXMP="([0-9A-F]{32})"/.exec(back)[1] === M.md5hex(new TextEncoder().encode(ext)).toUpperCase() };
   out.fields = fx;
+  // nota del fabricante en AVIF/JXL (mismo desplazamiento) y TIFF (Canon: se reubica y se corrigen sus desplazamientos)
+  const mk2 = new Uint8Array(40); new DataView(mk2.buffer).setUint16(0, 1, true); new DataView(mk2.buffer).setUint16(2, 1, true); new DataView(mk2.buffer).setUint16(4, 3, true);
+  new DataView(mk2.buffer).setUint32(6, 8, true); new DataView(mk2.buffer).setUint32(10, 218, true); for(let i = 0; i < 8; i++) new DataView(mk2.buffer).setUint16(18 + i * 2, 0x1100 + i, true);
+  const inl2 = new Uint8Array(4); new DataView(inl2.buffer).setUint32(0, 200, true);
+  const exifCanon = W.buildTIFF([W.eAscii(0x010F, "Canon"), W.eAscii(0x0110, "Canon EOS Test")], [W.eAscii(0x9003, "2020:01:02 03:04:05"), { tag: 0x927C, type: 7, count: 40, bytes: inl2 }], [], { start: 400, extra: { off: 200, bytes: mk2 } });
+  const canonJpg = await M.embedMetadata(await blobOf("image/jpeg"), { exif: exifCanon });
+  const oc = await M.readOriginalMetadata(new File([canonJpg], "c.jpg"));
+  const mc = M.filterMetadata(oc, { ...policy }, { w: 64, h: 48 });
+  out.canon = { make: mc.maker && mc.maker.make, off: mc.maker && mc.maker.off };
+  out.tifCanon = await toB64(await M.embedMetadata(files.tif, mc)); out.avifCanon = await toB64(await M.embedMetadata(files.avif, mc)); out.jxlCanon = await toB64(await M.embedMetadata(files.jxl, mc));
+  // nota grande (> 64 KB): el JPEG sigue llevando el resto del EXIF y los demás formatos la llevan
+  const bigMk = new Uint8Array(70000); bigMk.set(enc("BIGMAKER")); const inl3 = new Uint8Array(4); new DataView(inl3.buffer).setUint32(0, 200, true);
+  const exifBig = W.buildTIFF([W.eAscii(0x010F, "TestCam"), W.eAscii(0x013B, "Ana Grande")], [W.eAscii(0x9003, "2020:01:02 03:04:05"), { tag: 0x927C, type: 7, count: bigMk.length, bytes: inl3 }], [], { start: 70300, extra: { off: 200, bytes: bigMk } });
+  const bigOrig = new File([await M.embedMetadata(await blobOf("image/png"), { exif: exifBig })], "b.png");
+  const ob = await M.readOriginalMetadata(bigOrig), mb = M.filterMetadata(ob, { ...policy }, { w: 64, h: 48 });
+  out.big = { maker: !!ob.maker, len: mb.maker && mb.maker.bytes.length, exifGrande: mb.exif.length > 65000, jpegLite: mb.exifJpeg.length < 65000 };
+  const bj2 = new Uint8Array(await (await M.embedMetadata(await blobOf("image/jpeg"), mb)).arrayBuffer()), bp = new Uint8Array(await (await M.embedMetadata(await blobOf("image/png"), mb)).arrayBuffer());
+  out.big.jpgOk = bj2[0] === 0xFF && bj2.length > 1000; out.big.pngTiene = new TextDecoder("latin1").decode(bp).includes("BIGMAKER");
+  // quitar campos concretos del original (vaciarlos en «Editar metadatos»)
+  const mq = M.filterMetadata(orig, policy, { w: 64, h: 48, over: { remove: ["author", "gps", "keywords", "date"], title: "Solo título" } });
+  const tq = M.parseTiff(mq.exif.buffer.slice(mq.exif.byteOffset, mq.exif.byteOffset + mq.exif.length), 0), iq = M.parseIim(mq.iim);
+  out.quitar = { autorExif: tq.ifd0.some(e => e.tag === 0x013B), copyExif: tq.ifd0.some(e => e.tag === 0x8298), fechaExif: tq.exif.some(e => e.tag === 0x9003), gps: tq.gps.length,
+    autorIim: iq.some(e => e.ds === 80), copyIim: iq.some(e => e.ds === 116), clavesIim: iq.filter(e => e.ds === 25).length, tituloIim: iq.some(e => e.ds === 5),
+    xmpAutor: /Ana Original|Ana IPTC/.test(mq.xmp || ""), xmpClaves: /<dc:subject>/.test(mq.xmp || ""), xmpTitulo: /Solo título/.test(mq.xmp || ""), xmpCopy: /<dc:rights>/.test(mq.xmp || "") };
+  // IPTC de originales que no son JPEG: PNG (perfil crudo) y TIFF (33723)
+  const ip = M.buildIptc(sets, { author: true, text: true, gps: true, date: true });
+  const pngI = await M.embedMetadata(await blobOf("image/png"), { iptc: ip });
+  const tifI = await M.embedMetadata(files.tif, { iim: M.buildIim(sets, { author: true, text: true, gps: true, date: true }) });
+  const oP = await M.readOriginalMetadata(new File([pngI], "i.png")), oT = await M.readOriginalMetadata(new File([tifI], "i.tif"));
+  out.iptcAny = { png: oP.iptc.length, tif: oT.iptc.length, autor: [oP, oT].map(o => { const a = o.iptc.find(e => e.ds === 80); return a ? new TextDecoder().decode(a.bytes) : null; }) };
   return out;
 });
 fs.mkdirSync("/tmp/sc/out", { recursive: true });
-for(const k of ["original", "jpg", "png", "webp", "avif", "jxl", "tif", "pdf"]) fs.writeFileSync(`/tmp/sc/out/m.${k}`, Buffer.from(res[k], "base64"));
-const small = { ...res }; for(const k of ["original", "jpg", "png", "webp", "avif", "jxl", "tif", "pdf"]) delete small[k];
+for(const k of ["original", "jpg", "png", "webp", "avif", "jxl", "tif", "pdf", "tifCanon", "avifCanon", "jxlCanon"]) fs.writeFileSync(`/tmp/sc/out/m.${k}`, Buffer.from(res[k], "base64"));
+const small = { ...res }; for(const k of ["original", "jpg", "png", "webp", "avif", "jxl", "tif", "pdf", "tifCanon", "avifCanon", "jxlCanon"]) delete small[k];
 console.log(JSON.stringify(small));
 const ok = res.leido.maker === 200 && res.leido.iptc >= 5 && res.leido.xmp && ["jpg", "png", "webp", "avif", "jxl", "tif"].every(k => res[k + "_cambia"]) && res.extSegs >= 3 && res.ext.tieneAviso && res.ext.extIgual && res.ext.md5 && res.ext.main < 2000
+  && res.quitar.autorExif === false && res.quitar.copyExif && res.quitar.fechaExif === false && res.quitar.gps === 0 && !res.quitar.autorIim && res.quitar.copyIim && res.quitar.clavesIim === 0 && res.quitar.tituloIim && !res.quitar.xmpAutor && !res.quitar.xmpClaves && res.quitar.xmpTitulo && res.quitar.xmpCopy
+  && res.canon.make === "Canon" && res.big.maker && res.big.exifGrande && res.big.jpegLite && res.big.jpgOk && res.big.pngTiene && res.iptcAny.png >= 5 && res.iptcAny.tif >= 5 && res.iptcAny.autor[0] === "Ana IPTC" && res.iptcAny.autor[1] === "Ana IPTC"
   && res.md5[0] === "d41d8cd98f00b204e9800998ecf8427e" && res.md5[1] === "9e107d9d372bb6826bd81d3542a419d6";
 console.log(ok && !errs.length ? "OK (falta metadatos_check.py)" : "FALLO", errs.join("|")); await b.close(); srv.close(); process.exit(ok && !errs.length ? 0 : 1);

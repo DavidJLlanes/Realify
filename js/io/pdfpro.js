@@ -199,6 +199,10 @@ export async function buildPdf(images, o = {}){
   const m = opt.meta || {};
   pdf.setTitle(m.title || opt.cover?.title || images[0].name || "Realify"); if(m.author) pdf.setAuthor(m.author); if(m.subject) pdf.setSubject(m.subject);
   if(m.keywords) pdf.setKeywords(String(m.keywords).split(/[,;]/).map(s => s.trim()).filter(Boolean));
+  if(opt.xmp){                                   // paquete XMP del original (filtrado) en el catálogo, como en un PDF de Acrobat
+    const { PDFName } = PDFLib, xb = new TextEncoder().encode(opt.xmp), st = pdf.context.stream(xb, { Type:"Metadata", Subtype:"XML" });
+    pdf.catalog.set(PDFName.of("Metadata"), pdf.context.register(st));
+  }
   pdf.setProducer("Realify"); pdf.setCreator("Realify"); pdf.setCreationDate(new Date()); pdf.setModificationDate(new Date());
   if(opt.pdfx){
     /* PDF/X-3:2002 (sin verificar con un preflight): intención de salida registrada, Trapped, GTS_PDFXVersion, ID del documento, sin flujos de objetos y cabecera 1.4 */
