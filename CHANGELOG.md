@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v262 · Ampliar con IA en Premium: Real-ESRGAN y UltraSharp
+- **Ampliar con IA** (`js/features/aitools.js`): con el interruptor Premium 👑 se elige entre **Real-ESRGAN ×4** y **UltraSharp V2 Lite** (máximo detalle, por defecto). El modo básico ofrece SPAN ×2 y Real-ESRGAN anime ×4.
+- **Licencias** (README, sección 23): se documenta la licencia real de cada modelo y su fuente. UltraSharp (CC BY-NC-SA 4.0) y Zero-DCE++ (CC BY-NC 4.0) son de uso no comercial; BiSeNet tiene código y pesos MIT, con datos CelebAMask-HQ de uso no comercial. El usuario responde de su uso. SPAN, SpongeColor y Colorizer quedan sin comprobar.
+- **README** actualizado con las novedades de v254–v261 y la nueva sección de IA local.
+
 ### v261 · Destellos de luz y Bokeh con las imágenes originales
 - **50 texturas originales a máxima resolución** (`assets/estilos/tex/`, 4000 px, las de los zips «Light Leaks» y «Bokeh»): los 45 Destellos y los 5 Bokeh. Se mezclan en modo **Trama** y se añaden como capa nueva editable (botón fx), con intensidad regulable.
 - Las acciones los construían con degradados sobre negro y las imágenes son su resultado exacto. Mi conversión por degradados de la v260 se desviaba del original entre 4 y 78 niveles de 255, así que los 37 Destellos y 3 Bokeh que ya existían **conservan nombre e id pero usan ya la imagen original**; los que faltaban (Destello 01, 09, 10, 14, 15, 17, 23, 24, 32, 35, 42 y Bokeh 04 y 05) se añaden al final.

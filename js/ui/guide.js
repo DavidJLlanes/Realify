@@ -457,7 +457,7 @@ const TOPICS = [
           etiquetas, grosor y color de la línea, separación y formatos de redes. Se puede
           elegir otra foto como «antes». El resultado va a una capa nueva en otra pestaña.</li>
         <li id="img-ai"><b>Ampliar con IA…</b> ×2 o ×4 recuperando detalle (el resultado se abre en
-          otra pestaña). <b>Colorear con IA…</b> da color a fotos en blanco y negro en una capa
+          otra pestaña). Con Premium 👑 se elige entre Real-ESRGAN ×4 y UltraSharp (máximo detalle). <b>Colorear con IA…</b> da color a fotos en blanco y negro en una capa
           nueva. <b>Expandir con IA…</b> agranda el lienzo a un formato o con márgenes y rellena
           lo nuevo. Los modelos se descargan una vez y trabajan en tu equipo.</li>
         <li><b>Eliminar fondo…</b> Cuatro métodos: tres modelos de IA que funcionan en tu
