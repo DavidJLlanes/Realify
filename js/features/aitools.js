@@ -38,15 +38,16 @@ const failed = (what, err) => { if(err?.cancelled) toast(`${what}: cancelado`); 
 /* ── Ampliar ── */
 // Modelos del menú normal y el de máximo detalle, que sólo se ofrece con Premium (👑): su licencia
 // (CC BY-NC-SA 4.0) es no comercial; el usuario responde de su uso (ver README, sección Licencias).
-const UPSCALERS = [["esrgan_x4", "fotos, rápido"], ["span_x2", "×2, el más ligero"], ["anime_x4", "dibujos e ilustraciones"]];
-const UPSCALER_PREMIUM = ["sharp_x4", "máximo detalle"];
+// Los dos modelos de foto grande (Real-ESRGAN ×4 y UltraSharp) van en Premium, donde se elige entre ellos.
+const UPSCALERS = [["span_x2", "×2, el más ligero"], ["anime_x4", "dibujos e ilustraciones"]];
+const UPSCALER_PREMIUM = [["sharp_x4", "máximo detalle"], ["esrgan_x4", "fotos, rápido"]];
 export async function aiUpscale(){
   if(!doc.open){ toast("No hay documento abierto", "err"); return; }
   const { MODELS } = await import("../ai/models.js");
-  let saved = "esrgan_x4"; try{ saved = localStorage.getItem("realify.upscaler") || saved; }catch{}
-  const list = on => on ? [...UPSCALERS, UPSCALER_PREMIUM] : UPSCALERS;
+  let saved = "sharp_x4"; try{ saved = localStorage.getItem("realify.upscaler") || saved; }catch{}
+  const list = on => on ? [...UPSCALER_PREMIUM, ...UPSCALERS] : UPSCALERS;
   const optionsHtml = async (on, cur) => {
-    const ids = list(on), sel = ids.some(([v]) => v === cur) ? cur : "esrgan_x4";
+    const ids = list(on), sel = ids.some(([v]) => v === cur) ? cur : ids[0][0];
     return (await modelOptions(ids)).map(([v, l]) => `<option value="${v}"${v === sel ? " selected" : ""}>${esc(l)}</option>`).join("");
   };
   const premiumOn = premiumPref.get("aiUpscale");
