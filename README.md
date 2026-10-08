@@ -466,7 +466,7 @@ Qué cambia al encenderlo:
 
 Funciones que sólo existen en Premium (no tienen versión básica), marcadas con 👑 en el menú y en el cajón:
 - Procesado: Apilar fotos y Escanear documento.
-- IA: Selección con un toque, Borrador mágico, Seleccionar por texto, Seleccionar por profundidad,
+- IA: Ampliar con IA ×4 con el modelo UltraSharp (máximo detalle), Selección con un toque, Borrador mágico, Seleccionar por texto, Seleccionar por profundidad,
   Difuminar caras, Retoque de cara, Restaurar caras, Ojos rojos, Recorte inteligente para redes,
   Recorte de retrato, Desenfoque por profundidad, Niebla por distancia, Luz por profundidad, Separar
   planos, Foto 3D e Iluminar con IA.
@@ -500,7 +500,7 @@ Los modelos son de dos tipos:
 | Seleccionar por profundidad | Máscaras | Depth Anything V2 Small | incluido (50 MB) | Apache-2.0 | Sí |
 | Eliminar fondo | Inteligencia Artificial | U²-Net portátil (incluido) · MODNet retrato (26 MB) · ISNet máxima calidad (179 MB) | 5–179 MB | Apache-2.0 | No |
 | Borrador mágico · Expandir con IA · Rellenar con IA | Inteligencia Artificial / Selección | LaMa | 208 MB bajo demanda | Apache-2.0 | Sólo el Borrador mágico |
-| Ampliar con IA ×2/×4 | Inteligencia Artificial | SPAN ×2 · Real-ESRGAN ×4 · Real-ESRGAN ilustración · UltraSharp V2 Lite | 2–16 MB bajo demanda | Ver nota | No |
+| Ampliar con IA ×2/×4 | Inteligencia Artificial | SPAN ×2 · Real-ESRGAN ×4 · Real-ESRGAN ilustración (sin Premium) · UltraSharp V2 Lite (Premium) | 2–16 MB bajo demanda | Apache-2.0 / BSD-3-Clause · UltraSharp: CC BY-NC-SA 4.0 | Sólo UltraSharp |
 | Colorear con IA | Inteligencia Artificial | SpongeColor Lite · Colorizer V2 · DDColor Tiny | 10–221 MB bajo demanda | Ver nota | No |
 | Reducción de ruido con IA | Filtro › Ruido | SCUNet (color) | 91 MB bajo demanda | Apache-2.0 | No |
 | Quitar artefactos JPEG con IA | Filtro › Ruido | FBCNN (color) | 144 MB bajo demanda | Apache-2.0 | No |
@@ -559,7 +559,7 @@ guardada como GIF), **Seleccionar por profundidad** (primer plano, plano medio, 
 como máscara de cualquier capa, también de ajuste), **Luz por profundidad** y **Separar planos** (una capa por plano
 con su máscara acumulativa). La profundidad se calcula a resolución completa por bloques (`js/ai/tiles.js`).
 
-**Ampliar con IA** ×2 o ×4 y **Colorear con IA** (el color se aplica a la luminancia original a tamaño completo).
+**Ampliar con IA** ×2 o ×4 (el modelo UltraSharp, de máximo detalle, sólo está en Premium 👑) y **Colorear con IA** (el color se aplica a la luminancia original a tamaño completo).
 **Expandir con IA** usa LaMa para rellenar los bordes nuevos del lienzo.
 
 **IA avanzada local (CUDA)** (menú Inteligencia Artificial › IA avanzada local): para quien tenga una GPU NVIDIA
@@ -880,15 +880,16 @@ Sin autorización expresa, no está permitido, entre otros usos:
 
 **El uso de la aplicación publicada en [realify.es](https://realify.es) está permitido para cualquier fin, también profesional o comercial** (por ejemplo, editar fotos propias o de clientes y usar el resultado libremente). Este permiso adicional del titular cubre sólo el uso de la web oficial; la licencia no comercial se aplica al código fuente y a sus copias o adaptaciones.
 
-**Modelos de IA con uso no comercial.** Algunos modelos que usa la web tienen licencias que restringen el uso comercial
-de los modelos en sí, independientemente de lo anterior:
+**Modelos de IA con licencia no comercial.** Realify es gratuito y no cobra por su uso. Algunos modelos
+que usa la aplicación tienen licencias que sólo permiten el uso no comercial. Se incluyen con su licencia real, y
+**el usuario es responsable de cumplir la licencia de cada modelo que utilice**:
 
-| Modelo | Función | Licencia |
+| Modelo | Función | Licencia real |
 |---|---|---|
-| BiSeNet (zonas de la cara) | Seleccionar por texto y Retoque de cara | MIT para el código; los datos de entrenamiento CelebAMask-HQ son de uso no comercial |
-| Zero-DCE++ | Iluminar con IA | CC BY-NC 4.0 |
-| UltraSharp V2 Lite | Ampliar con IA ×4 | CC BY-NC-SA 4.0 |
-| FLUX.1 Fill dev y FLUX ControlNet Union Pro 2.0 | IA avanzada local (CUDA) | FLUX dev, licencia no comercial |
+| BiSeNet (ResNet-18, `faceparsing`) | Seleccionar por texto (pelo, ojos, labios…) y Retoque de cara | Código y pesos: MIT. Entrenado con CelebAMask-HQ, cuyo uso está limitado a **investigación no comercial** |
+| Zero-DCE++ | Iluminar con IA | **CC BY-NC 4.0** (Atribución-NoComercial 4.0 Internacional) |
+| UltraSharp V2 Lite (×4) | Ampliar con IA, modelo de máximo detalle (Premium 👑) | **CC BY-NC-SA 4.0** (Atribución-NoComercial-CompartirIgual 4.0 Internacional) |
+| FLUX.1 Fill dev y FLUX ControlNet Union Pro 2.0 | IA avanzada local (CUDA) | Licencia FLUX dev, **no comercial** |
 
 Los demás modelos son Apache-2.0, MIT, BSD-3-Clause o se publican con licencia de OpenModelDB (ver `js/ai/models.js`).
 

@@ -60,6 +60,7 @@ exactamente igual que antes.
   `noncommercial: true` en js/ai/models.js). El usuario no hace uso comercial. Si algún
   día se cobra Premium, hay que quitarlo o sustituirlo (también del vocabulario del texto).
 - Excepción aceptada por el usuario: Zero-DCE++ (CC BY-NC, uso NO comercial) para iluminar fotos oscuras con IA. Si se cobra Premium, quitarlo o sustituirlo.
+- Excepción aceptada por el usuario: UltraSharp V2 Lite (CC BY-NC-SA 4.0, uso NO comercial) como modelo de máximo detalle de «Ampliar con IA», sólo en Premium 👑. El usuario no cobra y es responsable de su uso; la licencia real está en el README.
 
 ## Límites
 - No mejorar Unmark (eliminación de marcas de agua).

@@ -50,7 +50,7 @@ export const MODELS = {
   anime_x4:   { url: HF + "onnx/enhance/upscale/RealESRGAN_x4plus_anime_4B32F.ort", size: 5241720, scale: 4, tile: 160,
                 label: "Real-ESRGAN ×4 ilustración", license: "BSD-3-Clause" },
   sharp_x4:   { url: HF + "onnx/enhance/upscale/x4-UltraSharpV2_Lite_fp16_op17.ort", size: 16055408, scale: 4, tile: 128,
-                label: "UltraSharp ×4 V2 Lite", license: "CC BY-NC-SA 4.0" },
+                label: "UltraSharp ×4 V2 Lite", license: "CC BY-NC-SA 4.0", noncommercial: true },
 
   /* ── Colorear: los «1x» devuelven la foto en color al mismo tamaño;
         DDColor recibe 512×512 (la luminancia en RGB) y devuelve los

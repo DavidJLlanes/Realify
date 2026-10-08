@@ -16,6 +16,7 @@ import { flatten } from "../editor/layertree.js";
 import { dialog } from "../ui/dialog.js";
 import { toast } from "../ui/toast.js";
 import { isMobile, COARSE } from "../core/device.js";
+import { premiumSwitch, premiumPref } from "../ui/premium.js";
 
 const MAX_OUT = COARSE || isMobile() ? 2400 : 8192;   // lado máximo del resultado (como un documento)
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -26,30 +27,45 @@ async function modelOptions(ids){
   const [{ MODELS, mb }, { sizeNote, crashedBefore }] = await Promise.all([import("../ai/models.js"), import("../ai/runtime.js")]);
   return Promise.all(ids.map(async ([id, desc]) => [id, `${MODELS[id].label} · ${desc} (${await sizeNote(id)}${crashedBefore(id) ? ", falló por memoria aquí" : ""})`]));
 }
-async function ask(title, html, onOpen){
+async function ask(title, html, onOpen, footStart = null){
   const body = document.createElement("div"); body.innerHTML = html;
-  const r = await dialog({ title, body, cls: isMobile() ? "dlg-compact" : "", onOpen: onOpen ? b => onOpen(b) : undefined,
+  const r = await dialog({ title, body, cls: isMobile() ? "dlg-compact" : "", footStart, onOpen: onOpen ? b => onOpen(b) : undefined,
     buttons: [{ label: "Cancelar", value: null }, { label: "Aplicar", primary: true, value: "go" }] });
   return r === "go" ? body : null;
 }
 const failed = (what, err) => { if(err?.cancelled) toast(`${what}: cancelado`); else toast(`${what}: ${err.message}`, "err"); };
 
 /* ── Ampliar ── */
-const UPSCALERS = [["esrgan_x4", "fotos, rápido"], ["span_x2", "×2, el más ligero"], ["sharp_x4", "máximo detalle"], ["anime_x4", "dibujos e ilustraciones"]];
+// Modelos del menú normal y el de máximo detalle, que sólo se ofrece con Premium (👑): su licencia
+// (CC BY-NC-SA 4.0) es no comercial; el usuario responde de su uso (ver README, sección Licencias).
+const UPSCALERS = [["esrgan_x4", "fotos, rápido"], ["span_x2", "×2, el más ligero"], ["anime_x4", "dibujos e ilustraciones"]];
+const UPSCALER_PREMIUM = ["sharp_x4", "máximo detalle"];
 export async function aiUpscale(){
   if(!doc.open){ toast("No hay documento abierto", "err"); return; }
-  const opts = await modelOptions(UPSCALERS);
   const { MODELS } = await import("../ai/models.js");
   let saved = "esrgan_x4"; try{ saved = localStorage.getItem("realify.upscaler") || saved; }catch{}
+  const list = on => on ? [...UPSCALERS, UPSCALER_PREMIUM] : UPSCALERS;
+  const optionsHtml = async (on, cur) => {
+    const ids = list(on), sel = ids.some(([v]) => v === cur) ? cur : "esrgan_x4";
+    return (await modelOptions(ids)).map(([v, l]) => `<option value="${v}"${v === sel ? " selected" : ""}>${esc(l)}</option>`).join("");
+  };
+  const premiumOn = premiumPref.get("aiUpscale");
+  let select = null, sync = () => {};
+  const sw = premiumSwitch({ checked: premiumOn, title: "Ampliado con el modelo de máximo detalle (función Premium)",
+    onChange: async on => { premiumPref.set("aiUpscale", on); select.innerHTML = await optionsHtml(on, select.value); sync(); } });
+  sw.classList.add("adj-premium");
+  if(isMobile()) sw.classList.add("ps-docked");
   const body = await ask("Ampliar con IA", `
-    <div class="field"><label>Modelo</label><select id="upM" class="grow">${opts.map(([v, l]) => `<option value="${v}"${v === saved ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
+    <div class="field"><label>Modelo</label><select id="upM" class="grow">${await optionsHtml(premiumOn, saved)}</select></div>
     <p class="hint" id="upInfo" style="margin:4px 0 0"></p>`, b => {
-      const sync = () => {
-        const S = MODELS[b.querySelector("#upM").value].scale, w = doc.w * S, h = doc.h * S, k = Math.min(1, MAX_OUT / Math.max(w, h));
+      select = b.querySelector("#upM");
+      sync = () => {
+        const S = MODELS[select.value].scale, w = doc.w * S, h = doc.h * S, k = Math.min(1, MAX_OUT / Math.max(w, h));
         b.querySelector("#upInfo").textContent = `Resultado: ${Math.round(w * k)} × ${Math.round(h * k)} px${k < 1 ? ` (limitado a ${MAX_OUT} px en este dispositivo)` : ""}, en una pestaña nueva. Se procesa en tu equipo.`;
       };
-      b.querySelector("#upM").addEventListener("change", sync); sync();
-    });
+      select.addEventListener("change", sync); sync();
+      if(!isMobile()) b.prepend(sw);
+    }, isMobile() ? sw : null);
   if(!body) return;
   const id = body.querySelector("#upM").value, S = MODELS[id].scale;
   try{ localStorage.setItem("realify.upscaler", id); }catch{}
