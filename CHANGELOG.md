@@ -41,9 +41,12 @@ que las entradas se agrupan por fecha.
 ### v263 · Corrección de arranque
 - **Enfocar Premium**: corregido un error de sintaxis que impedía cargar `js/filters/basic.js` y arrancar la aplicación.
 
-### v262 · Mejoras en herramientas fotográficas
+### v262 · Mejoras fotográficas y Ampliar con IA Premium
 - **Enfocar**: modo de alta calidad en worker, control de estructura y entrada en «Filtro → Fotografía y detalle».
 - **Perspectiva, sombras e iluminaciones, viñeteado y unión de imágenes**: mejoras de respuesta, color, forma y composición.
+- **Ampliar con IA** (`js/features/aitools.js`): con el interruptor Premium 👑 se elige entre **Real-ESRGAN ×4** y **UltraSharp V2 Lite** (máximo detalle, por defecto). El modo básico ofrece SPAN ×2 y Real-ESRGAN anime ×4.
+- **Licencias** (README, sección 23): se documenta la licencia real de cada modelo y su fuente. UltraSharp (CC BY-NC-SA 4.0) y Zero-DCE++ (CC BY-NC 4.0) son de uso no comercial; BiSeNet tiene código y pesos MIT, con datos CelebAMask-HQ de uso no comercial. El usuario responde de su uso. SPAN, SpongeColor y Colorizer quedan sin comprobar.
+- **README** actualizado con las novedades de v254–v261 y la nueva sección de IA local.
 
 ### v261 · Destellos de luz y Bokeh con las imágenes originales
 - **50 texturas originales a máxima resolución** (`assets/estilos/tex/`, 4000 px, las de los zips «Light Leaks» y «Bokeh»): los 45 Destellos y los 5 Bokeh. Se mezclan en modo **Trama** y se añaden como capa nueva editable (botón fx), con intensidad regulable.
