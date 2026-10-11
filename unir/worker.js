@@ -6,7 +6,7 @@
    la dirección: mover la transición o el recorte sólo recompone.
    ═══════════════════════════════════════════════════════════════ */
 
-import { resize, cylindrical, layout, compose, placed } from "./engine.js";
+import { resize, cylindrical, spherical, layout, compose, placed } from "./engine.js";
 
 let imgs = [], cache = null;
 const post = (m, t) => self.postMessage(m, t || []);
@@ -24,12 +24,16 @@ function normalized(side, vertical){
 function build(s, side){
   const vertical = s.dir === "v";
   let set = normalized(side, vertical);
-  if(s.projection === "cyl") set = set.map(im => cylindrical(im, s.fov, vertical));
+  if(s.projection === "cyl" || s.projection === "sph") set = set.map(im => (s.projection === "sph" ? spherical : cylindrical)(im, s.fov, vertical));
   else set = set.map(im => { const d = new Uint8ClampedArray(im.data); for(let i = 3; i < d.length; i += 4) d[i] = 255; return { ...im, data: d }; });
-  const k = JSON.stringify([s.projection, s.fov, s.dir, side, imgs.length, imgs.map(i => i.id)]);
+  const k = JSON.stringify([s.projection, s.fov, s.dir, s.overlap, side, imgs.length, imgs.map(i => i.id)]);
   let L = cache?.key === k ? cache.L : null;
-  if(!L){ L = layout(set, s.dir); cache = { key: k, L }; }
-  const out = compose(set, L, { blend: s.blend / 100 * Math.max(8, (vertical ? set[0].h : set[0].w) * 0.25), useGain: s.gain, crop: s.crop });
+  if(!L){ L = layout(set, s.dir, s.overlap); cache = { key: k, L }; }
+  const ref = vertical ? Math.min(...imgs.map(i => i.w)) : Math.min(...imgs.map(i => i.h));
+  const offsetScale = Math.min(ref, side) / Math.max(1, Math.min(ref, s.previewSide || side));
+  const pos = L.pos.map((p, i) => { const d=s.offsets?.[imgs[i].id] || {}; return { x:p.x + (+d.dx || 0) * offsetScale, y:p.y + (+d.dy || 0) * offsetScale }; });
+  const placedL = { ...L, pos };
+  const out = compose(set, placedL, { blend: s.blend / 100 * Math.max(8, (vertical ? set[0].h : set[0].w) * 0.25), useGain: s.gain, crop: s.crop, fusion:s.fusion });
   return { out, L };
 }
 
@@ -41,7 +45,7 @@ const handlers = {
   /* Panorámica precisa: las fotos llegan ya llevadas a su sitio (RGBA con alfa, posiciones en el mosaico) desde unir/precise.js */
   placed(m){
     const set = m.images.map(im => ({ w: im.w, h: im.h, data: new Uint8ClampedArray(im.data) })), pos = m.images.map(im => ({ x: im.x, y: im.y }));
-    const L = placed(set, pos), out = compose(set, L, { blend: m.s.blend / 100 * Math.max(8, set[0].w * 0.25), useGain: m.s.gain, crop: m.s.crop });
+    const L = placed(set, pos), out = compose(set, L, { blend: m.s.blend / 100 * Math.max(8, set[0].w * 0.25), useGain: m.s.gain, crop: m.s.crop, fusion:m.s.fusion });
     return { w: out.w, h: out.h, data: out.data.buffer, found: L.found, dir: "h", transfer: [out.data.buffer] };
   },
   pano(m){

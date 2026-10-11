@@ -117,7 +117,6 @@ registerAll({
   /* Misma edición en varias fotos (lote/) */
   "file.batchEdit":  { run: async () => (await import("../lote/index.js")).openBatchEdit(), enabled: needsDoc },
   "file.startBatch": () => promptStartBatch(),
-  "ai.advancedLocal": { run: async () => (await import("../advanced-ai/index.js")).openAdvancedAI(), enabled: needsDoc },
   "ai.tapSelect":   { run: async () => (await import("./features/samtools.js")).openSamTool("select"), enabled: needsDoc },
   "ai.magicErase":  { run: async () => (await import("./features/samtools.js")).openSamTool("erase"), enabled: needsDoc },
   "ai.faceBlur":    { run: async () => (await import("./features/facetools.js")).openFaceBlur(), enabled: needsDoc },
@@ -213,6 +212,7 @@ registerAll({
   /* Plugins a pantalla completa (carpetas hdr/, …): no necesitan documento */
   "image.hdr":       { run: async () => (await import("../hdr/index.js")).openHdr() },
   "image.merge":     { run: async () => (await import("../unir/index.js")).openMerge() },
+  "image.panorama":  { run: async () => (await import("../panorama/index.js")).openPanorama() },
   "image.docscan":   { run: async () => (await import("./features/docscan.js")).openDocScan(), enabled: needsDoc },
   "image.sharpness": { run: async () => (await import("./features/sharpness.js")).openSharpness() },
   "image.stack":     { run: async () => (await import("./features/stack.js")).openStack() },

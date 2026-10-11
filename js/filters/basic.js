@@ -19,6 +19,20 @@ import { boxBlurFloat } from "../editor/refineedge-math.js";
 import { hiFullCover, colorFnFromFilter, applyDeltaFromBase, applyNativeFromBase, attachFloatResult } from "../editor/floatfilter.js";
 import { gaussianBlurHi, unsharpHi, noiseHi } from "../editor/floatspatial.js";
 import { applyFloatFromBase } from "../editor/floatadjust.js";
+import { premiumSwitch, premiumPref } from "../ui/premium.js";
+
+let premiumSharpenWorker = null, premiumSharpenSeq = 0;
+const premiumSharpenJobs = new Map();
+function sharpenPremium(data, w, h, p, scale=1){
+  if(typeof Worker === "undefined") return import("./sharpen-engine.js").then(({sharpenRGBA}) => sharpenRGBA(data, w, h, { mode:"unsharp", amount:p.amount, radius:p.radius, threshold:p.threshold, edge:45, halo:35 }, scale));
+  if(!premiumSharpenWorker){
+    premiumSharpenWorker = new Worker(new URL("./sharpen-worker.js", import.meta.url), { type:"module" });
+    premiumSharpenWorker.onmessage = e => { const job=premiumSharpenJobs.get(e.data.id); if(!job) return; premiumSharpenJobs.delete(e.data.id); e.data.error ? job.reject(new Error(e.data.error)) : job.resolve(new Uint8ClampedArray(e.data.data)); };
+    premiumSharpenWorker.onerror = () => { for(const job of premiumSharpenJobs.values()) job.reject(new Error("No se pudo ejecutar el enfoque Premium")); premiumSharpenJobs.clear(); premiumSharpenWorker?.terminate(); premiumSharpenWorker=null; };
+  }
+  const id=++premiumSharpenSeq, copy=data.slice();
+  return new Promise((resolve,reject)=>{ premiumSharpenJobs.set(id,{resolve,reject}); premiumSharpenWorker.postMessage({ id, data:copy.buffer, w, h, scale, p:{mode:"unsharp",amount:p.amount,radius:p.radius,threshold:p.threshold,edge:45,halo:35} },[copy.buffer]); });
+}
 
 function snapshot(layer){
   const c = document.createElement("canvas");
@@ -209,7 +223,7 @@ export async function runFilter({ title, build, apply, wide = false, id, params,
    archivo (Enfocar, Detalle y estructura): mismo criterio que
    editor/adjust.js y features/photo-tools.js, más estricto en
    `pointer:coarse`. Sólo se usa mientras NO es la llamada final. */
-export const FILTER_PREVIEW_LIMIT = COARSE ? 4e5 : 1.2e6;
+export const FILTER_PREVIEW_LIMIT = COARSE ? 9e5 : 1.2e6;
 
 /* Reduce `src` a una copia de como mucho `FILTER_PREVIEW_LIMIT`
    píxeles si hace falta, y devuelve también el factor de escala —para
@@ -343,17 +357,20 @@ export function blur(opts = {}){
 
 /* ── enfoque (máscara de desenfoque) ──────────────────────────── */
 export function sharpen(opts = {}){
-  const p = { amount: 60, radius: 2, threshold: 0, ...opts.init };
+  const p = { amount: 60, radius: 2, threshold: 0, structure: 0, premium: opts.init ? !!opts.init.premium : premiumPref.get("sharpen"), ...opts.init };
 
   return runFilter({
     title: "Enfocar",
     id: "sharpen", params: p, float: "delta",
-    native: () => (inp, w, h, tick) => unsharpHi(inp, w, h, p, tick),
+    native: () => !p.premium && !p.structure ? (inp, w, h, tick) => unsharpHi(inp, w, h, p, tick) : null,
     build(preview){
       const box = document.createElement("div");
       box.appendChild(slider("Cantidad", 0, 300, p.amount, v => { p.amount = v; preview(); }, "%"));
       box.appendChild(slider("Radio", 1, 40, p.radius, v => { p.radius = v; preview(); }, " px"));
       box.appendChild(slider("Umbral", 0, 60, p.threshold, v => { p.threshold = v; preview(); }));
+      box.appendChild(slider("Estructura", -100, 100, p.structure, v => { p.structure = v; preview(); }));
+      const sw = premiumSwitch({ checked: p.premium, title: "Enfoque y estructura Premium: procesa la luminancia para conservar mejor el color y limitar halos (función Premium)", onChange: on => { p.premium = on; premiumPref.set("sharpen", on); preview(); } });
+      box.prepend(sw);
       const n = document.createElement("p");
       n.className = "hint";
       n.style.marginTop = "10px";
@@ -363,30 +380,48 @@ export function sharpen(opts = {}){
       box.appendChild(n);
       return box;
     },
-    apply(layer, src, isFinal){
+    async apply(layer, src, isFinal){
       const W = layer.canvas.width, H = layer.canvas.height;
       const { canvas: work, w, h, scale } = previewProxy(src, isFinal);
       // El radio del desenfoque nativo está en píxeles ABSOLUTOS del
       // canvas: en el proxy reducido hay que encogerlo en la misma
       // proporción, o el enfoque se vería más agresivo ahí que en el
       // resultado final a resolución completa.
-      const bx = blurred(work, p.radius * scale).getContext("2d", { willReadFrequently: true });
-
       const sx = work.getContext("2d", { willReadFrequently: true });
       const a = sx.getImageData(0, 0, w, h);
-      const b = bx.getImageData(0, 0, w, h);
-      const da = a.data, db = b.data;
+      const da = a.data;
       const amt = p.amount / 100;
       const th = p.threshold;
 
-      for(let i = 0; i < da.length; i += 4){
-        for(let k = 0; k < 3; k++){
+      if(p.premium){
+        const highQuality = await sharpenPremium(da, w, h, p, scale);
+        da.set(highQuality);
+      }else{
+        const bx = blurred(work, p.radius * scale).getContext("2d", { willReadFrequently: true });
+        const db = bx.getImageData(0, 0, w, h).data;
+        for(let i = 0; i < da.length; i += 4){
+          for(let k = 0; k < 3; k++){
           const diff = da[i+k] - db[i+k];
           // Por debajo del umbral no se toca: ahí sólo hay ruido y
           // amplificarlo es justo lo contrario de enfocar.
           if(Math.abs(diff) <= th) continue;
-          const v = da[i+k] + diff * amt;
-          da[i+k] = v < 0 ? 0 : v > 255 ? 255 : v;
+          da[i+k] = Math.max(0, Math.min(255, da[i+k] + diff * amt));
+          }
+        }
+      }
+
+      // Estructura añade contraste local de baja frecuencia a la luminancia,
+      // manteniendo el color. El radio relativo produce el mismo aspecto en móvil.
+      if(p.structure){
+        const broad = blurred(work, Math.max(2, Math.min(w, h) * 0.018)).getContext("2d", { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+        const k = p.structure / 100 * (p.structure > 0 ? 1.5 : 1);
+        for(let i = 0; i < da.length; i += 4){
+          const lum = .2126*da[i] + .7152*da[i+1] + .0722*da[i+2];
+          const base = .2126*broad[i] + .7152*broad[i+1] + .0722*broad[i+2];
+          const delta = (lum - base) * k;
+          da[i] = Math.max(0, Math.min(255, da[i] + delta));
+          da[i+1] = Math.max(0, Math.min(255, da[i+1] + delta));
+          da[i+2] = Math.max(0, Math.min(255, da[i+2] + delta));
         }
       }
 
@@ -635,15 +670,17 @@ export function vignette(opts = {}){
       const scaleX = (cx / outerR) * (1 - t) + t;
       const scaleY = (cy / outerR) * (1 - t) + t;
 
-      const g = x.createRadialGradient(0, 0, Math.max(0, inner), 0, 0, outer);
-      g.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},0)`);
-      g.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},${p.amount / 100})`);
-
       x.save();
       x.globalAlpha = Math.max(0, Math.min(1, p.opacity / 100));
       x.globalCompositeOperation = p.kind === "black" ? "multiply" : p.kind === "white" ? "screen" : "source-over";
       x.translate(cx, cy);
       x.scale(scaleX, scaleY);
+      // CanvasGradient captures the transform active when it is created.
+      // Creating it before translate/scale anchored the fade to the top-left,
+      // which made roundness appear broken and the vignette uneven.
+      const g = x.createRadialGradient(0, 0, Math.max(0, inner), 0, 0, outer);
+      g.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},0)`);
+      g.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},${p.amount / 100})`);
       x.fillStyle = g;
       x.fillRect(-cx / scaleX, -cy / scaleY, w / scaleX, h / scaleY);
       x.restore();

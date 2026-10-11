@@ -16,9 +16,9 @@ export async function openMerge(){
   const current = doc.open ? { canvas: flatten(), name: doc.name || "Imagen abierta" } : null;
   openMergeEditor({
     current,
-    onAccept: async (canvas, { mode, count }) => {
+    onAccept: async (canvas, { count }) => {
       const same = doc.open && canvas.width === doc.w && canvas.height === doc.h;
-      const name = mode === "pano" ? "Panorámica" : "Imágenes unidas";
+      const name = "Fotos unidas";
       const where = await resultToLayer(canvas, { name, docName: name, newDocument: !same });
       toast(`${name} de ${count} fotos ${where === "doc" ? "en una pestaña nueva" : "en una capa nueva"} · ${canvas.width} × ${canvas.height}`, "ok");
     }

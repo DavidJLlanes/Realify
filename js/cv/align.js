@@ -84,6 +84,73 @@ function featureHomography(cv, ref, img){
   finally{ for(const o of del) try{ o.delete(); }catch{} }
 }
 
+/**
+ * Precalcula ORB una vez por foto y permite comparar cualquier pareja.
+ * El alineado panorámico usa un grafo de coincidencias; recalcular los
+ * descriptores en cada arista multiplica innecesariamente el coste.
+ */
+export function createPairMatcher(cv, canvases, { maxSide = SIDE.feat } = {}){
+  const orb = new cv.ORB(5000), mask = new cv.Mat(), sets = [];
+  try{
+    for(const canvas of canvases){
+      const g = grayMat(cv, canvas, maxSide), keypoints = new cv.KeyPointVector(), descriptors = new cv.Mat();
+      try{ orb.detectAndCompute(g.g, mask, keypoints, descriptors); }
+      catch(e){ g.g.delete(); keypoints.delete(); descriptors.delete(); throw e; }
+      sets.push({ g, keypoints, descriptors });
+    }
+  }catch(e){
+    for(const s of sets){ s.g.g.delete(); s.keypoints.delete(); s.descriptors.delete(); }
+    throw e;
+  }finally{ orb.delete(); mask.delete(); }
+
+  const cache = new Map();
+  return {
+    match(refIndex, imgIndex, { minInliers = 18 } = {}){
+      const key = `${refIndex}:${imgIndex}`;
+      if(cache.has(key)) return cache.get(key);
+      const ref = sets[refIndex], img = sets[imgIndex];
+      let result = null;
+      if(ref?.keypoints.size() >= 12 && img?.keypoints.size() >= 12){
+        const bf = new cv.BFMatcher(cv.NORM_HAMMING, false), knn = new cv.DMatchVectorVector();
+        try{
+          bf.knnMatch(img.descriptors, ref.descriptors, knn, 2);
+          const A = [], B = [];
+          for(let i = 0; i < knn.size(); i++){
+            const m = knn.get(i); if(m.size() < 2) continue;
+            const a = m.get(0), b = m.get(1);
+            if(a.distance < 0.75 * b.distance){
+              const p = img.keypoints.get(a.queryIdx).pt, q = ref.keypoints.get(a.trainIdx).pt;
+              A.push(p.x, p.y); B.push(q.x, q.y);
+            }
+          }
+          const n = A.length / 2;
+          if(n >= 12){
+            const src = cv.matFromArray(n, 1, cv.CV_32FC2, A), dst = cv.matFromArray(n, 1, cv.CV_32FC2, B), inliers = new cv.Mat();
+            let Hm = null;
+            try{
+              Hm = cv.findHomography(src, dst, cv.RANSAC, 3, inliers);
+              if(Hm && !Hm.empty()){
+                let count = 0; for(let i = 0; i < inliers.rows; i++) if(inliers.data[i]) count++;
+                if(count >= minInliers){
+                  const Hs = arrOf(Hm), sr = ref.g.s, si = img.g.s;
+                  const H = mmul(mmul([1 / sr, 0, 0, 0, 1 / sr, 0, 0, 0, 1], Hs), [si, 0, 0, 0, si, 0, 0, 0, 1]);
+                  result = { H, inliers: count, matches: n, ratio: count / n };
+                }
+              }
+            }finally{ src.delete(); dst.delete(); inliers.delete(); Hm?.delete(); }
+          }
+        }finally{ bf.delete(); knn.delete(); }
+      }
+      cache.set(key, result);
+      return result;
+    },
+    dispose(){
+      for(const s of sets){ s.g.g.delete(); s.keypoints.delete(); s.descriptors.delete(); }
+      sets.length = 0; cache.clear();
+    }
+  };
+}
+
 /** Afinado ECC: devuelve la corrección W (referencia → imagen ya alineada) y la correlación. */
 function eccRefine(cv, ref, aligned){
   const W = cv.Mat.eye(3, 3, cv.CV_32F), crit = new cv.TermCriteria(cv.TermCriteria_COUNT + cv.TermCriteria_EPS, 80, 1e-6), mask = new cv.Mat();
@@ -96,8 +163,8 @@ function eccRefine(cv, ref, aligned){
 
 /** Homografía robusta entre dos fotos que sólo se solapan en parte (panorámicas): lleva un punto de `img` a su sitio en `ref`, a resolución completa
     de cada una (pueden medir distinto). Devuelve { H, inliers } o null si no hay puntos suficientes en común. */
-export function pairHomography(cv, ref, img, { minInliers = 18 } = {}){
-  const r = grayMat(cv, ref, SIDE.feat), i = grayMat(cv, img, SIDE.feat);
+export function pairHomography(cv, ref, img, { minInliers = 18, maxSide = SIDE.feat } = {}){
+  const r = grayMat(cv, ref, maxSide), i = grayMat(cv, img, maxSide);
   try{
     const fh = featureHomography(cv, r.g, i.g);
     if(!fh || fh.inliers < minInliers) return null;

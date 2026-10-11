@@ -9,6 +9,42 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v271 · Ajuste del alineado automático y retirada de la entrada de IA local
+- **Panorámica desde fotos**: acotada la búsqueda de desplazamiento y relajado el rechazo de correlación para no descartar solapes reales con diferencias de exposición o paralaje.
+- Retirada «IA avanzada local» del menú Inteligencia Artificial, del cajón móvil y del registro de comandos.
+
+### v270 · Evitar falsas uniones en panorámicas
+- **Panorámica desde fotos**: el alineado ORB/RANSAC sólo compara tomas consecutivas en el orden elegido. Así evita enlazar fachadas repetidas de fotos lejanas y crear edificios duplicados.
+- Si el alineado preciso no encuentra una pareja fiable, informa del problema en vez de sustituirlo silenciosamente por una composición automática incorrecta.
+
+### v269 · Orden natural para panorámicas
+- **Panorámica desde fotos**: al importar la primera tanda, ordena las tomas por nombre con orden numérico natural (por ejemplo, `00`, `01`…`10`). Esto evita que una selección en orden arbitrario empiece por fotos que no se solapan; las flechas permiten ajustar después el recorrido manualmente.
+
+### v268 · Alineado panorámico por grafo de coincidencias
+- **Panorámica desde fotos**: el modo preciso precalcula los descriptores ORB una sola vez y compara pares cercanos de toda la secuencia, no sólo la pareja consecutiva. Construye un árbol de coincidencias priorizando las homografías con más inliers y mejor proporción, para que una pareja difícil no desconecte el resto de la panorámica.
+- La compensación de exposición usa todas las parejas solapadas y limita las mediciones inconsistentes, evitando que el brillo derive a lo largo de panorámicas largas.
+- Añadidas validaciones para rechazar transformaciones inestables y mosaicos desproporcionados con mensajes de error más útiles.
+
+### v267 · Respaldo automático para panorámicas
+- **Panorámica desde fotos**: si el alineado ORB/RANSAC no encuentra suficientes puntos en una pareja, prueba automáticamente el alineado por correlación antes de declarar que no hay solape. Ajustado el umbral equilibrado para escenas con cielos o texturas suaves; detectada la dirección de avance, mantiene el mismo sentido entre fotos para evitar saltos hacia atrás.
+
+### v266 · Editor panorámico independiente
+- **Imagen → Panorámica desde fotos**: editor a pantalla completa, separado de «Unir fotos», con alineado automático por traslación (solape configurable) o preciso por puntos ORB/RANSAC, proyecciones plana/cilíndrica/esférica, tres modos de fusión, compensación de exposición, recorte automático y ajuste manual de posición por foto.
+- **Unir fotos** queda como herramienta de composiciones en fila, columna y cuadrícula, sin el flujo panorámico.
+
+### v265 · Sombras sin dominantes de color
+- **Sombras / Iluminaciones (modo normal)**: al levantar sombras, limita el factor de luz antes de aplicarlo por igual a los canales. Evita que el recorte independiente de canales cambie el matiz y genere dominantes rojas o azules, también en móvil y en documentos Display P3.
+
+### v264 · Sombras correctas en Display P3
+- **Sombras / Iluminaciones**: cálculo tonal ajustado al espacio de color del documento y protección del matiz al levantar sombras saturadas en los modos normal y Premium.
+
+### v263 · Corrección de arranque
+- **Enfocar Premium**: corregido un error de sintaxis que impedía cargar `js/filters/basic.js` y arrancar la aplicación.
+
+### v262 · Mejoras en herramientas fotográficas
+- **Enfocar**: modo de alta calidad en worker, control de estructura y entrada en «Filtro → Fotografía y detalle».
+- **Perspectiva, sombras e iluminaciones, viñeteado y unión de imágenes**: mejoras de respuesta, color, forma y composición.
+
 ### v261 · Destellos de luz y Bokeh con las imágenes originales
 - **50 texturas originales a máxima resolución** (`assets/estilos/tex/`, 4000 px, las de los zips «Light Leaks» y «Bokeh»): los 45 Destellos y los 5 Bokeh. Se mezclan en modo **Trama** y se añaden como capa nueva editable (botón fx), con intensidad regulable.
 - Las acciones los construían con degradados sobre negro y las imágenes son su resultado exacto. Mi conversión por degradados de la v260 se desviaba del original entre 4 y 78 niveles de 255, así que los 37 Destellos y 3 Bokeh que ya existían **conservan nombre e id pero usan ya la imagen original**; los que faltaban (Destello 01, 09, 10, 14, 15, 17, 23, 24, 32, 35, 42 y Bokeh 04 y 05) se añaden al final.

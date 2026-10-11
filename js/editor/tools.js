@@ -3185,8 +3185,8 @@ function syncPersp(){
   });
 }
 
-export function applyPerspective(){
-  if(perspApply()){
+export async function applyPerspective(){
+  if(await perspApply()){
     resetPerspState();
     finishAppliedTool();
   }

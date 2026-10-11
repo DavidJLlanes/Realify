@@ -106,9 +106,12 @@ export const MENUS = [
     { cmd:"image.beforeAfter", label:"Antes y después…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 2v20"/><path d="M3 20l6-7 3 3"/></svg>',
       help:"Pantalla completa: imagen de comparación para compartir con el original y tu edición (dividida, diagonal, lado a lado o arriba y abajo), con etiquetas y formatos de redes. Crea una capa nueva en otra pestaña." },
-    { cmd:"image.merge", label:"Unir imágenes…",
+    { cmd:"image.merge", label:"Unir fotos…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="8" height="12" rx="1.5"/><rect x="14" y="6" width="8" height="12" rx="1.5"/><path d="M10 12h4"/><path d="m12.5 10.5 1.5 1.5-1.5 1.5"/></svg>',
-      help:"Panorámica (alinea y funde fotos solapadas, iguala la exposición y recorta los bordes) o unión en fila, columna o cuadrícula con separación, margen, esquinas y fondo. Crea una capa nueva." },
+      help:"Une dos o más fotos pegadas por los bordes, en fila, columna o cuadrícula, con control de escala, alineación, separación, margen y fondo. Crea una capa nueva." },
+    { cmd:"image.panorama", label:"Panorámica desde fotos…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18l5-8 4 5 3-4 8 7H2z"/><circle cx="17" cy="6" r="2"/><path d="M2 21h20"/></svg>',
+      help:"Editor panorámico a pantalla completa: alinea las fotos con puntos clave ORB/RANSAC o correlación automática, y ajusta proyección plana o cilíndrica, fusión, exposición, desplazamiento manual y recorte." },
     { cmd:"image.docscan", ic:"scan", label:"Escanear documento Premium 👑…", premium:true,
       help:"Encuentra el papel, la pizarra o el cuadro de la foto (OpenCV, se descarga una vez), deja afinar las cuatro esquinas, deduce la proporción real y lo endereza a resolución completa. Foto nueva." },
     { cmd:"image.sharpness", ic:"focus", label:"Análisis de nitidez…",
@@ -321,7 +324,6 @@ export const MENUS = [
       { cmd:"filter.surfaceBlur",  label:"Desenfoque de superficie…" }
     ]},
     { label:"Enfoque y restauración", submenu:[
-      { cmd:"filter.sharpen",          label:"Enfocar…" },
       { cmd:"filter.advancedSharpen",  label:"Máscara de enfoque / estabilizador…" },
       { cmd:"filter.selectiveSharpen", label:"Enfoque selectivo…" },
       { cmd:"filter.smartSharpen",     label:"Nitidez inteligente…" },
@@ -329,6 +331,7 @@ export const MENUS = [
       { cmd:"filter.restoration",      label:"Mediana / polvo / destramar…" }
     ]},
     { label:"Fotografía y detalle", submenu:[
+      { cmd:"filter.sharpen", label:"Enfocar…" },
       { cmd:"filter.lensCorrection", label:"Corrección de lente…" },
       { cmd:"filter.lensProfile", label:"Corrección de lente por perfil Premium 👑…" },
       { cmd:"filter.lensAuto", label:"Corrección de lente automática Premium 👑" },
@@ -385,10 +388,6 @@ export const MENUS = [
        cajón del móvil (pestaña «Inteligencia Artificial») toma de aquí el
        orden y los títulos de sección, así que los dos coinciden siempre.
        Las funciones de IA nuevas son sólo Premium 👑 (ver CLAUDE.md). */
-    { header:"IA avanzada local" },
-    { cmd:"ai.advancedLocal", ic:"wand-sparkles", label:"IA avanzada local…",
-      help:"Módulo fullscreen para la nueva IA CUDA/PyTorch de Realify. En la Fase 1 muestra la foto y detecta Realify AI Local, GPU NVIDIA, CUDA y VRAM; los modelos se activarán por fases." },
-    { sep:true },
     { header:"Seleccionar" },
     { cmd:"ai.tapSelect", ic:"mouse-pointer-click", label:"Selección con un toque Premium 👑…", premium:true,
       help:"Toca un objeto y la IA (Segment Anything) lo selecciona entero; toca más para añadir o quitar partes. Borde afinado a la resolución de la foto." },

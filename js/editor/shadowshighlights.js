@@ -24,6 +24,8 @@ import { isMobile } from "../core/device.js";
 import { doc } from "../core/doc.js";
 
 const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const toLinear = v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; };
+const toSrgb8 = v => Math.round(255 * (v <= .0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1/2.4) - .055));
 
 export function shadowsHighlights(opts = {}){
   // Una capa ya hecha conserva su motor; un ajuste nuevo, la última elección
@@ -46,9 +48,12 @@ export function shadowsHighlights(opts = {}){
       const blur = bx.getImageData(0, 0, w, h).data;
 
       const toneWidth = 0.12 + (p.tone / 100) * 0.38;   // 0.12 .. 0.50
+      // Un documento P3 contiene números RGB P3, no sRGB. Usar los pesos
+      // sRGB aquí cambia qué zonas cuentan como sombra y tiñe colores vivos.
+      const [wr, wg, wb] = doc.colorSpace === "display-p3" ? [0.22897456, 0.69173852, 0.07928691] : [0.2126, 0.7152, 0.0722];
 
       for(let i = 0; i < data.length; i += 4){
-        const lLocal = (blur[i] * 0.2126 + blur[i+1] * 0.7152 + blur[i+2] * 0.0722) / 255;
+        const lLocal = wr*toLinear(blur[i]) + wg*toLinear(blur[i+1]) + wb*toLinear(blur[i+2]);
         // Peso 1 en negro puro, se desvanece a 0 según crece lLocal
         const shadowW = clamp01(1 - lLocal / toneWidth);
         // Peso 1 en blanco puro, se desvanece a 0 según baja lLocal
@@ -58,13 +63,19 @@ export function shadowsHighlights(opts = {}){
         const delta = shadowsAmt * shadowW * 0.85 - highlightsAmt * highlightW * 0.85;
         if(!delta) continue;
 
-        const r = data[i], g = data[i+1], b = data[i+2];
-        const l = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;
+        const r = toLinear(data[i]), g = toLinear(data[i+1]), b = toLinear(data[i+2]);
+        const l = r * wr + g * wg + b * wb;
         const nl = delta >= 0 ? l + (1 - l) * delta : l * (1 + delta);
-        const scale = l > 0.002 ? nl / l : (nl > 0 ? 1 : 0);
-        data[i]   = Math.max(0, Math.min(255, r * scale));
-        data[i+1] = Math.max(0, Math.min(255, g * scale));
-        data[i+2] = Math.max(0, Math.min(255, b * scale));
+        // Limitar el factor ANTES de escalar los canales. Recortarlos por
+        // separado (Math.min(1, canal * scale)) cambia el matiz de sombras
+        // saturadas al aclararlas; en móvil era especialmente visible en
+        // fotos P3 y con un ajuste intenso. Mantener un único factor conserva
+        // la proporción RGB y evita que aparezcan dominantes rojas o azules.
+        const mx = Math.max(r, g, b);
+        const scale = l > 1e-7 ? Math.min(nl / l, mx > 0 ? 1 / mx : 0) : 0;
+        data[i]   = toSrgb8(r * scale);
+        data[i+1] = toSrgb8(g * scale);
+        data[i+2] = toSrgb8(b * scale);
       }
     },
     buildBody({ preview }){

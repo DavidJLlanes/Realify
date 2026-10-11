@@ -56,6 +56,24 @@ export function cylindrical(img, fov, vertical = false){
   return { w: W, h: H, data: out };
 }
 
+/** Proyección equirectangular esférica: conserva rectas de meridiano a
+    meridiano y reduce la compresión vertical en panorámicas muy anchas. */
+export function spherical(img, fov, vertical = false){
+  const {w,h,data}=img,L=vertical?h:w,f=(L/2)/Math.tan((fov*Math.PI/180)/2);
+  const Lo=Math.round(2*f*Math.atan(L/(2*f))), Co=Math.round(2*f*Math.atan((vertical?w:h)/(2*f)));
+  const W=vertical?w:Lo,H=vertical?Lo:Co,out=new Uint8ClampedArray(W*H*4),xc=w/2,yc=h/2,xo=W/2,yo=H/2;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    let sx,sy;
+    if(!vertical){const th=(x-xo)/f,ph=(y-yo)/f;sx=f*Math.tan(th)+xc;sy=f*Math.tan(ph)/Math.cos(th)+yc;}
+    else{const th=(y-yo)/f,ph=(x-xo)/f;sy=f*Math.tan(th)+yc;sx=f*Math.tan(ph)/Math.cos(th)+xc;}
+    if(sx<0||sy<0||sx>w-1||sy>h-1)continue;
+    const x0=Math.floor(sx),y0=Math.floor(sy),x1=Math.min(w-1,x0+1),y1=Math.min(h-1,y0+1),tx=sx-x0,ty=sy-y0,o=(y*W+x)*4,a=(y0*w+x0)*4,b=(y0*w+x1)*4,c=(y1*w+x0)*4,d=(y1*w+x1)*4;
+    for(let k=0;k<3;k++)out[o+k]=(data[a+k]+(data[b+k]-data[a+k])*tx)*(1-ty)+(data[c+k]+(data[d+k]-data[c+k])*tx)*ty;
+    out[o+3]=255;
+  }
+  return {w:W,h:H,data:out};
+}
+
 /* Logaritmo de la luminancia y validez (alfa y ni quemado ni negro). */
 function logLum(img){
   const { w, h, data } = img, l = new Float32Array(w * h), v = new Uint8Array(w * h);
@@ -101,7 +119,7 @@ function err(a, b, dx, dy, step = 1){
 /** Posición de `b` respecto a `a` (esquina superior izquierda de b en
     coordenadas de a). dir: "h", "v" o "auto". Devuelve también el
     error, para decidir la dirección o avisar si no se encontró. */
-export function pairOffset(a, b, dir = "auto"){
+export function pairOffset(a, b, dir = "auto", overlap = 35, directionSign = 0){
   const pa = [logLum(a)], pb = [logLum(b)];
   while(Math.min(pa[pa.length - 1].w, pa[pa.length - 1].h, pb[pb.length - 1].w, pb[pb.length - 1].h) > 90 && pa.length < 8){
     pa.push(halve(pa[pa.length - 1])); pb.push(halve(pb[pb.length - 1]));
@@ -111,9 +129,12 @@ export function pairOffset(a, b, dir = "auto"){
   const tryDir = d => {
     // Búsqueda completa en el nivel más pequeño: solape entre el 8 % y el 92 %.
     const along = d === "h" ? A.w : A.h, across = d === "h" ? A.h : A.w;
-    const lo = Math.round(along * 0.08), hi = Math.round(along * 0.92), cr = Math.round(across * 0.2);
+    const center = 1 - Math.max(0.05, Math.min(0.9, overlap / 100));
+    // Limitar la búsqueda alrededor del solape indicado evita que patrones
+    // repetidos (ventanas/fachadas) atraigan la toma a otra posición válida.
+    const lo = Math.round(along * Math.max(0.12, center - 0.16)), hi = Math.round(along * Math.min(0.88, center + 0.16)), cr = Math.round(across * 0.08);
     let best = { e: Infinity };
-    for(const sign of [1, -1]){
+    for(const sign of (directionSign ? [directionSign] : [1, -1])){
       for(let t = lo; t <= hi; t++){
         const pos = sign > 0 ? t : -(d === "h" ? B.w : B.h) + (along - t);
         for(let c = -cr; c <= cr; c++){
@@ -141,6 +162,10 @@ export function pairOffset(a, b, dir = "auto"){
     }
     dx = bx; dy = by; e = best;
   }
+  // La correlación puede bajar por exposición, paralaje o movimiento entre
+  // tomas reales. Sólo se rechaza si los gradientes están anticorrelacionados;
+  // el rango estrecho de búsqueda y el solape mínimo filtran falsos positivos.
+  if(!Number.isFinite(e) || e > 1.0) return null;
   return { dx, dy, d, e };
 }
 
@@ -160,36 +185,53 @@ function overlapGain(a, b, dx, dy){
 }
 
 /** Calcula posiciones (en coordenadas de la panorámica) y ganancias. */
-export function layout(imgs, dir = "auto"){
-  const pos = [{ x: 0, y: 0 }], gains = [1], found = [true];
-  let d = dir;
+export function layout(imgs, dir = "auto", overlap = 35){
+  const pos = [{ x: 0, y: 0 }], found = [true];
+  let d = dir, advanceSign = 0;
   for(let i = 1; i < imgs.length; i++){
-    const r = pairOffset(imgs[i - 1], imgs[i], d);
-    if(!r){ found.push(false); const p = pos[i - 1]; pos.push(d === "v" ? { x: p.x, y: p.y + imgs[i - 1].h } : { x: p.x + imgs[i - 1].w, y: p.y }); gains.push(gains[i - 1]); continue; }
+    const r = pairOffset(imgs[i - 1], imgs[i], d, overlap, advanceSign);
+    if(!r){ found.push(false); const p = pos[i - 1]; pos.push(d === "v" ? { x: p.x, y: p.y + imgs[i - 1].h } : { x: p.x + imgs[i - 1].w, y: p.y }); continue; }
     if(d === "auto") d = r.d;   // la primera pareja decide la dirección
+    if(!advanceSign) advanceSign = Math.sign(d === "v" ? r.dy : r.dx) || 1;
     found.push(true);
     pos.push({ x: pos[i - 1].x + r.dx, y: pos[i - 1].y + r.dy });
-    gains.push(gains[i - 1] * overlapGain(imgs[i - 1], imgs[i], r.dx, r.dy));
   }
-  // Ganancias normalizadas a media geométrica 1
-  const g = Math.exp(gains.reduce((s, v) => s + Math.log(v), 0) / gains.length);
-  return { pos, gains: gains.map(v => v / g), dir: d === "auto" ? "h" : d, found };
+  return { ...placed(imgs, pos), dir: d === "auto" ? "h" : d, found };
 }
 
-/** Diseño con posiciones ya conocidas (panorámica precisa: unir/precise.js): sólo se calculan las ganancias de exposición entre fotos contiguas. */
+/** Compensa exposición de forma global con todas las parejas que se solapan. */
 export function placed(imgs, pos){
-  const gains = [1];
-  for(let i = 1; i < imgs.length; i++){
-    const dx = Math.round(pos[i].x - pos[i - 1].x), dy = Math.round(pos[i].y - pos[i - 1].y);
-    gains.push(gains[i - 1] * overlapGain(imgs[i - 1], imgs[i], dx, dy));
+  const n = imgs.length, edges = [], neighbors = Array.from({length:n},()=>[]);
+  for(let i = 0; i < n; i++) for(let j = i + 1; j < n; j++){
+    const dx = Math.round(pos[j].x - pos[i].x), dy = Math.round(pos[j].y - pos[i].y);
+    const ow = Math.min(imgs[i].w, dx + imgs[j].w) - Math.max(0, dx), oh = Math.min(imgs[i].h, dy + imgs[j].h) - Math.max(0, dy);
+    if(ow < 8 || oh < 8) continue;
+    const ratio = overlapGain(imgs[i], imgs[j], dx, dy);
+    if(!Number.isFinite(ratio) || ratio < 0.25 || ratio > 4) continue;
+    const edge = { i, j, delta: Math.log(ratio), weight: Math.sqrt(ow * oh) };
+    edges.push(edge); neighbors[i].push(edge); neighbors[j].push(edge);
   }
-  const g = Math.exp(gains.reduce((s, v) => s + Math.log(v), 0) / gains.length);
-  return { pos, gains: gains.map(v => v / g), dir: "h", found: imgs.map(() => true) };
+  let logs = new Float64Array(n);
+  for(let iter = 0; iter < 24 && edges.length; iter++){
+    const next = new Float64Array(n);
+    for(let k = 0; k < n; k++){
+      let sum = 0, weight = 0;
+      for(const e of neighbors[k]){
+        const prediction = k === e.i ? logs[e.j] - e.delta : logs[e.i] + e.delta;
+        const residual = Math.abs((logs[e.j] - logs[e.i]) - e.delta), w = e.weight / (1 + residual * 3);
+        sum += prediction * w; weight += w;
+      }
+      next[k] = weight ? sum / weight : logs[k];
+    }
+    const mean = next.reduce((a,b)=>a+b,0) / Math.max(1,n);
+    for(let k = 0; k < n; k++) logs[k] = next[k] - mean;
+  }
+  return { pos, gains: Array.from(logs,v=>Math.max(0.5,Math.min(2,Math.exp(v)))), dir:"h", found:imgs.map(()=>true) };
 }
 
 /** Mezcla. `blend` (px) = ancho de la transición; `useGain` iguala la
     exposición; `crop` recorta al mayor rectángulo cubierto. */
-export function compose(imgs, L, { blend = 60, useGain = true, crop = true } = {}){
+export function compose(imgs, L, { blend = 60, useGain = true, crop = true, fusion = "feather" } = {}){
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   imgs.forEach((im, i) => { const p = L.pos[i]; minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x + im.w); maxY = Math.max(maxY, p.y + im.h); });
   const W = Math.round(maxX - minX), H = Math.round(maxY - minY), N = W * H;
@@ -217,9 +259,15 @@ export function compose(imgs, L, { blend = 60, useGain = true, crop = true } = {
       for(let x = 0; x < w; x++){
         const X = x + ox; if(X < 0 || X >= W) continue;
         const s = (y * w + x) * 4; if(data[s + 3] < 128) continue;
-        const d = dist[y * w + x], wt = Math.min(1, d / F) ** 2 + 1e-4, o = Y * W + X;
-        acc[o * 3] += TO_LIN[data[s]] * g * wt; acc[o * 3 + 1] += TO_LIN[data[s + 1]] * g * wt; acc[o * 3 + 2] += TO_LIN[data[s + 2]] * g * wt;
-        wsum[o] += wt;
+        const o = Y * W + X;
+        if(fusion === "cut"){
+          // Corte directo: la foto posterior en el orden elegido cubre la anterior.
+          acc[o * 3] = TO_LIN[data[s]] * g; acc[o * 3 + 1] = TO_LIN[data[s + 1]] * g; acc[o * 3 + 2] = TO_LIN[data[s + 2]] * g; wsum[o] = 1;
+        } else {
+          const d = dist[y * w + x], wt = fusion === "average" ? 1 : Math.min(1, d / F) ** 2 + 1e-4;
+          acc[o * 3] += TO_LIN[data[s]] * g * wt; acc[o * 3 + 1] += TO_LIN[data[s + 1]] * g * wt; acc[o * 3 + 2] += TO_LIN[data[s + 2]] * g * wt;
+          wsum[o] += wt;
+        }
       }
     }
   });

@@ -421,6 +421,10 @@ export function applyShadowsHighlightsPremium(data, w, h, p, scale = 1){
   if(!sa && !ha) return;
   bcTables();
   const n = w * h, toLin = _toLin, toSrgb = _toSrgb;
+  // Canvas/ImageData devuelve componentes P3 en documentos de ese espacio.
+  // Su luminancia usa otros coeficientes que sRGB; mezclarlos desplaza los
+  // pesos tonales y, al abrir sombras saturadas, se percibe como un tinte.
+  const [wr, wg, wb] = doc.colorSpace === "display-p3" ? [0.22897456, 0.69173852, 0.07928691] : [0.2126, 0.7152, 0.0722];
   const NT = 8192, YL = new Float32Array(NT + 1), LY = new Float32Array(NT + 1);
   for(let i = 0; i <= NT; i++){ const q = i / NT; YL[i] = yToL(q * q); LY[i] = lToY(q); }
   const y2l = y => { const f = Math.sqrt(y < 0 ? 0 : y > 1 ? 1 : y) * NT, k = f | 0; return k >= NT ? YL[NT] : YL[k] + (YL[k + 1] - YL[k]) * (f - k); };
@@ -429,7 +433,7 @@ export function applyShadowsHighlightsPremium(data, w, h, p, scale = 1){
   // lo mismo que en el modo normal y un cielo azul no cuenta como más claro.
   const Ns = new Float32Array(n), Ls = new Float32Array(n);
   for(let i = 0, j = 0; j < n; i += 4, j++){
-    const Y = 0.2126 * toLin[data[i]] + 0.7152 * toLin[data[i + 1]] + 0.0722 * toLin[data[i + 2]];
+    const Y = wr * toLin[data[i]] + wg * toLin[data[i + 1]] + wb * toLin[data[i + 2]];
     Ns[j] = Y; Ls[j] = y2l(Y);
   }
   const rad = Math.max(2, Math.round((+p.radius || 60) * scale));
@@ -450,9 +454,13 @@ export function applyShadowsHighlightsPremium(data, w, h, p, scale = 1){
     let rr = toLin[data[i]], gg = toLin[data[i + 1]], bb = toLin[data[i + 2]];
     if(N <= 1e-7){ rr = gg = bb = N2; }
     else {
-      const m = N2 / N; rr *= m; gg *= m; bb *= m;
-      const mx = rr > gg ? (rr > bb ? rr : bb) : (gg > bb ? gg : bb);
-      if(mx > 1){ gamutMap(rr, gg, bb); rr = _gm[0]; gg = _gm[1]; bb = _gm[2]; }
+      const wanted = N2 / N;
+      // Aplicar un único factor y limitarlo antes del recorte conserva la
+      // proporción RGB original. El mapeo OKLab sRGB anterior podía cambiar
+      // el matiz de sombras saturadas, especialmente en documentos P3.
+      const mx = Math.max(rr, gg, bb);
+      const m = Math.min(wanted, mx > 0 ? 1 / mx : wanted);
+      rr *= m; gg *= m; bb *= m;
     }
     let hh = Math.imul(j + 0x632be5ab, 0x9e3779b1);
     hh ^= hh >>> 15; hh = Math.imul(hh, 0x85ebca77); hh ^= hh >>> 13;

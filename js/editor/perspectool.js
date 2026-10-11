@@ -51,10 +51,10 @@ import { warpHiToQuad, warpRectToQuad, unitSquareToQuad, quadToUnitSquare,
    una malla más basta durante el arrastre. `pointer:coarse`
    (core/device.js) es la señal correcta —no el ancho de la ventana,
    que un tablet grande también puede ser táctil y lento—. */
-const PROXY_MAX  = COARSE ? 640 : 1100;
+const PROXY_MAX  = COARSE ? 900 : 1400;
 const MESH_DRAG  = COARSE ? 5   : 10;
 const MESH_REST  = COARSE ? 10  : 16;
-const MESH_APPLY = 40;
+const MESH_APPLY = COARSE ? 28 : 40;
 
 export const persp = {
   mode: "guides",      // guides | corners | edges | adjust
@@ -422,12 +422,16 @@ export function perspReset(){
 /* Aplica a resolución completa y lo mete en el historial. El tamaño
    del documento no cambia: lo que se ve en la vista previa es
    exactamente lo que queda, sin sorpresas de recorte. */
-export function perspApply(){
+export async function perspApply(){
   if(!armed || !src || !doc.open) return false;
   const q = persp.quad;
   if(isIdentity(q)){ toast("No hay ninguna corrección que aplicar"); return false; }
 
   status("Aplicando perspectiva…");
+  // Deja que el navegador pinte el estado y procese el toque antes de
+  // empezar el remuestreo, que puede ser costoso en móviles.
+  await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+  if(!armed || !src || !doc.open){ status(""); return false; }
   const before = src.map(s => ({ id: s.id, c: s.full }));
 
   const hiBefore = new Map(), hiAfter = new Map();      // 16 bits: se deforman también (la capa conserva su origen de 16 bits)

@@ -191,7 +191,6 @@ const ITEMS = [
   { cmd:"image.stack",     label:"Apilar fotos",        ic:"stack-photos",      premium:true, cat:"mejorar estilo" },
   { cmd:"image.slice",     label:"Cortar en partes",    ic:"layout-grid",       cat:"corregir estilo" },
   { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"shapes",            cat:"corregir estilo" },
-  { cmd:"ai.advancedLocal", label:"IA avanzada local", ic:"wand-sparkles", cat:"ia" },
   { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia" },
   { cmd:"ai.tapSelect",  label:"Selección con un toque", ic:"mouse-pointer-click", premium:true, cat:"ia" },
   { cmd:"ai.magicErase", label:"Borrador mágico",      ic:"eraser",              premium:true, cat:"ia" },

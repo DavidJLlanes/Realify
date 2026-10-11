@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════
    UNIR · VENTANA
-   Pantalla completa (js/ui/fsshell.js), dos modos:
-     · Panorámica: fotos solapadas que se alinean y funden solas.
-     · Unión: fila, columna o cuadrícula, con separación y fondo.
+   Pantalla completa (js/ui/fsshell.js): unión simple en fila,
+   columna o cuadrícula, con separación y fondo. Las panorámicas
+   tienen su propio editor en panorama/.
    Escritorio: fotos a la izquierda (se reordenan con ← →), resultado en
    el centro y ajustes a la derecha. Móvil: tira de fotos y un control.
    ═══════════════════════════════════════════════════════════════ */
@@ -82,42 +82,26 @@ export function renderSimple(pics, S, maxArea){
 }
 
 export function openMergeEditor({ current = null, onAccept }){
-  const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
-  let req = 0;
-  const pending = new Map();
-  worker.onmessage = e => {
-    const m = e.data || {};
-    if(m.type === "progress"){ sh.setBusy(m.msg); return; }
-    const p = pending.get(m.req); if(!p) return;
-    pending.delete(m.req);
-    m.type === "error" ? p.reject(new Error(m.message)) : p.resolve(m);
-  };
-  worker.onerror = e => { for(const p of pending.values()) p.reject(new Error(e.message || "El motor se ha detenido (posiblemente por falta de memoria).")); pending.clear(); };
-  const call = (msg, transfer) => new Promise((resolve, reject) => { const id = ++req; pending.set(id, { resolve, reject }); worker.postMessage({ ...msg, req: id }, transfer || []); });
-
   const photos = [];   // { id, name, full (canvas), proxy (canvas), thumb }
-  let seq = 0, usedCurrent = false, closed = false, timer = 0, runSeq = 0;
+  let seq = 0, usedCurrent = false, closed = false, timer = 0;
   const state = {
-    mode: "pano",
-    pano: { projection: "cyl", fov: 60, dir: "auto", blend: 50, gain: true, crop: true },
     simple: { layout: "row", fit: true, align: "center", gap: 20, margin: 0, radius: 0, bg: "#ffffff", transparent: false, cellRatio: "auto", cellFit: "cover" },
     order: []
   };
   const sh = createShell({
-    title: "Unir imágenes", subtitle: "Panorámica o unión en fila, columna o cuadrícula", applyLabel: "Unir",
+    title: "Unir fotos", subtitle: "Unión en fila, columna o cuadrícula", applyLabel: "Unir fotos",
     onCancel: () => close(), onApply: () => apply(), onUndo: () => hist.undo(), onRedo: () => hist.redo()
   });
   const hist = stateHistory(state, () => {
-    // Deshacer sustituye los objetos: se vuelcan en los mismos que usan los controles.
-    Object.assign(P, state.pano); state.pano = P; Object.assign(Sm, state.simple); state.simple = Sm;
-    syncOrder(); controls.refresh(); renderPhotos(); schedule();
+    Object.assign(Sm, state.simple); state.simple = Sm;
+    controls.refresh(); renderPhotos(); schedule();
   }, sh);
-  const P = state.pano, Sm = state.simple;
+  const Sm = state.simple;
   sh.setApplyEnabled(false);
 
   const ordered = () => state.order.map(id => photos.find(p => p.id === id)).filter(Boolean);
   const empty = () => sh.setEmpty(photos.length ? null :
-    `<b>Unir imágenes</b><span>Añade las fotos: una panorámica (fotos solapadas, de izquierda a derecha)<br>o varias para ponerlas en fila, columna o cuadrícula.</span>
+    `<b>Unir fotos</b><span>Añade dos o más fotos para colocarlas en fila, columna o cuadrícula.</span>
      <button type="button" data-add>Añadir fotos</button>` +
     (current ? `<button type="button" data-cur style="background:#272b31;color:#e9edf4;border-color:#3b414b">Usar la imagen abierta</button>` : ""));
   sh.stage.addEventListener("click", e => { if(e.target.closest("[data-add]")) addPhotos(); else if(e.target.closest("[data-cur]")) addCurrent(); });
@@ -134,10 +118,7 @@ export function openMergeEditor({ current = null, onAccept }){
         const id = ++seq, proxy = scaledCanvas(full, PREVIEW_SIDE);
         photos.push({ id, name: it.name, full, proxy, thumb: scaledCanvas(full, 160).toDataURL("image/jpeg", .8) });
         state.order.push(id);
-        const d = full.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, full.width, full.height).data;
-        images.push({ id, w: full.width, h: full.height, data: d.buffer });
       }
-      await call({ type: "add", images }, images.map(i => i.data));
       hist.reset();
     }catch(err){ toast(err.message, "err"); }
     finally{ sh.setBusy(null); }
@@ -148,19 +129,17 @@ export function openMergeEditor({ current = null, onAccept }){
   async function removePhoto(id){
     const i = photos.findIndex(p => p.id === id); if(i < 0) return;
     photos.splice(i, 1); state.order = state.order.filter(x => x !== id);
-    await call({ type: "remove", id }).catch(() => {});
     hist.reset(); afterChange();
   }
   function move(id, d){
     const i = state.order.indexOf(id), j = i + d;
     if(i < 0 || j < 0 || j >= state.order.length) return;
     [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
-    hist.commit(); syncOrder(); renderPhotos(); schedule();
+    hist.commit(); renderPhotos(); schedule();
   }
-  function syncOrder(){ call({ type: "order", ids: state.order }).catch(() => {}); }
   function afterChange(){
     sh.setApplyEnabled(photos.length > 0);
-    sh.setSubtitle(photos.length ? `${photos.length} ${photos.length === 1 ? "foto" : "fotos"}` : "Panorámica o unión en fila, columna o cuadrícula");
+    sh.setSubtitle(photos.length ? `${photos.length} ${photos.length === 1 ? "foto" : "fotos"}` : "Unión en fila, columna o cuadrícula");
     empty(); renderPhotos(); controls.refresh();
     if(!photos.length){ sh.setView(null); return; }
     schedule();
@@ -187,7 +166,7 @@ export function openMergeEditor({ current = null, onAccept }){
     const add = document.createElement("button"); add.type = "button"; add.className = "fsp-btn dashed"; add.textContent = "+ Añadir fotos"; add.addEventListener("click", addPhotos); L.appendChild(add);
     if(current && !usedCurrent){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = "Usar la imagen abierta"; b.addEventListener("click", addCurrent); L.appendChild(b); }
     const n = document.createElement("p"); n.className = "fsp-note";
-    n.textContent = state.mode === "pano" ? "Panorámica: pon las fotos en el orden en que se hicieron (de izquierda a derecha o de arriba abajo), con un tercio de solape aproximadamente." : "Cambia el orden con ← y →.";
+    n.textContent = "Cambia el orden con ← y →.";
     L.appendChild(n);
   }
   function mobilePhotos(){
@@ -206,25 +185,15 @@ export function openMergeEditor({ current = null, onAccept }){
     return wrap;
   }
 
-  const isPano = () => state.mode === "pano", isSimple = () => state.mode === "simple";
   const sections = [
-    { id: "mode", label: "Modo", props: [{ key: "mode", label: "Modo", type: "seg", options: [["pano", "Panorámica"], ["simple", "Unión"]] }] },
-    { id: "pano", label: "Panorámica", when: isPano, props: [
-      { key: "p.projection", label: "Proyección", type: "select", options: [["cyl", "Cilíndrica (recomendada)"], ["plane", "Plana (escaneos, planos)"], ["homog", "Precisa · OpenCV (giro y perspectiva)"]] },
-      { key: "p.fov", label: "Campo de visión de cada foto", type: "range", min: 20, max: 120, unit: "°", def: 60, when: () => P.projection === "cyl" },
-      { key: "p.dir", label: "Dirección", type: "select", options: [["auto", "Automática"], ["h", "Horizontal"], ["v", "Vertical"]], when: () => P.projection !== "homog" },
-      { key: "p.blend", label: "Suavidad de las uniones", type: "range", min: 0, max: 100, unit: " %", def: 50 },
-      { key: "p.gain", label: "Igualar la exposición", type: "toggle" },
-      { key: "p.crop", label: "Recortar bordes vacíos", type: "toggle" }
-    ] },
-    { id: "layout", label: "Diseño", when: isSimple, props: [
+    { id: "layout", label: "Diseño", props: [
       { key: "s.layout", label: "Diseño", type: "thumbs", options: LAYOUTS, thumb: layoutSvg },
       { key: "s.fit", label: "Igualar tamaños", type: "toggle", when: () => !Sm.layout.startsWith("grid") },
       { key: "s.align", label: "Alineación", type: "seg", options: [["start", "Inicio"], ["center", "Centro"], ["end", "Final"]], when: () => !Sm.layout.startsWith("grid") && !Sm.fit },
       { key: "s.cellRatio", label: "Proporción de las celdas", type: "select", when: () => Sm.layout.startsWith("grid"), options: [["auto", "Como las fotos"], ["1", "Cuadradas 1:1"], ["1.25", "Verticales 4:5"], ["0.75", "Horizontales 4:3"], ["0.5625", "Panorámicas 16:9"], ["1.7778", "Historias 9:16"]] },
       { key: "s.cellFit", label: "Foto en la celda", type: "seg", when: () => Sm.layout.startsWith("grid"), options: [["cover", "Llenar"], ["contain", "Entera"]] }
     ] },
-    { id: "style", label: "Separación y fondo", when: isSimple, props: [
+    { id: "style", label: "Separación y fondo", props: [
       { key: "s.gap", label: "Separación", type: "range", min: 0, max: 200, def: 20 },
       { key: "s.margin", label: "Margen exterior", type: "range", min: 0, max: 200, def: 0 },
       { key: "s.radius", label: "Esquinas redondeadas", type: "range", min: 0, max: 100, def: 0 },
@@ -232,65 +201,26 @@ export function openMergeEditor({ current = null, onAccept }){
       { key: "s.bg", label: "Color de fondo", type: "color", when: () => !Sm.transparent }
     ] }
   ];
-  const get = k => k === "mode" ? state.mode : k.startsWith("p.") ? P[k.slice(2)] : Sm[k.slice(2)];
+  const get = k => Sm[k.slice(2)];
   const controls = mountControls(sh, {
     sections, get,
     set: (k, v, final) => {
-      if(k === "mode") state.mode = v; else if(k.startsWith("p.")) P[k.slice(2)] = v; else Sm[k.slice(2)] = v;
-      if(final){ hist.commit(); if(["mode", "p.projection", "s.layout", "s.fit", "s.transparent"].includes(k)){ controls.refresh(); renderPhotos(); } }
+      Sm[k.slice(2)] = v;
+      if(final){ hist.commit(); if(["s.layout", "s.fit", "s.transparent"].includes(k)){ controls.refresh(); renderPhotos(); } }
       schedule(final ? 0 : 60);
     },
     mobileExtra: () => mobilePhotos()
   });
 
   /* ── Vista previa ── */
-  const view = document.createElement("canvas");
   function schedule(delay = 0){
     if(!photos.length) return;
     clearTimeout(timer);
     timer = setTimeout(preview, delay);
   }
-  async function preview(){
-    const s = ++runSeq;
-    if(isSimple()){
-      const c = renderSimple(ordered().map(p => p.proxy), Sm, PREVIEW_SIDE * PREVIEW_SIDE * 1.5);
-      sh.setView(c, !!sh.view);
-      return;
-    }
-    if(photos.length < 2){ sh.setView(ordered()[0]?.proxy || null); sh.setBusy(null); toast("Añade al menos 2 fotos para la panorámica"); return; }
-    sh.setBusy("Uniendo…");
-    try{
-      const r = P.projection === "homog" ? await precisePano(false) : await call({ type: "pano", s: { ...P }, side: Math.round(PREVIEW_SIDE * .6), final: false });
-      if(s !== runSeq || closed) return;
-      view.width = r.w; view.height = r.h;
-      view.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
-      sh.setView(view, !!sh.view && sh.view === view);
-      const miss = r.found.filter(f => !f).length;
-      if(miss) toast(`No se encontró el solape de ${miss === 1 ? "una foto" : miss + " fotos"}: revisa el orden o que se solapen`, "err");
-    }catch(err){ if(!closed) toast(err.message, "err"); }
-    finally{ if(s === runSeq) sh.setBusy(null); }
-  }
-
-  /* Panorámica precisa (unir/precise.js): homografías con OpenCV en el hilo principal y mezcla en el worker. Las fotos ya colocadas se guardan
-     mientras no cambien el orden ni las fotos: mover la suavidad o el recorte sólo recompone. */
-  let placedCache = null;
-  async function precisePano(final){
-    const { loadOpenCv } = await import("../js/cv/opencv.js");
-    const lib = await loadOpenCv();
-    if(!lib) throw new Error("La panorámica precisa necesita OpenCV: elige otra proyección");
-    const { placeMosaic } = await import("./precise.js");
-    const key = JSON.stringify([final, state.order]);
-    if(placedCache?.key !== key){
-      const pics = ordered().map(p => final ? p.full : p.proxy);
-      const r = await placeMosaic(lib.cv, pics, { side: final ? WORK_SIDE : Math.round(PREVIEW_SIDE * .8), maxArea: final ? MAX_AREA : 6e6, interp: final ? "lanczos" : "linear",
-        onStep: (i, n) => sh.setBusy(`Alineando con precisión · ${i} de ${n - 1}`) });
-      if(r.error) throw new Error(r.error);
-      placedCache = { key, r };
-    }
-    const { r } = placedCache;
-    const out = await call({ type: "placed", s: { ...P }, images: r.images.map(im => ({ w: im.w, h: im.h, data: im.data.buffer.slice(0), x: im.x, y: im.y })) });
-    if(r.found.some(f => !f)) out.found = r.found;
-    return out;
+  function preview(){
+    const c = renderSimple(ordered().map(p => p.proxy), Sm, PREVIEW_SIDE * PREVIEW_SIDE * 1.5);
+    sh.setView(c, !!sh.view);
   }
 
   let applying = false;
@@ -299,19 +229,12 @@ export function openMergeEditor({ current = null, onAccept }){
     applying = true; sh.setApplyEnabled(false);
     try{
       let canvas;
-      if(isSimple()) canvas = renderSimple(ordered().map(p => p.full), Sm, MAX_AREA);
-      else {
-        if(photos.length < 2) throw new Error("Hacen falta al menos 2 fotos para la panorámica");
-        sh.setBusy("Uniendo a resolución completa…");
-        const r = P.projection === "homog" ? await precisePano(true) : await call({ type: "pano", s: { ...P }, side: WORK_SIDE, final: true, maxArea: MAX_AREA });
-        canvas = document.createElement("canvas"); canvas.width = r.w; canvas.height = r.h;
-        canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data), r.w, r.h), 0, 0);
-      }
-      await onAccept(canvas, { mode: state.mode, count: photos.length });
+      canvas = renderSimple(ordered().map(p => p.full), Sm, MAX_AREA);
+      await onAccept(canvas, { count: photos.length });
       close();
     }catch(err){ toast("No se pudo unir: " + err.message, "err"); sh.setBusy(null); sh.setApplyEnabled(true); applying = false; }
   }
-  function close(){ if(closed) return; closed = true; worker.terminate(); sh.close(); }
+  function close(){ if(closed) return; closed = true; sh.close(); }
 
   empty(); renderPhotos();
   return { close };
