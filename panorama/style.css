@@ -1,0 +1,175 @@
+/* ═══════════════════════════════════════════════════════════════
+   ESTILOS ESPECÍFICOS DEL PLUGIN PANORÁMICA
+   Zona de Drag & Drop para subir varias imágenes, galería de miniaturas,
+   indicadores visuales y estado de arrastre.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Zona Drag & Drop interactiva cuando el lienzo está vacío o cuando se arrastran archivos */
+.fsp-pano-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 36px 24px;
+  border: 2px dashed #455060;
+  border-radius: 12px;
+  background: rgba(22, 27, 34, 0.7);
+  color: #cfd8e3;
+  text-align: center;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  margin: 12px auto;
+  max-width: 480px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.fsp-pano-dropzone:hover,
+.fsp-pano-dropzone.dragover {
+  border-color: #7fa6ff;
+  background: rgba(41, 59, 96, 0.45);
+  box-shadow: 0 0 24px rgba(103, 148, 255, 0.25);
+  color: #ffffff;
+}
+
+.fsp-pano-dropzone svg {
+  width: 48px;
+  height: 48px;
+  color: #7fa6ff;
+  transition: transform 0.2s ease;
+}
+
+.fsp-pano-dropzone:hover svg {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.fsp-pano-dropzone b {
+  font-size: 15px;
+  color: #e9edf4;
+  letter-spacing: -0.01em;
+}
+
+.fsp-pano-dropzone span {
+  font-size: 12px;
+  color: #9aa5b5;
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+/* Indicador global de arrastre sobre todo el stage */
+.fsp-stage.pano-dragover {
+  outline: 3px dashed #7fa6ff;
+  outline-offset: -8px;
+  background-color: rgba(103, 148, 255, 0.08) !important;
+}
+
+/* Galería de miniaturas y tira de fotos */
+.fsp-pano-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.fsp-pano-thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.fsp-pano-thumb {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #30353d;
+  background: #181c21;
+  aspect-ratio: 4 / 3;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fsp-pano-thumb:hover {
+  border-color: #556070;
+  transform: translateY(-1px);
+}
+
+.fsp-pano-thumb.on {
+  border-color: #7fa6ff;
+  box-shadow: 0 0 0 2px #7fa6ff66;
+}
+
+.fsp-pano-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fsp-pano-thumb .thumb-idx {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  color: #e9edf4;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fsp-pano-thumb .thumb-del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  color: #ff8888;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.fsp-pano-thumb .thumb-del:hover {
+  opacity: 1;
+  background: #c93b3b;
+  color: #ffffff;
+}
+
+.fsp-pano-thumb .thumb-label {
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  padding: 3px 6px;
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #ced6e2;
+}
+
+/* En móvil la tira de miniaturas horizontal */
+@media (max-width: 900px) {
+  .fsp-pano-dropzone {
+    padding: 24px 16px;
+    margin: 8px;
+    gap: 10px;
+  }
+  .fsp-pano-dropzone svg {
+    width: 38px;
+    height: 38px;
+  }
+  .fsp-pano-dropzone b {
+    font-size: 14px;
+  }
+}

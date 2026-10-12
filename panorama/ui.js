@@ -1,125 +1,266 @@
-/* Editor panorámico independiente, de pantalla completa y adaptable. */
-import { createShell, mountControls, stateHistory, decodePhoto, pickFiles, scaledCanvas } from "../js/ui/fsshell.js";
-import { toast } from "../js/ui/toast.js";
+/* ═══════════════════════════════════════════════════════════════
+   PANORÁMICA DESDE FOTOS · INTERFAZ (MOTOR OPENCV DE PRUEBA1)
+   ═══════════════════════════════════════════════════════════════ */
 
-const MOBILE = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
-const WORK_SIDE = MOBILE ? 2400 : 4000, PREVIEW_SIDE = MOBILE ? 800 : 1100;
-const MAX_AREA = MOBILE ? 16e6 : 60e6, MAX_PHOTOS = 20;
-const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+import { createShell, decodePhoto, pickFiles, scaledCanvas } from "../js/ui/fsshell.js";
+import { toast } from "../js/ui/toast.js";
+import { premiumSwitch, premiumPref } from "../js/ui/premium.js";
+
+const MAX_PHOTOS = 25;
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
 export function openPanoramaEditor({ current = null, onAccept }){
-  const worker = new Worker(new URL("../unir/worker.js", import.meta.url), { type:"module" });
-  let req = 0, closed = false, timer = 0, renderSeq = 0, placedCache = null;
-  const pending = new Map();
-  worker.onmessage = e => {
-    const m = e.data || {};
-    if(m.type === "progress"){ sh.setBusy(m.msg); return; }
-    const p = pending.get(m.req); if(!p) return;
-    pending.delete(m.req); m.type === "error" ? p.reject(new Error(m.message)) : p.resolve(m);
+  let photos = [];
+  let seq = 0, closed = false, applying = false;
+  let autoCrop = true;
+
+  const S = {
+    premium: premiumPref.get("panorama")
   };
-  worker.onerror = e => { for(const p of pending.values()) p.reject(new Error(e.message || "El motor panorámico se detuvo")); pending.clear(); };
-  const call = (msg, transfer = []) => new Promise((resolve,reject) => { const id=++req; pending.set(id,{resolve,reject}); worker.postMessage({...msg,req:id},transfer); });
-  const photos = []; let seq=0, usedCurrent=false, applying=false;
-  const S = { order:[], projection:"cyl", alignment:"feature", direction:"auto", overlap:35, fov:60, quality:"balanced", fusion:"feather", blend:50, gain:true, crop:true, selected:null, offsets:{} };
-  const sh = createShell({ title:"Panorámica desde fotos", subtitle:"Alineado y fusión de alta calidad", applyLabel:"Crear panorámica", onCancel:close, onApply:apply, onUndo:()=>hist.undo(), onRedo:()=>hist.redo() });
-  const hist = stateHistory(S,()=>{ sync(); controls.refresh(); renderPhotos(); schedule(); },sh);
+
+  const sh = createShell({
+    title: "Panorámica desde fotos",
+    subtitle: "Arrastra tus fotos para unirlas con OpenCV",
+    applyLabel: "Crear panorámica con OpenCV",
+    cls: "fsp-panorama",
+    onCancel: close,
+    onApply: apply
+  });
+
+  const premium = sh.addAction(premiumSwitch({
+    checked: S.premium,
+    title: "Procesado panorámico Premium",
+    onChange: on => {
+      S.premium = on;
+      premiumPref.set("panorama", on);
+      sh.setClass("is-premium", on);
+    }
+  }));
+  sh.setClass("is-premium", S.premium);
+
   sh.setApplyEnabled(false);
-  const ordered = () => S.order.map(id=>photos.find(p=>p.id===id)).filter(Boolean);
-  sh.stage.addEventListener("click",e=>{ if(e.target.closest("[data-add-pano]")) addPhotos(); if(e.target.closest("[data-current-pano]")) addCurrent(); });
-  const empty=()=>sh.setEmpty(photos.length?null:`<b>Panorámica desde fotos</b><span>Añade fotos de la misma escena con zonas solapadas. Elige el alineado, la proyección, la fusión y el recorte en los ajustes.</span><button type="button" data-add-pano>Añadir fotos</button>${current?'<button type="button" data-current-pano>Usar la imagen abierta</button>':""}`);
-  empty();
+
+  const stage = sh.stage;
+  stage.style.display = "flex";
+  stage.style.flexDirection = "column";
+  stage.style.alignItems = "center";
+  stage.style.justifyContent = "center";
+  stage.style.padding = "24px";
+  stage.style.overflow = "auto";
+  stage.style.boxSizing = "border-box";
+
+  stage.addEventListener("dragover", e => { e.preventDefault(); stage.classList.add("pano-dragover"); });
+  stage.addEventListener("dragleave", e => { e.preventDefault(); stage.classList.remove("pano-dragover"); });
+  stage.addEventListener("drop", e => {
+    e.preventDefault();
+    stage.classList.remove("pano-dragover");
+    const files = [...(e.dataTransfer?.files || [])].filter(f => /image\//i.test(f.type) || /\.(jpe?g|png|webp|avif|heic|tiff?)$/i.test(f.name));
+    if(files.length) addPhotosFromFiles(files);
+  });
+
+  renderUI();
+
+  function renderUI(){
+    stage.innerHTML = "";
+
+    if(photos.length === 0){
+      sh.setApplyEnabled(false);
+      sh.setSubtitle("Arrastra tus fotos para unirlas con OpenCV");
+
+      const dropBox = document.createElement("div");
+      dropBox.className = "fsp-pano-dropzone";
+      dropBox.style.cssText = "border:2px dashed rgba(255,255,255,0.3);border-radius:16px;padding:3rem;text-align:center;cursor:pointer;max-width:600px;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.03);";
+      dropBox.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:48px;height:48px;margin:0 auto 12px;display:block;opacity:0.8;">
+          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+          <path d="M12 12v9"/>
+          <path d="m16 16-4-4-4 4"/>
+        </svg>
+        <b style="font-size:16px;display:block;margin-bottom:6px;">Arrastra tus fotos aquí o haz clic para subir</b>
+        <span style="font-size:13px;color:#8b949e;display:block;margin-bottom:16px;">Toma varias fotos en secuencia horizontal con un 30-50% de solape.</span>
+        <button type="button" class="primary" style="padding:10px 20px;border-radius:8px;font-weight:600;background:#58a6ff;color:#0d1117;border:none;cursor:pointer;">Seleccionar archivos</button>
+      `;
+      dropBox.onclick = () => addPhotos();
+      stage.appendChild(dropBox);
+
+      if(current){
+        const curBtn = document.createElement("button");
+        curBtn.innerText = "Usar la imagen abierta en el editor";
+        curBtn.style.cssText = "background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:10px 18px;border-radius:8px;cursor:pointer;margin-top:12px;";
+        curBtn.onclick = () => addItems([{ canvas: current.canvas, name: current.name || "Capa activa" }]);
+        stage.appendChild(curBtn);
+      }
+      return;
+    }
+
+    sh.setApplyEnabled(photos.length >= 2);
+    sh.setSubtitle(`${photos.length} fotos cargadas · Listas para unir con OpenCV`);
+
+    const container = document.createElement("div");
+    container.style.cssText = "width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px;align-items:center;";
+
+    const topBar = document.createElement("div");
+    topBar.style.cssText = "width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;";
+    topBar.innerHTML = `
+      <div style="font-size:14px;color:#c9d1d9;font-weight:600;">Fotos en secuencia (${photos.length}):</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#c9d1d9;cursor:pointer;background:#21262d;padding:6px 12px;border-radius:6px;border:1px solid #30363d;">
+          <input type="checkbox" id="chk-autocrop" ${autoCrop ? "checked" : ""} style="cursor:pointer;accent-color:#58a6ff;" />
+          <span>Recortar bordes negros automáticamente</span>
+        </label>
+        <button type="button" id="btn-add-more" style="background:#21262d;color:#58a6ff;border:1px solid #30363d;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;">+ Añadir más</button>
+        <button type="button" id="btn-clear-all" style="background:#21262d;color:#f85149;border:1px solid #30363d;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Limpiar todo</button>
+      </div>
+    `;
+    container.appendChild(topBar);
+
+    const grid = document.createElement("div");
+    grid.style.cssText = "width:100%;display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:16px;background:rgba(22, 27, 34, 0.8);border:1px solid #30363d;border-radius:12px;padding:16px;box-sizing:border-box;";
+
+    photos.forEach((p, idx) => {
+      const card = document.createElement("div");
+      card.style.cssText = "background:#0d1117;border:1px solid #30363d;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.3);";
+      card.innerHTML = `
+        <div style="position:relative;width:100%;height:110px;background:#000;">
+          <img src="${p.thumb}" style="width:100%;height:100%;object-fit:cover;" />
+          <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.75);color:#58a6ff;font-weight:bold;font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid rgba(88,166,255,0.4);">#${idx + 1}</span>
+          <button type="button" data-del="${p.id}" style="position:absolute;top:6px;right:6px;background:rgba(248,81,73,0.85);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">✕</button>
+        </div>
+        <div style="padding:8px;font-size:11px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">
+          ${esc(p.name)}
+        </div>
+      `;
+
+      card.querySelector("[data-del]").onclick = (e) => {
+        e.stopPropagation();
+        photos = photos.filter(item => item.id !== p.id);
+        renderUI();
+      };
+
+      grid.appendChild(card);
+    });
+
+    container.appendChild(grid);
+    stage.appendChild(container);
+
+    topBar.querySelector("#chk-autocrop").onchange = e => { autoCrop = e.target.checked; };
+    topBar.querySelector("#btn-add-more").onclick = () => addPhotos();
+    topBar.querySelector("#btn-clear-all").onclick = () => { photos = []; renderUI(); };
+  }
 
   async function addItems(items){
-    const room=MAX_PHOTOS-photos.length,sortInitial=photos.length===0; if(room<=0){toast(`Máximo ${MAX_PHOTOS} fotos`,"err");return;}
-    sh.setBusy("Abriendo fotos…");
-    try{
-      const ims=[];
-      for(const it of items.slice(0,room)){
-        const full=it.canvas||await decodePhoto(it.file,WORK_SIDE), id=++seq;
-        photos.push({id,name:it.name,full,proxy:scaledCanvas(full,PREVIEW_SIDE),thumb:scaledCanvas(full,144).toDataURL("image/jpeg",.82)}); S.order.push(id);
-        const data=full.getContext("2d",{willReadFrequently:true}).getImageData(0,0,full.width,full.height).data;
-        ims.push({id,w:full.width,h:full.height,data:data.buffer});
-      }
-      if(sortInitial){
-        const byId=new Map(photos.map(p=>[p.id,p]));
-        S.order.sort((a,b)=>(byId.get(a)?.name||"").localeCompare(byId.get(b)?.name||"",undefined,{numeric:true,sensitivity:"base"}));
-      }
-      await call({type:"add",images:ims},ims.map(x=>x.data));
-      if(sortInitial) await call({type:"order",ids:S.order});
-      placedCache=null; hist.reset();
-      if(!S.selected&&S.order.length)S.selected=S.order[0];
-    }catch(e){toast(e.message,"err");}
-    finally{sh.setBusy(null);}
-    changed();
-  }
-  async function addPhotos(){const files=await pickFiles();if(files.length) addItems(files.map(file=>({file,name:file.name})));}
-  function addCurrent(){if(current&&!usedCurrent){usedCurrent=true;addItems([{canvas:current.canvas,name:current.name}]);}}
-  async function remove(id){const p=photos.findIndex(x=>x.id===id);if(p<0)return;photos.splice(p,1);S.order=S.order.filter(x=>x!==id);delete S.offsets[id];if(S.selected===id)S.selected=S.order[0]??null;await call({type:"remove",id}).catch(()=>{});placedCache=null;hist.reset();changed();}
-  function move(id,d){const i=S.order.indexOf(id),j=i+d;if(j<0||j>=S.order.length)return;[S.order[i],S.order[j]]=[S.order[j],S.order[i]];hist.commit();sync();renderPhotos();schedule();}
-  function sync(){call({type:"order",ids:S.order}).catch(()=>{});placedCache=null;}
-  function changed(){empty();sh.setApplyEnabled(photos.length>=2);sh.setSubtitle(photos.length?`${photos.length} fotos · ${S.alignment==="feature"?"alineado por puntos clave":"alineado automático"}`:"Alineado y fusión de alta calidad");renderPhotos();controls.refresh();if(!photos.length){sh.setView(null);return;}schedule();}
-
-  function photoRow(p,compact){const row=document.createElement("div");row.className="fsp-photo";const i=S.order.indexOf(p.id);row.innerHTML=`<img alt="" src="${p.thumb}"><div><b>${i+1}. ${esc(p.name)}</b><small>${p.full.width} × ${p.full.height}</small></div><span class="ops">${compact?`<small class="ev">${i+1}</small>`:`<button type="button" class="x" data-mv="-1" aria-label="Mover antes">↑</button><button type="button" class="x" data-mv="1" aria-label="Mover después">↓</button>`}<button type="button" class="x" data-rm aria-label="Quitar">✕</button></span>`;
-    row.addEventListener("click",e=>{if(e.target.closest("[data-rm]"))remove(p.id);else if(e.target.closest("[data-mv]"))move(p.id,+e.target.closest("[data-mv]").dataset.mv);else{S.selected=p.id;controls.refresh();}});return row;}
-  function renderPhotos(){const L=sh.left;L.innerHTML="";const h=document.createElement("h3");h.textContent=`Fotos (${photos.length})`;L.appendChild(h);const list=document.createElement("div");list.className="fsp-photos";ordered().forEach(p=>list.appendChild(photoRow(p,false)));L.appendChild(list);const b=document.createElement("button");b.type="button";b.className="fsp-btn dashed";b.textContent="+ Añadir fotos";b.addEventListener("click",addPhotos);L.appendChild(b);const n=document.createElement("p");n.className="fsp-note";n.textContent="La primera tanda se ordena por nombre; ajusta la ruta de captura con las flechas si hace falta. Cada toma debe solapar con la siguiente.";L.appendChild(n);}
-  function mobilePhotos(){const w=document.createElement("div");w.className="fsp-mphotos";ordered().forEach(p=>w.appendChild(photoRow(p,true)));const b=document.createElement("button");b.type="button";b.className="fsp-photo";b.style.cssText="display:grid;place-items:center;width:58px;height:58px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";b.textContent="+";b.addEventListener("click",addPhotos);w.appendChild(b);return w;}
-
-  const sections=[
-    {id:"alignment",label:"Alineado",props:[
-      {key:"alignment",label:"Método",type:"select",options:[["feature","Puntos clave · ORB / RANSAC"],["auto","Automático · traslación"]]},
-      {key:"quality",label:"Precisión del análisis",type:"select",when:()=>S.alignment==="feature",options:[["draft","Rápida"],["balanced","Equilibrada"],["high","Máxima"]]},
-      {key:"direction",label:"Dirección de avance",type:"select",when:()=>S.alignment==="auto",options:[["auto","Detectar automáticamente"],["h","Horizontal"],["v","Vertical"]]},
-      {key:"overlap",label:"Solape aproximado",type:"range",min:10,max:90,unit:" %",def:35,when:()=>S.alignment==="auto"},
-      {key:"projection",label:"Proyección",type:"select",options:[["cyl","Cilíndrica · panorámicas"],["sph","Esférica · campo amplio"],["plane","Plana · arquitectura y escaneos"]]},
-      {key:"fov",label:"Campo de visión",type:"range",min:20,max:120,unit:"°",def:60,when:()=>S.projection!=="plane"}
-    ]},
-    {id:"fusion",label:"Fusión",props:[
-      {key:"fusion",label:"Método de fusión",type:"select",options:[["feather","Fundido por distancia · recomendado"],["average","Promedio uniforme"],["cut","Corte directo · sin fundido"]]},
-      {key:"blend",label:"Anchura del fundido",type:"range",min:0,max:100,unit:" %",def:50,when:()=>S.fusion==="feather"},
-      {key:"gain",label:"Compensar diferencias de exposición",type:"toggle"},
-      {key:"crop",label:"Recortar automáticamente los bordes vacíos",type:"toggle"}
-    ]},
-    {id:"manual",label:"Ajuste manual",props:[
-      {key:"selected",label:"Foto seleccionada",type:"select",options:()=>ordered().map((p,i)=>[p.id,`${i+1}. ${p.name}`])},
-      {key:"dx",label:"Desplazamiento horizontal",type:"range",min:-300,max:300,unit:" px",def:0},
-      {key:"dy",label:"Desplazamiento vertical",type:"range",min:-300,max:300,unit:" px",def:0},
-      {key:"resetOffset",label:"Restablecer foto seleccionada",type:"button",run:()=>{if(S.selected!=null)delete S.offsets[S.selected];hist.commit();controls.refresh();schedule();}}
-    ]}
-  ];
-  const controls=mountControls(sh,{sections,get:k=>k==="dx"||k==="dy"?(S.offsets[S.selected]?.[k]||0):S[k],set:(k,v,final)=>{if(k==="dx"||k==="dy"){if(S.selected!=null)S.offsets[S.selected]={...(S.offsets[S.selected]||{}),[k]:v};}else S[k]=v;if(final){hist.commit();if(["alignment","projection","quality","direction","selected"].includes(k)){placedCache=null;controls.refresh();renderPhotos();}}schedule(final?0:80);},mobileExtra:mobilePhotos});
-
-  async function precise(final){
-    const {loadOpenCv}=await import("../js/cv/opencv.js"),lib=await loadOpenCv();if(!lib)throw new Error("No se pudo cargar OpenCV para el alineado por puntos clave");
-    const key=JSON.stringify([final,S.order,S.quality,S.projection,S.fov]);
-    if(placedCache?.key!==key){
-      const {placeMosaic}=await import("../unir/precise.js");
-      let canvases=ordered().map(p=>final?p.full:p.proxy);
-      if(S.projection!=="plane"){
-        const {cylindrical,spherical}=await import("../unir/engine.js");
-        const project=S.projection==="sph"?spherical:cylindrical;
-        canvases=canvases.map(c=>{const d=c.getContext("2d",{willReadFrequently:true}).getImageData(0,0,c.width,c.height),im=project({w:c.width,h:c.height,data:d.data},S.fov,false),o=document.createElement("canvas");o.width=im.w;o.height=im.h;o.getContext("2d").putImageData(new ImageData(im.data,im.w,im.h),0,0);return o;});
-      }
-      const q={draft:{side:800,minInliers:8},balanced:{side:1200,minInliers:12},high:{side:1800,minInliers:20}}[S.quality];
-      const r=await placeMosaic(lib.cv,canvases,{side:final?Math.min(WORK_SIDE,q.side*2):q.side,maxArea:final?MAX_AREA:7e6,interp:final?"lanczos":"linear",minInliers:q.minInliers,onStep:(i,n)=>sh.setBusy(`Buscando coincidencias · ${i} de ${n}`)});
-      if(r.error||r.found.some(ok=>!ok)){
-        // No mostrar una composición de traslación como si fuera el resultado
-        // de ORB: puede duplicar fachadas cuando el emparejamiento falla.
-        throw new Error(r.error||"No hay coincidencias fiables entre todas las fotos consecutivas. Reordena las imágenes o prueba el alineado automático.");
-      }
-      placedCache={key,r};
+    const room = MAX_PHOTOS - photos.length;
+    if(room <= 0){
+      toast(`Máximo alcanzado (${MAX_PHOTOS} fotos)`, "err");
+      return;
     }
-    const r=placedCache.r;
-    const refPrev=Math.min(...ordered().map(p=>p.proxy.height)),refFinal=Math.min(...ordered().map(p=>p.full.height));
-    const target=final?Math.min(refFinal,Math.min(WORK_SIDE,({draft:1600,balanced:2400,high:3600}[S.quality]))):refPrev;
-    const k=final?target/Math.max(1,refPrev):1;
-    const images=r.images.map(im=>{const d=S.offsets[ordered()[im.i]?.id]||{};return {w:im.w,h:im.h,x:im.x+(+d.dx||0)*k,y:im.y+(+d.dy||0)*k,data:im.data.buffer.slice(0)};});
-    const out=await call({type:"placed",s:params(),images});out.found=r.found;return out;
+    const toAdd = items.slice(0, room);
+    sh.setBusy("Cargando fotos…");
+
+    try {
+      for(const it of toAdd){
+        const full = it.canvas || await decodePhoto(it.file, 3000);
+        const id = ++seq;
+        const thumb = scaledCanvas(full, 240).toDataURL("image/jpeg", 0.85);
+
+        photos.push({
+          id,
+          name: it.name || `Foto ${id}`,
+          file: it.file || null,
+          full,
+          thumb,
+          w: full.width,
+          h: full.height
+        });
+      }
+      toast(toAdd.length === 1 ? "1 foto añadida" : `${toAdd.length} fotos añadidas`, "ok");
+    } catch(err){
+      toast("Error al cargar fotos: " + err.message, "err");
+    } finally {
+      sh.setBusy(null);
+    }
+    renderUI();
   }
-  const params=()=>({...S,dir:S.direction,blend:S.blend,previewSide:PREVIEW_SIDE});
-  function schedule(delay=0){if(photos.length<2)return;clearTimeout(timer);timer=setTimeout(preview,delay);}
-  const view=document.createElement("canvas");
-  async function preview(){const id=++renderSeq;sh.setBusy("Alineando y fusionando…");try{const r=S.alignment==="feature"?await precise(false):await call({type:"pano",s:params(),side:PREVIEW_SIDE,final:false});if(id!==renderSeq||closed)return;const missing=r.found?.filter(x=>!x).length||0;if(missing){sh.setView(null);toast(`Alineado incompleto: ${missing} foto(s) no tienen un solape fiable. Revisa el orden, la dirección o el método.`,"err");return;}view.width=r.w;view.height=r.h;view.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data),r.w,r.h),0,0);sh.setView(view,true);}catch(e){if(!closed){sh.setView(null);toast(e.message,"err");}}finally{if(id===renderSeq)sh.setBusy(null);}}
-  async function apply(){if(applying||photos.length<2)return;applying=true;sh.setApplyEnabled(false);sh.setBusy("Generando panorámica a resolución completa…");try{const r=S.alignment==="feature"?await precise(true):await call({type:"pano",s:params(),side:WORK_SIDE,final:true,maxArea:MAX_AREA});if(r.found?.some(x=>!x))throw new Error("No se pudo alinear una o varias fotos; revisa el solape, el orden o el método de alineado");const out=document.createElement("canvas");out.width=r.w;out.height=r.h;out.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(r.data),r.w,r.h),0,0);await onAccept(out,{count:photos.length});close();}catch(e){toast("No se pudo crear la panorámica: "+e.message,"err");sh.setBusy(null);sh.setApplyEnabled(true);applying=false;}}
-  function close(){if(closed)return;closed=true;clearTimeout(timer);worker.terminate();sh.close();}
-  renderPhotos();return {close};
+
+  async function addPhotos(){
+    const files = await pickFiles({ multiple: true });
+    if(files.length) addPhotosFromFiles(files);
+  }
+
+  function addPhotosFromFiles(files){
+    addItems(files.map(file => ({ file, name: file.name })));
+  }
+
+  function canvasToBlob(cv){
+    return new Promise(resolve => cv.toBlob(resolve, "image/jpeg", 0.95));
+  }
+
+  async function apply(){
+    if(applying || photos.length < 2) return;
+    applying = true;
+    sh.setApplyEnabled(false);
+    sh.setBusy("Procesando con OpenCV (SIFT)... esto puede tardar unos segundos");
+
+    try {
+      const formData = new FormData();
+      formData.append("autocrop", autoCrop ? "true" : "false");
+
+      for(let i = 0; i < photos.length; i++){
+        const p = photos[i];
+        if(p.file){
+          formData.append("files", p.file, p.file.name);
+        } else {
+          const blob = await canvasToBlob(p.full);
+          formData.append("files", blob, `photo_${i}.jpg`);
+        }
+      }
+
+      const res = await fetch("/api/stitch", {
+        method: "POST",
+        body: formData
+      });
+
+      if(!res.ok){
+        throw new Error("El servidor respondió con código " + res.status);
+      }
+
+      const contentType = res.headers.get("content-type") || "";
+      if(contentType.includes("application/json")){
+        const json = await res.json();
+        if(json.error) throw new Error(json.error);
+      }
+
+      const blob = await res.blob();
+      const img = new Image();
+      const objUrl = URL.createObjectURL(blob);
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = objUrl;
+      });
+
+      const finalCanvas = document.createElement("canvas");
+      finalCanvas.width = img.naturalWidth || img.width;
+      finalCanvas.height = img.naturalHeight || img.height;
+      finalCanvas.getContext("2d").drawImage(img, 0, 0);
+      URL.revokeObjectURL(objUrl);
+
+      toast("¡Panorámica creada con éxito!", "ok");
+      await onAccept(finalCanvas, { count: photos.length });
+      close();
+    } catch(err){
+      toast("Error al crear panorámica: " + err.message, "err");
+      sh.setBusy(null);
+      sh.setApplyEnabled(true);
+      applying = false;
+    }
+  }
+
+  function close(){
+    if(closed) return;
+    closed = true;
+    sh.close();
+  }
+
+  return { close };
 }

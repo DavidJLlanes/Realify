@@ -2,8 +2,20 @@
 import { ensureShellStyles, resultToLayer } from "../js/ui/fsshell.js";
 import { toast } from "../js/ui/toast.js";
 
+async function ensurePanoramaStyles(){
+  const href = new URL("./style.css", import.meta.url).href;
+  if([...document.querySelectorAll('link[rel="stylesheet"]')].some(l => l.href === href)) return;
+  return new Promise(resolve => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.onload = link.onerror = () => resolve();
+    document.head.appendChild(link);
+  });
+}
+
 export async function openPanorama(){
-  await ensureShellStyles();
+  await Promise.all([ensureShellStyles(), ensurePanoramaStyles()]);
   const [{ openPanoramaEditor }, { doc }, { flatten }] = await Promise.all([
     import("./ui.js"), import("../js/core/doc.js"), import("../js/editor/layertree.js")]);
   const current = doc.open ? { canvas: flatten(), name: doc.name || "Imagen abierta" } : null;
