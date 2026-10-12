@@ -8,6 +8,7 @@
 
 import { run, enabled, labelFor } from "./commands.js";
 import { ICONS } from "./tooldrawer-icons.js";
+import { keyboardHeight } from "./keyboard.js";
 
 /* Icono opcional delante del texto de una entrada: un SVG en línea,
    que hereda el color del texto. Sólo lo usan las entradas a las que
@@ -542,7 +543,7 @@ function closeSub(){
 
 function closeMenu(){
   closeSub();
-  if(openPop){ openPop.remove(); openPop = null; }
+  if(openPop){ openPop._unfollow?.(); openPop.remove(); openPop = null; }
   if(openRoot){ openRoot.classList.remove("open"); openRoot = null; }
 }
 
@@ -778,7 +779,8 @@ function buildPopMobile(menu, anchor){
 
   const searchWrap = document.createElement("div");
   searchWrap.className = "menu-search";
-  searchWrap.innerHTML = `<input type="search" placeholder="Buscar en el menú…" aria-label="Buscar en el menú">`;
+  searchWrap.innerHTML = `<input type="search" placeholder="Buscar en el menú…" aria-label="Buscar en el menú"
+    enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">`;
   pop.appendChild(searchWrap);
   const search = searchWrap.querySelector("input");
 
@@ -833,6 +835,44 @@ function buildPopMobile(menu, anchor){
   }
   search.addEventListener("input", filter);
   search.addEventListener("click", e => e.stopPropagation());
+  // «Buscar» del teclado: lo cierra y deja los resultados a la vista
+  search.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); search.blur(); } });
+
+  /* Con el teclado abierto el menú se apoya justo ENCIMA de él y ocupa
+     todo el alto que queda libre, así que el campo y los resultados se
+     ven siempre. El teclado se abre sobre la página sin encogerla
+     (iPhone y Chrome moderno de Android), así que se mide con
+     `visualViewport`: `--kb` es lo que tapa el teclado y `--vvh` el alto
+     visible. En los Android antiguos que sí encogen la ventana `--kb`
+     vale 0 y el borde de abajo ya es el del teclado. Al cerrarse el
+     teclado el menú vuelve junto a su botón. */
+  const vv = window.visualViewport;
+  let fitRaf = 0;
+  const fit = () => {
+    fitRaf = 0;
+    const typing = document.activeElement === search;
+    pop.classList.toggle("menu-kb", typing);
+    if(typing){
+      pop.style.setProperty("--kb", keyboardHeight() + "px");
+      pop.style.setProperty("--vvh", Math.round(vv ? vv.height : innerHeight) + "px");
+    } else {
+      pop.style.removeProperty("--kb");
+      pop.style.removeProperty("--vvh");
+    }
+  };
+  const fitSoon = () => { if(!fitRaf) fitRaf = requestAnimationFrame(fit); };
+  // El teclado tarda en abrirse (y en algunos móviles se anima): se vuelve a medir
+  const onFocus = () => { fit(); for(const ms of [60, 150, 300, 600]) setTimeout(fit, ms); };
+  const onBlur = () => setTimeout(fit, 0);
+  search.addEventListener("focus", onFocus);
+  search.addEventListener("blur", onBlur);
+  vv?.addEventListener("resize", fitSoon);
+  vv?.addEventListener("scroll", fitSoon);
+  pop._unfollow = () => {
+    cancelAnimationFrame(fitRaf);
+    vv?.removeEventListener("resize", fitSoon);
+    vv?.removeEventListener("scroll", fitSoon);
+  };
 
   document.body.appendChild(pop);
   const r = anchor.getBoundingClientRect();

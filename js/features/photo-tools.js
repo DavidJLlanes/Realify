@@ -713,13 +713,36 @@ export async function portraitRetouch(opts = {}){
 
 /* ── Transformación de capa ─────────────────────────────────── */
 export async function transformLayer(){
-  const layer=rasterLayer();if(!layer)return;const body=await settingsDialog("Transformar capa",`
-    ${sliderRow("trScale","Escala",10,300,100,"%")}${sliderRow("trRotate","Rotación",-180,180,0,"°")}${sliderRow("trSkewX","Inclinar X",-60,60,0,"°")}${sliderRow("trSkewY","Inclinar Y",-60,60,0,"°")}
-    <label class="chk"><input id="trFlipH" type="checkbox"> Voltear horizontalmente</label><label class="chk"><input id="trFlipV" type="checkbox"> Voltear verticalmente</label>`);if(!body)return;
+  const layer=rasterLayer();if(!layer)return;
   const before=canvasCopy(layer.canvas),beforeMask=layer.mask?canvasCopy(layer.mask.canvas):null;
   const oldType=layer.type,oldText=deep(layer.text||null),cx=doc.w/2,cy=doc.h/2;
-  const applyTransform=(ctx,src)=>{ctx.save();ctx.globalCompositeOperation="copy";ctx.clearRect(0,0,doc.w,doc.h);ctx.translate(cx,cy);ctx.rotate(+body.querySelector("#trRotate").value*Math.PI/180);ctx.transform(1,Math.tan(+body.querySelector("#trSkewY").value*Math.PI/180),Math.tan(+body.querySelector("#trSkewX").value*Math.PI/180),1,0,0);const s=+body.querySelector("#trScale").value/100;ctx.scale((body.querySelector("#trFlipH").checked?-1:1)*s,(body.querySelector("#trFlipV").checked?-1:1)*s);ctx.drawImage(src,-cx,-cy);ctx.restore();};
-  applyTransform(layer.ctx,canvasCopy(before));if(layer.mask)applyTransform(layer.mask.ctx,canvasCopy(beforeMask));
+  /* Vista previa en directo: cada cambio de un deslizador redibuja la capa desde la
+     copia ORIGINAL (nunca desde el fotograma anterior). Cancelar la deja como estaba. */
+  let host=null,queued=false,closed=false;
+  const val=id=>host.querySelector("#"+id);
+  const applyTransform=(ctx,src)=>{
+    const rot=+val("trRotate").value*Math.PI/180,skX=Math.tan(+val("trSkewX").value*Math.PI/180),skY=Math.tan(+val("trSkewY").value*Math.PI/180),sc=+val("trScale").value/100;
+    ctx.save();ctx.globalCompositeOperation="copy";ctx.globalAlpha=1;ctx.clearRect(0,0,doc.w,doc.h);ctx.translate(cx,cy);ctx.rotate(rot);ctx.transform(1,skY,skX,1,0,0);
+    ctx.scale((val("trFlipH").checked?-1:1)*sc,(val("trFlipV").checked?-1:1)*sc);ctx.imageSmoothingQuality="high";ctx.drawImage(src,-cx,-cy);ctx.restore();
+  };
+  const draw=()=>{applyTransform(layer.ctx,before);if(layer.mask)applyTransform(layer.mask.ctx,beforeMask);layer.thumbDirty=true;emit("doc:change");};
+  const redraw=()=>{
+    if(queued||!host)return;queued=true;
+    requestAnimationFrame(()=>{queued=false;if(!closed&&host)draw();});
+  };
+  const body=document.createElement("div");
+  body.innerHTML=`${sliderRow("trScale","Escala",10,300,100,"%")}${sliderRow("trRotate","Rotación",-180,180,0,"°")}${sliderRow("trSkewX","Inclinar X",-60,60,0,"°")}${sliderRow("trSkewY","Inclinar Y",-60,60,0,"°")}
+    <label class="chk"><input id="trFlipH" type="checkbox"> Voltear horizontalmente</label><label class="chk"><input id="trFlipV" type="checkbox"> Voltear verticalmente</label>`;
+  const result=await dialog({title:"Transformar capa",body,cls:isMobile()?"dlg-compact":"",
+    buttons:[{label:"Cancelar",value:null},{label:"Aplicar",primary:true,value:"go"}],
+    onOpen:h=>{host=h;wireCommon(h);h.addEventListener("input",redraw);h.addEventListener("change",redraw);}});
+  closed=true;
+  if(result!=="go"){
+    restore(layer,before);
+    if(layer.mask&&beforeMask){layer.mask.ctx.save();layer.mask.ctx.globalCompositeOperation="copy";layer.mask.ctx.drawImage(beforeMask,0,0);layer.mask.ctx.restore();}
+    return;
+  }
+  draw();
   if(layer.type==="text"){layer.type="raster";layer.text=null;}
   const after=canvasCopy(layer.canvas),afterMask=layer.mask?canvasCopy(layer.mask.canvas):null;
   const set=(pixels,mask,type,text)=>{restore(layer,pixels);if(layer.mask&&mask){layer.mask.ctx.save();layer.mask.ctx.globalCompositeOperation="copy";layer.mask.ctx.drawImage(mask,0,0);layer.mask.ctx.restore();}layer.type=type;layer.text=deep(text);emit("doc:structure");emit("doc:change");};

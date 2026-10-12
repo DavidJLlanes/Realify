@@ -34,10 +34,13 @@ const CATS = [
   ["corregir",  "Corregir"],
   ["color",     "Color"],
   ["estilo",    "Estilo"],
+  ["filtros",   "Filtros"],       // looks de un toque: se elige y se aplica a toda la foto
   ["efectos",   "Efectos"],
   ["retoque",   "Retoque"],
   ["seleccion", "Selección"],
   ["pintar",    "Pintar"],
+  ["creativo",  "Creativo"],      // editores a pantalla completa que crean algo nuevo (collage, panorámica, memes…)
+  ["capas",     "Capas"],         // todas las opciones del menú Capa, en el orden del menú
   ["analizar",  "Analizar"]
 ];
 
@@ -94,7 +97,7 @@ const ITEMS = [
   { cmd:"adj.lowLightPremium",   label:"Iluminar oscura Premium", ic:"lightbulb", premium:true, cat:"auto mejorar" },
   { cmd:"adj.colorGrading",      label:"Gradación de color",   ic:"palette",               cat:"color estilo" },
   { cmd:"adj.splitToning",       label:"Virado dividido",      ic:"blend",                 cat:"color estilo" },
-  { cmd:"adj.photoFilter",       label:"Filtro fotográfico",   ic:"funnel",                cat:"color estilo" },
+  { cmd:"adj.photoFilter",       label:"Filtro fotográfico",   ic:"funnel",                cat:"color estilo filtros" },
   { cmd:"adj.rangeHsl",          label:"Color por rangos",     ic:"swatch-book",           cat:"color" },
   { cmd:"adj.replaceColor",      label:"Reemplazar color",     ic:"replace-all",           cat:"color" },
   { cmd:"adj.matchColor",        label:"Igualar color",        ic:"git-compare",           cat:"color" },
@@ -108,19 +111,19 @@ const ITEMS = [
   { cmd:"adj.posterize",         label:"Posterizar",           ic:"layers",                cat:"color estilo" },
   { cmd:"adj.equalize",          label:"Ecualizar",            ic:"chart-area",            cat:"color mejorar" },
   { cmd:"adj.desaturate",        label:"Desaturar",            ic:"droplet-off",           cat:"color" },
-  { cmd:"adj.grayscale",         label:"Blanco y negro",       ic:"eclipse",               cat:"color estilo" },
+  { cmd:"adj.grayscale",         label:"Blanco y negro",       ic:"eclipse",               cat:"color estilo filtros" },
   { cmd:"adj.invert",            label:"Invertir",             ic:"circle-slash-2",        cat:"color" },
 
   /* ── Filtro: especiales ── */
-  { cmd:"filter.camera",    label:"Realify",          cat:"ia" },
+  { cmd:"filter.camera",    label:"Realify",          cat:"ia filtros" },
   { cmd:"filter.cameraPremium", label:"Realify Premium", premium:true, cat:"ia" },
-  { cmd:"filter.photoDevelop", label:"Revelado fotográfico", ic:"sliders-horizontal", cat:"mejorar color" },
-  { cmd:"filter.vintage",   label:"Filtro Vintage",   ic:"camera",             cat:"estilo efectos" },
+  { cmd:"filter.photoDevelop", label:"Revelado RAW", ic:"sliders-horizontal", cat:"mejorar color creativo" },
+  { cmd:"filter.vintage",   label:"Filtro Vintage",   ic:"camera",             cat:"estilo efectos filtros" },
   { cmd:"filter.purepixel", label:"PurePixel",        cat:"ia" },
   { cmd:"filter.unmark",    label:"Unmark",           cat:"ia" },
-  { cmd:"filter.looks",     label:"Estilos",          cat:"estilo" },
+  { cmd:"filter.looks",     label:"Estilos",          cat:"estilo filtros" },
   { cmd:"filter.lens",      label:"Photo Lens",       cat:"ia" },
-  { cmd:"filter.lut",       label:"Tabla de color",   ic:"clapperboard",       cat:"estilo color" },
+  { cmd:"filter.lut",       label:"Tabla de color",   ic:"clapperboard",       cat:"estilo color filtros" },
 
   /* ── Filtro: desenfoques ── */
   { cmd:"filter.blur",        label:"Desenfoque",          ic:"droplet",             cat:"efectos" },
@@ -158,10 +161,10 @@ const ITEMS = [
   /* ── Filtro: estilo y textura ── */
   { cmd:"filter.pixelate",         label:"Pixelizar",        ic:"grid-2x2",     cat:"efectos" },
   { cmd:"filter.stylize",          label:"Relieve y bordes", ic:"shapes",       cat:"efectos" },
-  { cmd:"filter.stylizeEffects",   label:"Estilizar",        ic:"flame",        cat:"efectos estilo" },
-  { cmd:"filter.artisticGallery",  label:"Artísticos",       ic:"brush",        cat:"estilo efectos" },
+  { cmd:"filter.stylizeEffects",   label:"Estilizar",        ic:"flame",        cat:"efectos estilo filtros" },
+  { cmd:"filter.artisticGallery",  label:"Artísticos",       ic:"brush",        cat:"estilo efectos filtros" },
   { cmd:"filter.renderEffects",    label:"Nubes y luces",    ic:"lightbulb",    cat:"efectos" },
-  { cmd:"filter.textureEffects",   label:"Texturas",         ic:"brick-wall",   cat:"estilo efectos" },
+  { cmd:"filter.textureEffects",   label:"Texturas",         ic:"brick-wall",   cat:"estilo efectos filtros" },
   { cmd:"filter.offsetMorphology", label:"Desplazar y mín./máx.", ic:"move-3d", cat:"efectos" },
   { cmd:"filter.customConvolution", label:"Convolución",     ic:"grid-3x3",     cat:"efectos" },
 
@@ -184,13 +187,14 @@ const ITEMS = [
   { cmd:"image.resize", label:"Tamaño de imagen",     ic:"scaling",           cat:"corregir" },
   { cmd:"image.canvasSize", label:"Tamaño de lienzo", ic:"maximize-2",        cat:"corregir" },
   { cmd:"image.contentAwareScale", label:"Escala por contenido", ic:"shrink",  cat:"corregir" },
-  { cmd:"image.hdr",       label:"Fusión HDR",          ic:"hdr",               cat:"mejorar estilo" },
-  { cmd:"image.merge",     label:"Unir imágenes",       ic:"merge-images",      cat:"corregir estilo" },
+  { cmd:"image.hdr",       label:"Fusión HDR",          ic:"hdr",               cat:"mejorar estilo creativo" },
+  { cmd:"image.panorama", label:"Crear panorámica", ic:"panorama", cat:"creativo" },
+  { cmd:"image.merge",     label:"Unir fotos",       ic:"merge-images",      cat:"corregir estilo creativo" },
   { cmd:"image.docscan",   label:"Escanear documento",  ic:"scan",             premium:true, cat:"corregir mejorar" },
   { cmd:"image.sharpness", label:"Análisis de nitidez", ic:"focus",            cat:"corregir mejorar" },
   { cmd:"image.stack",     label:"Apilar fotos",        ic:"stack-photos",      premium:true, cat:"mejorar estilo" },
-  { cmd:"image.slice",     label:"Cortar en partes",    ic:"layout-grid",       cat:"corregir estilo" },
-  { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"shapes",            cat:"corregir estilo" },
+  { cmd:"image.slice",     label:"Cortar en partes",    ic:"layout-grid",       cat:"corregir estilo creativo" },
+  { cmd:"image.shapeCrop", label:"Recortar en forma",   ic:"shapes",            cat:"corregir estilo creativo" },
   { cmd:"image.removeBackground", label:"Eliminar fondo", ic:"image-minus",   cat:"ia" },
   { cmd:"ai.tapSelect",  label:"Selección con un toque", ic:"mouse-pointer-click", premium:true, cat:"ia" },
   { cmd:"ai.magicErase", label:"Borrador mágico",      ic:"eraser",              premium:true, cat:"ia" },
@@ -206,7 +210,7 @@ const ITEMS = [
   { cmd:"ai.depthFog",   label:"Niebla por distancia", ic:"cloud-fog",           premium:true, cat:"ia" },
   { cmd:"ai.depthLight", label:"Luz por profundidad",  ic:"sunset",              premium:true, cat:"ia" },
   { cmd:"ai.depthPlanes", label:"Separar planos",      ic:"layers-plus",         premium:true, cat:"ia" },
-  { cmd:"ai.photo3d",    label:"Foto 3D",              ic:"move-3d",             premium:true, cat:"ia" },
+  { cmd:"ai.photo3d",    label:"Foto 3D",              ic:"move-3d",             premium:true, cat:"ia creativo" },
   { cmd:"ai.upscale",   label:"Ampliar con IA",       ic:"scaling",           cat:"ia" },
   { cmd:"ai.lowLight",   label:"Iluminar con IA",      ic:"lightbulb",           premium:true, cat:"ia" },
   { cmd:"ai.colorize",  label:"Colorear con IA",      ic:"colorize",          cat:"ia" },
@@ -250,20 +254,74 @@ const ITEMS = [
   { tool:"text",         label:"Texto",        cat:"pintar" },
   { tool:"historyBrush", label:"Pincel de historial", cat:"pintar retoque" },
   { tool:"picker",       label:"Cuentagotas",  cat:"pintar" },
-  { cmd:"layer.meme",      label:"Crear meme",     ic:"sticker",   cat:"pintar estilo" },
-  { cmd:"file.socialPost", label:"Collage / Post", ic:"layout-dashboard", cat:"pintar estilo" },
-  { cmd:"filter.frames",   label:"Marcos",         ic:"frame",            cat:"pintar estilo" },
+  { cmd:"layer.meme",      label:"Crear meme",     ic:"sticker",   cat:"pintar estilo creativo" },
+  { cmd:"file.socialPost", label:"Collage / Post", ic:"layout-dashboard", cat:"pintar estilo creativo" },
+  { cmd:"filter.frames",   label:"Marcos",         ic:"frame",            cat:"pintar estilo creativo" },
   { cmd:"image.beforeAfter", label:"Antes y después", ic:"before-after", cat:"estilo analizar" },
-  { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"contact-sheet", cat:"estilo" },
+  { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"contact-sheet", cat:"estilo creativo" },
   { cmd:"file.exportPdf",   label:"Exportar PDF",     ic:"file-pdf",    cat:"estilo" },
-  { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos" },
+  { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos creativo" },
   { cmd:"actions.open",     label:"Acciones",         ic:"clapperboard", cat:"mejorar estilo" },
   { cmd:"file.batchEdit",   label:"Aplicar edición a otras fotos", ic:"layers-2", cat:"basicos mejorar estilo" },
   { cmd:"file.startBatch",  label:"Editar en lote",   ic:"layers-plus",  cat:"mejorar estilo" },
   { cmd:"file.closeAll",   label:"Cerrar todas las fotos", ic:"close-all", cat:"basicos" },
-  { cmd:"layer.stickers",  label:"Stickers",       ic:"sparkles",  cat:"pintar estilo" },
-  { cmd:"layer.watermark", label:"Marca de agua",  ic:"copyright", cat:"pintar" },
-  { cmd:"layer.styles",    label:"Estilos de capa", ic:"layers-plus", cat:"pintar estilo" },
+  /* ── Capas: todas las opciones del menú Capa, en su orden (la pestaña
+     no se ordena por nombre y lleva una cabecera por sección) ── */
+  { cmd:"layer.add", label:"Nueva capa", ic:"square-plus", cat:"capas", sec:"Capa activa" },
+  { cmd:"layer.duplicate", label:"Duplicar capa", ic:"copy", cat:"capas", sec:"Capa activa" },
+  { cmd:"layer.remove", label:"Eliminar capa", ic:"trash-2", cat:"capas", sec:"Capa activa" },
+  { cmd:"layer.rename", label:"Renombrar capa", ic:"pencil", cat:"capas", sec:"Capa activa" },
+  { cmd:"layer.up", label:"Subir capa", ic:"arrow-up", cat:"capas", sec:"Capa activa" },
+  { cmd:"layer.down", label:"Bajar capa", ic:"arrow-down", cat:"capas", sec:"Capa activa" },
+  { cmd:"transform.start", label:"Transformación libre", ic:"bounding-box", cat:"capas", sec:"Transformar" },
+  { cmd:"layer.transform", label:"Transformar capa (deslizadores)", ic:"move", cat:"capas", sec:"Transformar" },
+  { cmd:"layer.centerContent", label:"Centrar contenido", ic:"align-center-horizontal", cat:"capas", sec:"Transformar" },
+  { cmd:"layer.convertSmart", label:"Objeto inteligente", ic:"box", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.rasterizeSmart", label:"Rasterizar objeto inteligente", ic:"grid-2x2", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.rasterizeFillShape", label:"Rasterizar capa", ic:"grid-2x2", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.text", label:"Capa de texto", ic:"type", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.editText", label:"Editar texto", ic:"pencil", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.rasterizeText", label:"Rasterizar texto", ic:"grid-2x2", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.addAdjust", label:"Capa de ajuste", ic:"contrast", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.editAdjust", label:"Editar capa de ajuste", ic:"sliders-horizontal", cat:"capas", sec:"Tipo de capa" },
+  { cmd:"layer.addFillColor", label:"Relleno de color", ic:"paint-bucket", cat:"capas", sec:"Capas de relleno" },
+  { cmd:"layer.addFillGradient", label:"Relleno de degradado", ic:"rainbow", cat:"capas", sec:"Capas de relleno" },
+  { cmd:"layer.addFillPattern", label:"Relleno de motivo", ic:"grid-3x3", cat:"capas", sec:"Capas de relleno" },
+  { cmd:"layer.group", label:"Agrupar capas", ic:"folder", cat:"capas", sec:"Grupos y estilo" },
+  { cmd:"layer.ungroup", label:"Desagrupar", ic:"folder-open", cat:"capas", sec:"Grupos y estilo" },
+  { cmd:"layer.blendIf", label:"Fusionar si…", ic:"blend", cat:"capas", sec:"Grupos y estilo" },
+  { cmd:"layer.alignLeft", label:"Alinear izquierda", ic:"align-start-vertical", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.alignCenterH", label:"Centrar horizontal", ic:"align-center-vertical", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.alignRight", label:"Alinear derecha", ic:"align-end-vertical", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.alignTop", label:"Alinear arriba", ic:"align-start-horizontal", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.alignCenterV", label:"Centrar vertical", ic:"align-center-horizontal", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.alignBottom", label:"Alinear abajo", ic:"align-end-horizontal", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.distributeH", label:"Distribuir horizontal", ic:"distribute-horizontal", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.distributeV", label:"Distribuir vertical", ic:"distribute-vertical", cat:"capas", sec:"Alinear y distribuir" },
+  { cmd:"layer.mergeDown", label:"Combinar con la de abajo", ic:"fold-vertical", cat:"capas", sec:"Combinar" },
+  { cmd:"layer.mergeSelected", label:"Combinar seleccionadas", ic:"fold-vertical", cat:"capas", sec:"Combinar" },
+  { cmd:"layer.mergeVisible", label:"Combinar visibles", ic:"layers-2", cat:"capas", sec:"Combinar" },
+  { cmd:"layer.flatten", label:"Acoplar imagen", ic:"layers", cat:"capas", sec:"Combinar" },
+  { cmd:"layer.maskReveal", label:"Máscara: descubrir todo", ic:"eye", cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.maskHide", label:"Máscara: ocultar todo", ic:"eye-off", cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.maskFromSel", label:"Máscara: descubrir selección", ic:"square-dashed", cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.maskFromSelInvert", label:"Máscara: ocultar selección", ic:"square-dashed-x", cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.gradientMask", label:"Máscara degradada", ic:"rainbow", cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.maskText", label:"Máscara por texto", ic:"text-select", premium:true, cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.maskDepth", label:"Máscara por profundidad", ic:"mountain-snow", premium:true, cat:"capas", sec:"Máscara de capa" },
+  { cmd:"layer.maskEdit", label:"Pintar máscara", ic:"brush", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskInvert", label:"Invertir máscara", ic:"flip-horizontal-2", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskToggle", label:"Activar o desactivar máscara", ic:"toggle-right", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskLevels", label:"Niveles de la máscara", ic:"chart-no-axes-column", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskCurves", label:"Curvas de la máscara", ic:"spline", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskBlur", label:"Suavizar máscara", ic:"droplet", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskProperties", label:"Propiedades de la máscara", ic:"sliders-vertical", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskRefineEdge", label:"Refinar borde de máscara", ic:"scissors", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskApply", label:"Aplicar máscara", ic:"circle-check", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.maskRemove", label:"Eliminar máscara", ic:"circle-x", cat:"capas", sec:"Editar la máscara" },
+  { cmd:"layer.styles",    label:"Estilos de capa", ic:"layers-plus", cat:"pintar estilo capas", sec:"Grupos y estilo" },
+  { cmd:"layer.stickers",  label:"Stickers",       ic:"sparkles",  cat:"pintar estilo capas creativo", sec:"Añadir a la foto" },
+  { cmd:"layer.watermark", label:"Marca de agua",  ic:"copyright", cat:"pintar capas", sec:"Añadir a la foto" },
 
   { tool:"compare",      label:"Comparar",     cat:"analizar" },
   { tool:"zoom",         label:"Zoom",         cat:"analizar" },
@@ -335,7 +393,7 @@ function checkCoverage(){
     if(it.submenu) walk(it.submenu);
     else if(it.cmd && !it.desktopOnly && !have.has(it.cmd)) missing.push(it.cmd);
   } };
-  for(const m of MENUS) if(m.label === "Ajustes" || m.label === "Filtro" || m.label === "Inteligencia Artificial") walk(m.items);
+  for(const m of MENUS) if(m.label === "Ajustes" || m.label === "Filtro" || m.label === "Inteligencia Artificial" || m.label === "Capa") walk(m.items);
   if(missing.length) console.warn("[cajón] comandos sin entrada:", missing.join(", "));
 }
 
@@ -362,6 +420,8 @@ const searchTextOf = it => {
    allí donde aparece. Con algo escrito en el buscador, sólo lo que
    coincide DENTRO de la pestaña activa: primero lo que contiene las
    palabras tal cual y después lo que se les parece (erratas). */
+const SECS = ["Capa activa", "Transformar", "Tipo de capa", "Capas de relleno", "Grupos y estilo", "Alinear y distribuir", "Combinar", "Máscara de capa", "Editar la máscara", "Añadir a la foto"];
+const secRank = sec => { const i = SECS.indexOf(sec); return i < 0 ? 99 : i; };
 const byLabel = (a, b) => a.label.localeCompare(b.label, "es");
 const keyOf = it => it.auto === "premium" ? "auto-premium" : it.auto ? "auto" : it.cmd || it.tool;
 function itemsFor(c){
@@ -371,7 +431,10 @@ function itemsFor(c){
   if(c === "basicos" && !query.trim()) return BASICS.map(k => ITEMS.find(i => keyOf(i) === k)).filter(Boolean);
   if(c === "basicos") c = "todos";
   const list = c === "todos" ? ITEMS.slice() : ITEMS.filter(i => i.cat.split(" ").includes(c));
-  const auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto).sort(byLabel);
+  const auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto);
+  // Capas va en el orden del menú Capa (por secciones), no alfabético
+  if(c !== "capas") rest.sort(byLabel);
+  else if(!query.trim()) rest.sort((a, b) => secRank(a.sec) - secRank(b.sec));
   // Inteligencia Artificial: mismo orden y secciones que su menú
   if(c === "ia") rest.sort((a, b) => (iaOrder.get(a.cmd)?.i ?? 999) - (iaOrder.get(b.cmd)?.i ?? 999));
   if(!query.trim()) return [...auto, ...rest];
@@ -447,7 +510,7 @@ function renderGrid(){
   }
   let lastGroup = null;
   for(const it of items){
-    const sec = cat === "ia" && !query.trim() ? iaOrder.get(it.cmd)?.sec : null;
+    const sec = query.trim() ? null : cat === "ia" ? iaOrder.get(it.cmd)?.sec : cat === "capas" ? it.sec : null;
     if(sec && sec !== lastGroup){
       lastGroup = sec;
       const h = document.createElement("div");

@@ -360,6 +360,23 @@ function renderPreview(drag){
 /* ── tiradores, modo libre ───────────────────────────────────── */
 const HANDLE_R = 10;
 const ROTATE_R = 26;
+/* Distancia (px de pantalla, con el ratón) del borde superior al botón de
+   girar, el tirador redondo con flecha que sale por encima de la caja. */
+const KNOB_GAP = 30;
+
+/* [x, y, bx, by]: posición del tirador de girar y el punto del borde
+   superior del que sale. Sigue a la caja al girarla, así que siempre
+   queda «por encima» del lado que era el superior. */
+function rotateKnob(){
+  const q = xform.quad;
+  const mx = (q[0][0] + q[1][0]) / 2, my = (q[0][1] + q[1][1]) / 2;
+  const cx = (q[0][0] + q[2][0]) / 2, cy = (q[0][1] + q[2][1]) / 2;
+  let dx = mx - cx, dy = my - cy;
+  const len = Math.hypot(dx, dy) || 1;
+  dx /= len; dy /= len;
+  const gap = drawPx(KNOB_GAP) / Math.max(view.zoom, 1e-6);
+  return [mx + dx * gap, my + dy * gap, mx, my];
+}
 
 /* Un punto de pantalla llevado a los ejes LOCALES de la caja —los de
    antes de escalar, deshaciendo sólo la rotación—, respecto al
@@ -379,11 +396,12 @@ export function xformHandleAt(p){
   // Esquinas, puntos medios y pivote compiten: gana el más cercano, así
   // una caja pequeña en pantalla sigue dejando elegir cada tirador.
   const mids = [[0,1],[1,2],[2,3],[3,0]];
-  const cands = [...q, ...mids.map(([a,b]) => [(q[a][0]+q[b][0])/2, (q[a][1]+q[b][1])/2]), pivotPoint()];
+  const cands = [...q, ...mids.map(([a,b]) => [(q[a][0]+q[b][0])/2, (q[a][1]+q[b][1])/2]), pivotPoint(), rotateKnob()];
   const i = nearest(p, cands, t);
   if(i >= 0 && i < 4) return { kind:"corner", i, at: cands[i] };
   if(i >= 4 && i < 8){ const k = i - 4, [a,b] = mids[k]; return { kind:"edge", a, b, axis: k % 2 === 0 ? "h" : "v", at: cands[i] }; }
   if(i === 8) return { kind:"pivot", at: cands[8] };
+  if(i === 9) return { kind:"rotate", knob:true, at: cands[9] };
   // Girar: el anillo de fuera de cada esquina, sólo si no se está dentro de la caja.
   const rr = t + grabDoc(view.zoom, ROTATE_R - HANDLE_R);
   if(!pointInQuad(p, q)){
@@ -521,6 +539,10 @@ export function xformMove(p, e){
     if(e?.shiftKey){
       const step = 15 * RAD;
       ang = Math.round(ang / step) * step;
+    } else {
+      // Imán suave a los múltiplos de 45° (0°, 90°…) para dejar la capa recta con el dedo
+      const step = 45 * RAD, near = Math.round(ang / step) * step;
+      if(Math.abs(ang - near) < 2 * RAD) ang = near;
     }
     xform.angle = ang;
     xformRecompute();
@@ -673,6 +695,19 @@ export function xformFlip(axis){
   xformPreview();
 }
 
+/* Gira la transformación `deg` grados (positivo = sentido horario) desde
+   los botones de la barra, sin arrastrar. */
+export function xformRotateBy(deg){
+  if(!armed) return;
+  if(xform.mode !== "free"){ toast("Gira en el modo Libre"); return; }
+  let a = xform.angle + deg * RAD;
+  while(a > Math.PI + 1e-9) a -= 2 * Math.PI;
+  while(a <= -Math.PI + 1e-9) a += 2 * Math.PI;
+  xform.angle = a;
+  xformRecompute();
+  xformPreview();
+}
+
 export function xformResetAll(){
   if(!armed) return;
   xform.sx = xform.sy = 1;
@@ -810,6 +845,21 @@ export function drawXformOverlay(ctx){
   for(const [x, y] of q) dot(x, y);
   for(const [a, b] of [[0,1],[1,2],[2,3],[3,0]])
     dot((q[a][0]+q[b][0])/2, (q[a][1]+q[b][1])/2);
+
+  // Tirador de girar: un círculo por encima del borde superior, unido a él
+  const [kx, ky, bx, by] = rotateKnob();
+  ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(kx, ky);
+  ctx.strokeStyle = "#e8a33d"; ctx.lineWidth = 1.5 * px; ctx.stroke();
+  const kr = drawPx(9) * px;
+  ctx.beginPath(); ctx.arc(kx, ky, kr, 0, 6.2832);
+  ctx.fillStyle = "#e8a33d"; ctx.fill();
+  ctx.lineWidth = 1.6 * px; ctx.strokeStyle = "#fff"; ctx.stroke();
+  // Flecha circular dentro del tirador
+  ctx.beginPath(); ctx.arc(kx, ky, kr * 0.5, -2.4, 1.4);
+  ctx.lineWidth = 1.6 * px; ctx.strokeStyle = "#fff"; ctx.stroke();
+  const ex = kx + Math.cos(1.4) * kr * 0.5, ey = ky + Math.sin(1.4) * kr * 0.5;
+  ctx.beginPath(); ctx.moveTo(ex - kr * 0.38, ey - kr * 0.05); ctx.lineTo(ex, ey); ctx.lineTo(ex + kr * 0.05, ey - kr * 0.4);
+  ctx.stroke();
 
   const piv = pivotPoint();
   ctx.beginPath();

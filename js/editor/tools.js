@@ -31,7 +31,7 @@ import { perspBegin, perspEnd, perspRestore, perspPreview, perspRecompute,
          perspFill, perspClearGuides, perspAuto, perspSync, drawPerspOverlay,
          persp, perspHasChange } from "./perspectool.js";
 import { xform, xformBegin, xformEnd, xformRestore, xformDown, xformMove, xformUp,
-         xformCancel, xformApply, xformResetAll, xformFlip, xformSync,
+         xformCancel, xformApply, xformResetAll, xformFlip, xformRotateBy, xformSync,
          xformHandleAt, xformWarpHandleAt, xformCursorFor, drawXformOverlay,
          xformReadout, xformArmed, xformHasChange } from "./transformtool.js";
 import { maskFromRect, maskFromEllipse, maskFromPolygon, maskFromWand,
@@ -1563,13 +1563,17 @@ export const TOOLS = [
         ["free","Libre","Escala, gira, sesga y mueve con tiradores"],
         ["warp","Deformar","Rejilla de puntos que se arrastran uno a uno"]
       ]},
+      {type:"number", key:"xfAngle", label:"Ángulo", min:-180, max:180, unit:"°", width:52,
+       showIf:() => state.xfMode === "free"},
+      {type:"button", label:"↺ 90°", cmd:"transform.rotL", title:"Girar 90° a la izquierda",
+       showIf:() => state.xfMode === "free"},
+      {type:"button", label:"↻ 90°", cmd:"transform.rotR", title:"Girar 90° a la derecha",
+       showIf:() => state.xfMode === "free"},
       {type:"number", key:"xfW", label:"Ancho", min:1, max:1000, unit:"%", width:52,
        showIf:() => state.xfMode === "free"},
       {type:"number", key:"xfH", label:"Alto", min:1, max:1000, unit:"%", width:52,
        showIf:() => state.xfMode === "free"},
       {type:"toggle", key:"xfProportional", label:"⛓", title:"Ancho y alto proporcionales (o mantén Mayús al arrastrar una esquina)",
-       showIf:() => state.xfMode === "free"},
-      {type:"number", key:"xfAngle", label:"Ángulo", min:-180, max:180, unit:"°", width:52,
        showIf:() => state.xfMode === "free"},
       {type:"number", key:"xfSkewX", label:"Sesgo H", min:-85, max:85, unit:"°", width:52,
        showIf:() => state.xfMode === "free"},
@@ -3236,6 +3240,11 @@ export function resetTransform(){
   syncXformFields();
 }
 
+export function rotateTransform(deg){
+  xformRotateBy(deg);
+  syncXformFields();
+}
+
 export function flipTransform(axis){
   xformFlip(axis);
   syncXformFields();
@@ -3608,6 +3617,8 @@ export function cancelPendingTool(){
 let chosen = false;
 export const toolChosen = () => chosen;
 
+const STROKE_TOOLS = new Set(["fill","gradient","shape","pen","picker","select-rect","select-ellipse","select-lasso","select-wand"]);
+
 export function setTool(id, { auto = false } = {}){
   const t = TOOLS.find(x => x.id === id);
   if(!t) return;
@@ -3622,6 +3633,10 @@ export function setTool(id, { auto = false } = {}){
   if(current && current.deactivate) current.deactivate();
   current = t;
   window.__panTool = !!t.pan;
+  /* Herramientas que trazan o seleccionan con un dedo (pincel, borrador,
+     clonar, degradado, lazo…): con zoom, un dedo debe seguir trazando y
+     son DOS dedos los que desplazan la vista (ver handlePointerDown). */
+  window.__strokeTool = t.cursor === "none" || STROKE_TOOLS.has(t.id);
   if(t.activate && doc.open) t.activate();
   emit("tool:change", t);
   emit("tool:options");

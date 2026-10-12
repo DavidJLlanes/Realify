@@ -58,7 +58,7 @@ export function followKeyboard(root, fit){
    cerrarse el teclado todo vuelve como estaba. `body` y `#app` no se
    tocan: la ventana principal no cambia de tamaño por escribir. */
 let lifted = null;   // { el, bottom, maxHeight }
-const OWN = ".modal, #toolDrawer, .text-edit";
+const OWN = ".modal, #toolDrawer, .text-edit, .menu-pop-mobile";
 function bottomHost(input){
   for(let el = input.parentElement; el && el !== document.body && el.id !== "app"; el = el.parentElement){
     if(getComputedStyle(el).position !== "fixed") continue;

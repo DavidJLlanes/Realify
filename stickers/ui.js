@@ -16,7 +16,7 @@
    y gira. Todo se guarda en coordenadas de la imagen completa.
    ═══════════════════════════════════════════════════════════════ */
 
-import { loadCatalog, filterCatalog, emojiUrl, loadImage, GROUP_LABELS, STYLES, TONES } from "./catalog.js";
+import { loadCatalog, filterCatalog, emojiUrl, loadImage, rasterSize, isSvg, toneApplies, TONE_NA, GROUP_LABELS, STYLES, TONES } from "./catalog.js";
 import { buildSprite, drawSprite } from "./render.js";
 import { toast } from "../js/ui/toast.js";
 
@@ -34,13 +34,25 @@ const PROPS = [
 
 let uidSeq = 0;
 
-export function openStickerEditor({ background, onAccept, onClose = null }){
+/* Un sticker de alto contraste es una silueta negra y se perdería sobre una
+   foto oscura, así que nace con un borde de pegatina. */
+const HC_OUTLINE = 30;
+const NO_TONES_HC = "El alto contraste no tiene tonos de piel.";
+const NO_TONES_LIST = "Ningún sticker de esta lista tiene tonos de piel.";
+const NO_TONES_ONE = "Este sticker no tiene tonos de piel.";
+
+/* `initial`: stickers que se quedaron colocados al cerrar sin aplicar (ver
+   index.js). `onClose(motivo, stickers)`: «accept» tras aplicar, «cancel» al
+   cerrar con Cancelar, ✕ o Esc; en ese caso lleva los stickers pendientes. */
+export function openStickerEditor({ background, initial = null, onAccept, onClose = null }){
   const W = background.width, H = background.height, SHORT = Math.min(W, H);
   let prefs = { style: "3d", tone: "", group: 0 };
   try{ prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREFS) || "{}") }; }catch{}
   const savePrefs = () => { try{ localStorage.setItem(PREFS, JSON.stringify(prefs)); }catch{} };
 
-  let stickers = [], selected = null, catalog = null, query = "", closed = false, accepting = false;
+  let stickers = initial?.stickers?.length ? structuredClone(initial.stickers) : [];
+  let selected = null, catalog = null, query = "", closed = false, accepting = false;
+  for(const s of stickers) uidSeq = Math.max(uidSeq, s.uid || 0);
   let activeProp = "size";
   const history = [], future = [];
   const snapshot = () => ({ stickers: structuredClone(stickers), selected });
@@ -48,6 +60,7 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
   const sel = () => stickers.find(s => s.uid === selected) || null;
 
   const opt = (list, value) => list.map(([v, l]) => `<option value="${v}"${v === value ? " selected" : ""}>${l}</option>`).join("");
+  const toneOpt = value => opt(TONES, value) + `<option value="${TONE_NA}" hidden>Sin tonos</option>`;
   const root = document.createElement("section");
   root.className = "st-editor";
   root.innerHTML = `
@@ -56,6 +69,7 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
       <button class="st-close" type="button" aria-label="Cancelar">✕</button>
       <div class="st-title"><b>Stickers</b><span class="st-count">Sin stickers</span></div>
       <div class="st-actions">
+        <button type="button" data-action="clear" aria-label="Quitar todos los stickers" title="Quitar todos los stickers">🗑</button>
         <button type="button" data-action="undo" aria-label="Deshacer">↶</button>
         <button type="button" data-action="redo" aria-label="Rehacer">↷</button>
         <button class="primary" type="button" data-action="accept">Aplicar</button>
@@ -70,8 +84,9 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
         <div class="st-cat-opts">
           <select class="st-group" aria-label="Grupo">${opt(GROUP_LABELS.slice(0, 9).map((l, i) => [String(i), l]), String(prefs.group))}</select>
           <select class="st-style" aria-label="Estilo">${opt(STYLES, prefs.style)}</select>
-          <select class="st-tone" aria-label="Tono de piel">${opt(TONES, prefs.tone)}</select>
+          <select class="st-tone" aria-label="Tono de piel">${toneOpt(prefs.tone)}</select>
         </div>
+        <p class="st-tone-note" hidden></p>
         <div class="st-grid" role="listbox" aria-label="Stickers"><p class="st-note">Cargando stickers…</p></div>
       </aside>
       <div class="st-stage"><canvas></canvas><p class="st-hint">Elige un sticker del catálogo para añadirlo a la foto.</p></div>
@@ -81,7 +96,8 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
           <div class="st-props-name"></div>
           <div class="st-props-fields"></div>
           <label class="st-row"><span>Estilo</span><select data-p="style">${opt(STYLES, "3d")}</select></label>
-          <label class="st-row"><span>Tono de piel</span><select data-p="tone">${opt(TONES, "")}</select></label>
+          <label class="st-row"><span>Tono de piel</span><select data-p="tone">${toneOpt("")}</select></label>
+          <p class="st-tone-note" data-tone-note hidden></p>
           <div class="st-buttons">
             <button type="button" data-do="flipX">⇋ Voltear</button>
             <button type="button" data-do="flipY">⇵ Voltear</button>
@@ -101,7 +117,7 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
       <div class="st-mobile-slider"></div>
       <div class="st-mobile-row st-mobile-acts">
         <select data-p="style" aria-label="Estilo">${opt(STYLES, "3d")}</select>
-        <select data-p="tone" aria-label="Tono de piel">${opt(TONES, "")}</select>
+        <select data-p="tone" aria-label="Tono de piel">${toneOpt("")}</select>
         <button type="button" data-do="flipX" aria-label="Voltear horizontal">⇋</button>
         <button type="button" data-do="dup" aria-label="Duplicar">⧉</button>
         <button type="button" data-do="front" aria-label="Traer delante">▲</button>
@@ -134,17 +150,24 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
   const request = () => { if(!frame && !closed) frame = requestAnimationFrame(draw); };
 
   const urlOf = s => emojiUrl(s.id, s.style, s.tone, s.hasTones);
+  /* Los vectoriales (color, plano, alto contraste) se rasterizan al tamaño que
+     el sticker ocupa en pantalla (ver catalog.js); mientras llega uno más
+     nítido se sigue usando el que ya hubiera de ese sticker. */
   const images = new Map();
   const imageFor = s => {
-    const url = urlOf(s);
-    if(images.has(url)) return images.get(url);
-    images.set(url, null);
-    loadImage(url).then(img => { images.set(url, img); request(); }).catch(e => toast(e.message, "err"));
+    const url = urlOf(s), px = isSvg(url) ? rasterSize(Math.ceil(s.size * view.k * 1.1)) : 0, tag = px ? `${url}@${px}` : url;
+    if(!images.has(tag)){
+      images.set(tag, null);
+      loadImage(url, px).then(img => { images.set(tag, img); request(); }).catch(e => toast(e.message, "err"));
+    }
+    if(images.get(tag)) return { img: images.get(tag), tag };
+    for(const [t, img] of images) if(img && (t === url || t.startsWith(url + "@"))) return { img, tag: t };
     return null;
   };
   const spriteFor = s => {
-    const img = imageFor(s); if(!img) return null;
-    const key = `${urlOf(s)}|${Math.round(s.size * view.k)}|${s.rot}|${s.flipX}|${s.flipY}|${s.outline}|${s.shadow}`;
+    const got = imageFor(s); if(!got) return null;
+    const { img, tag } = got;
+    const key = `${tag}|${Math.round(s.size * view.k)}|${s.rot}|${s.flipX}|${s.flipY}|${s.outline}|${s.shadow}`;
     const hit = sprites.get(s.uid);
     if(hit && hit.key === key) return hit.sprite;
     const sprite = buildSprite(img, s, view.k);
@@ -187,15 +210,30 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
   }
 
   /* ── Catálogo ── */
+  /* El tono de piel sólo vale con estilos que lo tienen y con emojis que lo
+     tienen (manos y personas). Si nada de lo que se ve lo usa, el desplegable
+     se desactiva, dice «Sin tonos» y una línea explica por qué. */
+  const noteEl = $(".st-cat-opts + .st-tone-note");
+  const syncCatalogTone = items => {
+    const hc = styleSel.value === "hc";
+    const usable = !hc && (!items || items.some(e => e.t));
+    toneSel.disabled = !usable;
+    toneSel.value = usable ? prefs.tone : TONE_NA;
+    noteEl.hidden = usable;
+    noteEl.textContent = usable ? "" : hc ? NO_TONES_HC : NO_TONES_LIST;
+  };
   const renderGrid = () => {
     if(!catalog) return;
     const items = filterCatalog(catalog.list, query, +groupSel.value);
     grid.innerHTML = items.length ? "" : `<p class="st-note">Ningún sticker coincide con «${query.trim()}».</p>`;
+    // El alto contraste son siluetas negras: se ven sobre fondo blanco
+    grid.classList.toggle("is-hc", styleSel.value === "hc");
+    syncCatalogTone(items);
     const frag = document.createDocumentFragment();
     for(const e of items.slice(0, 600)){
       const b = document.createElement("button");
       b.type = "button"; b.className = "st-item"; b.title = e.es; b.setAttribute("aria-label", e.es);
-      b.innerHTML = `<img alt="" loading="lazy" decoding="async" src="${emojiUrl(e.id, styleSel.value, toneSel.value, !!e.t)}">`;
+      b.innerHTML = `<img alt="" loading="lazy" decoding="async" src="${emojiUrl(e.id, styleSel.value, prefs.tone, !!e.t)}">`;
       b.addEventListener("click", () => addSticker(e));
       frag.appendChild(b);
     }
@@ -208,7 +246,7 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
   search.addEventListener("input", () => { query = search.value; renderGrid(); });
   groupSel.addEventListener("change", () => { prefs.group = +groupSel.value; savePrefs(); renderGrid(); });
   styleSel.addEventListener("change", () => { prefs.style = styleSel.value; savePrefs(); renderGrid(); });
-  toneSel.addEventListener("change", () => { prefs.tone = toneSel.value; savePrefs(); renderGrid(); });
+  toneSel.addEventListener("change", () => { if(toneSel.value === TONE_NA) return; prefs.tone = toneSel.value; savePrefs(); renderGrid(); });
   const openCatalog = () => { root.classList.add("catalog-open"); if(!matchMedia("(pointer:coarse)").matches) search.focus(); };
   const closeCatalog = () => root.classList.remove("catalog-open");
   $(".st-add").addEventListener("click", openCatalog);
@@ -220,9 +258,10 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
     const n = stickers.length % 6;
     const s = {
       uid: ++uidSeq, id: e.id, name: e.es, hasTones: !!e.t,
-      style: styleSel.value, tone: toneSel.value,
+      style: prefs.style, tone: e.t ? prefs.tone : "",
       x: W / 2 + (n - 2.5) * SHORT * 0.04, y: H / 2 + (n - 2.5) * SHORT * 0.03,
-      size: SHORT * 0.3, rot: 0, flipX: false, flipY: false, opacity: 100, outline: 0, shadow: 0
+      size: SHORT * 0.3, rot: 0, flipX: false, flipY: false, opacity: 100,
+      outline: prefs.style === "hc" ? HC_OUTLINE : 0, shadow: 0
     };
     stickers.push(s); selected = s.uid;
     closeCatalog(); syncProps(); request();
@@ -282,7 +321,11 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
         root.querySelectorAll(".st-field").forEach(f => { const k = f.querySelector("[data-key]").dataset.key, p = PROPS.find(p => p.key === k); f.querySelector("b").textContent = propValue(s, k) + p.unit; });
       }
       root.querySelectorAll("[data-p=style]").forEach(el => { el.value = s.style; });
-      root.querySelectorAll("[data-p=tone]").forEach(el => { el.value = s.tone; el.disabled = !s.hasTones || s.style === "hc" || accepting; });
+      const toneOk = toneApplies(s.style, s.hasTones);
+      root.querySelectorAll("[data-p=tone]").forEach(el => { el.value = toneOk ? s.tone : TONE_NA; el.disabled = !toneOk || accepting; });
+      const note = $("[data-tone-note]");
+      note.hidden = toneOk;
+      note.textContent = toneOk ? "" : s.style === "hc" ? NO_TONES_HC : NO_TONES_ONE;
     } else if(full){
       $(".st-mobile-slider").innerHTML = `<p class="st-note">Toca un sticker para editarlo.</p>`;
     }
@@ -291,6 +334,7 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
     syncActions();
   };
   const syncActions = () => {
+    $("[data-action=clear]").disabled = !stickers.length || accepting;
     $("[data-action=undo]").disabled = !history.length || accepting;
     $("[data-action=redo]").disabled = !future.length || accepting;
     $("[data-action=accept]").disabled = !stickers.length || accepting;
@@ -298,7 +342,9 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
   $(".st-mobile-prop").addEventListener("change", e => { activeProp = e.target.value; syncProps(); });
   root.querySelectorAll("[data-p]").forEach(el => el.addEventListener("change", () => {
     const s = sel(); if(!s) return;
-    remember(); s[el.dataset.p] = el.value; syncProps(); request();
+    remember(); s[el.dataset.p] = el.value;
+    if(el.dataset.p === "style" && el.value === "hc" && !s.outline) s.outline = HC_OUTLINE;
+    syncProps(); request();
   }));
   const act = what => {
     const s = sel(); if(!s || accepting) return;
@@ -402,10 +448,14 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
 
   /* ── Barra superior ── */
   const restoreState = st => { stickers = st.stickers; selected = st.selected; sprites.clear(); syncProps(); request(); };
+  $("[data-action=clear]").addEventListener("click", () => {
+    if(!stickers.length || accepting) return;
+    remember(); stickers = []; selected = null; sprites.clear(); syncProps(); request();
+  });
   $("[data-action=undo]").addEventListener("click", () => { const p = history.pop(); if(!p) return; future.push(snapshot()); restoreState(p); });
   $("[data-action=redo]").addEventListener("click", () => { const n = future.pop(); if(!n) return; history.push(snapshot()); restoreState(n); });
-  $(".st-cancel").addEventListener("click", () => close());
-  $(".st-close").addEventListener("click", () => close());
+  $(".st-cancel").addEventListener("click", () => close("cancel"));
+  $(".st-close").addEventListener("click", () => close("cancel"));
   $("[data-action=accept]").addEventListener("click", async () => {
     if(accepting || closed || !stickers.length) return;
     accepting = true; syncProps(false);
@@ -413,9 +463,9 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
     try{
       // Imágenes a resolución completa antes de componer.
       const imgs = new Map();
-      for(const s of stickers) imgs.set(s.uid, await loadImage(urlOf(s)));
+      for(const s of stickers) imgs.set(s.uid, await loadImage(urlOf(s), Math.ceil(s.size)));
       await onAccept(stickers.map(s => ({ ...s })), imgs);
-      close();
+      close("accept");
     }catch(error){
       toast(error?.message || "No se pudieron añadir los stickers", "err");
       accepting = false; button.textContent = "Aplicar"; syncProps(false);
@@ -441,13 +491,14 @@ export function openStickerEditor({ background, onAccept, onClose = null }){
   };
   const observer = new ResizeObserver(fit);
   observer.observe(stage);
-  const close = () => {
+  const close = (reason = "cancel") => {
     if(closed) return;
     closed = true; cancelAnimationFrame(frame); observer.disconnect();
     document.removeEventListener("keydown", onKey, true);
-    sprites.clear(); root.remove(); onClose?.();
+    sprites.clear(); root.remove();
+    onClose?.(reason, reason === "accept" ? [] : stickers.map(s => ({ ...s })));
   };
   document.addEventListener("keydown", onKey, true);
-  fit(); syncProps();
+  fit(); syncProps(); syncCatalogTone(null); grid.classList.toggle("is-hc", styleSel.value === "hc");
   return { close };
 }

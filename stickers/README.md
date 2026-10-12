@@ -37,8 +37,8 @@ con el zip del repositorio y los dos `annotations.json` de `es` de
 
 | Archivo | Papel |
 |---|---|
-| `index.js` | Entrada: `openStickers()`; crea las capas al aplicar |
-| `catalog.js` | Índice, rutas, búsqueda y carga de imágenes |
+| `index.js` | Entrada: `openStickers()`; crea las capas al aplicar y guarda los pendientes por documento |
+| `catalog.js` | Índice, rutas, búsqueda y carga de imágenes (los SVG se rasterizan al tamaño necesario) |
 | `render.js` | Composición de un sticker: giro, volteo, borde de pegatina y sombra |
 | `ui.js` | Ventana: catálogo, escenario con gestos y propiedades |
 | `stickers.css` | Mismo diseño y medidas que el Filtro Vintage |
@@ -49,6 +49,25 @@ Tocar o hacer clic en un sticker lo elige; arrastrarlo lo mueve; el tirador azul
 de la esquina lo escala y gira; con dos dedos se pellizca y se gira. En
 escritorio, la rueda escala (con Mayús gira), las flechas lo desplazan,
 Ctrl+D duplica y Supr elimina.
+
+## Stickers pendientes
+
+Al cerrar con Cancelar, ✕ o Esc los stickers colocados no se pierden: `index.js`
+los guarda **en memoria**, ligados a la pestaña (documento), y vuelven al abrir el
+editor en ese documento. Al aplicar se convierten en capas y el estado se borra;
+al cerrar la pestaña también. Si la imagen cambia de tamaño con la misma
+proporción, se reescalan; si cambia de forma (recorte, giro) se descartan avisando.
+Las capas ya creadas son capas normales y no se tocan. No se usa `localStorage`:
+las coordenadas son de esa imagen concreta y no hay nada que recuperar tras
+recargar la página.
+
+## Tono de piel y alto contraste
+
+El tono sólo existe en 3D, color y plano, y sólo en manos y personas (`t: 1` en
+`emoji/index.json`). El desplegable se desactiva («Sin tonos») en alto contraste
+o cuando nada de lo que se ve lo admite, con una línea que lo explica. El alto
+contraste son siluetas negras: se muestran sobre fondo blanco y los nuevos nacen
+con un borde de pegatina.
 
 La búsqueda (`js/core/search.js`, compartida con el cajón de Herramientas)
 ignora acentos, encuentra palabras en cualquier posición y tolera erratas.

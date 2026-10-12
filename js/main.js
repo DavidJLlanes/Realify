@@ -23,7 +23,7 @@ import { TOOLS, setTool, current, state as toolState,
          fillPerspFrame, resetLiquify, centerCompare,
          centerActiveLayerContent, setActiveColorSlot,
          resetColors, swapColors,
-         applyTransform, resetTransform, flipTransform,
+         applyTransform, resetTransform, flipTransform, rotateTransform,
          addDodgeBurnLayer, cancelPendingTool } from "./editor/tools.js";
 import { xformCanStart } from "./editor/transformtool.js";
 import { rotateLeft, rotateRight, rotate180, flipH, flipV,
@@ -503,6 +503,8 @@ registerAll({
     enabled: () => ["crop", "transform", "perspective"].includes(current.id) },
   "transform.flipH":  { run: () => flipTransform("h"), enabled: () => current.id === "transform" },
   "transform.flipV":  { run: () => flipTransform("v"), enabled: () => current.id === "transform" },
+  "transform.rotL":   { run: () => rotateTransform(-90), enabled: () => current.id === "transform" },
+  "transform.rotR":   { run: () => rotateTransform(90), enabled: () => current.id === "transform" },
   "transform.start":  { run: () => setTool("transform"), enabled: () => needsDoc() && xformCanStart() },
   "pen.start":  { run: () => setTool("pen"), enabled: needsDoc },
   "pen.close":  { run: () => { if(!penFinishOpen()) toast("No hay ningún trazado abierto que cerrar"); },

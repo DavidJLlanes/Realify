@@ -9,6 +9,24 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v275 · Pestaña Creativo en el cajón del móvil
+- **Cajón móvil › Creativo** (entre Pintar y Capas): Collage / Post, Cortar en partes, Crear meme, Crear panorámica, Foto 3D 👑, Fusión HDR, GIF animado, Hoja de contactos, Marcos, Recortar en forma, Revelado RAW, Stickers y Unir fotos, por orden alfabético; siguen también en sus pestañas de siempre.
+- **Crear panorámica** tiene por fin entrada en el cajón (sólo estaba en el menú Imagen). «Revelado fotográfico» pasa a llamarse «Revelado RAW» y «Unir imágenes», «Unir fotos», como en el menú.
+
+### v274 · Pestaña Filtros en el cajón del móvil
+- **Cajón móvil › Filtros** (entre Estilo y Efectos): Artísticos, Blanco y negro, Estilizar, Estilos, Filtro fotográfico, Filtro Vintage, Realify, Tabla de color y Texturas, por orden alfabético. Siguen también en sus pestañas de siempre.
+
+### v273 · Buscador del menú del móvil sobre el teclado
+- **Menú del móvil (botón Menú de la barra inferior)**: al escribir en el buscador, el menú se coloca encima del teclado y ocupa el alto visible que queda (se mide con `visualViewport`, sirve en iPhone y Android y se vuelve a ajustar si el teclado cambia de tamaño); la tecla «Buscar» cierra el teclado; el campo pasa a 16 px para que iPhone no amplíe la página al tocarlo.
+
+### v272 · Correcciones del móvil, Capas en el cajón, stickers y viñeteado
+- **Pincel con zoom (móvil)**: con la imagen ampliada, un dedo seguía desplazando la vista aunque estuviera activo el Pincel. Ahora Pincel, Borrador, Clonar, Quitamanchas, Dodge & Burn, Licuar, Lazo, Varita, Degradado, Formas, Pluma, Bote y Cuentagotas siguen trazando con un dedo; la vista se mueve con dos dedos.
+- **Cajón móvil › Capas**: pestaña nueva con todas las opciones del menú Capa (nueva, duplicar, transformar, objeto inteligente, texto, ajuste, rellenos, grupos, alinear y distribuir, combinar, máscaras, stickers y marca de agua), por secciones y con iconos. El aviso de cobertura del cajón ahora también vigila el menú Capa.
+- **Transformar capa (deslizadores)**: ahora se ve el resultado en directo al mover los deslizadores (antes sólo se veía al pulsar Aplicar) y Cancelar devuelve la capa y su máscara a como estaban.
+- **Transformación libre**: tirador redondo de girar sobre el borde superior (se agarra con el dedo; imán a 0°, 45°, 90°…), botones **↺ 90° / ↻ 90°** y el campo Ángulo pasa al principio de la barra, donde se ve en el móvil.
+- **Stickers**: los stickers colocados se conservan al cerrar sin aplicar (memoria, por documento); botón 🗑 para quitar todos; el SVG (color, plano, alto contraste) se rasteriza al tamaño necesario en vez de estirarse desde 32 px (borroso en Safari); alto contraste sobre fondo blanco en el catálogo y con borde de pegatina al añadirlo; selector de tono desactivado con «Sin tonos» y una línea de explicación cuando no actúa; «Amarillo» pasa a «Por defecto».
+- **Viñeteado**: rehecho. La caída es una curva suave sin anillo visible, «Pluma» ahora suaviza de verdad (antes más pluma = menos efecto), «Zona clara» sustituye a «Tamaño», las esquinas siempre reciben la cantidad completa, ya no pinta sobre las zonas transparentes y los valores por defecto se notan.
+
 ### v271 · Ajuste del alineado automático y retirada de la entrada de IA local
 - **Panorámica desde fotos**: acotada la búsqueda de desplazamiento y relajado el rechazo de correlación para no descartar solapes reales con diferencias de exposición o paralaje.
 - Retirada «IA avanzada local» del menú Inteligencia Artificial, del cajón móvil y del registro de comandos.

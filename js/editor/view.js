@@ -263,10 +263,13 @@ export function handlePointerDown(e){
   }
 
   /* En móvil, una vez ampliada la imagen, un dedo debe desplazarla
-     aunque esté activa una herramienta de edición. A escala de ajuste
-     se conserva el comportamiento normal de pintar/seleccionar; el
-     segundo dedo sigue iniciando el pellizco desde cualquier escala. */
-  const touchPan = e.pointerType === "touch" && view.zoom > fitScale() * 1.01;
+     aunque esté activa una herramienta de edición, salvo las que trazan
+     o seleccionan (pincel, borrador, clonar, lazo…): ésas siguen
+     trazando con un dedo y la vista se mueve con dos (el pellizco
+     también desplaza). A escala de ajuste se conserva el comportamiento
+     normal de pintar/seleccionar; el segundo dedo sigue iniciando el
+     pellizco desde cualquier escala. */
+  const touchPan = e.pointerType === "touch" && !window.__strokeTool && view.zoom > fitScale() * 1.01;
   const wantPan = spaceDown || e.button === 1 || e.pointerType === "touch" && (window.__panTool || touchPan);
   if(wantPan || window.__panTool){
     emit("view:gesturestart");

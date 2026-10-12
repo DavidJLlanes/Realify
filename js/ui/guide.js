@@ -330,8 +330,11 @@ const TOPICS = [
           cuadrícula» es el interruptor aparte que decide si esa cuadrícula, aparte de
           verse, también atrae al arrastrar.</li>
         <li id="tool-transform"><b>Transformación libre (F).</b> Arrastra directamente sobre el lienzo
-          para escalar (esquinas o bordes), rotar (el anillo justo fuera de cada
-          esquina), inclinar y mover, con vista previa en vivo; <kbd>Mayús</kbd>
+          para escalar (esquinas o bordes), rotar (el tirador redondo con flecha que
+          sale por encima del borde superior, o el anillo justo fuera de cada
+          esquina; se engancha a 0°, 45°, 90°… al acercarte), inclinar y mover, con
+          vista previa en vivo. En la barra de opciones, <b>Ángulo</b> da el giro exacto
+          y <b>↺ 90°</b> / <b>↻ 90°</b> giran la capa un cuarto de vuelta; <kbd>Mayús</kbd>
           mantiene la proporción o engancha la rotación a múltiplos de 15°,
           <kbd>Alt</kbd> escala desde el centro en vez de desde la esquina opuesta.
           El botón <b>Deformar</b> cambia a una malla de puntos de control para
@@ -917,11 +920,13 @@ const TOPICS = [
           sin el halo agresivo de un enfoque normal.</li>
         <li><b>Añadir ruido.</b> Grano deliberado, útil para igualar el aspecto de dos
           fuentes distintas o disimular un degradado con bandas.</li>
-        <li><b>Viñeteado.</b> Oscurece las esquinas para llevar el ojo al centro, en
-          negro, blanco o un color libre. «Redondez» controla la forma: al 100 % es
-          un círculo perfecto; bajarla lo va ajustando a la proporción del lienzo,
-          hasta tocar el borde medio en vez de sólo las esquinas —útil en panorámicas
-          y en retratos muy verticales, donde un círculo puro sale descentrado—.</li>
+        <li><b>Viñeteado.</b> Oscurece (o aclara, o tiñe) las esquinas para llevar el ojo al
+          centro, en negro, blanco o un color libre. «Cantidad» es lo que se cierra en las
+          esquinas; «Zona clara», hasta dónde no se toca nada; «Pluma», lo suave de la
+          transición (más pluma = más suave, sin anillo visible); «Opacidad» rebaja todo el
+          efecto. «Redondez» controla la forma: al 100 % es un círculo; bajarla lo ajusta
+          a la proporción del lienzo —útil en panorámicas y retratos muy verticales—. No
+          pinta sobre las zonas transparentes de la capa.</li>
         <li><b>Textura › Desplazamiento / mínimo / máximo…</b> Desplaza la imagen con
           envoltura sin costuras (para crear mosaicos que se repiten), o contrae
           (<i>Mínimo</i>) o expande (<i>Máximo</i>) las zonas claras con el radio elegido.</li>
@@ -1015,7 +1020,9 @@ const TOPICS = [
           fusión especial que cambiaría el resultado, avisa y no altera las capas.</li>
         <li><b>Transformar capa…</b> Escala, rotación y dos inclinaciones (X, Y),
           más volteo horizontal/vertical, con valores exactos en vez de arrastrar a
-          mano; distinta de la herramienta Mover (V), que sólo desplaza.</li>
+          mano; la capa se ve transformada en directo mientras mueves los deslizadores
+          y «Cancelar» la deja como estaba. Distinta de la herramienta Mover (V), que
+          sólo desplaza.</li>
         <li><b>Agrupar capas</b> (<kbd>Ctrl</kbd>+<kbd>G</kbd>) / <b>Desagrupar</b>
           (<kbd>Ctrl</kbd>+<kbd>Mayús</kbd>+<kbd>G</kbd>). Mete las capas marcadas
           en el panel (o la activa, si no hay ninguna marcada) en un grupo nuevo:
@@ -1084,7 +1091,13 @@ const TOPICS = [
         <li><b>Añadir stickers…</b> Más de 1.500 emojis en 3D, color, plano o alto contraste
           (y seis tonos de piel), con buscador y categorías, a pantalla completa: colócalos,
           escálalos y gíralos sobre la foto. Cada sticker queda en su propia capa y todo
-          funciona sin conexión.</li>
+          funciona sin conexión. Si cierras sin aplicar (Cancelar, ✕ o Esc), los stickers
+          colocados se conservan mientras el documento siga abierto y vuelven al abrir el
+          editor; al aplicar se convierten en capas. El selector de tono de piel sólo
+          actúa en manos y personas, y se desactiva («Sin tonos») en alto contraste o
+          cuando ningún sticker de la lista lo tiene. El alto contraste se muestra sobre
+          fondo blanco y nace con un borde de pegatina para verse sobre fotos oscuras.
+          El botón 🗑 quita todos los stickers pendientes (se puede deshacer).</li>
         <li><b>Crear meme…</b> Ver «Filtros especiales».</li>
         <li><b>Añadir marca de agua…</b> Coloca un texto o logo semitransparente
           repetido o en una esquina, en una capa aparte.</li>
@@ -1741,8 +1754,8 @@ const TOPICS = [
           capa de filtro (también en Ajustes › Automáticos). La segunda pestaña,
           <b>Automáticos</b>, reúne todos los ajustes de un toque: Automático, Auto Premium 👑,
           Tono y color, Tono y color Premium 👑, Contraste, Contraste Premium 👑, Niveles, Niveles Premium 👑, Iluminar foto oscura e Iluminar Premium 👑; en el menú (escritorio y móvil) son el submenú <b>Ajustes › Automáticos</b>. En <b>Todos</b> y en las
-          demás categorías (Inteligencia Artificial, Mejorar, Corregir, Color, Estilo, Efectos, Retoque,
-          Selección, Pintar, Analizar) están todas las herramientas, ajustes y filtros, en
+          demás categorías (Inteligencia Artificial, Mejorar, Corregir, Color, Estilo, Filtros —los looks de un toque: Artísticos, Blanco y negro, Estilizar, Estilos, Filtro fotográfico, Filtro Vintage, Realify, Tabla de color y Texturas—, Efectos, Retoque,
+          Selección, Pintar, Creativo —editores a pantalla completa que crean algo nuevo: Collage / Post, Memes, Panorámica, Fusión HDR, Unir fotos, Cortar en partes, Recortar en forma, Revelado RAW, Stickers, Marcos, Hoja de contactos, GIF animado y Foto 3D—, Capas, Analizar) están todas las herramientas, ajustes y filtros, en
           orden alfabético. El <b>buscador</b> filtra en tiempo real dentro de la
           categoría abierta (en Básicos, en todo), sin importar tildes ni pequeñas
           erratas. Mientras escribes, el cajón sube y se apoya encima del teclado para que
@@ -1752,6 +1765,14 @@ const TOPICS = [
           se escribe (las medidas de «Documento nuevo», un nombre…) también suben encima del
           teclado mientras escribes, igual que los editores a pantalla completa (Memes, Collage,
           Cámara…); con la herramienta Texto, la imagen sube lo justo para ver lo que escribes.</li>
+        <li><b>Menú del móvil con buscador.</b> El botón <b>Menú</b> de la barra inferior lista todas las
+          funciones con un buscador. Al escribir, el menú se apoya justo encima del teclado y usa todo
+          el alto libre (iPhone y Android, cualquier tamaño de pantalla); la tecla «Buscar» cierra el
+          teclado y deja los resultados a la vista.</li>
+        <li><b>Zoom con el dedo.</b> Con la imagen ampliada, un dedo la desplaza con las herramientas
+          que no pintan; con las que pintan o seleccionan (Pincel, Borrador, Clonar, Quitamanchas,
+          Lazo, Degradado…) un dedo sigue pintando o seleccionando, y son <b>dos dedos</b> los que
+          amplían y mueven la imagen.</li>
         <li><b>Móvil en vertical.</b> Realify está pensado para usarse en el móvil en vertical;
           si giras el teléfono aparece un aviso (la versión de escritorio es para ordenador).
           «Seguir en horizontal» lo oculta hasta que cierres la pestaña. En tabletas y

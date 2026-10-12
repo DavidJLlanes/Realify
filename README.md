@@ -40,7 +40,7 @@ usuario: **las imágenes no se suben a ningún servidor**. Se instala como app
 (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
-describe la versión **271** (ver la [lista de cambios](CHANGELOG.md)).
+describe la versión **275** (ver la [lista de cambios](CHANGELOG.md)).
 
 ## Características destacadas
 
@@ -118,6 +118,10 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v275** | Pestaña **Creativo** en el cajón del móvil (editores a pantalla completa) y panorámica en el cajón. |
+| **v274** | Pestaña **Filtros** en el cajón del móvil (looks de un toque). |
+| **v273** | El buscador del menú del móvil se coloca encima del teclado (iPhone y Android). |
+| **v272** | Pincel y herramientas de trazo con zoom en el móvil, pestaña **Capas** en el cajón, Transformar capa con vista previa, giro en Transformación libre, stickers persistentes y viñeteado rehecho. |
 | **v271** | Panorámicas: alineado más fiable. Retirada la entrada de IA avanzada local. |
 | **v261** | **Destellos de luz y bokeh** con sus texturas originales a 4000 px (50 en total), en modo Trama y como capa editable. |
 | **v260** | **Estilos a pantalla completa** con buscador, Antes/Después y resultado en capa nueva. 138 estilos nuevos convertidos de acciones de Photoshop (`.atn`), con un motor de recetas por capas (151 en la versión actual). |
@@ -659,7 +663,9 @@ Detalles en [`socialmediapost/README.md`](socialmediapost/README.md).
 ### Stickers — `stickers/`
 Desde **Capa › Añadir stickers…**. 1.595 emojis de Fluent Emoji en cuatro
 estilos (3D, color, plano y alto contraste), con tonos de piel y búsqueda en
-español e inglés. Cada sticker queda en su propia capa. Detalles en
+español e inglés. Cada sticker queda en su propia capa. Si se cierra sin
+aplicar, los stickers colocados se conservan mientras el documento siga abierto.
+Detalles en
 [`stickers/README.md`](stickers/README.md).
 
 ### Otros módulos a pantalla completa
