@@ -833,29 +833,32 @@ que corre en tu propio servidor. Esta guía te lleva paso a paso, sin necesidad 
 - Realify ya publicado con **nginx** y HTTPS.
 - Unos 5 minutos.
 
-> En los bloques de código, copia cada línea tal cual y pégala en la terminal del servidor. Pulsa Enter después de cada bloque.
+> Copia cada bloque tal cual y pégalo en la terminal del servidor. Pulsa Enter después de cada uno.
+> Donde veas `tu-dominio.com`, escribe el nombre de tu web.
 
-#### Paso 1 · Poner el proyecto en su sitio
+#### Paso 1 · Descargar el proyecto
 
-El servicio espera encontrar Realify en `/var/www/realify.es`. Si ya lo tienes allí, salta al paso 2.
+Si ya tienes Realify en el servidor, entra en su carpeta y salta al paso 2. Si no, descárgalo:
 
 ```bash
 sudo apt update && sudo apt install -y git
-sudo git clone https://github.com/DavidJLlanes/Realify.git /var/www/realify.es
+sudo git clone https://github.com/DavidJLlanes/Realify.git /var/www/realify
 ```
 
 #### Paso 2 · Instalar el servicio
 
-Copia y pega este bloque completo. Instala lo necesario, prepara Python y deja el servicio arrancado y
-con inicio automático al reiniciar el servidor:
+Entra en la carpeta `panorama` de tu instalación (si seguiste el paso 1 es la de abajo; si no, usa tu ruta) y pega
+el bloque completo. Instala lo necesario, prepara Python y deja el servicio arrancado, con inicio automático al
+reiniciar el servidor:
 
 ```bash
+cd /var/www/realify/panorama
 sudo apt install -y python3 python3-venv libgl1 libglib2.0-0 && \
-cd /var/www/realify.es/panorama && \
 sudo python3 -m venv venv && \
 sudo ./venv/bin/pip install --upgrade pip && \
 sudo ./venv/bin/pip install -r requirements.txt && \
 sudo cp realify-panorama.service /etc/systemd/system/ && \
+sudo sed -i "s|/var/www/realify.es/panorama|$PWD|g" /etc/systemd/system/realify-panorama.service && \
 sudo systemctl daemon-reload && \
 sudo systemctl enable --now realify-panorama && \
 sudo systemctl status realify-panorama --no-pager
@@ -863,18 +866,18 @@ sudo systemctl status realify-panorama --no-pager
 
 Si todo ha ido bien, verás **`active (running)`** en verde. Pulsa `q` si la pantalla se queda esperando.
 
-> ¿Tienes Realify en otra carpeta? Antes de copiar el archivo, abre `realify-panorama.service` y cambia las dos
-> rutas `/var/www/realify.es/panorama` por la tuya.
+La línea con `sed` ajusta automáticamente la ruta del servicio a la carpeta donde estás, así que funciona
+estés donde estés.
 
 #### Paso 3 · Conectar nginx con el servicio
 
 1. Abre la configuración de tu web (el nombre del archivo puede variar):
 
    ```bash
-   sudo nano /etc/nginx/sites-available/realify.es
+   sudo nano /etc/nginx/sites-available/tu-dominio.com
    ```
 
-2. Dentro del bloque `server { ... }` de HTTPS, pega este bloque (también está en
+2. Dentro del bloque `server { ... }` de HTTPS (el que tiene `listen 443`), pega este bloque (también está en
    [`nginx.conf.example`](panorama/nginx.conf.example)):
 
    ```nginx
@@ -912,7 +915,7 @@ Abre Realify, usa la herramienta de **Panorama** con varias fotos que se solapen
 | Síntoma | Qué hacer |
 | --- | --- |
 | El estado no es `active (running)` | Mira el motivo con `sudo journalctl -u realify-panorama -n 50 --no-pager` |
-| Error `203/EXEC` o «No such file» | La ruta del archivo `.service` no coincide con la carpeta real (ver nota del paso 2) |
+| Error `203/EXEC` o «No such file» | La ruta del servicio no coincide con la carpeta real: repite el paso 2 desde dentro de `panorama` |
 | Error `502 Bad Gateway` en la web | El servicio está parado: `sudo systemctl restart realify-panorama` |
 | Error `413` al subir fotos | Falta `client_max_body_size 120m;` en nginx |
 | Tras actualizar Realify con `git pull` | Reinicia el servicio: `sudo systemctl restart realify-panorama` |
