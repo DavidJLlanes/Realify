@@ -9,6 +9,27 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v281 · Efectos LUT: galería a pantalla completa con 226 efectos de color
+- **Filtro › Especiales › Efectos LUT…** (y en Filtro › «Filtros (como en el móvil)» y en la pestaña Filtros del cajón del móvil, tras Cámaras): galería a pantalla completa, con el armazón de Cámaras y Estilos, de **226 tablas de color `.cube` en siete familias** —negativo en color, diapositiva, instantánea, blanco y negro, copia de cine, digital clásico y looks creativos—, con **miniatura en vivo de tu foto** para cada una, buscador, desplegable de familia e intensidad. Cada tabla se descarga sólo cuando su miniatura entra en pantalla.
+- Nombres: cada archivo se renombró con un **nombre descriptivo de dos palabras como máximo, sin marcas** (p. ej. «Ámbar vivo», «Duro profundo»), deducido de un análisis de la propia tabla; los looks creativos conservan su nombre en español. Se descartaron 7 tablas idénticas a otra. Los archivos están en `lut/files/<familia>/`.
+- Motor WebGL2 propio con textura 3D (`lut/`), con **Premium 👑** (RGBA32F, interpolación tetraédrica y tramado de salida). Capa de filtro reeditable (`luts` en el registro). Comprobado contra el cálculo en CPU de «Tabla de color (LUT)» (error medio < 0,5 sobre 255). Pruebas: `tests/lut-ui.mjs` y `tests/calidad-herramienta.mjs filter.luts`.
+
+### v280 · Cámaras: arreglada la vista previa con fotos grandes
+- **Cámaras** deformaba la imagen en la vista previa con fotos grandes (las del móvil): la parte derecha e inferior salía como rayas estiradas. La foto reducida de la vista previa se subía a la GPU declarando el tamaño reducido en vez del de la foto completa, así que las coordenadas se salían de la textura. El resultado final y las miniaturas no estaban afectados. Con fotos pequeñas no pasaba, por eso no se vio antes.
+- `tests/camaras-ui.mjs` usa ahora una foto de 3000 × 2000 y compara la vista previa con los píxeles reales de la capa en siete puntos.
+
+### v279 · Cámaras: el catálogo completo, 150 cámaras en 19 familias
+- **Cámaras** pasa de 43 a **150 cámaras** y de 11 a **19 familias**. Familias nuevas: cine y fotogramas (Super 8, 16 mm, cine mudo, cine negro, western, ciencia ficción, terror…), científica y técnica (rayos X, cámara térmica, microscopio, telescopio, endoscopio…), espía y acción, prensa e impresión (offset, cuatricromía, fotocopia, fax, serigrafía, cómic), pantallas y capturas (monitor, LCD, panel de LED, televisión de tubo, consola de los 80), digitalización de época, lentes y accesorios y luz y clima. Más cámaras también en las 11 familias que ya existían.
+- Motor: **14 modificadores nuevos** (negativo, rayos X, grano grueso, parpadeo de proyector, reflejo de brillo, registro de color desplazado, pocos colores, blanco y negro puro con tramado ordenado, muaré, rejilla de píxeles, campo circular, filtro de estrellas, lente sucia y gotas en la lente); 61 en total.
+- Ajustadas a la baja las compactas CCD con flash y a pleno sol, que quemaban demasiado; reforzadas varias películas en color que eran muy sutiles.
+
+### v278 · Cámaras: galería a pantalla completa de cámaras de todas las épocas
+- **Filtro › Especiales › Cámaras…** (y en Filtro › «Filtros (como en el móvil)» y en la pestaña Filtros del cajón del móvil): galería a pantalla completa, con el armazón del collage, de **43 cámaras en 11 familias** —procesos del siglo XIX, cajón y fuelle, película en color y en blanco y negro, instantáneas, juguete, compactas analógicas, compactas digitales CCD, móviles y webcams, vídeo y vigilancia, ópticas especiales—, con **miniatura en vivo de tu foto** para cada una, buscador, desplegable de familia, intensidad y variación (⚄). Las 19 familias previstas (150 cámaras) se completarán por tandas.
+- Motor WebGL2 propio (`camaras/`): 46 modificadores en un solo shader, con **Premium 👑** (luz lineal, hombro suave en las luces, tramado de salida). Capa de filtro reeditable (`camaras` en el registro). Pruebas: `tests/camaras-ui.mjs` y `tests/calidad-herramienta.mjs filter.cameras`.
+
+### v277 · Secciones Filtros y Creativo del móvil, también en el menú Filtro
+- **Menú Filtro (escritorio) › «Filtros (como en el móvil)» y «Creativo (como en el móvil)»**: las mismas opciones, en el mismo orden, que las pestañas Filtros y Creativo del cajón «Herramientas». Las opciones siguen también en sus menús de siempre.
+
 ### v275 · Pestaña Creativo en el cajón del móvil
 - **Cajón móvil › Creativo** (entre Pintar y Capas): Collage / Post, Cortar en partes, Crear meme, Crear panorámica, Foto 3D 👑, Fusión HDR, GIF animado, Hoja de contactos, Marcos, Recortar en forma, Revelado RAW, Stickers y Unir fotos, por orden alfabético; siguen también en sus pestañas de siempre.
 - **Crear panorámica** tiene por fin entrada en el cajón (sólo estaba en el menú Imagen). «Revelado fotográfico» pasa a llamarse «Revelado RAW» y «Unir imágenes», «Unir fotos», como en el menú.

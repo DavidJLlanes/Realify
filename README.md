@@ -610,6 +610,22 @@ un desplegable de **119 marcos** en 10 categorías con miniatura sobre la propia
 foto (hoja desde abajo en el móvil). Semilla reproducible y capa de filtro
 reeditable. Detalles en [`vintagefilter/README.md`](vintagefilter/README.md).
 
+### Cámaras — `camaras/`
+Galería a pantalla completa (mismo armazón que el collage y Estilos) de **cámaras de todas las épocas**,
+organizadas en familias —procesos del siglo XIX, cajón y fuelle, película en color y en blanco y negro,
+instantáneas, juguete, compactas analógicas y digitales de CCD, móviles y webcams, vídeo y vigilancia, ópticas
+especiales—, con **miniaturas en vivo** de la propia foto calculadas en la GPU. 61 modificadores, **150 cámaras en 19 familias** y un motor
+WebGL2 propio; con el modo **Premium 👑**, luz lineal, hombro suave en las luces y tramado de salida. Semilla
+reproducible y capa de filtro reeditable. Detalles en [`camaras/README.md`](camaras/README.md).
+
+### Efectos LUT — `lut/`
+Galería a pantalla completa (mismo armazón que Cámaras y Estilos) de **226 efectos de color** en siete familias
+—negativo en color, diapositiva, instantánea, blanco y negro, copia de cine, digital clásico y looks creativos—,
+con **miniaturas en vivo** de la propia foto calculadas en la GPU. Cada efecto es un `.cube` 3D de `lut/files/`
+con nombre descriptivo de dos palabras como máximo. Motor WebGL2 propio con textura 3D; con el modo **Premium 👑**,
+interpolación tetraédrica en coma flotante y tramado de salida. Capa de filtro reeditable. Detalles en
+[`lut/README.md`](lut/README.md).
+
 ### Estilos y LUT
 - **Estilos** (pantalla completa, `js/filters/looksfs.js`): **160 estilos integrados** en 16 categorías
   (básicos, retrato, paisaje, cine, películas, urbano, comida, moda y editorial, redes sociales, blanco y negro,
@@ -763,6 +779,8 @@ js/
   vendor/               Librerías de terceros (ver js/vendor/ATTRIBUTIONS.md)
 raw/                    Revelador RAW (LibRaw-Wasm)
 vintagefilter/          Filtro Vintage
+camaras/                Galería de cámaras (motor WebGL2 propio)
+lut/                    Galería de efectos LUT (226 tablas .cube)
 memes/                  Creador de memes
 socialmediapost/        Collage / Historia / Post
 stickers/               Stickers (Fluent Emoji)

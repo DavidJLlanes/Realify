@@ -119,6 +119,8 @@ const ITEMS = [
   { cmd:"filter.cameraPremium", label:"Realify Premium", premium:true, cat:"ia" },
   { cmd:"filter.photoDevelop", label:"Revelado RAW", ic:"sliders-horizontal", cat:"mejorar color creativo" },
   { cmd:"filter.vintage",   label:"Filtro Vintage",   ic:"camera",             cat:"estilo efectos filtros" },
+  { cmd:"filter.cameras",   label:"Cámaras",          cat:"estilo efectos filtros" },
+  { cmd:"filter.luts",      label:"Efectos LUT",      cat:"estilo efectos filtros" },
   { cmd:"filter.purepixel", label:"PurePixel",        cat:"ia" },
   { cmd:"filter.unmark",    label:"Unmark",           cat:"ia" },
   { cmd:"filter.looks",     label:"Estilos",          cat:"estilo filtros" },

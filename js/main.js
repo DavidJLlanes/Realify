@@ -692,6 +692,10 @@ registerAll({
     enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
   "filter.vintage": { run: async () => (await import("../vintagefilter/index.js")).openVintageFilter(),
     enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
+  "filter.cameras": { run: async () => (await import("../camaras/index.js")).openCamaras(),
+    enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
+  "filter.luts": { run: async () => (await import("../lut/index.js")).openLuts(),
+    enabled: () => needsDoc() && !!activeLayer() && !activeLayer().locked && activeLayer().type !== "adjust" },
   /* Sin `!anyDialogOpen()` en la condición, a propósito: en móvil los
      filtros se eligen desde una rejilla que ES un diálogo, así que esa
      comprobación dejaba el botón permanentemente gris ahí dentro —el

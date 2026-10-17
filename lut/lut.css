@@ -1,0 +1,7 @@
+/* Efectos LUT · complementos de la ventana a pantalla completa (la base está en css/fsplugin.css) */
+.lutf .lut-jump{width:100%;height:30px;margin-top:6px;box-sizing:border-box;background:#252a31;color:#cfd6e2;border:1px solid #414852;border-radius:5px;padding:0 8px;font:12px var(--sans,sans-serif)}
+/* los nombres se parten en varias líneas en vez de cortarse */
+.lutf .fsp-thumb{white-space:normal}
+.lutf .fsp-thumb span{display:block;white-space:normal;overflow:visible;text-overflow:clip}
+/* en el móvil, tras tocar el botón transparente que abre la hoja no debe pintarse encima del desplegable (hereda el fondo de :hover) */
+.lutf .fsp-pick-hit,.lutf .fsp-pick-hit:hover,.lutf .fsp-pick-hit:active,.lutf .fsp-pick-hit:focus{background:transparent}

@@ -226,7 +226,13 @@ export const FILTERS = {
      así que el porcentaje de la capa escala cada uno por igual. */
   "vintage": { load: mod("../../vintagefilter/index.js"), fn: "renderVintageFilter",
                scale: (p, t) => Object.fromEntries(Object.entries(p).map(([k, v]) =>
-                 [k, typeof v === "number" && k !== "seed" && k !== "version" ? v * t : v])) }
+                 [k, typeof v === "number" && k !== "seed" && k !== "version" ? v * t : v])) },
+  /* La receta de cada cámara va en `values` y `intensity` (0-100) las escala todas: el porcentaje de la capa se multiplica por ella. */
+  "camaras": { load: mod("../../camaras/index.js"), fn: "renderCamaras",
+               scale: (p, t) => ({ ...p, intensity: (p.intensity ?? 100) * t }) },
+  /* La capa guarda el id de la tabla, `intensity` y `premium`; el porcentaje de la capa se multiplica por la intensidad. */
+  "luts": { load: mod("../../lut/index.js"), fn: "renderLuts",
+            scale: (p, t) => ({ ...p, intensity: (p.intensity ?? 100) * t }) }
 };
 
 export const knownFilter = id => !!FILTERS[id];

@@ -43,6 +43,10 @@ const TOPICS = [
     html:`
       <h3>Novedades</h3>
       <ul class="guide-news">
+        <li><a data-go="especiales#sp-luts">Efectos LUT</a>: galería a pantalla completa de 226 efectos de color (negativo en color,
+          diapositiva, instantánea, blanco y negro, copia de cine…), con miniatura en vivo de tu foto.</li>
+        <li><a data-go="especiales#sp-camaras">Cámaras</a>: galería a pantalla completa de cámaras de todas las épocas (del
+          daguerrotipo a la compacta digital de 2005, 150 en 19 familias), en familias y con miniatura en vivo de tu foto.</li>
         <li><a data-go="mover#tool-handles">Tiradores más fáciles de agarrar</a>, sobre todo con el
           dedo: más grandes, se coge siempre el más cercano y no saltan bajo el dedo.</li>
         <li><a data-go="archivo#file-closeall">Cerrar todas las fotos</a> de una vez (Archivo, Herramientas
@@ -869,9 +873,12 @@ const TOPICS = [
     html:`
       <h3>Filtros (menú Filtro)</h3>
       <ul>
-        <li><b>Especiales.</b> Realify, Revelado fotográfico, Collage, memes, Filtro Vintage,
+        <li><b>Especiales.</b> Realify, Revelado fotográfico, Collage, memes, Filtro Vintage, Cámaras, Efectos LUT,
           PurePixel, Unmark, Estilos, Adaptive Photo Lens y Tabla de color: ver el tema
           «Filtros especiales», en el índice.</li>
+        <li><b>Filtros y Creativo (como en el móvil).</b> Dos submenús al principio con las mismas
+          opciones que las pestañas Filtros y Creativo del cajón «Herramientas» del móvil. Las
+          opciones siguen también en sus menús de siempre.</li>
         <li><b>Todo filtro deja su resultado en una capa nueva</b> reeditable (insignia «fx»);
           ver «Capas de filtro» en el tema Capas.</li>
         <li id="flt-zoom"><b>Zoom con el efecto abierto.</b> Con cualquier filtro o ajuste abierto
@@ -1551,7 +1558,7 @@ const TOPICS = [
     ] },
 
   { id:"especiales", title:"Filtros especiales",
-    desc:"Realify, revelado, Collage / History / Post, memes, Filtro Vintage, Estilos, Unmark, LUT…",
+    desc:"Realify, revelado, Collage / History / Post, memes, Filtro Vintage, Cámaras, Efectos LUT, Estilos, Unmark, LUT…",
     html:`
       <h3>Filtros especiales (Filtro › Especiales)</h3>
       <p>Realify, PurePixel, Unmark y Adaptive Photo Lens están ahora en el menú
@@ -1622,6 +1629,34 @@ const TOPICS = [
           móvil la hoja sube desde abajo. «Anchura del marco» (grupo Bordes) lo ensancha.
           El dado da una variación nueva del polvo, los arañazos, las fugas de luz y las
           texturas del marco. Queda como capa reeditable.</li>
+        <li id="sp-camaras"><b>Cámaras…</b> Galería a pantalla completa con <b>150 cámaras</b> de todas las épocas, en
+          <b>19 familias</b>: procesos del siglo XIX (daguerrotipo, ferrotipo, cianotipo…), cámaras de
+          cajón y fuelle, película en color y en blanco y negro, instantáneas, cámaras de juguete,
+          compactas analógicas y digitales de CCD, móviles y webcams, vídeo y vigilancia, ópticas
+          especiales, cine y fotogramas, científica y técnica (rayos X, térmica, microscopio…), espía
+          y acción, prensa e impresión (offset, fotocopia, fax…), pantallas y capturas, digitalización
+          de época, lentes y accesorios y luz y clima. Cada miniatura es <b>tu propia foto</b> con esa cámara, calculada en la GPU. En
+          el escritorio, buscador, desplegable «Ir a una familia» e intensidad a la derecha; en el
+          móvil, un desplegable de familia, otro de cámara (abre una hoja con miniaturas) y la
+          intensidad. El dado ⚄ cambia dónde caen el polvo, los arañazos, las fugas de luz y el
+          ruido de cinta; «Fecha del sello» se cambia en las cámaras que la llevan. Con el
+          interruptor <b>Premium 👑</b> la luz se calcula en luz lineal (resplandores, flash y
+          desenfoques más naturales), con hombro suave en las luces y tramado de salida. Queda
+          como capa de filtro reeditable (botón fx). Se abre desde Filtro › Especiales › Cámaras…,
+          Filtro › «Filtros (como en el móvil)» y, en el móvil, desde la pestaña Filtros del cajón
+          «Herramientas».</li>
+        <li id="sp-luts"><b>Efectos LUT…</b> Galería a pantalla completa con <b>226 efectos de color</b> (tablas LUT .cube
+          de 3D) en siete <b>familias</b>: negativo en color, diapositiva, instantánea, blanco y negro,
+          copia de cine, digital clásico y looks creativos. Cada efecto tiene un nombre de dos palabras
+          que describe su aspecto (por ejemplo «Ámbar vivo» o «Duro profundo»). Cada miniatura es
+          <b>tu propia foto</b> con ese efecto, calculada en la GPU; las tablas se descargan sólo cuando su
+          miniatura entra en pantalla. En el escritorio, buscador, desplegable «Ir a una familia» e
+          intensidad a la derecha; en el móvil, un desplegable de familia, otro de efecto (abre una hoja con
+          miniaturas) y la intensidad. Con el interruptor <b>Premium 👑</b> se usa interpolación
+          tetraédrica en coma flotante de 32 bits (no tiñe los grises) y tramado de salida. Queda como capa de
+          filtro reeditable (botón fx). Se abre desde Filtro › Especiales › Efectos LUT…, Filtro › «Filtros
+          (como en el móvil)» y, en el móvil, desde la pestaña Filtros del cajón «Herramientas». Para cargar
+          tu propio archivo .cube, usa «Tabla de color (LUT)…».</li>
         <li><b>PurePixel…</b> Suaviza residuos finos de luminancia y color y añade textura
           controlada; experimental, no garantiza nada frente a un detector.</li>
         <li><b>Unmark…</b> Tres secciones en un panel: <i>marcas visibles</i> (detecta el

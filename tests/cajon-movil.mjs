@@ -13,7 +13,7 @@ await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTi
 await page.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(300, 200, { name: "m" }); const l = D.addLayer({ name: "Fondo" }); l.ctx.fillStyle = "#2a7"; l.ctx.fillRect(0, 0, 300, 200); });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 // 1) Entradas del cajón (ITEMS) con su icono: se leen del propio módulo
-const want = [["file.exportPdf", "Exportar PDF"], ["an.meta", "Inspector de metadatos"], ["ai.textSelect", "Seleccionar por texto"], ["help.report", "Informar de un error"], ["an.strip", "Limpiar metadatos"]];
+const want = [["file.exportPdf", "Exportar PDF"], ["an.meta", "Inspector de metadatos"], ["ai.textSelect", "Seleccionar por texto"], ["help.report", "Informar de un error"], ["an.strip", "Limpiar metadatos"], ["filter.cameras", "Cámaras"], ["filter.luts", "Efectos LUT"]];
 await page.locator("#toolsHandle").click({ timeout: 5000 }).catch(() => errs.push("no se pudo abrir el cajón"));
 await page.waitForTimeout(700);
 for(const [cmd, label] of want){

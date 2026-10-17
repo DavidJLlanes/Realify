@@ -39,7 +39,7 @@ if(!cmds.length){
 }
 
 let chromium;
-for(const spec of ["playwright", "/opt/node22/lib/node_modules/playwright/index.mjs"]){
+for(const spec of [process.env.PLAYWRIGHT_MODULE, "playwright", "playwright-core", "/opt/node22/lib/node_modules/playwright/index.mjs"].filter(Boolean)){
   try{ ({ chromium } = await import(spec)); break; }catch{}
 }
 if(!chromium){ console.error("No se encuentra Playwright."); process.exit(2); }
@@ -61,7 +61,9 @@ await new Promise(r => server.listen(0, "127.0.0.1", r));
 const BASE = `http://127.0.0.1:${server.address().port}/`;
 
 const MAE_MAX = 3;          // diferencia media admitida (0-255) frente al cálculo completo
-const browser = await chromium.launch();
+/* GPU por software para los filtros WebGL2 en equipos sin GPU (Cámaras, Vintage…); sin Chromium propio se usa Edge. */
+const LAUNCH = { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] };
+const browser = await chromium.launch(LAUNCH).catch(() => chromium.launch({ ...LAUNCH, channel: "msedge" }));
 let failed = false;
 
 /* Imagen de prueba: degradado de color + ruido de 1 px + tablero de 2 px */
@@ -105,6 +107,20 @@ for(const cmd of cmds) for(const mobile of [false, true]){
         await page.locator(".fsp-sheet:not([hidden]) .fsp-thumb", { hasText: /Soft Matte/i }).first().click().catch(() => {});
       } else await page.locator(".fsp-left .fsp-thumb", { hasText: /Soft Matte/i }).first().click().catch(() => {});
       await page.waitForTimeout(1500);
+    }
+    if(cmd === "filter.cameras"){   /* Cámaras no se aplica hasta elegir una: se elige «Compacta digital de 2005» como lo haría una persona */
+      if(await page.locator(".fsp-mobile select:visible").count()){
+        await page.locator(".fsp-mobile select").first().selectOption({ label: "Compactas digitales CCD" }); await page.waitForTimeout(500);
+        await page.locator(".fsp-sheet:not([hidden]) .fsp-thumb", { hasText: /de 2005/i }).first().click().catch(() => {});
+      } else await page.locator(".fsp-left .fsp-thumb", { hasText: /de 2005/i }).first().click().catch(() => {});
+      await page.waitForTimeout(1500);
+    }
+    if(cmd === "filter.luts"){   /* Efectos LUT no se aplica hasta elegir uno: se elige «Amanecer» como lo haría una persona */
+      if(await page.locator(".fsp-mobile select:visible").count()){
+        await page.locator(".fsp-mobile select").first().selectOption({ label: "Looks creativos" }); await page.waitForTimeout(1500);
+        await page.locator(".fsp-sheet:not([hidden]) .fsp-thumb", { hasText: /^Amanecer$/ }).first().click().catch(() => {});
+      } else { await page.locator(".lkf-search input").fill("amanecer"); await page.waitForTimeout(800); await page.locator(".fsp-left .fsp-thumb", { hasText: /^Amanecer$/ }).first().click().catch(() => {}); }
+      await page.waitForTimeout(2000);
     }
     const apply = page.locator("button:visible", { hasText: /^(Aplicar|Aceptar|Abrir en Realify)$/ }).or(page.locator('[data-a="apply"]:visible'));
     if(await apply.count()){

@@ -1,0 +1,13 @@
+/* Cámaras · complementos de la ventana a pantalla completa (la base está en css/fsplugin.css) */
+.cmf .cm-var{width:100%;height:34px;margin:10px 0 2px;background:#252a31;color:#e9edf4;border:1px solid #414852;border-radius:5px;font:13px var(--sans,sans-serif);cursor:pointer}
+.cmf .cm-var:hover:not(:disabled){background:#2d343d}
+.cmf .cm-var:disabled{opacity:.45;cursor:default}
+.cmf .cm-mrow2{display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:8px;align-items:end}
+.cmf .cm-vardice{height:42px;width:42px;margin-bottom:0;background:#222831;color:#eef3ff;border:1px solid #3f4855;border-radius:7px;font-size:20px;line-height:1;cursor:pointer}
+.cmf .cm-vardice:disabled{opacity:.45}
+.cmf .cm-jump{width:100%;height:30px;margin-top:6px;box-sizing:border-box;background:#252a31;color:#cfd6e2;border:1px solid #414852;border-radius:5px;padding:0 8px;font:12px var(--sans,sans-serif)}
+/* los nombres largos se parten en varias líneas en vez de cortarse */
+.cmf .fsp-thumb{white-space:normal}
+.cmf .fsp-thumb span{display:block;white-space:normal;overflow:visible;text-overflow:clip}
+/* en el móvil, tras tocar el botón transparente que abre la hoja no debe pintarse encima del desplegable (hereda el fondo de :hover) */
+.cmf .fsp-pick-hit,.cmf .fsp-pick-hit:hover,.cmf .fsp-pick-hit:active,.cmf .fsp-pick-hit:focus{background:transparent}

@@ -297,6 +297,42 @@ export const MENUS = [
     { cmd:"adj.invert",     label:"Invertir" }
   ]},
   { label:"Filtro", items:[
+    /* Las mismas secciones «Filtros» y «Creativo» del cajón «Herramientas»
+       del móvil, con sus mismas opciones. Se repiten a propósito: cada
+       opción sigue también en su sitio de siempre. */
+    { label:"Filtros (como en el móvil)", submenu:[
+      { cmd:"adj.photoFilter", ic:"funnel", label:"Filtro fotográfico…" },
+      { cmd:"adj.grayscale", ic:"eclipse", label:"Blanco y negro" },
+      { cmd:"filter.camera", label:"Realify…",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.4-2h5.2L16 7h2.5A1.5 1.5 0 0 1 20 8.5V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><circle cx="12" cy="13" r="3.5"/><path d="M17 10.5h.01"/></svg>' },
+      { cmd:"filter.vintage", ic:"camera", label:"Filtro Vintage…" },
+      { cmd:"filter.cameras", label:"Cámaras…",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="18" height="11.5" rx="2"/><circle cx="12" cy="13.5" r="3.4"/><path d="M6.5 7.5l.8-2h3.2"/><path d="M16.5 10.5h2.5"/></svg>' },
+      { cmd:"filter.luts", label:"Efectos LUT…",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9"/></svg>' },
+      { cmd:"filter.looks", label:"Estilos…",
+        icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c-4.7 0-8.5 3.4-8.5 7.6 0 3.9 3.2 6.2 5.3 6.2 1.4 0 1.6-.9 1.6-1.6 0-.9-.6-1.4-.6-2.3 0-1.1.9-1.9 2.1-1.9h1.8c3.1 0 5.3-2 5.3-4.6 0-2.1-3-3.4-7-3.4z"/><circle cx="7.8" cy="10.2" r="1" fill="currentColor" stroke="none"/><circle cx="10.8" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="14.8" cy="7.2" r="1" fill="currentColor" stroke="none"/></svg>' },
+      { cmd:"filter.lut", ic:"clapperboard", label:"Tabla de color (LUT)…" },
+      { cmd:"filter.stylizeEffects", ic:"flame", label:"Estilizar…" },
+      { cmd:"filter.artisticGallery", ic:"brush", label:"Artísticos…" },
+      { cmd:"filter.textureEffects", ic:"brick-wall", label:"Texturas…" }
+    ]},
+    { label:"Creativo (como en el móvil)", submenu:[
+      { cmd:"filter.photoDevelop", ic:"sliders-horizontal", label:"Revelado RAW…" },
+      { cmd:"image.hdr", ic:"hdr", label:"Fusión HDR…" },
+      { cmd:"image.panorama", ic:"panorama", label:"Crear panorámica…" },
+      { cmd:"image.merge", ic:"merge-images", label:"Unir fotos…" },
+      { cmd:"image.slice", ic:"layout-grid", label:"Cortar en partes…" },
+      { cmd:"image.shapeCrop", ic:"shapes", label:"Recortar en forma…" },
+      { cmd:"ai.photo3d", ic:"move-3d", label:"Foto 3D Premium 👑…", premium:true },
+      { cmd:"layer.meme", ic:"sticker", label:"Crear meme…" },
+      { cmd:"file.socialPost", ic:"layout-dashboard", label:"Collage / Post…" },
+      { cmd:"filter.frames", ic:"frame", label:"Marcos…" },
+      { cmd:"file.contactSheet", ic:"contact-sheet", label:"Hoja de contactos…" },
+      { cmd:"file.exportGif", ic:"film", label:"GIF animado…" },
+      { cmd:"layer.stickers", ic:"sparkles", label:"Stickers…" }
+    ]},
+    { sep:true },
     { label:"Especiales", submenu:[
     { cmd:"filter.photoDevelop", label:"Revelado fotográfico…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h16v11H4z"/><path d="M7 4.5h10M8 11h8M8 15h5"/><circle cx="17" cy="15" r="1.5"/></svg>',
@@ -310,6 +346,12 @@ export const MENUS = [
     { cmd:"filter.vintage", label:"Filtro Vintage…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 8h18M3 16h18"/><path d="M6 5v3M10 5v3M14 5v3M18 5v3M6 16v3M10 16v3M14 16v3M18 16v3" opacity=".6"/><circle cx="12" cy="12" r="1.6"/></svg>',
       help:"Da aspecto antiguo a la foto: virados, películas clásicas, grano, fugas de luz, polvo, bordes y ópticas de época. Crea una capa de filtro reeditable." },
+    { cmd:"filter.cameras", label:"Cámaras…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="18" height="11.5" rx="2"/><circle cx="12" cy="13.5" r="3.4"/><path d="M6.5 7.5l.8-2h3.2"/><path d="M16.5 10.5h2.5"/></svg>',
+      help:"Galería a pantalla completa de cámaras de todas las épocas —del daguerrotipo a la compacta digital de 2005, instantáneas, juguete, vídeo doméstico…—, en familias, con una miniatura en vivo de tu foto para cada una. Con interruptor Premium 👑 (luz lineal y tramado). Crea una capa de filtro reeditable." },
+    { cmd:"filter.luts", label:"Efectos LUT…",
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9"/></svg>',
+      help:"Galería a pantalla completa de 226 efectos de color (tablas LUT) en familias —negativo en color, diapositiva, instantánea, blanco y negro, copia de cine, digital clásico y looks creativos—, con una miniatura en vivo de tu foto para cada uno. Con interruptor Premium 👑 (interpolación tetraédrica y tramado). Crea una capa de filtro reeditable." },
     { cmd:"filter.looks",   label:"Estilos…",
       help:"160 acabados de un clic en 16 categorías —retrato, paisaje, cine, películas, urbano, comida, moda, redes sociales, blanco y negro, noche, pastel, duotonos, vintage…— con buscador e intensidad.",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c-4.7 0-8.5 3.4-8.5 7.6 0 3.9 3.2 6.2 5.3 6.2 1.4 0 1.6-.9 1.6-1.6 0-.9-.6-1.4-.6-2.3 0-1.1.9-1.9 2.1-1.9h1.8c3.1 0 5.3-2 5.3-4.6 0-2.1-3-3.4-7-3.4z"/><circle cx="7.8" cy="10.2" r="1" fill="currentColor" stroke="none"/><circle cx="10.8" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="14.8" cy="7.2" r="1" fill="currentColor" stroke="none"/></svg>' },
