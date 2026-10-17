@@ -30,6 +30,28 @@
 
 </div>
 
+<div align="center">
+
+<br>
+
+# 🎞️ 1.195 efectos distintos
+## y más de **1.700 millones** de combinaciones apilando solo 3
+
+*Cada filtro, estilo, cámara o efecto de color se aplica en su propia capa: se pueden **combinar, reordenar, mezclar y reeditar sin límite**, y el orden cambia el resultado.*
+
+| Apilando… | Combinaciones distintas |
+|:---:|:---:|
+| **2** efectos | **1.426.830** |
+| **3** efectos | **1.702.208.190** |
+| **4** efectos | **2.029.032.162.480** · más de 2 billones |
+| **5** efectos | **2.416.577.305.513.680** · más de 2 mil billones |
+
+<sub>Sin contar los deslizadores de cada efecto, que lo vuelven prácticamente infinito. [Cómo se cuenta ↓](#cómo-se-calculan-las-combinaciones)</sub>
+
+<br>
+
+</div>
+
 ---
 
 ## Qué es Realify
@@ -40,7 +62,7 @@ usuario: **las imágenes no se suben a ningún servidor**. Se instala como app
 (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
-describe la versión **275** (ver la [lista de cambios](CHANGELOG.md)).
+describe la versión **281** (ver la [lista de cambios](CHANGELOG.md)).
 
 ## Características destacadas
 
@@ -84,8 +106,8 @@ nunca falle un resultado.
 
 ### ✨ Creatividad
 Fusión HDR de hasta 11 fotos, panorámicas, 160 estilos integrados más 151 estilos
-por capas convertidos de acciones de Photoshop, 215 estilos vintage, 119 marcos,
-LUT `.cube`, recortes en ~60 formas, memes, stickers, collages y publicaciones
+por capas convertidos de acciones de Photoshop, 215 estilos vintage, **150 cámaras
+de todas las épocas**, **226 efectos de color LUT**, 138 marcos, recortes en ~60 formas, memes, stickers, collages y publicaciones
 para más de 29 formatos de redes sociales.
 
 </td>
@@ -118,6 +140,9 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v281** | **Efectos LUT**: galería a pantalla completa con 226 efectos de color en 7 familias, miniaturas en vivo de tu foto y modo Premium (interpolación tetraédrica). |
+| **v279** | **Cámaras** completa: 150 cámaras en 19 familias, de los procesos del siglo XIX a la compacta CCD, el cine, la TV de tubo, el fax o la cámara térmica. |
+| **v277** | Las secciones **Filtros** y **Creativo** del cajón del móvil, también en el menú Filtro del escritorio. |
 | **v275** | Pestaña **Creativo** en el cajón del móvil (editores a pantalla completa) y panorámica en el cajón. |
 | **v274** | Pestaña **Filtros** en el cajón del móvil (looks de un toque). |
 | **v273** | El buscador del menú del móvil se coloca encima del teclado (iPhone y Android). |
@@ -159,6 +184,35 @@ Resumen de las últimas versiones. El detalle completo está en el
 23. [Licencias](#23-licencias)
 
 ---
+
+## Cómo se calculan las combinaciones
+
+El número de arriba es un recuento, no una estimación. Cuenta como **un efecto** cada opción que cambia el aspecto
+de la foto de forma distinta —un preajuste, un modo de un filtro o una herramienta— y no los deslizadores.
+
+| Grupo | Efectos |
+|---|--:|
+| Estilos (160 integrados + 151 de acciones de Photoshop) | 311 |
+| Efectos LUT | 226 |
+| Filtro Vintage | 214 |
+| Cámaras | 150 |
+| Adaptive Photo Lens (revelado por categoría de foto) | 92 |
+| Modos de filtros (desenfoques, distorsiones, artísticos, texturas, pixelado…) | 63 |
+| Ajustes de color y tono | 38 |
+| Otros filtros (enfoque, ruido, corrección de lente, licuar, parche…) | 26 |
+| Curvas (estilos) | 24 |
+| Realify (preajustes de cámara) | 18 |
+| Recetas de blanco y negro | 18 |
+| IA que cambia la imagen (colorear, reducir ruido, restaurar caras, niebla por distancia…) | 15 |
+| **Total** | **1.195** |
+
+Los efectos se apilan como capas (cada filtro crea la suya, reordenable), así que se cuentan **secuencias de
+efectos distintos donde el orden importa**: con `N = 1.195`, 3 efectos dan `N · (N−1) · (N−2) = 1.702.208.190`.
+Si no se tuviera en cuenta el orden, serían 283.701.365 con 3 efectos.
+
+Lo que **no** se cuenta: los deslizadores de cada efecto, el interruptor Premium, la intensidad de cada capa, los
+138 marcos, las máscaras ni los modos de fusión; sumarlos multiplicaría la cifra. Tampoco se afirma que todas las
+combinaciones den un resultado visualmente distinto: es el número de configuraciones distintas que se pueden montar.
 
 ## 1. Archivos: abrir, guardar y exportar
 
