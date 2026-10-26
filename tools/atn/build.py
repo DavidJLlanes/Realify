@@ -5,7 +5,7 @@ Uso:  python3 tools/atn/build.py <carpeta con los .atn> [carpeta de salida (por 
 
 Lee cada .atn (formato binario de Adobe: atnparse.py), simula la pila de capas que construye cada acción (compiler.py) y guarda las que se saben
 interpretar por completo. Las demás se anotan en `skipped` con el motivo, para saber qué falta. El motor que evalúa las recetas es
-js/filters/styleengine.js. El orden de los estilos dentro de cada archivo NO debe cambiar nunca (las capas guardadas los referencian por posición
+js/filters/looks/styleengine.js. El orden de los estilos dentro de cada archivo NO debe cambiar nunca (las capas guardadas los referencian por posición
 además de por id): lo nuevo, siempre al final o en un archivo nuevo."""
 import sys, os, re, json, glob, hashlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

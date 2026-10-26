@@ -12,7 +12,7 @@ const b = await chromium.launch(), page = await b.newPage(); page.setDefaultTime
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 await page.evaluate(() => setInterval(() => { const bt = [...document.querySelectorAll("button")].find(x => x.textContent.trim() === "Descargar"); if(bt) bt.click(); }, 400));
 const res = await page.evaluate(async () => {
-  const { loadOpenCv } = await import("/js/cv/opencv.js"), lib = await loadOpenCv(), D = await import("/js/features/docscan.js"), PDF = await import("/js/io/pdfpro.js");
+  const { loadOpenCv } = await import("/js/cv/opencv.js"), lib = await loadOpenCv(), D = await import("/js/features/docscan.js"), PDF = await import("/js/io/export/pdfpro.js");
   const sheet = (seed) => { const c = document.createElement("canvas"); c.width = 840; c.height = 1188; const x = c.getContext("2d"); x.fillStyle = "#efe9d8"; x.fillRect(0, 0, 840, 1188);
     x.fillStyle = "#222"; for(let y = 90; y < 1100; y += 34){ let xx = 80; while(xx < 740){ const w = 20 + ((xx * 7 + y * 13 + seed * 31) % 70); x.fillRect(xx, y, Math.min(w, 740 - xx), 10); xx += w + 14; } }
     return c; };

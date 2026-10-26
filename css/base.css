@@ -250,7 +250,7 @@ hr{border:0;border-top:1px solid var(--line-soft);margin:11px 0}
   *,*::before,*::after{transition:none!important;animation:none!important}
 }
 
-/* ── Interruptor Premium (corona) · js/ui/premium.js ─────────── */
+/* ── Interruptor Premium (corona) · js/ui/kit/premium.js ─────────── */
 .premium-switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;
   min-height:34px;padding:0 10px 0 8px;border-radius:999px;border:1px solid #6b5520;background:#241f14;color:#f3dfa6;
   font:600 12px/1 var(--sans,system-ui,sans-serif);letter-spacing:.02em;white-space:nowrap;touch-action:manipulation}

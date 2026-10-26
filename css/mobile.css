@@ -916,7 +916,7 @@
 .landscape-notice p{margin:0 0 6px;color:#c9d1dc}
 .ln-go{margin-top:12px;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid #3b414b;background:#272b31;color:#e9edf4;font:inherit}
 
-/* ── Interruptor Premium en el móvil (js/ui/premium.js › dockPremium) ──
+/* ── Interruptor Premium en el móvil (js/ui/kit/premium.js › dockPremium) ──
    REGLA: la vista previa manda y los plugins son mínimos. El interruptor
    va en la barra del botón de aplicar, a la izquierda, sin fila propia,
    y es IDÉNTICO en todos los plugins: interruptor + corona + «Premium»,

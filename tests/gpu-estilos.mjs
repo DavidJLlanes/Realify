@@ -1,5 +1,5 @@
 /* Prueba del compositor GPU de coma flotante: estilos de capa, trazo en curso y caché de texturas, contra el oráculo de CPU (precision-stack) (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), G = await import("/js/gpu/floatcompositor.js"), PS = await import("/js/core/precision-stack.js"), LT = await import("/js/editor/layertree.js"), LS = await import("/js/editor/layerstyles.js");
+  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), G = await import("/js/editor/render/floatcompositor.js"), PS = await import("/js/io/precision/precision-stack.js"), LT = await import("/js/editor/layers/layertree.js"), LS = await import("/js/editor/layers/layerstyles.js");
   const o = {}; const W = 200, Hh = 140; D.newDoc(W, Hh, { name: "g" });
   o.disp = G.floatAvailable(); if(!o.disp) return o;
   const base = D.addLayer({ name: "Fondo" });
@@ -46,7 +46,7 @@ const res = await page.evaluate(async () => {
     const at = (x, y) => [0, 1, 2, 3].map(k => gl2[(y * W + x) * 4 + k]);
     o.trazo = at(160, 110).map(v => +v.toFixed(2)); const px = at(20, 100); o.intacto16 = Math.abs(px[0] - hi[(100 * W + 20) * 3] / 65535) < 0.002; }
   // teselas: con teselas de 64 px (4×3 con bordes parciales) el resultado es el mismo, también con capa de ajuste, máscara y recorte
-  const AL = await import("/js/editor/adjustlayers.js");
+  const AL = await import("/js/editor/layers/adjustlayers.js");
   const adj = AL.addAdjustmentLayer("exposure"); if(adj){ adj.adjustParams = { ...adj.adjustParams, ev: 0.6 }; }
   const mk = D.addLayer({ name: "Mascarada" }); mk.ctx.fillStyle = "#22c55e"; mk.ctx.fillRect(20, 20, 140, 90);
   const mc = document.createElement("canvas"); mc.width = W; mc.height = Hh; const mxc = mc.getContext("2d"); const gr = mxc.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,1)"); mxc.fillStyle = gr; mxc.fillRect(0, 0, W, Hh);

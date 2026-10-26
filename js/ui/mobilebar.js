@@ -1,7 +1,7 @@
-import { enabled } from "./commands.js";
+import { enabled } from "../core/commands.js";
 import { on } from "../core/bus.js";
 import { openMobileMenu } from "./menu.js";
-import { current, setTool } from "../editor/tools.js";
+import { current, setTool } from "../editor/tools/tools.js";
 
 /* La lista de filtros que antes vivía aquí —un diálogo propio con
    categorías en <details>— se retiró: es exactamente el mismo

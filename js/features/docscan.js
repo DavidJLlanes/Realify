@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ESCANEAR DOCUMENTO (Premium 👑 · fase 8 de PENDIENTE.md)
+   ESCANEAR DOCUMENTO (Premium 👑 · fase 8 de docs/PENDIENTE.md)
    Menú Imagen › Escanear documento…
 
    Una foto de un papel, una pizarra, un cuadro o una pantalla se
@@ -14,7 +14,7 @@
    sólo la primera vez, avisando antes.
    ═══════════════════════════════════════════════════════════════ */
 
-import { toast, status } from "../ui/toast.js";
+import { toast, status } from "../core/toast.js";
 import { visibleImage, scaled, openShell } from "./depthtools.js";
 
 let open = false;
@@ -101,7 +101,7 @@ export async function openDocScan(){
         if(extra.length && S.out === "pdf"){
           // Varias páginas → un PDF (la primera es la foto abierta; el resto, las añadidas), una página por foto
           sh.setBusy("Creando el PDF…");
-          const { buildPdf } = await import("../io/pdfpro.js"), { download } = await import("../io/export.js");
+          const { buildPdf } = await import("../io/export/pdfpro.js"), { download } = await import("../io/export/export.js");
           const { blob, pages } = await buildPdf([{ canvas: out, name: "Página 1" }, ...extra.map((p, i) => ({ canvas: p.canvas, name: `Página ${i + 2}` }))], { page: "image", marginMm: 0, dpi: 200, quality: .9, lossless: S.finish === "bw", meta: { title: "Documento escaneado" } });
           download(blob, "documento-" + new Date().toISOString().slice(0, 10) + ".pdf");
           close();
@@ -109,7 +109,7 @@ export async function openDocScan(){
           return;
         }
         close();
-        const { resultToLayer } = await import("../ui/fsshell.js");
+        const { resultToLayer } = await import("../ui/kit/fsshell.js");
         await resultToLayer(out, { name: "Documento", docName: "Documento", newDocument: true });
         toast(`Documento enderezado · ${out.width} × ${out.height}`, "ok");
       }catch(err){ console.error(err); sh.setBusy(""); toast("No se pudo enderezar: " + (err.message || err), "err"); }
@@ -141,7 +141,7 @@ export async function openDocScan(){
   });
   /* Más páginas: otras fotos (se detecta y endereza cada documento solo, con el mismo acabado) */
   const addPages = async () => {
-    const { pickFiles, decodePhoto } = await import("../ui/fsshell.js"), files = await pickFiles({ gallery: true });
+    const { pickFiles, decodePhoto } = await import("../ui/kit/fsshell.js"), files = await pickFiles({ gallery: true });
     if(!files.length) return;
     sh.setBusy("Escaneando las páginas…");
     try{

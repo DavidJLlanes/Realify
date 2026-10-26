@@ -1,4 +1,4 @@
-"""Comprueba js/io/icccmyk.js contra littlecms (PIL.ImageCms): sRGB → CMYK con un perfil de prueba (tests/make_cmyk_icc.py), intento colorimétrico relativo. Uso: python3 tests/icc_cmyk_check.py"""
+"""Comprueba js/io/formats/icccmyk.js contra littlecms (PIL.ImageCms): sRGB → CMYK con un perfil de prueba (tests/make_cmyk_icc.py), intento colorimétrico relativo. Uso: python3 tests/icc_cmyk_check.py"""
 import subprocess, sys, os
 import numpy as np
 from PIL import Image, ImageCms

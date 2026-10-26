@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   SELECCIÓN POR TEXTO · vocabulario y análisis (fase 10 de PENDIENTE.md)
+   SELECCIÓN POR TEXTO · vocabulario y análisis (fase 10 de docs/PENDIENTE.md)
    Sin DOM: lo usan la herramienta y las pruebas en Node.
 
    Vocabulario CERRADO: las 150 categorías de ADE20K que reconoce el

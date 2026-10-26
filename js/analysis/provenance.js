@@ -18,7 +18,7 @@
    · XMP en general, que puede llevar herramienta y autoría.
 
    Este módulo sólo MIRA. Quitarlas ya lo hacían los limpiadores de
-   io/strip.js, que funcionan por lista blanca: cualquier bloque que no
+   io/meta/strip.js, que funcionan por lista blanca: cualquier bloque que no
    esté en la lista de lo imprescindible se cae, y ni `caBX` ni APP11
    están en ella. Lo que faltaba era poder decir qué había antes de
    quitarlo, porque «caBX» en un informe no le dice nada a nadie.

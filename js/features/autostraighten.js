@@ -21,7 +21,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc } from "../core/doc.js";
-import { toast } from "../ui/toast.js";
+import { toast } from "../core/toast.js";
 
 /** Inclinación (grados) de `source`, o null si no hay líneas claras. */
 export function detectTilt(source){
@@ -140,11 +140,11 @@ let open = false;
 export async function autoStraighten(){
   if(open) return;
   if(!doc.open){ toast("Abre una imagen primero"); return; }
-  const { flatten } = await import("../editor/layertree.js");
+  const { flatten } = await import("../editor/layers/layertree.js");
   const full = flatten();
   const found = detectTilt(full);
   open = true;
-  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  const { createShell, ensureShellStyles } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
   // Copia reducida para la vista previa
   const k = Math.min(1, 1400 / Math.max(full.width, full.height));
@@ -166,7 +166,7 @@ export async function autoStraighten(){
     title: "Enderezar", applyLabel: "Aplicar",
     subtitle: found === null ? "No hay líneas rectas claras: ajústalo a mano" : Math.abs(found) < 0.1 ? "La foto ya está recta" : `Inclinación detectada: ${found.toFixed(1).replace(".", ",")}°`,
     onCancel: close,
-    onApply: async () => { const a = angle; close(); const { straighten } = await import("../editor/smartgrid.js"); straighten(a); }
+    onApply: async () => { const a = angle; close(); const { straighten } = await import("../editor/tools/smartgrid.js"); straighten(a); }
   });
   sh.setOriginal(small);
   // Cuadrícula fina para juzgar lo recto

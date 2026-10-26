@@ -4,12 +4,12 @@
 
 import { docCss } from "../core/colorspace.js";
 import { on, emit } from "../core/bus.js";
-import { current, state, toolChosen } from "../editor/tools.js";
-import { loadFontFile, FONTS, FONT_SEPARATOR } from "../editor/text.js";
-import { chooseFontValue, GOOGLE_OTHER, MORE_FONTS_LABEL, googleFontItems } from "../editor/gfonts.js";
-import { toast } from "./toast.js";
-import { stepper } from "./stepper.js";
-import { openGuide, openGuideForTool } from "./guide.js";
+import { current, state, toolChosen } from "../editor/tools/tools.js";
+import { loadFontFile, FONTS, FONT_SEPARATOR } from "../editor/text/text.js";
+import { chooseFontValue, GOOGLE_OTHER, MORE_FONTS_LABEL, googleFontItems } from "../editor/text/gfonts.js";
+import { toast } from "../core/toast.js";
+import { stepper } from "./kit/stepper.js";
+import { openGuide, openGuideForTool } from "./help/guide.js";
 import { openColorPopover } from "./colorswatch.js";
 
 const LOAD_FONT = "__load_font__";

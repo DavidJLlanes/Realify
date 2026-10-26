@@ -4,12 +4,12 @@ import { hasWideGamut } from "../core/colorspace.js";
 import { newDoc, doc, addLayer } from "../core/doc.js";
 import { clear as clearHistory, recordLayers, record } from "../core/history.js";
 import { clearSnapshots } from "../core/snapshots.js";
-import { toast, status } from "../ui/toast.js";
+import { toast, status } from "../core/toast.js";
 import { emit } from "../core/bus.js";
-import { confirmDlg } from "../ui/dialog.js";
-import { openAsNewTab, refreshActiveTabMeta } from "../core/documents.js";
-import { compatibleFile, decodeCompatible, openPsd, svgCanvas } from "./compatibility.js";
-import { isRawFile } from "../../raw/formats.js";
+import { confirmDlg } from "../ui/kit/dialog.js";
+import { openAsNewTab, refreshActiveTabMeta } from "../editor/documents.js";
+import { compatibleFile, decodeCompatible, openPsd, svgCanvas } from "./formats/compatibility.js";
+import { isRawFile } from "./raw-formats.js";
 import { docSizeLimit, galleryAccept } from "../core/device.js";
 
 const picker = document.getElementById("filePicker");
@@ -38,7 +38,7 @@ async function decodeImage(file){
 
 async function keepHighDepth(file, bmp, w, h){
   try{
-    const { decodeHighDepth } = await import("./hidepth.js");
+    const { decodeHighDepth } = await import("./formats/hidepth.js");
     const hi = await decodeHighDepth(file);
     if(!hi) return 0;
     const H = await import("../core/hisrc.js");
@@ -59,7 +59,7 @@ export async function openFile(file){
   }
   status("Abriendo…");
   try{
-    if(isRawFile(file)) return await (await import("../../raw/index.js")).openRawFile(file);
+    if(isRawFile(file)) return await (await import("../../plugins/raw/index.js")).openRawFile(file);
     if(/\.ps[db]$/i.test(file.name)){
       await openPsd(file);empty.classList.add("hide");toast(`${file.name} · PSD con capas importado`);return;
     }
@@ -106,7 +106,7 @@ export async function openFile(file){
 /* Como `openFile`, pero en una pestaña nueva en vez de sustituir lo
    que hubiera abierto: es el camino normal de «Abrir imagen» en
    cuanto puede haber más de un documento a la vez. Ver
-   core/documents.js — `openAsNewTab` guarda la pestaña actual antes
+   editor/documents.js — `openAsNewTab` guarda la pestaña actual antes
    de que `openFile` reescriba la `doc` viva, y registra el resultado
    como una pestaña aparte. */
 export const openFileInNewTab = file => openAsNewTab(() => openFile(file));
@@ -202,7 +202,7 @@ export function initOpen(){
     batchP.addEventListener("change", e => {
       const files = [...e.target.files];
       e.target.value = "";
-      if(files.length) import("../../lote/index.js").then(m => m.startBatch(files));
+      if(files.length) import("../../plugins/batch/index.js").then(m => m.startBatch(files));
     });
   }
   document.getElementById("filePickerFiles")?.addEventListener("change", e => {

@@ -1,0 +1,47 @@
+{
+ "label": "final",
+ "profile": "wifi",
+ "protocol": "h2",
+ "latencyMs": 20,
+ "mbps": 30,
+ "runs": [
+  {
+   "ready": 449,
+   "fcp": null,
+   "requests": 196,
+   "jsRequests": 182,
+   "cssRequests": 12,
+   "transferKB": 811,
+   "jsDecodedKB": 2009
+  },
+  {
+   "ready": 491,
+   "fcp": 192,
+   "requests": 194,
+   "jsRequests": 181,
+   "cssRequests": 12,
+   "transferKB": 808,
+   "jsDecodedKB": 2003
+  },
+  {
+   "ready": 450,
+   "fcp": 176,
+   "requests": 194,
+   "jsRequests": 181,
+   "cssRequests": 12,
+   "transferKB": 808,
+   "jsDecodedKB": 2003
+  }
+ ],
+ "medianReadyMs": 450,
+ "medianFcpMs": 176,
+ "last": {
+  "ready": 450,
+  "fcp": 176,
+  "requests": 194,
+  "jsRequests": 181,
+  "cssRequests": 12,
+  "transferKB": 808,
+  "jsDecodedKB": 2003
+ }
+}

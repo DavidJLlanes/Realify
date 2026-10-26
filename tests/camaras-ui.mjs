@@ -34,7 +34,7 @@ for(const mobile of [false, true]){
     chk(await item.count() === 1, tag + ": debe haber una entrada «Cámaras» en la pestaña Filtros del cajón");
     chk(await item.first().locator("svg").count() >= 1, tag + ": la entrada del cajón debe llevar icono");
     await item.first().click();
-  } else await page.evaluate(async () => { (await import("/js/ui/commands.js")).run("filter.cameras"); });
+  } else await page.evaluate(async () => { (await import("/js/core/commands.js")).run("filter.cameras"); });
   await page.locator(".fsp.cmf").waitFor({ timeout: 20000 }); await page.waitForTimeout(6000);
   const st = await page.evaluate(() => ({ title: document.querySelector(".fsp-title b")?.textContent, apply: document.querySelector('[data-a="apply"]')?.disabled,
     cells: document.querySelectorAll(".fsp-left .fsp-thumb").length, heads: [...document.querySelectorAll(".fsp-left h3")].map(h => h.textContent),
@@ -89,7 +89,7 @@ for(const mobile of [false, true]){
   chk(after.n === before.n + 1, tag + ": debe haber una capa nueva"); chk(after.id === "camaras" && !!after.preset, tag + ": la capa guarda la receta («camaras»)");
   chk(after.px.some((v, i) => Math.abs(v - before.px[i]) > 4), tag + ": la cámara debe cambiar la imagen: " + before.px + " → " + after.px);
   // 3) reabrir desde fx
-  await page.evaluate(async () => { const D = await import("/js/core/doc.js"), R = await import("/js/editor/filterregistry.js"), L = D.doc.layers[D.doc.layers.length - 1]; R.openFilterEditor(L, L.filters[0]); });
+  await page.evaluate(async () => { const D = await import("/js/core/doc.js"), R = await import("/js/editor/layers/filterregistry.js"), L = D.doc.layers[D.doc.layers.length - 1]; R.openFilterEditor(L, L.filters[0]); });
   await page.locator(".fsp.cmf").waitFor({ timeout: 20000 }); await page.waitForTimeout(1200);
   const re = await page.evaluate(() => ({ sub: document.querySelector(".fsp-sub")?.textContent, apply: document.querySelector('[data-a="apply"]')?.textContent }));
   chk(re.sub === st2.sub, tag + ": al reabrir se conserva la cámara: " + re.sub + " ≠ " + st2.sub); chk(re.apply === "Guardar", tag + ": al editar el botón es «Guardar»");

@@ -18,6 +18,8 @@
    fallos graves se avisan siempre; los leves, una vez por sesión.
    ═══════════════════════════════════════════════════════════════ */
 
+import { escText as esc } from "./util/html.js";
+
 const isFirefox = () => /firefox|librewolf|waterfox/i.test(navigator.userAgent || "");
 
 /* Comprueba la lectura de píxeles sin confundir pequeñas diferencias
@@ -154,8 +156,6 @@ export function checkCompat(){
                : ["Permite cookies y datos del sitio para realify.es (o usa una ventana normal, no privada)."] });
   return out;
 }
-
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
 /** Enseña la barra si hace falta. Los avisos leves, una vez por sesión. */
 export function showCompatNotice(){

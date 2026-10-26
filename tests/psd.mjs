@@ -12,7 +12,7 @@ const b = await chromium.launch(), page = await b.newPage(); const errs = [];
 page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), F = await import("/js/io/professional-formats.js");
+  const D = await import("/js/core/doc.js"), F = await import("/js/io/formats/professional-formats.js");
   D.newDoc(200, 120, { name:"t" });
   const bg = D.addLayer({ name:"Fondo" }); bg.ctx.fillStyle = "#3366cc"; bg.ctx.fillRect(0, 0, 200, 120);
   const a = D.addLayer({ name:"Rojo" }); a.ctx.fillStyle = "#ff0000"; a.ctx.fillRect(20, 20, 100, 60); a.blend = "linear-burn"; a.opacity = .8;
@@ -25,11 +25,11 @@ const res = await page.evaluate(async () => {
   const enc = async blob => { const u = new Uint8Array(await blob.arrayBuffer()); let s = ""; for(let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s); };
   const rd = async blob => { const p = globalThis.agPsd.readPsd(new Uint8Array(await blob.arrayBuffer()), { skipThumbnail:true }); const f = x => x.children.flatMap(c => [c, ...(c.children ? f(c) : [])]); return f(p).map(c => `${c.name}|${c.blendMode}|${!!c.mask}|${Object.keys(c.effects || {}).join("+")}|${c.adjustment?.type || ""}`); };
   const back = { psd:await rd(F.layeredPsd(1)), psb:await rd(F.layeredPsd(1, { psb:true })) };
-  const P = await import("/js/core/high-precision-safe.js?v=4"), Q = await import("/js/io/psd16.js");
+  const P = await import("/js/io/precision/high-precision-safe.js?v=4"), Q = await import("/js/io/formats/psd16.js");
   const pr = await P.renderPrecisionAdjustmentStack(D.doc.w, D.doc.h, { bits16:true, alpha:false, background:"#ffffff", layersOnly:false, srgb:false });
   const p16 = pr?.data16 ? await enc(Q.psd16(pr.data16)) : null, p16b = pr?.data16 ? await enc(Q.psd16(pr.data16, { psb:true })) : null;
   const probe = pr?.data16 ? Array.from(pr.data16.data.slice(0, 3)).concat([pr.data16.channels, pr.data16.w, pr.data16.h]) : pr?.reason;
-  const C = await import("/js/io/compatibility.js");
+  const C = await import("/js/io/formats/compatibility.js");
   await C.openPsd(new File([F.layeredPsd(1, { psb:true })], "t.psb"));
   const reopen = D.doc.layers.map(l => ({ n:l.name, b:l.blend, o:+l.opacity.toFixed(2), t:l.type, adj:l.adjustType, vis:l.visible, st:l.styles ? Object.entries(l.styles).filter(([, v]) => v.enabled).map(([k]) => k).join("+") : "",
     m:l.mask ? [l.mask.canvas.getContext("2d").getImageData(10, 10, 1, 1).data[3], l.mask.canvas.getContext("2d").getImageData(150, 10, 1, 1).data[3]] : null }));

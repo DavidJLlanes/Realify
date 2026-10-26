@@ -15,7 +15,7 @@ await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTi
 // El aviso de descarga del modelo (50 MB, desde este mismo servidor) se acepta solo
 await page.evaluate(() => setInterval(() => { const bt = [...document.querySelectorAll("button")].find(x => x.textContent.trim() === "Descargar"); if(bt) bt.click(); }, 400));
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), L = await import("/js/features/depthlive.js"), Z = await import("/js/features/depthzones.js"), DM = await import("/js/ai/depth.js"), MK = await import("/js/editor/masks.js"), P = await import("/js/io/project.js");
+  const D = await import("/js/core/doc.js"), L = await import("/js/features/depthlive.js"), Z = await import("/js/features/depthzones.js"), DM = await import("/js/ai/depth.js"), MK = await import("/js/editor/layers/masks.js"), P = await import("/js/io/project.js");
   const img = new Image(); img.src = "/__foto.jpg"; await img.decode();
   const W = 640, H = Math.round(640 * img.height / img.width);
   D.newDoc(W, H, { name: "viva" }); const base = D.doc.layers[0]; base.ctx.drawImage(img, 0, 0, W, H);

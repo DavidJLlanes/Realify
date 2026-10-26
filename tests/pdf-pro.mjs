@@ -1,5 +1,5 @@
 /* PDF profesional (v254): fondo para transparencias, marcas de recorte dibujadas, fuente propia, PDF/X con CMYK y sin pérdidas; tests/pdf_check.py verifica los archivos con pypdf: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on(
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const fontB64 = fs.readFileSync("/mnt/skills/examples/canvas-design/canvas-fonts/ArsenalSC-Regular.ttf").toString("base64");
 const res = await page.evaluate(async ([fontB64, ICC]) => {
-  const P = await import("/js/io/pdfpro.js");
+  const P = await import("/js/io/export/pdfpro.js");
   const toB64 = async b => { const u = new Uint8Array(await b.arrayBuffer()); let s = ""; for(let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s); };
   const mk = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); return c; };
   // una imagen con un círculo azul sobre transparencia y otra opaca

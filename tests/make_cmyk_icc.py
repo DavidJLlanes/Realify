@@ -1,5 +1,5 @@
 """Crea un perfil ICC de salida CMYK de PRUEBA (v2, lut16: A2B0/A2B1 y B2A0/B2A1) a partir de un modelo de tinta sencillo (ganancia de punto, papel tintado, límite de tinta
-del 300 %), para comprobar js/io/icccmyk.js contra littlecms (PIL.ImageCms). No es un perfil de imprenta. Uso: python3 tests/make_cmyk_icc.py [salida.icc]"""
+del 300 %), para comprobar js/io/formats/icccmyk.js contra littlecms (PIL.ImageCms). No es un perfil de imprenta. Uso: python3 tests/make_cmyk_icc.py [salida.icc]"""
 import struct, sys, math
 import numpy as np
 out = sys.argv[1] if len(sys.argv) > 1 else "/tmp/sc/test_cmyk.icc"

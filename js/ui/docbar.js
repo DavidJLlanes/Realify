@@ -12,7 +12,7 @@
 
 import { on, emit } from "../core/bus.js";
 import { doc } from "../core/doc.js";
-import { listTabs, activeTab, switchTo, closeTab, closeAllTabs, moveTab, copyLayerToTab } from "../core/documents.js";
+import { listTabs, activeTab, switchTo, closeTab, closeAllTabs, moveTab, copyLayerToTab } from "../editor/documents.js";
 import { promptOpen } from "../io/open.js";
 import { ICONS } from "./tooldrawer-icons.js";
 

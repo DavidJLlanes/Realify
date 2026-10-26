@@ -10,7 +10,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] }), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), G = await import("/js/gpu/floatcompositor.js"), PS = await import("/js/core/precision-stack.js"), LT = await import("/js/editor/layertree.js"), BI = await import("/js/editor/blendif.js");
+  const D = await import("/js/core/doc.js"), G = await import("/js/editor/render/floatcompositor.js"), PS = await import("/js/io/precision/precision-stack.js"), LT = await import("/js/editor/layers/layertree.js"), BI = await import("/js/editor/layers/blendif.js");
   const o = {}, W = 128, H = 96; D.newDoc(W, H, { name: "bi" });
   const base = D.addLayer({ name: "Fondo" });
   const g = base.ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#202060"); g.addColorStop(.5, "#c0a040"); g.addColorStop(1, "#f0f0f0"); base.ctx.fillStyle = g; base.ctx.fillRect(0, 0, W, H);

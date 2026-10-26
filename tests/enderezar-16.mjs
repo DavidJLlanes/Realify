@@ -1,5 +1,5 @@
 /* Prueba de enderezar con 16 bits (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,14 +12,14 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), PT = await import("/js/editor/perspectool.js"), Hs = await import("/js/core/history.js");
+  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), PT = await import("/js/editor/tools/perspectool.js"), Hs = await import("/js/core/history.js");
   const W = 400, Hh = 300; D.newDoc(W, Hh, { name: "p" }); const L = D.addLayer({ name: "Fondo" });
   const hi = new Uint16Array(W * Hh * 3); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const j = (y * W + x) * 3, v = Math.round(10000 + x * 40.3 + y * 3.1); hi[j] = v; hi[j + 1] = v + 500; hi[j + 2] = 65535 - v; }
   L.hiSrc = { data: hi, w: W, h: Hh, dither: false, x: 0, y: 0, canvasW: W, canvasH: Hh };
   const img = L.ctx.createImageData(W, Hh); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const i = (y * W + x) * 4, j = (y * W + x) * 3; for(let k = 0; k < 3; k++) img.data[i + k] = H.hiToCanvas8(hi[j + k], x, y, k, false); img.data[i + 3] = 255; }
   L.ctx.putImageData(img, 0, 0);
   const o = {}; const lay = () => D.doc.layers.find(z => z.id === L.id);
-  const SG = await import("/js/editor/smartgrid.js");
+  const SG = await import("/js/editor/tools/smartgrid.js");
   SG.straighten(3); const l1 = lay(); const hs = l1.hiSrc; o.hi = !!hs && hs.w === W && hs.h === Hh;
   if(hs){
     const px = l1.ctx.getImageData(0, 0, W, Hh).data; let bad = 0, n = 0, vac = 0;

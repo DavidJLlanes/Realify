@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   DETECTAR UN DOCUMENTO EN UNA FOTO (fase 8 de PENDIENTE.md)
+   DETECTAR UN DOCUMENTO EN UNA FOTO (fase 8 de docs/PENDIENTE.md)
    · detectDocument (OpenCV): el cuadrilátero más grande y más
      rectangular de la foto, por dos caminos —bordes de Canny y umbral
      de Otsu (papel claro sobre fondo oscuro, o al revés)— y el mejor

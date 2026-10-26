@@ -1,5 +1,5 @@
 /* Abrir PSD/PSB de 16 bits conservando los 16 bits (v254): reabre lo que escribió tests/psd16-capas.mjs y comprueba capas, 16 bits y viaje de ida y vuelta: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on(
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const b64 = fs.readFileSync("/tmp/sc/out/p16.psd").toString("base64"), b64b = fs.readFileSync("/tmp/sc/out/p16.psb").toString("base64");
 const res = await page.evaluate(async ({ b64, b64b }) => { try{ return await (async () => {
-  const D = await import("/js/core/doc.js"), C = await import("/js/io/compatibility.js"), H = await import("/js/core/hisrc.js"), F = await import("/js/io/professional-formats.js");
+  const D = await import("/js/core/doc.js"), C = await import("/js/io/formats/compatibility.js"), H = await import("/js/core/hisrc.js"), F = await import("/js/io/formats/professional-formats.js");
   const out = {};
   for(const [k, data, name] of [["psd", b64, "p16.psd"], ["psb", b64b, "p16.psb"]]){
     const bin = Uint8Array.from(atob(data), c => c.charCodeAt(0));
@@ -32,7 +32,7 @@ const res = await page.evaluate(async ({ b64, b64b }) => { try{ return await (as
   }
   // ida y vuelta: reexportar a 16 bits y releer
   const A = globalThis.agPsd;
-  const P = await import("/js/core/high-precision-safe.js?v=4");
+  const P = await import("/js/io/precision/high-precision-safe.js?v=4");
   const pr = await P.renderPrecisionAdjustmentStack(120, 80, { bits16: true, alpha: false, background: "#ffffff", layersOnly: false, srgb: false });
   const blob = F.layeredPsd(1, { hi: { composite: pr.data16 } });
   const rp = A.readPsd(new Uint8Array(await blob.arrayBuffer()), { skipThumbnail: true, useImageData: true });

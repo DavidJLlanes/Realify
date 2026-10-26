@@ -9,11 +9,11 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc, activeLayer, addLayer, layerIndex } from "../core/doc.js";
-import { boundsOf } from "./selection.js";
-import { getMaskTarget } from "./masks.js";
+import { boundsOf } from "./selection/selection.js";
+import { getMaskTarget } from "./layers/masks.js";
 import { beginPixels, commitPixels, record } from "../core/history.js";
 import { emit } from "../core/bus.js";
-import { toast } from "../ui/toast.js";
+import { toast } from "../core/toast.js";
 
 /* { canvas, w, h, x, y } — canvas ya recortado a la forma exacta de
    la selección (alfa multiplicado por la máscara), x/y es la esquina
@@ -104,7 +104,7 @@ function eraseMask(layer, box){
     for(let x = 0; x < box.w; x++){
       const f = sel ? sel.mask[(box.y + y) * sel.w + (box.x + x)] / 255 : 1;
       const i = (y * box.w + x) * 4;
-      // El dato de la máscara vive en el alfa (ver editor/masks.js)
+      // El dato de la máscara vive en el alfa (ver editor/layers/masks.js)
       d[i] = d[i + 1] = d[i + 2] = 255;
       d[i + 3] = Math.round(d[i + 3] * (1 - f));
     }

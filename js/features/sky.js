@@ -16,13 +16,13 @@
 import { doc, activeLayer, addLayer } from "../core/doc.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
-import { dialog } from "../ui/dialog.js";
+import { dialog } from "../ui/kit/dialog.js";
 import { isMobile } from "../core/device.js";
-import { toast, status } from "../ui/toast.js";
-import { slider } from "../editor/adjust.js";
-import { featherMask } from "../editor/selection.js";
+import { toast, status } from "../core/toast.js";
+import { slider } from "../editor/adjust/adjust.js";
+import { featherMask } from "../editor/selection/selection.js";
 
-/* Igual que `dropLayer` de editor/textedit.js: saca una capa de la
+/* Igual que `dropLayer` de editor/text/textedit.js: saca una capa de la
    pila sin pasar por el historial, para cuando se cancela un diálogo
    que había creado la capa como vista previa. No se comparte con ese
    archivo porque ninguno de los dos exporta la suya —cada uno vive
@@ -89,7 +89,7 @@ function horizonRow(mask, w, h){
    ramas y no queda un halo del cielo antiguo alrededor. Luego se
    aprieta un poco hacia dentro del cielo (el halo suele estar fuera). */
 async function refineSkyMask(canvas, mask, w, h){
-  const { guidedFilterAlpha } = await import("../editor/refineedge-math.js");
+  const { guidedFilterAlpha } = await import("../editor/selection/refineedge-math.js");
   const px = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, w, h).data;
   const n = w * h, I = new Float32Array(n), P = new Float32Array(n);
   for(let i = 0, j = 0; i < n; i++, j += 4){ I[i] = (0.2126 * px[j] + 0.7152 * px[j + 1] + 0.0722 * px[j + 2]) / 255; P[i] = mask[i] / 255; }
@@ -372,7 +372,7 @@ export async function replaceSky(){
   }
 
   // Porcentaje de aplicación: mezcla el cielo nuevo con el original
-  (await import("../editor/filterlayer.js")).markMixLayer(layer, "Cielo reemplazado");
+  (await import("../editor/layers/filterlayer.js")).markMixLayer(layer, "Cielo reemplazado");
   const at = doc.layers.indexOf(layer);
   record("Reemplazar cielo",
     () => dropLayer(layer),

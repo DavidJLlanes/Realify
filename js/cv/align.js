@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ALINEACIÓN SUBPÍXEL DE FOTOS (fase 7 de PENDIENTE.md)
+   ALINEACIÓN SUBPÍXEL DE FOTOS (fase 7 de docs/PENDIENTE.md)
    Alinea varias tomas de la misma escena con la primera (o la que se
    elija) aunque se hayan hecho a pulso:
 

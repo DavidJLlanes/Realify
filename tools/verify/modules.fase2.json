@@ -1,0 +1,8 @@
+{
+  "doc": "js/core/doc.js",
+  "commands": "js/core/commands.js",
+  "tools": "js/editor/tools/tools.js",
+  "menu": "js/ui/menu.js",
+  "view": "js/core/view.js",
+  "vendor": "js/core/vendor.js"
+}

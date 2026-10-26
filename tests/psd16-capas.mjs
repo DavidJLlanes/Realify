@@ -1,5 +1,5 @@
 /* PSD/PSB de 16 bits con capas (v254): documento con una capa de 16 bits, máscara, grupo, estilos y ajustes → layeredPsd(hi) → tests/psd16_check.py lo lee con psd-tools: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), F = await import("/js/io/professional-formats.js"), H = await import("/js/core/hisrc.js"), P = await import("/js/core/high-precision-safe.js?v=4");
+  const D = await import("/js/core/doc.js"), F = await import("/js/io/formats/professional-formats.js"), H = await import("/js/core/hisrc.js"), P = await import("/js/io/precision/high-precision-safe.js?v=4");
   const W = 120, Hh = 80; D.newDoc(W, Hh, { name: "p16" });
   const toB64 = async b => { const u = new Uint8Array(await b.arrayBuffer()); let s = ""; for(let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s); };
   // capa de fondo con 16 bits reales (degradado fino)
@@ -27,7 +27,7 @@ const res = await page.evaluate(async () => {
   r.styles = { shadow: { enabled: true, color: "#000000", opacity: 75, blur: 4, x: 3, y: 3 }, glow: { enabled: false }, stroke: { enabled: false }, gradient: { enabled: false } };
   const l = D.addLayer({ name: "Niveles", type: "adjust" }); l.adjustType = "levels"; l.adjustParams = { inLow: 10, inHigh: 240, gamma: 1.2, outLow: 0, outHigh: 255, channel: "rgb" };
   const pr = await P.renderPrecisionAdjustmentStack(W, Hh, { bits16: true, alpha: false, background: "#ffffff", layersOnly: false, srgb: false });
-  const M = await import("/js/io/metadata.js");
+  const M = await import("/js/io/meta/metadata.js");
   const mm = M.filterMetadata(null, { author: false, date: false, camera: false, gps: false, text: false, ids: false, maker: false }, { w: W, h: Hh, over: { title: "Título PSD", author: "Ana PSD", copyright: "© Ana", keywords: ["a", "b"], date: "2024-05-03T18:30", lat: 40.5, lon: -3.25 } });
   const meta = { xmp: mm.xmp, exif: mm.exif };
   const blob = F.layeredPsd(1, { hi: { composite: pr.data16 }, meta });

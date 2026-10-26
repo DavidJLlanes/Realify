@@ -13,6 +13,8 @@
    ══════════════════════════════════════════════════════════════ */
 
 /* ── aleatoriedad reproducible ─────────────────────────────── */
+import { clamp01 } from "../../core/util/math.js";
+
 export function rng(seed){
   let s = (seed >>> 0) || 1;
   return () => {
@@ -30,7 +32,6 @@ export function gauss(rand){
 }
 export const N = v => Math.max(0, Math.min(1, v / 100));
 export const S = v => Math.max(-1, Math.min(1, v / 100));
-const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
 
 /* ── conversión RGBA ↔ planos ───────────────────────────────── */
 export function toPlanes(data, n){

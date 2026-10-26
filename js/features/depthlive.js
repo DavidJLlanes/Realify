@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   MÁSCARA POR PROFUNDIDAD «VIVA» (Premium 👑 · fase 5 de PENDIENTE.md)
+   MÁSCARA POR PROFUNDIDAD «VIVA» (Premium 👑 · fase 5 de docs/PENDIENTE.md)
    La máscara por profundidad (depthzones.js) se calculaba una vez. Ahora
    la capa recuerda cómo se hizo (`layer.depthMask`: zona, intervalo,
    suavidad, invertir) y, si la foto de debajo cambia, la máscara se
@@ -21,7 +21,7 @@
 import { doc } from "../core/doc.js";
 import { emit } from "../core/bus.js";
 import { zoneAlpha, presetZone } from "../ai/depthmath.js";
-import { setMaskFromArray } from "../editor/masks.js";
+import { setMaskFromArray } from "../editor/layers/masks.js";
 
 const IDLE_MS = 1500, SIG_W = 32, SIG_H = 24, SIG_LIMIT = 1.5;
 const half = soft => soft / 200;
@@ -31,7 +31,7 @@ export const isLive = l => !!(l && l.depthMask && l.mask);
 
 /** Lo que hay debajo de la capa, en un lienzo legible (tamaño del documento). */
 export async function liveSource(layer){
-  const { flatten } = await import("../editor/layertree.js");
+  const { flatten } = await import("../editor/layers/layertree.js");
   let c;
   if(layer.type === "adjust") c = flatten(null, doc.layers.filter(l => l !== layer));
   else {
@@ -76,7 +76,7 @@ export async function updateLive(layer, { quiet = false } = {}){
   if(src.width * src.height !== layer.canvas.width * layer.canvas.height) return false;
   let map;
   try{ map = await depthMap(src); }
-  catch(err){ if(!err.cancelled && !quiet){ const { toast } = await import("../ui/toast.js"); toast("No se pudo actualizar la máscara por profundidad: " + err.message, "err"); } return false; }
+  catch(err){ if(!err.cancelled && !quiet){ const { toast } = await import("../core/toast.js"); toast("No se pudo actualizar la máscara por profundidad: " + err.message, "err"); } return false; }
   const field = depthField(src, map), p = layer.depthMask;
   if(p.zone !== "manual"){
     const z = presetZone(p.zone, field.d);
@@ -99,7 +99,7 @@ async function check(){
       const sig = signature(await liveSource(l));
       if(!l.depthMask.sig){ l.depthMask.sig = sig; continue; }      // recién abierta de un proyecto: se da por al día
       if(signatureDiff(sig, l.depthMask.sig) < SIG_LIMIT) continue;
-      const { toast } = await import("../ui/toast.js");
+      const { toast } = await import("../core/toast.js");
       toast("Actualizando la máscara por profundidad…");
       if(await updateLive(l, { quiet: true })) toast("Máscara por profundidad actualizada", "ok");
     }

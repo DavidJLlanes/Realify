@@ -21,7 +21,7 @@
    foto de 20 MP con un logotipo de 80 px no hay que tocar 20 MP.
    ══════════════════════════════════════════════════════════════ */
 
-import { maskBoundary, subsample, findSource, fillContentAware } from "../../editor/fillcontent.js";
+import { maskBoundary, subsample, findSource, fillContentAware } from "../../editor/tools/fillcontent.js";
 import { blurPlane, rng, gauss } from "./disrupt.js";
 
 function dilateMask(mask, w, h, r){

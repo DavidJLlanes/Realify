@@ -1,4 +1,4 @@
-/* Plugins a pantalla completa (HDR, Unir, Cortar, Formas…) · js/ui/fsshell.js
+/* Plugins a pantalla completa (HDR, Unir, Cortar, Formas…) · js/ui/kit/fsshell.js
    Mismo diseño y medidas que el revelador RAW, Curvas y el collage. */
 .fsp{position:fixed;inset:0;z-index:2000;display:grid;grid-template-rows:52px minmax(0,1fr);background:#121417;color:#e9edf4;font:13px/1.35 var(--sans,system-ui,sans-serif)}
 .fsp button{font:inherit}

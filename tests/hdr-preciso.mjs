@@ -27,7 +27,7 @@ const jpgs = await page.evaluate(async () => {
   }
   return out;
 });
-await page.evaluate(async () => { const m = await import("/hdr/index.js"); window.__hdr = m.openHdr(); });
+await page.evaluate(async () => { const m = await import("/plugins/hdr/index.js"); window.__hdr = m.openHdr(); });
 await page.waitForSelector("[data-add]");
 const [fc] = await Promise.all([page.waitForEvent("filechooser"), page.locator("[data-add]").click()]);
 await fc.setFiles(jpgs.map((d, i) => ({ name: `exp${i}.jpg`, mimeType: "image/jpeg", buffer: Buffer.from(d) })));

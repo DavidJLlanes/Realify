@@ -1,0 +1,47 @@
+{
+ "label": "copia",
+ "profile": "wifi",
+ "protocol": "h2",
+ "latencyMs": 20,
+ "mbps": 30,
+ "runs": [
+  {
+   "ready": 652,
+   "fcp": 496,
+   "requests": 127,
+   "jsRequests": 112,
+   "cssRequests": 12,
+   "transferKB": 1288,
+   "jsDecodedKB": 4231
+  },
+  {
+   "ready": 649,
+   "fcp": 168,
+   "requests": 129,
+   "jsRequests": 113,
+   "cssRequests": 12,
+   "transferKB": 1378,
+   "jsDecodedKB": 4239
+  },
+  {
+   "ready": 593,
+   "fcp": 160,
+   "requests": 123,
+   "jsRequests": 110,
+   "cssRequests": 12,
+   "transferKB": 1283,
+   "jsDecodedKB": 4224
+  }
+ ],
+ "medianReadyMs": 649,
+ "medianFcpMs": 168,
+ "last": {
+  "ready": 593,
+  "fcp": 160,
+  "requests": 123,
+  "jsRequests": 110,
+  "cssRequests": 12,
+  "transferKB": 1283,
+  "jsDecodedKB": 4224
+ }
+}

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   LIMPIEZA DE DOCUMENTOS (fase 8 de PENDIENTE.md) · sin DOM ni OpenCV
+   LIMPIEZA DE DOCUMENTOS (fase 8 de docs/PENDIENTE.md) · sin DOM ni OpenCV
    Una foto de un papel trae sombras, un degradado de luz y un blanco
    grisáceo. Se estima el «papel» de cada zona (máximo por bloques,
    ensanchado y suavizado: el texto desaparece, las sombras quedan) y se
@@ -14,9 +14,9 @@
    `cleanDocument(data, w, h, mode)` trabaja sobre RGBA de 8 bits, en su sitio.
    ═══════════════════════════════════════════════════════════════ */
 
-const clamp8 = v => v < 0 ? 0 : v > 255 ? 255 : v;
-
 /** Mapa del papel (3 canales, Float32 a tamaño completo implícito): rejilla pequeña + interpolación bilineal. */
+import { clamp255 as clamp8 } from "../core/util/math.js";
+
 function paperGrid(data, w, h){
   const step = Math.max(2, Math.round(Math.max(w, h) / 220)), gw = Math.ceil(w / step), gh = Math.ceil(h / step);
   let g = new Float32Array(gw * gh * 3);

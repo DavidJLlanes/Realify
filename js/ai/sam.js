@@ -18,7 +18,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { runModel } from "./runtime.js";
-import { guidedFilterAlpha, boxBlurFloat } from "../editor/refineedge-math.js";
+import { guidedFilterAlpha, boxBlurFloat } from "../editor/selection/refineedge-math.js";
 
 let seq = 0;
 

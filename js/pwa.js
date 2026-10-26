@@ -6,9 +6,9 @@
    → Añadir a pantalla de inicio», así que ahí sólo cabe explicarlo.
    ═══════════════════════════════════════════════════════════════ */
 
-import { dialog } from "./ui/dialog.js";
-import { toast } from "./ui/toast.js";
-import { watchPWAUpdates, updateLog } from "./pwa-updates.js";
+import { dialog } from "./ui/kit/dialog.js";
+import { toast } from "./core/toast.js";
+import { watchPWAUpdates, updateLog } from "./core/pwa-updates.js";
 
 let deferredPrompt = null;
 
@@ -114,7 +114,7 @@ async function applyUpdate({ silent = false } = {}){
     }
   }catch(err){
     if(silent){ if(btn){ btn.disabled = false; btn.textContent = "Actualizar"; } return false; }   // sin poder guardar, no se recarga solo: queda el aviso
-    const { confirmDlg } = await import("./ui/dialog.js");
+    const { confirmDlg } = await import("./ui/kit/dialog.js");
     const ok = await confirmDlg("Actualizar sin guardar", `No se ha podido guardar lo que tienes abierto (${err?.message || "sin espacio en el navegador"}). Si actualizas ahora, se cerrará. Puedes cancelar, guardarlo como proyecto o exportarlo, y actualizar después.`, "Actualizar igualmente");
     if(!ok){ if(btn){ btn.disabled = false; btn.textContent = "Actualizar"; } return false; }
   }
@@ -180,8 +180,8 @@ export async function promptInstall(){
 
 /** Ayuda › Buscar actualización…: consulta ahora y cuenta lo que hay, con la versión a la vista. */
 export async function checkForUpdateDialog(){
-  const { updateInfo, loadedVersion } = await import("./pwa-updates.js");
-  const { dialog } = await import("./ui/dialog.js");
+  const { updateInfo, loadedVersion } = await import("./core/pwa-updates.js");
+  const { dialog } = await import("./ui/kit/dialog.js");
   const loaded = loadedVersion();
   const info = watcherRef ? await watcherRef.checkNow() : { ...updateInfo };
   const newer = info.latest !== null && loaded !== null && info.latest > loaded;

@@ -8,8 +8,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { MODELS, mb } from "./models.js";
-import { status, progress } from "../ui/toast.js";
-import { confirmDlg } from "../ui/dialog.js";
+import { status, progress } from "../core/toast.js";
+import { confirmDlg } from "../ui/kit/dialog.js";
 
 let worker = null, nextReq = 1;
 const pending = new Map();
@@ -151,7 +151,7 @@ export async function recoverAfterCrash(){
   const c = readCrashed(); c[run.id] = true; writeCrashed(c);
   let n = 0;
   try{ const { restoreAfterUpdate } = await import("../io/project.js"); n = await restoreAfterUpdate(STASH_KEY); }catch{}
-  const { toast } = await import("../ui/toast.js");
+  const { toast } = await import("../core/toast.js");
   toast(`${MODELS[run.id]?.label || "El modelo de IA"} necesitó más memoria de la que tiene este dispositivo y la página se cerró.` +
         (n ? " Tu imagen se ha recuperado." : "") + " Prueba con un modelo más ligero.", "err");
 }

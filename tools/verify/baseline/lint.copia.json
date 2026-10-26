@@ -1,0 +1,301 @@
+{
+ "generated": "2026-10-21T13:59:55.845Z",
+ "root": "C:\\Proyectos\\Realify - copia",
+ "count": 49,
+ "found": [
+  {
+   "file": "js/filters/unmark/engine.js",
+   "rule": "no-undef",
+   "line": 83,
+   "msg": "'serverConfigured' is not defined."
+  },
+  {
+   "file": "js/filters/unmark/engine.js",
+   "rule": "no-undef",
+   "line": 84,
+   "msg": "'serverConfigured' is not defined."
+  },
+  {
+   "file": "js/filters/unmark/engine.js",
+   "rule": "no-undef",
+   "line": 203,
+   "msg": "'serverConfigured' is not defined."
+  },
+  {
+   "file": "js/filters/unmark/engine.js",
+   "rule": "no-undef",
+   "line": 205,
+   "msg": "'inpaintRemote' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 110,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 135,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 145,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 146,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 148,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 163,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 205,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/io/pdfpro.js",
+   "rule": "no-undef",
+   "line": 211,
+   "msg": "'PDFLib' is not defined."
+  },
+  {
+   "file": "js/ui/tooldrawer-icons.js",
+   "rule": "no-dupe-keys",
+   "line": 93,
+   "msg": "Duplicate key 'focus'."
+  },
+  {
+   "file": "frames/test-marcos.mjs",
+   "rule": "no-undef",
+   "line": 140,
+   "msg": "'process' is not defined."
+  },
+  {
+   "file": "frames/test-marcos.mjs",
+   "rule": "no-undef",
+   "line": 140,
+   "msg": "'process' is not defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 1,
+   "msg": "'e' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 1,
+   "msg": "'l' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-undef",
+   "line": 2,
+   "msg": "'Browser' is not defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'t' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'l' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'N' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'i' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'i' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'s' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 5,
+   "msg": "'u' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 8,
+   "msg": "'u' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 12,
+   "msg": "'h' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/libraw.js",
+   "rule": "no-redeclare",
+   "line": 14,
+   "msg": "'t' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 1,
+   "msg": "'e' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 1,
+   "msg": "'l' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-undef",
+   "line": 2,
+   "msg": "'Browser' is not defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'t' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'l' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'N' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'i' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'i' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'s' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 2,
+   "msg": "'o' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 5,
+   "msg": "'u' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 8,
+   "msg": "'u' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 12,
+   "msg": "'h' is already defined."
+  },
+  {
+   "file": "raw/vendor/libraw-wasm/dist/worker.js",
+   "rule": "no-redeclare",
+   "line": 14,
+   "msg": "'t' is already defined."
+  }
+ ]
+}

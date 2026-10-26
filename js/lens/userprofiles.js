@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   PERFILES DE LENTE PROPIOS (fase 9 de PENDIENTE.md)
+   PERFILES DE LENTE PROPIOS (fase 9 de docs/PENDIENTE.md)
    Móviles y cámaras sin objetivo en la base de Lensfun (iPhone, Pixel,
    Galaxy…): el usuario aporta su perfil —medido, copiado de una fuente
    fiable o ajustado a ojo con una foto de líneas rectas— y se guarda en

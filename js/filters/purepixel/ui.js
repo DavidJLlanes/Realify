@@ -1,12 +1,12 @@
 import { doc, activeLayer } from "../../core/doc.js";
 import { on, emit } from "../../core/bus.js";
-import { commitFilter, filterBase } from "../../editor/filterlayer.js";
-import { hiFullCover, applyDeltaFromBase, attachFloatResult } from "../../editor/floatfilter.js";
-import { dialog, anyDialogOpen } from "../../ui/dialog.js";
-import { toast } from "../../ui/toast.js";
-import { slider } from "../../editor/adjust.js";
-import { renderExport, saveOrShare, stamp } from "../../io/export.js";
-import { stripPNG } from "../../io/strip.js";
+import { commitFilter, filterBase } from "../../editor/layers/filterlayer.js";
+import { hiFullCover, applyDeltaFromBase, attachFloatResult } from "../../editor/render/floatfilter.js";
+import { dialog, anyDialogOpen } from "../../ui/kit/dialog.js";
+import { toast } from "../../core/toast.js";
+import { slider } from "../../editor/adjust/adjust.js";
+import { renderExport, saveOrShare, stamp } from "../../io/export/export.js";
+import { stripPNG } from "../../io/meta/strip.js";
 import { DEFAULTS, difference } from "./engine.js";
 
 // Separate export path: never calls withExif or changes EXIF preferences.

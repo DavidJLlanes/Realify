@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ESPACIO DE COLOR DEL DOCUMENTO (fase 2 de PENDIENTE.md)
+   ESPACIO DE COLOR DEL DOCUMENTO (fase 2 de docs/PENDIENTE.md)
 
    Las fotos de iPhone y de muchos Android vienen en Display P3, con
    colores más saturados que los que caben en sRGB. Hasta ahora todo el

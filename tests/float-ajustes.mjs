@@ -18,7 +18,7 @@ const BASE = `http://127.0.0.1:${srv.address().port}/`, b = await chromium.launc
 /* PNG de 16 bits de rango estrecho y con color: 1200×400, R 18000→22800, G 21000→24600 + y, B 30000→25000 */
 async function make16(page){
   const b64 = await page.evaluate(async () => {
-    const { png16 } = await import("/js/io/formats16.js"), W = 1200, H = 400, d = new Uint16Array(W * H * 3);
+    const { png16 } = await import("/js/io/formats/formats16.js"), W = 1200, H = 400, d = new Uint16Array(W * H * 3);
     for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){ const i = (y * W + x) * 3; d[i] = 18000 + x * 4 + (y >> 3); d[i + 1] = 21000 + x * 3 + y * 6; d[i + 2] = 30000 - x * 4 - (y >> 2); }
     const blob = await png16({ data: d, channels: 3, w: W, h: H, space: "srgb" }), u = new Uint8Array(await blob.arrayBuffer());
     let s = ""; for(let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s);
@@ -35,7 +35,7 @@ for(const cmd of list){
     await page.setInputFiles("#filePicker", f); await page.waitForTimeout(1800);
     const has = await page.evaluate(async () => { const D = await import("/js/core/doc.js"); const L = D.doc.layers[0]; return !!(L.hiSrc && L.hiSrc.data); });
     if(!has) problems.push("la imagen de prueba no abrió con origen de 16 bits");
-    page.evaluate(c => import("/js/ui/commands.js").then(m => m.run(c)), cmd).catch(e => errs.push(String(e)));
+    page.evaluate(c => import("/js/core/commands.js").then(m => m.run(c)), cmd).catch(e => errs.push(String(e)));
     await page.waitForTimeout(1800);
     const apply = page.locator("button:visible", { hasText: /^(Aplicar|Aceptar)$/ });
     if(await apply.count()){
@@ -46,7 +46,7 @@ for(const cmd of list){
     }
     await page.waitForTimeout(4500);
     info = await page.evaluate(async () => {
-      const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), reg = await import("/js/editor/filterregistry.js");
+      const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), reg = await import("/js/editor/layers/filterregistry.js");
       const L = D.doc.layers[D.doc.layers.length - 1], base = D.doc.layers[0], c = L.canvas, o = { capas: D.doc.layers.length, nombre: L.name, hi: !!L.hiSrc, filtro: L.filters && L.filters[0] && L.filters[0].id };
       if(!L.hiSrc || L === base) return o;
       const hs = L.hiSrc, W = c.width, Hh = c.height, px = c.getContext("2d").getImageData(0, 0, W, Hh).data;

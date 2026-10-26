@@ -1,0 +1,3153 @@
+{
+ "generated": "2026-10-21T13:05:40.607Z",
+ "root": "C:\\Proyectos\\Realify - copia",
+ "jsFiles": 414,
+ "jsLines": 91812,
+ "brokenRefs": [],
+ "softMissing": [],
+ "nonLiteralDynamicImports": 61,
+ "staticCycles": [
+  [
+   "js/editor/adjustlayers.js",
+   "js/editor/layertree.js"
+  ],
+  [
+   "vintagefilter/frames.js",
+   "vintagefilter/overlays.js"
+  ]
+ ],
+ "storage": {
+  "localStorage": [
+   "realify.actions",
+   "realify.actionsBarPos",
+   "realify.aiCrashed",
+   "realify.aiRunning",
+   "realify.autoUpdate",
+   "realify.bgMethod",
+   "realify.brush.config",
+   "realify.brush.tips",
+   "realify.c2pa",
+   "realify.camera",
+   "realify.charStyles",
+   "realify.clipsegGpu",
+   "realify.colorizer",
+   "realify.compatSeen",
+   "realify.cookieConsent",
+   "realify.curves.presets",
+   "realify.dlgpos",
+   "realify.drawer.cat",
+   "realify.es",
+   "realify.exif",
+   "realify.fillEngine",
+   "realify.fonts",
+   "realify.googleFonts.custom",
+   "realify.grid",
+   "realify.gridConfig",
+   "realify.gridSnap",
+   "realify.guides",
+   "realify.hdrRunning",
+   "realify.histlevels",
+   "realify.landscapeOk",
+   "realify.lens",
+   "realify.lens.model",
+   "realify.lensProfiles",
+   "realify.onboarded.v1",
+   "realify.opencvAsked",
+   "realify.paraStyles",
+   "realify.pdf",
+   "realify.premium.",
+   "realify.prevErrors",
+   "realify.probe",
+   "realify.repaired",
+   "realify.resample",
+   "realify.rulers",
+   "realify.smartGrid",
+   "realify.stickers",
+   "realify.unmark",
+   "realify.unmark.server",
+   "realify.updLog",
+   "realify.upscaler"
+  ],
+  "indexedDB": [
+   "realify-ai",
+   "realify-projects"
+  ],
+  "caches": []
+ },
+ "commandCandidates": [
+  "actions.open",
+  "adj.auto",
+  "adj.autoEnhance",
+  "adj.autoEnhancePremium",
+  "adj.autoLevels",
+  "adj.autoLevelsPremium",
+  "adj.autoPremium",
+  "adj.autoToneColor",
+  "adj.autoToneColorPremium",
+  "adj.brightness",
+  "adj.channelMixer",
+  "adj.clahe",
+  "adj.clahePremium",
+  "adj.colorBalance",
+  "adj.colorBands",
+  "adj.colorGrading",
+  "adj.curves",
+  "adj.dehaze",
+  "adj.desaturate",
+  "adj.equalize",
+  "adj.exposure",
+  "adj.gradientMap",
+  "adj.graduatedFilter",
+  "adj.grayscale",
+  "adj.hdrTone",
+  "adj.hsl",
+  "adj.invert",
+  "adj.labCurves",
+  "adj.levels",
+  "adj.lowLight",
+  "adj.lowLightPremium",
+  "adj.matchColor",
+  "adj.photoFilter",
+  "adj.posterize",
+  "adj.rangeHsl",
+  "adj.replaceColor",
+  "adj.selectiveColor",
+  "adj.shadowsHighlights",
+  "adj.splitToning",
+  "adj.threshold",
+  "adj.tonalContrast",
+  "adj.tone",
+  "adj.toneBand",
+  "adj.vibrance",
+  "adj.whiteBalance",
+  "ai.colorize",
+  "ai.depthBlur",
+  "ai.depthFog",
+  "ai.depthLight",
+  "ai.depthPlanes",
+  "ai.depthSelect",
+  "ai.expand",
+  "ai.faceBlur",
+  "ai.faceCrop",
+  "ai.faceRestore",
+  "ai.faceRetouch",
+  "ai.lowLight",
+  "ai.magicErase",
+  "ai.photo3d",
+  "ai.redEye",
+  "ai.smartCrop",
+  "ai.tapSelect",
+  "ai.textSelect",
+  "ai.upscale",
+  "an.exif",
+  "an.eyedropper",
+  "an.forensics",
+  "an.meta",
+  "an.metaEdit",
+  "an.metrics",
+  "an.palette",
+  "an.spectrum",
+  "an.strip",
+  "brush.gradient",
+  "brush.settings",
+  "brush.symmetric",
+  "brush.textured",
+  "button.on",
+  "byId.get",
+  "c2pa.actions",
+  "c2pa.assertions",
+  "c2pa.claim",
+  "c2pa.created",
+  "c2pa.signature",
+  "catalog.json",
+  "classify.js",
+  "clone.pickSource",
+  "clone.reset",
+  "compare.center",
+  "crop.apply",
+  "crop.cancel",
+  "crop.swap",
+  "ctx.filter",
+  "ctx.globalCompositeOperation",
+  "ctx.transform",
+  "d.height",
+  "d.width",
+  "doc.activeId",
+  "doc.guides",
+  "doc.layers",
+  "doc.metaEdit",
+  "doc.selection",
+  "doc.w",
+  "dodgeburn.newLayer",
+  "dodgeburn.start",
+  "dodgeburn.viewGray",
+  "edit.clear",
+  "edit.clearHistory",
+  "edit.copy",
+  "edit.cut",
+  "edit.levels",
+  "edit.paste",
+  "edit.redo",
+  "edit.undo",
+  "err.cancelled",
+  "file.batchEdit",
+  "file.camera",
+  "file.close",
+  "file.closeAll",
+  "file.contactSheet",
+  "file.export",
+  "file.exportAs",
+  "file.exportGif",
+  "file.exportPdf",
+  "file.exportPng",
+  "file.new",
+  "file.open",
+  "file.openFiles",
+  "file.openProject",
+  "file.openRecent",
+  "file.openStack",
+  "file.pasteImage",
+  "file.revert",
+  "file.saveProject",
+  "file.socialPost",
+  "file.socialPreview",
+  "file.startBatch",
+  "fill.patternImg",
+  "filter.adaptiveWideAngle",
+  "filter.advancedSharpen",
+  "filter.aiDejpeg",
+  "filter.aiDenoise",
+  "filter.artisticGallery",
+  "filter.blur",
+  "filter.blurGallery",
+  "filter.camera",
+  "filter.cameraPremium",
+  "filter.cameras",
+  "filter.channelDenoise",
+  "filter.clarity",
+  "filter.classicDistort",
+  "filter.customConvolution",
+  "filter.denoise",
+  "filter.distort",
+  "filter.frames",
+  "filter.freqsep",
+  "filter.highPass",
+  "filter.lens",
+  "filter.lensAuto",
+  "filter.lensBlur",
+  "filter.lensCorrection",
+  "filter.lensProfile",
+  "filter.liquify",
+  "filter.looks",
+  "filter.lut",
+  "filter.luts",
+  "filter.motionBlur",
+  "filter.noise",
+  "filter.offsetMorphology",
+  "filter.patch",
+  "filter.perspective",
+  "filter.photoDevelop",
+  "filter.pixelate",
+  "filter.portrait",
+  "filter.puppetWarp",
+  "filter.purepixel",
+  "filter.radialBlur",
+  "filter.renderEffects",
+  "filter.restoration",
+  "filter.selectiveSharpen",
+  "filter.sharpen",
+  "filter.smartSharpen",
+  "filter.spot",
+  "filter.stylize",
+  "filter.stylizeEffects",
+  "filter.surfaceBlur",
+  "filter.textureEffects",
+  "filter.unmark",
+  "filter.utilityBlur",
+  "filter.vignette",
+  "filter.vintage",
+  "help.about",
+  "help.cookies",
+  "help.diag",
+  "help.guide",
+  "help.install",
+  "help.legal",
+  "help.privacy",
+  "help.report",
+  "help.update",
+  "hint.grid",
+  "historyBrush.start",
+  "image.autoStraighten",
+  "image.beforeAfter",
+  "image.canvasSize",
+  "image.contentAwareScale",
+  "image.crop",
+  "image.docscan",
+  "image.flipH",
+  "image.flipV",
+  "image.hdr",
+  "image.merge",
+  "image.panorama",
+  "image.png",
+  "image.removeBackground",
+  "image.resize",
+  "image.rot180",
+  "image.rotL",
+  "image.rotR",
+  "image.shapeCrop",
+  "image.sharpness",
+  "image.slice",
+  "image.stack",
+  "index.json",
+  "layer.add",
+  "layer.addAdjust",
+  "layer.addFillColor",
+  "layer.addFillGradient",
+  "layer.addFillPattern",
+  "layer.alignBottom",
+  "layer.alignCenterH",
+  "layer.alignCenterV",
+  "layer.alignLeft",
+  "layer.alignRight",
+  "layer.alignTop",
+  "layer.blendIf",
+  "layer.canvas",
+  "layer.centerContent",
+  "layer.convertSmart",
+  "layer.depthMask",
+  "layer.distributeH",
+  "layer.distributeV",
+  "layer.down",
+  "layer.duplicate",
+  "layer.editAdjust",
+  "layer.editText",
+  "layer.fill",
+  "layer.filters",
+  "layer.flatten",
+  "layer.gradientMask",
+  "layer.group",
+  "layer.hiSrc",
+  "layer.mask",
+  "layer.maskApply",
+  "layer.maskBlur",
+  "layer.maskCurves",
+  "layer.maskDepth",
+  "layer.maskEdit",
+  "layer.maskFromSel",
+  "layer.maskFromSelInvert",
+  "layer.maskHide",
+  "layer.maskInvert",
+  "layer.maskLevels",
+  "layer.maskProperties",
+  "layer.maskRefineEdge",
+  "layer.maskRemove",
+  "layer.maskReveal",
+  "layer.maskText",
+  "layer.maskToggle",
+  "layer.meme",
+  "layer.mergeDown",
+  "layer.mergeSelected",
+  "layer.mergeVisible",
+  "layer.rasterizeFillShape",
+  "layer.rasterizeSmart",
+  "layer.rasterizeText",
+  "layer.remove",
+  "layer.rename",
+  "layer.shape",
+  "layer.stickers",
+  "layer.styles",
+  "layer.text",
+  "layer.transform",
+  "layer.ungroup",
+  "layer.up",
+  "layer.watermark",
+  "layertree.js",
+  "liquify.reset",
+  "main.js",
+  "manifest.webmanifest",
+  "mask.png",
+  "merges.txt",
+  "mobile.css",
+  "model.cpu",
+  "model.size",
+  "navigator.vibrate",
+  "o.alpha",
+  "o.bg",
+  "o.format",
+  "o.output",
+  "o.prefix",
+  "o.quality",
+  "options.dither",
+  "opts.container",
+  "opts.edit",
+  "opts.exact",
+  "opts.init",
+  "opts.noGuard",
+  "opts.quiet",
+  "opts.render",
+  "opts.title",
+  "over.remove",
+  "pen.cancel",
+  "pen.close",
+  "pen.start",
+  "pen.toMask",
+  "pen.toSelection",
+  "pen.undoPoint",
+  "perspective.apply",
+  "perspective.auto",
+  "perspective.cancel",
+  "perspective.clear",
+  "perspective.fill",
+  "perspective.reset",
+  "policy.maker",
+  "portapapeles.png",
+  "profile.normDiag",
+  "realify.actions",
+  "realify.actionsBarPos",
+  "realify.aiCrashed",
+  "realify.aiRunning",
+  "realify.autoUpdate",
+  "realify.bgMethod",
+  "realify.c2pa",
+  "realify.camera",
+  "realify.charStyles",
+  "realify.clipsegGpu",
+  "realify.colorizer",
+  "realify.compatSeen",
+  "realify.cookieConsent",
+  "realify.dlgpos",
+  "realify.es",
+  "realify.exif",
+  "realify.fillEngine",
+  "realify.fonts",
+  "realify.grid",
+  "realify.gridConfig",
+  "realify.gridSnap",
+  "realify.guides",
+  "realify.hdrRunning",
+  "realify.histlevels",
+  "realify.landscapeOk",
+  "realify.lens",
+  "realify.lensProfiles",
+  "realify.opencvAsked",
+  "realify.paraStyles",
+  "realify.pdf",
+  "realify.prevErrors",
+  "realify.probe",
+  "realify.repaired",
+  "realify.resample",
+  "realify.rulers",
+  "realify.smartGrid",
+  "realify.stickers",
+  "realify.unmark",
+  "realify.updLog",
+  "realify.upscaler",
+  "s.align",
+  "s.bg",
+  "s.cellFit",
+  "s.cellRatio",
+  "s.fit",
+  "s.frame",
+  "s.gap",
+  "s.layout",
+  "s.margin",
+  "s.radius",
+  "s.transparent",
+  "sel.all",
+  "sel.contentAwareMove",
+  "sel.feather",
+  "sel.fillContent",
+  "sel.invert",
+  "sel.none",
+  "sel.rangeMask",
+  "sel.refineEdge",
+  "sel.sky",
+  "sel.subject",
+  "session.run",
+  "sky.replace",
+  "snapshot.add",
+  "stage.setPointerCapture",
+  "state.ch",
+  "state.color",
+  "state.cropRect",
+  "state.s",
+  "t.content",
+  "text.path",
+  "text.removePath",
+  "text.saveCharStyle",
+  "text.saveParaStyle",
+  "textarea.selectionStart",
+  "tokenizer.json",
+  "tool.cancelPending",
+  "transform.apply",
+  "transform.cancel",
+  "transform.flipH",
+  "transform.flipV",
+  "transform.reset",
+  "transform.rotL",
+  "transform.rotR",
+  "transform.start",
+  "ui.js",
+  "view.compare",
+  "view.compare100",
+  "view.fit",
+  "view.grid",
+  "view.gridConfig",
+  "view.gridSnap",
+  "view.guides",
+  "view.guidesClear",
+  "view.histogram",
+  "view.panels",
+  "view.rulers",
+  "view.smartGrid",
+  "view.smartGridToggle",
+  "view.x",
+  "view.y",
+  "view.zoom100",
+  "view.zoomIn",
+  "view.zoomOut",
+  "vocab.json",
+  "xform.box"
+ ],
+ "exportsByFile": {
+  "camaras/engine.js": [
+   "CamarasGL",
+   "rng"
+  ],
+  "camaras/index.js": [
+   "dateText",
+   "openCamaras",
+   "renderCamaras"
+  ],
+  "camaras/presets.js": [
+   "CATS",
+   "PRESETS",
+   "activeCats",
+   "inCat",
+   "preset"
+  ],
+  "camaras/state.js": [
+   "CAMARAS_VERSION",
+   "CONTROLS",
+   "GROUPS",
+   "KEYS",
+   "defaults",
+   "effective",
+   "isActive",
+   "normalize"
+  ],
+  "camaras/ui.js": [
+   "openCamarasEditor"
+  ],
+  "comparar/index.js": [
+   "openCompare"
+  ],
+  "comparar/ui.js": [
+   "LAYOUTS",
+   "compose",
+   "openCompareEditor"
+  ],
+  "cortar/index.js": [
+   "openCut"
+  ],
+  "cortar/plan.js": [
+   "MODES",
+   "RATIOS",
+   "modeSvg",
+   "pieceNumber",
+   "plan"
+  ],
+  "cortar/ui.js": [
+   "openCutEditor"
+  ],
+  "formas/index.js": [
+   "openShapes"
+  ],
+  "formas/shapes.js": [
+   "GROUPS",
+   "SHAPES",
+   "fillRule",
+   "placeShape",
+   "shapeById",
+   "shapeIcon",
+   "traceShape"
+  ],
+  "formas/ui.js": [
+   "openShapeEditor",
+   "renderShape",
+   "shapeBounds"
+  ],
+  "frames/artistic.js": [
+   "drawArtisticFrame"
+  ],
+  "frames/geometry.js": [
+   "borderMotifs",
+   "borderSides",
+   "diamondPath",
+   "heartPath",
+   "mixColor",
+   "seededRandom"
+  ],
+  "frames/index.js": [
+   "openFrames"
+  ],
+  "frames/presets.js": [
+   "FRAME_CATEGORIES",
+   "FRAME_PRESETS",
+   "frameById",
+   "framesInCategory"
+  ],
+  "frames/render.js": [
+   "drawFrame"
+  ],
+  "frames/ui.js": [
+   "openFramesEditor"
+  ],
+  "frames/viewport.js": [
+   "createFrameViewport"
+  ],
+  "hdr/engine.js": [
+   "ALIGN",
+   "alignAll",
+   "alignExposureThreshold",
+   "alignGradient",
+   "alignPair",
+   "alignShift",
+   "commonRect",
+   "downRadiance",
+   "downscale",
+   "estimateEvs",
+   "evBetween",
+   "evFromExif",
+   "finish",
+   "fuseMertens",
+   "mergeRadiance",
+   "tmCompressor",
+   "tmDetails",
+   "tmDrago",
+   "toneMap",
+   "wbNeutral"
+  ],
+  "hdr/exif.js": [
+   "exposureText",
+   "findTiff",
+   "readExposure"
+  ],
+  "hdr/index.js": [
+   "openHdr",
+   "recoverHdrCrash"
+  ],
+  "hdr/premium.js": [
+   "LIN_SCALE",
+   "downscaleLin",
+   "finishPremium",
+   "linearFromDisplay",
+   "mergePremium",
+   "radianceHDR",
+   "responseCurves",
+   "wbNeutralPremium"
+  ],
+  "hdr/presets.js": [
+   "DEFAULTS",
+   "METHODS",
+   "PRESETS",
+   "presetSettings"
+  ],
+  "hdr/sources.js": [
+   "chooseUpTo",
+   "developRaws",
+   "exifFromRaw",
+   "isRaw",
+   "pickOpenPhotos"
+  ],
+  "hdr/ui.js": [
+   "MAX_PHOTOS",
+   "openHdrEditor"
+  ],
+  "hojacontactos/index.js": [
+   "openContacts"
+  ],
+  "hojacontactos/ui.js": [
+   "openContactSheet",
+   "renderPages"
+  ],
+  "js/ai/cliptokenizer.js": [
+   "createTokenizer",
+   "loadClipTokenizer"
+  ],
+  "js/ai/depth.js": [
+   "depthAt",
+   "depthMap"
+  ],
+  "js/ai/depthmath.js": [
+   "gainWithShoulder",
+   "lightEv",
+   "planeWeights",
+   "presetZone",
+   "quantileBounds",
+   "zoneAlpha"
+  ],
+  "js/ai/es2en.js": [
+   "toEnglish"
+  ],
+  "js/ai/faces.js": [
+   "detectFaces"
+  ],
+  "js/ai/lab.js": [
+   "labToRgb",
+   "rgbToLab",
+   "rgbfToLab"
+  ],
+  "js/ai/matte.js": [
+   "matteAlpha",
+   "refineAlpha"
+  ],
+  "js/ai/models.js": [
+   "MODELS",
+   "mb"
+  ],
+  "js/ai/runtime.js": [
+   "aiSession",
+   "crashedBefore",
+   "forgetModel",
+   "isModelCached",
+   "recoverAfterCrash",
+   "runModel",
+   "sizeNote",
+   "storedModels",
+   "withHeavyGuard"
+  ],
+  "js/ai/sam.js": [
+   "finalMask",
+   "previewMask",
+   "samPredict",
+   "samPrepare"
+  ],
+  "js/ai/textclasses.js": [
+   "CLASSES",
+   "COLORS",
+   "EXAMPLES",
+   "FACE_PARTS",
+   "classOf",
+   "colorMembership",
+   "colorOf",
+   "parseQuery",
+   "partOf"
+  ],
+  "js/ai/tiles.js": [
+   "blender",
+   "fitAffine",
+   "resizeBilinear",
+   "smooth",
+   "starts",
+   "tilePlan",
+   "tileWeights",
+   "workSide"
+  ],
+  "js/ai/zerodce.js": [
+   "aiLowLight"
+  ],
+  "js/analysis/coherence.js": [
+   "CONTRADICTION",
+   "WARNING",
+   "checkCoherence",
+   "summarize"
+  ],
+  "js/analysis/fft.js": [
+   "FN",
+   "fft1d",
+   "spectrum",
+   "spectrumMag"
+  ],
+  "js/analysis/forensics.js": [
+   "FORENSICS",
+   "combSpectrum",
+   "detectCFA",
+   "detectComb",
+   "detectELA",
+   "runAll"
+  ],
+  "js/analysis/metrics.js": [
+   "LAP",
+   "METRICS",
+   "clamp01",
+   "measureAll",
+   "metricBlocks",
+   "metricChannels",
+   "metricField",
+   "metricGrid",
+   "metricShot",
+   "noiseField",
+   "pearson",
+   "sampleOut"
+  ],
+  "js/analysis/provenance.js": [
+   "describeProvenance",
+   "detectProvenance"
+  ],
+  "js/analysis/ui.js": [
+   "openForensics",
+   "openMetrics",
+   "openSpectrum"
+  ],
+  "js/core/bus.js": [
+   "emit",
+   "off",
+   "on",
+   "onFrame"
+  ],
+  "js/core/canvasrev.js": [
+   "canvasRev",
+   "installCanvasRev"
+  ],
+  "js/core/colorspace.js": [
+   "docCss",
+   "hasWideGamut",
+   "installColorSpace",
+   "isP3Doc",
+   "p3Supported",
+   "toP3Css",
+   "toSrgbCanvas",
+   "workSpace"
+  ],
+  "js/core/compat.js": [
+   "checkCompat",
+   "showCompatNotice"
+  ],
+  "js/core/device.js": [
+   "COARSE",
+   "docSizeLimit",
+   "galleryAccept",
+   "haptic",
+   "isAndroid",
+   "isMobile",
+   "isPhone"
+  ],
+  "js/core/doc.js": [
+   "activeLayer",
+   "addLayer",
+   "closeDoc",
+   "cropDoc",
+   "doc",
+   "duplicateLayer",
+   "layerIndex",
+   "layerThumb",
+   "makeLayer",
+   "mergeDown",
+   "moveLayer",
+   "newDoc",
+   "removeLayer",
+   "resizeDoc",
+   "setActive"
+  ],
+  "js/core/documents.js": [
+   "activeTab",
+   "closeActiveTab",
+   "closeAllTabs",
+   "closeTab",
+   "copyLayerToTab",
+   "listTabs",
+   "moveTab",
+   "openAsNewTab",
+   "refreshActiveTabMeta",
+   "switchByIndex",
+   "switchByOffset",
+   "switchTo",
+   "tabCount"
+  ],
+  "js/core/high-precision-next.js": [
+   "highPrecisionAvailableFor",
+   "highPrecisionCapabilities",
+   "renderHighPrecisionCanvas",
+   "renderPrecisionAdjustmentStack"
+  ],
+  "js/core/high-precision-safe.js": [
+   "highPrecisionAvailableFor",
+   "highPrecisionCapabilities",
+   "renderHighPrecisionCanvas",
+   "renderPrecisionAdjustmentStack"
+  ],
+  "js/core/high-precision.js": [
+   "highPrecisionAvailableFor",
+   "highPrecisionCapabilities",
+   "renderHighPrecisionCanvas",
+   "renderPrecisionAdjustmentStack"
+  ],
+  "js/core/hisrc.js": [
+   "adoptHi",
+   "attachHi",
+   "canvasFromHi",
+   "docHasHi",
+   "fillBand",
+   "hiAllowed",
+   "hiCoversCanvas",
+   "hiRect",
+   "hiToCanvas8",
+   "matchesImage",
+   "remapHi",
+   "resizeHi"
+  ],
+  "js/core/history.js": [
+   "abortPixels",
+   "batch",
+   "beginPixels",
+   "canRedo",
+   "canUndo",
+   "cancelPixels",
+   "clear",
+   "commitPixels",
+   "expandPendingPixels",
+   "exportState",
+   "historyLevels",
+   "importState",
+   "jumpTo",
+   "list",
+   "record",
+   "recordLayers",
+   "redo",
+   "setHistoryLevels",
+   "undo"
+  ],
+  "js/core/icc.js": [
+   "SPACES",
+   "buildProfile",
+   "profileFor",
+   "rgbMatrix",
+   "rgbToXyz"
+  ],
+  "js/core/performance.js": [
+   "CACHE_TILES_PER_LAYER",
+   "LARGE_DOCUMENT_PIXELS",
+   "TILE_SIZE",
+   "cachedLayerTile",
+   "clampRect",
+   "invalidateAllLayerCaches",
+   "invalidateLayerCache",
+   "performanceProfile",
+   "tileRectsFor",
+   "unionRect",
+   "visibleDocumentRect"
+  ],
+  "js/core/precision-stack.js": [
+   "GRID",
+   "_debugStore",
+   "adjustFunction",
+   "precisionMaxPixels",
+   "renderPrecise",
+   "unsupportedReason"
+  ],
+  "js/core/search.js": [
+   "fold",
+   "matchScore",
+   "searchable"
+  ],
+  "js/core/shapes.js": [
+   "SHAPE_LIST",
+   "fitShape",
+   "shapeName",
+   "shapeSvg",
+   "tracePath"
+  ],
+  "js/core/snapshots.js": [
+   "brushSourceLayerFor",
+   "clearSnapshots",
+   "exportState",
+   "getBrushSource",
+   "getBrushSourceId",
+   "importState",
+   "listSnapshots",
+   "removeSnapshot",
+   "renameSnapshot",
+   "restoreSnapshot",
+   "setBrushSource",
+   "takeSnapshot"
+  ],
+  "js/cv/align.js": [
+   "apply",
+   "createAligner",
+   "createPairMatcher",
+   "estimateAlignment",
+   "maxCornerShift",
+   "minv",
+   "mmul",
+   "pairHomography",
+   "scaleH",
+   "warpToReference"
+  ],
+  "js/cv/docclean.js": [
+   "FINISHES",
+   "cleanDocument"
+  ],
+  "js/cv/docquad.js": [
+   "aspectFromQuad",
+   "detectDocument",
+   "orderCorners",
+   "outputSize"
+  ],
+  "js/cv/lines.js": [
+   "bestFamily",
+   "detectGuides",
+   "pickFamily",
+   "pickHorizontals"
+  ],
+  "js/cv/opencv.js": [
+   "loadOpenCv",
+   "opencvReady"
+  ],
+  "js/cv/stackmath.js": [
+   "DEC",
+   "FOCUS_PAD",
+   "boxBlur",
+   "combineFocus",
+   "combineNoise",
+   "enc",
+   "focusMapRef",
+   "focusMapRows",
+   "focusScore",
+   "noiseCurve",
+   "scoreTo100"
+  ],
+  "js/editor/adjust.js": [
+   "applyDirect",
+   "applyLut",
+   "drawHistogram",
+   "histogram",
+   "identityLut",
+   "liftImageAbove",
+   "pickerGroup",
+   "runAdjust",
+   "slider"
+  ],
+  "js/editor/adjustlayers.js": [
+   "ADJUST_TYPES",
+   "addAdjustmentLayer",
+   "adjustTypeIds",
+   "adjustTypeName",
+   "applyAdjustLayer",
+   "exposureFunction",
+   "isAdjustLayer",
+   "mountAdjustProperties",
+   "openAdjustPanel",
+   "previewAdjustParams",
+   "setAdjustParams"
+  ],
+  "js/editor/adjustments.js": [
+   "BC_DEFAULTS",
+   "CURVE_PRESETS",
+   "applyBC",
+   "applyBCPremium",
+   "applyShadowsHighlightsPremium",
+   "autoContrast",
+   "autoContrastPremium",
+   "autoLevels",
+   "autoLevelsPremium",
+   "bcControls",
+   "bcCurve",
+   "bcPivot",
+   "brightnessContrast",
+   "buildBC",
+   "buildLevels",
+   "buildWB",
+   "curves",
+   "grayscale",
+   "hslShift",
+   "hslToRgb",
+   "hueSaturation",
+   "invert",
+   "levelFunction",
+   "levels",
+   "levelsFunctions",
+   "rgbToHsl",
+   "sampleCanvas",
+   "wbEyedropper",
+   "wbGains",
+   "whiteBalance"
+  ],
+  "js/editor/advanced-color.js": [
+   "autoToneColor",
+   "autoToneColorPremium",
+   "colorGrading",
+   "dehaze",
+   "desaturate",
+   "equalize",
+   "graduatedFilter",
+   "hdrTone",
+   "labCurves",
+   "matchColor",
+   "photoFilter",
+   "posterize",
+   "rangeHsl",
+   "replaceColor",
+   "splitToning",
+   "threshold",
+   "tonalContrast"
+  ],
+  "js/editor/align.js": [
+   "alignLayers",
+   "alignOffset",
+   "contentBounds",
+   "distributeLayers",
+   "distributeOffsets",
+   "otherLayersEdgeCandidates"
+  ],
+  "js/editor/autoanalysis.js": [
+   "channelPlan",
+   "decF",
+   "encF",
+   "estimateCast",
+   "lstar",
+   "neutralGammas",
+   "sampleImage",
+   "tonePlan",
+   "toneStats"
+  ],
+  "js/editor/autoenhance.js": [
+   "autoEnhance",
+   "autoEnhancePremium",
+   "measurePremium"
+  ],
+  "js/editor/blend.js": [
+   "CUSTOM_BLENDS",
+   "drawWithBlend",
+   "drawWithBlendAccelerated"
+  ],
+  "js/editor/blendif.js": [
+   "CHANNELS",
+   "blendIfDefault",
+   "blendIfEligible",
+   "blendIfSideDefault",
+   "buildBlendIfAlphaCanvas",
+   "channelActive",
+   "channelSides",
+   "isBlendIfActive",
+   "mountBlendIfEditor",
+   "previewBlendIf",
+   "rampFactor",
+   "setBlendIf"
+  ],
+  "js/editor/brushes.js": [
+   "COLOR_MODES",
+   "SYMMETRY_MODES",
+   "TEXTURES",
+   "brushConfig",
+   "brushTips",
+   "openBrushPanel",
+   "paintProfessionalSegment",
+   "professionalSegmentBounds",
+   "setBrushOption",
+   "smoothBrushPoint",
+   "symmetryAxes"
+  ],
+  "js/editor/bwrecipes.js": [
+   "BW_RECIPES",
+   "applyBWRecipe"
+  ],
+  "js/editor/channelmixer.js": [
+   "channelMixer"
+  ],
+  "js/editor/clahe-math.js": [
+   "DEC",
+   "claheMap",
+   "enc",
+   "linToOklab",
+   "oklabToLin",
+   "oklabToLinInGamut"
+  ],
+  "js/editor/clahe.js": [
+   "clahe",
+   "clahePremium"
+  ],
+  "js/editor/clipboard.js": [
+   "copyToClipboard",
+   "cutToClipboard",
+   "deleteSelection",
+   "hasClip",
+   "pasteFromClipboard"
+  ],
+  "js/editor/colorbalance.js": [
+   "colorBalance",
+   "colorBalancePremium"
+  ],
+  "js/editor/colorbands.js": [
+   "applyColorBands",
+   "buildBandTables",
+   "colorBands"
+  ],
+  "js/editor/compositor.js": [
+   "beginScratch",
+   "blendAdjustResult",
+   "canvasEl",
+   "compose",
+   "composeOverlay",
+   "discardScratch",
+   "endScratch",
+   "ensureScratchRect",
+   "pickColor",
+   "scheduleCompose",
+   "scheduleOverlay",
+   "scratchCtx",
+   "scratchView",
+   "setGuideOverlay",
+   "setOverlay",
+   "setSelectionOverlay"
+  ],
+  "js/editor/contentmove.js": [
+   "moveContentAware"
+  ],
+  "js/editor/curves.js": [
+   "CHANNEL_COLORS",
+   "CURVE_PRESETS",
+   "applyCurves",
+   "curveEditor",
+   "curveFunction",
+   "curveLut",
+   "curveThumb",
+   "saveUserCurvePresets",
+   "userCurvePresets"
+  ],
+  "js/editor/curvesfs.js": [
+   "curvesFullscreen"
+  ],
+  "js/editor/exposure.js": [
+   "exposure"
+  ],
+  "js/editor/fillcontent.js": [
+   "cropMask",
+   "cropRGBA",
+   "fillContentAware",
+   "fillContentAwarePatchMatch",
+   "fillWorkRegion",
+   "findSource",
+   "idwCorrection",
+   "maskBoundary",
+   "runContentAwareFill",
+   "subsample"
+  ],
+  "js/editor/filteramount.js": [
+   "amountMode",
+   "setFilterAmount"
+  ],
+  "js/editor/filterchain.js": [
+   "moveFilterEntry",
+   "recomputeChain",
+   "removeFilterEntry",
+   "setFilterEntryAmount",
+   "toggleFilterEntry"
+  ],
+  "js/editor/filterlayer.js": [
+   "addFilterLayer",
+   "commitFilter",
+   "filterAmount",
+   "filterBase",
+   "filterOf",
+   "markMixLayer",
+   "replaceFilterLayer"
+  ],
+  "js/editor/filterregistry.js": [
+   "FILTERS",
+   "filterLiveCapable",
+   "knownFilter",
+   "mountFilterEditor",
+   "openFilterEditor",
+   "renderFilter",
+   "scaleParams"
+  ],
+  "js/editor/floatadjust.js": [
+   "applyFloatFromBase",
+   "colorFnFromCompute",
+   "colorFnFromTable",
+   "gridInput",
+   "hiFullCover",
+   "hiRect"
+  ],
+  "js/editor/floatfilter.js": [
+   "applyDeltaFromBase",
+   "applyNativeFromBase",
+   "attachFloatResult",
+   "colorFnFromFilter",
+   "hiFullCover",
+   "hiRect"
+  ],
+  "js/editor/floatspatial.js": [
+   "boxSizes",
+   "channelDenoiseHi",
+   "gaussianBlurHi",
+   "lensBlurHi",
+   "noiseHi",
+   "smartSharpenHi",
+   "surfaceBlurHi",
+   "unsharpHi"
+  ],
+  "js/editor/gfonts.js": [
+   "GOOGLE_OTHER",
+   "MORE_FONTS_LABEL",
+   "addCustomGoogleFont",
+   "catalog",
+   "chooseFontValue",
+   "ensureFont",
+   "googleFontItems",
+   "isGoogleStack",
+   "loadFamily",
+   "pickFont",
+   "stackOf"
+  ],
+  "js/editor/grab.js": [
+   "drawPx",
+   "grabDoc",
+   "grabPx",
+   "isTouch",
+   "nearest",
+   "offset",
+   "pointerKind",
+   "rectHandleAt",
+   "rectHandleOffset"
+  ],
+  "js/editor/gradientmap.js": [
+   "gradientMap"
+  ],
+  "js/editor/groups.js": [
+   "duplicateGroup",
+   "groupLayers",
+   "moveLayerOrGroup",
+   "removeGroupAndContents",
+   "subtreeIds",
+   "toggleClip",
+   "toggleCollapsed",
+   "ungroupLayers"
+  ],
+  "js/editor/hslpremium.js": [
+   "hslPremium"
+  ],
+  "js/editor/imageops.js": [
+   "canvasSizeDialog",
+   "contentAwareScaleDialog",
+   "flattenImage",
+   "flipH",
+   "flipV",
+   "mergeVisible",
+   "resizeDialog",
+   "rotate180",
+   "rotateLeft",
+   "rotateRight"
+  ],
+  "js/editor/layercontent.js": [
+   "SHAPE_KIND_NAME",
+   "addFillLayer",
+   "addShapeLayer",
+   "canRasterize",
+   "fillKindName",
+   "isFillLayer",
+   "isShapeLayer",
+   "mountFillProperties",
+   "mountShapeProperties",
+   "pickPatternImage",
+   "previewFillParams",
+   "previewShapeParams",
+   "rasterizeLayer",
+   "renderFillLayer",
+   "renderShapeLayer",
+   "setFillParams",
+   "setShapeParams"
+  ],
+  "js/editor/layerstyles.js": [
+   "defaultStyles",
+   "gradientParams",
+   "hasEnabledStyle",
+   "openLayerStyles",
+   "renderLayerStyles",
+   "styleBehind",
+   "styleRing"
+  ],
+  "js/editor/layertree.js": [
+   "blendAdjustResult",
+   "buildLayerTree",
+   "collectStyleShapes",
+   "compositeTree",
+   "flatten"
+  ],
+  "js/editor/liquify.js": [
+   "applyDab",
+   "applyStroke",
+   "isIdentityGrid",
+   "makeGrid",
+   "relaxGrid",
+   "renderLiquify",
+   "resetGrid"
+  ],
+  "js/editor/lowlight.js": [
+   "finishLifted",
+   "lowLight",
+   "lowLightPremium"
+  ],
+  "js/editor/luminositymasks.js": [
+   "luminosityArray",
+   "luminosityPreset",
+   "openLuminosityMaskPanel"
+  ],
+  "js/editor/maskadjust.js": [
+   "applyDensity",
+   "buildLevelsForMask",
+   "detectSkyMask",
+   "detectSubjectMask",
+   "fromGrayView",
+   "grayEncode",
+   "maskBlur",
+   "maskCurves",
+   "maskLevels",
+   "maskProperties",
+   "mountMaskProperties",
+   "selectSkyMask",
+   "selectSubjectMask",
+   "toGrayView"
+  ],
+  "js/editor/masks.js": [
+   "addMask",
+   "applyMaskStroke",
+   "beginMaskStroke",
+   "clearMaskTarget",
+   "cloneMask",
+   "copyMask",
+   "getIsolateView",
+   "getMaskTarget",
+   "invertAlpha",
+   "invertMaskLayer",
+   "linkMask",
+   "makeMaskFromArray",
+   "maskAlphaAsSelectionMask",
+   "maskDataFromSelection",
+   "moveMask",
+   "paintMaskDab",
+   "paintMaskGradient",
+   "removeMask",
+   "runMaskDialog",
+   "setIsolateView",
+   "setMaskFromArray",
+   "setMaskTarget",
+   "toggleIsolateView",
+   "toggleMask",
+   "unlinkMask"
+  ],
+  "js/editor/paint.js": [
+   "cloneStamp",
+   "dodgeBurn",
+   "drawGradient",
+   "drawShape",
+   "floodFill",
+   "healSpot",
+   "hexToRgb",
+   "makeSmudge"
+  ],
+  "js/editor/patchmatch.js": [
+   "computeNNF",
+   "synthesize"
+  ],
+  "js/editor/pentool.js": [
+   "drawPenOverlay",
+   "pen",
+   "penArmed",
+   "penBegin",
+   "penCancel",
+   "penDown",
+   "penEnd",
+   "penFinishOpen",
+   "penHasPath",
+   "penMove",
+   "penToMask",
+   "penToSelection",
+   "penUndoPoint",
+   "penUp"
+  ],
+  "js/editor/perspective.js": [
+   "applyH",
+   "fillScaleFor",
+   "homographyFromGuides",
+   "invert3",
+   "makeWarpGrid",
+   "mul3",
+   "quadFromHomography",
+   "quadOutputSize",
+   "quadToUnitSquare",
+   "solveAffine3",
+   "unitSquareToQuad",
+   "vanishingPoint",
+   "warpHiToQuad",
+   "warpQuadToCanvas",
+   "warpRectToMesh",
+   "warpRectToQuad"
+  ],
+  "js/editor/perspectool.js": [
+   "drawPerspOverlay",
+   "persp",
+   "perspApply",
+   "perspArmed",
+   "perspAuto",
+   "perspBegin",
+   "perspCancel",
+   "perspClearGuides",
+   "perspDown",
+   "perspEnd",
+   "perspFill",
+   "perspGuideAt",
+   "perspGuideCount",
+   "perspHandleAt",
+   "perspHasChange",
+   "perspMove",
+   "perspPreview",
+   "perspRecompute",
+   "perspReset",
+   "perspRestore",
+   "perspStraighten",
+   "perspSync",
+   "perspUp"
+  ],
+  "js/editor/premiumcolor.js": [
+   "DEC",
+   "applyColorMap",
+   "toLab",
+   "toRgb"
+  ],
+  "js/editor/rangehsl.js": [
+   "BANDS",
+   "activeRanges",
+   "bandWeight",
+   "clamp",
+   "defaultRanges",
+   "hslRgb",
+   "hueDist",
+   "nearestBand",
+   "rangeHslBasic",
+   "rangeHslPremium",
+   "rgbHsl"
+  ],
+  "js/editor/refineedge-math.js": [
+   "boxBlurFloat",
+   "computeRefinedAlpha",
+   "decontaminate",
+   "guidedFilterAlpha",
+   "morph"
+  ],
+  "js/editor/refineedge.js": [
+   "refineEdge"
+  ],
+  "js/editor/resample.js": [
+   "RESAMPLE_METHODS",
+   "resampleCanvas",
+   "resampleHi"
+  ],
+  "js/editor/rulers.js": [
+   "addGuide",
+   "clearGuides",
+   "commitMoveGuide",
+   "gridConfig",
+   "gridStep",
+   "gridVisible",
+   "guideAt",
+   "guidesVisible",
+   "initRulers",
+   "previewMoveGuide",
+   "removeGuideAt",
+   "rulersVisible",
+   "setCompositionOverlay",
+   "setGridConfig",
+   "setGridVisible",
+   "setGuidesVisible",
+   "setRulersVisible",
+   "setSnapToGrid",
+   "snapCandidatesX",
+   "snapCandidatesY",
+   "snapPoint",
+   "snapRange",
+   "snapToGridEnabled",
+   "snapValue"
+  ],
+  "js/editor/selection-overlay.js": [
+   "traceSelectionOutline"
+  ],
+  "js/editor/selection.js": [
+   "blendBySelection",
+   "boundsOf",
+   "combineMask",
+   "commitSelection",
+   "featherMask",
+   "featherSelection",
+   "fullMask",
+   "hasSelection",
+   "invertMask",
+   "invertSelection",
+   "isEmptyMask",
+   "maskFromEllipse",
+   "maskFromPolygon",
+   "maskFromRect",
+   "maskFromWand",
+   "newMask",
+   "selectAll",
+   "selectNone"
+  ],
+  "js/editor/selectivecolor.js": [
+   "selectiveColor"
+  ],
+  "js/editor/shadowshighlights.js": [
+   "shadowsHighlights"
+  ],
+  "js/editor/smartgrid.js": [
+   "analyze",
+   "describe",
+   "openSmartGrid",
+   "smartGridOn",
+   "straighten",
+   "suggestedCrop",
+   "toggleSmartGrid"
+  ],
+  "js/editor/smartobject.js": [
+   "canConvertToSmart",
+   "convertToSmart",
+   "rasterizeSmart"
+  ],
+  "js/editor/text.js": [
+   "FONTS",
+   "FONT_SEPARATOR",
+   "USER_FONTS",
+   "alignTextPatch",
+   "createTextLayer",
+   "defaultText",
+   "fontString",
+   "isText",
+   "layoutText",
+   "loadFontFile",
+   "pathArcLength",
+   "pointInText",
+   "rasterizeText",
+   "renderTextLayer",
+   "restoreUserFonts",
+   "rotatePoint",
+   "textBounds",
+   "textOverflows",
+   "textQuad",
+   "toTextSpace",
+   "updateText"
+  ],
+  "js/editor/textbox.js": [
+   "beginBoxDrag",
+   "boxDragTo",
+   "cursorFor",
+   "drawTextBox",
+   "endBoxDrag",
+   "hitHandle",
+   "isBoxDragging"
+  ],
+  "js/editor/textedit.js": [
+   "cancelEdit",
+   "cursorPos",
+   "editingLayer",
+   "endEdit",
+   "focusEditor",
+   "isEditing",
+   "place",
+   "startEdit"
+  ],
+  "js/editor/textprops.js": [
+   "mountTextProperties"
+  ],
+  "js/editor/textstyles.js": [
+   "CHAR_ATTRS",
+   "PARA_ATTRS",
+   "charStyleAttrs",
+   "charStyles",
+   "deleteCharStyle",
+   "deleteParaStyle",
+   "paraStyleAttrs",
+   "paraStyles",
+   "saveCharStyle",
+   "saveParaStyle"
+  ],
+  "js/editor/tone.js": [
+   "toneRegions"
+  ],
+  "js/editor/toneband.js": [
+   "TONE_ZONES",
+   "toneBand",
+   "zoneAt"
+  ],
+  "js/editor/tonepremium.js": [
+   "applyAutoToneColorPremium",
+   "applyCurvesPremium",
+   "applyLevelsPremium",
+   "autoContrastState",
+   "autoCurvePoints",
+   "autoLevelsState",
+   "autoToneColorLuts",
+   "autoToneColorPlan",
+   "curveFloat",
+   "levelFloat",
+   "levelsLuts"
+  ],
+  "js/editor/tools.js": [
+   "TOOLS",
+   "addDodgeBurnLayer",
+   "applyCrop",
+   "applyPerspective",
+   "applyTransform",
+   "autoPerspGuides",
+   "cancelPendingTool",
+   "centerActiveLayerContent",
+   "centerCompare",
+   "clampMove",
+   "clearPerspGuides",
+   "current",
+   "fillPerspFrame",
+   "flipTransform",
+   "getActiveColorSlot",
+   "getCompareBaseline",
+   "getCursorPos",
+   "invalidateCompareBaseline",
+   "moveKeep",
+   "pickCloneSource",
+   "pullTextStyle",
+   "pushTextStyle",
+   "reflowCrop",
+   "resetClone",
+   "resetColors",
+   "resetLiquify",
+   "resetPerspective",
+   "resetTransform",
+   "rotateTransform",
+   "setActiveColorSlot",
+   "setBrushMode",
+   "setCompareBaseline",
+   "setCursorPos",
+   "setTool",
+   "spacedSteps",
+   "state",
+   "swapColors",
+   "toolChosen"
+  ],
+  "js/editor/transformtool.js": [
+   "drawXformOverlay",
+   "xform",
+   "xformApply",
+   "xformArmed",
+   "xformBegin",
+   "xformCanStart",
+   "xformCancel",
+   "xformCursorFor",
+   "xformDown",
+   "xformEnd",
+   "xformFlip",
+   "xformHandleAt",
+   "xformHasChange",
+   "xformMove",
+   "xformPreview",
+   "xformReadout",
+   "xformRecompute",
+   "xformResetAll",
+   "xformRestore",
+   "xformRotateBy",
+   "xformSetMode",
+   "xformSync",
+   "xformUp",
+   "xformWarpHandleAt"
+  ],
+  "js/editor/vibrance.js": [
+   "vibrance"
+  ],
+  "js/editor/view.js": [
+   "apply",
+   "attachViewGestures",
+   "center",
+   "edgeAutoScroll",
+   "fit",
+   "fitAbove",
+   "fitInRect",
+   "fitScale",
+   "handleDoubleTap",
+   "handlePointerDown",
+   "handlePointerMove",
+   "handlePointerUp",
+   "isPanKey",
+   "panBy",
+   "recenterAfterResize",
+   "toImage",
+   "view",
+   "zoom100",
+   "zoomAt",
+   "zoomIn",
+   "zoomOut",
+   "zoomToRect"
+  ],
+  "js/editor/webgpu.js": [
+   "gpuBlend",
+   "gpuConvolution5",
+   "gpuMorphology",
+   "webGPUAvailable"
+  ],
+  "js/exif/c2pa.js": [
+   "_internals",
+   "cborDecode",
+   "checkBmffHash",
+   "checkDataHash",
+   "findC2pa",
+   "parseCert",
+   "readC2pa",
+   "verifySignature"
+  ],
+  "js/exif/c2pasign.js": [
+   "cborEncode",
+   "loadCredentials",
+   "signC2pa"
+  ],
+  "js/exif/db.js": [
+   "APERTURES",
+   "BODIES",
+   "BODY_BY_ID",
+   "CITIES",
+   "ISOS",
+   "LENSES",
+   "LENS_BY_ID",
+   "SCENES",
+   "SHUTTERS",
+   "cropOf",
+   "maxAperture",
+   "mountCheck",
+   "nearestShutter",
+   "rollExif",
+   "shLabel",
+   "shSec",
+   "snapUp"
+  ],
+  "js/exif/inspector.js": [
+   "openMetadataInspector"
+  ],
+  "js/exif/ui.js": [
+   "cameraName",
+   "exifState",
+   "exifValues",
+   "openExif",
+   "saveExif",
+   "useCameraNaming",
+   "warnings",
+   "withExif"
+  ],
+  "js/exif/writer.js": [
+   "apex32",
+   "buildExifBlock",
+   "buildTIFF",
+   "dmsRat",
+   "eAscii",
+   "eByte",
+   "eLong",
+   "eRat",
+   "eSRat",
+   "eShort",
+   "eUndef",
+   "exifDate",
+   "ifdBytes",
+   "injectExif",
+   "toLatin1",
+   "writeIFD"
+  ],
+  "js/features/actions.js": [
+   "openActions",
+   "playAction",
+   "startRecording",
+   "stopRecording"
+  ],
+  "js/features/aitools.js": [
+   "aiColorize",
+   "aiExpand",
+   "aiUpscale"
+  ],
+  "js/features/autostraighten.js": [
+   "autoStraighten",
+   "detectTilt"
+  ],
+  "js/features/depthlight.js": [
+   "openDepthLight",
+   "openDepthPlanes"
+  ],
+  "js/features/depthlive.js": [
+   "checkNow",
+   "isLive",
+   "liveSource",
+   "makeLive",
+   "release",
+   "schedule",
+   "signature",
+   "signatureDiff",
+   "updateLive"
+  ],
+  "js/features/depthtools.js": [
+   "DEC",
+   "PREVIEW",
+   "WORK",
+   "enc",
+   "getDepth",
+   "hash",
+   "openDepthBlur",
+   "openDepthFog",
+   "openPhoto3D",
+   "openShell",
+   "pixelsOf",
+   "prepare",
+   "sampler",
+   "scaled",
+   "toNewLayer",
+   "visibleImage"
+  ],
+  "js/features/depthzones.js": [
+   "depthField",
+   "fieldToArray",
+   "maskByDepthCommand",
+   "openDepthSelect"
+  ],
+  "js/features/docscan.js": [
+   "finishCanvas",
+   "openDocScan",
+   "rectify",
+   "scanPage"
+  ],
+  "js/features/facetools.js": [
+   "faceCrop",
+   "fixRedEyes",
+   "openFaceBlur",
+   "openFaceRestore",
+   "openFaceRetouch"
+  ],
+  "js/features/lenscorrect.js": [
+   "applyLensAuto",
+   "openLensProfile"
+  ],
+  "js/features/palette.js": [
+   "colorPalette",
+   "dominantColors",
+   "screenEyedropper"
+  ],
+  "js/features/photo-tools.js": [
+   "SOCIAL",
+   "aiDejpeg",
+   "aiDenoise",
+   "backgroundMask",
+   "correctLensPixels",
+   "denoisePixels",
+   "gradientLayerMask",
+   "gradientMask",
+   "lensCorrection",
+   "portraitPixels",
+   "portraitRetouch",
+   "rangeMask",
+   "reduceNoise",
+   "removeBackground",
+   "selectiveSharpen",
+   "selectiveSharpenPixels",
+   "socialPreview",
+   "transformLayer",
+   "watermark"
+  ],
+  "js/features/samtools.js": [
+   "eraseToLayer",
+   "openSamTool"
+  ],
+  "js/features/segmentselect.js": [
+   "selectSkyCommand",
+   "selectSubjectCommand"
+  ],
+  "js/features/sharpness.js": [
+   "openSharpness"
+  ],
+  "js/features/sky.js": [
+   "replaceSky"
+  ],
+  "js/features/smartcrop.js": [
+   "FORMATS",
+   "bestCrop",
+   "importanceMap",
+   "openSmartCrop"
+  ],
+  "js/features/stack.js": [
+   "openStack"
+  ],
+  "js/features/textselect.js": [
+   "facePartsMask",
+   "maskByTextCommand",
+   "openTextSelect",
+   "openVocabMask"
+  ],
+  "js/filters/advanced.js": [
+   "channelDenoise",
+   "distort",
+   "highPass",
+   "lensBlur",
+   "radialBlur",
+   "smartSharpen",
+   "stylize",
+   "surfaceBlur"
+  ],
+  "js/filters/basic.js": [
+   "FILTER_PREVIEW_LIMIT",
+   "blur",
+   "blurred",
+   "clarity",
+   "motionBlur",
+   "noise",
+   "runFilter",
+   "sharpen",
+   "vignette",
+   "vignetteRamp"
+  ],
+  "js/filters/camera/chain.js": [
+   "CHAIN",
+   "CHAIN_BY_ID",
+   "defaultStages"
+  ],
+  "js/filters/camera/cpustages.js": [
+   "applyCpuStages",
+   "cpuStagesActive"
+  ],
+  "js/filters/camera/editor.js": [
+   "openRealifyEditor"
+  ],
+  "js/filters/camera/engine.js": [
+   "STEP_INDEX",
+   "applyJpeg",
+   "available",
+   "buildCache",
+   "diagnose",
+   "effParams",
+   "glColorSpace",
+   "hasFloat",
+   "invalidateCache",
+   "isPremium",
+   "jpegQuality",
+   "jpegRoundTrip",
+   "lastError",
+   "program",
+   "renderHi",
+   "renderTo",
+   "setCameraSeed",
+   "setPremium",
+   "setSeed",
+   "setSource",
+   "uni",
+   "vramEstimate"
+  ],
+  "js/filters/camera/exifmatch.js": [
+   "matchCamera"
+  ],
+  "js/filters/camera/presets.js": [
+   "PRESETS"
+  ],
+  "js/filters/camera/recommended.js": [
+   "wireRecommendation"
+  ],
+  "js/filters/camera/shaders.js": [
+   "PRE",
+   "SH",
+   "VS"
+  ],
+  "js/filters/camera/spectralclean.js": [
+   "estimateSpectralSlope",
+   "normalizeSpectralSlope",
+   "removePeriodicPatterns",
+   "spectralStats"
+  ],
+  "js/filters/camera/state.js": [
+   "normalizeState",
+   "presetStages",
+   "varyStages"
+  ],
+  "js/filters/camera/ui.js": [
+   "analyzeLayer",
+   "computeRecommendation",
+   "engine",
+   "filterState",
+   "openCamera"
+  ],
+  "js/filters/classic.js": [
+   "adaptiveWideAngle",
+   "advancedSharpen",
+   "blurGallery",
+   "classicDistort",
+   "puppetWarp",
+   "restoration",
+   "utilityBlur"
+  ],
+  "js/filters/effects.js": [
+   "artisticGallery",
+   "customConvolution",
+   "offsetMorphology",
+   "pixelate",
+   "renderEffects",
+   "stylizeEffects",
+   "textureEffects"
+  ],
+  "js/filters/freqsep.js": [
+   "openFreqSep"
+  ],
+  "js/filters/lens/categories.js": [
+   "ADJ_KEYS",
+   "ADJ_LABELS",
+   "CATEGORIES",
+   "CATEGORY_BY_ID",
+   "CATEGORY_COUNT",
+   "GROUPS",
+   "IMAGENET_MAP",
+   "neutralAdj"
+  ],
+  "js/filters/lens/classify.js": [
+   "CONFIDENCE_MIN",
+   "cachedModelInfo",
+   "classify",
+   "ensureModel",
+   "modelInfo"
+  ],
+  "js/filters/lens/render.js": [
+   "applyLens",
+   "isNeutral"
+  ],
+  "js/filters/lens/ui.js": [
+   "FILTER_ID",
+   "openLens"
+  ],
+  "js/filters/looks.js": [
+   "LOOKS",
+   "LOOK_CATS",
+   "RECIPES",
+   "RECIPE_CATS",
+   "allStyleCats",
+   "applyLook",
+   "applyStyleAt",
+   "indexOfId",
+   "loadRecipes",
+   "makeThumbs",
+   "openLooks",
+   "prepareStyle",
+   "prepareThumbs",
+   "styleAt",
+   "styleCount"
+  ],
+  "js/filters/looksfs.js": [
+   "lookFullscreen"
+  ],
+  "js/filters/lut/engine.js": [
+   "applyCubeLut",
+   "parseCube"
+  ],
+  "js/filters/lut/ui.js": [
+   "openLut"
+  ],
+  "js/filters/purepixel/engine.js": [
+   "DEFAULTS",
+   "difference",
+   "normalize",
+   "processPixels"
+  ],
+  "js/filters/purepixel/ui.js": [
+   "openPurePixel"
+  ],
+  "js/filters/segment/segment.js": [
+   "segmentClasses",
+   "segmentPerson",
+   "segmentSky"
+  ],
+  "js/filters/sharpen-engine.js": [
+   "gaussBlur",
+   "lineBlur",
+   "sharpenMargin",
+   "sharpenRGBA"
+  ],
+  "js/filters/styleengine.js": [
+   "GRAD_TYPES",
+   "hasTexture",
+   "recipeTextures",
+   "registerTexture",
+   "renderStyle",
+   "styleColorFn",
+   "styleIsPure"
+  ],
+  "js/filters/unmark/chain.js": [
+   "CHAIN",
+   "CHAIN_BY_ID",
+   "SECTIONS",
+   "STAGES_OF",
+   "WORKER_ORDER",
+   "defaultStages"
+  ],
+  "js/filters/unmark/detect.js": [
+   "detectMarks",
+   "fullMaskFromDetection",
+   "rectMask",
+   "upscaleMask"
+  ],
+  "js/filters/unmark/disrupt.js": [
+   "N",
+   "S",
+   "blurPlane",
+   "blursharp",
+   "dct",
+   "dwt",
+   "fromPlanes",
+   "gauss",
+   "geometry",
+   "lsbWrite",
+   "luma",
+   "noise",
+   "resample",
+   "resizePlane",
+   "rng",
+   "runPipeline",
+   "sampleAffine",
+   "toPlanes",
+   "tone"
+  ],
+  "js/filters/unmark/engine.js": [
+   "buildMask",
+   "canvasOf",
+   "cpuStagesActive",
+   "disruptAsync",
+   "effectiveStages",
+   "imageDataOf",
+   "previewRects",
+   "process"
+  ],
+  "js/filters/unmark/inpaint.js": [
+   "dilateMask",
+   "inpaint",
+   "maskToCanvas"
+  ],
+  "js/filters/unmark/server.js": [
+   "health",
+   "inpaintRemote",
+   "regenerate",
+   "saveServerConfig",
+   "serverConfig",
+   "serverConfigured"
+  ],
+  "js/filters/unmark/state.js": [
+   "PRESETS",
+   "effParams",
+   "normalizeState",
+   "presetStages",
+   "varyStages"
+  ],
+  "js/filters/unmark/ui.js": [
+   "FILTER_ID",
+   "filterState",
+   "openUnmark"
+  ],
+  "js/filters/unmark/vendors.js": [
+   "VENDORS",
+   "VENDOR_BY_ID",
+   "vendorRects"
+  ],
+  "js/gpu/floatcompositor.js": [
+   "_debugFloat",
+   "floatAvailable",
+   "floatCompose",
+   "floatInfo",
+   "floatPlan",
+   "floatReset",
+   "floatTuning"
+  ],
+  "js/io/alpha.js": [
+   "alphaFieldsHTML",
+   "hasTransparency",
+   "onBackground",
+   "prepareForType",
+   "supportsAlpha",
+   "wireAlphaFields"
+  ],
+  "js/io/batchmeta.js": [
+   "embedForBatch",
+   "sharedFields"
+  ],
+  "js/io/c2paui.js": [
+   "SIGNABLE",
+   "active",
+   "clear",
+   "openSign",
+   "signIfWanted",
+   "state"
+  ],
+  "js/io/codecs.js": [
+   "CODECS",
+   "PSNR_LEVELS",
+   "avifDecoder",
+   "avifEncoder",
+   "codecMaxPixels",
+   "decodeJxlToCanvas",
+   "encodeAvif8",
+   "encodeAvifDeep",
+   "encodeJxl",
+   "estimateCodec",
+   "jxlDecoder",
+   "jxlEncoder",
+   "qualityWord",
+   "sampleCrops",
+   "tagAvifColor",
+   "toBitDepthRGBA"
+  ],
+  "js/io/compatibility.js": [
+   "compatibleFile",
+   "decodeAny",
+   "decodeCompatible",
+   "openPsd",
+   "svgCanvas"
+  ],
+  "js/io/export-utils.js": [
+   "safeWebFilename",
+   "sanitizeFilename"
+  ],
+  "js/io/export.js": [
+   "EXPORT_PRESETS",
+   "compatibilityInfo",
+   "download",
+   "exportDialog",
+   "exportPrecisionInfo",
+   "quickPng",
+   "renderCleanWeb",
+   "renderExport",
+   "safeWebFilename",
+   "sanitizeFilename",
+   "saveOrShare",
+   "stamp"
+  ],
+  "js/io/exr.js": [
+   "EXR_CHROMATICITIES",
+   "encodeExr",
+   "floatToHalf",
+   "lineReaderFromData16",
+   "srgb16ToLinear"
+  ],
+  "js/io/formats.js": [
+   "PAGE_SIZES",
+   "avifFromCanvas",
+   "gifFromCanvases",
+   "pdfFromCanvases"
+  ],
+  "js/io/formats16.js": [
+   "png16",
+   "png16Supported",
+   "tiff16",
+   "tiff8"
+  ],
+  "js/io/gifexport.js": [
+   "exportGif"
+  ],
+  "js/io/heic.js": [
+   "encodeHeic",
+   "encodeHeicDeep",
+   "heicSupported",
+   "rgba16ToI010",
+   "rgbaToI420"
+  ],
+  "js/io/heif.js": [
+   "annexBToHevc",
+   "hevcLevel",
+   "writeHeic"
+  ],
+  "js/io/hidepth.js": [
+   "decodeHighDepth",
+   "decodePng16",
+   "sniffHighDepth"
+  ],
+  "js/io/icc-embed.js": [
+   "ensureIcc",
+   "pngIccpChunk",
+   "webpWithIcc"
+  ],
+  "js/io/icccmyk.js": [
+   "b2aFunction",
+   "cmykConverter",
+   "parseIcc",
+   "srgbToLabD50"
+  ],
+  "js/io/metacontainers.js": [
+   "injectContainer"
+  ],
+  "js/io/metadata.js": [
+   "META_NONE",
+   "META_PRESETS",
+   "buildFilteredExif",
+   "buildIim",
+   "buildIptc",
+   "buildXmp",
+   "describeMeta",
+   "embedMetadata",
+   "fieldsFromOriginal",
+   "fieldsFromXmp",
+   "filterMetadata",
+   "iimFromProfile",
+   "loadExifReader",
+   "md5hex",
+   "metaActive",
+   "parseIim",
+   "parseLocalDate",
+   "parseTiff",
+   "readIptc",
+   "readIptcAny",
+   "readOriginalMetadata",
+   "readXmp",
+   "readXmpExtended",
+   "wrapIim",
+   "xmpSegments"
+  ],
+  "js/io/metaedit.js": [
+   "clear",
+   "count",
+   "get",
+   "open"
+  ],
+  "js/io/metapresets.js": [
+   "META_NONE",
+   "META_PRESETS",
+   "metaActive"
+  ],
+  "js/io/open.js": [
+   "initOpen",
+   "loadFilesAsStack",
+   "openFile",
+   "openFileInNewTab",
+   "pickNow",
+   "placeAsLayer",
+   "promptCamera",
+   "promptLoadStack",
+   "promptOpen",
+   "promptOpenFiles",
+   "promptPasteImage",
+   "promptStartBatch",
+   "revertToOriginal"
+  ],
+  "js/io/pdfexport.js": [
+   "exportPdf",
+   "jpegInfo"
+  ],
+  "js/io/pdflayers.js": [
+   "layerPages"
+  ],
+  "js/io/pdfpro.js": [
+   "MM",
+   "PAGES",
+   "PDFX_CONDITIONS",
+   "PER_PAGE",
+   "buildPdf",
+   "gridFor",
+   "loadFontkit",
+   "loadPdfLib",
+   "rgbaToCmyk",
+   "safeText"
+  ],
+  "js/io/professional-export.js": [
+   "professionalExport"
+  ],
+  "js/io/professional-formats.js": [
+   "PSD_BLEND",
+   "layeredPsd",
+   "psdAdjustment",
+   "psdApproxAdjustment",
+   "psdBlendingRanges",
+   "psdEffects",
+   "psdText",
+   "smartLinked",
+   "smartQuad",
+   "tiffFromCanvas"
+  ],
+  "js/io/project.js": [
+   "PROJECT_MIME",
+   "PROJECT_VERSION",
+   "discardStash",
+   "getRecentProject",
+   "initProjects",
+   "openProjectFile",
+   "openRecentProject",
+   "promptOpenProject",
+   "restoreAfterUpdate",
+   "restoreProject",
+   "saveProject",
+   "serializeProject",
+   "stashForUpdate",
+   "validateProject"
+  ],
+  "js/io/psd16.js": [
+   "psd16"
+  ],
+  "js/io/psdfonts.js": [
+   "firstFamily",
+   "fromPsName",
+   "psFont"
+  ],
+  "js/io/psdlayers16.js": [
+   "addImageResource",
+   "rebuildPsd16"
+  ],
+  "js/io/strip.js": [
+   "stripJPEG",
+   "stripPNG"
+  ],
+  "js/io/stripui.js": [
+   "openStrip"
+  ],
+  "js/io/zip.js": [
+   "ZIP_LIMIT",
+   "buildZip",
+   "crc32",
+   "dosStamp"
+  ],
+  "js/lens/exifread.js": [
+   "readLensExif"
+  ],
+  "js/lens/lensmath.js": [
+   "buildProfile",
+   "correctRows",
+   "findCamera",
+   "lensSimilarity",
+   "makeCorrector",
+   "matchLenses",
+   "mountFits"
+  ],
+  "js/lens/userprofiles.js": [
+   "exportJson",
+   "findFor",
+   "importJson",
+   "list",
+   "put",
+   "remove",
+   "sanitize",
+   "toProfile"
+  ],
+  "js/pwa-updates.js": [
+   "loadedVersion",
+   "savedUpdateLog",
+   "updateInfo",
+   "updateLog",
+   "watchPWAUpdates"
+  ],
+  "js/pwa.js": [
+   "checkForUpdateDialog",
+   "initPWA",
+   "promptInstall",
+   "resumeAfterUpdate"
+  ],
+  "js/ui/bugreport.js": [
+   "diagnosticText",
+   "imageSample",
+   "openBugReport",
+   "sendReport"
+  ],
+  "js/ui/colorswatch.js": [
+   "initColorSwatch",
+   "openColorPopover"
+  ],
+  "js/ui/commands.js": [
+   "bind",
+   "enabled",
+   "get",
+   "labelFor",
+   "onRun",
+   "register",
+   "registerAll",
+   "run",
+   "runAsync"
+  ],
+  "js/ui/compact.js": [
+   "autoCompact",
+   "compactSliders"
+  ],
+  "js/ui/dialog.js": [
+   "anyDialogOpen",
+   "confirmDlg",
+   "dialog",
+   "promptDlg",
+   "setDialogHooks"
+  ],
+  "js/ui/docbar.js": [
+   "initDocbar"
+  ],
+  "js/ui/fsshell.js": [
+   "createShell",
+   "decodePhoto",
+   "ensureShellStyles",
+   "mountControls",
+   "pickFiles",
+   "resultToLayer",
+   "scaledCanvas",
+   "stateHistory",
+   "thumbButton"
+  ],
+  "js/ui/guide.js": [
+   "openGuide",
+   "openGuideForTool"
+  ],
+  "js/ui/histogrampanel.js": [
+   "initHistogramPanel",
+   "showHistogramPanel"
+  ],
+  "js/ui/keyboard.js": [
+   "followKeyboard",
+   "installKeyboardFit",
+   "keyboardHeight",
+   "opensKeyboard"
+  ],
+  "js/ui/landscape.js": [
+   "initLandscapeNotice"
+  ],
+  "js/ui/legal.js": [
+   "openCookiesPolicy",
+   "openLegalNotice",
+   "openPrivacyPolicy"
+  ],
+  "js/ui/menu.js": [
+   "MENUS",
+   "initMenu",
+   "openContextMenu",
+   "openMobileMenu"
+  ],
+  "js/ui/mobilebar.js": [
+   "initMobileBar"
+  ],
+  "js/ui/onboarding.js": [
+   "maybeShowOnboarding"
+  ],
+  "js/ui/optionsbar.js": [
+   "renderOptions"
+  ],
+  "js/ui/panels.js": [
+   "getSelectedLayerIds",
+   "initPanels",
+   "isMobile",
+   "openOnlyPanel",
+   "renderHistory",
+   "renderInfo",
+   "renderLayers",
+   "renderSnapshots",
+   "toggleSheet"
+  ],
+  "js/ui/prefsnote.js": [
+   "initPrefsNote"
+  ],
+  "js/ui/premium.js": [
+   "crownIcon",
+   "dockPremium",
+   "premiumPref",
+   "premiumSwitch"
+  ],
+  "js/ui/properties.js": [
+   "initProperties",
+   "renderProperties"
+  ],
+  "js/ui/sortable.js": [
+   "sortable"
+  ],
+  "js/ui/stepper.js": [
+   "stepper",
+   "upgradeSteppers"
+  ],
+  "js/ui/toast.js": [
+   "progress",
+   "status",
+   "toast"
+  ],
+  "js/ui/tooldrawer-icons.js": [
+   "ICONS"
+  ],
+  "js/ui/tooldrawer.js": [
+   "closeDrawer",
+   "initToolDrawer",
+   "openDrawer"
+  ],
+  "js/ui/wbpick.js": [
+   "PIPETTE_SVG",
+   "averageRGB"
+  ],
+  "lote/edit.js": [
+   "applyEdit",
+   "captureEdit",
+   "evToMatch",
+   "kindName",
+   "logAverage",
+   "previewEdit"
+  ],
+  "lote/index.js": [
+   "openBatchEdit",
+   "startBatch"
+  ],
+  "lote/ui.js": [
+   "openBatchEditor"
+  ],
+  "lut/catalog.js": [
+   "FAMILIES",
+   "ITEMS"
+  ],
+  "lut/engine.js": [
+   "LutGL",
+   "isLoaded",
+   "loadLut"
+  ],
+  "lut/index.js": [
+   "openLuts",
+   "renderLuts"
+  ],
+  "lut/ui.js": [
+   "lutItem",
+   "normalize",
+   "openLutEditor"
+  ],
+  "memes/designs-more.js": [
+   "MORE_DESIGNS",
+   "coverCanvas"
+  ],
+  "memes/designs.js": [
+   "DESIGNS",
+   "design"
+  ],
+  "memes/effects.js": [
+   "EFFECTS",
+   "applyEffect"
+  ],
+  "memes/fonts.js": [
+   "FONTS",
+   "fontStack",
+   "linkFonts",
+   "loadFont"
+  ],
+  "memes/index.js": [
+   "openMemeCreator"
+  ],
+  "memes/model.js": [
+   "PROPS",
+   "PROP_GROUPS",
+   "TEXT_DEFAULTS",
+   "TEXT_PRESETS",
+   "applyPreset",
+   "newText",
+   "prop"
+  ],
+  "memes/text.js": [
+   "drawText",
+   "fontCss",
+   "renderText",
+   "textBox"
+  ],
+  "memes/ui.js": [
+   "openMemeEditor"
+  ],
+  "panorama/engine.js": [
+   "calculateExposureGains",
+   "estimateTranslation",
+   "projectCanvas",
+   "scaleCanvas",
+   "stitchPanorama"
+  ],
+  "panorama/index.js": [
+   "openPanorama"
+  ],
+  "panorama/ui.js": [
+   "openPanoramaEditor"
+  ],
+  "raw/decoder.js": [
+   "RAW_EXTENSIONS",
+   "RawDecoder",
+   "isRawFile"
+  ],
+  "raw/formats.js": [
+   "RAW_EXTENSIONS",
+   "isRawFile"
+  ],
+  "raw/gpu-preview.js": [
+   "GPUPreview"
+  ],
+  "raw/index.js": [
+   "isRawFile",
+   "openPhotoDevelop",
+   "openRawFile",
+   "rawToCanvas",
+   "renderPhotoDevelop"
+  ],
+  "raw/lens.js": [
+   "correctLinearSource",
+   "profileForRaw"
+  ],
+  "raw/pipeline.js": [
+   "histogram",
+   "renderPhoto"
+  ],
+  "raw/premium/core.js": [
+   "EPS_COARSE",
+   "EPS_HAZE",
+   "HALO",
+   "MAP_LONG",
+   "MID",
+   "OK_M1_2020",
+   "OK_M1_INV_SRGB",
+   "OK_M2",
+   "OK_M2_INV",
+   "OUT_SPACES",
+   "PREMIUM_OUTPUT_COLOR",
+   "RAW_BASE_EV",
+   "REC2020_TO_SRGB",
+   "R_CHROMA",
+   "R_COARSE",
+   "R_FINE",
+   "SHOULDER",
+   "SRGB_TO_2020",
+   "Y2020",
+   "bt709Decode",
+   "bt709Encode",
+   "decodeLut16",
+   "epsChroma",
+   "epsFine",
+   "glMat3",
+   "invert3",
+   "mapSize",
+   "mapsKey",
+   "mul3",
+   "outSpaceOf",
+   "premiumEngine",
+   "premiumParams",
+   "srgbDecode",
+   "srgbEncode"
+  ],
+  "raw/premium/cpu.js": [
+   "computeMaps",
+   "downscale",
+   "encode16",
+   "encode8",
+   "gamutMapLab",
+   "grainAt",
+   "mapsFromMeans",
+   "renderRows",
+   "sourceReader",
+   "sourceRowsFor"
+  ],
+  "raw/premium/gpu.js": [
+   "PremiumGPU"
+  ],
+  "raw/premium/output.js": [
+   "outputSharpen",
+   "outputSharpen16",
+   "tiff16"
+  ],
+  "raw/premium/render.js": [
+   "ctxOf",
+   "premiumSource",
+   "prepare",
+   "renderPremiumCanvas",
+   "renderPremiumLinear",
+   "renderPremiumRows"
+  ],
+  "raw/preview.js": [
+   "Preview"
+  ],
+  "raw/render-client.js": [
+   "RenderWorker"
+  ],
+  "raw/source.js": [
+   "isLinearSource",
+   "linearReader",
+   "linearSource",
+   "resizeLinear",
+   "toOutputMatrix"
+  ],
+  "raw/state.js": [
+   "CONTROLS",
+   "GROUPS",
+   "RAW_VERSION",
+   "control",
+   "controlsFor",
+   "defaults",
+   "normalize",
+   "valueText"
+  ],
+  "raw/tone.js": [
+   "LUT_SIZE",
+   "autoWhiteBalance",
+   "buildToneLUT",
+   "smooth",
+   "toLinear",
+   "toSrgb",
+   "toneGain",
+   "toneKey",
+   "toneLightness",
+   "wbFromNeutral",
+   "wbGains",
+   "wbPickNeutral"
+  ],
+  "raw/ui.js": [
+   "openDeveloper"
+  ],
+  "socialmediapost/formats.js": [
+   "FORMATS",
+   "GROUPS",
+   "aspectText",
+   "format",
+   "naturalOrient",
+   "safeZones",
+   "sizeOf"
+  ],
+  "socialmediapost/index.js": [
+   "openSocialPost"
+  ],
+  "socialmediapost/layouts.js": [
+   "LAYOUTS",
+   "cellsFor",
+   "layoutById",
+   "layoutSvg"
+  ],
+  "socialmediapost/render.js": [
+   "SHAPES",
+   "cellPath",
+   "cellsOf",
+   "drawBackground",
+   "drawCell",
+   "freeCell",
+   "hitCell",
+   "localCell",
+   "orientedPhoto",
+   "photoRect",
+   "rel",
+   "shapeIdOf",
+   "shapeOf"
+  ],
+  "socialmediapost/ui.js": [
+   "openPostEditor"
+  ],
+  "stickers/catalog.js": [
+   "GROUP_LABELS",
+   "STYLES",
+   "TONES",
+   "TONE_NA",
+   "emojiUrl",
+   "filterCatalog",
+   "isSvg",
+   "loadCatalog",
+   "loadImage",
+   "rasterSize",
+   "toneApplies"
+  ],
+  "stickers/index.js": [
+   "openStickers"
+  ],
+  "stickers/render.js": [
+   "buildSprite",
+   "drawSprite"
+  ],
+  "stickers/ui.js": [
+   "openStickerEditor"
+  ],
+  "tools/build-lensdb.mjs": [
+   "compact"
+  ],
+  "unir/engine.js": [
+   "compose",
+   "cylindrical",
+   "layout",
+   "pairOffset",
+   "placed",
+   "resize",
+   "spherical"
+  ],
+  "unir/index.js": [
+   "openMerge"
+  ],
+  "unir/precise.js": [
+   "chainHomographies",
+   "placeMosaic"
+  ],
+  "unir/ui.js": [
+   "openMergeEditor",
+   "renderSimple"
+  ],
+  "vintagefilter/engine.js": [
+   "VintageGL"
+  ],
+  "vintagefilter/frames.js": [
+   "FRAMES",
+   "FRAME_CATS",
+   "drawFrame",
+   "frameById"
+  ],
+  "vintagefilter/index.js": [
+   "openVintageFilter",
+   "renderVintageFilter"
+  ],
+  "vintagefilter/overlays.js": [
+   "OVERLAY_KEYS",
+   "dateText",
+   "drawOverlays",
+   "overlayKey",
+   "rng"
+  ],
+  "vintagefilter/presets.js": [
+   "PRESETS",
+   "PRESET_CATS",
+   "preset"
+  ],
+  "vintagefilter/state.js": [
+   "CONTROLS",
+   "GROUPS",
+   "VINTAGE_VERSION",
+   "control",
+   "controlsFor",
+   "defaults",
+   "isActive",
+   "normalize",
+   "valueText"
+  ],
+  "vintagefilter/ui.js": [
+   "openVintageEditor"
+  ]
+ },
+ "dirEdges": {
+  "js/editor -> js/core": 123,
+  "js/main.js -> js/editor": 79,
+  "js/features -> js/ui": 54,
+  "js/features -> js/core": 52,
+  "js/editor -> js/ui": 50,
+  "js/io -> js/core": 48,
+  "js/editor -> js/filters": 39,
+  "js/features -> js/editor": 39,
+  "js/ui -> js/core": 38,
+  "js/main.js -> js/filters": 37,
+  "js/features -> js/ai": 34,
+  "js/main.js -> js/features": 34,
+  "js/ui -> js/editor": 33,
+  "js/filters -> js/editor": 28,
+  "js/filters -> js/core": 23,
+  "js/main.js -> js/ui": 21,
+  "js/filters -> js/ui": 20,
+  "js/io -> js/ui": 18,
+  "hdr -> raw": 14,
+  "js/features -> js/io": 13,
+  "js/features -> js/cv": 11,
+  "js/io -> js/editor": 11,
+  "raw -> js/core": 11,
+  "js/main.js -> js/core": 10,
+  "js/main.js -> js/io": 10,
+  "hdr -> js/ui": 9,
+  "js/core -> js/editor": 9,
+  "js/editor -> js/features": 9,
+  "js/io -> js/vendor": 9,
+  "raw -> js/ui": 7,
+  "socialmediapost -> js/core": 7,
+  "js/ai -> js/editor": 6,
+  "js/gpu -> js/editor": 6,
+  "lote -> js/ui": 6,
+  "lote -> js/io": 6,
+  "formas -> js/ui": 5,
+  "js/io -> js/exif": 5,
+  "lote -> js/core": 5,
+  "lote -> js/editor": 5,
+  "panorama -> js/ui": 5,
+  "stickers -> js/core": 5,
+  "camaras -> js/ui": 4,
+  "cortar -> js/ui": 4,
+  "cortar -> js/core": 4,
+  "formas -> js/core": 4,
+  "hdr -> js/io": 4,
+  "hojacontactos -> js/ui": 4,
+  "js/core -> js/ui": 4,
+  "js/exif -> js/ui": 4,
+  "js/filters -> js/ai": 4,
+  "js/gpu -> js/core": 4,
+  "js/main.js -> js/ai": 4,
+  "js/pwa.js -> js/ui": 4,
+  "lut -> js/ui": 4,
+  "socialmediapost -> memes": 4,
+  "unir -> js/ui": 4,
+  "vintagefilter -> js/core": 4,
+  "comparar -> js/ui": 3,
+  "frames -> js/core": 3,
+  "hdr -> js/core": 3,
+  "hdr -> js/cv": 3,
+  "js/ai -> js/ui": 3,
+  "js/ai -> js/io": 3,
+  "js/editor -> js/ai": 3,
+  "js/exif -> js/core": 3,
+  "js/features -> js/lens": 3,
+  "js/features -> raw": 3,
+  "js/filters -> js/analysis": 3,
+  "js/filters -> js/exif": 3,
+  "js/io -> raw": 3,
+  "js/main.js -> js/analysis": 3,
+  "memes -> js/editor": 3,
+  "memes -> js/core": 3,
+  "raw -> js/lens": 3,
+  "sw.js -> js/vendor": 3,
+  "camaras -> js/core": 2,
+  "cortar -> js/editor": 2,
+  "cortar -> js/io": 2,
+  "formas -> js/editor": 2,
+  "hojacontactos -> js/io": 2,
+  "js/ai -> js/vendor": 2,
+  "js/analysis -> js/ui": 2,
+  "js/editor -> js/cv": 2,
+  "js/exif -> js/io": 2,
+  "js/features -> js/filters": 2,
+  "js/filters -> js/io": 2,
+  "js/main.js -> js/pwa.js": 2,
+  "js/main.js -> cortar": 2,
+  "js/main.js -> formas": 2,
+  "js/main.js -> hdr": 2,
+  "js/main.js -> js/exif": 2,
+  "js/pwa.js -> js/pwa-updates.js": 2,
+  "js/pwa.js -> js/io": 2,
+  "js/ui -> js/io": 2,
+  "lut -> js/core": 2,
+  "memes -> js/ui": 2,
+  "socialmediapost -> js/editor": 2,
+  "socialmediapost -> js/ui": 2,
+  "stickers -> js/ui": 2,
+  "vintagefilter -> js/ui": 2,
+  "vintagefilter -> js/editor": 2,
+  "camaras -> js/editor": 1,
+  "comparar -> js/core": 1,
+  "comparar -> js/editor": 1,
+  "frames -> js/editor": 1,
+  "frames -> js/ui": 1,
+  "hdr -> js/editor": 1,
+  "js/analysis -> js/exif": 1,
+  "js/analysis -> js/core": 1,
+  "js/analysis -> js/editor": 1,
+  "js/cv -> js/ui": 1,
+  "js/cv -> js/vendor": 1,
+  "js/editor -> js/gpu": 1,
+  "js/editor -> raw": 1,
+  "js/editor -> vintagefilter": 1,
+  "js/editor -> camaras": 1,
+  "js/editor -> lut": 1,
+  "js/exif -> js/analysis": 1,
+  "js/features -> hdr": 1,
+  "js/io -> js/pwa-updates.js": 1,
+  "js/io -> hdr": 1,
+  "js/io -> lote": 1,
+  "js/io -> js/analysis": 1,
+  "js/lens -> hdr": 1,
+  "js/main.js -> lote": 1,
+  "js/main.js -> hojacontactos": 1,
+  "js/main.js -> comparar": 1,
+  "js/main.js -> unir": 1,
+  "js/main.js -> panorama": 1,
+  "js/main.js -> memes": 1,
+  "js/main.js -> stickers": 1,
+  "js/main.js -> socialmediapost": 1,
+  "js/main.js -> frames": 1,
+  "js/main.js -> raw": 1,
+  "js/main.js -> vintagefilter": 1,
+  "js/main.js -> camaras": 1,
+  "js/main.js -> lut": 1,
+  "js/main.js -> js/pwa-updates.js": 1,
+  "js/main.js -> js/gpu": 1,
+  "js/pwa.js -> js/core": 1,
+  "js/pwa.js -> sw.js": 1,
+  "lut -> js/filters": 1,
+  "lut -> js/editor": 1,
+  "panorama -> js/core": 1,
+  "panorama -> js/editor": 1,
+  "raw -> js/editor": 1,
+  "raw -> js/io": 1,
+  "stickers -> js/editor": 1,
+  "sw.js -> js/main.js": 1,
+  "sw.js -> js/core": 1,
+  "unir -> js/core": 1,
+  "unir -> js/editor": 1,
+  "unir -> js/cv": 1
+ }
+}

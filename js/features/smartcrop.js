@@ -17,7 +17,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc } from "../core/doc.js";
-import { toast, status } from "../ui/toast.js";
+import { toast, status } from "../core/toast.js";
 
 export const FORMATS = [
   ["1:1", "Instagram · cuadrado 1:1", 1],
@@ -113,7 +113,7 @@ let open = false;
 export async function openSmartCrop(){
   if(open) return;
   if(!doc.open){ toast("Abre una imagen primero"); return; }
-  const { flatten } = await import("../editor/layertree.js");
+  const { flatten } = await import("../editor/layers/layertree.js");
   const src = flatten(), W = src.width, H = src.height;
   let M;
   status("Analizando la foto…");
@@ -121,7 +121,7 @@ export async function openSmartCrop(){
   catch(err){ status(""); if(!err.cancelled) toast("No se pudo analizar la foto: " + err.message, "err"); return; }
   status("");
   open = true;
-  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  const { createShell, ensureShellStyles } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
   let fmt = FORMATS[1], rect = bestCrop(M, fmt[2], W, H);
   const close = () => { open = false; sh.close(); };
@@ -131,7 +131,7 @@ export async function openSmartCrop(){
     onApply: async () => {
       const r = { x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.w), h: Math.round(rect.h) };
       close();
-      const { state, applyCrop } = await import("../editor/tools.js");
+      const { state, applyCrop } = await import("../editor/tools/tools.js");
       state.cropRect = r; applyCrop();
     }
   });

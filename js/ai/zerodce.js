@@ -20,9 +20,9 @@
        proporción a lo que se ha aclarado cada punto, y se trama.
    ═══════════════════════════════════════════════════════════════ */
 
-import { runAdjust, slider, pickerGroup } from "../editor/adjust.js";
-import { guidedFilterAlpha } from "../editor/refineedge-math.js";
-import { finishLifted } from "../editor/lowlight.js";
+import { runAdjust, slider, pickerGroup } from "../editor/adjust/adjust.js";
+import { guidedFilterAlpha } from "../editor/selection/refineedge-math.js";
+import { finishLifted } from "../editor/adjust/lowlight.js";
 
 const URL_W = new URL("../../assets/models/zerodce/zerodce_pp.bin", import.meta.url).href;
 // [canales de entrada, de salida] de cada bloque (convolución 3×3 por canal + 1×1)

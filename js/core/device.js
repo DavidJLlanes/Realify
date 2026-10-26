@@ -42,7 +42,7 @@ export const galleryAccept = full => isAndroid() ? "image/*" : full;
    siquiera dibuja lienzos de más de ~16,7 MP): se limita el lado mayor
    a 2400 px; en escritorio, a 8192. Devuelve [ancho, alto, reducida].
    La usan al abrir imágenes (io/open.js) y al pasar un RAW revelado
-   al editor (raw/index.js). */
+   al editor (plugins/raw/index.js). */
 export function docSizeLimit(w, h, { highQuality = false } = {}){
   const coarse = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
   /* El límite normal mantiene el editor ligero. Herramientas cuyo resultado

@@ -19,16 +19,16 @@
 
 import { on } from "../core/bus.js";
 import { doc, activeLayer, layerIndex } from "../core/doc.js";
-import { isAdjustLayer, mountAdjustProperties, adjustTypeName } from "../editor/adjustlayers.js";
+import { isAdjustLayer, mountAdjustProperties, adjustTypeName } from "../editor/layers/adjustlayers.js";
 import { isFillLayer, isShapeLayer, mountFillProperties, mountShapeProperties,
-         fillKindName, SHAPE_KIND_NAME } from "../editor/layercontent.js";
-import { blendIfEligible, isBlendIfActive, mountBlendIfEditor } from "../editor/blendif.js";
-import { isText } from "../editor/text.js";
-import { mountTextProperties } from "../editor/textprops.js";
-import { mountMaskProperties } from "../editor/maskadjust.js";
-import { filterOf } from "../editor/filterlayer.js";
-import { knownFilter, filterLiveCapable, mountFilterEditor, openFilterEditor } from "../editor/filterregistry.js";
-import { toast } from "./toast.js";
+         fillKindName, SHAPE_KIND_NAME } from "../editor/layers/layercontent.js";
+import { blendIfEligible, isBlendIfActive, mountBlendIfEditor } from "../editor/layers/blendif.js";
+import { isText } from "../editor/text/text.js";
+import { mountTextProperties } from "../editor/text/textprops.js";
+import { mountMaskProperties } from "../editor/layers/maskadjust.js";
+import { filterOf } from "../editor/layers/filterlayer.js";
+import { knownFilter, filterLiveCapable, mountFilterEditor, openFilterEditor } from "../editor/layers/filterregistry.js";
+import { toast } from "../core/toast.js";
 
 const body = document.getElementById("propsBody");
 const empty = document.getElementById("propsEmpty");

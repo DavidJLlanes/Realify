@@ -16,8 +16,6 @@
    arrastrar el deslizador de intensidad y ver la foto seguir al dedo.
    ═══════════════════════════════════════════════════════════════ */
 
-const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
-
 /* Curva de tono sobre la luminancia, en una tabla de 256 entradas.
    El contraste es una sigmoide que pasa exactamente por 0, ½ y 1 —así
    ni los negros ni los blancos se mueven y el gris medio se queda en
@@ -25,6 +23,8 @@ const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
    y luces son dos campanas centradas en ¼ y ¾, que aclaran tirando
    hacia el blanco y oscurecen tirando hacia el negro en vez de sumar
    sin más (sumar aplasta las luces contra el techo). */
+import { clamp01 } from "../../core/util/math.js";
+
 function toneLut(contrast, shadows, highlights){
   const lut = new Float32Array(256);
   const c = contrast / 100, s = shadows / 100, h = highlights / 100;

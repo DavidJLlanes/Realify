@@ -25,3 +25,7 @@ node_modules/
 
 # Paquetes de Python de las pruebas (no son parte de la web)
 *.whl
+
+# Resultados de las comprobaciones locales (tools/verify); la línea base de partida sí se versiona
+tools/verify/baseline/*.actual.json
+tools/verify/baseline/screens/actual-*.png

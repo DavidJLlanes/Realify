@@ -11,12 +11,12 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { activeLayer } from "../../core/doc.js";
-import { dialog } from "../../ui/dialog.js";
-import { toast } from "../../ui/toast.js";
+import { dialog } from "../../ui/kit/dialog.js";
+import { toast } from "../../core/toast.js";
 import { PRESETS } from "./presets.js";
 import { normalizeState, presetStages } from "./state.js";
-import { commitFilter, filterBase } from "../../editor/filterlayer.js";
-import { attachFloatResult } from "../../editor/floatfilter.js";
+import { commitFilter, filterBase } from "../../editor/layers/filterlayer.js";
+import { attachFloatResult } from "../../editor/render/floatfilter.js";
 import { hiCoversCanvas } from "../../core/hisrc.js";
 import { matchCamera } from "./exifmatch.js";
 import { exifState, saveExif } from "../../exif/ui.js";

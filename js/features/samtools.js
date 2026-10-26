@@ -21,11 +21,12 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc, activeLayer } from "../core/doc.js";
-import { toast } from "../ui/toast.js";
-import { createShell, ensureShellStyles } from "../ui/fsshell.js";
+import { toast } from "../core/toast.js";
+import { createShell, ensureShellStyles } from "../ui/kit/fsshell.js";
 import { samPrepare, samPredict, previewMask, finalMask } from "../ai/sam.js";
-import { commitSelection, boundsOf } from "../editor/selection.js";
-import { boxBlurFloat } from "../editor/refineedge-math.js";
+import { commitSelection, boundsOf } from "../editor/selection/selection.js";
+import { boxBlurFloat } from "../editor/selection/refineedge-math.js";
+import { hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
 
 const MODES = {
   select: { title: "Selección con un toque", apply: "Seleccionar", tint: [30, 144, 255],
@@ -177,7 +178,6 @@ export async function openSamTool(mode = "select"){
 /* ── Borrado con LaMa en una capa nueva ─────────────────────────── */
 const DEC = new Float32Array(256);
 for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
-const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
 
 function lamaRegion(b, W, H){
   let side = Math.round(Math.max(b.w, b.h) * 2.5);
@@ -187,8 +187,6 @@ function lamaRegion(b, W, H){
   return { x: Math.max(0, Math.min(W - sw, Math.round(cx - sw / 2))), y: Math.max(0, Math.min(H - shh, Math.round(cy - shh / 2))), w: sw, h: shh };
 }
 
-/* Ruido determinista (gaussiano aproximado) para el grano */
-const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 const gauss = i => (hash(i) + hash(i + 7919) + hash(i + 104729) - 1.5) * 2;
 
 /* `inpaint` se puede sustituir (pruebas sin descargar LaMa). */
@@ -282,7 +280,7 @@ export async function eraseToLayer(layer, fm, rgba, inpaint = null){
   l.ctx.drawImage(outLayer, 0, 0);
   l.thumbDirty = true;
   // Porcentaje de aplicación (mezcla con la capa de debajo)
-  (await import("../editor/filterlayer.js")).markMixLayer(l, "Borrador mágico");
+  (await import("../editor/layers/filterlayer.js")).markMixLayer(l, "Borrador mágico");
   const nextLayers = doc.layers.slice(), nextActive = l.id;
   const put = (layers, active) => { doc.layers = layers.slice(); doc.activeId = active; emit("doc:structure"); emit("doc:change"); };
   record("Borrador mágico", () => put(prevLayers, prevActive), () => put(nextLayers, nextActive));

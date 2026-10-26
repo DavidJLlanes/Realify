@@ -19,7 +19,7 @@
 import { doc } from "./doc.js";
 import { record } from "./history.js";
 import { emit } from "./bus.js";
-import { toast } from "../ui/toast.js";
+import { toast } from "./toast.js";
 
 let snapshots = [];
 let seq = 0;
@@ -171,7 +171,7 @@ export function clearSnapshots(){
 
 /* Un documento por pestaña, cada uno con sus propias instantáneas —
    mismo mecanismo que el historial de deshacer (core/history.js): al
-   cambiar de pestaña, core/documents.js saca esta «pizarra» entera y
+   cambiar de pestaña, editor/documents.js saca esta «pizarra» entera y
    mete la de la pestaña a la que se va. */
 export function exportState(){ return { snapshots, brushSourceId }; }
 export function importState(s){

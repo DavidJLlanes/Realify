@@ -11,7 +11,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(); const errs = []; page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), CS = await import("/js/core/colorspace.js"), E = await import("/js/io/export.js"), I = await import("/js/io/icc-embed.js"), ICC = await import("/js/core/icc.js");
+  const D = await import("/js/core/doc.js"), CS = await import("/js/core/colorspace.js"), E = await import("/js/io/export/export.js"), I = await import("/js/io/formats/icc-embed.js"), ICC = await import("/js/core/icc.js");
   const out = { p3: CS.p3Supported() };
   D.newDoc(64, 48, { name: "p3" }); D.doc.colorSpace = "display-p3"; out.isP3 = CS.isP3Doc();
   const L = D.addLayer({ name: "c" }); const x = L.ctx; x.fillStyle = "#336699"; x.fillRect(0, 0, 64, 48);

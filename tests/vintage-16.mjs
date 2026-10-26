@@ -1,5 +1,5 @@
 /* Prueba de Filtro Vintage con salida de 16 bits (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const V = await import("/vintagefilter/engine.js"), H = await import("/js/core/hisrc.js"), P = await import("/vintagefilter/presets.js");
+  const V = await import("/plugins/vintage/engine.js"), H = await import("/js/core/hisrc.js"), P = await import("/plugins/vintage/presets.js");
   const W = 600, Hh = 400, o = {};
   const hi = new Uint16Array(W * Hh * 3); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const j = (y * W + x) * 3, v = Math.round(8000 + x * 60.3 + y * 20.7); hi[j] = v; hi[j + 1] = v >> 1; hi[j + 2] = 65535 - v; }
   const c = document.createElement("canvas"); c.width = W; c.height = Hh; const cx = c.getContext("2d"), img = cx.createImageData(W, Hh);

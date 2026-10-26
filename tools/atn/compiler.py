@@ -1,6 +1,6 @@
 """Compilador de acciones de Photoshop (.atn) a recetas de estilos de Realify.
 Simula la pila de capas que construye cada acción (capas de ajuste, rellenos, grupos, copias de la imagen) y emite una receta JSON
-que el motor de Realify (js/filters/styleengine.js) sabe evaluar. Lo que no sabe interpretar se anota en `unsupported`."""
+que el motor de Realify (js/filters/looks/styleengine.js) sabe evaluar. Lo que no sabe interpretar se anota en `unsupported`."""
 import math, copy
 from atnparse import parse
 

@@ -23,9 +23,9 @@
 import { doc, addLayer } from "../core/doc.js";
 import { recordLayers } from "../core/history.js";
 import { emit } from "../core/bus.js";
-import { toast } from "../ui/toast.js";
+import { toast } from "../core/toast.js";
 import { lightEv, gainWithShoulder, quantileBounds, planeWeights } from "../ai/depthmath.js";
-import { makeMaskFromArray, setMaskTarget } from "../editor/masks.js";
+import { makeMaskFromArray, setMaskTarget } from "../editor/layers/masks.js";
 import { visibleImage, getDepth, scaled, PREVIEW, prepare, openShell, toNewLayer, DEC, enc, hash } from "./depthtools.js";
 import { depthField, fieldToArray } from "./depthzones.js";
 

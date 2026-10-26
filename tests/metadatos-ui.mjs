@@ -1,5 +1,5 @@
-/* Metadatos al exportar por el DIÁLOGO real (v253): abre Exportar con un original que trae EXIF, elige cada formato, edita campos con «Editar…» y exporta; tests/metadatos_check.py verifica lo exportado: genera un «original» con EXIF (con nota del fabricante), IPTC y XMP, lo filtra con io/metadata.js y lo incrusta en JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF; tests/metadatos_check.py lo verifica con PIL, pillow-heif y tifffile: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+/* Metadatos al exportar por el DIÁLOGO real (v253): abre Exportar con un original que trae EXIF, elige cada formato, edita campos con «Editar…» y exporta; tests/metadatos_check.py verifica lo exportado: genera un «original» con EXIF (con nota del fabricante), IPTC y XMP, lo filtra con io/meta/metadata.js y lo incrusta en JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF; tests/metadatos_check.py lo verifica con PIL, pillow-heif y tifffile: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const W = await import("/js/exif/writer.js"), M = await import("/js/io/metadata.js"), D = await import("/js/core/doc.js");
+  const W = await import("/js/exif/writer.js"), M = await import("/js/io/meta/metadata.js"), D = await import("/js/core/doc.js");
   const enc = s => new TextEncoder().encode(s);
   const exifIn = W.buildTIFF([W.eAscii(0x010F, "TestCam"), W.eAscii(0x013B, "Ana Original"), W.eAscii(0x8298, "© Ana")], [W.eAscii(0x9003, "2020:01:02 03:04:05"), W.eShort(0x8827, 400), W.eAscii(0xA431, "SERIAL123")], [], {});
   const cv = document.createElement("canvas"); cv.width = 64; cv.height = 48; const x = cv.getContext("2d"); const g = x.createLinearGradient(0, 0, 64, 48); g.addColorStop(0, "#f00"); g.addColorStop(1, "#00f"); x.fillStyle = g; x.fillRect(0, 0, 64, 48);
@@ -24,7 +24,7 @@ const res = await page.evaluate(async () => {
 const wait = ms => page.waitForTimeout(ms);
 const results = {};
 for(const [tipo, ext] of [["image/jpeg", "jpg"], ["image/png", "png"], ["image/webp", "webp"], ["image/avif", "avif"], ["image/jxl", "jxl"], ["image/tiff", "tif"], ["application/pdf", "pdf"]]){
-  await page.evaluate(() => { import("/js/io/export.js").then(m => { window.__dlg = m.exportDialog(); }); });
+  await page.evaluate(() => { import("/js/io/export/export.js").then(m => { window.__dlg = m.exportDialog(); }); });
   await page.waitForSelector("#exType", { timeout: 15000 });
   await page.evaluate(t => { const s = document.querySelector("#exType"); if(!s.querySelector(`option[value="${t}"]`)){ const o = document.createElement("option"); o.value = t; o.textContent = t; s.appendChild(o); } s.value = t; s.dispatchEvent(new Event("change", { bubbles: true })); }, tipo);
   await wait(300);

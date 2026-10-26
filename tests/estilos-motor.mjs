@@ -1,9 +1,9 @@
-/* Motor de estilos por capas (js/filters/styleengine.js, v260), en Node y sin navegador: identidad, curvas, niveles, modos de fusión, opacidades,
+/* Motor de estilos por capas (js/filters/looks/styleengine.js, v260), en Node y sin navegador: identidad, curvas, niveles, modos de fusión, opacidades,
    grupos, degradados, copias de la imagen, intensidad, ruido y desenfoque, coherencia entre la función de color (coma flotante) y la imagen, y que
    TODAS las recetas convertidas (assets/estilos/*.json) se evalúan sin errores, sin NaN y sin elementos ignorados. Uso: node tests/estilos-motor.mjs */
 import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const { renderStyle, styleIsPure, styleColorFn, registerTexture, hasTexture, recipeTextures } = await import(path.join(ROOT, "js/filters/styleengine.js"));
+const { renderStyle, styleIsPure, styleColorFn, registerTexture, hasTexture, recipeTextures } = await import(path.join(ROOT, "js/filters/looks/styleengine.js"));
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 const near = (a, b, t = 1.01) => Math.abs(a - b) <= t;
 const img = (w, h, f) => { const d = new Uint8ClampedArray(w * h * 4); for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){ const c = f(x, y), i = (y * w + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; } return d; };
@@ -90,7 +90,7 @@ const run = (recipe, f, w = 8, h = 8, o = {}) => { const d = img(w, h, f); const
       chk(!nan, `${s.id}: valores fuera de rango`); } }
   console.log(`recetas evaluadas: ${n}`); chk(n >= 130, "hay al menos 130 recetas convertidas: " + n); chk(ig.length === 0, "elementos ignorados por el motor: " + ig.slice(0, 5).join(" | ")); if(slow.length) console.log("lentas (miniatura 96×64):", slow.slice(0, 6).join(", ")); }
 // texturas (destellos y bokeh): capa «tex» en modo trama, con una imagen sintética de 200×140 con un destello rojo pegado al borde derecho
-{ const { registerTexture, recipeTextures } = await import(path.join(ROOT, "js/filters/styleengine.js"));
+{ const { registerTexture, recipeTextures } = await import(path.join(ROOT, "js/filters/looks/styleengine.js"));
   const tw = 200, th2 = 140, td = new Uint8ClampedArray(tw * th2 * 4); for(let y = 0; y < th2; y++) for(let x = 0; x < tw; x++){ const i = (y * tw + x) * 4, v = Math.max(0, (x - 150) / 50) * 255; td[i] = v; td[i + 1] = v * 0.2; td[i + 2] = 0; td[i + 3] = 255; }
   registerTexture("t/sint.jpg", tw, th2, td);
   const R = { ref: 100, layers: [{ k: "tex", src: "t/sint.jpg", bm: "screen", op: 1 }] };

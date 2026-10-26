@@ -8,7 +8,8 @@
    1 = lo más lejano), que es lo que ve quien maneja los mandos.
    ═══════════════════════════════════════════════════════════════ */
 
-const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+import { clamp01 } from "../core/util/math.js";
+
 const smooth01 = t => { t = clamp01(t); return t * t * (3 - 2 * t); };
 
 /** Pertenencia (0-1) de una distancia `u` a la zona [a, b]. `soft` es la

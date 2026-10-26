@@ -1,8 +1,8 @@
-/* Prueba del empaquetador HEIC (js/io/heif.js): con un HEIC real generado por libheif (pillow-heif, sólo para la prueba), se saca su
+/* Prueba del empaquetador HEIC (js/io/formats/heif.js): con un HEIC real generado por libheif (pillow-heif, sólo para la prueba), se saca su
    hvcC y su fotograma HEVC, se reempaquetan con nuestro escritor (recto, recortado con `clap`, y pasando por Annex B) y se
    decodifican de nuevo con libheif: deben dar los MISMOS píxeles. Uso: node tests/heic.mjs   (necesita python3 con pillow-heif y numpy) */
 import { execFileSync } from "node:child_process"; import fs from "node:fs"; import os from "node:os"; import path from "node:path";
-import { writeHeic, annexBToHevc, hevcLevel } from "../js/io/heif.js";
+import { writeHeic, annexBToHevc, hevcLevel } from "../js/io/formats/heif.js";
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "heic-")), py = (code, ...a) => execFileSync("python3", ["-c", code, ...a], { encoding: "utf8" });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 py(`
@@ -76,7 +76,7 @@ chk(decode("e.heic", e).w === W, "HEIC con colr prof se decodifica");
 chk(hevcLevel(1920, 1080) === 123 && hevcLevel(3000, 2500) === 153 && hevcLevel(4000, 3000) === 183 && hevcLevel(8000, 6000) === 186 && hevcLevel(20000, 10000) === 0, "niveles HEVC");
 // 5) RGB → I420 (BT.709, rango limitado) → RGB: ida y vuelta sobre una imagen suave y sobre una de contornos nítidos
 {
-  const { rgbaToI420 } = await import("../js/io/heic.js");
+  const { rgbaToI420 } = await import("../js/io/formats/heic.js");
   const w = 64, h = 48, mk = f => { const a = new Uint8ClampedArray(w * h * 4); for(let j = 0; j < h; j++) for(let i = 0; i < w; i++){ const [r, g, b] = f(i, j); a.set([r, g, b, 255], (j * w + i) * 4); } return a; };
   const back = (yuv, cw, ch, i, j) => { const Y = (yuv[j * cw + i] - 16) / 219, ci = (j >> 1) * (cw >> 1) + (i >> 1), Cb = (yuv[cw * ch + ci] - 128) / 224, Cr = (yuv[cw * ch + (cw >> 1) * (ch >> 1) + ci] - 128) / 224;
     return [Y + 2 * (1 - 0.2126) * Cr, Y - (2 * 0.0722 * (1 - 0.0722) * Cb + 2 * 0.2126 * (1 - 0.2126) * Cr) / 0.7152, Y + 2 * (1 - 0.0722) * Cb].map(v => Math.round(Math.min(1, Math.max(0, v)) * 255)); };
@@ -101,7 +101,7 @@ if(chromium){
     const S = new Uint8Array(sample), HV = new Uint8Array(hvcc), log = { cfgs: [], frames: [] };
     window.VideoFrame = class { constructor(data, init){ this.data = data; this.init = init; log.frames.push({ len: data.length, init }); } close(){} };
     window.VideoEncoder = class { static async isConfigSupported(c){ return { supported: !!c.codec && /^hvc1\.1\.6\.L\d+\.B0$/.test(c.codec) }; } constructor(o){ this.o = o; } configure(c){ log.cfgs.push(c); } encode(f, o){ log.key = o?.keyFrame; } async flush(){ this.o.output({ byteLength: S.length, copyTo: x => x.set(S) }, { decoderConfig: { description: HV } }); } close(){} };
-    const { encodeHeic, heicSupported } = await import("/js/io/heic.js");
+    const { encodeHeic, heicSupported } = await import("/js/io/formats/heic.js");
     const mk = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, w, h); return c; };
     const out = { supported: await heicSupported() };
     const blob = await encodeHeic(mk(W, H), { quality: .9 });

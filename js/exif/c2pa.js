@@ -11,8 +11,9 @@
    Realify no firma ni conserva credenciales: al exportar se pierden (cambiar un solo píxel las invalidaría).
    ═══════════════════════════════════════════════════════════════ */
 
+import { asciiAt as ascii, utf8 as enc } from "../core/util/text.js";
+
 const td = new TextDecoder("utf-8", { fatal: false });
-const ascii = (u, i, n) => { let s = ""; for(let k = 0; k < n && i + k < u.length; k++) s += String.fromCharCode(u[i + k]); return s; };
 
 /* ── localizar el JUMBF ────────────────────────────────────────── */
 function u32(u, i){ return ((u[i] << 24) | (u[i + 1] << 16) | (u[i + 2] << 8) | u[i + 3]) >>> 0; }
@@ -161,7 +162,6 @@ export function cborDecode(u, pos = { i: 0 }, depth = 0){
   // etiqueta: se devuelve { tag, value }
   return { tag: n, value: cborDecode(u, pos, depth + 1) };
 }
-const enc = s => new TextEncoder().encode(s);
 const plain = v => {                                                       // Map → objeto para leerlo cómodo
   if(v instanceof Map){ const o = {}; for(const [k, x] of v) o[String(k)] = plain(x); return o; }
   if(Array.isArray(v)) return v.map(plain);

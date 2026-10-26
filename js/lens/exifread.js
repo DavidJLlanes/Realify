@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
-   EXIF DE CÁMARA Y OBJETIVO (fase 9 de PENDIENTE.md)
+   EXIF DE CÁMARA Y OBJETIVO (fase 9 de docs/PENDIENTE.md)
    Lee de un JPEG, TIFF/DNG, HEIC, PNG o WebP lo que hace falta para
    elegir el perfil de lente: marca y modelo de la cámara, modelo del
    objetivo, distancia focal (y su equivalente en 35 mm), diafragma y
    distancia de enfoque. Sin DOM salvo `File`.
    ═══════════════════════════════════════════════════════════════ */
 
-import { findTiff } from "../../hdr/exif.js";
+import { findTiff } from "../exif/quick-exif.js";
 
 export async function readLensExif(file){
   try{

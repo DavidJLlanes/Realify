@@ -1,4 +1,4 @@
-/* Prueba de «Lente por perfil» en el revelador RAW (v251, raw/lens.js): un DNG sintético de una cuadrícula con un perfil propio (distorsión y viñeteo) guardado
+/* Prueba de «Lente por perfil» en el revelador RAW (v251, plugins/raw/lens.js): un DNG sintético de una cuadrícula con un perfil propio (distorsión y viñeteo) guardado
    para su cámara. Con la opción activada, los datos lineales salen corregidos ANTES del revelado: el centro no cambia, los bordes se desplazan (la geometría) y
    las esquinas se aclaran (el viñeteo compensado en luz lineal). Sin la opción, nada cambia. Uso: node tests/raw-lente.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(); page.setDefaultTimeout(0); const errs = []; page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const { colorDng } = await import("/raw/tests/dng-color-fixture.js"), { RawDecoder } = await import("/raw/decoder.js"), { defaults } = await import("/raw/state.js"), { linearReader } = await import("/raw/source.js"), UP = await import("/js/lens/userprofiles.js");
+  const { colorDng } = await import("/tests/plugins/raw/dng-color-fixture.js"), { RawDecoder } = await import("/plugins/raw/decoder.js"), { defaults } = await import("/plugins/raw/state.js"), { linearReader } = await import("/plugins/raw/source.js"), UP = await import("/js/lens/userprofiles.js");
   UP.put({ name: "Prueba Realify", match: { make: "Realify", model: "Color camera" }, distortion: { k: [-0.12, 0, 0] }, vignette: { v: [-0.45, 0, 0] } });
   const W = 320, H = 200, scene = (x, y) => (x % 32 < 3 || y % 32 < 3) ? [0.5, 0.5, 0.5] : [0.2, 0.2, 0.2], file = new File([colorDng(W, H, scene)], "grid.dng");
   const read = async on => { const d = await RawDecoder.open(file, { ...defaults(), lensProfile: on }); const s = d.source, rd = linearReader(s); d.dispose(); return { w: s.width, h: s.height, g: (x, y) => rd((y * s.width + x) * s.channels + 1) }; };

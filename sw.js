@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v281";
+const VERSION = "realify-v285";
 const SHELL = [
   "./",
   "./index.html",
@@ -30,9 +30,6 @@ const SHELL = [
   // conexión se sirva el que toca; N sale de VERSION.
   "./js/main.js?v=" + VERSION.match(/v(\d+)/)[1],
   "./js/core/viewport-lock.js"
-  ,"./js/vendor/ag-psd.js"
-  ,"./js/vendor/utif.js"
-  ,"./js/vendor/heic2any.min.js"
 ];
 
 self.addEventListener("install", e => {
@@ -72,7 +69,7 @@ self.addEventListener("fetch", e => {
 
   /* `no-cache`: el navegador puede reutilizar su caché HTTP, pero
      siempre pregunta antes al servidor (un 304 si no ha cambiado). Sin
-     esto, los módulos sin «?v=» (p. ej. vintagefilter/ui.js o su CSS)
+     esto, los módulos sin «?v=» (p. ej. plugins/vintage/ui.js o su CSS)
      se servían de la caché HTTP del móvil durante horas tras publicar
      una versión nueva. Una navegación no admite opciones: se pide por
      su URL. */

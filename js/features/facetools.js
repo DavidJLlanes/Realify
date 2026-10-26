@@ -19,21 +19,20 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc, activeLayer } from "../core/doc.js";
-import { toast, status } from "../ui/toast.js";
+import { toast, status } from "../core/toast.js";
 import { detectFaces } from "../ai/faces.js";
-import { boxBlurFloat } from "../editor/refineedge-math.js";
+import { boxBlurFloat } from "../editor/selection/refineedge-math.js";
+import { hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
 
 const DEC = new Float32Array(256);
 for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
-const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
-const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 
 /* Las caras se buscan en lo que se VE (la imagen compuesta), no sólo en
    la capa activa: tras difuminar, por ejemplo, la activa es la capa
    nueva, casi transparente. */
 async function visibleImage(){
   if(!doc.open || !activeLayer()){ toast("Abre una imagen primero"); return null; }
-  const { flatten } = await import("../editor/layertree.js");
+  const { flatten } = await import("../editor/layers/layertree.js");
   const c = flatten();
   // flatten puede dejar el lienzo en la GPU: una copia legible
   const r = document.createElement("canvas"); r.width = c.width; r.height = c.height;
@@ -49,7 +48,7 @@ async function toNewLayer(canvas, name){
   l.ctx.drawImage(canvas, 0, 0);
   l.thumbDirty = true;
   // Porcentaje de aplicación (mezcla con la capa de debajo)
-  (await import("../editor/filterlayer.js")).markMixLayer(l, name);
+  (await import("../editor/layers/filterlayer.js")).markMixLayer(l, name);
   const nextLayers = doc.layers.slice(), nextActive = l.id;
   const put = (layers, active) => { doc.layers = layers.slice(); doc.activeId = active; emit("doc:structure"); emit("doc:change"); };
   record(name, () => put(prevLayers, prevActive), () => put(nextLayers, nextActive));
@@ -124,7 +123,7 @@ export async function openFaceBlur(){
   catch(err){ if(!err.cancelled) toast("No se pudieron buscar caras: " + err.message, "err"); return; }
   if(!faces.length){ toast("No se han encontrado caras en esta foto"); return; }
   blurOpen = true;
-  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  const { createShell, ensureShellStyles } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
   const S = { style: "blur", amount: 60, on: faces.map(() => true) };
   const rgba = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
@@ -257,7 +256,7 @@ export async function faceCrop(){
   try{ faces = await findFaces(src); }
   catch(err){ if(!err.cancelled) toast("No se pudieron buscar caras: " + err.message, "err"); return; }
   if(!faces.length){ toast("No se han encontrado caras en esta foto"); return; }
-  const { setTool, state, reflowCrop } = await import("../editor/tools.js");
+  const { setTool, state, reflowCrop } = await import("../editor/tools/tools.js");
   const { emit } = await import("../core/bus.js");
   setTool("crop");
   // Formato: el que ya tenga Recortar; si es libre, 4:5 (retrato)
@@ -336,7 +335,7 @@ async function prepareFace(src, rgba, W, H, f){
   // Luz lineal de la región y su «bajo» (suavizado que respeta bordes)
   const lin = [new Float32Array(n), new Float32Array(n), new Float32Array(n)];
   for(let y = 0; y < h; y++) for(let xx = 0; xx < w; xx++){ const i = ((y0 + y) * W + x0 + xx) * 4, p = y * w + xx; lin[0][p] = DEC[rgba[i]]; lin[1][p] = DEC[rgba[i + 1]]; lin[2][p] = DEC[rgba[i + 2]]; }
-  const { guidedFilterAlpha } = await import("../editor/refineedge-math.js");
+  const { guidedFilterAlpha } = await import("../editor/selection/refineedge-math.js");
   /* Resolución real del rostro (fase 3): si la cara es mayor que los 512
      px del modelo, las zonas llegan ampliadas y con el borde borroso; un
      filtro guiado por la propia foto las ajusta a los bordes reales de
@@ -410,7 +409,7 @@ export async function openFaceRetouch(){
     }, { unit: "cara" });
   }
   catch(err){ retouchOpen = false; if(!err.cancelled && !/cancelad/.test(err.message)) toast("No se pudo analizar la cara: " + err.message, "err"); return; }
-  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  const { createShell, ensureShellStyles } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
   const V = Object.fromEntries(ZONES.map(z => [z[0], z[4]]));
   let zone = "skin", out = null, frame = 0;
@@ -592,7 +591,7 @@ export async function openFaceRestore(){
       { title: faces.length === 1 ? "Restaurando la cara con IA" : `Restaurando ${faces.length} caras con IA` });
     prepared = r.outs.map((o, i) => prepareRestored(Ms[i], o, rgba, W, H));
   }catch(err){ restoreOpen = false; if(!err.cancelled && !/cancelad/.test(err.message)) toast("No se pudieron restaurar las caras: " + err.message, "err"); return; }
-  const { createShell, ensureShellStyles } = await import("../ui/fsshell.js");
+  const { createShell, ensureShellStyles } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
   const S = { amount: 80, on: faces.map(() => true) };
   const view = document.createElement("canvas"); view.width = W; view.height = H;

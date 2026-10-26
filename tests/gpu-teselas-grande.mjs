@@ -1,5 +1,5 @@
 /* Compositor GPU por teselas con un documento grande (antes se rechazaba por encima de 4–8 MP) (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), G = await import("/js/gpu/floatcompositor.js"), LT = await import("/js/editor/layertree.js"), AL = await import("/js/editor/adjustlayers.js");
+  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), G = await import("/js/editor/render/floatcompositor.js"), LT = await import("/js/editor/layers/layertree.js"), AL = await import("/js/editor/layers/adjustlayers.js");
   const o = {}, W = 4000, Hh = 3000; D.newDoc(W, Hh, { name: "grande" }); o.disp = G.floatAvailable(); if(!o.disp) return o;
   const base = D.addLayer({ name: "Foto" });
   const hi = new Uint16Array(W * Hh * 3); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const j = (y * W + x) * 3, v = Math.round(6000 + x * 12.1 + y * 3.3); hi[j] = v; hi[j + 1] = v >> 1; hi[j + 2] = 65535 - v; }

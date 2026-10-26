@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CORRECCIÓN DE LENTE POR PERFIL (Premium 👑 · fase 9 de PENDIENTE.md)
+   CORRECCIÓN DE LENTE POR PERFIL (Premium 👑 · fase 9 de docs/PENDIENTE.md)
    Menú Filtro › Corrección de lente por perfil…
 
    Con los datos EXIF de la foto (cámara, objetivo, distancia focal y
@@ -17,13 +17,13 @@
    a menos de 1 px).
    ═══════════════════════════════════════════════════════════════ */
 
-import { dialog } from "../ui/dialog.js";
-import { toast, progress, status } from "../ui/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast, progress, status } from "../core/toast.js";
 import { doc } from "../core/doc.js";
+import { escAttr as esc } from "../core/util/html.js";
 
 let dbPromise = null;
 const loadDb = () => dbPromise ||= fetch(new URL("../../assets/lensdb/lensfun.json", import.meta.url)).then(r => { if(!r.ok) throw new Error("No se pudo descargar la base de objetivos"); return r.json(); }).catch(e => { dbPromise = null; throw e; });
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 /** Lo que hace falta para corregir con perfil: base de Lensfun, EXIF de la foto (archivo original o EXIF guardado), objetivo más probable y ajustes iniciales. */
 async function gather(source){
@@ -120,13 +120,13 @@ export async function openLensProfile(){
         const a = e.target.closest("[data-a]")?.dataset.a; if(!a) return;
         try{
           if(a === "uimport"){
-            const { pickFiles } = await import("../ui/fsshell.js"), f = (await pickFiles({ multiple: false, accept: ".json,application/json", gallery: false }))[0];
+            const { pickFiles } = await import("../ui/kit/fsshell.js"), f = (await pickFiles({ multiple: false, accept: ".json,application/json", gallery: false }))[0];
             if(f){ const got = UP.importJson(await f.text()); S.userProfile = got[0] || null; toast(`${got.length} ${got.length === 1 ? "perfil importado" : "perfiles importados"}`, "ok"); }
           } else if(a === "usave"){
             const p = await editUserProfile(S.userProfile, { make: info.make, model: info.model });
             if(p){ S.userProfile = UP.put(p); toast("Perfil guardado: se aplicará solo a las fotos de esta cámara", "ok"); }
           } else if(a === "uexport"){
-            const { download } = await import("../io/export.js");
+            const { download } = await import("../io/export/export.js");
             download(new Blob([UP.exportJson(S.userProfile)], { type: "application/json" }), `${S.userProfile.name.replace(/[^\w.-]+/g, "_")}.lensprofile.json`);
           } else if(a === "udel"){ UP.remove(S.userProfile.name); S.userProfile = null; }
         }catch(err){ toast(err.message || String(err), "err"); }
@@ -145,7 +145,7 @@ async function run(M, S, prof, name){
   status("Corrigiendo la lente…"); progress(0.03);
   await new Promise(r => setTimeout(r, 30));
   try{
-    const { flatten } = await import("../editor/layertree.js"), f = flatten(), W = f.width, H = f.height;
+    const { flatten } = await import("../editor/layers/layertree.js"), f = flatten(), W = f.width, H = f.height;
     const src = f.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
     const C = M.makeCorrector(prof, { crop: S.crop, W, H, distortion: S.dist, tca: S.tca, vignette: S.vig, autoScale: S.scale, keep: (S.keep || 100) / 100 });
     const out = document.createElement("canvas"); out.width = W; out.height = H;
@@ -156,7 +156,7 @@ async function run(M, S, prof, name){
       ox.putImageData(new ImageData(strip, W, y1 - y0), 0, y0);
       progress(0.05 + 0.9 * y1 / H); await new Promise(r => setTimeout(r, 0));
     }
-    const { resultToLayer } = await import("../ui/fsshell.js");
+    const { resultToLayer } = await import("../ui/kit/fsshell.js");
     await resultToLayer(out, { name: `Lente · ${name}`.slice(0, 40) });
     progress(null);
     toast(`Lente corregida con el perfil de ${name}` + (C.hasDist && C.scale < 0.999 ? ` (zoom ${((1 / C.scale - 1) * 100).toFixed(1)} %)` : ""), "ok");

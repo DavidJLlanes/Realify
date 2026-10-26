@@ -1,8 +1,8 @@
-/* [heic10] Prueba del HEIC de 10 bits (js/io/heic.js, js/io/heif.js): con un HEIC real generado por libheif (pillow-heif, sólo para la prueba), se saca su
+/* [heic10] Prueba del HEIC de 10 bits (js/io/formats/heic.js, js/io/formats/heif.js): con un HEIC real generado por libheif (pillow-heif, sólo para la prueba), se saca su
    hvcC y su fotograma HEVC, se reempaquetan con nuestro escritor (recto, recortado con `clap`, y pasando por Annex B) y se
    decodifican de nuevo con libheif: deben dar los MISMOS píxeles. Uso: node tests/heic10.mjs   (necesita python3 con pillow-heif y numpy) */
 import { execFileSync } from "node:child_process"; import fs from "node:fs"; import os from "node:os"; import path from "node:path";
-import { writeHeic, annexBToHevc, hevcLevel } from "../js/io/heif.js";
+import { writeHeic, annexBToHevc, hevcLevel } from "../js/io/formats/heif.js";
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "heic-")), py = (code, ...a) => execFileSync("python3", ["-c", code, ...a], { encoding: "utf8" });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 py(`
@@ -47,7 +47,7 @@ chk(full.w === W && full.h === H && full.bits === 10, "reempaquetado de 10 bits 
 const raw = Buffer.from(writeHeic({ sample, hvcc, width: W, height: H, bitDepth: 10, colr: refColr })), pix = raw.indexOf("pixi");
 chk(pix > 0 && raw[pix + 8] === 3 && raw[pix + 9] === 10 && raw[pix + 10] === 10 && raw[pix + 11] === 10, "la caja pixi declara 10 bits por canal");
 // 2) códec Main 10 y nivel; conversión RGB16 → I010
-const { rgba16ToI010 } = await import("../js/io/heic.js");
+const { rgba16ToI010 } = await import("../js/io/formats/heic.js");
 {
   const w = 16, h = 8, mk = f => { const d = new Uint16Array(w * h * 4); for(let j = 0; j < h; j++) for(let i = 0; i < w; i++){ const [r, g, b] = f(i, j); d.set([r, g, b, 65535], (j * w + i) * 4); } return d; };
   const blk = rgba16ToI010(mk(() => [0, 0, 0]), 4, w, h, w, h), wht = rgba16ToI010(mk(() => [65535, 65535, 65535]), 4, w, h, w, h), red = rgba16ToI010(mk(() => [65535, 0, 0]), 4, w, h, w, h);
@@ -71,7 +71,7 @@ if(chromium){
     window.VideoFrame = class { constructor(data, init){ if(init.format === "I420P10") throw new Error("formato no admitido aquí"); this.data = data; this.init = init; log.frames.push({ len: data.length, bytes: data.byteLength, init }); } close(){} };      // I420P10 falla a propósito: se prueba el segundo nombre del formato, I010
     window.VideoEncoder = class { static async isConfigSupported(c){ return { supported: !!c.codec && /^hvc1\.2\.4\.L\d+\.B0$/.test(c.codec) }; } constructor(o){ this.o = o; }
       configure(c){ log.cfgs.push(c); } encode(f, o){ log.key = o.keyFrame; this.f = f; } async flush(){ this.o.output({ byteLength: S.length, copyTo: d => d.set(S) }, { decoderConfig: { description: HV } }); } close(){} };
-    const H_ = await import("/js/io/heic.js"), M = await import("/js/io/metadata.js"), W_ = await import("/js/exif/writer.js");
+    const H_ = await import("/js/io/formats/heic.js"), M = await import("/js/io/meta/metadata.js"), W_ = await import("/js/exif/writer.js");
     const out = { s8: await H_.heicSupported(), s10: await H_.heicSupported(10) };
     const data = new Uint16Array(W * H * 4); for(let i = 0; i < W * H; i++){ data[i * 4] = (i % W) * 1000; data[i * 4 + 1] = 30000; data[i * 4 + 2] = 5000; data[i * 4 + 3] = 65535; }
     const blob = await H_.encodeHeicDeep({ data, channels: 4, width: W, height: H }, { quality: .9, space: "display-p3" });

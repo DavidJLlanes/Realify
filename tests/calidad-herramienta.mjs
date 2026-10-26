@@ -98,7 +98,7 @@ for(const cmd of cmds) for(const mobile of [false, true]){
     if(!png) png = await testImage(page);
     await page.setInputFiles("#filePicker", { name:"detalle-fino.png", mimeType:"image/png", buffer: png });
     await page.waitForTimeout(1500);
-    page.evaluate(c => import("/js/ui/commands.js").then(m => m.run(c)), cmd).catch(e => errs.push(String(e)));
+    page.evaluate(c => import("/js/core/commands.js").then(m => m.run(c)), cmd).catch(e => errs.push(String(e)));
     await page.waitForTimeout(2500);
 
     if(cmd === "filter.looks"){   /* Estilos no se aplica hasta elegir uno: se elige «Soft Matte» como lo haría una persona */
@@ -142,7 +142,7 @@ for(const cmd of cmds) for(const mobile of [false, true]){
     } else info.ui = "sin diálogo (se aplica directamente)";
 
     Object.assign(info, await page.evaluate(async () => {
-      const m = await import("/js/core/doc.js"), reg = await import("/js/editor/filterregistry.js");
+      const m = await import("/js/core/doc.js"), reg = await import("/js/editor/layers/filterregistry.js");
       const L = m.doc.layers.find(l => l.id === m.doc.activeId) || m.doc.layers.at(-1), c = L.canvas, base = m.doc.layers[0].canvas;
       const get = cv => cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
       const mae = (a, b) => { let s = 0, k = 0; for(let i = 0; i < a.length; i += 28){ s += Math.abs(a[i] - b[i]) + Math.abs(a[i+1] - b[i+1]) + Math.abs(a[i+2] - b[i+2]); k += 3; } return +(s / k).toFixed(2); };

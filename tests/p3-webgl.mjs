@@ -27,7 +27,7 @@ const res = await page.evaluate(async () => {
     // lo que habría salido recortando a sRGB: leer el mismo píxel P3 como sRGB
     const asSrgb = sx.getImageData(16, 16, 1, 1, { colorSpace: "srgb" }).data;
     // Filtro Vintage (otro motor WebGL), con todos los mandos a 0
-    try{ const V = await import("/vintagefilter/engine.js"), S = await import("/vintagefilter/state.js"); const vg = new V.VintageGL(); const st = S.normalize({});
+    try{ const V = await import("/plugins/vintage/engine.js"), S = await import("/plugins/vintage/state.js"); const vg = new V.VintageGL(); const st = S.normalize({});
       for(const c of S.CONTROLS) st[c.key] = 0; const r = await vg.renderFull(src, st); const vc = r.getContext("2d").getImageData(16, 16, 1, 1).data;
       out[modo + "_vintage"] = { entrada: [...a], salida: [...vc], dif: Math.max(...[0, 1, 2].map(k => Math.abs(a[k] - vc[k]))), espacioGL: vg.space }; }catch(e){ out[modo + "_vintage"] = { error: String(e.message || e) }; }
     out[modo] = { espacioSrc: sx.getContextAttributes().colorSpace, espacioGL: E.glColorSpace?.(), entrada: [...a], salida: [...c], comoSrgb: [...asSrgb], dif: Math.max(...[0, 1, 2].map(k => Math.abs(a[k] - c[k]))) };

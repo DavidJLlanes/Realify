@@ -21,7 +21,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { runModel, aiSession } from "./runtime.js";
-import { guidedFilterAlpha } from "../editor/refineedge-math.js";
+import { guidedFilterAlpha } from "../editor/selection/refineedge-math.js";
 import { tilePlan, tileWeights, blender, fitAffine, resizeBilinear, smooth, workSide } from "./tiles.js";
 
 const S = 518;

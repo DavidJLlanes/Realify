@@ -13,26 +13,26 @@ import { record } from "../core/history.js";
 import { getMaskTarget, setMaskTarget, clearMaskTarget, addMask,
          toggleMask, maskAlphaAsSelectionMask,
          getIsolateView, setIsolateView, toggleIsolateView, removeMask,
-         copyMask, moveMask, linkMask } from "../editor/masks.js";
-import { isAdjustLayer, adjustTypeName, openAdjustPanel } from "../editor/adjustlayers.js";
-import { isFillLayer, isShapeLayer, fillKindName, SHAPE_KIND_NAME } from "../editor/layercontent.js";
-import { isBlendIfActive } from "../editor/blendif.js";
-import { hasSelection, commitSelection } from "../editor/selection.js";
-import { confirmDlg, promptDlg } from "./dialog.js";
+         copyMask, moveMask, linkMask } from "../editor/layers/masks.js";
+import { isAdjustLayer, adjustTypeName, openAdjustPanel } from "../editor/layers/adjustlayers.js";
+import { isFillLayer, isShapeLayer, fillKindName, SHAPE_KIND_NAME } from "../editor/layers/layercontent.js";
+import { isBlendIfActive } from "../editor/layers/blendif.js";
+import { hasSelection, commitSelection } from "../editor/selection/selection.js";
+import { confirmDlg, promptDlg } from "./kit/dialog.js";
 import { listSnapshots, getBrushSourceId, setBrushSource, restoreSnapshot,
          renameSnapshot, removeSnapshot } from "../core/snapshots.js";
 import { openContextMenu } from "./menu.js";
 import { haptic, isMobile } from "../core/device.js";
-import { filterOf, filterAmount } from "../editor/filterlayer.js";
-import { listTabs, activeTab, copyLayerToTab } from "../core/documents.js";
-import { knownFilter, filterLiveCapable, openFilterEditor } from "../editor/filterregistry.js";
-import { setFilterAmount, amountMode } from "../editor/filteramount.js";
-import { toggleFilterEntry, setFilterEntryAmount, removeFilterEntry, moveFilterEntry } from "../editor/filterchain.js";
-import { toast } from "./toast.js";
-import { toggleClip, toggleCollapsed } from "../editor/groups.js";
-import { hasEnabledStyle, openLayerStyles } from "../editor/layerstyles.js";
+import { filterOf, filterAmount } from "../editor/layers/filterlayer.js";
+import { listTabs, activeTab, copyLayerToTab } from "../editor/documents.js";
+import { knownFilter, filterLiveCapable, openFilterEditor } from "../editor/layers/filterregistry.js";
+import { setFilterAmount, amountMode } from "../editor/layers/filteramount.js";
+import { toggleFilterEntry, setFilterEntryAmount, removeFilterEntry, moveFilterEntry } from "../editor/layers/filterchain.js";
+import { toast } from "../core/toast.js";
+import { toggleClip, toggleCollapsed } from "../editor/layers/groups.js";
+import { hasEnabledStyle, openLayerStyles } from "../editor/layers/layerstyles.js";
 import { initProperties } from "./properties.js";
-import { fitAbove, fitInRect, view } from "../editor/view.js";
+import { fitAbove, fitInRect, view } from "../core/view.js";
 
 /* ── selección múltiple de capas ─────────────────────────────────
    Aparte de `doc.activeId` —que sigue siendo "la capa sobre la que
@@ -233,7 +233,7 @@ function initGrip(){
    que sólo se ven DOS capas a la vez, desplazable. Arriba, una barra con
    cerrar, el título y deshacer/rehacer.
    · Tocar la imagen no pinta ni selecciona nada: sólo se desplaza y,
-     con dos dedos, se amplía (`__panTool`, ver editor/view.js).
+     con dos dedos, se amplía (`__panTool`, ver core/view.js).
    · El botón fx de una capa abre su editor ENCIMA, sin cerrar Capas.
    · Ya no hace falta volver transparente la hoja al mover un
      deslizador (lo hacía la versión en media hoja): la imagen se ve
@@ -312,7 +312,7 @@ function setFullscreen(open){
     requestAnimationFrame(() => requestAnimationFrame(() => { measureRows(); fsFit(); }));
   } else {
     fsRO?.disconnect(); fsRO = null;
-    import("../editor/tools.js").then(m => { window.__panTool = !!m.current?.pan; });
+    import("../editor/tools/tools.js").then(m => { window.__panTool = !!m.current?.pan; });
     const r = fsRestore; fsRestore = null;
     requestAnimationFrame(() => r?.());
   }

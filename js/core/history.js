@@ -16,7 +16,7 @@
 
 import { emit } from "./bus.js";
 import { doc } from "./doc.js";
-import { toast } from "../ui/toast.js";
+import { toast } from "./toast.js";
 
 const DEFAULT_STEPS = 60;
 const MAX_PIXEL_BYTES = 840 * 1024 * 1024;   // techo blando para las capturas
@@ -154,7 +154,7 @@ function restoreSmart(layer, s){
 
 export function beginPixels(label, layer, useMask = false, opts = null){
   if(depth > 0 || !layer) return;
-  /* Una capa de relleno o de forma (editor/layercontent.js) no guarda
+  /* Una capa de relleno o de forma (editor/layers/layercontent.js) no guarda
      su contenido en los píxeles: los regenera enteros desde sus
      parámetros en cuanto cambian. Sin este aviso, pintar encima
      parecería funcionar un instante y luego desaparecería sin
@@ -349,7 +349,7 @@ export function clear(){
 /* ── varios historiales a la vez (documentos con pestañas) ─────
    Cada documento tiene su propio pasado y futuro; este módulo sigue
    trabajando sobre un único juego de variables a la vez —el del
-   documento que se está viendo—, y core/documents.js es quien pide
+   documento que se está viendo—, y editor/documents.js es quien pide
    sacarlo o meterlo entero al cambiar de pestaña. `pending` (un trazo
    a medio pintar) se queda fuera a propósito: cambiar de documento en
    mitad de una pincelada es tan raro que no vale la pena arrastrar su

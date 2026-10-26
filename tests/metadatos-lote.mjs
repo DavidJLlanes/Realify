@@ -11,7 +11,7 @@ const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on(
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const orig = fs.readFileSync("/tmp/sc/out/m.original").toString("base64");
 const res = await page.evaluate(async orig => {
-  const D = await import("/js/core/doc.js"), O = await import("/js/io/open.js"), BM = await import("/js/io/batchmeta.js"), M = await import("/js/io/metadata.js");
+  const D = await import("/js/core/doc.js"), O = await import("/js/io/open.js"), BM = await import("/js/io/meta/batchmeta.js"), M = await import("/js/io/meta/metadata.js");
   const bytes = Uint8Array.from(atob(orig), c => c.charCodeAt(0)), file = new File([bytes], "foto.jpg", { type: "image/jpeg" });
   await O.openFile(file);
   const out = { fuente: !!D.doc.source?.file };

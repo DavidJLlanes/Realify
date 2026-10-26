@@ -1,5 +1,5 @@
 /* Prueba de desenfoque, enfoque y ruido en coma flotante nativa sobre 16 bits, por el filtro real (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), B = await import("/js/filters/basic.js"), A = await import("/js/filters/advanced.js");
+  const D = await import("/js/core/doc.js"), H = await import("/js/core/hisrc.js"), B = await import("/js/filters/library/basic.js"), A = await import("/js/filters/library/advanced.js");
   const W = 300, Hh = 200, o = {}; D.newDoc(W, Hh, { name: "n" }); const L = D.addLayer({ name: "Fondo" });
   const hi = new Uint16Array(W * Hh * 3); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const j = (y * W + x) * 3, v = Math.round(10000 + x * 150.3 + y * 9.7); hi[j] = v; hi[j + 1] = v; hi[j + 2] = v; }
   const make = () => { const img = L.ctx.createImageData(W, Hh); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const i = (y * W + x) * 4, j = (y * W + x) * 3; for(let k = 0; k < 3; k++) img.data[i + k] = H.hiToCanvas8(hi[j + k], x, y, k, true); img.data[i + 3] = 255; } L.ctx.putImageData(img, 0, 0); L.hiSrc = { data: hi, w: W, h: Hh, dither: true, x: 0, y: 0, canvasW: W, canvasH: Hh }; };

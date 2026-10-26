@@ -18,7 +18,7 @@ for(const mobile of [false, true]){
     const g = x.createLinearGradient(0, 0, 900, 600); g.addColorStop(0, "#3a6ea5"); g.addColorStop(.5, "#c8b27a"); g.addColorStop(1, "#7a3b2e"); x.fillStyle = g; x.fillRect(0, 0, 900, 600);
     x.fillStyle = "#2d7d3a"; x.fillRect(100, 300, 300, 200); x.fillStyle = "#d8d8d8"; x.fillRect(500, 80, 260, 160); });
   const before = await page.evaluate(async () => { const D = await import("/js/core/doc.js"), L = D.doc.layers[D.doc.layers.length - 1]; return { n: D.doc.layers.length, px: Array.from(L.canvas.getContext("2d").getImageData(200, 400, 1, 1).data) }; });
-  await page.evaluate(async () => { (await import("/js/ui/commands.js")).run("filter.looks"); });
+  await page.evaluate(async () => { (await import("/js/core/commands.js")).run("filter.looks"); });
   await page.locator(".fsp.lkf").waitFor({ timeout: 15000 }); await page.waitForTimeout(1200);
   const st = await page.evaluate(() => ({ title: document.querySelector(".fsp-title b")?.textContent, apply: document.querySelector('[data-a="apply"]')?.disabled, cells: document.querySelectorAll(".fsp-left .fsp-thumb").length, sub: document.querySelector(".fsp-sub")?.textContent }));
   console.log(tag, JSON.stringify(st));

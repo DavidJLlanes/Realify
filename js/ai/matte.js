@@ -22,7 +22,7 @@
 import { MODELS } from "./models.js";
 import { runModel, aiSession } from "./runtime.js";
 import { tilePlan, tileWeights, blender, resizeBilinear, smooth, workSide } from "./tiles.js";
-import { guidedFilterAlpha, boxBlurFloat } from "../editor/refineedge-math.js";
+import { guidedFilterAlpha, boxBlurFloat } from "../editor/selection/refineedge-math.js";
 
 const squareRgba = (src, sx, sy, sw, sh, n) => {
   const c = document.createElement("canvas"); c.width = c.height = n;

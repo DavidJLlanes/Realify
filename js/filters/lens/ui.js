@@ -14,9 +14,9 @@
 import { doc, activeLayer, layerIndex } from "../../core/doc.js";
 import { emit } from "../../core/bus.js";
 import { COARSE, isMobile } from "../../core/device.js";
-import { dialog } from "../../ui/dialog.js";
-import { toast, status } from "../../ui/toast.js";
-import { commitFilter, filterOf } from "../../editor/filterlayer.js";
+import { dialog } from "../../ui/kit/dialog.js";
+import { toast, status } from "../../core/toast.js";
+import { commitFilter, filterOf } from "../../editor/layers/filterlayer.js";
 import { GROUPS, CATEGORIES, CATEGORY_BY_ID, ADJ_KEYS, ADJ_LABELS, neutralAdj } from "./categories.js";
 import { applyLens } from "./render.js";
 import { classify, ensureModel, cachedModelInfo, CONFIDENCE_MIN } from "./classify.js";

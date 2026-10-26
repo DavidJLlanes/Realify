@@ -17,7 +17,7 @@ async function open(mobile){
 {
   const page = await open(false);
   const r = await page.evaluate(async () => {
-    const M = await import("/js/editor/rangehsl.js"), out = {};
+    const M = await import("/js/editor/adjust/rangehsl.js"), out = {};
     const mk = cols => { const d = new Uint8ClampedArray(cols.length * 4); cols.forEach((c, i) => { d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = 255; }); return d; };
     const cols = [[200, 40, 40], [40, 80, 200], [128, 128, 128], [60, 160, 70], [230, 140, 50]];
     const lum = (r, g, b) => .2126 * r + .7152 * g + .0722 * b, mkp = (k, v) => { const p = { ranges: M.defaultRanges() }; Object.assign(p.ranges[k], v); return p; };
@@ -52,7 +52,7 @@ for(const mobile of [false, true]){
   const page = await open(mobile), tag = mobile ? "móvil" : "escritorio";
   await page.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(1200, 700, { name: "n" }); const L = D.addLayer({ name: "Fondo" }), x = L.ctx;
     const cols = ["#c82828", "#2850c8", "#3ca046", "#e68c32"]; cols.forEach((c, i) => { x.fillStyle = c; x.fillRect(i * 300, 0, 300, 700); }); });
-  await page.evaluate(async () => { (await import("/js/ui/commands.js")).run("adj.rangeHsl"); }); await page.waitForTimeout(900);
+  await page.evaluate(async () => { (await import("/js/core/commands.js")).run("adj.rangeHsl"); }); await page.waitForTimeout(900);
   const ui = await page.evaluate(() => ({ dots: document.querySelectorAll(".rh-dots .rh-dot").length, eye: !!document.querySelector(".rh-eye"), prem: !!document.querySelector(".premium-switch"), label: document.querySelector(".premium-switch .ps-label")?.textContent, docked: !!document.querySelector(".premium-switch.ps-docked"),
     labels: [...document.querySelectorAll(".modal label, .modal .field label, .modal option")].map(e => e.textContent.trim()).filter(Boolean).slice(0, 40) }));
   console.log(tag, JSON.stringify(ui).slice(0, 400));
@@ -60,7 +60,7 @@ for(const mobile of [false, true]){
   for(const w of ["Matiz", "Saturación", "Luminancia", "Difusión", "Intervalo"]) chk(ui.labels.some(l => l.includes(w)), `${tag}: mando «${w}»`);
   // cuentagotas: tocar la franja azul de la imagen elige «Azules» y la centra en ese tono
   { await page.locator(".rh-eye").click(); await page.waitForTimeout(500);
-    const pos = await page.evaluate(async () => { const V = await import("/js/editor/view.js"), r = document.getElementById("stage").getBoundingClientRect(); return { x: r.left + V.view.x + 450 * V.view.zoom, y: r.top + V.view.y + 40 * V.view.zoom, r: [Math.round(V.view.x), Math.round(V.view.y), V.view.zoom] }; });
+    const pos = await page.evaluate(async () => { const V = await import("/js/core/view.js"), r = document.getElementById("stage").getBoundingClientRect(); return { x: r.left + V.view.x + 450 * V.view.zoom, y: r.top + V.view.y + 40 * V.view.zoom, r: [Math.round(V.view.x), Math.round(V.view.y), V.view.zoom] }; });
     await page.mouse.click(pos.x, pos.y); await page.waitForTimeout(500);
     const got = await page.evaluate(() => ({ on: document.querySelector(".rh-dot.on")?.title, eye: document.querySelector(".rh-eye")?.classList.contains("on") }));
     console.log(tag, "cuentagotas", JSON.stringify(got), JSON.stringify(pos.r));

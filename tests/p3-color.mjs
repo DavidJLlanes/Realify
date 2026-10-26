@@ -10,7 +10,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), CS = await import("/js/core/colorspace.js"), T = await import("/js/editor/tools.js");
+  const D = await import("/js/core/doc.js"), CS = await import("/js/core/colorspace.js"), T = await import("/js/editor/tools/tools.js");
   const o = { p3: CS.p3Supported() }; if(!o.p3) return o;
   const px = (ctx, x = 5, y = 5) => Array.from(ctx.getImageData(x, y, 1, 1, { colorSpace: ctx.getContextAttributes().colorSpace }).data);
   // documento P3

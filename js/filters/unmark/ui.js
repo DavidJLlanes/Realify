@@ -18,10 +18,10 @@
 import { doc, activeLayer, layerIndex } from "../../core/doc.js";
 import { emit } from "../../core/bus.js";
 import { isMobile, COARSE } from "../../core/device.js";
-import { dialog } from "../../ui/dialog.js";
-import { toast, status, progress } from "../../ui/toast.js";
-import { run } from "../../ui/commands.js";
-import { commitFilter, filterOf } from "../../editor/filterlayer.js";
+import { dialog } from "../../ui/kit/dialog.js";
+import { toast, status, progress } from "../../core/toast.js";
+import { run } from "../../core/commands.js";
+import { commitFilter, filterOf } from "../../editor/layers/filterlayer.js";
 import { CHAIN, CHAIN_BY_ID, SECTIONS, STAGES_OF } from "./chain.js";
 import { normalizeState, PRESETS, presetStages, varyStages } from "./state.js";
 import { detectMarks } from "./detect.js";

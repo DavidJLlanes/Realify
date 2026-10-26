@@ -1,16 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════
    SELECCIONAR SUJETO / CIELO (menú Selección)
    Misma detección que los botones del panel de propiedades de la
-   máscara (editor/maskadjust.js), pero sin necesitar tener ya una
+   máscara (editor/layers/maskadjust.js), pero sin necesitar tener ya una
    máscara: deja el resultado como SELECCIÓN activa —marching ants—,
    lista para combinar con otras selecciones o convertirse en máscara
    con «Añadir máscara desde selección», como cualquier otra.
    ═══════════════════════════════════════════════════════════════ */
 
 import { activeLayer } from "../core/doc.js";
-import { commitSelection } from "../editor/selection.js";
-import { detectSubjectMask, detectSkyMask } from "../editor/maskadjust.js";
-import { toast, status } from "../ui/toast.js";
+import { commitSelection } from "../editor/selection/selection.js";
+import { detectSubjectMask, detectSkyMask } from "../editor/layers/maskadjust.js";
+import { toast, status } from "../core/toast.js";
 
 function rasterLayer(){
   const l = activeLayer();

@@ -12,15 +12,15 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc } from "../core/doc.js";
-import { flatten } from "../editor/layertree.js";
-import { dialog } from "../ui/dialog.js";
-import { toast } from "../ui/toast.js";
+import { flatten } from "../editor/layers/layertree.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast } from "../core/toast.js";
 import { isMobile, COARSE } from "../core/device.js";
-import { premiumSwitch, premiumPref } from "../ui/premium.js";
+import { premiumSwitch, premiumPref } from "../ui/kit/premium.js";
+import { escText as esc } from "../core/util/html.js";
+import { readPixels as dataOf } from "../core/util/canvas.js";
 
 const MAX_OUT = COARSE || isMobile() ? 2400 : 8192;   // lado máximo del resultado (como un documento)
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-const dataOf = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 function scaled(src, w, h){ const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(src, 0, 0, w, h); return c; }
 
 async function modelOptions(ids){
@@ -80,7 +80,7 @@ export async function aiUpscale(){
     const r = await runModel("upscale", id, { rgba, w: src.width, h: src.height }, [rgba.buffer]);
     const c = document.createElement("canvas"); c.width = r.w; c.height = r.h;
     c.getContext("2d").putImageData(new ImageData(r.rgba, r.w, r.h), 0, 0);
-    const { resultToLayer } = await import("../ui/fsshell.js");
+    const { resultToLayer } = await import("../ui/kit/fsshell.js");
     await resultToLayer(c, { name: `Ampliada ×${r.scale} · ${MODELS[id].label}`, docName: `${doc.name || "Imagen"} ×${r.scale}`, newDocument: true });
     toast(`Ampliada ×${r.scale} · ${r.w} × ${r.h} en una pestaña nueva`, "ok");
   }catch(err){ failed("Ampliar con IA", err); }
@@ -102,7 +102,7 @@ export async function aiColorize(){
   try{ localStorage.setItem("realify.colorizer", id); }catch{}
   const { MODELS } = await import("../ai/models.js");
   const full = flatten(), W = full.width, H = full.height;
-  const { activeTab, switchTo } = await import("../core/documents.js"), tabId = activeTab()?.tabId;
+  const { activeTab, switchTo } = await import("../editor/documents.js"), tabId = activeTab()?.tabId;
   const side = MODELS[id].work || 1024, k = Math.min(1, side / Math.max(W, H));
   const work = scaled(full, Math.max(8, Math.round(W * k)), Math.max(8, Math.round(H * k)));
   const rgba = dataOf(work);
@@ -123,7 +123,7 @@ export async function aiColorize(){
       }
     }
     const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(out, 0, 0);
-    const { resultToLayer } = await import("../ui/fsshell.js");
+    const { resultToLayer } = await import("../ui/kit/fsshell.js");
     if(tabId != null) switchTo(tabId, { force: true });   // el documento donde se empezó
     await resultToLayer(c, { name: `Coloreada · ${MODELS[id].label}`, mix: true });
     toast("Foto coloreada en una capa nueva", "ok");
@@ -157,7 +157,7 @@ export async function aiExpand(){
   const full = flatten();
   try{
     const out = await outpaint(full, g);
-    const { resultToLayer } = await import("../ui/fsshell.js");
+    const { resultToLayer } = await import("../ui/kit/fsshell.js");
     await resultToLayer(out, { name: "Expandida", docName: `${doc.name || "Imagen"} · expandida`, newDocument: true });
     toast(`Imagen expandida a ${out.width} × ${out.height} en una pestaña nueva`, "ok");
   }catch(err){ failed("Expandir con IA", err); }

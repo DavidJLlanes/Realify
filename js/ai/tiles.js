@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   IA · MOTOR COMÚN DE BLOQUES (fase 3 de PENDIENTE.md)
+   IA · MOTOR COMÚN DE BLOQUES (fase 3 de docs/PENDIENTE.md)
    Los modelos trabajan a un tamaño fijo (518, 513, 512…). Para que el
    resultado tenga la resolución de la foto y no la del modelo, la foto
    se parte en bloques que se solapan, cada bloque pasa por el modelo y

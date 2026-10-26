@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   OPENCV.JS BAJO DEMANDA (fase 7 de PENDIENTE.md)
+   OPENCV.JS BAJO DEMANDA (fase 7 de docs/PENDIENTE.md)
    OpenCV 4.12 (Apache-2.0, ~11 MB) sólo se descarga al usar una
    herramienta que lo necesita, avisando antes del tamaño. Después
    queda en la caché del navegador / service worker.
@@ -9,7 +9,7 @@
    siempre envuelto en `{ cv }`.
    ═══════════════════════════════════════════════════════════════ */
 
-import { confirmDlg } from "../ui/dialog.js";
+import { confirmDlg } from "../ui/kit/dialog.js";
 
 const SIZE_MB = 11, KEY = "realify.opencvAsked";
 let loading = null;

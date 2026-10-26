@@ -24,9 +24,9 @@
 
 ## Lista de comprobación
 
-- [ ] El código sigue el estilo del resto del proyecto (ver [CONTRIBUTING.md](../CONTRIBUTING.md)).
+- [ ] El código sigue el estilo del resto del proyecto (ver [docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md)).
 - [ ] Todo el procesado sigue ocurriendo en local: ninguna imagen sale del navegador.
 - [ ] Funciona sin conexión una vez cargada la app.
-- [ ] He subido `VERSION` en `sw.js` y el `?v=` de `index.html` si cambian archivos servidos.
+- [ ] He sincronizado `VERSION`, `version.json`, `package.json`, `package-lock.json`, `sw.js` y los `?v=` de `boot-guard.js` y `main.js` en `index.html` si cambian archivos servidos.
 - [ ] He actualizado la documentación (README, README del módulo, guía) si hace falta.
-- [ ] He añadido la entrada correspondiente en [CHANGELOG.md](../CHANGELOG.md).
+- [ ] He añadido la entrada correspondiente en [docs/CHANGELOG.md](../docs/CHANGELOG.md).

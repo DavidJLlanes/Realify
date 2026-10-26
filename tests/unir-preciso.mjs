@@ -1,4 +1,4 @@
-/* Prueba de la panorámica precisa (unir/precise.js, v251): tres fotos tomadas «a pulso» (recortes de una foto grande con un pequeño giro, un cambio de escala y
+/* Prueba de la panorámica precisa (plugins/merge/precise.js, v251): tres fotos tomadas «a pulso» (recortes de una foto grande con un pequeño giro, un cambio de escala y
    medio píxel de desplazamiento) se colocan con homografías de OpenCV y se comparan con la colocación entera de siempre (sin proyección): el desajuste medio en
    los solapes debe ser claramente menor. Uso: node tests/unir-preciso.mjs <foto.jpg> */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -15,7 +15,7 @@ await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTi
 await page.evaluate(() => setInterval(() => { const bt = [...document.querySelectorAll("button")].find(x => x.textContent.trim() === "Descargar"); if(bt) bt.click(); }, 400));
 const res = await page.evaluate(async () => {
   const img = new Image(); img.src = "/__foto.jpg"; await img.decode();
-  const { loadOpenCv } = await import("/js/cv/opencv.js"), lib = await loadOpenCv(), P = await import("/unir/precise.js"), E = await import("/unir/engine.js");
+  const { loadOpenCv } = await import("/js/cv/opencv.js"), lib = await loadOpenCv(), P = await import("/plugins/merge/precise.js"), E = await import("/plugins/merge/engine.js");
   const big = document.createElement("canvas"); big.width = img.width; big.height = img.height; big.getContext("2d").drawImage(img, 0, 0);
   // Tres «disparos»: ventana de 62 % del ancho, desplazada, con giro y escala distintos
   const SW = Math.round(img.width * 0.62), SH = Math.round(img.height * 0.9), shot = (cx, rot, sc) => {

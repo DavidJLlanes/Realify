@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   SELECCIONAR POR PROFUNDIDAD (Premium 👑 · fase 5 de PENDIENTE.md)
+   SELECCIONAR POR PROFUNDIDAD (Premium 👑 · fase 5 de docs/PENDIENTE.md)
    Menú Inteligencia Artificial › Seleccionar, menú Capa › Máscara de
    capa y botón «Por profundidad…» de las propiedades de una máscara.
 
@@ -23,11 +23,11 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc, activeLayer } from "../core/doc.js";
-import { toast } from "../ui/toast.js";
+import { toast } from "../core/toast.js";
 import { depthAt } from "../ai/depth.js";
 import { zoneAlpha, presetZone } from "../ai/depthmath.js";
-import { commitSelection } from "../editor/selection.js";
-import { setMaskFromArray, setMaskTarget } from "../editor/masks.js";
+import { commitSelection } from "../editor/selection/selection.js";
+import { setMaskFromArray, setMaskTarget } from "../editor/layers/masks.js";
 import { visibleImage, getDepth, scaled, pixelsOf, WORK, PREVIEW, prepare, openShell, sampler } from "./depthtools.js";
 
 /* ── Distancia a tamaño de documento ─────────────────────────── */

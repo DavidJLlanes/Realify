@@ -8,7 +8,7 @@ en realify.es con GitHub Actions al subir a `main`.
 - Desarrollar en la rama de trabajo; subir a `main` sólo cuando el usuario lo pida
   («Sube a main y publica»). No crear PR salvo que se pida.
 - En cada versión: subir `VERSION` en `sw.js` y `main.js?v=` en `index.html`, y
-  actualizar `CHANGELOG.md`, la guía (`js/ui/guide.js`) y los README afectados.
+  actualizar `docs/CHANGELOG.md`, la guía (`js/ui/help/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
 - Al modificar una herramienta, comprobar sólo esa con `node tests/calidad-herramienta.mjs <comando>` (móvil y escritorio); no publicar con FALLO.
 
@@ -26,14 +26,14 @@ en realify.es con GitHub Actions al subir a `main`.
 - **Interruptor Premium 👑**: en el móvil va en la **misma barra que el botón de
   aplicar/aceptar, alineado a la izquierda** (junto a ✕ en los editores a
   pantalla completa; a la izquierda de Cancelar/Aplicar en los ajustes), sin
-  fila propia. Usar `dockPremium` (`js/ui/premium.js`), `addAction` de
+  fila propia. Usar `dockPremium` (`js/ui/kit/premium.js`), `addAction` de
   `fsshell` o `footStart` de `dialog()`/`runAdjust`.
 - El interruptor lleva **siempre la palabra «Premium» junto a la corona** y es
   **idéntico en todos los plugins** (mismo componente `premiumSwitch`, mismo
   tamaño y estilo; nunca ocultar `.ps-label`).
 - Los desplegables deben aparecer **siempre cerrados** (no dar el foco a un
   `<select>` al abrir: en iOS se despliega).
-- El teclado del móvil nunca debe tapar lo que se escribe (`js/ui/keyboard.js`).
+- El teclado del móvil nunca debe tapar lo que se escribe (`js/ui/kit/keyboard.js`).
 - El menú es idéntico en móvil y escritorio. Cada función nueva lleva su entrada
   de menú y su entrada en el cajón «Herramientas» del móvil, con icono.
 - Los resultados van a una capa nueva cuando se pueda.
@@ -65,3 +65,20 @@ exactamente igual que antes.
 ## Límites
 - No mejorar Unmark (eliminación de marcas de agua).
 
+## Estructura del código
+- **Capas** (ver README, «Capas del código»): un módulo sólo importa de su capa o de las de abajo. Comprobar con
+  `node tools/verify/layers.mjs`. Para comprobar además que nada se ha roto: `tools/verify/README.md`.
+- **Comando nuevo**: se registra en `js/app/commands/<dominio>.js` (file, edit, image, layer, selection, view, tools, ai,
+  filter, adjust, analysis, help). No se añade nada a `js/main.js`.
+- **Herramienta nueva del lienzo**: su objeto va en `js/editor/tools/defs/<familia>.js` y se añade a `TOOLS` en
+  `js/editor/tools/tools.js` (el orden de `TOOLS` es el de la barra de herramientas).
+- **Tema de la guía**: un archivo en `js/ui/help/topics/` y su entrada en `topics/index.js`.
+- **Plugin a pantalla completa**: carpeta en `plugins/<nombre>/` (código, estilos y recursos juntos). Lo que necesiten
+  también el resto de la app va en `js/`, nunca al revés (`js/` no importa de `plugins/` salvo con `import()`).
+- Al mover o dividir archivos: usar `tools/migrate/lib/mover.mjs` y `splitter.mjs` (reescriben las referencias) y
+  pasar `tools/verify/lint-refs.mjs` (detecta imports que faltan) y `units-equal.mjs` (no se perdió código).
+- **Librerías de terceros pesadas** (más de ~100 KB y que no se usen en cada sesión): no se añaden como `<script>` en
+  `index.html`; se cargan bajo demanda con `ensureVendor`/`vendorReady` de `js/core/vendor.js` justo antes de usarlas
+  (así hacen HEIC, TIFF y PSD). Una librería en `index.html` retrasa el arranque de todos los usuarios.
+- **Rendimiento**: medir con `tools/verify/perf.mjs` (HTTP/2 y red limitada). Con HTTP/1.1 el número de módulos distorsiona.
+- **Utilidades pequeñas** (limitar un valor, escapar HTML, leer píxeles…): están en `js/core/util/`; se importan, no se copian en cada archivo.

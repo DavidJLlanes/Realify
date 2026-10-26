@@ -17,7 +17,7 @@ for(const mp of mps.length ? mps : [12, 24]) for(const tipo of ["avif8", "avif10
   const t0 = Date.now(); let peak = 0;
   const timer = setInterval(() => { try{ const kb = execSync("ps -eo rss,args | grep -i [c]hrom | awk '{s+=$1} END {print s}'", { encoding: "utf8" }); peak = Math.max(peak, Number(kb) / 1024); }catch{} }, 500);
   const r = await page.evaluate(async ({ tipo, w, h }) => {
-    const C = await import("/js/io/codecs.js");
+    const C = await import("/js/io/formats/codecs.js");
     try{
       let blob;
       if(tipo === "avif10"){ const data = new Uint16Array(w * h * 3); for(let i = 0; i < data.length; i++) data[i] = (i * 2654435761 >>> 8) & 0xffff ^ (i % 65536); blob = await C.encodeAvifDeep({ data, channels: 3, width: w, height: h }, 10, { quality: 60 }); }

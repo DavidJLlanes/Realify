@@ -1,0 +1,47 @@
+{
+ "label": "copia",
+ "profile": "4g",
+ "protocol": "h2",
+ "latencyMs": 80,
+ "mbps": 9,
+ "runs": [
+  {
+   "ready": 1723,
+   "fcp": 428,
+   "requests": 123,
+   "jsRequests": 110,
+   "cssRequests": 12,
+   "transferKB": 1283,
+   "jsDecodedKB": 4224
+  },
+  {
+   "ready": 1739,
+   "fcp": 340,
+   "requests": 123,
+   "jsRequests": 110,
+   "cssRequests": 12,
+   "transferKB": 1283,
+   "jsDecodedKB": 4224
+  },
+  {
+   "ready": 1725,
+   "fcp": 340,
+   "requests": 123,
+   "jsRequests": 110,
+   "cssRequests": 12,
+   "transferKB": 1283,
+   "jsDecodedKB": 4224
+  }
+ ],
+ "medianReadyMs": 1725,
+ "medianFcpMs": 340,
+ "last": {
+  "ready": 1725,
+  "fcp": 340,
+  "requests": 123,
+  "jsRequests": 110,
+  "cssRequests": 12,
+  "transferKB": 1283,
+  "jsDecodedKB": 4224
+ }
+}

@@ -3,7 +3,7 @@
    Una acción es una lista de comandos (los mismos ids que usan los
    menús) con los valores que se dejaron en sus diálogos. Grabar no
    necesita que cada herramienta sepa nada: se observan los comandos
-   (ui/commands.js › onRun) y el cierre de cada diálogo (ui/dialog.js ›
+   (core/commands.js › onRun) y el cierre de cada diálogo (ui/kit/dialog.js ›
    setDialogHooks), y al reproducir los diálogos se rellenan solos con
    lo grabado y se pulsa el mismo botón.
 
@@ -16,15 +16,15 @@
    sobre muchas fotos, con el resultado en un ZIP.
    ═══════════════════════════════════════════════════════════════ */
 
-import { pickFiles } from "../ui/fsshell.js";
-import { alphaFieldsHTML, wireAlphaFields } from "../io/alpha.js";
-import { onRun, runAsync } from "../ui/commands.js";
-import { dialog, setDialogHooks, promptDlg, confirmDlg } from "../ui/dialog.js";
-import { toast, status, progress } from "../ui/toast.js";
+import { pickFiles } from "../ui/kit/fsshell.js";
+import { alphaFieldsHTML, wireAlphaFields } from "../io/formats/alpha.js";
+import { onRun, runAsync } from "../core/commands.js";
+import { dialog, setDialogHooks, promptDlg, confirmDlg } from "../ui/kit/dialog.js";
+import { toast, status, progress } from "../core/toast.js";
 import { isMobile } from "../core/device.js";
+import { escAttr as esc } from "../core/util/html.js";
 
 const KEY = "realify.actions";
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 /* Comandos que no tienen sentido dentro de una acción (navegación,
    archivos, deshacer…) o que abren editores interactivos. */
 const SKIP = /^(view\.|file\.|edit\.(undo|redo)|actions\.|help\.|tab\.|an\.|panel\.|app\.|pwa\.)/;
@@ -198,7 +198,7 @@ async function playOnCurrent(a){
 async function playBatch(a){
   const files = await pickFiles();   // antes de cualquier espera: ver promptStartBatch en io/open.js
   if(!files.length) return;
-  const BM = await import("../io/batchmeta.js"), shared = BM.sharedFields();       // campos de «Editar metadatos» del documento abierto
+  const BM = await import("../io/meta/batchmeta.js"), shared = BM.sharedFields();       // campos de «Editar metadatos» del documento abierto
   const body = document.createElement("div");
   body.innerHTML = `<p class="hint" style="margin:0 0 8px">${files.length} fotos. Cada una se abre, se le aplica «${esc(a.name)}» y se guarda en un ZIP.</p>
     <div class="field"><label>Formato</label><select id="abType" class="grow"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option></select></div>
@@ -217,7 +217,7 @@ async function playBatch(a){
   const type = body.querySelector("#abType").value, q = +body.querySelector("#abQ").value / 100, alphaOpts = alphaUI.values();
   const ext = { "image/png": "png", "image/webp": "webp", "image/avif": "avif" }[type] || "jpg";
   const [{ openFile }, { openAsNewTab, activeTab, closeTab }, { doc }, { renderExport, saveOrShare, stamp }, { buildZip }] = await Promise.all([
-    import("../io/open.js"), import("../core/documents.js"), import("../core/doc.js"), import("../io/export.js"), import("../io/zip.js")]);
+    import("../io/open.js"), import("../editor/documents.js"), import("../core/doc.js"), import("../io/export/export.js"), import("../io/formats/zip.js")]);
   const entries = [], failed = [];
   for(let i = 0; i < files.length; i++){
     const f = files[i];
@@ -274,7 +274,7 @@ export async function openActions(){
   if(pick.a === "rename"){ const n = await promptDlg("Renombrar acción", "Nombre", a.name); if(n){ a.name = n.trim().slice(0, 60) || a.name; save(list); } return openActions(); }
   if(pick.a === "del"){ if(await confirmDlg("Borrar acción", `¿Borrar «${esc(a.name)}»?`, "Borrar")){ list.splice(pick.i, 1); save(list); } return openActions(); }
   if(pick.a === "export"){
-    const { saveOrShare } = await import("../io/export.js");
+    const { saveOrShare } = await import("../io/export/export.js");
     await saveOrShare(new Blob([JSON.stringify({ realifyActions: 1, actions: [a] }, null, 1)], { type: "application/json" }), `${a.name.replace(/[^\w\-áéíóúñÁÉÍÓÚÑ ]+/g, "").trim() || "accion"}.json`);
     return;
   }

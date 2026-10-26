@@ -12,9 +12,9 @@
 
 import { on } from "../core/bus.js";
 import { doc } from "../core/doc.js";
-import { flatten } from "../editor/layertree.js";
-import { TONE_ZONES } from "../editor/toneband.js";
-import { run } from "./commands.js";
+import { flatten } from "../editor/layers/layertree.js";
+import { TONE_ZONES } from "../editor/adjust/toneband.js";
+import { run } from "../core/commands.js";
 
 const panel = document.getElementById("panel-histogram");
 const cv = document.getElementById("histCanvas");

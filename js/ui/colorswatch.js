@@ -9,7 +9,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { on, emit } from "../core/bus.js";
-import { state, swapColors, resetColors } from "../editor/tools.js";
+import { state, swapColors, resetColors } from "../editor/tools/tools.js";
 import { isMobile, haptic } from "../core/device.js";
 import { docCss } from "../core/colorspace.js";
 

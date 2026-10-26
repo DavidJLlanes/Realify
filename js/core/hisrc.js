@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ORIGEN DE ALTA PROFUNDIDAD DE UNA CAPA (fase 4 de PENDIENTE.md)
+   ORIGEN DE ALTA PROFUNDIDAD DE UNA CAPA (fase 4 de docs/PENDIENTE.md)
 
    Las capas del documento son lienzos de 8 bits. Cuando la foto llega
    con más (RAW revelado, PNG o TIFF de 16 bits, AVIF de 10/12 bits), la
@@ -9,7 +9,7 @@
 
    El lienzo de 8 bits es exactamente el redondeo de esos datos (el de un
    RAW, con un tramado que sólo depende de la posición), así que
-   el motor de exportación en coma flotante (core/precision-stack.js)
+   el motor de exportación en coma flotante (io/precision/precision-stack.js)
    puede decidir PÍXEL A PÍXEL: si el lienzo sigue valiendo lo mismo que
    el redondeo del origen, ese píxel no se ha tocado y se usan sus 16
    bits; si se ha pintado, clonado o filtrado encima, el lienzo manda.
@@ -20,17 +20,10 @@
    documento) el origen deja de corresponder y se descarta.
    ═══════════════════════════════════════════════════════════════ */
 
+import { ditherAt as dith } from "./util/math.js";
+
 const q8 = v => (v + 128) / 257 | 0;   // 0-65535 → 0-255 redondeado
 
-/* Tramado determinista (el mismo ruido que la salida de 8 bits del
-   revelador Premium, raw/premium/cpu.js): el lienzo de 8 bits de un RAW
-   no muestra bandas, y como sólo depende de la posición, se puede
-   recalcular para saber si un píxel sigue sin tocar. */
-const dith = (x, y, c) => {
-  let h = Math.imul(x * 3 + c + 0x2545f491, 0x9e3779b1) ^ Math.imul(y + 0x6a09e667, 0x85ebca77);
-  h ^= h >>> 15; h = Math.imul(h, 0x2c1b3c6d); h ^= h >>> 12;
-  return ((h & 1023) + 0.5) / 1024 - 0.5;
-};
 const d8 = (v, x, y, c) => { const r = Math.round(v * (255 / 65535) + dith(x, y, c)); return r < 0 ? 0 : r > 255 ? 255 : r; };
 
 /** Valor de 8 bits del lienzo para un valor de 16 bits en (x, y) del origen: el mismo redondeo (con

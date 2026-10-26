@@ -14,7 +14,7 @@ await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTi
 await page.evaluate(() => setInterval(() => { const bt = [...document.querySelectorAll("button")].find(x => x.textContent.trim() === "Descargar"); if(bt) bt.click(); }, 400));
 // Tres DNG en memoria (el navegador los entrega por el selector de archivos)
 const dngs = await page.evaluate(async () => {
-  const { colorDng } = await import("/raw/tests/dng-color-fixture.js");
+  const { colorDng } = await import("/tests/plugins/raw/dng-color-fixture.js");
   const W = 320, H = 224, h = (x, y) => { let v = Math.imul(x * 73856093 ^ y * 19349663, 0x85ebca6b); v ^= v >>> 13; v = Math.imul(v, 0xc2b2ae35); v ^= v >>> 16; return (v >>> 0) / 4294967296; };
   const tex = (x, y) => 0.25 + 0.5 * (Math.sin(x / 9) * Math.sin(y / 7) * 0.5 + 0.5) * 0.6 + 0.3 * h(x >> 1, y >> 1);
   const blur = (x, y) => { let s = 0; for(let j = -3; j <= 3; j++) for(let i = -3; i <= 3; i++) s += tex(x + i, y + j); return s / 49; };

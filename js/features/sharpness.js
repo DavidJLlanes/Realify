@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   ANÁLISIS DE NITIDEZ (fase 8 de PENDIENTE.md)
+   ANÁLISIS DE NITIDEZ (fase 8 de docs/PENDIENTE.md)
    Menú Imagen › Análisis de nitidez…
 
      · Mapa de enfoque: una capa nueva, a resolución completa, que
@@ -15,16 +15,16 @@
    Matemática en js/cv/stackmath.js (sin DOM).
    ═══════════════════════════════════════════════════════════════ */
 
-import { dialog } from "../ui/dialog.js";
-import { toast, progress, status } from "../ui/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast, progress, status } from "../core/toast.js";
 import { doc } from "../core/doc.js";
+import { escAttr as esc } from "../core/util/html.js";
+import { readPixels as pixels } from "../core/util/canvas.js";
 
 const MAX = 24;
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-const pixels = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 
 async function currentFlat(){
-  const { flatten } = await import("../editor/layertree.js");
+  const { flatten } = await import("../editor/layers/layertree.js");
   const c = flatten(), r = document.createElement("canvas"); r.width = c.width; r.height = c.height;
   r.getContext("2d", { willReadFrequently: true }).drawImage(c, 0, 0);
   return r;
@@ -46,7 +46,7 @@ async function makeFocusMap(){
       ox.putImageData(new ImageData(strip, W, y1 - y0), 0, y0);
       progress(0.05 + 0.9 * y1 / H); await new Promise(r => setTimeout(r, 0));
     }
-    const { resultToLayer } = await import("../ui/fsshell.js");
+    const { resultToLayer } = await import("../ui/kit/fsshell.js");
     await resultToLayer(out, { name: "Mapa de enfoque" });
     progress(null); toast("Mapa de enfoque en una capa nueva: rojo y amarillo = lo más nítido", "ok");
   }catch(err){ console.error(err); progress(null); toast("No se pudo medir: " + (err.message || err), "err"); }
@@ -71,7 +71,7 @@ export async function openSharpness(){
   const addFiles = async () => {
     if(busy) return; busy = true;
     try{
-      const { pickFiles, decodePhoto } = await import("../ui/fsshell.js");
+      const { pickFiles, decodePhoto } = await import("../ui/kit/fsshell.js");
       const files = await pickFiles({ gallery: true });
       for(const f of files){
         if(items.length >= MAX) break;
@@ -84,7 +84,7 @@ export async function openSharpness(){
   const addOpen = async () => {
     if(busy) return; busy = true;
     try{
-      const docs = await import("../core/documents.js"), { flatten } = await import("../editor/layertree.js");
+      const docs = await import("../editor/documents.js"), { flatten } = await import("../editor/layers/layertree.js");
       const tabs = docs.listTabs();
       if(!tabs.length){ toast("No hay fotos abiertas"); return; }
       const start = docs.activeTab()?.tabId ?? null;
@@ -120,8 +120,8 @@ export async function openSharpness(){
   });
   if(res !== "best" || !items.length) return;
   const best = items.slice().sort((a, b) => b.score - a.score)[0];
-  if(best.tabId !== undefined){ const docs = await import("../core/documents.js"); docs.switchTo(best.tabId, { force: true }); toast(`Abierta la más nítida: ${best.name}`, "ok"); return; }
-  const { decodePhoto, resultToLayer } = await import("../ui/fsshell.js");
+  if(best.tabId !== undefined){ const docs = await import("../editor/documents.js"); docs.switchTo(best.tabId, { force: true }); toast(`Abierta la más nítida: ${best.name}`, "ok"); return; }
+  const { decodePhoto, resultToLayer } = await import("../ui/kit/fsshell.js");
   const c = await decodePhoto(best.file, 1e5);
   await resultToLayer(c, { name: best.name, docName: best.name.replace(/\.[^.]+$/, ""), newDocument: true });
   toast(`Abierta la más nítida: ${best.name}`, "ok");

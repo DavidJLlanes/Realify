@@ -19,7 +19,7 @@ for(const mobile of [false, true]){
   await page.route("**/api/informe", async route => { sent.push(JSON.parse(route.request().postData())); await route.fulfill({ status: mode429 ? 429 : 200, contentType:"application/json", body:'{"ok":true}' }); });
   await page.goto(BASE); await page.waitForTimeout(1200);
   await page.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(300, 200, { name:"secreto.jpg" }); const l = D.addLayer({ name:"Fondo" }); l.ctx.fillStyle = "#2a7"; l.ctx.fillRect(0, 0, 300, 200); });
-  page.evaluate(() => import("/js/ui/commands.js").then(m => m.run("help.report"))).catch(e => errs.push(String(e)));
+  page.evaluate(() => import("/js/core/commands.js").then(m => m.run("help.report"))).catch(e => errs.push(String(e)));
   await page.waitForTimeout(900);
   // sin texto: no envía
   await page.click("#brSend"); chk(sent.length === 0, `${mode}: no debe enviar sin mensaje`);
@@ -40,7 +40,7 @@ for(const mobile of [false, true]){
   await p2.route("**/api/informe", async route => { sent2.push(JSON.parse(route.request().postData())); await route.fulfill({ status:429, body:"{}" }); });
   await p2.goto(BASE); await p2.waitForTimeout(1200);
   await p2.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(300, 200, { name:"x" }); const l = D.addLayer({ name:"Fondo" }); l.ctx.fillStyle = "#c33"; l.ctx.fillRect(0, 0, 300, 200); });
-  p2.evaluate(() => import("/js/ui/commands.js").then(m => m.run("help.report"))).catch(() => {});
+  p2.evaluate(() => import("/js/core/commands.js").then(m => m.run("help.report"))).catch(() => {});
   await p2.waitForTimeout(900);
   await p2.fill("#brMsg", "Otro problema distinto"); await p2.uncheck("#brDiag"); await p2.check("#brImg"); await p2.click("#brSend"); await p2.waitForTimeout(500);
   const t = sent2[0] || {};

@@ -1,5 +1,5 @@
-/* Diálogo «Exportar PDF…» y exportación PDF por capas (v254): reordenar y quitar imágenes añadidas, una página por capa, fondo, marcas, PDF/X con fuente propia; tests/pdf_dialogo_check.py lo verifica: genera un «original» con EXIF (con nota del fabricante), IPTC y XMP, lo filtra con io/metadata.js y lo incrusta en JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF; tests/metadatos_check.py lo verifica con PIL, pillow-heif y tifffile: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+/* Diálogo «Exportar PDF…» y exportación PDF por capas (v254): reordenar y quitar imágenes añadidas, una página por capa, fondo, marcas, PDF/X con fuente propia; tests/pdf_dialogo_check.py lo verifica: genera un «original» con EXIF (con nota del fabricante), IPTC y XMP, lo filtra con io/meta/metadata.js y lo incrusta en JPEG, PNG, WebP, AVIF, JPEG XL, TIFF y PDF; tests/metadatos_check.py lo verifica con PIL, pillow-heif y tifffile: una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -21,7 +21,7 @@ await page.evaluate(async () => {
 const wait = ms => page.waitForTimeout(ms);
 const out = {};
 // 1) Exportar PDF…: documento por capas + 2 imágenes añadidas, reordenadas, una quitada, fondo, marcas
-await page.evaluate(() => { import("/js/io/pdfexport.js").then(m => { window.__p = m.exportPdf(); }); });
+await page.evaluate(() => { import("/js/io/export/pdfexport.js").then(m => { window.__p = m.exportPdf(); }); });
 await page.waitForSelector("#pdAdd");
 await page.setInputFiles(".modal input[type=file][multiple]", ["/tmp/sc/add_a.png", "/tmp/sc/add_b.png"]);
 await wait(800);
@@ -39,7 +39,7 @@ const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 120000 
 await dl.saveAs("/tmp/sc/out/dlg1.pdf");
 await wait(500);
 // 2) Exportar… (PDF simple) con una página por capa
-await page.evaluate(() => { import("/js/io/export.js").then(m => { window.__e = m.exportDialog(); }); });
+await page.evaluate(() => { import("/js/io/export/export.js").then(m => { window.__e = m.exportDialog(); }); });
 await page.waitForSelector("#exType");
 await page.evaluate(() => { const s = document.querySelector("#exType"); s.value = "application/pdf"; s.dispatchEvent(new Event("change", { bubbles: true })); });
 await wait(300);

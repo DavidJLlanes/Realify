@@ -14,10 +14,10 @@
 import { doc, addLayer } from "../core/doc.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
-import { flatten } from "../editor/layertree.js";
-import { state as toolState } from "../editor/tools.js";
-import { dialog } from "../ui/dialog.js";
-import { toast } from "../ui/toast.js";
+import { flatten } from "../editor/layers/layertree.js";
+import { state as toolState } from "../editor/tools/tools.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast } from "../core/toast.js";
 import { isMobile } from "../core/device.js";
 
 const hex = ([r, g, b]) => "#" + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, "0")).join("");
@@ -101,7 +101,7 @@ export async function colorPalette(){
     try{ await navigator.clipboard.writeText(txt); toast("Códigos de la paleta copiados", "ok"); }catch{ toast("No se pudo copiar al portapapeles", "err"); }
   } else if(res === "png"){
     const blob = await new Promise(r => swatchCanvas(colors, 1200, 300).toBlob(r, "image/png"));
-    const { saveOrShare, stamp } = await import("../io/export.js");
+    const { saveOrShare, stamp } = await import("../io/export/export.js");
     await saveOrShare(blob, `${doc.name || "paleta"}-paleta-${stamp()}.png`);
   } else if(res === "layer"){
     // Capa nueva: franja con las muestras abajo del todo

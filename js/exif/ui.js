@@ -13,8 +13,8 @@ import { BODIES, LENSES, BODY_BY_ID, LENS_BY_ID, SHUTTERS, APERTURES, ISOS,
 import { buildExifBlock, injectExif } from "./writer.js";
 import { checkCoherence } from "../analysis/coherence.js";
 import { doc } from "../core/doc.js";
-import { dialog } from "../ui/dialog.js";
-import { toast } from "../ui/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast } from "../core/toast.js";
 
 const LS = "realify.exif";
 

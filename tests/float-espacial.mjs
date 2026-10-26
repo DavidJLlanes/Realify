@@ -1,7 +1,7 @@
-/* Prueba de los filtros espaciales en coma flotante nativa (js/editor/floatspatial.js): desenfoque gaussiano, máscara de enfoque y ruido sobre
+/* Prueba de los filtros espaciales en coma flotante nativa (js/editor/render/floatspatial.js): desenfoque gaussiano, máscara de enfoque y ruido sobre
    16 bits. Sin navegador. Uso: node tests/float-espacial.mjs */
 import assert from "node:assert/strict";
-import { gaussianBlurHi, unsharpHi, noiseHi, boxSizes } from "../js/editor/floatspatial.js";
+import { gaussianBlurHi, unsharpHi, noiseHi, boxSizes } from "../js/editor/render/floatspatial.js";
 const W = 120, H = 80, n = W * H, tick = async () => {};
 // 1) un degradado lineal no cambia con el desenfoque (salvo en el borde): error ≤ 2 niveles de 16 bits (con 8 bits el delta daría hasta ±128)
 const grad = new Uint16Array(n * 3); for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){ const j = (y * W + x) * 3, v = 10000 + x * 200 + y * 3; grad[j] = v; grad[j + 1] = v; grad[j + 2] = v; }

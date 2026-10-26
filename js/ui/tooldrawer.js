@@ -14,15 +14,15 @@
    herramienta (`setTool`) que ya existían. Sólo cambia el camino.
    ═══════════════════════════════════════════════════════════════ */
 
-import { run, enabled } from "./commands.js";
+import { run, enabled } from "../core/commands.js";
 import { on } from "../core/bus.js";
 import { doc } from "../core/doc.js";
-import { TOOLS, current, setTool } from "../editor/tools.js";
+import { TOOLS, current, setTool } from "../editor/tools/tools.js";
 import { haptic } from "../core/device.js";
-import { keyboardHeight } from "./keyboard.js";
+import { keyboardHeight } from "./kit/keyboard.js";
 import { MENUS } from "./menu.js";
 import { ICONS } from "./tooldrawer-icons.js";
-import { crownIcon } from "./premium.js";
+import { crownIcon } from "./kit/premium.js";
 import { matchScore, searchable } from "../core/search.js";
 
 const CATS = [

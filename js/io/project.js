@@ -6,12 +6,12 @@ import { doc, makeLayer } from "../core/doc.js";
 import { clear as clearHistory } from "../core/history.js";
 import { clearSnapshots } from "../core/snapshots.js";
 import { emit, on } from "../core/bus.js";
-import { view, apply as applyView } from "../editor/view.js";
-import { flatten } from "../editor/layertree.js";
-import { saveOrShare, stamp } from "./export.js";
-import { toast, status } from "../ui/toast.js";
-import { openAsNewTab, listTabs, activeTab, switchTo } from "../core/documents.js";
-import { anyDialogOpen } from "../ui/dialog.js";
+import { view, apply as applyView } from "../core/view.js";
+import { flatten } from "../editor/layers/layertree.js";
+import { saveOrShare, stamp } from "./export/export.js";
+import { toast, status } from "../core/toast.js";
+import { openAsNewTab, listTabs, activeTab, switchTo } from "../editor/documents.js";
+import { anyDialogOpen } from "../ui/kit/dialog.js";
 import { hiCoversCanvas, hiRect, hiAllowed } from "../core/hisrc.js";
 
 export const PROJECT_MIME = "application/vnd.realify+json";
@@ -74,7 +74,7 @@ async function encodeHi(layer, maxPixels = 24e6){
   const cached = hiCache.get(layer.hiSrc.data);
   if(cached && cached.key === `${rc.x},${rc.y},${rc.w},${rc.h},${!!layer.hiSrc.dither}`) return cached.value;
   try{
-    const { png16, png16Supported } = await import("./formats16.js");
+    const { png16, png16Supported } = await import("./formats/formats16.js");
     if(!png16Supported()) return null;
     const hs = layer.hiSrc;
     const blob = await png16({ data: hs.data, channels: 3, w: hs.w, h: hs.h });
@@ -87,7 +87,7 @@ async function encodeHi(layer, maxPixels = 24e6){
 async function decodeHi(saved, w, h){
   if(!saved || !saved.png || !hiAllowed(w, h)) return null;
   try{
-    const { decodePng16 } = await import("./hidepth.js");
+    const { decodePng16 } = await import("./formats/hidepth.js");
     const u8 = base64ToBytes(saved.png);
     const r = await decodePng16(u8.buffer);
     const x = saved.x || 0, y = saved.y || 0, rw = saved.w || w, rh = saved.h || h;
@@ -135,7 +135,7 @@ export async function serializeProject({ hi = true, hiMaxPixels = 24e6 } = {}){
       smartTransform: cloneJson(layer.smartTransform || null),
       smartBox: cloneJson(layer.smartBox || null),
       dodgeBurn: !!layer.dodgeBurn,
-      // Capa de relleno (editor/layercontent.js): todo es JSON llano
+      // Capa de relleno (editor/layers/layercontent.js): todo es JSON llano
       // salvo el motivo, que —como el original de un objeto
       // inteligente— es un <canvas> aparte y se guarda como su propio
       // PNG. Sin esto una capa de relleno sobreviviría a guardar y

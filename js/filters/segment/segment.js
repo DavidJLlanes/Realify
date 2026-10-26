@@ -55,7 +55,7 @@ function upscaleMask(prob, w, h, outW, outH){
   return mask;
 }
 
-/* ── Por bloques (fase 3 de PENDIENTE.md) ───────────────────────
+/* ── Por bloques (fase 3 de docs/PENDIENTE.md) ───────────────────────
    La pasada GLOBAL (la foto entera a 513 px) decide dónde hay persona o
    cielo: es la que ve la escena completa. En fotos grandes, además, la
    foto a unas 1,75 veces esa resolución se parte en bloques de 513 que

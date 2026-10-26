@@ -17,7 +17,7 @@ for(const mobile of [false, true]){
   await page.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(900, 600, { name: "n" }); const L = D.addLayer({ name: "Foto" }), x = L.ctx; x.fillStyle = "#303030"; x.fillRect(0, 0, 900, 600); });
   const px = () => page.evaluate(async () => { const D = await import("/js/core/doc.js"), L = D.doc.layers.find(l => l.id === D.doc.activeId), g = (x, y) => Array.from(L.canvas.getContext("2d").getImageData(x, y, 1, 1).data); return { izq: g(15, 300), der: g(885, 300) }; });
   const before = await px();
-  await page.evaluate(async () => { (await import("/js/ui/commands.js")).run("filter.looks"); });
+  await page.evaluate(async () => { (await import("/js/core/commands.js")).run("filter.looks"); });
   await page.locator(".fsp.lkf").waitFor({ timeout: 15000 }); await page.waitForTimeout(1500);
   if(!mobile){
     await page.locator(".lkf-search input").fill("destello 12"); await page.waitForTimeout(400);

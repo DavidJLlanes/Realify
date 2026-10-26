@@ -2,8 +2,8 @@
    se puede probar en Node sin arrastrar el DOM, igual que hace
    PurePixel. */
 
-import { runAdjust, slider } from "../../editor/adjust.js";
-import { toast } from "../../ui/toast.js";
+import { runAdjust, slider } from "../../editor/adjust/adjust.js";
+import { toast } from "../../core/toast.js";
 import { parseCube, applyCubeLut } from "./engine.js";
 
 const MAX_BYTES = 40 * 1024 * 1024;   // una 3D de 256³ en texto ronda los 30 MB

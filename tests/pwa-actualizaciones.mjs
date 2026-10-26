@@ -26,8 +26,8 @@ const server=http.createServer((req,res)=>{
       </script>`);
   }
   const stubs={
-    '/js/ui/dialog.js':'export const dialog=async()=>{}; export const confirmDlg=async()=>false;',
-    '/js/ui/toast.js':'export const toast=()=>{};',
+    '/js/ui/kit/dialog.js':'export const dialog=async()=>{}; export const confirmDlg=async()=>false;',
+    '/js/core/toast.js':'export const toast=()=>{};',
     '/js/core/doc.js':'export const doc={open:false};'
   };
   if(stubs[url.pathname]){res.setHeader('Content-Type','text/javascript');return res.end(stubs[url.pathname]);}

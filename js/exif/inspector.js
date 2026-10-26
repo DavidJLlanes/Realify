@@ -1,19 +1,19 @@
 /* ═══════════════════════════════════════════════════════════════
-   INSPECTOR DE METADATOS (fase 15 de PENDIENTE.md)
+   INSPECTOR DE METADATOS (fase 15 de docs/PENDIENTE.md)
    Enseña TODO lo que lleva escrito el archivo original de la foto abierta (o de uno que se elija): EXIF, ubicación
    GPS, IPTC, XMP, perfil ICC, MPF, Photoshop, notas del fabricante y miniatura, con un resumen de lo que revela de
    quien la hizo (dónde, cuándo, con qué cámara, con qué números de serie). La lectura la hace ExifReader (MPL-2.0,
    sin modificar, js/vendor/exifreader) y todo ocurre en el equipo.
 
    Distinto de «Metadatos EXIF…» (exif/ui.js), que ESCRIBE datos de cámara en una exportación, y de «Limpiar
-   metadatos» (io/stripui.js), que los quita de un archivo sin recomprimir.
+   metadatos» (io/meta/stripui.js), que los quita de un archivo sin recomprimir.
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc } from "../core/doc.js";
-import { dialog } from "../ui/dialog.js";
-import { toast } from "../ui/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast } from "../core/toast.js";
 import { isMobile } from "../core/device.js";
-import { loadExifReader } from "../io/metadata.js";
+import { loadExifReader } from "../io/meta/metadata.js";
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const MAX_READ = 64 << 20;
@@ -157,7 +157,7 @@ export async function openMetadataInspector(){
     out.innerHTML = `<p class="hint">Leyendo…</p>`;
     try{
       const tags = await readTags(file);
-      out.replaceChildren(render(tags, () => input.click(), async () => { const { openStrip } = await import("../io/stripui.js"); openStrip(); }));
+      out.replaceChildren(render(tags, () => input.click(), async () => { const { openStrip } = await import("../io/meta/stripui.js"); openStrip(); }));
     }catch(err){
       out.innerHTML = `<p class="hint" style="color:var(--bad)">${esc(err.message || err)}</p><button type="button" class="wide" data-a="pick">Elegir otro archivo…</button>`;
       out.querySelector("[data-a=pick]").addEventListener("click", () => input.click());

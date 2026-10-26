@@ -1,6 +1,6 @@
 /* Metadatos en OpenEXR (v257): atributos estándar owner, comments, capDate, latitude y longitude en la cabecera; el resto de la cabecera sigue siendo válido. Uso: node tests/exr-meta.mjs */
 import assert from "node:assert/strict";
-import { encodeExr } from "../js/io/exr.js";
+import { encodeExr } from "../js/io/formats/exr.js";
 const W = 8, H = 4, line = (y, R, G, B) => { for(let x = 0; x < W; x++){ R[x] = x / W; G[x] = y / H; B[x] = .5; } };
 const blob = await encodeExr({ width: W, height: H, getLine: line, space: "srgb", meta: { owner: "Ana · © Ana 2026", comments: "Título — descripción", capDate: "2026:05:03 18:30:00", latitude: 40.5, longitude: -3.25 } });
 const u = new Uint8Array(await blob.arrayBuffer()), dv = new DataView(u.buffer);

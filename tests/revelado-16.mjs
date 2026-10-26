@@ -1,5 +1,5 @@
 /* Prueba de Revelado fotográfico Premium con origen de 16 bits (ráster de 16 bits en el motor CPU) (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
-   coma flotante (editor/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
+   coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
    debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const R = await import("/raw/premium/render.js"), S = await import("/raw/state.js"), H = await import("/js/core/hisrc.js");
+  const R = await import("/plugins/raw/premium/render.js"), S = await import("/plugins/raw/state.js"), H = await import("/js/core/hisrc.js");
   const W = 400, Hh = 200, o = {};
   const hi = new Uint16Array(W * Hh * 3); for(let y = 0; y < Hh; y++) for(let x = 0; x < W; x++){ const j = (y * W + x) * 3, v = Math.round(6000 + x * 130.3 + y * 17.1); hi[j] = v; hi[j + 1] = Math.min(65535, v + 3000); hi[j + 2] = 65535 - v; }
   const px8 = new Uint8ClampedArray(W * Hh * 4); for(let i = 0; i < W * Hh; i++){ for(let k = 0; k < 3; k++) px8[i * 4 + k] = Math.round(hi[i * 3 + k] / 257); px8[i * 4 + 3] = 255; }

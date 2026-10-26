@@ -1,0 +1,15 @@
+[Unit]
+Description=Servicio Stitcher Panorama OpenCV (Realify)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/realify.es/server/panorama
+ExecStart=/var/www/realify.es/server/panorama/venv/bin/uvicorn server:app --host 127.0.0.1 --port 8767 --workers 2 --timeout-keep-alive 300
+Restart=always
+RestartSec=5
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

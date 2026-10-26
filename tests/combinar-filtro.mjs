@@ -11,7 +11,7 @@ const b = await chromium.launch(), page = await (await b.newContext({ viewport: 
 page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const setup = () => page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), F = await import("/js/editor/filterlayer.js");
+  const D = await import("/js/core/doc.js"), F = await import("/js/editor/layers/filterlayer.js");
   D.newDoc(120, 80, { name: "n" }); const base = D.addLayer({ name: "Fondo" }); base.ctx.fillStyle = "#336699"; base.ctx.fillRect(0, 0, 120, 80);
   const res = document.createElement("canvas"); res.width = 120; res.height = 80; const x = res.getContext("2d"); x.fillStyle = "#ff0000"; x.fillRect(10, 10, 40, 40);
   const l = F.addFilterLayer({ base, result: res, title: "Retoque de cara", filter: "mix:Retoque de cara" }); F.markMixLayer(l, "Retoque de cara");
@@ -21,13 +21,13 @@ const info = id => page.evaluate(async id => { const D = await import("/js/core/
   return { n: L.length, red: p[0] > 200, fx: b.filters?.length || 0 }; }, id);
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 // 1) combinar hacia abajo
-let ids = await setup(); await page.evaluate(async () => (await import("/js/ui/commands.js")).run("layer.mergeDown"));
+let ids = await setup(); await page.evaluate(async () => (await import("/js/core/commands.js")).run("layer.mergeDown"));
 let r = await info(ids.base); console.log("hacia abajo", JSON.stringify(r)); chk(r.n === 2 && r.red && r.fx === 0, "combinar hacia abajo con capa de filtro");
 await page.evaluate(async () => (await import("/js/core/history.js")).undo?.()); r = await info(ids.base); chk(r.n === 3 && !r.red, "deshacer combinar hacia abajo " + JSON.stringify(r));
 // 2) combinar seleccionadas (clic con Ctrl en las dos filas)
 ids = await setup(); await page.waitForTimeout(300);
 await page.locator(`.layer[data-id="${ids.base}"]`).click({ modifiers: ["Control"] }); await page.locator(`.layer[data-id="${ids.top}"]`).click({ modifiers: ["Control"] });
-await page.evaluate(async () => (await import("/js/ui/commands.js")).run("layer.mergeSelected")); r = await info(ids.base); console.log("seleccionadas", JSON.stringify(r));
+await page.evaluate(async () => (await import("/js/core/commands.js")).run("layer.mergeSelected")); r = await info(ids.base); console.log("seleccionadas", JSON.stringify(r));
 chk(r.n === 2 && r.red && r.fx === 0, "combinar capas seleccionadas con capa de filtro");
 await page.evaluate(async () => (await import("/js/core/history.js")).undo?.()); r = await info(ids.base); chk(r.n === 3 && !r.red, "deshacer combinar seleccionadas " + JSON.stringify(r));
 chk(errs.length === 0, "errores de página " + errs.slice(0, 3));

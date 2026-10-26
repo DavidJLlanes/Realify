@@ -9,7 +9,7 @@
      sin conexión desde la primera vez.
    · `remote`: se descarga de Hugging Face sólo cuando alguien lo pide
      y se guarda en IndexedDB para las siguientes veces (ver worker.js).
-     La CSP de nginx (server/nginx-realify.conf.example) permite
+     La CSP de nginx (server/nginx/nginx-realify.conf.example) permite
      huggingface.co y *.hf.co SÓLO para esto: se bajan pesos, la imagen
      del usuario nunca sale del equipo. Antes de la primera descarga se
      pide permiso (ver confirmDownload en runtime.js).

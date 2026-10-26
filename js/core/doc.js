@@ -9,7 +9,7 @@
 
 import { remapHi, hiCoversCanvas } from "./hisrc.js";
 import { emit } from "./bus.js";
-import { drawWithBlend } from "../editor/blend.js";
+import { drawWithBlend } from "./blend.js";
 
 let seq = 0;
 
@@ -26,7 +26,7 @@ export const doc = {
   /* Metadatos de origen: de dónde salió y a qué tamaño, para poder
      avisar cuando se exporta más grande que el original. */
   source: null,
-  /* Campos de metadatos escritos a mano para la exportación (io/metaedit.js): título, descripción, autor, copyright, palabras clave, fecha, lat/lon. */
+  /* Campos de metadatos escritos a mano para la exportación (io/meta/metaedit.js): título, descripción, autor, copyright, palabras clave, fecha, lat/lon. */
   metaEdit: null,
   /* Selección activa: null significa «todo el documento vale», el
      caso normal. Cuando hay una, es { mask, w, h }: una máscara de un
@@ -53,7 +53,7 @@ export function makeLayer(opts = {}){
     visible: true,
     opacity: 1,
     blend: "source-over",
-    /* Fusionar si (ver editor/blendif.js): null cuando no tiene ningún
+    /* Fusionar si (ver editor/layers/blendif.js): null cuando no tiene ningún
        efecto —el caso normal—, o { thisLayer, underlying } con el
        punto negro/blanco (y su posible partición Alt) de cada lado.
        Decide, píxel a píxel además de la opacidad y la máscara, si esta
@@ -64,14 +64,14 @@ export function makeLayer(opts = {}){
     /* Filtros no destructivos aplicados a esta capa, en orden: cada
        entrada es { id, name, params, amount, enabled }. Se recalculan
        todos, en cadena, sobre lo que haya en la capa de debajo cada
-       vez que cualquiera de ellos cambia — ver editor/filterchain.js.
+       vez que cualquiera de ellos cambia — ver editor/layers/filterchain.js.
        Apagar uno (enabled:false) lo salta sin borrarlo, para poder
        comparar con y sin él sin perder sus parámetros. */
     filters: [],
     /* Máscara de capa: null si no tiene. Cuando existe es un lienzo
        aparte del tamaño de la capa cuyo canal alfa es la cantidad que
        se deja ver —opaco del todo por defecto, para no ocultar nada
-       al añadirla—. Ver editor/masks.js para cómo se pinta y compone.
+       al añadirla—. Ver editor/layers/masks.js para cómo se pinta y compone.
        Si maskRef apunta a otra capa (vinculada), esta capa usa la máscara
        de esa otra; cambios en una afectan a ambas. */
     mask: null,
@@ -79,25 +79,25 @@ export function makeLayer(opts = {}){
     maskEnabled: true,
     /* «raster» es una capa de píxeles normales; «text» ya existe en
        el resto del código; «adjust» es una capa de ajuste no
-       destructivo (ver editor/adjustlayers.js): no tiene contenido
+       destructivo (ver editor/layers/adjustlayers.js): no tiene contenido
        propio, cambia lo que hay debajo; «group» es un grupo de capas
-       (ver editor/layertree.js y editor/groups.js): tampoco pinta
+       (ver editor/layers/layertree.js y editor/layers/groups.js): tampoco pinta
        nada por sí mismo, compone lo que tenga dentro en un lienzo
        aparte y ese resultado es lo que se trata como su contenido;
-       «fill» y «shape» (ver editor/layercontent.js) SÍ tienen lienzo
+       «fill» y «shape» (ver editor/layers/layercontent.js) SÍ tienen lienzo
        propio como una capa raster normal —el compositor no las
        distingue de una en absoluto—, sólo que ese lienzo se vuelve a
        generar entero desde `fill`/`shape` cada vez que cambian sus
        parámetros, nunca se pinta a mano encima. */
     type: opts.type || "raster",
     /* Sólo para type:"fill": { kind:"color"|"gradient"|"pattern", ... }.
-       Ver editor/layercontent.js para la forma exacta de cada kind y
+       Ver editor/layers/layercontent.js para la forma exacta de cada kind y
        renderFillLayer(), que es quien la convierte en los píxeles de
        `canvas`. */
     fill: null,
     /* Sólo para type:"shape": { kind:"rect"|"ellipse", x,y,w,h, radius,
        fill:{on,color}, stroke:{on,color,width} }, todo en coordenadas
-       de documento. Ver editor/layercontent.js#renderShapeLayer. */
+       de documento. Ver editor/layers/layercontent.js#renderShapeLayer. */
     shape: null,
     /* Grupo al que pertenece esta capa (su id), o null en el nivel
        superior. Un grupo puede a su vez tener groupId si está
@@ -107,19 +107,19 @@ export function makeLayer(opts = {}){
     collapsed: false,
     /* «Recortar a la capa de abajo»: esta capa sólo se ve donde la
        capa (o grupo) no recortada más próxima por debajo, en su mismo
-       nivel, tiene algo de alfa. Ver editor/layertree.js. */
+       nivel, tiene algo de alfa. Ver editor/layers/layertree.js. */
     clipped: false,
     /* Sombra paralela, resplandor exterior, trazo y superposición de
        degradado — null cuando ninguno está activo. Ver
-       editor/layerstyles.js. */
+       editor/layers/layerstyles.js. */
     styles: null,
     /* Marca una capa como la gris 50% de un Dodge & Burn no
-       destructivo (ver editor/tools.js#ensureDodgeBurnLayer): sólo
+       destructivo (ver editor/tools/tools.js#ensureDodgeBurnLayer): sólo
        decide sobre qué capa sigue pintando esa herramienta al
        reactivarse, no cambia nada de cómo se compone. */
     dodgeBurn: false,
     /* Objeto inteligente: `smart` lo activa desde «Convertir en objeto
-       inteligente» (editor/transformtool.js). `smartSource` es el
+       inteligente» (editor/tools/transformtool.js). `smartSource` es el
        lienzo original íntegro, a la resolución que tenía al
        convertirse, que ninguna transformación posterior vuelve a
        tocar; `smartTransform` son los parámetros acumulados (mismo
@@ -261,7 +261,7 @@ export function removeLayer(id = doc.activeId){
   if(i < 0) return false;
   doc.layers.splice(i, 1);
   // Si lo que se ha borrado era un grupo por una vía genérica (no la
-  // de editor/groups.js, que ya se ocupa de sus miembros), que éstos
+  // de editor/layers/groups.js, que ya se ocupa de sus miembros), que éstos
   // no se queden huérfanos apuntando a un id que ya no existe: sin
   // esto desaparecerían de la composición sin ningún aviso, porque
   // dejarían de ser de nivel superior sin llegar a colgar de nada.
@@ -362,7 +362,7 @@ export function resizeDoc(w, h, smooth = true){
           tx: l.smartTransform.tx * kx, ty: l.smartTransform.ty * ky };
       }
     }
-    // Una capa de forma (editor/layercontent.js) guarda su rectángulo
+    // Una capa de forma (editor/layers/layercontent.js) guarda su rectángulo
     // en coordenadas de documento: si no se escalara igual que el
     // lienzo, la próxima vez que se tocara un mando en el panel de
     // Propiedades se volvería a dibujar en el tamaño y sitio VIEJOS
@@ -405,7 +405,7 @@ export function cropDoc(rect){
       if(moved) l.hiSrc = moved; else delete l.hiSrc;
     }
     // La máscara de capa es un lienzo aparte del tamaño de la capa (ver
-    // editor/masks.js): se recorta con el mismo rectángulo, o quedaría
+    // editor/layers/masks.js): se recorta con el mismo rectángulo, o quedaría
     // con las medidas viejas tapando lo que no le toca.
     if(l.mask){
       const m = document.createElement("canvas");

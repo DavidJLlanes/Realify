@@ -12,10 +12,11 @@
        suavizado), con transiciones suaves entre zonas.
    ═══════════════════════════════════════════════════════════════ */
 
+import { hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
+export { enc };
+
 export const DEC = new Float32Array(256);
 for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
-export const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
-const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 const VALID = 250;                      // alfa mínimo para fiarse de un píxel
 
 /* ── Ruido de la pila ────────────────────────────────────────── */

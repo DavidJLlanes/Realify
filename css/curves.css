@@ -1,4 +1,4 @@
-/* Curvas a pantalla completa · mismo diseño y medidas que el revelador RAW (raw/raw.css) y el collage */
+/* Curvas a pantalla completa · mismo diseño y medidas que el revelador RAW (plugins/raw/raw.css) y el collage */
 .cv-editor{position:fixed;inset:0;z-index:2000;display:grid;grid-template-rows:52px minmax(0,1fr);background:#121417;color:#e9edf4;font:13px/1.35 var(--sans,system-ui,sans-serif)}
 .cvf-topbar{display:flex;align-items:center;gap:12px;padding:0 14px;background:#1a1d21;border-bottom:1px solid #30353d}
 .cvf-topbar button{min-height:34px;padding:0 11px;background:#272b31;color:#e9edf4;border:1px solid #3b414b;border-radius:5px}

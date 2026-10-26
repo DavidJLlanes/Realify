@@ -2,9 +2,9 @@
    aplanado, que es exactamente lo que se va a exportar. */
 
 import { doc } from "../core/doc.js";
-import { flatten } from "../editor/layertree.js";
-import { dialog } from "../ui/dialog.js";
-import { toast, status } from "../ui/toast.js";
+import { flatten } from "../editor/layers/layertree.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast, status } from "../core/toast.js";
 import { measureAll, METRICS } from "./metrics.js";
 import { runAll as runForensics, FORENSICS } from "./forensics.js";
 import { spectrum, FN } from "./fft.js";

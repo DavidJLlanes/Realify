@@ -14,7 +14,7 @@ const launchArgs = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "-
 let b; try{ b = await chromium.launch({ args: launchArgs }); }catch{ b = await chromium.launch({ channel: "msedge", args: launchArgs }); }
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } }; const errs = [];
 const shots = process.env.LUT_SHOTS; if(shots) fs.mkdirSync(shots, { recursive: true });
-const CATALOG = await import("file:///" + path.join(ROOT, "lut/catalog.js").replace(/\\/g, "/"));
+const CATALOG = await import("file:///" + path.join(ROOT, "plugins/lut/catalog.js").replace(/\\/g, "/"));
 const total = CATALOG.ITEMS.length, fams = CATALOG.FAMILIES.length;
 for(const mobile of [false, true]){
   const tag = mobile ? "móvil" : "escritorio";
@@ -36,7 +36,7 @@ for(const mobile of [false, true]){
     chk(await item.count() === 1, tag + ": debe haber una entrada «Efectos LUT» en la pestaña Filtros del cajón");
     chk(await item.first().locator("svg").count() >= 1, tag + ": la entrada del cajón debe llevar icono");
     await item.first().click();
-  } else await page.evaluate(async () => { (await import("/js/ui/commands.js")).run("filter.luts"); });
+  } else await page.evaluate(async () => { (await import("/js/core/commands.js")).run("filter.luts"); });
   await page.locator(".fsp.lutf").waitFor({ timeout: 20000 }); await page.waitForTimeout(3500);
   const st = await page.evaluate(() => ({ title: document.querySelector(".fsp-title b")?.textContent, apply: document.querySelector('[data-a="apply"]')?.disabled,
     cells: document.querySelectorAll(".fsp-left .fsp-thumb").length, heads: [...document.querySelectorAll(".fsp-left h3")].map(h => h.textContent),
@@ -90,7 +90,7 @@ for(const mobile of [false, true]){
   chk(after.n === before.n + 1, tag + ": debe haber una capa nueva"); chk(after.id === "luts" && after.lut === "amanecer", tag + ": la capa guarda el id de la tabla («luts»)");
   chk(after.px.some((v, i) => Math.abs(v - before.px[i]) > 4), tag + ": el efecto debe cambiar la imagen: " + before.px + " → " + after.px);
   // 3) reabrir desde fx
-  await page.evaluate(async () => { const D = await import("/js/core/doc.js"), R = await import("/js/editor/filterregistry.js"), L = D.doc.layers[D.doc.layers.length - 1]; R.openFilterEditor(L, L.filters[0]); });
+  await page.evaluate(async () => { const D = await import("/js/core/doc.js"), R = await import("/js/editor/layers/filterregistry.js"), L = D.doc.layers[D.doc.layers.length - 1]; R.openFilterEditor(L, L.filters[0]); });
   await page.locator(".fsp.lutf").waitFor({ timeout: 20000 }); await page.waitForTimeout(1500);
   const re = await page.evaluate(() => ({ sub: document.querySelector(".fsp-sub")?.textContent, apply: document.querySelector('[data-a="apply"]')?.textContent }));
   chk(re.sub === "Amanecer", tag + ": al reabrir se conserva el efecto: " + re.sub); chk(re.apply === "Guardar", tag + ": al editar el botón es «Guardar»");
@@ -98,7 +98,7 @@ for(const mobile of [false, true]){
   // 4) la GPU coincide con el cálculo en CPU (y los ejes del .cube están en su orden)
   if(!mobile){
     const gpu = await page.evaluate(async () => {
-      const { LutGL, loadLut } = await import("/lut/engine.js"), { applyCubeLut } = await import("/js/filters/lut/engine.js");
+      const { LutGL, loadLut } = await import("/plugins/lut/engine.js"), { applyCubeLut } = await import("/js/filters/lut/engine.js");
       const w = 256, h = 160, src = document.createElement("canvas"); src.width = w; src.height = h; const x = src.getContext("2d"), im = x.createImageData(w, h);
       for(let j = 0, i = 0; j < h; j++) for(let k = 0; k < w; k++, i += 4){ im.data[i] = k; im.data[i + 1] = (j * 255 / h) | 0; im.data[i + 2] = (k * 3 + j * 5) & 255; im.data[i + 3] = 255; }
       x.putImageData(im, 0, 0);

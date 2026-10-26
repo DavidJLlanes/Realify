@@ -11,7 +11,7 @@ for(const mobile of [false, true]){
   const ctx = await b.newContext(mobile ? { viewport: { width: 390, height: 780 }, hasTouch: true, isMobile: true } : { viewport: { width: 1200, height: 800 } }), page = await ctx.newPage(); page.on("pageerror", e => errs.push(e.message));
   await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
   await page.evaluate(async () => {
-    const D = await import("/js/core/doc.js"), BI = await import("/js/editor/blendif.js");
+    const D = await import("/js/core/doc.js"), BI = await import("/js/editor/layers/blendif.js");
     D.newDoc(100, 80, { name: "t" }); const l = D.addLayer({ name: "Capa" }); l.ctx.fillStyle = "#f00"; l.ctx.fillRect(0, 0, 100, 80);
     const host = document.createElement("div"); host.id = "host"; host.style.cssText = "position:fixed;left:0;top:0;width:360px;background:#222;z-index:99999;padding:8px"; document.body.appendChild(host);
     window.__ed = BI.mountBlendIfEditor(l, host); window.__l = l;
@@ -26,7 +26,7 @@ for(const mobile of [false, true]){
   const done = await page.evaluate(() => JSON.parse(JSON.stringify(window.__l.blendIf)));
   R[mobile ? "movil" : "escritorio"] = { tabs, gris: done && done.thisLayer.blackMax, verdeEsta: done && done.channels && done.channels.g.thisLayer.blackMax, verdeSub: done && done.channels && done.channels.g.underlying.whiteMin, sinRojo: done && !(done.channels && done.channels.r), live: !!live };
   await page.click("#host button:has-text('Quitar')"); await page.evaluate(() => window.__ed.commit());
-  R[mobile ? "movil" : "escritorio"].quitado = await page.evaluate(async () => !(await import("/js/editor/blendif.js")).isBlendIfActive(window.__l.blendIf));
+  R[mobile ? "movil" : "escritorio"].quitado = await page.evaluate(async () => !(await import("/js/editor/layers/blendif.js")).isBlendIfActive(window.__l.blendIf));
   await ctx.close();
 }
 console.log(JSON.stringify(R));

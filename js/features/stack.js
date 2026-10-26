@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   APILAR FOTOS (Premium 👑 · fase 7 de PENDIENTE.md)
+   APILAR FOTOS (Premium 👑 · fase 7 de docs/PENDIENTE.md)
    Menú Imagen › Apilar fotos…
 
    Varias tomas de la misma escena, hechas a pulso, se alinean con
@@ -18,11 +18,11 @@
    al usar esto, avisando antes.
    ═══════════════════════════════════════════════════════════════ */
 
-import { dialog } from "../ui/dialog.js";
-import { toast, progress, status } from "../ui/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast, progress, status } from "../core/toast.js";
+import { escAttr as esc } from "../core/util/html.js";
 
 const MAX = 16;
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 let running = false;
 
 /** Memoria que se permite para las tomas ya alineadas (RGBA de 8 bits). */
@@ -52,17 +52,17 @@ export async function openStack(){
   };
 
   const addFiles = async () => {
-    const { pickFiles } = await import("../ui/fsshell.js");
-    const { RAW_EXTENSIONS } = await import("../../raw/formats.js");
+    const { pickFiles } = await import("../ui/kit/fsshell.js");
+    const { RAW_EXTENSIONS } = await import("../io/raw-formats.js");
     const files = await pickFiles({ gallery: true, accept: "image/*,.heic,.heif,.tif,.tiff,.jxl," + [...RAW_EXTENSIONS].map(e => "." + e).join(",") });
     for(const f of files){ if(items.length >= MAX) break; items.push({ name: f.name, file: f, thumb: await thumbOf(f) }); }
     render();
   };
   const addOpen = async () => {
-    const docs = await import("../core/documents.js"), { doc } = await import("../core/doc.js");
+    const docs = await import("../editor/documents.js"), { doc } = await import("../core/doc.js");
     const tabs = docs.listTabs().length ? docs.listTabs().map(t => ({ id: t.tabId, title: t.title || "Foto", thumb: t.thumb || null, used: items.some(i => i.tabId === t.tabId) })) : (doc.open ? [{ id: null, title: doc.name || "Imagen abierta", thumb: null, used: items.some(i => i.tabId === null) }] : []);
     if(!tabs.length){ toast("No hay fotos abiertas"); return; }
-    const { chooseUpTo } = await import("../../hdr/sources.js");
+    const { chooseUpTo } = await import("./photo-sources.js");
     const ids = tabs.filter(t => !t.used).length === 1 ? [tabs.find(t => !t.used).id] : (await chooseUpTo({ title: "Usar las fotos abiertas", intro: "Entran tal como las estás editando.", items: tabs.map(t => ({ id: t.id, label: t.title, thumb: t.thumb, locked: t.used, note: t.used ? "Ya añadida" : "" })), max: MAX - items.length })).map(v => v === "null" ? null : +v);
     for(const id of ids){ const t = tabs.find(x => x.id === id); if(t && items.length < MAX) items.push({ name: t.title, tabId: id, thumb: t.thumb || "" }); }
     render();
@@ -105,12 +105,12 @@ async function runStack(items, S){
     const lib = await loadOpenCv();
     if(!lib){ return; }
     const { cv } = lib;
-    const [{ createAligner, warpToReference }, M, { decodePhoto }, { docSizeLimit }] = await Promise.all([import("../cv/align.js"), import("../cv/stackmath.js"), import("../ui/fsshell.js"), import("../core/device.js")]);
+    const [{ createAligner, warpToReference }, M, { decodePhoto }, { docSizeLimit }] = await Promise.all([import("../cv/align.js"), import("../cv/stackmath.js"), import("../ui/kit/fsshell.js"), import("../core/device.js")]);
 
     // Fuentes: archivos o pestañas (compuestas tal como se editan)
     let tabGrab = null;
     if(items.some(i => i.file === undefined)){
-      const docs = await import("../core/documents.js"), { doc } = await import("../core/doc.js"), { flatten } = await import("../editor/layertree.js");
+      const docs = await import("../editor/documents.js"), { doc } = await import("../core/doc.js"), { flatten } = await import("../editor/layers/layertree.js");
       tabGrab = ids => {
         const start = docs.activeTab()?.tabId ?? null, out = new Map();
         try{ for(const id of ids){ if(id !== null && id !== docs.activeTab()?.tabId && !docs.switchTo(id, { force: true })) continue; if(doc.open) out.set(id, flatten()); } }
@@ -119,11 +119,11 @@ async function runStack(items, S){
       };
     }
     const tabs = tabGrab ? tabGrab(items.filter(i => i.file === undefined).map(i => i.tabId)) : new Map();
-    const { isRawFile } = await import("../../raw/formats.js");
+    const { isRawFile } = await import("../io/raw-formats.js");
     // Los RAW se revelan aquí mismo (balance de la cámara, motor Premium): las tomas entran ya como fotos
     const load = async (it, half = false) => {
       if(!it.file) return tabs.get(it.tabId);
-      if(isRawFile(it.file)){ const { rawToCanvas } = await import("../../raw/index.js"); return rawToCanvas(it.file, { half }); }
+      if(isRawFile(it.file)){ const { rawToCanvas } = await import("../../plugins/raw/index.js"); return rawToCanvas(it.file, { half }); }
       return decodePhoto(it.file, half ? 1100 : 1e5);
     };
 
@@ -189,13 +189,12 @@ async function runStack(items, S){
       await new Promise(r => setTimeout(r, 0));
     }
     const used = frames.length; frames.length = 0;
-    const { resultToLayer } = await import("../ui/fsshell.js");
+    const { resultToLayer } = await import("../ui/kit/fsshell.js");
     const label = S.mode === "noise" ? "Apilado · menos ruido" : "Apilado · más enfoque";
     await resultToLayer(out, { name: label, docName: "Apilado", newDocument: true });
-    progress(null);
     toast(`${used} fotos apiladas (${S.mode === "noise" ? "ruido ÷ " + Math.sqrt(used).toFixed(1) : "enfoque ampliado"}) · ${W} × ${H}` + (refNote ? " · " + refNote : "") + (notes.length ? ". " + notes.join(". ") : ""), notes.length ? "" : "ok");
   }catch(err){
-    console.error(err); progress(null);
+    console.error(err);
     fail("No se pudo apilar: " + (err.message || err));
-  }finally{ running = false; status(""); }
+  }finally{ progress(null); running = false; status(""); }
 }

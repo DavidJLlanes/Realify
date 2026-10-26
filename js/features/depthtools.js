@@ -26,21 +26,21 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { doc, activeLayer } from "../core/doc.js";
-import { toast, status } from "../ui/toast.js";
+import { toast, status } from "../core/toast.js";
 import { depthMap, depthAt } from "../ai/depth.js";
-import { boxBlurFloat } from "../editor/refineedge-math.js";
+import { boxBlurFloat } from "../editor/selection/refineedge-math.js";
+import { clamp01, hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
+import { readPixels as pixelsOf } from "../core/util/canvas.js";
+export { hash, enc, pixelsOf };
 
 export const DEC = new Float32Array(256);
 for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
-export const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
-export const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
-const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
 export const PREVIEW = 1280;   // lado largo de la vista previa
 
 /* Lo que se ve (la imagen compuesta), en un lienzo legible */
 export async function visibleImage(){
   if(!doc.open || !activeLayer()){ toast("Abre una imagen primero"); return null; }
-  const { flatten } = await import("../editor/layertree.js");
+  const { flatten } = await import("../editor/layers/layertree.js");
   const c = flatten();
   const r = document.createElement("canvas"); r.width = c.width; r.height = c.height;
   r.getContext("2d", { willReadFrequently: true }).drawImage(c, 0, 0);
@@ -55,7 +55,6 @@ export function scaled(src, side){
   x.imageSmoothingQuality = "high"; x.drawImage(src, 0, 0, c.width, c.height);
   return c;
 }
-export const pixelsOf = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 
 /* Foto (a w×h) en luz lineal y su profundidad afinada */
 export function prepare(canvas, map){
@@ -73,13 +72,13 @@ export async function getDepth(src){
 
 /* Capa nueva encima de la activa, un paso de deshacer */
 export async function toNewLayer(canvas, name){
-  const { resultToLayer } = await import("../ui/fsshell.js");
+  const { resultToLayer } = await import("../ui/kit/fsshell.js");
   await resultToLayer(canvas, { name, mix: true });
 }
 
 /* Ventana a pantalla completa común: vista, comparar y mandos */
 export async function openShell(opts){
-  const { createShell, ensureShellStyles, mountControls } = await import("../ui/fsshell.js");
+  const { createShell, ensureShellStyles, mountControls } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
   const sh = createShell({ cls: "depth-tool", ...opts });
   return { sh, mountControls };
@@ -554,7 +553,7 @@ export async function openPhoto3D(){
   const baseName = (doc.name || "foto").replace(/\.[^.]+$/, "") + "-3d.gif";
   let ready = null;   // el GIF ya creado (iPhone, a la espera del toque de Guardar)
   const saveGif = async blob => {
-    const { saveOrShare } = await import("../io/export.js");
+    const { saveOrShare } = await import("../io/export/export.js");
     const how = await saveOrShare(blob, baseName, ios ? "share" : isAndroid() ? "download" : "auto");
     if(how === "cancelled"){ toast("No se ha guardado: pulsa Guardar otra vez cuando quieras"); return false; }
     toast(how === "shared" ? "Foto 3D lista: elige «Guardar imagen» para tenerla en Fotos" : "Foto 3D guardada como GIF (Descargas)", "ok");
@@ -575,7 +574,7 @@ export async function openPhoto3D(){
           c.getContext("2d", { willReadFrequently: true }).putImageData(new ImageData(b, P.w, P.h), 0, 0);
           frames.push(c);
         }
-        const { gifFromCanvases } = await import("../io/formats.js");
+        const { gifFromCanvases } = await import("../io/formats/formats.js");
         const blob = await gifFromCanvases(frames, { delay: 70, loop: 0, onProgress: p => sh.setBusy(`Creando el GIF… ${Math.round(p * 100)} %`) });
         sh.setBusy("");
         if(ios){

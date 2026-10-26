@@ -10,7 +10,7 @@ const b = await chromium.launch(), page = await b.newPage(); const errs = [];
 page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 const res = await page.evaluate(async () => {
-  const D = await import("/js/core/doc.js"), F = await import("/js/io/professional-formats.js"), C = await import("/js/io/compatibility.js"), S = await import("/js/editor/smartobject.js"), X = await import("/js/editor/text.js");
+  const D = await import("/js/core/doc.js"), F = await import("/js/io/formats/professional-formats.js"), C = await import("/js/io/formats/compatibility.js"), S = await import("/js/editor/layers/smartobject.js"), X = await import("/js/editor/text/text.js");
   D.newDoc(300, 200, { name:"t" });
   const bg = D.addLayer({ name:"Fondo" }); bg.ctx.fillStyle = "#808080"; bg.ctx.fillRect(0, 0, 300, 200);
   const sm = D.addLayer({ name:"Objeto" }); sm.ctx.fillStyle = "#ff8800"; sm.ctx.fillRect(40, 40, 80, 50); S.convertToSmart(sm);
@@ -28,7 +28,7 @@ const res = await page.evaluate(async () => {
   const smart = await F.smartLinked();
   const u8 = new Uint8Array(await F.layeredPsd(1, { smart }).arrayBuffer());
   let s = ""; for(let i = 0; i < u8.length; i += 8192) s += String.fromCharCode(...u8.subarray(i, i + 8192));
-  const P = await import("/js/core/high-precision-safe.js?v=4");
+  const P = await import("/js/io/precision/high-precision-safe.js?v=4");
   const pr = await P.renderPrecisionAdjustmentStack(D.doc.w, D.doc.h, { bits16:true, alpha:false, background:"#ffffff", layersOnly:false, srgb:false });
   const u16 = new Uint8Array(await F.layeredPsd(1, { hi:{ composite:pr.data16 }, smart }).arrayBuffer());
   let s16 = ""; for(let i = 0; i < u16.length; i += 8192) s16 += String.fromCharCode(...u16.subarray(i, i + 8192));

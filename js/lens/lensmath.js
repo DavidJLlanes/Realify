@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CORRECCIÓN DE LENTE CON PERFILES (fase 9 de PENDIENTE.md) · matemática
+   CORRECCIÓN DE LENTE CON PERFILES (fase 9 de docs/PENDIENTE.md) · matemática
    Sin DOM: la usan la herramienta y las pruebas en Node.
 
    Modelos de la base de datos de Lensfun (CC BY-SA 3.0, ver
@@ -11,6 +11,8 @@
    Coordenadas normalizadas en unidades de la distancia focal real, con el
    origen en el centro de la imagen.
    ═══════════════════════════════════════════════════════════════ */
+
+import { hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
 
 const DIAG35 = Math.hypot(36, 24);
 
@@ -276,8 +278,6 @@ export function makeCorrector(profile, { crop, W, H, distortion = true, tca = tr
 
 const DEC = new Float32Array(256);
 for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
-const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055); };
-const hash = i => { let h = Math.imul(i ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 
 /* Pesos bicúbicos de Catmull-Rom para una fracción t */
 function cr(t, w){

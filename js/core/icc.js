@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    PERFILES DE COLOR (ICC) Y MATRICES RGB
-   Fase 2 de PENDIENTE.md: color de gama amplia.
+   Fase 2 de docs/PENDIENTE.md: color de gama amplia.
 
    · Matrices RGB lineal ↔ XYZ a partir de los primarios y el blanco de
      cada espacio (sRGB y Display P3 comparten blanco D65 y curva de

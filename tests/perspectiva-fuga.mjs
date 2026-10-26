@@ -23,7 +23,7 @@ chk(!r2.converging, "una foto frontal no debe dar convergencia"); chk(r2.segs.le
 const r3 = pickHorizontals(noise, W, H); console.log("ruido:", r3.converging); chk(!r3.converging, "el ruido no debe inventar una convergencia");
 // 4. Con esas guías, la homografía debe volver paralelas las horizontales convergentes
 try{
-  const { homographyFromGuides } = await import("../js/editor/perspective.js");
+  const { homographyFromGuides } = await import("../js/editor/tools/perspective.js");
   const Hm = homographyFromGuides([], r1.segs, W, H), ap = (x, y) => { const w = Hm[6] * x + Hm[7] * y + Hm[8]; return [(Hm[0] * x + Hm[1] * y + Hm[2]) / w, (Hm[3] * x + Hm[4] * y + Hm[5]) / w]; };
   const ang = r1.segs.map(s => { const a = ap(s.x1, s.y1), b = ap(s.x2, s.y2); return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI; });
   console.log("ángulos tras corregir:", ang.map(v => v.toFixed(2)).join(", "));

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   CONSTRUYE assets/lensdb/lensfun.json (fase 9 de PENDIENTE.md)
+   CONSTRUYE assets/lensdb/lensfun.json (fase 9 de docs/PENDIENTE.md)
    Descarga la base de datos de objetivos de Lensfun
    (https://github.com/lensfun/lensfun, carpeta data/db) y la compacta a
    JSON para el navegador: cámaras (recorte), objetivos y sus

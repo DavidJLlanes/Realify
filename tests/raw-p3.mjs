@@ -1,6 +1,6 @@
 /* Prueba de extremo a extremo (v249): «Revelar RAW» con Premium y «Espacio de color: Display P3» → «Abrir en Realify». El documento debe quedar en
    Display P3, con la capa en un lienzo P3, los 16 bits conservados y el invariante lienzo = redondeo de los 16 bits; con sRGB, el documento sigue en sRGB.
-   Usa un DNG sintético (raw/tests/dng-color-fixture.js). Uso: node tests/raw-p3.mjs */
+   Usa un DNG sintético (tests/plugins/raw/dng-color-fixture.js). Uso: node tests/raw-p3.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let chromium; for(const s of ["playwright", "/opt/node22/lib/node_modules/playwright/index.mjs"]){ try{ ({ chromium } = await import(s)); break; }catch{} }
@@ -20,11 +20,11 @@ for(const { premium: usaPremium, space } of casos){
   const hasP3 = await page.evaluate(async () => (await import("/js/core/colorspace.js")).p3Supported());
   if(!hasP3){ console.log("Sin lienzos P3: prueba omitida"); await page.close(); continue; }
   await page.evaluate(async () => {
-    const { colorDng } = await import("/raw/tests/dng-color-fixture.js");
+    const { colorDng } = await import("/tests/plugins/raw/dng-color-fixture.js");
     const W = 240, H = 160, scene = (x, y) => x < 120 ? [0.02, 0.45, 0.04] : [0.1, 0.12, 0.08];
     window.__file = new File([colorDng(W, H, scene)], "p3.dng");
-    const link = document.createElement("link"); link.rel = "stylesheet"; link.href = "/raw/raw.css"; document.head.append(link);
-    window.__done = import("/raw/index.js").then(m => m.openRawFile(window.__file));
+    const link = document.createElement("link"); link.rel = "stylesheet"; link.href = "/plugins/raw/raw.css"; document.head.append(link);
+    window.__done = import("/plugins/raw/index.js").then(m => m.openRawFile(window.__file));
   });
   await page.getByRole("button", { name: "Revelar RAW" }).click();
   await page.waitForSelector("#rawDeveloper", { timeout: 60000 });

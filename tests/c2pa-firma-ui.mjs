@@ -19,7 +19,7 @@ for(const mobile of [false, true]){
     D.doc.metaEdit = { title: "", description: "", author: "Ana Firmante", copyright: "© Ana 2026", keywords: [], date: "", remove: [] };
   });
   for(const [tipo, ext] of [["image/jpeg", "jpg"], ["image/png", "png"], ["image/avif", "avif"]]){
-    await page.evaluate(() => { import("/js/io/export.js").then(m => { window.__dlg = m.exportDialog(); }); });
+    await page.evaluate(() => { import("/js/io/export/export.js").then(m => { window.__dlg = m.exportDialog(); }); });
     await page.waitForSelector("#exType", { timeout: 15000 });
     await page.evaluate(t => { const s = document.querySelector("#exType"); s.value = t; s.dispatchEvent(new Event("change", { bubbles: true })); }, tipo);
     await page.waitForTimeout(300);
@@ -37,7 +37,7 @@ for(const mobile of [false, true]){
     await page.waitForTimeout(500);
   }
   // un PNG con otro formato (WebP) no lleva la fila de firma
-  await page.evaluate(() => { import("/js/io/export.js").then(m => { window.__dlg = m.exportDialog(); }); }); await page.waitForSelector("#exType");
+  await page.evaluate(() => { import("/js/io/export/export.js").then(m => { window.__dlg = m.exportDialog(); }); }); await page.waitForSelector("#exType");
   await page.evaluate(() => { const s = document.querySelector("#exType"); s.value = "image/webp"; s.dispatchEvent(new Event("change", { bubbles: true })); }); await page.waitForTimeout(300);
   R[(mobile ? "movil" : "escritorio") + "_webpFila"] = await page.isVisible("#exC2paRow");
   await ctx.close();

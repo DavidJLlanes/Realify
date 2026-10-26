@@ -2,14 +2,15 @@
    Todas pasan por el historial como un solo paso. */
 
 import { doc, resizeDoc, addLayer, makeLayer } from "../core/doc.js";
-import { flatten } from "./layertree.js";
+import { flatten } from "./layers/layertree.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
-import { dialog } from "../ui/dialog.js";
-import { toast, status, progress } from "../ui/toast.js";
-import { fit } from "./view.js";
-import { resampleCanvas, resampleHi, RESAMPLE_METHODS } from "./resample.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast, status, progress } from "../core/toast.js";
+import { fit } from "../core/view.js";
+import { resampleCanvas, resampleHi, RESAMPLE_METHODS } from "./render/resample.js";
 import { remapHi, hiCoversCanvas } from "../core/hisrc.js";
+import { readPixels } from "../core/util/canvas.js";
 
 /* Último método de remuestreo elegido: preferencia de este navegador. */
 const RESAMPLE_KEY = "realify.resample";
@@ -27,19 +28,12 @@ function copyCanvas(src){
 
 /* Copia de una capa para el historial: sus píxeles y, si la tiene, su
    máscara. La máscara es un lienzo aparte del mismo tamaño que la capa
-   (ver editor/masks.js), así que tiene que girar, voltear y cambiar de
+   (ver editor/layers/masks.js), así que tiene que girar, voltear y cambiar de
    tamaño con ella: si no, tras «Tamaño de imagen» quedaba con las
    medidas viejas y ya no casaba con lo que tapa. */
 function snapLayer(l, keepHi = false){
   return { id: l.id, c: copyCanvas(l.canvas), m: l.mask ? copyCanvas(l.mask.canvas) : null, hi: keepHi ? l.hiSrc : undefined };
 }
-
-/* Origen de 16 bits (core/hisrc.js): las operaciones que sólo MUEVEN píxeles (girar, voltear, ampliar el lienzo)
-   llevan `hiOp` = { fwd, back }, las funciones índice-de-origen de `remapHi` hacia delante y de vuelta: así los 16 bits
-   se mueven con el lienzo y deshacer/rehacer los recolocan sin guardar copias (de 6 bytes por píxel) en el historial.
-   Las que cambian los píxeles (redimensionar, escala según contenido) o pierden parte (reducir el lienzo) los
-   sueltan, y el historial guarda el origen para devolverlo al deshacer. */
-const readPixels = c => c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height).data;
 
 /* `fn(x, src, isMask)` dibuja `src` transformado en el contexto `x`,
    que ya mide `newW`×`newH`. Se llama una vez para los píxeles de cada
@@ -245,15 +239,18 @@ export async function resizeDialog(){
   // de otra forma que su capa dejaría un halo en el borde.
   const sources = doc.layers.flatMap(l => l.mask ? [l.canvas, l.mask.canvas] : [l.canvas]);
   const hiNew = new Map();         // capas con origen de 16 bits que cubre el lienzo: se remuestrean también en 16 bits (coma flotante)
-  for(let i = 0; i < sources.length; i++){
-    const src = sources[i], owner = doc.layers.find(l => l.canvas === src);
-    const prog = f => progress((i + f) / sources.length);
-    const hr = owner && hiCoversCanvas(owner) ? await resampleHi(owner, w, h, method, prog) : null;
-    if(hr){ done.set(src, hr.canvas); hiNew.set(owner.id, hr.hiSrc); }
-    else done.set(src, await resampleCanvas(src, w, h, method, prog));
-    progress((i + 1) / sources.length);
+  try{
+    for(let i = 0; i < sources.length; i++){
+      const src = sources[i], owner = doc.layers.find(l => l.canvas === src);
+      const prog = f => progress((i + f) / sources.length);
+      const hr = owner && hiCoversCanvas(owner) ? await resampleHi(owner, w, h, method, prog) : null;
+      if(hr){ done.set(src, hr.canvas); hiNew.set(owner.id, hr.hiSrc); }
+      else done.set(src, await resampleCanvas(src, w, h, method, prog));
+      progress((i + 1) / sources.length);
+    }
+  }finally{
+    progress(null); status("");
   }
-  progress(null); status("");
   transformAll((x, src) => {
     const r = done.get(src);
     if(r){ x.drawImage(r, 0, 0); return; }
@@ -300,7 +297,7 @@ export async function canvasSizeDialog(){
   const anchor=wrap.querySelector("#csAnchor").value,ax=anchor[1]==="l"?0:anchor[1]==="r"?1:.5,ay=anchor[0]==="t"?0:anchor[0]==="b"?1:.5;
   const ox=Math.round((nw-doc.w)*ax),oy=Math.round((nh-doc.h)*ay),transparent=wrap.querySelector("#csTransparent").checked,color=wrap.querySelector("#csColor").value;
   /* En una máscara, el lienzo nuevo queda «revelado» (blanco opaco,
-     ver editor/masks.js): la extensión se ve según su propio relleno,
+     ver editor/layers/masks.js): la extensión se ve según su propio relleno,
      no escondida por una máscara que nunca la cubrió. */
   // Sólo si el lienzo crece (o se desplaza sin perder nada) los 16 bits viajan con él; si recorta, se sueltan
   const W0=doc.w,H0=doc.h,lossless=ox>=0&&oy>=0&&ox+W0<=nw&&oy+H0<=nh;

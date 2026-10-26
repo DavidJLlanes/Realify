@@ -23,12 +23,12 @@ import { PRESETS } from "./presets.js";
 import { normalizeState, varyStages, presetStages } from "./state.js";
 import { applyCpuStages, cpuStagesActive } from "./cpustages.js";
 import { spectrum } from "../../analysis/fft.js";
-import { toast } from "../../ui/toast.js";
+import { toast } from "../../core/toast.js";
 import * as engine from "./engine.js";
-import { premiumSwitch, premiumPref, dockPremium } from "../../ui/premium.js";
+import { premiumSwitch, premiumPref, dockPremium } from "../../ui/kit/premium.js";
+import { escAttr as esc } from "../../core/util/html.js";
 
 const MOBILE = "(max-width:900px)";
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 const REC = "__rec__";
 
 /**

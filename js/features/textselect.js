@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   SELECCIONAR POR TEXTO (Premium 👑 · fase 10 de PENDIENTE.md)
+   SELECCIONAR POR TEXTO (Premium 👑 · fase 10 de docs/PENDIENTE.md)
    Menú Selección › Por texto…
 
    Se escribe lo que se quiere seleccionar —«persona», «cielo»,
@@ -22,12 +22,11 @@
    abierto (CLIPSeg…) exigiría descargarlo de Hugging Face: ver PENDIENTE.
    ═══════════════════════════════════════════════════════════════ */
 
-import { dialog } from "../ui/dialog.js";
-import { toast, progress, status } from "../ui/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
+import { toast, progress, status } from "../core/toast.js";
 import { doc, activeLayer } from "../core/doc.js";
 import { visibleImage } from "./depthtools.js";
-
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+import { escAttr as esc } from "../core/util/html.js";
 
 export async function openTextSelect({ target = null } = {}){
   if(!doc.open){ toast("Abre una imagen primero"); return; }
@@ -209,13 +208,13 @@ async function run(p, out, target){
     progress(null);
     if(any < n * 0.0005){ toast("No he encontrado nada de eso en la foto", "err"); return; }
     if(out === "mask"){
-      const { setMaskFromArray, setMaskTarget } = await import("../editor/masks.js");
+      const { setMaskFromArray, setMaskTarget } = await import("../editor/layers/masks.js");
       const layer = target || activeLayer();
       if(!layer || !setMaskFromArray(layer, refined, "Máscara por texto")){ toast("No se pudo poner la máscara en esa capa", "err"); return; }
       if(layer.id === doc.activeId) setMaskTarget(layer.id);
       toast(`Máscara «${p.terms.map(t => (t.neg ? "sin " : "") + t.label).join(" · ")}» puesta en «${layer.name}»`, "ok");
     } else {
-      const { commitSelection } = await import("../editor/selection.js");
+      const { commitSelection } = await import("../editor/selection/selection.js");
       commitSelection(refined, "new");
       toast(`Selección «${p.terms.map(t => (t.neg ? "sin " : "") + t.label).join(" · ")}» lista (${(100 * any / n).toFixed(0)} % de la foto)`, "ok");
     }
@@ -225,7 +224,7 @@ async function run(p, out, target){
 
 /** Ajusta el borde de una máscara a los contornos de la foto con un filtro guiado (a resolución reducida, con interpolación). */
 async function refineEdge(mask, px, W, H){
-  const { guidedFilterAlpha } = await import("../editor/refineedge-math.js");
+  const { guidedFilterAlpha } = await import("../editor/selection/refineedge-math.js");
   const k = Math.min(1, 2000 / Math.max(W, H)), w = Math.max(8, Math.round(W * k)), h = Math.max(8, Math.round(H * k));
   if(k >= 1){
     const L = new Float32Array(W * H), A = new Float32Array(W * H);
