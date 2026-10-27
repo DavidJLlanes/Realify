@@ -1,21 +1,12 @@
 {
- "generated": "2026-10-21T13:05:40.607Z",
- "root": "C:\\Proyectos\\Realify - copia",
- "jsFiles": 414,
- "jsLines": 91812,
+ "generated": "2026-10-27T14:18:41.089Z",
+ "root": "/home/claude/davidjllanes/realify",
+ "jsFiles": 501,
+ "jsLines": 93073,
  "brokenRefs": [],
  "softMissing": [],
- "nonLiteralDynamicImports": 61,
- "staticCycles": [
-  [
-   "js/editor/adjustlayers.js",
-   "js/editor/layertree.js"
-  ],
-  [
-   "vintagefilter/frames.js",
-   "vintagefilter/overlays.js"
-  ]
- ],
+ "nonLiteralDynamicImports": 62,
+ "staticCycles": [],
  "storage": {
   "localStorage": [
    "realify.actions",
@@ -64,7 +55,6 @@
    "realify.smartGrid",
    "realify.stickers",
    "realify.unmark",
-   "realify.unmark.server",
    "realify.updLog",
    "realify.upscaler"
   ],
@@ -288,7 +278,6 @@
   "image.hdr",
   "image.merge",
   "image.panorama",
-  "image.png",
   "image.removeBackground",
   "image.resize",
   "image.rot180",
@@ -365,7 +354,6 @@
   "liquify.reset",
   "main.js",
   "manifest.webmanifest",
-  "mask.png",
   "merges.txt",
   "mobile.css",
   "model.cpu",
@@ -488,6 +476,7 @@
   "transform.rotR",
   "transform.start",
   "ui.js",
+  "utif.js",
   "view.compare",
   "view.compare100",
   "view.fit",
@@ -510,167 +499,6 @@
   "xform.box"
  ],
  "exportsByFile": {
-  "camaras/engine.js": [
-   "CamarasGL",
-   "rng"
-  ],
-  "camaras/index.js": [
-   "dateText",
-   "openCamaras",
-   "renderCamaras"
-  ],
-  "camaras/presets.js": [
-   "CATS",
-   "PRESETS",
-   "activeCats",
-   "inCat",
-   "preset"
-  ],
-  "camaras/state.js": [
-   "CAMARAS_VERSION",
-   "CONTROLS",
-   "GROUPS",
-   "KEYS",
-   "defaults",
-   "effective",
-   "isActive",
-   "normalize"
-  ],
-  "camaras/ui.js": [
-   "openCamarasEditor"
-  ],
-  "comparar/index.js": [
-   "openCompare"
-  ],
-  "comparar/ui.js": [
-   "LAYOUTS",
-   "compose",
-   "openCompareEditor"
-  ],
-  "cortar/index.js": [
-   "openCut"
-  ],
-  "cortar/plan.js": [
-   "MODES",
-   "RATIOS",
-   "modeSvg",
-   "pieceNumber",
-   "plan"
-  ],
-  "cortar/ui.js": [
-   "openCutEditor"
-  ],
-  "formas/index.js": [
-   "openShapes"
-  ],
-  "formas/shapes.js": [
-   "GROUPS",
-   "SHAPES",
-   "fillRule",
-   "placeShape",
-   "shapeById",
-   "shapeIcon",
-   "traceShape"
-  ],
-  "formas/ui.js": [
-   "openShapeEditor",
-   "renderShape",
-   "shapeBounds"
-  ],
-  "frames/artistic.js": [
-   "drawArtisticFrame"
-  ],
-  "frames/geometry.js": [
-   "borderMotifs",
-   "borderSides",
-   "diamondPath",
-   "heartPath",
-   "mixColor",
-   "seededRandom"
-  ],
-  "frames/index.js": [
-   "openFrames"
-  ],
-  "frames/presets.js": [
-   "FRAME_CATEGORIES",
-   "FRAME_PRESETS",
-   "frameById",
-   "framesInCategory"
-  ],
-  "frames/render.js": [
-   "drawFrame"
-  ],
-  "frames/ui.js": [
-   "openFramesEditor"
-  ],
-  "frames/viewport.js": [
-   "createFrameViewport"
-  ],
-  "hdr/engine.js": [
-   "ALIGN",
-   "alignAll",
-   "alignExposureThreshold",
-   "alignGradient",
-   "alignPair",
-   "alignShift",
-   "commonRect",
-   "downRadiance",
-   "downscale",
-   "estimateEvs",
-   "evBetween",
-   "evFromExif",
-   "finish",
-   "fuseMertens",
-   "mergeRadiance",
-   "tmCompressor",
-   "tmDetails",
-   "tmDrago",
-   "toneMap",
-   "wbNeutral"
-  ],
-  "hdr/exif.js": [
-   "exposureText",
-   "findTiff",
-   "readExposure"
-  ],
-  "hdr/index.js": [
-   "openHdr",
-   "recoverHdrCrash"
-  ],
-  "hdr/premium.js": [
-   "LIN_SCALE",
-   "downscaleLin",
-   "finishPremium",
-   "linearFromDisplay",
-   "mergePremium",
-   "radianceHDR",
-   "responseCurves",
-   "wbNeutralPremium"
-  ],
-  "hdr/presets.js": [
-   "DEFAULTS",
-   "METHODS",
-   "PRESETS",
-   "presetSettings"
-  ],
-  "hdr/sources.js": [
-   "chooseUpTo",
-   "developRaws",
-   "exifFromRaw",
-   "isRaw",
-   "pickOpenPhotos"
-  ],
-  "hdr/ui.js": [
-   "MAX_PHOTOS",
-   "openHdrEditor"
-  ],
-  "hojacontactos/index.js": [
-   "openContacts"
-  ],
-  "hojacontactos/ui.js": [
-   "openContactSheet",
-   "renderPages"
-  ],
   "js/ai/cliptokenizer.js": [
    "createTokenizer",
    "loadClipTokenizer"
@@ -790,6 +618,31 @@
    "openMetrics",
    "openSpectrum"
   ],
+  "js/app/commands/helpers.js": [
+   "maskInFocus",
+   "needsDoc",
+   "needsSelOrActive",
+   "newDialog",
+   "photoTool",
+   "selOrActive"
+  ],
+  "js/app/dom.js": [
+   "empty",
+   "panels",
+   "stage"
+  ],
+  "js/app/statusbar.js": [
+   "syncStatus",
+   "updatePos"
+  ],
+  "js/app/toolbar.js": [
+   "buildTools"
+  ],
+  "js/core/blend.js": [
+   "CUSTOM_BLENDS",
+   "drawWithBlend",
+   "drawWithBlendAccelerated"
+  ],
   "js/core/bus.js": [
    "emit",
    "off",
@@ -809,6 +662,17 @@
    "toP3Css",
    "toSrgbCanvas",
    "workSpace"
+  ],
+  "js/core/commands.js": [
+   "bind",
+   "enabled",
+   "get",
+   "labelFor",
+   "onRun",
+   "register",
+   "registerAll",
+   "run",
+   "runAsync"
   ],
   "js/core/compat.js": [
    "checkCompat",
@@ -839,39 +703,6 @@
    "removeLayer",
    "resizeDoc",
    "setActive"
-  ],
-  "js/core/documents.js": [
-   "activeTab",
-   "closeActiveTab",
-   "closeAllTabs",
-   "closeTab",
-   "copyLayerToTab",
-   "listTabs",
-   "moveTab",
-   "openAsNewTab",
-   "refreshActiveTabMeta",
-   "switchByIndex",
-   "switchByOffset",
-   "switchTo",
-   "tabCount"
-  ],
-  "js/core/high-precision-next.js": [
-   "highPrecisionAvailableFor",
-   "highPrecisionCapabilities",
-   "renderHighPrecisionCanvas",
-   "renderPrecisionAdjustmentStack"
-  ],
-  "js/core/high-precision-safe.js": [
-   "highPrecisionAvailableFor",
-   "highPrecisionCapabilities",
-   "renderHighPrecisionCanvas",
-   "renderPrecisionAdjustmentStack"
-  ],
-  "js/core/high-precision.js": [
-   "highPrecisionAvailableFor",
-   "highPrecisionCapabilities",
-   "renderHighPrecisionCanvas",
-   "renderPrecisionAdjustmentStack"
   ],
   "js/core/hisrc.js": [
    "adoptHi",
@@ -928,13 +759,12 @@
    "unionRect",
    "visibleDocumentRect"
   ],
-  "js/core/precision-stack.js": [
-   "GRID",
-   "_debugStore",
-   "adjustFunction",
-   "precisionMaxPixels",
-   "renderPrecise",
-   "unsupportedReason"
+  "js/core/pwa-updates.js": [
+   "loadedVersion",
+   "savedUpdateLog",
+   "updateInfo",
+   "updateLog",
+   "watchPWAUpdates"
   ],
   "js/core/search.js": [
    "fold",
@@ -961,6 +791,70 @@
    "restoreSnapshot",
    "setBrushSource",
    "takeSnapshot"
+  ],
+  "js/core/toast.js": [
+   "progress",
+   "status",
+   "toast"
+  ],
+  "js/core/util/async.js": [
+   "nextTask"
+  ],
+  "js/core/util/canvas.js": [
+   "readPixels"
+  ],
+  "js/core/util/html.js": [
+   "escAttr",
+   "escText"
+  ],
+  "js/core/util/math.js": [
+   "bell",
+   "clamp",
+   "clamp01",
+   "clamp255",
+   "clampCmp",
+   "ditherAt",
+   "hash32",
+   "linearToSrgb255"
+  ],
+  "js/core/util/text.js": [
+   "asciiAt",
+   "foldText",
+   "utf8"
+  ],
+  "js/core/vendor.js": [
+   "ensureVendor",
+   "vendorReady"
+  ],
+  "js/core/view.js": [
+   "apply",
+   "attachViewGestures",
+   "center",
+   "edgeAutoScroll",
+   "fit",
+   "fitAbove",
+   "fitInRect",
+   "fitScale",
+   "handleDoubleTap",
+   "handlePointerDown",
+   "handlePointerMove",
+   "handlePointerUp",
+   "isPanKey",
+   "panBy",
+   "recenterAfterResize",
+   "toImage",
+   "view",
+   "zoom100",
+   "zoomAt",
+   "zoomIn",
+   "zoomOut",
+   "zoomToRect"
+  ],
+  "js/core/webgpu.js": [
+   "gpuBlend",
+   "gpuConvolution5",
+   "gpuMorphology",
+   "webGPUAvailable"
   ],
   "js/cv/align.js": [
    "apply",
@@ -1007,7 +901,7 @@
    "noiseCurve",
    "scoreTo100"
   ],
-  "js/editor/adjust.js": [
+  "js/editor/adjust/adjust.js": [
    "applyDirect",
    "applyLut",
    "drawHistogram",
@@ -1018,20 +912,40 @@
    "runAdjust",
    "slider"
   ],
-  "js/editor/adjustlayers.js": [
-   "ADJUST_TYPES",
-   "addAdjustmentLayer",
-   "adjustTypeIds",
-   "adjustTypeName",
-   "applyAdjustLayer",
-   "exposureFunction",
-   "isAdjustLayer",
-   "mountAdjustProperties",
-   "openAdjustPanel",
-   "previewAdjustParams",
-   "setAdjustParams"
+  "js/editor/adjust/adjustments/brightness-contrast.js": [
+   "BC_DEFAULTS",
+   "applyBC",
+   "applyBCPremium",
+   "applyShadowsHighlightsPremium",
+   "bcControls",
+   "bcCurve",
+   "bcPivot",
+   "brightnessContrast",
+   "buildBC"
   ],
-  "js/editor/adjustments.js": [
+  "js/editor/adjust/adjustments/common.js": [
+   "clamp255"
+  ],
+  "js/editor/adjust/adjustments/curves.js": [
+   "curves"
+  ],
+  "js/editor/adjust/adjustments/grayscale.js": [
+   "grayscale"
+  ],
+  "js/editor/adjust/adjustments/levels.js": [
+   "buildLevels",
+   "levelFunction",
+   "levels",
+   "levelsFunctions"
+  ],
+  "js/editor/adjust/adjustments/white-balance.js": [
+   "buildWB",
+   "sampleCanvas",
+   "wbEyedropper",
+   "wbGains",
+   "whiteBalance"
+  ],
+  "js/editor/adjust/adjustments.js": [
    "BC_DEFAULTS",
    "CURVE_PRESETS",
    "applyBC",
@@ -1063,7 +977,7 @@
    "wbGains",
    "whiteBalance"
   ],
-  "js/editor/advanced-color.js": [
+  "js/editor/adjust/advanced-color.js": [
    "autoToneColor",
    "autoToneColorPremium",
    "colorGrading",
@@ -1082,15 +996,7 @@
    "threshold",
    "tonalContrast"
   ],
-  "js/editor/align.js": [
-   "alignLayers",
-   "alignOffset",
-   "contentBounds",
-   "distributeLayers",
-   "distributeOffsets",
-   "otherLayersEdgeCandidates"
-  ],
-  "js/editor/autoanalysis.js": [
+  "js/editor/adjust/autoanalysis.js": [
    "channelPlan",
    "decF",
    "encF",
@@ -1101,51 +1007,19 @@
    "tonePlan",
    "toneStats"
   ],
-  "js/editor/autoenhance.js": [
+  "js/editor/adjust/autoenhance.js": [
    "autoEnhance",
    "autoEnhancePremium",
    "measurePremium"
   ],
-  "js/editor/blend.js": [
-   "CUSTOM_BLENDS",
-   "drawWithBlend",
-   "drawWithBlendAccelerated"
-  ],
-  "js/editor/blendif.js": [
-   "CHANNELS",
-   "blendIfDefault",
-   "blendIfEligible",
-   "blendIfSideDefault",
-   "buildBlendIfAlphaCanvas",
-   "channelActive",
-   "channelSides",
-   "isBlendIfActive",
-   "mountBlendIfEditor",
-   "previewBlendIf",
-   "rampFactor",
-   "setBlendIf"
-  ],
-  "js/editor/brushes.js": [
-   "COLOR_MODES",
-   "SYMMETRY_MODES",
-   "TEXTURES",
-   "brushConfig",
-   "brushTips",
-   "openBrushPanel",
-   "paintProfessionalSegment",
-   "professionalSegmentBounds",
-   "setBrushOption",
-   "smoothBrushPoint",
-   "symmetryAxes"
-  ],
-  "js/editor/bwrecipes.js": [
+  "js/editor/adjust/bwrecipes.js": [
    "BW_RECIPES",
    "applyBWRecipe"
   ],
-  "js/editor/channelmixer.js": [
+  "js/editor/adjust/channelmixer.js": [
    "channelMixer"
   ],
-  "js/editor/clahe-math.js": [
+  "js/editor/adjust/clahe-math.js": [
    "DEC",
    "claheMap",
    "enc",
@@ -1153,48 +1027,20 @@
    "oklabToLin",
    "oklabToLinInGamut"
   ],
-  "js/editor/clahe.js": [
+  "js/editor/adjust/clahe.js": [
    "clahe",
    "clahePremium"
   ],
-  "js/editor/clipboard.js": [
-   "copyToClipboard",
-   "cutToClipboard",
-   "deleteSelection",
-   "hasClip",
-   "pasteFromClipboard"
-  ],
-  "js/editor/colorbalance.js": [
+  "js/editor/adjust/colorbalance.js": [
    "colorBalance",
    "colorBalancePremium"
   ],
-  "js/editor/colorbands.js": [
+  "js/editor/adjust/colorbands.js": [
    "applyColorBands",
    "buildBandTables",
    "colorBands"
   ],
-  "js/editor/compositor.js": [
-   "beginScratch",
-   "blendAdjustResult",
-   "canvasEl",
-   "compose",
-   "composeOverlay",
-   "discardScratch",
-   "endScratch",
-   "ensureScratchRect",
-   "pickColor",
-   "scheduleCompose",
-   "scheduleOverlay",
-   "scratchCtx",
-   "scratchView",
-   "setGuideOverlay",
-   "setOverlay",
-   "setSelectionOverlay"
-  ],
-  "js/editor/contentmove.js": [
-   "moveContentAware"
-  ],
-  "js/editor/curves.js": [
+  "js/editor/adjust/curves.js": [
    "CHANNEL_COLORS",
    "CURVE_PRESETS",
    "applyCurves",
@@ -1205,118 +1051,101 @@
    "saveUserCurvePresets",
    "userCurvePresets"
   ],
-  "js/editor/curvesfs.js": [
+  "js/editor/adjust/curvesfs.js": [
    "curvesFullscreen"
   ],
-  "js/editor/exposure.js": [
+  "js/editor/adjust/exposure.js": [
    "exposure"
   ],
-  "js/editor/fillcontent.js": [
-   "cropMask",
-   "cropRGBA",
-   "fillContentAware",
-   "fillContentAwarePatchMatch",
-   "fillWorkRegion",
-   "findSource",
-   "idwCorrection",
-   "maskBoundary",
-   "runContentAwareFill",
-   "subsample"
-  ],
-  "js/editor/filteramount.js": [
-   "amountMode",
-   "setFilterAmount"
-  ],
-  "js/editor/filterchain.js": [
-   "moveFilterEntry",
-   "recomputeChain",
-   "removeFilterEntry",
-   "setFilterEntryAmount",
-   "toggleFilterEntry"
-  ],
-  "js/editor/filterlayer.js": [
-   "addFilterLayer",
-   "commitFilter",
-   "filterAmount",
-   "filterBase",
-   "filterOf",
-   "markMixLayer",
-   "replaceFilterLayer"
-  ],
-  "js/editor/filterregistry.js": [
-   "FILTERS",
-   "filterLiveCapable",
-   "knownFilter",
-   "mountFilterEditor",
-   "openFilterEditor",
-   "renderFilter",
-   "scaleParams"
-  ],
-  "js/editor/floatadjust.js": [
-   "applyFloatFromBase",
-   "colorFnFromCompute",
-   "colorFnFromTable",
-   "gridInput",
-   "hiFullCover",
-   "hiRect"
-  ],
-  "js/editor/floatfilter.js": [
-   "applyDeltaFromBase",
-   "applyNativeFromBase",
-   "attachFloatResult",
-   "colorFnFromFilter",
-   "hiFullCover",
-   "hiRect"
-  ],
-  "js/editor/floatspatial.js": [
-   "boxSizes",
-   "channelDenoiseHi",
-   "gaussianBlurHi",
-   "lensBlurHi",
-   "noiseHi",
-   "smartSharpenHi",
-   "surfaceBlurHi",
-   "unsharpHi"
-  ],
-  "js/editor/gfonts.js": [
-   "GOOGLE_OTHER",
-   "MORE_FONTS_LABEL",
-   "addCustomGoogleFont",
-   "catalog",
-   "chooseFontValue",
-   "ensureFont",
-   "googleFontItems",
-   "isGoogleStack",
-   "loadFamily",
-   "pickFont",
-   "stackOf"
-  ],
-  "js/editor/grab.js": [
-   "drawPx",
-   "grabDoc",
-   "grabPx",
-   "isTouch",
-   "nearest",
-   "offset",
-   "pointerKind",
-   "rectHandleAt",
-   "rectHandleOffset"
-  ],
-  "js/editor/gradientmap.js": [
+  "js/editor/adjust/gradientmap.js": [
    "gradientMap"
   ],
-  "js/editor/groups.js": [
-   "duplicateGroup",
-   "groupLayers",
-   "moveLayerOrGroup",
-   "removeGroupAndContents",
-   "subtreeIds",
-   "toggleClip",
-   "toggleCollapsed",
-   "ungroupLayers"
-  ],
-  "js/editor/hslpremium.js": [
+  "js/editor/adjust/hslpremium.js": [
    "hslPremium"
+  ],
+  "js/editor/adjust/lowlight.js": [
+   "finishLifted",
+   "lowLight",
+   "lowLightPremium"
+  ],
+  "js/editor/adjust/premiumcolor.js": [
+   "DEC",
+   "applyColorMap",
+   "toLab",
+   "toRgb"
+  ],
+  "js/editor/adjust/rangehsl.js": [
+   "BANDS",
+   "activeRanges",
+   "bandWeight",
+   "clamp",
+   "defaultRanges",
+   "hslRgb",
+   "hueDist",
+   "nearestBand",
+   "rangeHslBasic",
+   "rangeHslPremium",
+   "rgbHsl"
+  ],
+  "js/editor/adjust/selectivecolor.js": [
+   "selectiveColor"
+  ],
+  "js/editor/adjust/shadowshighlights.js": [
+   "shadowsHighlights"
+  ],
+  "js/editor/adjust/tone.js": [
+   "toneRegions"
+  ],
+  "js/editor/adjust/toneband.js": [
+   "TONE_ZONES",
+   "toneBand",
+   "zoneAt"
+  ],
+  "js/editor/adjust/tonepremium.js": [
+   "applyAutoToneColorPremium",
+   "applyCurvesPremium",
+   "applyLevelsPremium",
+   "autoContrastState",
+   "autoCurvePoints",
+   "autoLevelsState",
+   "autoToneColorLuts",
+   "autoToneColorPlan",
+   "curveFloat",
+   "levelFloat",
+   "levelsLuts"
+  ],
+  "js/editor/adjust/vibrance.js": [
+   "vibrance"
+  ],
+  "js/editor/align.js": [
+   "alignLayers",
+   "alignOffset",
+   "contentBounds",
+   "distributeLayers",
+   "distributeOffsets",
+   "otherLayersEdgeCandidates"
+  ],
+  "js/editor/clipboard.js": [
+   "copyToClipboard",
+   "cutToClipboard",
+   "deleteSelection",
+   "hasClip",
+   "pasteFromClipboard"
+  ],
+  "js/editor/documents.js": [
+   "activeTab",
+   "closeActiveTab",
+   "closeAllTabs",
+   "closeTab",
+   "copyLayerToTab",
+   "listTabs",
+   "moveTab",
+   "openAsNewTab",
+   "refreshActiveTabMeta",
+   "switchByIndex",
+   "switchByOffset",
+   "switchTo",
+   "tabCount"
   ],
   "js/editor/imageops.js": [
    "canvasSizeDialog",
@@ -1330,7 +1159,81 @@
    "rotateLeft",
    "rotateRight"
   ],
-  "js/editor/layercontent.js": [
+  "js/editor/layers/adjust-types.js": [
+   "ADJUST_TYPES",
+   "adjustTypeIds",
+   "adjustTypeName",
+   "applyAdjustLayer",
+   "exposureFunction",
+   "isAdjustLayer"
+  ],
+  "js/editor/layers/adjustlayers.js": [
+   "ADJUST_TYPES",
+   "addAdjustmentLayer",
+   "adjustTypeIds",
+   "adjustTypeName",
+   "applyAdjustLayer",
+   "exposureFunction",
+   "isAdjustLayer",
+   "mountAdjustProperties",
+   "openAdjustPanel",
+   "previewAdjustParams",
+   "setAdjustParams"
+  ],
+  "js/editor/layers/blendif.js": [
+   "CHANNELS",
+   "blendIfDefault",
+   "blendIfEligible",
+   "blendIfSideDefault",
+   "buildBlendIfAlphaCanvas",
+   "channelActive",
+   "channelSides",
+   "isBlendIfActive",
+   "mountBlendIfEditor",
+   "previewBlendIf",
+   "rampFactor",
+   "setBlendIf"
+  ],
+  "js/editor/layers/filteramount.js": [
+   "amountMode",
+   "setFilterAmount"
+  ],
+  "js/editor/layers/filterchain.js": [
+   "moveFilterEntry",
+   "recomputeChain",
+   "removeFilterEntry",
+   "setFilterEntryAmount",
+   "toggleFilterEntry"
+  ],
+  "js/editor/layers/filterlayer.js": [
+   "addFilterLayer",
+   "commitFilter",
+   "filterAmount",
+   "filterBase",
+   "filterOf",
+   "markMixLayer",
+   "replaceFilterLayer"
+  ],
+  "js/editor/layers/filterregistry.js": [
+   "FILTERS",
+   "filterLiveCapable",
+   "knownFilter",
+   "mountFilterEditor",
+   "openFilterEditor",
+   "renderFilter",
+   "scaleParams"
+  ],
+  "js/editor/layers/groups.js": [
+   "duplicateGroup",
+   "groupLayers",
+   "moveLayerOrGroup",
+   "removeGroupAndContents",
+   "subtreeIds",
+   "toggleClip",
+   "toggleCollapsed",
+   "ungroupLayers"
+  ],
+  "js/editor/layers/layercontent.js": [
    "SHAPE_KIND_NAME",
    "addFillLayer",
    "addShapeLayer",
@@ -1349,7 +1252,7 @@
    "setFillParams",
    "setShapeParams"
   ],
-  "js/editor/layerstyles.js": [
+  "js/editor/layers/layerstyles.js": [
    "defaultStyles",
    "gradientParams",
    "hasEnabledStyle",
@@ -1358,33 +1261,14 @@
    "styleBehind",
    "styleRing"
   ],
-  "js/editor/layertree.js": [
+  "js/editor/layers/layertree.js": [
    "blendAdjustResult",
    "buildLayerTree",
    "collectStyleShapes",
    "compositeTree",
    "flatten"
   ],
-  "js/editor/liquify.js": [
-   "applyDab",
-   "applyStroke",
-   "isIdentityGrid",
-   "makeGrid",
-   "relaxGrid",
-   "renderLiquify",
-   "resetGrid"
-  ],
-  "js/editor/lowlight.js": [
-   "finishLifted",
-   "lowLight",
-   "lowLightPremium"
-  ],
-  "js/editor/luminositymasks.js": [
-   "luminosityArray",
-   "luminosityPreset",
-   "openLuminosityMaskPanel"
-  ],
-  "js/editor/maskadjust.js": [
+  "js/editor/layers/maskadjust.js": [
    "applyDensity",
    "buildLevelsForMask",
    "detectSkyMask",
@@ -1400,7 +1284,7 @@
    "selectSubjectMask",
    "toGrayView"
   ],
-  "js/editor/masks.js": [
+  "js/editor/layers/masks.js": [
    "addMask",
    "applyMaskStroke",
    "beginMaskStroke",
@@ -1427,21 +1311,90 @@
    "toggleMask",
    "unlinkMask"
   ],
-  "js/editor/paint.js": [
-   "cloneStamp",
-   "dodgeBurn",
-   "drawGradient",
-   "drawShape",
-   "floodFill",
-   "healSpot",
-   "hexToRgb",
-   "makeSmudge"
+  "js/editor/layers/smartobject.js": [
+   "canConvertToSmart",
+   "convertToSmart",
+   "rasterizeSmart"
   ],
-  "js/editor/patchmatch.js": [
-   "computeNNF",
-   "synthesize"
+  "js/editor/render/compositor.js": [
+   "beginScratch",
+   "blendAdjustResult",
+   "canvasEl",
+   "compose",
+   "composeOverlay",
+   "discardScratch",
+   "endScratch",
+   "ensureScratchRect",
+   "pickColor",
+   "scheduleCompose",
+   "scheduleOverlay",
+   "scratchCtx",
+   "scratchView",
+   "setGuideOverlay",
+   "setOverlay",
+   "setSelectionOverlay"
   ],
-  "js/editor/pentool.js": [
+  "js/editor/render/floatadjust.js": [
+   "applyFloatFromBase",
+   "colorFnFromCompute",
+   "colorFnFromTable",
+   "gridInput",
+   "hiFullCover",
+   "hiRect"
+  ],
+  "js/editor/render/floatcompositor/blend-shader.js": [
+   "FS_BLEND"
+  ],
+  "js/editor/render/floatcompositor/common.js": [
+   "HEAD"
+  ],
+  "js/editor/render/floatcompositor/float-compose.js": [
+   "_debugFloat",
+   "floatCompose",
+   "floatInfo",
+   "floatPlan",
+   "floatReset",
+   "floatTuning",
+   "init"
+  ],
+  "js/editor/render/floatcompositor.js": [
+   "_debugFloat",
+   "floatAvailable",
+   "floatCompose",
+   "floatInfo",
+   "floatPlan",
+   "floatReset",
+   "floatTuning"
+  ],
+  "js/editor/render/floatfilter.js": [
+   "applyDeltaFromBase",
+   "applyNativeFromBase",
+   "attachFloatResult",
+   "colorFnFromFilter",
+   "hiFullCover",
+   "hiRect"
+  ],
+  "js/editor/render/floatspatial.js": [
+   "boxSizes",
+   "channelDenoiseHi",
+   "gaussianBlurHi",
+   "lensBlurHi",
+   "noiseHi",
+   "smartSharpenHi",
+   "surfaceBlurHi",
+   "unsharpHi"
+  ],
+  "js/editor/render/resample.js": [
+   "RESAMPLE_METHODS",
+   "resampleCanvas",
+   "resampleHi"
+  ],
+  "js/editor/selection/luminositymasks.js": [
+   "luminosityArray",
+   "luminosityPreset",
+   "openLuminosityMaskPanel"
+  ],
+  "js/editor/selection/pentool.js": [
    "drawPenOverlay",
    "pen",
    "penArmed",
@@ -1457,7 +1410,251 @@
    "penUndoPoint",
    "penUp"
   ],
-  "js/editor/perspective.js": [
+  "js/editor/selection/refineedge-math.js": [
+   "boxBlurFloat",
+   "computeRefinedAlpha",
+   "decontaminate",
+   "guidedFilterAlpha",
+   "morph"
+  ],
+  "js/editor/selection/refineedge.js": [
+   "refineEdge"
+  ],
+  "js/editor/selection/selection-overlay.js": [
+   "traceSelectionOutline"
+  ],
+  "js/editor/selection/selection.js": [
+   "blendBySelection",
+   "boundsOf",
+   "combineMask",
+   "commitSelection",
+   "featherMask",
+   "featherSelection",
+   "fullMask",
+   "hasSelection",
+   "invertMask",
+   "invertSelection",
+   "isEmptyMask",
+   "maskFromEllipse",
+   "maskFromPolygon",
+   "maskFromRect",
+   "maskFromWand",
+   "newMask",
+   "selectAll",
+   "selectNone"
+  ],
+  "js/editor/text/gfonts.js": [
+   "GOOGLE_OTHER",
+   "MORE_FONTS_LABEL",
+   "addCustomGoogleFont",
+   "catalog",
+   "chooseFontValue",
+   "ensureFont",
+   "googleFontItems",
+   "isGoogleStack",
+   "loadFamily",
+   "pickFont",
+   "stackOf"
+  ],
+  "js/editor/text/text.js": [
+   "FONTS",
+   "FONT_SEPARATOR",
+   "USER_FONTS",
+   "alignTextPatch",
+   "createTextLayer",
+   "defaultText",
+   "fontString",
+   "isText",
+   "layoutText",
+   "loadFontFile",
+   "pathArcLength",
+   "pointInText",
+   "rasterizeText",
+   "renderTextLayer",
+   "restoreUserFonts",
+   "rotatePoint",
+   "textBounds",
+   "textOverflows",
+   "textQuad",
+   "toTextSpace",
+   "updateText"
+  ],
+  "js/editor/text/textbox.js": [
+   "beginBoxDrag",
+   "boxDragTo",
+   "cursorFor",
+   "drawTextBox",
+   "endBoxDrag",
+   "hitHandle",
+   "isBoxDragging"
+  ],
+  "js/editor/text/textedit.js": [
+   "cancelEdit",
+   "cursorPos",
+   "editingLayer",
+   "endEdit",
+   "focusEditor",
+   "isEditing",
+   "place",
+   "startEdit"
+  ],
+  "js/editor/text/textprops.js": [
+   "mountTextProperties"
+  ],
+  "js/editor/text/textstyles.js": [
+   "CHAR_ATTRS",
+   "PARA_ATTRS",
+   "charStyleAttrs",
+   "charStyles",
+   "deleteCharStyle",
+   "deleteParaStyle",
+   "paraStyleAttrs",
+   "paraStyles",
+   "saveCharStyle",
+   "saveParaStyle"
+  ],
+  "js/editor/tools/brushes.js": [
+   "COLOR_MODES",
+   "SYMMETRY_MODES",
+   "TEXTURES",
+   "brushConfig",
+   "brushTips",
+   "openBrushPanel",
+   "paintProfessionalSegment",
+   "professionalSegmentBounds",
+   "setBrushOption",
+   "smoothBrushPoint",
+   "symmetryAxes"
+  ],
+  "js/editor/tools/contentmove.js": [
+   "moveContentAware"
+  ],
+  "js/editor/tools/defs/crop-transform.js": [
+   "applyCrop",
+   "cropTool",
+   "finishAppliedTool",
+   "perspectiveTool",
+   "ratioValue",
+   "syncPersp",
+   "syncXformFields",
+   "transformTool"
+  ],
+  "js/editor/tools/defs/fill-gradient.js": [
+   "fillTool",
+   "gradientTool"
+  ],
+  "js/editor/tools/defs/move-liquify.js": [
+   "camoveTool",
+   "centerActiveLayerContent",
+   "clampMove",
+   "liquifyTool",
+   "moveKeep",
+   "moveTool",
+   "resetLiquify"
+  ],
+  "js/editor/tools/defs/navigation.js": [
+   "cmpActive",
+   "cmpOriginal",
+   "compareTool",
+   "invalidateCompareBaseline",
+   "panTool",
+   "pickerTool",
+   "setCompareBaseline",
+   "zoomTool"
+  ],
+  "js/editor/tools/defs/paint.js": [
+   "addDodgeBurnLayer",
+   "brushTool",
+   "dodgeburnTool",
+   "eraserTool",
+   "exposeTool",
+   "historyBrushTool",
+   "smudgeTool",
+   "spacedSteps",
+   "stampGradient"
+  ],
+  "js/editor/tools/defs/retouch.js": [
+   "cloneTool",
+   "healTool"
+  ],
+  "js/editor/tools/defs/select.js": [
+   "penTool",
+   "selectEllipseTool",
+   "selectLassoTool",
+   "selectRectTool",
+   "selectWandTool"
+  ],
+  "js/editor/tools/defs/shape.js": [
+   "shapeTool"
+  ],
+  "js/editor/tools/defs/shared.js": [
+   "HANDLE",
+   "cursorPos",
+   "drawBrushCursor",
+   "drawSnapLines",
+   "grayLevel",
+   "inRect",
+   "normRect",
+   "pressureScale",
+   "requirePaintable",
+   "setCursorPos",
+   "state",
+   "svg"
+  ],
+  "js/editor/tools/defs/text.js": [
+   "flushStyleBurst",
+   "noteStyleChange",
+   "pullTextStyle",
+   "pushTextStyle",
+   "textTool"
+  ],
+  "js/editor/tools/fillcontent.js": [
+   "cropMask",
+   "cropRGBA",
+   "fillContentAware",
+   "fillContentAwarePatchMatch",
+   "fillWorkRegion",
+   "findSource",
+   "idwCorrection",
+   "maskBoundary",
+   "runContentAwareFill",
+   "subsample"
+  ],
+  "js/editor/tools/grab.js": [
+   "drawPx",
+   "grabDoc",
+   "grabPx",
+   "isTouch",
+   "nearest",
+   "offset",
+   "pointerKind",
+   "rectHandleAt",
+   "rectHandleOffset"
+  ],
+  "js/editor/tools/liquify.js": [
+   "applyDab",
+   "applyStroke",
+   "isIdentityGrid",
+   "makeGrid",
+   "relaxGrid",
+   "renderLiquify",
+   "resetGrid"
+  ],
+  "js/editor/tools/paint.js": [
+   "cloneStamp",
+   "dodgeBurn",
+   "drawGradient",
+   "drawShape",
+   "floodFill",
+   "healSpot",
+   "hexToRgb",
+   "makeSmudge"
+  ],
+  "js/editor/tools/patchmatch.js": [
+   "computeNNF",
+   "synthesize"
+  ],
+  "js/editor/tools/perspective.js": [
    "applyH",
    "fillScaleFor",
    "homographyFromGuides",
@@ -1475,7 +1672,7 @@
    "warpRectToMesh",
    "warpRectToQuad"
   ],
-  "js/editor/perspectool.js": [
+  "js/editor/tools/perspectool.js": [
    "drawPerspOverlay",
    "persp",
    "perspApply",
@@ -1500,41 +1697,7 @@
    "perspSync",
    "perspUp"
   ],
-  "js/editor/premiumcolor.js": [
-   "DEC",
-   "applyColorMap",
-   "toLab",
-   "toRgb"
-  ],
-  "js/editor/rangehsl.js": [
-   "BANDS",
-   "activeRanges",
-   "bandWeight",
-   "clamp",
-   "defaultRanges",
-   "hslRgb",
-   "hueDist",
-   "nearestBand",
-   "rangeHslBasic",
-   "rangeHslPremium",
-   "rgbHsl"
-  ],
-  "js/editor/refineedge-math.js": [
-   "boxBlurFloat",
-   "computeRefinedAlpha",
-   "decontaminate",
-   "guidedFilterAlpha",
-   "morph"
-  ],
-  "js/editor/refineedge.js": [
-   "refineEdge"
-  ],
-  "js/editor/resample.js": [
-   "RESAMPLE_METHODS",
-   "resampleCanvas",
-   "resampleHi"
-  ],
-  "js/editor/rulers.js": [
+  "js/editor/tools/rulers.js": [
    "addGuide",
    "clearGuides",
    "commitMoveGuide",
@@ -1560,36 +1723,7 @@
    "snapToGridEnabled",
    "snapValue"
   ],
-  "js/editor/selection-overlay.js": [
-   "traceSelectionOutline"
-  ],
-  "js/editor/selection.js": [
-   "blendBySelection",
-   "boundsOf",
-   "combineMask",
-   "commitSelection",
-   "featherMask",
-   "featherSelection",
-   "fullMask",
-   "hasSelection",
-   "invertMask",
-   "invertSelection",
-   "isEmptyMask",
-   "maskFromEllipse",
-   "maskFromPolygon",
-   "maskFromRect",
-   "maskFromWand",
-   "newMask",
-   "selectAll",
-   "selectNone"
-  ],
-  "js/editor/selectivecolor.js": [
-   "selectiveColor"
-  ],
-  "js/editor/shadowshighlights.js": [
-   "shadowsHighlights"
-  ],
-  "js/editor/smartgrid.js": [
+  "js/editor/tools/smartgrid.js": [
    "analyze",
    "describe",
    "openSmartGrid",
@@ -1598,90 +1732,15 @@
    "suggestedCrop",
    "toggleSmartGrid"
   ],
-  "js/editor/smartobject.js": [
-   "canConvertToSmart",
-   "convertToSmart",
-   "rasterizeSmart"
+  "js/editor/tools/tool-current.js": [
+   "cancelPendingTool",
+   "current",
+   "forceDiscard",
+   "registerTools",
+   "setTool",
+   "toolChosen"
   ],
-  "js/editor/text.js": [
-   "FONTS",
-   "FONT_SEPARATOR",
-   "USER_FONTS",
-   "alignTextPatch",
-   "createTextLayer",
-   "defaultText",
-   "fontString",
-   "isText",
-   "layoutText",
-   "loadFontFile",
-   "pathArcLength",
-   "pointInText",
-   "rasterizeText",
-   "renderTextLayer",
-   "restoreUserFonts",
-   "rotatePoint",
-   "textBounds",
-   "textOverflows",
-   "textQuad",
-   "toTextSpace",
-   "updateText"
-  ],
-  "js/editor/textbox.js": [
-   "beginBoxDrag",
-   "boxDragTo",
-   "cursorFor",
-   "drawTextBox",
-   "endBoxDrag",
-   "hitHandle",
-   "isBoxDragging"
-  ],
-  "js/editor/textedit.js": [
-   "cancelEdit",
-   "cursorPos",
-   "editingLayer",
-   "endEdit",
-   "focusEditor",
-   "isEditing",
-   "place",
-   "startEdit"
-  ],
-  "js/editor/textprops.js": [
-   "mountTextProperties"
-  ],
-  "js/editor/textstyles.js": [
-   "CHAR_ATTRS",
-   "PARA_ATTRS",
-   "charStyleAttrs",
-   "charStyles",
-   "deleteCharStyle",
-   "deleteParaStyle",
-   "paraStyleAttrs",
-   "paraStyles",
-   "saveCharStyle",
-   "saveParaStyle"
-  ],
-  "js/editor/tone.js": [
-   "toneRegions"
-  ],
-  "js/editor/toneband.js": [
-   "TONE_ZONES",
-   "toneBand",
-   "zoneAt"
-  ],
-  "js/editor/tonepremium.js": [
-   "applyAutoToneColorPremium",
-   "applyCurvesPremium",
-   "applyLevelsPremium",
-   "autoContrastState",
-   "autoCurvePoints",
-   "autoLevelsState",
-   "autoToneColorLuts",
-   "autoToneColorPlan",
-   "curveFloat",
-   "levelFloat",
-   "levelsLuts"
-  ],
-  "js/editor/tools.js": [
+  "js/editor/tools/tools.js": [
    "TOOLS",
    "addDodgeBurnLayer",
    "applyCrop",
@@ -1721,7 +1780,34 @@
    "swapColors",
    "toolChosen"
   ],
-  "js/editor/transformtool.js": [
+  "js/editor/tools/transformtool/common.js": [
+   "affineQuad",
+   "pivotPoint",
+   "xform",
+   "xformRecompute"
+  ],
+  "js/editor/tools/transformtool/drag.js": [
+   "RAD",
+   "xformMove",
+   "xformPreview"
+  ],
+  "js/editor/tools/transformtool/session.js": [
+   "armed",
+   "drawXformOverlay",
+   "isIdentity",
+   "renderPreview",
+   "session",
+   "xformApply",
+   "xformBegin",
+   "xformCursorFor",
+   "xformDown",
+   "xformEnd",
+   "xformHandleAt",
+   "xformResetAll",
+   "xformRestore",
+   "xformWarpHandleAt"
+  ],
+  "js/editor/tools/transformtool.js": [
    "drawXformOverlay",
    "xform",
    "xformApply",
@@ -1746,39 +1832,6 @@
    "xformSync",
    "xformUp",
    "xformWarpHandleAt"
-  ],
-  "js/editor/vibrance.js": [
-   "vibrance"
-  ],
-  "js/editor/view.js": [
-   "apply",
-   "attachViewGestures",
-   "center",
-   "edgeAutoScroll",
-   "fit",
-   "fitAbove",
-   "fitInRect",
-   "fitScale",
-   "handleDoubleTap",
-   "handlePointerDown",
-   "handlePointerMove",
-   "handlePointerUp",
-   "isPanKey",
-   "panBy",
-   "recenterAfterResize",
-   "toImage",
-   "view",
-   "zoom100",
-   "zoomAt",
-   "zoomIn",
-   "zoomOut",
-   "zoomToRect"
-  ],
-  "js/editor/webgpu.js": [
-   "gpuBlend",
-   "gpuConvolution5",
-   "gpuMorphology",
-   "webGPUAvailable"
   ],
   "js/exif/c2pa.js": [
    "_internals",
@@ -1816,6 +1869,11 @@
   ],
   "js/exif/inspector.js": [
    "openMetadataInspector"
+  ],
+  "js/exif/quick-exif.js": [
+   "exposureText",
+   "findTiff",
+   "readExposure"
   ],
   "js/exif/ui.js": [
    "cameraName",
@@ -1921,6 +1979,33 @@
    "dominantColors",
    "screenEyedropper"
   ],
+  "js/features/photo-sources.js": [
+   "chooseUpTo",
+   "developRaws",
+   "exifFromRaw",
+   "isRaw",
+   "pickOpenPhotos"
+  ],
+  "js/features/photo-tools/common.js": [
+   "rasterLayer",
+   "sliderRow",
+   "wireCommon"
+  ],
+  "js/features/photo-tools/portrait.js": [
+   "canvasCopy",
+   "clamp",
+   "commitEffect",
+   "fillFields",
+   "liveDialog",
+   "portraitPixels",
+   "portraitRetouch",
+   "restore"
+  ],
+  "js/features/photo-tools/remove-background.js": [
+   "backgroundMask",
+   "removeBackground",
+   "settingsDialog"
+  ],
   "js/features/photo-tools.js": [
    "SOCIAL",
    "aiDejpeg",
@@ -1970,28 +2055,6 @@
    "maskByTextCommand",
    "openTextSelect",
    "openVocabMask"
-  ],
-  "js/filters/advanced.js": [
-   "channelDenoise",
-   "distort",
-   "highPass",
-   "lensBlur",
-   "radialBlur",
-   "smartSharpen",
-   "stylize",
-   "surfaceBlur"
-  ],
-  "js/filters/basic.js": [
-   "FILTER_PREVIEW_LIMIT",
-   "blur",
-   "blurred",
-   "clarity",
-   "motionBlur",
-   "noise",
-   "runFilter",
-   "sharpen",
-   "vignette",
-   "vignetteRamp"
   ],
   "js/filters/camera/chain.js": [
    "CHAIN",
@@ -2061,27 +2124,6 @@
    "filterState",
    "openCamera"
   ],
-  "js/filters/classic.js": [
-   "adaptiveWideAngle",
-   "advancedSharpen",
-   "blurGallery",
-   "classicDistort",
-   "puppetWarp",
-   "restoration",
-   "utilityBlur"
-  ],
-  "js/filters/effects.js": [
-   "artisticGallery",
-   "customConvolution",
-   "offsetMorphology",
-   "pixelate",
-   "renderEffects",
-   "stylizeEffects",
-   "textureEffects"
-  ],
-  "js/filters/freqsep.js": [
-   "openFreqSep"
-  ],
   "js/filters/lens/categories.js": [
    "ADJ_KEYS",
    "ADJ_LABELS",
@@ -2107,7 +2149,76 @@
    "FILTER_ID",
    "openLens"
   ],
-  "js/filters/looks.js": [
+  "js/filters/library/advanced.js": [
+   "channelDenoise",
+   "distort",
+   "highPass",
+   "lensBlur",
+   "radialBlur",
+   "smartSharpen",
+   "stylize",
+   "surfaceBlur"
+  ],
+  "js/filters/library/basic/clarity.js": [
+   "clarity"
+  ],
+  "js/filters/library/basic/common.js": [
+   "FILTER_PREVIEW_LIMIT",
+   "previewProxy",
+   "runFilter"
+  ],
+  "js/filters/library/basic/noise.js": [
+   "noise"
+  ],
+  "js/filters/library/basic/sharpen.js": [
+   "blur",
+   "blurred",
+   "sharpen"
+  ],
+  "js/filters/library/basic/vignette.js": [
+   "vignette",
+   "vignetteRamp"
+  ],
+  "js/filters/library/basic.js": [
+   "FILTER_PREVIEW_LIMIT",
+   "blur",
+   "blurred",
+   "clarity",
+   "motionBlur",
+   "noise",
+   "runFilter",
+   "sharpen",
+   "vignette",
+   "vignetteRamp"
+  ],
+  "js/filters/library/classic.js": [
+   "adaptiveWideAngle",
+   "advancedSharpen",
+   "blurGallery",
+   "classicDistort",
+   "puppetWarp",
+   "restoration",
+   "utilityBlur"
+  ],
+  "js/filters/library/effects.js": [
+   "artisticGallery",
+   "customConvolution",
+   "offsetMorphology",
+   "pixelate",
+   "renderEffects",
+   "stylizeEffects",
+   "textureEffects"
+  ],
+  "js/filters/library/freqsep.js": [
+   "openFreqSep"
+  ],
+  "js/filters/library/sharpen-engine.js": [
+   "gaussBlur",
+   "lineBlur",
+   "sharpenMargin",
+   "sharpenRGBA"
+  ],
+  "js/filters/looks/looks.js": [
    "LOOKS",
    "LOOK_CATS",
    "RECIPES",
@@ -2124,8 +2235,17 @@
    "styleAt",
    "styleCount"
   ],
-  "js/filters/looksfs.js": [
+  "js/filters/looks/looksfs.js": [
    "lookFullscreen"
+  ],
+  "js/filters/looks/styleengine.js": [
+   "GRAD_TYPES",
+   "hasTexture",
+   "recipeTextures",
+   "registerTexture",
+   "renderStyle",
+   "styleColorFn",
+   "styleIsPure"
   ],
   "js/filters/lut/engine.js": [
    "applyCubeLut",
@@ -2147,21 +2267,6 @@
    "segmentClasses",
    "segmentPerson",
    "segmentSky"
-  ],
-  "js/filters/sharpen-engine.js": [
-   "gaussBlur",
-   "lineBlur",
-   "sharpenMargin",
-   "sharpenRGBA"
-  ],
-  "js/filters/styleengine.js": [
-   "GRAD_TYPES",
-   "hasTexture",
-   "recipeTextures",
-   "registerTexture",
-   "renderStyle",
-   "styleColorFn",
-   "styleIsPure"
   ],
   "js/filters/unmark/chain.js": [
    "CHAIN",
@@ -2213,14 +2318,6 @@
    "inpaint",
    "maskToCanvas"
   ],
-  "js/filters/unmark/server.js": [
-   "health",
-   "inpaintRemote",
-   "regenerate",
-   "saveServerConfig",
-   "serverConfig",
-   "serverConfigured"
-  ],
   "js/filters/unmark/state.js": [
    "PRESETS",
    "effParams",
@@ -2238,16 +2335,50 @@
    "VENDOR_BY_ID",
    "vendorRects"
   ],
-  "js/gpu/floatcompositor.js": [
-   "_debugFloat",
-   "floatAvailable",
-   "floatCompose",
-   "floatInfo",
-   "floatPlan",
-   "floatReset",
-   "floatTuning"
+  "js/io/export/export-utils.js": [
+   "safeWebFilename",
+   "sanitizeFilename"
   ],
-  "js/io/alpha.js": [
+  "js/io/export/export.js": [
+   "EXPORT_PRESETS",
+   "compatibilityInfo",
+   "download",
+   "exportDialog",
+   "exportPrecisionInfo",
+   "quickPng",
+   "renderCleanWeb",
+   "renderExport",
+   "safeWebFilename",
+   "sanitizeFilename",
+   "saveOrShare",
+   "stamp"
+  ],
+  "js/io/export/gifexport.js": [
+   "exportGif"
+  ],
+  "js/io/export/pdfexport.js": [
+   "exportPdf",
+   "jpegInfo"
+  ],
+  "js/io/export/pdflayers.js": [
+   "layerPages"
+  ],
+  "js/io/export/pdfpro.js": [
+   "MM",
+   "PAGES",
+   "PDFX_CONDITIONS",
+   "PER_PAGE",
+   "buildPdf",
+   "gridFor",
+   "loadFontkit",
+   "loadPdfLib",
+   "rgbaToCmyk",
+   "safeText"
+  ],
+  "js/io/export/professional-export.js": [
+   "professionalExport"
+  ],
+  "js/io/formats/alpha.js": [
    "alphaFieldsHTML",
    "hasTransparency",
    "onBackground",
@@ -2255,19 +2386,7 @@
    "supportsAlpha",
    "wireAlphaFields"
   ],
-  "js/io/batchmeta.js": [
-   "embedForBatch",
-   "sharedFields"
-  ],
-  "js/io/c2paui.js": [
-   "SIGNABLE",
-   "active",
-   "clear",
-   "openSign",
-   "signIfWanted",
-   "state"
-  ],
-  "js/io/codecs.js": [
+  "js/io/formats/codecs.js": [
    "CODECS",
    "PSNR_LEVELS",
    "avifDecoder",
@@ -2285,85 +2404,139 @@
    "tagAvifColor",
    "toBitDepthRGBA"
   ],
-  "js/io/compatibility.js": [
+  "js/io/formats/compatibility.js": [
    "compatibleFile",
    "decodeAny",
    "decodeCompatible",
    "openPsd",
    "svgCanvas"
   ],
-  "js/io/export-utils.js": [
-   "safeWebFilename",
-   "sanitizeFilename"
-  ],
-  "js/io/export.js": [
-   "EXPORT_PRESETS",
-   "compatibilityInfo",
-   "download",
-   "exportDialog",
-   "exportPrecisionInfo",
-   "quickPng",
-   "renderCleanWeb",
-   "renderExport",
-   "safeWebFilename",
-   "sanitizeFilename",
-   "saveOrShare",
-   "stamp"
-  ],
-  "js/io/exr.js": [
+  "js/io/formats/exr.js": [
    "EXR_CHROMATICITIES",
    "encodeExr",
    "floatToHalf",
    "lineReaderFromData16",
    "srgb16ToLinear"
   ],
-  "js/io/formats.js": [
+  "js/io/formats/formats.js": [
    "PAGE_SIZES",
    "avifFromCanvas",
    "gifFromCanvases",
    "pdfFromCanvases"
   ],
-  "js/io/formats16.js": [
+  "js/io/formats/formats16.js": [
    "png16",
    "png16Supported",
    "tiff16",
    "tiff8"
   ],
-  "js/io/gifexport.js": [
-   "exportGif"
-  ],
-  "js/io/heic.js": [
+  "js/io/formats/heic.js": [
    "encodeHeic",
    "encodeHeicDeep",
    "heicSupported",
    "rgba16ToI010",
    "rgbaToI420"
   ],
-  "js/io/heif.js": [
+  "js/io/formats/heif.js": [
    "annexBToHevc",
    "hevcLevel",
    "writeHeic"
   ],
-  "js/io/hidepth.js": [
+  "js/io/formats/hidepth.js": [
    "decodeHighDepth",
    "decodePng16",
    "sniffHighDepth"
   ],
-  "js/io/icc-embed.js": [
+  "js/io/formats/icc-embed.js": [
    "ensureIcc",
    "pngIccpChunk",
    "webpWithIcc"
   ],
-  "js/io/icccmyk.js": [
+  "js/io/formats/icccmyk.js": [
    "b2aFunction",
    "cmykConverter",
    "parseIcc",
    "srgbToLabD50"
   ],
-  "js/io/metacontainers.js": [
+  "js/io/formats/professional-formats.js": [
+   "PSD_BLEND",
+   "layeredPsd",
+   "psdAdjustment",
+   "psdApproxAdjustment",
+   "psdBlendingRanges",
+   "psdEffects",
+   "psdText",
+   "smartLinked",
+   "smartQuad",
+   "tiffFromCanvas"
+  ],
+  "js/io/formats/psd16.js": [
+   "psd16"
+  ],
+  "js/io/formats/psdfonts.js": [
+   "firstFamily",
+   "fromPsName",
+   "psFont"
+  ],
+  "js/io/formats/psdlayers16.js": [
+   "addImageResource",
+   "rebuildPsd16"
+  ],
+  "js/io/formats/zip.js": [
+   "ZIP_LIMIT",
+   "buildZip",
+   "crc32",
+   "dosStamp"
+  ],
+  "js/io/meta/batchmeta.js": [
+   "embedForBatch",
+   "sharedFields"
+  ],
+  "js/io/meta/c2paui.js": [
+   "SIGNABLE",
+   "active",
+   "clear",
+   "openSign",
+   "signIfWanted",
+   "state"
+  ],
+  "js/io/meta/metacontainers.js": [
    "injectContainer"
   ],
-  "js/io/metadata.js": [
+  "js/io/meta/metadata/build-exif.js": [
+   "buildFilteredExif",
+   "buildIim",
+   "buildIptc",
+   "buildXmp",
+   "fieldsFromOriginal",
+   "fieldsFromXmp",
+   "filterMetadata",
+   "parseLocalDate",
+   "wrapIim"
+  ],
+  "js/io/meta/metadata/common.js": [
+   "NS",
+   "ascii",
+   "concat",
+   "enc",
+   "td"
+  ],
+  "js/io/meta/metadata/inject.js": [
+   "embedMetadata",
+   "md5hex",
+   "xmpSegments"
+  ],
+  "js/io/meta/metadata/read.js": [
+   "iimFromProfile",
+   "parseIim",
+   "parseTiff",
+   "readIptc",
+   "readIptcAny",
+   "readOriginalMetadata",
+   "readXmp",
+   "readXmpExtended"
+  ],
+  "js/io/meta/metadata.js": [
    "META_NONE",
    "META_PRESETS",
    "buildFilteredExif",
@@ -2390,16 +2563,23 @@
    "wrapIim",
    "xmpSegments"
   ],
-  "js/io/metaedit.js": [
+  "js/io/meta/metaedit.js": [
    "clear",
    "count",
    "get",
    "open"
   ],
-  "js/io/metapresets.js": [
+  "js/io/meta/metapresets.js": [
    "META_NONE",
    "META_PRESETS",
    "metaActive"
+  ],
+  "js/io/meta/strip.js": [
+   "stripJPEG",
+   "stripPNG"
+  ],
+  "js/io/meta/stripui.js": [
+   "openStrip"
   ],
   "js/io/open.js": [
    "initOpen",
@@ -2416,39 +2596,31 @@
    "promptStartBatch",
    "revertToOriginal"
   ],
-  "js/io/pdfexport.js": [
-   "exportPdf",
-   "jpegInfo"
+  "js/io/precision/high-precision-next.js": [
+   "highPrecisionAvailableFor",
+   "highPrecisionCapabilities",
+   "renderHighPrecisionCanvas",
+   "renderPrecisionAdjustmentStack"
   ],
-  "js/io/pdflayers.js": [
-   "layerPages"
+  "js/io/precision/high-precision-safe.js": [
+   "highPrecisionAvailableFor",
+   "highPrecisionCapabilities",
+   "renderHighPrecisionCanvas",
+   "renderPrecisionAdjustmentStack"
   ],
-  "js/io/pdfpro.js": [
-   "MM",
-   "PAGES",
-   "PDFX_CONDITIONS",
-   "PER_PAGE",
-   "buildPdf",
-   "gridFor",
-   "loadFontkit",
-   "loadPdfLib",
-   "rgbaToCmyk",
-   "safeText"
+  "js/io/precision/high-precision.js": [
+   "highPrecisionAvailableFor",
+   "highPrecisionCapabilities",
+   "renderHighPrecisionCanvas",
+   "renderPrecisionAdjustmentStack"
   ],
-  "js/io/professional-export.js": [
-   "professionalExport"
-  ],
-  "js/io/professional-formats.js": [
-   "PSD_BLEND",
-   "layeredPsd",
-   "psdAdjustment",
-   "psdApproxAdjustment",
-   "psdBlendingRanges",
-   "psdEffects",
-   "psdText",
-   "smartLinked",
-   "smartQuad",
-   "tiffFromCanvas"
+  "js/io/precision/precision-stack.js": [
+   "GRID",
+   "_debugStore",
+   "adjustFunction",
+   "precisionMaxPixels",
+   "renderPrecise",
+   "unsupportedReason"
   ],
   "js/io/project.js": [
    "PROJECT_MIME",
@@ -2466,30 +2638,9 @@
    "stashForUpdate",
    "validateProject"
   ],
-  "js/io/psd16.js": [
-   "psd16"
-  ],
-  "js/io/psdfonts.js": [
-   "firstFamily",
-   "fromPsName",
-   "psFont"
-  ],
-  "js/io/psdlayers16.js": [
-   "addImageResource",
-   "rebuildPsd16"
-  ],
-  "js/io/strip.js": [
-   "stripJPEG",
-   "stripPNG"
-  ],
-  "js/io/stripui.js": [
-   "openStrip"
-  ],
-  "js/io/zip.js": [
-   "ZIP_LIMIT",
-   "buildZip",
-   "crc32",
-   "dosStamp"
+  "js/io/raw-formats.js": [
+   "RAW_EXTENSIONS",
+   "isRawFile"
   ],
   "js/lens/exifread.js": [
    "readLensExif"
@@ -2513,55 +2664,119 @@
    "sanitize",
    "toProfile"
   ],
-  "js/pwa-updates.js": [
-   "loadedVersion",
-   "savedUpdateLog",
-   "updateInfo",
-   "updateLog",
-   "watchPWAUpdates"
-  ],
   "js/pwa.js": [
    "checkForUpdateDialog",
    "initPWA",
    "promptInstall",
    "resumeAfterUpdate"
   ],
-  "js/ui/bugreport.js": [
+  "js/ui/colorswatch.js": [
+   "initColorSwatch",
+   "openColorPopover"
+  ],
+  "js/ui/docbar.js": [
+   "initDocbar"
+  ],
+  "js/ui/help/bugreport.js": [
    "diagnosticText",
    "imageSample",
    "openBugReport",
    "sendReport"
   ],
-  "js/ui/colorswatch.js": [
-   "initColorSwatch",
-   "openColorPopover"
+  "js/ui/help/guide.js": [
+   "openGuide",
+   "openGuideForTool"
   ],
-  "js/ui/commands.js": [
-   "bind",
-   "enabled",
-   "get",
-   "labelFor",
-   "onRun",
-   "register",
-   "registerAll",
-   "run",
-   "runAsync"
+  "js/ui/help/legal.js": [
+   "openCookiesPolicy",
+   "openLegalNotice",
+   "openPrivacyPolicy"
   ],
-  "js/ui/compact.js": [
+  "js/ui/help/onboarding.js": [
+   "maybeShowOnboarding"
+  ],
+  "js/ui/help/prefsnote.js": [
+   "initPrefsNote"
+  ],
+  "js/ui/help/topics/ajustes.js": [
+   "ajustesTopic"
+  ],
+  "js/ui/help/topics/archivo.js": [
+   "archivoTopic"
+  ],
+  "js/ui/help/topics/atajos.js": [
+   "atajosTopic"
+  ],
+  "js/ui/help/topics/capas.js": [
+   "capasTopic"
+  ],
+  "js/ui/help/topics/collage.js": [
+   "collageTopic"
+  ],
+  "js/ui/help/topics/diagnostico.js": [
+   "diagnosticoTopic"
+  ],
+  "js/ui/help/topics/especiales.js": [
+   "especialesTopic"
+  ],
+  "js/ui/help/topics/filtros.js": [
+   "filtrosTopic"
+  ],
+  "js/ui/help/topics/ia.js": [
+   "iaTopic"
+  ],
+  "js/ui/help/topics/imagen.js": [
+   "imagenTopic"
+  ],
+  "js/ui/help/topics/index.js": [
+   "TOPICS"
+  ],
+  "js/ui/help/topics/instantaneas.js": [
+   "instantaneasTopic"
+  ],
+  "js/ui/help/topics/mover.js": [
+   "moverTopic"
+  ],
+  "js/ui/help/topics/movil.js": [
+   "movilTopic"
+  ],
+  "js/ui/help/topics/novedades.js": [
+   "novedadesTopic"
+  ],
+  "js/ui/help/topics/otras.js": [
+   "otrasTopic"
+  ],
+  "js/ui/help/topics/pintura.js": [
+   "pinturaTopic"
+  ],
+  "js/ui/help/topics/propiedades.js": [
+   "propiedadesTopic"
+  ],
+  "js/ui/help/topics/realify.js": [
+   "realifyTopic"
+  ],
+  "js/ui/help/topics/seleccion.js": [
+   "seleccionTopic"
+  ],
+  "js/ui/help/topics/vistas.js": [
+   "vistasTopic"
+  ],
+  "js/ui/histogrampanel.js": [
+   "initHistogramPanel",
+   "showHistogramPanel"
+  ],
+  "js/ui/kit/compact.js": [
    "autoCompact",
    "compactSliders"
   ],
-  "js/ui/dialog.js": [
+  "js/ui/kit/dialog.js": [
    "anyDialogOpen",
    "confirmDlg",
    "dialog",
    "promptDlg",
    "setDialogHooks"
   ],
-  "js/ui/docbar.js": [
-   "initDocbar"
-  ],
-  "js/ui/fsshell.js": [
+  "js/ui/kit/fsshell.js": [
    "createShell",
    "decodePhoto",
    "ensureShellStyles",
@@ -2572,27 +2787,34 @@
    "stateHistory",
    "thumbButton"
   ],
-  "js/ui/guide.js": [
-   "openGuide",
-   "openGuideForTool"
-  ],
-  "js/ui/histogrampanel.js": [
-   "initHistogramPanel",
-   "showHistogramPanel"
-  ],
-  "js/ui/keyboard.js": [
+  "js/ui/kit/keyboard.js": [
    "followKeyboard",
    "installKeyboardFit",
    "keyboardHeight",
    "opensKeyboard"
   ],
+  "js/ui/kit/premium.js": [
+   "crownIcon",
+   "dockPremium",
+   "premiumPref",
+   "premiumSwitch"
+  ],
+  "js/ui/kit/sortable.js": [
+   "sortable"
+  ],
+  "js/ui/kit/stepper.js": [
+   "stepper",
+   "upgradeSteppers"
+  ],
+  "js/ui/kit/wbpick.js": [
+   "PIPETTE_SVG",
+   "averageRGB"
+  ],
   "js/ui/landscape.js": [
    "initLandscapeNotice"
   ],
-  "js/ui/legal.js": [
-   "openCookiesPolicy",
-   "openLegalNotice",
-   "openPrivacyPolicy"
+  "js/ui/menu/data.js": [
+   "MENUS"
   ],
   "js/ui/menu.js": [
    "MENUS",
@@ -2602,9 +2824,6 @@
   ],
   "js/ui/mobilebar.js": [
    "initMobileBar"
-  ],
-  "js/ui/onboarding.js": [
-   "maybeShowOnboarding"
   ],
   "js/ui/optionsbar.js": [
    "renderOptions"
@@ -2620,30 +2839,9 @@
    "renderSnapshots",
    "toggleSheet"
   ],
-  "js/ui/prefsnote.js": [
-   "initPrefsNote"
-  ],
-  "js/ui/premium.js": [
-   "crownIcon",
-   "dockPremium",
-   "premiumPref",
-   "premiumSwitch"
-  ],
   "js/ui/properties.js": [
    "initProperties",
    "renderProperties"
-  ],
-  "js/ui/sortable.js": [
-   "sortable"
-  ],
-  "js/ui/stepper.js": [
-   "stepper",
-   "upgradeSteppers"
-  ],
-  "js/ui/toast.js": [
-   "progress",
-   "status",
-   "toast"
   ],
   "js/ui/tooldrawer-icons.js": [
    "ICONS"
@@ -2653,11 +2851,7 @@
    "initToolDrawer",
    "openDrawer"
   ],
-  "js/ui/wbpick.js": [
-   "PIPETTE_SVG",
-   "averageRGB"
-  ],
-  "lote/edit.js": [
+  "plugins/batch/edit.js": [
    "applyEdit",
    "captureEdit",
    "evToMatch",
@@ -2665,53 +2859,187 @@
    "logAverage",
    "previewEdit"
   ],
-  "lote/index.js": [
+  "plugins/batch/index.js": [
    "openBatchEdit",
    "startBatch"
   ],
-  "lote/ui.js": [
+  "plugins/batch/ui.js": [
    "openBatchEditor"
   ],
-  "lut/catalog.js": [
+  "plugins/cameras/engine.js": [
+   "CamarasGL",
+   "rng"
+  ],
+  "plugins/cameras/index.js": [
+   "dateText",
+   "openCamaras",
+   "renderCamaras"
+  ],
+  "plugins/cameras/presets.js": [
+   "CATS",
+   "PRESETS",
+   "activeCats",
+   "inCat",
+   "preset"
+  ],
+  "plugins/cameras/state.js": [
+   "CAMARAS_VERSION",
+   "CONTROLS",
+   "GROUPS",
+   "KEYS",
+   "defaults",
+   "effective",
+   "isActive",
+   "normalize"
+  ],
+  "plugins/cameras/ui.js": [
+   "openCamarasEditor"
+  ],
+  "plugins/compare/index.js": [
+   "openCompare"
+  ],
+  "plugins/compare/ui.js": [
+   "LAYOUTS",
+   "compose",
+   "openCompareEditor"
+  ],
+  "plugins/contact-sheet/index.js": [
+   "openContacts"
+  ],
+  "plugins/contact-sheet/ui.js": [
+   "openContactSheet",
+   "renderPages"
+  ],
+  "plugins/frames/artistic.js": [
+   "drawArtisticFrame"
+  ],
+  "plugins/frames/geometry.js": [
+   "borderMotifs",
+   "borderSides",
+   "diamondPath",
+   "heartPath",
+   "mixColor",
+   "seededRandom"
+  ],
+  "plugins/frames/index.js": [
+   "openFrames"
+  ],
+  "plugins/frames/presets.js": [
+   "FRAME_CATEGORIES",
+   "FRAME_PRESETS",
+   "frameById",
+   "framesInCategory"
+  ],
+  "plugins/frames/render.js": [
+   "drawFrame"
+  ],
+  "plugins/frames/ui.js": [
+   "openFramesEditor"
+  ],
+  "plugins/frames/viewport.js": [
+   "createFrameViewport"
+  ],
+  "plugins/hdr/engine/align.js": [
+   "ALIGN",
+   "alignAll",
+   "alignExposureThreshold",
+   "alignGradient",
+   "alignPair",
+   "alignShift"
+  ],
+  "plugins/hdr/engine/common.js": [
+   "TO_LIN"
+  ],
+  "plugins/hdr/engine/fusion.js": [
+   "clamp01",
+   "fuseMertens"
+  ],
+  "plugins/hdr/engine.js": [
+   "ALIGN",
+   "alignAll",
+   "alignExposureThreshold",
+   "alignGradient",
+   "alignPair",
+   "alignShift",
+   "commonRect",
+   "downRadiance",
+   "downscale",
+   "estimateEvs",
+   "evBetween",
+   "evFromExif",
+   "finish",
+   "fuseMertens",
+   "mergeRadiance",
+   "tmCompressor",
+   "tmDetails",
+   "tmDrago",
+   "toneMap",
+   "wbNeutral"
+  ],
+  "plugins/hdr/index.js": [
+   "openHdr",
+   "recoverHdrCrash"
+  ],
+  "plugins/hdr/premium.js": [
+   "LIN_SCALE",
+   "downscaleLin",
+   "finishPremium",
+   "linearFromDisplay",
+   "mergePremium",
+   "radianceHDR",
+   "responseCurves",
+   "wbNeutralPremium"
+  ],
+  "plugins/hdr/presets.js": [
+   "DEFAULTS",
+   "METHODS",
+   "PRESETS",
+   "presetSettings"
+  ],
+  "plugins/hdr/ui.js": [
+   "MAX_PHOTOS",
+   "openHdrEditor"
+  ],
+  "plugins/lut/catalog.js": [
    "FAMILIES",
    "ITEMS"
   ],
-  "lut/engine.js": [
+  "plugins/lut/engine.js": [
    "LutGL",
    "isLoaded",
    "loadLut"
   ],
-  "lut/index.js": [
+  "plugins/lut/index.js": [
    "openLuts",
    "renderLuts"
   ],
-  "lut/ui.js": [
+  "plugins/lut/ui.js": [
    "lutItem",
    "normalize",
    "openLutEditor"
   ],
-  "memes/designs-more.js": [
+  "plugins/memes/designs-more.js": [
    "MORE_DESIGNS",
    "coverCanvas"
   ],
-  "memes/designs.js": [
+  "plugins/memes/designs.js": [
    "DESIGNS",
    "design"
   ],
-  "memes/effects.js": [
+  "plugins/memes/effects.js": [
    "EFFECTS",
    "applyEffect"
   ],
-  "memes/fonts.js": [
+  "plugins/memes/fonts.js": [
    "FONTS",
    "fontStack",
    "linkFonts",
    "loadFont"
   ],
-  "memes/index.js": [
+  "plugins/memes/index.js": [
    "openMemeCreator"
   ],
-  "memes/model.js": [
+  "plugins/memes/model.js": [
    "PROPS",
    "PROP_GROUPS",
    "TEXT_DEFAULTS",
@@ -2720,56 +3048,72 @@
    "newText",
    "prop"
   ],
-  "memes/text.js": [
+  "plugins/memes/text.js": [
    "drawText",
    "fontCss",
    "renderText",
    "textBox"
   ],
-  "memes/ui.js": [
+  "plugins/memes/ui.js": [
    "openMemeEditor"
   ],
-  "panorama/engine.js": [
+  "plugins/merge/engine.js": [
+   "compose",
+   "cylindrical",
+   "layout",
+   "pairOffset",
+   "placed",
+   "resize",
+   "spherical"
+  ],
+  "plugins/merge/index.js": [
+   "openMerge"
+  ],
+  "plugins/merge/precise.js": [
+   "chainHomographies",
+   "placeMosaic"
+  ],
+  "plugins/merge/ui.js": [
+   "openMergeEditor",
+   "renderSimple"
+  ],
+  "plugins/panorama/engine.js": [
    "calculateExposureGains",
    "estimateTranslation",
    "projectCanvas",
    "scaleCanvas",
    "stitchPanorama"
   ],
-  "panorama/index.js": [
+  "plugins/panorama/index.js": [
    "openPanorama"
   ],
-  "panorama/ui.js": [
+  "plugins/panorama/ui.js": [
    "openPanoramaEditor"
   ],
-  "raw/decoder.js": [
+  "plugins/raw/decoder.js": [
    "RAW_EXTENSIONS",
    "RawDecoder",
    "isRawFile"
   ],
-  "raw/formats.js": [
-   "RAW_EXTENSIONS",
-   "isRawFile"
-  ],
-  "raw/gpu-preview.js": [
+  "plugins/raw/gpu-preview.js": [
    "GPUPreview"
   ],
-  "raw/index.js": [
+  "plugins/raw/index.js": [
    "isRawFile",
    "openPhotoDevelop",
    "openRawFile",
    "rawToCanvas",
    "renderPhotoDevelop"
   ],
-  "raw/lens.js": [
+  "plugins/raw/lens.js": [
    "correctLinearSource",
    "profileForRaw"
   ],
-  "raw/pipeline.js": [
+  "plugins/raw/pipeline.js": [
    "histogram",
    "renderPhoto"
   ],
-  "raw/premium/core.js": [
+  "plugins/raw/premium/core.js": [
    "EPS_COARSE",
    "EPS_HAZE",
    "HALO",
@@ -2805,7 +3149,7 @@
    "srgbDecode",
    "srgbEncode"
   ],
-  "raw/premium/cpu.js": [
+  "plugins/raw/premium/cpu.js": [
    "computeMaps",
    "downscale",
    "encode16",
@@ -2817,15 +3161,15 @@
    "sourceReader",
    "sourceRowsFor"
   ],
-  "raw/premium/gpu.js": [
+  "plugins/raw/premium/gpu.js": [
    "PremiumGPU"
   ],
-  "raw/premium/output.js": [
+  "plugins/raw/premium/output.js": [
    "outputSharpen",
    "outputSharpen16",
    "tiff16"
   ],
-  "raw/premium/render.js": [
+  "plugins/raw/premium/render.js": [
    "ctxOf",
    "premiumSource",
    "prepare",
@@ -2833,20 +3177,20 @@
    "renderPremiumLinear",
    "renderPremiumRows"
   ],
-  "raw/preview.js": [
+  "plugins/raw/preview.js": [
    "Preview"
   ],
-  "raw/render-client.js": [
+  "plugins/raw/render-client.js": [
    "RenderWorker"
   ],
-  "raw/source.js": [
+  "plugins/raw/source.js": [
    "isLinearSource",
    "linearReader",
    "linearSource",
    "resizeLinear",
    "toOutputMatrix"
   ],
-  "raw/state.js": [
+  "plugins/raw/state.js": [
    "CONTROLS",
    "GROUPS",
    "RAW_VERSION",
@@ -2856,7 +3200,7 @@
    "normalize",
    "valueText"
   ],
-  "raw/tone.js": [
+  "plugins/raw/tone.js": [
    "LUT_SIZE",
    "autoWhiteBalance",
    "buildToneLUT",
@@ -2870,10 +3214,40 @@
    "wbGains",
    "wbPickNeutral"
   ],
-  "raw/ui.js": [
+  "plugins/raw/ui.js": [
    "openDeveloper"
   ],
-  "socialmediapost/formats.js": [
+  "plugins/shape-crop/index.js": [
+   "openShapes"
+  ],
+  "plugins/shape-crop/shapes.js": [
+   "GROUPS",
+   "SHAPES",
+   "fillRule",
+   "placeShape",
+   "shapeById",
+   "shapeIcon",
+   "traceShape"
+  ],
+  "plugins/shape-crop/ui.js": [
+   "openShapeEditor",
+   "renderShape",
+   "shapeBounds"
+  ],
+  "plugins/slice/index.js": [
+   "openCut"
+  ],
+  "plugins/slice/plan.js": [
+   "MODES",
+   "RATIOS",
+   "modeSvg",
+   "pieceNumber",
+   "plan"
+  ],
+  "plugins/slice/ui.js": [
+   "openCutEditor"
+  ],
+  "plugins/social-post/formats.js": [
    "FORMATS",
    "GROUPS",
    "aspectText",
@@ -2882,16 +3256,16 @@
    "safeZones",
    "sizeOf"
   ],
-  "socialmediapost/index.js": [
+  "plugins/social-post/index.js": [
    "openSocialPost"
   ],
-  "socialmediapost/layouts.js": [
+  "plugins/social-post/layouts.js": [
    "LAYOUTS",
    "cellsFor",
    "layoutById",
    "layoutSvg"
   ],
-  "socialmediapost/render.js": [
+  "plugins/social-post/render.js": [
    "SHAPES",
    "cellPath",
    "cellsOf",
@@ -2906,10 +3280,10 @@
    "shapeIdOf",
    "shapeOf"
   ],
-  "socialmediapost/ui.js": [
+  "plugins/social-post/ui.js": [
    "openPostEditor"
   ],
-  "stickers/catalog.js": [
+  "plugins/stickers/catalog.js": [
    "GROUP_LABELS",
    "STYLES",
    "TONES",
@@ -2922,65 +3296,45 @@
    "rasterSize",
    "toneApplies"
   ],
-  "stickers/index.js": [
+  "plugins/stickers/index.js": [
    "openStickers"
   ],
-  "stickers/render.js": [
+  "plugins/stickers/render.js": [
    "buildSprite",
    "drawSprite"
   ],
-  "stickers/ui.js": [
+  "plugins/stickers/ui.js": [
    "openStickerEditor"
   ],
-  "tools/build-lensdb.mjs": [
-   "compact"
-  ],
-  "unir/engine.js": [
-   "compose",
-   "cylindrical",
-   "layout",
-   "pairOffset",
-   "placed",
-   "resize",
-   "spherical"
-  ],
-  "unir/index.js": [
-   "openMerge"
-  ],
-  "unir/precise.js": [
-   "chainHomographies",
-   "placeMosaic"
-  ],
-  "unir/ui.js": [
-   "openMergeEditor",
-   "renderSimple"
-  ],
-  "vintagefilter/engine.js": [
+  "plugins/vintage/engine.js": [
    "VintageGL"
   ],
-  "vintagefilter/frames.js": [
+  "plugins/vintage/frames.js": [
    "FRAMES",
    "FRAME_CATS",
    "drawFrame",
    "frameById"
   ],
-  "vintagefilter/index.js": [
+  "plugins/vintage/index.js": [
    "openVintageFilter",
    "renderVintageFilter"
   ],
-  "vintagefilter/overlays.js": [
+  "plugins/vintage/overlays.js": [
    "OVERLAY_KEYS",
    "dateText",
    "drawOverlays",
    "overlayKey",
    "rng"
   ],
-  "vintagefilter/presets.js": [
+  "plugins/vintage/presets.js": [
    "PRESETS",
    "PRESET_CATS",
    "preset"
   ],
-  "vintagefilter/state.js": [
+  "plugins/vintage/rng.js": [
+   "rng"
+  ],
+  "plugins/vintage/state.js": [
    "CONTROLS",
    "GROUPS",
    "VINTAGE_VERSION",
@@ -2991,163 +3345,99 @@
    "normalize",
    "valueText"
   ],
-  "vintagefilter/ui.js": [
+  "plugins/vintage/ui.js": [
    "openVintageEditor"
+  ],
+  "tools/build-lensdb.mjs": [
+   "compact"
   ]
  },
  "dirEdges": {
-  "js/editor -> js/core": 123,
-  "js/main.js -> js/editor": 79,
-  "js/features -> js/ui": 54,
-  "js/features -> js/core": 52,
-  "js/editor -> js/ui": 50,
-  "js/io -> js/core": 48,
+  "js/editor -> js/core": 265,
+  "plugins -> js/core": 101,
+  "js/app -> js/editor": 97,
+  "js/features -> js/core": 91,
+  "js/io -> js/core": 66,
+  "js/features -> js/editor": 49,
+  "js/ui -> js/core": 48,
+  "js/app -> js/core": 47,
+  "js/filters -> js/core": 46,
   "js/editor -> js/filters": 39,
-  "js/features -> js/editor": 39,
-  "js/ui -> js/core": 38,
-  "js/main.js -> js/filters": 37,
+  "js/filters -> js/editor": 39,
+  "js/app -> js/filters": 37,
+  "js/features -> js/ui": 36,
+  "js/app -> js/features": 34,
   "js/features -> js/ai": 34,
-  "js/main.js -> js/features": 34,
   "js/ui -> js/editor": 33,
-  "js/filters -> js/editor": 28,
-  "js/filters -> js/core": 23,
-  "js/main.js -> js/ui": 21,
-  "js/filters -> js/ui": 20,
-  "js/io -> js/ui": 18,
-  "hdr -> raw": 14,
-  "js/features -> js/io": 13,
+  "plugins -> js/ui": 32,
+  "js/editor -> js/ui": 31,
+  "plugins -> js/editor": 27,
+  "js/main.js -> js/editor": 23,
+  "js/app -> js/ui": 18,
+  "js/app -> plugins": 18,
+  "js/io -> js/editor": 18,
+  "js/main.js -> js/app": 18,
+  "plugins -> js/io": 18,
+  "js/features -> js/io": 16,
+  "js/main.js -> js/ui": 13,
+  "js/features -> plugins": 12,
+  "js/filters -> js/ui": 12,
+  "js/app -> js/io": 11,
   "js/features -> js/cv": 11,
-  "js/io -> js/editor": 11,
-  "raw -> js/core": 11,
-  "js/main.js -> js/core": 10,
-  "js/main.js -> js/io": 10,
-  "hdr -> js/ui": 9,
-  "js/core -> js/editor": 9,
+  "js/main.js -> js/core": 11,
   "js/editor -> js/features": 9,
+  "js/io -> js/ui": 9,
   "js/io -> js/vendor": 9,
-  "raw -> js/ui": 7,
-  "socialmediapost -> js/core": 7,
+  "js/io -> js/exif": 8,
   "js/ai -> js/editor": 6,
-  "js/gpu -> js/editor": 6,
-  "lote -> js/ui": 6,
-  "lote -> js/io": 6,
-  "formas -> js/ui": 5,
-  "js/io -> js/exif": 5,
-  "lote -> js/core": 5,
-  "lote -> js/editor": 5,
-  "panorama -> js/ui": 5,
-  "stickers -> js/core": 5,
-  "camaras -> js/ui": 4,
-  "cortar -> js/ui": 4,
-  "cortar -> js/core": 4,
-  "formas -> js/core": 4,
-  "hdr -> js/io": 4,
-  "hojacontactos -> js/ui": 4,
-  "js/core -> js/ui": 4,
-  "js/exif -> js/ui": 4,
+  "js/exif -> js/core": 6,
+  "js/editor -> plugins": 4,
   "js/filters -> js/ai": 4,
-  "js/gpu -> js/core": 4,
-  "js/main.js -> js/ai": 4,
-  "js/pwa.js -> js/ui": 4,
-  "lut -> js/ui": 4,
-  "socialmediapost -> memes": 4,
-  "unir -> js/ui": 4,
-  "vintagefilter -> js/core": 4,
-  "comparar -> js/ui": 3,
-  "frames -> js/core": 3,
-  "hdr -> js/core": 3,
-  "hdr -> js/cv": 3,
-  "js/ai -> js/ui": 3,
+  "js/main.js -> js/io": 4,
+  "js/pwa.js -> js/core": 4,
+  "plugins -> js/cv": 4,
+  "js/ai -> js/core": 3,
   "js/ai -> js/io": 3,
+  "js/app -> js/ai": 3,
+  "js/app -> js/analysis": 3,
   "js/editor -> js/ai": 3,
-  "js/exif -> js/core": 3,
   "js/features -> js/lens": 3,
-  "js/features -> raw": 3,
   "js/filters -> js/analysis": 3,
   "js/filters -> js/exif": 3,
-  "js/io -> raw": 3,
-  "js/main.js -> js/analysis": 3,
-  "memes -> js/editor": 3,
-  "memes -> js/core": 3,
-  "raw -> js/lens": 3,
-  "sw.js -> js/vendor": 3,
-  "camaras -> js/core": 2,
-  "cortar -> js/editor": 2,
-  "cortar -> js/io": 2,
-  "formas -> js/editor": 2,
-  "hojacontactos -> js/io": 2,
+  "js/pwa.js -> js/ui": 3,
+  "plugins -> js/lens": 3,
   "js/ai -> js/vendor": 2,
-  "js/analysis -> js/ui": 2,
+  "js/analysis -> js/core": 2,
+  "js/app -> js/exif": 2,
+  "js/app -> js/pwa.js": 2,
+  "js/cv -> js/core": 2,
+  "js/editor -> js/io": 2,
   "js/editor -> js/cv": 2,
+  "js/exif -> js/ui": 2,
   "js/exif -> js/io": 2,
   "js/features -> js/filters": 2,
   "js/filters -> js/io": 2,
-  "js/main.js -> js/pwa.js": 2,
-  "js/main.js -> cortar": 2,
-  "js/main.js -> formas": 2,
-  "js/main.js -> hdr": 2,
-  "js/main.js -> js/exif": 2,
-  "js/pwa.js -> js/pwa-updates.js": 2,
+  "js/io -> plugins": 2,
   "js/pwa.js -> js/io": 2,
   "js/ui -> js/io": 2,
-  "lut -> js/core": 2,
-  "memes -> js/ui": 2,
-  "socialmediapost -> js/editor": 2,
-  "socialmediapost -> js/ui": 2,
-  "stickers -> js/ui": 2,
-  "vintagefilter -> js/ui": 2,
-  "vintagefilter -> js/editor": 2,
-  "camaras -> js/editor": 1,
-  "comparar -> js/core": 1,
-  "comparar -> js/editor": 1,
-  "frames -> js/editor": 1,
-  "frames -> js/ui": 1,
-  "hdr -> js/editor": 1,
+  "js/ai -> js/ui": 1,
   "js/analysis -> js/exif": 1,
-  "js/analysis -> js/core": 1,
   "js/analysis -> js/editor": 1,
+  "js/analysis -> js/ui": 1,
   "js/cv -> js/ui": 1,
   "js/cv -> js/vendor": 1,
-  "js/editor -> js/gpu": 1,
-  "js/editor -> raw": 1,
-  "js/editor -> vintagefilter": 1,
-  "js/editor -> camaras": 1,
-  "js/editor -> lut": 1,
   "js/exif -> js/analysis": 1,
-  "js/features -> hdr": 1,
-  "js/io -> js/pwa-updates.js": 1,
-  "js/io -> hdr": 1,
-  "js/io -> lote": 1,
   "js/io -> js/analysis": 1,
-  "js/lens -> hdr": 1,
-  "js/main.js -> lote": 1,
-  "js/main.js -> hojacontactos": 1,
-  "js/main.js -> comparar": 1,
-  "js/main.js -> unir": 1,
-  "js/main.js -> panorama": 1,
-  "js/main.js -> memes": 1,
-  "js/main.js -> stickers": 1,
-  "js/main.js -> socialmediapost": 1,
-  "js/main.js -> frames": 1,
-  "js/main.js -> raw": 1,
-  "js/main.js -> vintagefilter": 1,
-  "js/main.js -> camaras": 1,
-  "js/main.js -> lut": 1,
-  "js/main.js -> js/pwa-updates.js": 1,
-  "js/main.js -> js/gpu": 1,
-  "js/pwa.js -> js/core": 1,
+  "js/lens -> js/exif": 1,
+  "js/lens -> js/core": 1,
+  "js/main.js -> js/pwa.js": 1,
+  "js/main.js -> js/ai": 1,
+  "js/main.js -> plugins": 1,
   "js/pwa.js -> sw.js": 1,
-  "lut -> js/filters": 1,
-  "lut -> js/editor": 1,
-  "panorama -> js/core": 1,
-  "panorama -> js/editor": 1,
-  "raw -> js/editor": 1,
-  "raw -> js/io": 1,
-  "stickers -> js/editor": 1,
+  "plugins -> js/exif": 1,
+  "plugins -> js/features": 1,
+  "plugins -> js/filters": 1,
   "sw.js -> js/main.js": 1,
-  "sw.js -> js/core": 1,
-  "unir -> js/core": 1,
-  "unir -> js/editor": 1,
-  "unir -> js/cv": 1
+  "sw.js -> js/core": 1
  }
 }

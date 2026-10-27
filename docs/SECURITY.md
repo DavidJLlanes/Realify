@@ -49,8 +49,9 @@ se conecta a la red para:
 - Cargar la propia aplicación desde [realify.es](https://realify.es).
 - Descargar modelos de IA bajo demanda (Hugging Face), que quedan guardados en
   el navegador.
-- Enviar la imagen a un servidor **propio del usuario**, solo si configura
-  expresamente el servidor opcional de Unmark.
+- Enviar las fotos al servidor de realify.es, **solo** al usar «Panorámica»
+  (se unen con OpenCV en el servidor; no se guardan). El resto de funciones
+  procesa todo en el navegador.
 
 Las tipografías (todo el catálogo libre de Google Fonts) se sirven desde el
 propio sitio, en `/fonts/`: el navegador no se conecta con Google.

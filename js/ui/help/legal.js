@@ -70,8 +70,10 @@ const LEGAL_BODY = `<div class="guide">
 const PRIVACY_BODY = `<div class="guide">
 
   <h3>Resumen</h3>
-  <p class="lead">Realify no tiene servidores propios de procesamiento:
-    todo ocurre en tu navegador. No se sube ninguna imagen, no hay
+  <p class="lead">Realify procesa todo en tu navegador. La única función que
+    envía tus fotos a un servidor es <b>Panorámica</b> (se unen con OpenCV
+    en el servidor de Realify, sin guardarlas). Fuera de ella, no se sube
+    ninguna imagen, no hay
     analítica ni publicidad, no hacen falta cuentas de usuario y no se
     crean perfiles de nadie. El único dato personal que se trata es
     técnico: el servidor web que aloja Realify anota cada petición
@@ -87,9 +89,12 @@ const PRIVACY_BODY = `<div class="guide">
 
   <h3>Qué se procesa</h3>
   <p>Nada sale de tu equipo, salvo el informe de error que tú decidas
-    enviar (ver más abajo). Las imágenes que abres, editas y exportas
-    permanecen en la memoria y el almacenamiento de tu propio navegador en
-    todo momento.</p>
+    enviar (ver más abajo) y las fotos que elijas para una
+    <b>Panorámica</b>: esas se envían al servidor de Realify, que las une
+    en memoria, devuelve el resultado y no las guarda (el registro del
+    servidor sólo anota la petición, como en el resto del sitio). El resto
+    de imágenes que abres, editas y exportas permanecen en la memoria y el
+    almacenamiento de tu propio navegador en todo momento.</p>
 
   <h3>Registros del servidor web</h3>
   <p>Para enseñarte la aplicación, tu navegador descarga sus archivos

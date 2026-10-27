@@ -16,14 +16,13 @@
 
   # Referrer Policy
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
 
   # Política de Seguridad de Contenido (CSP)
   # blob: lo necesita el códec local y la exportación.
-  # connect-src: la app no sale a la red, con UNA excepción opcional: el
-  # filtro Unmark puede enviar la imagen al servidor propio del usuario
-  # (regeneración por difusión y relleno LaMa; ver server/unmark). Para
-  # que el navegador lo permita, añade aquí el origen de ese servidor,
-  # p.ej.  connect-src 'self' www.googletagmanager.com https://unmark.tudominio.es;
+  # connect-src: la app sólo sale a la red para descargar modelos de IA y,
+  # en «Panorámica», para enviar las fotos al propio servidor (/api/stitch).
   # Modelos de IA (js/ai): 'wasm-unsafe-eval' deja compilar el motor ONNX
   # Runtime local (js/vendor/ort), y huggingface.co + *.hf.co (su CDN)
   # sirven los pesos de los modelos grandes, que se DESCARGAN la primera

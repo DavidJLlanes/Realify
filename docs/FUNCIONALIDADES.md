@@ -517,8 +517,7 @@ editables. El resultado va a una capa reeditable.
 Procesado de píxeles y exportación en PNG sin metadatos.
 
 ### Unmark — `js/filters/unmark/`
-Detección y relleno de marcas de agua. Admite un servidor propio opcional
-(`server/unmark/`); sin él, todo se hace en local.
+Detección y relleno de marcas de agua, y limpieza de marcas invisibles. Todo se hace en local.
 
 ### Crear meme — `plugins/memes/`
 26 diseños (clásico, desmotivador, comparación, cómic, póster, periódico,

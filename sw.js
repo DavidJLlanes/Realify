@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v285";
+const VERSION = "realify-v286";
 const SHELL = [
   "./",
   "./index.html",
@@ -80,7 +80,7 @@ self.addEventListener("fetch", e => {
     fresh.then(res => {
       if(res && res.ok){
         const copy = res.clone();
-        caches.open(VERSION).then(cache => cache.put(req, copy));
+        if(res.status === 200) caches.open(VERSION).then(cache => cache.put(req, copy)).catch(() => {});
       }
       return res;
     }).catch(() =>

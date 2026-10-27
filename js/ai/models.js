@@ -15,7 +15,11 @@
      pide permiso (ver confirmDownload en runtime.js).
    ═══════════════════════════════════════════════════════════════ */
 
-const HF = "https://huggingface.co/T8RIN/ImageToolbox-models/resolve/main/";
+/* Revisión del repositorio de pesos. «main» es una rama que su autor puede cambiar: para fijarla, pon aquí el
+   hash de un commit de ese repositorio y, por modelo, el campo `sha256` (lo comprueba js/ai/worker.js).
+   Ojo: la caché de IndexedDB se indexa por URL, así que cambiar la revisión vuelve a descargar los modelos. */
+const HF_REV = "main";
+const HF = `https://huggingface.co/T8RIN/ImageToolbox-models/resolve/${HF_REV}/`;
 const LOCAL = new URL("../../assets/models/", import.meta.url).href;
 
 export const MODELS = {

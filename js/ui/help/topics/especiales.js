@@ -111,8 +111,7 @@ export const especialesTopic = { id:"especiales", title:"Filtros especiales",
           alrededor), <i>marcas invisibles</i> (rompe los soportes donde se esconden:
           transformación geométrica subpíxel, remuestreo, ondículas DWT-DCT, coeficientes
           DCT, suavizado y reenfoque, ruido, bits bajos, limpieza espectral y
-          recompresión JPEG; y, si configuras tu propio servidor, regeneración por
-          difusión) y <i>procedencia</i> (lee lo que declara el archivo —C2PA, XMP con
+          recompresión JPEG) y <i>procedencia</i> (lee lo que declara el archivo —C2PA, XMP con
           «trainedAlgorithmicMedia», EXIF, prompts— y decide qué metadatos salen al
           exportar). Ninguna etapa garantiza nada frente a un detector concreto: mídelo.</li>
         <li id="sp-looks"><b>Estilos…</b> 160 acabados de un clic en 16 categorías: básicos, retrato,

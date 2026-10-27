@@ -120,6 +120,12 @@ async function fetchModel(id, model){
   else if(buf) bytes = buf.subarray(0, loaded);
   else{ const b = new Blob(chunks); chunks = null; bytes = new Uint8Array(await b.arrayBuffer()); }
   chunks = null; buf = null;
+  // Integridad: si el catálogo declara `sha256`, el archivo debe coincidir (los pesos vienen de terceros).
+  if(model.sha256 && !local){
+    const d = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+    const hex = Array.from(d, b => b.toString(16).padStart(2, "0")).join("");
+    if(hex !== String(model.sha256).toLowerCase()) throw new Error("El modelo descargado no coincide con su huella SHA-256; se ha descartado.");
+  }
   if(!local) await dbPut(model.url, new Blob([bytes]));
   return bytes;
 }

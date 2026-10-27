@@ -98,7 +98,7 @@ async function rawThumbnail(file, fit){
 }
 
 function developOne(file, { k, n, fit, initial, busy, sync = false }){
-  return new Promise(async resolve => {
+  return new Promise(resolve => { (async () => {
     const [{ RawDecoder }, { defaults }, { openDeveloper }] = await Promise.all([
       import("../../plugins/raw/decoder.js"), import("../../plugins/raw/state.js"), import("../../plugins/raw/ui.js")]);
     const start = { ...defaults(), ...(initial || {}) };
@@ -122,7 +122,7 @@ function developOne(file, { k, n, fit, initial, busy, sync = false }){
       }
     });
     dec.source = null;
-  });
+  })().catch(err => { busy(null); toast(err?.message || "No se pudo abrir el revelado", "err"); resolve(null); }); });
 }
 
 async function renderRaw(file, settings, fit, premium = false){

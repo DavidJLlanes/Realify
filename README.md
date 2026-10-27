@@ -6,7 +6,7 @@
 
 # Realify
 
-**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor.**
+**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor (salvo en «Panorámica», que las une en el servidor).**
 
 [![Web](https://img.shields.io/badge/web-realify.es-f5b82e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://realify.es)
 [![Licencia no comercial](https://img.shields.io/badge/licencia-PolyForm%20Noncommercial-3b82f6?style=for-the-badge)](LICENSE)
@@ -58,11 +58,12 @@
 
 Realify es un editor de imágenes completo que funciona en el navegador. Todo el
 procesado —capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del
-usuario: **las imágenes no se suben a ningún servidor**. Se instala como app
+usuario: **las imágenes no se suben a ningún servidor**, con una excepción:
+«Panorámica» envía las fotos al servidor de Realify para unirlas (no se guardan). Se instala como app
 (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
-describe la versión **281** (ver la [lista de cambios](./docs/CHANGELOG.md)).
+describe la versión **286** (ver la [lista de cambios](./docs/CHANGELOG.md)).
 
 ## Características destacadas
 
@@ -125,7 +126,8 @@ el pulgar. Instalable y disponible sin conexión.
 
 - **Sin instalación ni cuenta**: basta con abrir [realify.es](https://realify.es).
 - **Privado por diseño**: el procesado es local; los modelos de IA se
-  descargan, las imágenes nunca se suben.
+  descargan y las imágenes no se suben (única excepción: «Panorámica», que las
+  envía al servidor de Realify para unirlas, sin guardarlas).
 - **Escritorio y móvil**: menús clásicos en escritorio; en móvil, barra
   inferior y un cajón de herramientas ordenado por objetivo (básicos,
   automáticos, mejorar, corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
@@ -140,6 +142,11 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v286** | **Revisión de errores**: «Panorámica» avisa de que envía las fotos al servidor (política de privacidad corregida) y su servicio tiene límites; se retira del filtro Unmark el apoyo por servidor que no funcionaba; el despliegue ejecuta las comprobaciones antes de publicar. |
+| **v285** | **Collage**: formas libres, miniaturas más grandes en móvil y zonas seguras de historias y TikTok. |
+| **v284** | Barra de progreso: se oculta siempre, aunque falle el remuestreo o no cargue OpenCV. |
+| **v283** | Guías del recorte («Ninguna», «Tercios», «Áurea») se redibujan al cambiarlas. |
+| **v282** | **Recorte** con proporciones personalizadas grandes y la pantalla del iPhone 17 Pro Max. |
 | **v281** | **Efectos LUT**: galería a pantalla completa con 226 efectos de color en 7 familias, miniaturas en vivo de tu foto y modo Premium (interpolación tetraédrica). |
 | **v279** | **Cámaras** completa: 150 cámaras en 19 familias, de los procesos del siglo XIX a la compacta CCD, el cine, la TV de tubo, el fax o la cámara térmica. |
 | **v277** | Las secciones **Filtros** y **Creativo** del cajón del móvil, también en el menú Filtro del escritorio. |
@@ -258,7 +265,6 @@ fonts/                  Tipografías libres (catálogo de Google Fonts), servida
 server/                 Servicios y configuración del VPS (no se sirve):
   nginx/                  plantilla de nginx (cabeceras, caché y carpetas ocultas)
   informe/                receptor de informes de error
-  unmark/                 servidor opcional de Unmark (FastAPI)
   panorama/               servicio de panorámicas (FastAPI + OpenCV)
 tests/                  Pruebas automáticas (ver la sección 18); tests/plugins/ las de cada plugin
 tools/                  Herramientas de desarrollo: conversor de acciones .atn, base de datos de lentes, verificación

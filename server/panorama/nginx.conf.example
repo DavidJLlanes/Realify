@@ -3,7 +3,13 @@
 #  Añadir dentro del bloque `server { ... }` HTTPS de realify.es:
 # ════════════════════════════════════════════════════════════════
 
-location /api/stitch {
+# En el contexto `http { … }`: máximo 4 peticiones por minuto y por IP.
+limit_req_zone $binary_remote_addr zone=stitch:10m rate=4r/m;
+
+location = /api/stitch {
+    limit_except POST { deny all; }
+    limit_req          zone=stitch burst=2 nodelay;
+    limit_req_status   429;
     proxy_pass http://127.0.0.1:8767/stitch;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
@@ -13,7 +19,7 @@ location /api/stitch {
 
     # Permitir subir ráfagas de fotos de alta resolución
     client_max_body_size 120m;
-    proxy_request_buffering off;
+    proxy_request_buffering on;
 
     # Procesar SIFT/Bundle adjustment puede llevar decenas de segundos
     proxy_connect_timeout 60s;

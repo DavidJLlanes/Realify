@@ -9,6 +9,16 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v286 · Revisión de errores
+- **Privacidad**: «Panorámica» envía las fotos al servidor de Realify para unirlas (no se guardan). Ahora lo avisa en su pantalla y la política de privacidad, el README y SECURITY.md lo recogen; antes decían que nunca se subía ninguna imagen.
+- **Servicio de panorámicas** (`server/panorama/server.py`): límites de fotos, tamaño y megapíxeles, un solo cosido a la vez, CORS sólo para realify.es, el cosido ya no bloquea el servidor, errores con códigos HTTP reales (413/422/503) y recorte de bordes acotado. nginx: `limit_req` (4/min por IP).
+- **Unmark**: se retira el apoyo por servidor propio (relleno LaMa y regeneración por difusión), que estaba a medio quitar: «Aplicar» con el método «Servidor» lanzaba un error por imports que faltaban, y su panel de configuración ya no existía. Se eliminan la opción «Servidor», la etapa «Regeneración por difusión», el preset «Regeneración en el servidor», `js/filters/unmark/server.js` y `server/unmark/`. El filtro sigue igual en local.
+- **Modelos de IA**: `models.js` admite una revisión fija del repositorio de pesos (`HF_REV`) y `sha256` por modelo, que `worker.js` comprueba al descargar.
+- **Fusión HDR con RAW**: si fallaba la carga del revelador, el proceso se quedaba colgado; ahora muestra el error y se cancela.
+- **Service worker**: sólo guarda en caché respuestas 200 y ya no lanza promesas rechazadas sin tratar.
+- **Despliegue**: `deploy.yml` ejecuta `check:layers`, `check:refs`, `check:static` y `check:docs` antes de publicar, exige que `package.json` y `package-lock.json` coincidan con `VERSION`, y usa el secreto opcional `VPS_KNOWN_HOSTS` para verificar la huella SSH.
+- **Cabeceras**: añadidas `Strict-Transport-Security` y `Permissions-Policy` (nginx y `.htaccess`).
+
 ### v285 · Collage: formas, miniaturas y zonas seguras
 - En «Libre», cada foto conserva su propia forma; las fotos nuevas empiezan como rectángulos y tocar una miniatura usada selecciona su pieza sin duplicarla.
 - En móvil, miniaturas más grandes con asa para reordenarlas junto con las fotos colocadas.

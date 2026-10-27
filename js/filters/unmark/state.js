@@ -111,15 +111,6 @@ export const PRESETS = {
     jpeg:{on:true, q:70, gens:35, jitter:40},
     policy:{on:true, mode:"clean"}
   },
-  "Regeneración en el servidor": {
-    ...OFF,
-    detect:{on:true}, inpaint:{on:true, method:"hybrid"},
-    regen:{on:true, strength:35, pipeline:"auto"},
-    geometry:{on:true, rot:15, crop:8, shift:50, aniso:10},
-    noise:{on:true, lum:12, chr:6}, lsb:{on:true},
-    jpeg:{on:true, q:84, gens:6, jitter:25},
-    policy:{on:true, mode:"clean"}
-  },
   "Sólo marca visible": {
     ...OFF,
     detect:{on:true}, inpaint:{on:true, method:"hybrid"},

@@ -99,7 +99,6 @@ function runDetection(){
   const p = filterState.stages.detect.p;
   S.detection = detectMarks(S.source, { sens: p.sens, zones: p.zones, minsize: p.minsize, maxsize: p.maxsize });
   S.chosen = new Set(S.detection.regions.filter(r => r.score >= 0.45).map(r => r.id));
-  S.regenCache = null;
   renderRegions();
 }
 
@@ -118,8 +117,7 @@ function renderRegions(){
   box.querySelectorAll("input[data-rid]").forEach(cb => cb.addEventListener("change", () => {
     const id = +cb.dataset.rid;
     if(cb.checked) S.chosen.add(id); else S.chosen.delete(id);
-    S.regenCache = null;
-    schedulePreview();
+      schedulePreview();
   }));
 }
 
@@ -140,7 +138,7 @@ async function renderPreview(){
   const ctx = { detection: S.detection, chosenIds: S.chosen, selection: S.selection, selW: doc.w, selH: doc.h };
   try{
     const { canvas, info } = await process(S.proxy, eff, {
-      seed: filterState.seed, preview: true, ctx, regenCache: S.regenCache
+      seed: filterState.seed, preview: true, ctx
     });
     if(ticket !== S.ticket || !S) return;
     S.last = canvas;
@@ -158,10 +156,9 @@ async function renderPreview(){
     const st = difference(S.proxyData.data, imageDataOf(canvas).data);
     const psnr = Number.isFinite(st.psnr) ? `PSNR ${st.psnr.toFixed(1)} dB` : "sin cambio";
     const extra = info.maskPx ? ` · marca ${(info.maskPx / (S.proxy.width * S.proxy.height) * 100).toFixed(2)} %` : "";
-    const srv = info.regen ? " · regenerada" : "";
-    status(`Unmark · ${n} de ${CHAIN.length} etapas · ${Math.round(info.ms)} ms · ${psnr}${extra}${srv}`);
+    status(`Unmark · ${n} de ${CHAIN.length} etapas · ${Math.round(info.ms)} ms · ${psnr}${extra}`);
     S.body.querySelector("#umStats").textContent =
-      `${psnr} · máx ${st.max} · ${Math.round(info.ms)} ms${info.regen ? " · con regeneración del servidor" : ""}`;
+      `${psnr} · máx ${st.max} · ${Math.round(info.ms)} ms`;
   }catch(err){
     console.error("[unmark]", err);
     status("Unmark · " + err.message);
@@ -324,7 +321,7 @@ export async function openUnmark(opts = {}){
     layer, source, before, proxy, proxyData: imageDataOf(proxy),
     selection: doc.selection?.mask || null,
     detection: null, chosen: new Set(), provenance: null,
-    regenCache: null, last: null, busy: false, dirty: false, ticket: 0,
+    last: null, busy: false, dirty: false, ticket: 0,
     showRects: true, body: null, prevCv: null, prevCx: null, overCv: null
   };
   filterState.solo = null;
@@ -546,7 +543,7 @@ function wire(body){
     ? "Hay una selección activa: se usará como zona a rellenar."
     : "No hay selección. Haz una con el lazo, la varita o el rectángulo antes de abrir el filtro.";
 
-  const invalidate = () => { S.regenCache = null; };
+  const invalidate = () => {};
 
   // Interruptores
   body.querySelectorAll(".cstage .sw").forEach(sw => {
@@ -555,7 +552,7 @@ function wire(body){
       filterState.stages[id].on = sw.checked;
       sw.closest(".cstage").classList.toggle("on", sw.checked);
       if(id === "detect" && sw.checked && !S.detection) runDetection();
-      if(["detect", "vendor", "region", "selection", "inpaint", "regen"].includes(id)) invalidate();
+      if(["detect", "vendor", "region", "selection", "inpaint"].includes(id)) invalidate();
       q("#umPreset").value = "";
       schedulePreview();
     });
@@ -583,7 +580,7 @@ function wire(body){
       val.textContent = valueLabel(id, key);
       q("#umPreset").value = "";
       if(id === "detect"){ S.detection = null; clearTimeout(S.detTimer); S.detTimer = setTimeout(() => { if(S){ runDetection(); schedulePreview(); } }, 260); return; }
-      if(["vendor", "region", "inpaint", "regen"].includes(id)) invalidate();
+      if(["vendor", "region", "inpaint"].includes(id)) invalidate();
       schedulePreview();
     });
   });
@@ -594,7 +591,7 @@ function wire(body){
       filterState.stages[id].p[key] = sel.value;
       q("#umPreset").value = "";
       if(id === "detect"){ runDetection(); }
-      if(["detect", "vendor", "inpaint", "regen"].includes(id)) invalidate();
+      if(["detect", "vendor", "inpaint"].includes(id)) invalidate();
       schedulePreview();
     });
   });

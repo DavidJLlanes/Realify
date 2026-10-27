@@ -82,14 +82,13 @@ export const CHAIN = [
   },
   {
     id:"inpaint", sec:"visible", name:"Relleno de la zona", on:true,
-    note:"Cómo se rellena lo marcado. «Híbrido» resuelve primero la estructura suave del fondo por difusión y le devuelve encima la textura fina copiada de un parche vecino: es el que mejor queda casi siempre. «Difusión» sólo suaviza (cielos, degradados, fondos lisos). «Parche» copia un trozo vecino entero (texturas repetitivas). «Servidor» manda la zona a tu VPS para rellenarla con LaMa, que entiende estructuras grandes.",
+    note:"Cómo se rellena lo marcado. «Híbrido» resuelve primero la estructura suave del fondo por difusión y le devuelve encima la textura fina copiada de un parche vecino: es el que mejor queda casi siempre. «Difusión» sólo suaviza (cielos, degradados, fondos lisos). «Parche» copia un trozo vecino entero (texturas repetitivas).",
     params:[
       {k:"method",  label:"Método", type:"choice", mode:"keep", v:"hybrid",
        options:[
          {v:"hybrid",    label:"Híbrido (estructura + textura)"},
          {v:"diffusion", label:"Difusión (fondos lisos)"},
-         {v:"patch",     label:"Parche vecino (texturas)"},
-         {v:"server",    label:"Servidor (LaMa / MI-GAN)"}
+         {v:"patch",     label:"Parche vecino (texturas)"}
        ]},
       {k:"expand",  label:"Expandir la máscara",   v:30, mode:"keep"},
       {k:"feather", label:"Suavizado del borde",   v:40, mode:"keep"},
@@ -182,24 +181,6 @@ export const CHAIN = [
       {k:"amt",    label:"Intensidad de atenuación",       v:40},
       {k:"thresh", label:"Sensibilidad (picos vs fondo)",  v:45, mode:"keep"},
       {k:"guard",  label:"Protección de baja frecuencia",  v:20, mode:"keep"}
-    ]
-  },
-  {
-    id:"regen", sec:"invisible", name:"Regeneración por difusión (servidor)", on:false,
-    cpu:true,
-    note:"La única defensa seria contra marcas que se incrustan durante la propia generación (SynthID, Tree-Ring): se vuelve a sintetizar la imagen a partir de la original con un modelo de difusión guiado por sus bordes, para que el contenido se conserve pero los píxeles sean otros. Es demasiado pesado para un navegador: se envía la imagen a TU servidor (configúralo abajo, en «Semilla y servidor»). Mientras no esté configurado, esta etapa no hace nada. La vista previa no la ejecuta sola: pulsa «Probar en el servidor».",
-    params:[
-      {k:"strength", label:"Fuerza de la regeneración", v:35},
-      {k:"pipeline", label:"Modelo", type:"choice", mode:"keep", v:"auto",
-       options:[
-         {v:"auto",          label:"Automático"},
-         {v:"qwen-zimage",   label:"Qwen-Image + Z-Image (caras)"},
-         {v:"sdxl-zimage",   label:"SDXL + Z-Image"},
-         {v:"chroma-zimage", label:"Chroma1 + Z-Image"},
-         {v:"sdxl-img2img",  label:"SDXL img2img (sin el proyecto de referencia)"}
-       ]},
-      {k:"humanize", label:"Acabado natural (humanize)", type:"choice", mode:"keep", v:"1",
-       options:[{v:"1", label:"Sí"}, {v:"0", label:"No"}]}
     ]
   },
   {

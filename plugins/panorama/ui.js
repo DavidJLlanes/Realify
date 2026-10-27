@@ -78,6 +78,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
         </svg>
         <b style="font-size:16px;display:block;margin-bottom:6px;">Arrastra tus fotos aquí o haz clic para subir</b>
         <span style="font-size:13px;color:#8b949e;display:block;margin-bottom:16px;">Toma varias fotos en secuencia horizontal con un 30-50% de solape.</span>
+        <span style="font-size:12px;color:#8b949e;display:block;margin-bottom:16px;">Aviso: para unirlas, las fotos se envían al servidor de Realify (no se guardan).</span>
         <button type="button" class="primary" style="padding:10px 20px;border-radius:8px;font-weight:600;background:#58a6ff;color:#0d1117;border:none;cursor:pointer;">Seleccionar archivos</button>
       `;
       dropBox.onclick = () => addPhotos();
@@ -220,14 +221,11 @@ export function openPanoramaEditor({ current = null, onAccept }){
         body: formData
       });
 
-      if(!res.ok){
-        throw new Error("El servidor respondió con código " + res.status);
-      }
-
       const contentType = res.headers.get("content-type") || "";
-      if(contentType.includes("application/json")){
-        const json = await res.json();
-        if(json.error) throw new Error(json.error);
+      if(!res.ok || contentType.includes("application/json")){
+        let msg = "El servidor respondió con código " + res.status;
+        try{ const json = await res.json(); if(json.error) msg = json.error; }catch{}
+        throw new Error(msg);
       }
 
       const blob = await res.blob();

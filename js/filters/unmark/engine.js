@@ -79,9 +79,7 @@ export function effectiveStages(state){
   return out;
 }
 
-export const cpuStagesActive = eff =>
-  !!(eff.spectral?.on || eff.jpeg?.on || (eff.regen?.on && serverConfigured()) ||
-     (eff.inpaint?.on && eff.inpaint.p.method === "server" && serverConfigured()));
+export const cpuStagesActive = eff => !!(eff.spectral?.on || eff.jpeg?.on);
 
 /* ── máscara de marcas visibles ──────────────────────────────── */
 /**
@@ -181,7 +179,7 @@ function jpegRoundTrip(canvas, quality, gens){
  * Ejecuta la cadena sobre `source` y devuelve un canvas nuevo.
  * @param {HTMLCanvasElement} source
  * @param {object} eff       effectiveStages(state)
- * @param {object} o  { seed, preview, ctx, onStatus, onProgress, regenCache, signal }
+ * @param {object} o  { seed, preview, ctx, onStatus, onProgress }
  */
 export async function process(source, eff, o){
   const W = source.width, H = source.height;
@@ -189,7 +187,7 @@ export async function process(source, eff, o){
   const t0 = performance.now();
   let img = imageDataOf(source);
   const s = Math.min(W, H);
-  const info = { maskPx: 0, regen: false, ms: 0 };
+  const info = { maskPx: 0, ms: 0 };
 
   // 1 · máscara y relleno
   const mask = buildMask(eff, W, H, o.ctx || {});
@@ -200,19 +198,13 @@ export async function process(source, eff, o){
     const p = eff.inpaint.p;
     const expandPx = Math.max(1, Math.round(p.expand / 100 * 0.03 * s));
     const featherPx = Math.round(p.feather / 100 * 0.02 * s);
-    if(p.method === "server" && !o.preview && serverConfigured()){
-      const grownMaskCanvas = maskToCanvas(mask, W, H);
-      const remote = await inpaintRemote(canvasOf(img), grownMaskCanvas, { backend: "auto" }, onStatus, o.signal);
-      img = imageDataOf(remote);
-    } else {
-      onStatus("Rellenando la marca…");
-      const r = inpaint(img, mask, {
-        method: p.method === "server" ? "hybrid" : p.method,
-        expand: expandPx, feather: featherPx,
-        texture: p.texture / 100, grain: p.grain / 100, seed: o.seed
-      });
-      img = r.img;
-    }
+    onStatus("Rellenando la marca…");
+    const r = inpaint(img, mask, {
+      method: p.method,
+      expand: expandPx, feather: featherPx,
+      texture: p.texture / 100, grain: p.grain / 100, seed: o.seed
+    });
+    img = r.img;
   }
 
   // 2 · perturbaciones locales, en el worker
