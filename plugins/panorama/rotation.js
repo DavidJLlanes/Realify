@@ -21,16 +21,28 @@
    `orderByOverlap`): un grafo de atajos convertía las falsas coincidencias
    de fachadas repetidas en edificios duplicados (v270).
    Las matrices son 3×3 (array de 9, por filas), como en js/cv/align.js.
-   Límites: no hay ajuste global de bloques; con paralaje fuerte (objetos
+   5. Ajuste de haces (bundle.js, v289): focal y giros se refinan a la vez
+      con todas las coincidencias; además de las parejas consecutivas entran
+      como atajos, con menos peso, las no consecutivas que se solapan, sólo si
+      encajan con los giros encadenados (así no vuelven las falsas
+      coincidencias de fachadas repetidas).
+   Límites: con paralaje fuerte (objetos
    cercanos y lejanos a la vez) quedan dobles en los solapes.
    ═══════════════════════════════════════════════════════════════ */
 
 import { createPairMatcher, mmul, minv } from "../../js/cv/align.js";
+import { refineCamera, medianResidual } from "./bundle.js";
 
 /** Más fotos que esto: se respeta el orden dado (comparar todas las parejas costaría demasiado). */
 const MAX_AUTO_ORDER = 10;
 /** Lado (px) y mínimo de coincidencias con que se compara cada pareja para ORDENAR las fotos (más baratos que para alinearlas). */
 const ORDER_FEATURES = 1500, ORDER_SIDE = 640, ORDER_MIN_INLIERS = 10;
+/** Ajuste de haces: coincidencias que se usan como máximo por pareja, y fracción del campo horizontal por debajo de la cual dos fotos no consecutivas se esperan solapadas. */
+const BA_MAX_POINTS = 400, BA_SHORTCUT_FRACTION = 0.8;
+/** Una pareja no consecutiva sólo cuenta si, con los giros encadenados, sus puntos caen cerca (px, a 1100 de alto): descarta las falsas coincidencias (fachadas repetidas, v270). */
+const BA_SHORTCUT_MAX_RESIDUAL = 30;
+/** Los atajos vienen de la ordenación (640 px, menos puntos): pesan menos que las parejas consecutivas, medidas a la resolución completa. */
+const BA_SHORTCUT_WEIGHT = 0.3;
 /** Distancia máxima (norma de Frobenius) entre K⁻¹·H·K y su rotación más cercana; más allá la pareja no es un giro. */
 const MAX_NOT_ROTATION = 0.6;
 
@@ -106,6 +118,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
   const n = set.length;
   // Orden: coincidencias entre todas las parejas a baja resolución (barato) y camino que más puntos reúne
   let order = set.map((_, i) => i);
+  const roughMatches = new Map();   // "i:j" → coincidencias de la ordenación (baratas), que luego sirven de atajos en el ajuste
   if(autoOrder && n > 2 && n <= MAX_AUTO_ORDER){
     const rough = createPairMatcher(cv, set, { maxSide: ORDER_SIDE, features: ORDER_FEATURES }), score = Array.from({ length: n }, () => Array(n).fill(0));
     try{
@@ -114,7 +127,9 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       for(let i = 0; i < n; i++) for(let j = i + 1; j < n; j++){
         onProgress?.(`Ordenando las fotos (${++done} de ${total})…`);
         await tick();
-        score[i][j] = score[j][i] = rough.match(i, j, { minInliers: ORDER_MIN_INLIERS })?.inliers || 0;
+        const m = rough.match(i, j, { minInliers: ORDER_MIN_INLIERS, withPoints: true });
+        score[i][j] = score[j][i] = m?.inliers || 0;
+        if(m?.pts) roughMatches.set(`${i}:${j}`, m);
       }
     } finally { rough.dispose(); }
     order = orderByOverlap((a, b) => score[a][b], n);
@@ -129,7 +144,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       onProgress?.(`Buscando coincidencias (${k} de ${n - 1})…`);
       await tick();
       const ref = order[k - 1], img = order[k];
-      links.push({ ref, img, pr: pairs.match(ref, img, { minInliers }) });   // H lleva `img` a `ref`
+      links.push({ ref, img, pr: pairs.match(ref, img, { minInliers, withPoints: true }) });   // H lleva `img` a `ref`
     }
     // Focal: mediana de lo que dice cada pareja (en coordenadas centradas en cada foto)
     const focals = [];
@@ -138,7 +153,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       const H = mmul(mmul(shift(-set[ref].width / 2, -set[ref].height / 2), pr.H), shift(set[img].width / 2, set[img].height / 2));
       for(const f of focalsFromHomography(H)) if(f > 0.25 * side && f < 6 * side) focals.push(f);
     }
-    const estimated = median(focals), f = estimated ?? 0.8 * side;
+    const estimated = median(focals); let f = estimated ?? 0.8 * side;
     // Giros encadenados desde la primera foto del orden
     const R = Array(n).fill(null), info = Array(n).fill(null);
     R[order[0]] = I3; info[order[0]] = { inliers: Infinity, via: null };
@@ -151,13 +166,34 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       if(!pose.every(Number.isFinite)) continue;
       R[img] = pose; info[img] = { inliers: pr.inliers, via: ref, notRotation: q.err };
     }
+    // Ajuste de haces: focal y giros con todas las coincidencias (consecutivas y atajos verificados)
+    const ba = { used: false };
+    try{
+      const centers = set.map(c => ({ cx: c.width / 2, cy: c.height / 2 })), scale = Math.min(...set.map(c => c.height)) / 1100;
+      const thin = pts => { const m = pts.length / 4; if(m <= BA_MAX_POINTS) return pts; const out = [], step = m / BA_MAX_POINTS; for(let k = 0; k < BA_MAX_POINTS; k++){ const q = Math.floor(k * step) * 4; out.push(pts[q], pts[q + 1], pts[q + 2], pts[q + 3]); } return out; };
+      const obs = [];
+      for(const { ref, img, pr } of links) if(pr?.pts && R[ref] && R[img]) obs.push({ a: img, b: ref, pts: thin(pr.pts) });
+      const nConsecutive = obs.length, pos = new Map(order.map((idx, k) => [idx, k]));
+      for(const [key, m] of roughMatches){
+        const [ref, img] = key.split(":").map(Number);   // match(ref = i, img = j)
+        if(Math.abs(pos.get(ref) - pos.get(img)) < 2 || !R[ref] || !R[img]) continue;
+        const hfov = 2 * Math.atan(Math.max(set[ref].width, set[img].width) / (2 * f)), sep = Math.acos(Math.max(-1, Math.min(1, (R[ref].reduce((s, v, k) => s + v * R[img][k], 0) - 1) / 2)));
+        if(sep > BA_SHORTCUT_FRACTION * hfov) continue;
+        const ob = { a: img, b: ref, pts: thin(m.pts), weight: BA_SHORTCUT_WEIGHT };
+        if(medianResidual({ R: R.map(r => r && tr3(r)), f, centers, ob }) < BA_SHORTCUT_MAX_RESIDUAL * scale) obs.push(ob);
+      }
+      // bundle.js usa R = cámara→mundo; aquí R lleva del mundo a la cámara (pose = M·R_ref con M = K⁻¹·H·K), de ahí las traspuestas
+      const out = refineCamera({ R: R.map(r => r && tr3(r)), f, centers, obs, fixed: order[0], huber: 2 * scale });
+      Object.assign(ba, { pairs: obs.length, shortcuts: obs.length - nConsecutive, points: out.count, medBefore: out.medBefore, medAfter: out.medAfter, iters: out.iters, rejected: !!out.rejected });
+      if(!out.rejected){ for(let i = 0; i < n; i++) R[i] = out.R[i] && tr3(out.R[i]); f = out.f; ba.used = true; }
+    }catch(e){ ba.error = e?.message || String(e); }
     // Se centra en la foto de en medio (la que queda sin deformar)
     const placedOrder = order.filter(i => R[i]);
     if(placedOrder.length){
       const mid = placedOrder[(placedOrder.length - 1) >> 1], back = tr3(R[mid]);
       for(const i of placedOrder) R[i] = mmul(R[i], back);
     }
-    return { R, f, order, found: R.map(Boolean), info, fEstimated: estimated != null };
+    return { R, f, order, found: R.map(Boolean), info, fEstimated: estimated != null, ba };
   } finally { pairs.dispose(); }
 }
 

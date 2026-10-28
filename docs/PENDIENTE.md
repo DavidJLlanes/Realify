@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → …)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v289)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -364,8 +364,16 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
 
       Pendiente de la etapa: medir con fotos reales variadas (panorámica de 10+, personas/coches, interior, móvil) y más de 10 fotos
       (hoy sólo se ordenan solas hasta 10); medir memoria real (el heap de JS del banco es poco fiable con WASM).
-- [ ] **Etapa 2 · Ajuste de haces**: optimizar a la vez focal y giro de todas las fotos (Levenberg–Marquardt sobre todos los
-      puntos), para que una panorámica larga no se descuadre al final. Debe bajar el error de paralaje y de `larga` sin tocar el resto.
+- [x] **Etapa 2 · Ajuste de haces** (v289): `plugins/panorama/bundle.js` (matemática pura: Levenberg–Marquardt con pérdida de Huber sobre
+      log f y un giro por foto) conectado en `solveCamera`; usa las coincidencias consecutivas (completas) y atajos no consecutivos de la
+      ordenación (peso 0,3, sólo si encajan con los giros encadenados). Pruebas: `tests/panorama-bundle.mjs` (Node, sin navegador).
+      Resultado en el banco (v288 → v289, giro medio/máx. ° · focal %):
+      `base` 0,058/0,093 → 0,002/0,003 · `pulso` 0,053/0,109 → 0,010/0,021 (focal 0,45 → 0 %) · `ruido` 0,056/0,106 → 0,035/0,073 ·
+      `larga` 0,086/0,196 → 0,076/0,186 · `moviles` 0,035/0,084 → 0,033/0,065 ·
+      **`largadificil`** (10 fotos, poco contraste, ruido, giros a pulso) 0,369/0,949 → **0,061/0,152** y focal **4,97 → 0,02 %**.
+      Sin cambio donde lo que falla es otra cosa: `distorsion` (etapa 3) y `pocatextura` (etapa 5). Con `paralaje` la focal mejora
+      (3,9 → 1,5 %) pero el giro frente a la «verdad» empeora (2,5 → 3,5°): con la cámara desplazada no existe un giro puro correcto,
+      y falta una medida de calidad de costura para juzgarlo (etapa 4). Tiempo igual (±0,3 s).
 - [ ] **Etapa 3 · Lente**: distorsión radial (k1, k2), centro óptico y focal del EXIF dentro del ajuste. Meta: la escena `distorsion`
       por debajo de 0,3° de giro medio y 1 % de focal.
 - [ ] **Etapa 4 · Costura y mezcla**: costura óptima que esquive objetos en movimiento y mezcla multibanda (Laplaciana).

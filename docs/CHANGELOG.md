@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v289 · Panorámica: ajuste de haces
+- **Ajuste de haces** (`plugins/panorama/bundle.js`): tras encadenar las parejas, la focal y el giro de cada foto se refinan a la vez con todas las coincidencias (Levenberg–Marquardt, pérdida de Huber). Entran también como atajos, con menos peso, las fotos no consecutivas que se solapan, sólo si encajan con los giros ya calculados.
+- En el banco: error de giro en la escena base 0,06° → 0,002°, a pulso 0,05° → 0,01°, y en la difícil (10 fotos, poco contraste y ruido) la focal pasa de un 5 % de error a 0,02 % y el giro de 0,37° a 0,06°. El tiempo no cambia.
+- `tests/panorama-bundle.mjs` (matemática en Node: de 1,2° y 15 % de focal mal a 0,02° y 0,006 %, con un 10 % de falsas coincidencias) y `tests/panorama-local.mjs` exige ahora ajuste aplicado y focal < 1 %.
+- `createPairMatcher` puede devolver las coincidencias buenas (`withPoints`); sin pedirlo, nada cambia para HDR ni Apilar.
+
 ### v288 · Panorámica: banco de medidas y ordenación más rápida
 - **Más rápida**: las fotos se ordenan con 1500 puntos por foto (antes 5000), sin perder precisión. Con 10 fotos pasa de ~50 s a ~15 s y con las 5 fotos de prueba de ~14 s a ~9 s (Chromium sin GPU). El alineado final sigue usando 5000.
 - `createPairMatcher` (`js/cv/align.js`) admite `features` (por defecto 5000: HDR y Apilar no cambian).

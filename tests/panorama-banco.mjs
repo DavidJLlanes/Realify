@@ -59,6 +59,7 @@ const rows = await page.evaluate(async ({ only, nFotos }) => {
     pocatextura: { views: range(4, 24), o: { contrast: 0.12, noise: 3 } },
     distorsion:  { views: range(5, 24), o: { k1: -0.08 } },
     paralaje:    { views: range(5, 24).map((v, i) => ({ ...v, cx: 0.12 * (i - 2) })), o: {} },
+    largadificil: { views: range(10, 22).map(v => ({ ...v, pitch: (rnd() - 0.5) * 4, roll: (rnd() - 0.5) * 3 })), o: { contrast: 0.35, noise: 6 } },
     moviles:     { views: range(5, 24), o: { movers: 3 } },
     ruido:       { views: range(5, 24).map((v, i) => ({ ...v, gain: [0.8, 1.1, 0.9, 1.2, 1][i] })), o: { noise: 10 } }
   };
@@ -78,7 +79,7 @@ const rows = await page.evaluate(async ({ only, nFotos }) => {
     try{ const c = await S.stitchLocal(cans, { premium: false, autoCrop: true }); res = [c.width, c.height]; tAll = performance.now() - t1; }catch(e){ msg = e.code + ": " + e.message; }
     out.push({ escena: name, fotos: cans.length, colocadas: cam.found.filter(Boolean).length, ordenOk: ok, focalErrPct: +(100 * Math.abs(cam.f - F) / F).toFixed(2),
       giroMedioGrados: errs.length ? +(errs.reduce((a, b) => a + b, 0) / errs.length).toFixed(3) : null, giroMaxGrados: errs.length ? +Math.max(...errs).toFixed(3) : null,
-      msSolve: Math.round(tSolve), msOrden: tOrden == null ? 0 : Math.round(tOrden), msTotal: tAll && Math.round(tAll), mosaico: res, heapMB: heap(), fallo: msg || undefined });
+      ba: cam.ba && (cam.ba.used ? `${cam.ba.pairs}p/${cam.ba.shortcuts}a ${cam.ba.medBefore.toFixed(1)}→${cam.ba.medAfter.toFixed(1)}px` : (cam.ba.error || 'no')), msSolve: Math.round(tSolve), msOrden: tOrden == null ? 0 : Math.round(tOrden), msTotal: tAll && Math.round(tAll), mosaico: res, heapMB: heap(), fallo: msg || undefined });
   }
   // Fotos reales: sin verdad conocida
   if(nFotos){
@@ -90,7 +91,7 @@ const rows = await page.evaluate(async ({ only, nFotos }) => {
   return out;
 }, { only: process.env.ESCENAS ? process.env.ESCENAS.split(",") : null, nFotos: FOTOS.length });
 
-console.table(rows.map(r => ({ escena: r.escena, fotos: r.fotos, colocadas: r.colocadas, orden: r.ordenOk, "focal %": r.focalErrPct, "giro med °": r.giroMedioGrados, "giro máx °": r.giroMaxGrados, "solve ms": r.msSolve, "orden ms": r.msOrden, "total ms": r.msTotal, mosaico: r.mosaico?.join("×"), "heap MB": r.heapMB, fallo: r.fallo })));
+console.table(rows.map(r => ({ escena: r.escena, fotos: r.fotos, colocadas: r.colocadas, orden: r.ordenOk, "focal %": r.focalErrPct, "giro med °": r.giroMedioGrados, "giro máx °": r.giroMaxGrados, ba: r.ba, "solve ms": r.msSolve, "orden ms": r.msOrden, "total ms": r.msTotal, mosaico: r.mosaico?.join("×"), "heap MB": r.heapMB, fallo: r.fallo })));
 if(process.env.SALIDA) fs.writeFileSync(process.env.SALIDA, JSON.stringify(rows, null, 2));
 if(errs.length) console.log("Errores de página:", errs.join(" | "));
 await b.close(); srv.close();

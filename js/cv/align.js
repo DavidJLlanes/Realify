@@ -105,8 +105,8 @@ export function createPairMatcher(cv, canvases, { maxSide = SIDE.feat, features 
 
   const cache = new Map();
   return {
-    match(refIndex, imgIndex, { minInliers = 18 } = {}){
-      const key = `${refIndex}:${imgIndex}`;
+    match(refIndex, imgIndex, { minInliers = 18, withPoints = false } = {}){
+      const key = `${refIndex}:${imgIndex}:${withPoints ? 1 : 0}`;
       if(cache.has(key)) return cache.get(key);
       const ref = sets[refIndex], img = sets[imgIndex];
       let result = null;
@@ -135,6 +135,11 @@ export function createPairMatcher(cv, canvases, { maxSide = SIDE.feat, features 
                   const Hs = arrOf(Hm), sr = ref.g.s, si = img.g.s;
                   const H = mmul(mmul([1 / sr, 0, 0, 0, 1 / sr, 0, 0, 0, 1], Hs), [si, 0, 0, 0, si, 0, 0, 0, 1]);
                   result = { H, inliers: count, matches: n, ratio: count / n };
+                  if(withPoints){   // coincidencias buenas, en píxeles de la foto original: [x_img, y_img, x_ref, y_ref, …]
+                    const pts = [];
+                    for(let i = 0; i < inliers.rows; i++) if(inliers.data[i]) pts.push(A[2 * i] / si, A[2 * i + 1] / si, B[2 * i] / sr, B[2 * i + 1] / sr);
+                    result.pts = pts;
+                  }
                 }
               }
             }finally{ src.delete(); dst.delete(); inliers.delete(); Hm?.delete(); }

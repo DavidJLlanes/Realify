@@ -1,5 +1,5 @@
 /* Prueba de «Panorámica» en el dispositivo (v287): cuatro vistas sintéticas de una escena con textura, tomadas girando la cámara (giro puro)
-   con focal y ángulos conocidos y entregadas desordenadas. Debe encontrar las cuatro, estimar la focal con un error < 6 % y devolver
+   con focal y ángulos conocidos y entregadas desordenadas. Debe encontrar las cuatro, estimar la focal con un error < 1 % (y aplicar el ajuste de haces) y devolver
    un mosaico ancho sin errores de página.
    Uso: node tests/panorama-local.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -30,12 +30,13 @@ const res = await page.evaluate(async () => {
   const { cv } = await loadOpenCv();
   const cam = await R.solveCamera(cv, cans, {});
   const out = await S.stitchLocal(cans, { premium: false, autoCrop: true });
-  return { f: cam.f, F, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height] };
+  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height] };
 });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 console.log(JSON.stringify(res));
 chk(res.found === 4, "no se colocaron las cuatro vistas");
-chk(Math.abs(res.f - res.F) / res.F < 0.06, `focal estimada ${res.f.toFixed(0)} frente a ${res.F}`);
+chk(res.ba, "el ajuste de haces no se aplicó");
+chk(Math.abs(res.f - res.F) / res.F < 0.01, `focal estimada ${res.f.toFixed(0)} frente a ${res.F}`);
 chk(res.size[0] > res.size[1] * 1.5, "el mosaico debería ser claramente más ancho que alto");
 chk(!errs.length, "errores de página: " + errs.join("|"));
 await b.close(); srv.close(); console.log(bad ? "panorama-local: FALLO" : "panorama-local: OK"); process.exit(bad ? 1 : 0);
