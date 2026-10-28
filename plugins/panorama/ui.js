@@ -1,267 +1,285 @@
 /* ═══════════════════════════════════════════════════════════════
    PANORÁMICA DESDE FOTOS · INTERFAZ
-   Ventana a pantalla completa (js/ui/kit/fsshell.js): se añaden las
-   fotos (en cualquier orden) y se unen EN EL DISPOSITIVO (stitch.js).
-   Sólo si eso falla se ofrece, con permiso expreso, hacerlo en el
-   servidor (server.js).
+   Pantalla completa (js/ui/kit/fsshell.js), como «Unir fotos»:
+     · Escritorio: fotos a la izquierda (se reordenan con ← →), vista
+       previa en el centro y ajustes a la derecha.
+     · Móvil: vista previa a pantalla completa, tira de fotos y UN
+       control cada vez (grupo → ajuste → deslizador).
+   Las fotos se unen EN EL DISPOSITIVO (stitch.js). El análisis lento
+   (dónde está cada foto) se hace una vez al pedir la vista previa; las
+   opciones de proyección, horizonte, mezcla y recorte sólo repiten el
+   paso rápido. Si falla, y sólo con permiso, se ofrece el servidor.
    ═══════════════════════════════════════════════════════════════ */
 
-import { createShell, decodePhoto, pickFiles, scaledCanvas } from "../../js/ui/kit/fsshell.js";
+import { createShell, mountControls, decodePhoto, pickFiles, scaledCanvas } from "../../js/ui/kit/fsshell.js";
 import { confirmDlg } from "../../js/ui/kit/dialog.js";
 import { toast } from "../../js/core/toast.js";
 import { premiumSwitch, premiumPref } from "../../js/ui/kit/premium.js";
 import { escText as esc } from "../../js/core/util/html.js";
-import { stitchLocal, StitchError } from "./stitch.js";
+import { analyzePhotos, renderPanorama, StitchError, AUTO_ORDER_LIMIT } from "./stitch.js";
 import { stitchOnServer } from "./server.js";
+import { hasInk } from "./masks.js";
+import { openMaskEditor } from "./mask-editor.js";
+import { openPointsEditor } from "./points-editor.js";
 
 const MAX_PHOTOS = 25;
+const TOUCH = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
+const WORK_SIDE = TOUCH ? 2400 : 3000, PROXY_SIDE = TOUCH ? 700 : 1000;
+const PREFS_KEY = "realify.panorama.options";
+/** Opciones que se recuerdan entre sesiones (las de cada panorámica —horizonte, recorte— no). */
+const REMEMBERED = ["projection", "blend", "lens", "exposure", "autoOrder", "autoCrop"];
+const PROJECTIONS = [["auto", "Automática"], ["cyl", "Cilíndrica"], ["sph", "Esférica"], ["merc", "Mercator"], ["rect", "Plana (rectilínea)"], ["stereo", "Estereográfica"], ["fish", "Ojo de pez"]];
+
+const loadPrefs = () => { try{ return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; }catch{ return {}; } };
+const savePrefs = o => { try{ localStorage.setItem(PREFS_KEY, JSON.stringify(Object.fromEntries(REMEMBERED.map(k => [k, o[k]])))); }catch{} };
 
 export function openPanoramaEditor({ current = null, onAccept }){
-  let photos = [];
-  let seq = 0, closed = false, applying = false;
-  let autoCrop = true;
-  /** Opciones avanzadas (plegadas por defecto): los valores por defecto son el comportamiento de siempre. */
-  const adv = { projection: "auto", blend: "multiband", lens: true, exposure: true, autoOrder: true };
-  let advOpen = false;
+  const photos = [];   // { id, name, file, full, proxy, thumb, excl, keep }
+  let order = [], seq = 0, closed = false, applying = false, usedCurrent = false, timer = 0, token = 0;
+  let analysis = null;   // { cam, matchH, minHeight, count, key, premium }
+  const manual = [];     // puntos de control a mano (ver points-editor.js)
+  let rev = 0;           // sube al cambiar máscaras o puntos: invalida el análisis
+  const S = { premium: premiumPref.get("panorama") };
+  const O = { projection: "auto", blend: "multiband", lens: true, exposure: true, autoOrder: true, autoCrop: true,
+              level: false, yaw: 0, pitch: 0, roll: 0, cropL: 0, cropT: 0, cropR: 0, cropB: 0, ...Object.fromEntries(Object.entries(loadPrefs()).filter(([k]) => REMEMBERED.includes(k))) };
 
-  const S = {
-    premium: premiumPref.get("panorama")
-  };
-
-  const sh = createShell({
-    title: "Panorámica desde fotos",
-    subtitle: "Añade tus fotos para unirlas",
-    applyLabel: "Crear panorámica",
-    cls: "fsp-panorama",
-    onCancel: close,
-    onApply: apply
-  });
-
-  const premium = sh.addAction(premiumSwitch({
-    checked: S.premium,
-    title: "Procesado panorámico Premium",
-    onChange: on => {
-      S.premium = on;
-      premiumPref.set("panorama", on);
-      sh.setClass("is-premium", on);
-    }
-  }));
+  const sh = createShell({ title: "Panorámica desde fotos", subtitle: "Añade tus fotos para unirlas", applyLabel: "Crear panorámica", cls: "fsp-panorama", onCancel: () => close(), onApply: () => apply() });
+  sh.addAction(premiumSwitch({ checked: S.premium, title: "Procesado panorámico Premium", onChange: on => { S.premium = on; premiumPref.set("panorama", on); sh.setClass("is-premium", on); } }));
   sh.setClass("is-premium", S.premium);
-
   sh.setApplyEnabled(false);
 
-  const stage = sh.stage;
-  stage.style.display = "flex";
-  stage.style.flexDirection = "column";
-  stage.style.alignItems = "center";
-  stage.style.justifyContent = "center";
-  stage.style.padding = "24px";
-  stage.style.overflow = "auto";
-  stage.style.boxSizing = "border-box";
+  const ordered = () => order.map(id => photos.find(p => p.id === id)).filter(Boolean);
+  const autoOrderOn = () => O.autoOrder && photos.length <= AUTO_ORDER_LIMIT;
+  /** Qué hace falta recalcular: las fotos (y su orden sólo si no se ordenan solas), la lente, las máscaras y los puntos. */
+  const keyNow = () => [autoOrderOn() ? order.slice().sort((a, b) => a - b).join(",") : order.join(","), O.lens, autoOrderOn(), rev].join("|");
+  const stale = () => !analysis || analysis.key !== keyNow();
+  /** Fotos en el orden en que se analizaron (los giros de `analysis.cam` van por posición). */
+  const analyzed = () => analysis.ids.map(id => photos.find(p => p.id === id)).filter(Boolean);
 
-  stage.addEventListener("dragover", e => { e.preventDefault(); stage.classList.add("pano-dragover"); });
-  stage.addEventListener("dragleave", e => { e.preventDefault(); stage.classList.remove("pano-dragover"); });
-  stage.addEventListener("drop", e => {
-    e.preventDefault();
-    stage.classList.remove("pano-dragover");
-    const files = [...(e.dataTransfer?.files || [])].filter(f => /image\//i.test(f.type) || /\.(jpe?g|png|webp|avif|heic|tiff?)$/i.test(f.name));
-    if(files.length) addPhotosFromFiles(files);
+  /* ── Estado vacío y avisos ── */
+  function empty(){
+    const n = photos.length;
+    sh.setEmpty(!n ? `<b>Panorámica</b><span>Añade 2 o más fotos tomadas girando sobre ti mismo, con un 30–50 % de solape, en cualquier orden. Se unen en tu dispositivo, sin subirlas a ningún servidor.</span><button type="button" data-add>Añadir fotos</button>`
+      + (current ? `<button type="button" data-cur style="background:#272b31;color:#e9edf4;border-color:#3b414b">Usar la imagen abierta</button>` : "")
+      : n >= 2 && stale() && !sh.view ? `<b>${n} fotos</b><span>Calcula la vista previa para ver cómo se unen, ajustar la proyección y el horizonte, y marcar zonas o puntos si hace falta.</span><button type="button" data-prev>Calcular vista previa</button>` : null);
+    subtitle();
+  }
+  sh.stage.addEventListener("click", e => {
+    if(e.target.closest("[data-add]")) addPhotos(); else if(e.target.closest("[data-cur]")) addCurrent(); else if(e.target.closest("[data-prev]")) updatePreview();
   });
+  sh.stage.addEventListener("dragover", e => e.preventDefault());
+  sh.stage.addEventListener("drop", e => {
+    e.preventDefault();
+    const files = [...(e.dataTransfer?.files || [])].filter(f => /image\//i.test(f.type) || /\.(jpe?g|png|webp|avif|heic|tiff?)$/i.test(f.name));
+    if(files.length) addItems(files.map(file => ({ file, name: file.name })));
+  });
+  const orderWarning = () => photos.length > AUTO_ORDER_LIMIT ? `Hay más de ${AUTO_ORDER_LIMIT} fotos: no se ordenan solas. Se respeta el orden de la lista (cámbialo con ← →).` : "";
 
-  renderUI();
-
-  function renderUI(){
-    stage.innerHTML = "";
-
-    if(photos.length === 0){
-      sh.setApplyEnabled(false);
-      sh.setSubtitle("Añade tus fotos para unirlas");
-
-      const dropBox = document.createElement("div");
-      dropBox.className = "fsp-pano-dropzone";
-      dropBox.style.cssText = "border:2px dashed rgba(255,255,255,0.3);border-radius:16px;padding:3rem;text-align:center;cursor:pointer;max-width:600px;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.03);";
-      dropBox.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:48px;height:48px;margin:0 auto 12px;display:block;opacity:0.8;">
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
-          <path d="M12 12v9"/>
-          <path d="m16 16-4-4-4 4"/>
-        </svg>
-        <b style="font-size:16px;display:block;margin-bottom:6px;">Arrastra tus fotos aquí o haz clic para subir</b>
-        <span style="font-size:13px;color:#8b949e;display:block;margin-bottom:16px;">Fotos tomadas girando sobre ti mismo, con un 30-50 % de solape. Se unen en tu dispositivo, sin subirlas a ningún servidor.</span>
-        <button type="button" class="primary" style="padding:10px 20px;border-radius:8px;font-weight:600;background:#58a6ff;color:#0d1117;border:none;cursor:pointer;">Seleccionar archivos</button>
-      `;
-      dropBox.onclick = () => addPhotos();
-      stage.appendChild(dropBox);
-
-      if(current){
-        const curBtn = document.createElement("button");
-        curBtn.innerText = "Usar la imagen abierta en el editor";
-        curBtn.style.cssText = "background:#21262d;color:#c9d1d9;border:1px solid #30363d;padding:10px 18px;border-radius:8px;cursor:pointer;margin-top:12px;";
-        curBtn.onclick = () => addItems([{ canvas: current.canvas, name: current.name || "Capa activa" }]);
-        stage.appendChild(curBtn);
-      }
-      return;
-    }
-
-    sh.setApplyEnabled(photos.length >= 2);
-    sh.setSubtitle(`${photos.length} fotos cargadas · Listas para unir`);
-
-    const container = document.createElement("div");
-    container.style.cssText = "width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px;align-items:center;";
-
-    const topBar = document.createElement("div");
-    topBar.style.cssText = "width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;";
-    topBar.innerHTML = `
-      <div style="font-size:14px;color:#c9d1d9;font-weight:600;">Fotos en secuencia (${photos.length}):</div>
-      <div style="display:flex;align-items:center;gap:14px;">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#c9d1d9;cursor:pointer;background:#21262d;padding:6px 12px;border-radius:6px;border:1px solid #30363d;">
-          <input type="checkbox" id="chk-autocrop" ${autoCrop ? "checked" : ""} style="cursor:pointer;accent-color:#58a6ff;" />
-          <span>Recortar bordes negros automáticamente</span>
-        </label>
-        <button type="button" id="btn-add-more" style="background:#21262d;color:#58a6ff;border:1px solid #30363d;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;">+ Añadir más</button>
-        <button type="button" id="btn-clear-all" style="background:#21262d;color:#f85149;border:1px solid #30363d;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;">Limpiar todo</button>
-      </div>
-    `;
-    container.appendChild(topBar);
-    container.appendChild(advancedPanel());
-
-    const grid = document.createElement("div");
-    grid.style.cssText = "width:100%;display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:16px;background:rgba(22, 27, 34, 0.8);border:1px solid #30363d;border-radius:12px;padding:16px;box-sizing:border-box;";
-
-    photos.forEach((p, idx) => {
-      const card = document.createElement("div");
-      card.style.cssText = "background:#0d1117;border:1px solid #30363d;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.3);";
-      card.innerHTML = `
-        <div style="position:relative;width:100%;height:110px;background:#000;">
-          <img src="${p.thumb}" style="width:100%;height:100%;object-fit:cover;" />
-          <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.75);color:#58a6ff;font-weight:bold;font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid rgba(88,166,255,0.4);">#${idx + 1}</span>
-          <button type="button" data-del="${p.id}" style="position:absolute;top:6px;right:6px;background:rgba(248,81,73,0.85);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;font-weight:bold;font-size:12px;display:flex;align-items:center;justify-content:center;">✕</button>
-        </div>
-        <div style="padding:8px;font-size:11px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">
-          ${esc(p.name)}
-        </div>
-      `;
-
-      card.querySelector("[data-del]").onclick = (e) => {
-        e.stopPropagation();
-        photos = photos.filter(item => item.id !== p.id);
-        renderUI();
-      };
-
-      grid.appendChild(card);
-    });
-
-    container.appendChild(grid);
-    stage.appendChild(container);
-
-    topBar.querySelector("#chk-autocrop").onchange = e => { autoCrop = e.target.checked; };
-    topBar.querySelector("#btn-add-more").onclick = () => addPhotos();
-    topBar.querySelector("#btn-clear-all").onclick = () => { photos = []; renderUI(); };
-  }
-
-  /** «Opciones avanzadas»: bloque plegado y mínimo; los desplegables nacen cerrados (sin foco) y se ve igual en móvil y escritorio. */
-  function advancedPanel(){
-    const sel = (key, label, options) => `<label class="pano-adv-row"><span>${label}</span><select data-adv="${key}">${options.map(([v, t]) => `<option value="${v}"${adv[key] === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>`;
-    const chk = (key, label) => `<label class="pano-adv-row"><span>${label}</span><input type="checkbox" data-adv="${key}"${adv[key] ? " checked" : ""} /></label>`;
-    const d = document.createElement("details");
-    d.className = "pano-adv"; d.open = advOpen; d.ontoggle = () => { advOpen = d.open; };
-    d.innerHTML = `<summary>Opciones avanzadas</summary><div class="pano-adv-body">
-      ${sel("projection", "Proyección", [["auto", "Automática"], ["cyl", "Cilíndrica"], ["sph", "Esférica"], ["rect", "Plana (rectilínea)"], ["stereo", "Estereográfica"]])}
-      ${sel("blend", "Mezcla", [["multiband", "Calidad (multibanda)"], ["seam", "Rápida (costura)"], ["feather", "Degradado"]])}
-      ${chk("lens", "Corregir distorsión de lente")}
-      ${chk("exposure", "Igualar exposición")}
-      ${chk("autoOrder", "Ordenar las fotos solas")}
-    </div>`;
-    d.querySelectorAll("[data-adv]").forEach(el => {
-      el.onchange = () => { adv[el.dataset.adv] = el.type === "checkbox" ? el.checked : el.value; };
-    });
-    return d;
-  }
-
+  /* ── Fotos ── */
   async function addItems(items){
     const room = MAX_PHOTOS - photos.length;
-    if(room <= 0){
-      toast(`Máximo alcanzado (${MAX_PHOTOS} fotos)`, "err");
-      return;
-    }
-    const toAdd = items.slice(0, room);
+    if(room <= 0){ toast(`Máximo ${MAX_PHOTOS} fotos`, "err"); return; }
+    const before = photos.length;
     sh.setBusy("Cargando fotos…");
-
-    try {
-      for(const it of toAdd){
-        const full = it.canvas || await decodePhoto(it.file, 3000);
-        const id = ++seq;
-        const thumb = scaledCanvas(full, 240).toDataURL("image/jpeg", 0.85);
-
-        photos.push({
-          id,
-          name: it.name || `Foto ${id}`,
-          file: it.file || null,
-          full,
-          thumb,
-          w: full.width,
-          h: full.height
-        });
+    try{
+      for(const it of items.slice(0, room)){
+        const full = it.canvas || await decodePhoto(it.file, WORK_SIDE), id = ++seq;
+        photos.push({ id, name: it.name || `Foto ${id}`, file: it.file || null, full, proxy: scaledCanvas(full, PROXY_SIDE), thumb: scaledCanvas(full, 160).toDataURL("image/jpeg", .8), excl: null, keep: null });
+        order.push(id);
       }
-      toast(toAdd.length === 1 ? "1 foto añadida" : `${toAdd.length} fotos añadidas`, "ok");
-    } catch(err){
-      toast("Error al cargar fotos: " + err.message, "err");
-    } finally {
-      sh.setBusy(null);
+    }catch(err){ toast("Error al cargar fotos: " + err.message, "err"); }
+    finally{ sh.setBusy(null); }
+    if(items.length > room) toast(`Sólo caben ${MAX_PHOTOS} fotos`, "err");
+    if(before <= AUTO_ORDER_LIMIT && photos.length > AUTO_ORDER_LIMIT) toast(orderWarning(), "err");
+    afterChange();
+  }
+  async function addPhotos(){ const files = await pickFiles({ multiple: true }); if(files.length) addItems(files.map(f => ({ file: f, name: f.name }))); }
+  function addCurrent(){ if(!current || usedCurrent) return; usedCurrent = true; addItems([{ canvas: current.canvas, name: current.name }]); }
+  function removePhoto(id){
+    const i = photos.findIndex(p => p.id === id); if(i < 0) return;
+    photos.splice(i, 1); order = order.filter(x => x !== id);
+    for(let k = manual.length - 1; k >= 0; k--) if(manual[k].a === id || manual[k].b === id) manual.splice(k, 1);
+    afterChange();
+  }
+  function move(id, d){
+    const i = order.indexOf(id), j = i + d;
+    if(i < 0 || j < 0 || j >= order.length) return;
+    [order[i], order[j]] = [order[j], order[i]];
+    renderPhotos(); controls.renderMobile(); empty(); schedule();
+  }
+  function subtitle(){
+    const n = photos.length, pending = n >= 2 && sh.view && stale() ? " · cambios sin calcular (Calcular vista previa)" : "";
+    sh.setSubtitle(n ? `${n} ${n === 1 ? "foto" : "fotos"}${orderWarning() ? " · sin orden automático" : ""}${pending}` : "Añade tus fotos para unirlas");
+  }
+  function afterChange(){
+    sh.setApplyEnabled(photos.length >= 2);
+    subtitle();
+    if(!photos.length) sh.setView(null);
+    renderPhotos(); controls.refresh(); empty();
+  }
+
+  function photoRow(p, compact){
+    const row = document.createElement("div"); row.className = "fsp-photo";
+    const i = order.indexOf(p.id), masked = hasInk(p.excl) || hasInk(p.keep), pts = manual.some(m => m.a === p.id || m.b === p.id);
+    row.innerHTML = `<img alt="" src="${p.thumb}"><div><b>${i + 1}. ${esc(p.name)}</b><small>${p.full.width} × ${p.full.height}${masked ? " · máscara" : ""}${pts ? " · puntos" : ""}</small></div>
+      <span class="ops">${compact ? `<small class="ev">${i + 1}</small>` : `<button type="button" class="x" data-mv="-1" aria-label="Antes">←</button><button type="button" class="x" data-mv="1" aria-label="Después">→</button>`}<button type="button" class="x" data-rm aria-label="Quitar">✕</button></span>`;
+    row.addEventListener("click", e => {
+      if(e.target.closest("[data-rm]")) removePhoto(p.id);
+      else if(e.target.closest("[data-mv]")) move(p.id, +e.target.closest("[data-mv]").dataset.mv);
+    });
+    return row;
+  }
+  function renderPhotos(){
+    const L = sh.left; L.innerHTML = "";
+    const h = document.createElement("h3"); h.textContent = `Fotos (${photos.length})`; L.appendChild(h);
+    const list = document.createElement("div"); list.className = "fsp-photos";
+    ordered().forEach(p => list.appendChild(photoRow(p, false)));
+    L.appendChild(list);
+    const add = document.createElement("button"); add.type = "button"; add.className = "fsp-btn dashed"; add.textContent = "+ Añadir fotos"; add.addEventListener("click", addPhotos); L.appendChild(add);
+    if(current && !usedCurrent){ const b = document.createElement("button"); b.type = "button"; b.className = "fsp-btn"; b.textContent = "Usar la imagen abierta"; b.addEventListener("click", addCurrent); L.appendChild(b); }
+    const n = document.createElement("p"); n.className = "fsp-note";
+    n.textContent = orderWarning() || "Se ordenan solas; si no, cámbialo con ← y →.";
+    L.appendChild(n);
+  }
+  function mobilePhotos(){
+    const wrap = document.createElement("div"); wrap.className = "fsp-mphotos";
+    ordered().forEach(p => {
+      const r = photoRow(p, true);
+      r.addEventListener("click", e => { if(!e.target.closest("[data-rm]")) move(p.id, -1); });   // en el móvil, tocar la foto la adelanta un puesto
+      wrap.appendChild(r);
+    });
+    if(photos.length < MAX_PHOTOS){
+      const b = document.createElement("button"); b.type = "button"; b.className = "fsp-photo";
+      b.style.cssText = "display:grid;place-items:center;width:68px;height:68px;color:#e9edf4;font-size:22px;background:#272b31;border-style:dashed";
+      b.setAttribute("aria-label", "Añadir fotos"); b.textContent = "+"; b.addEventListener("click", addPhotos); wrap.appendChild(b);
     }
-    renderUI();
+    return wrap;
   }
 
-  async function addPhotos(){
-    const files = await pickFiles({ multiple: true });
-    if(files.length) addPhotosFromFiles(files);
+  /* ── Ajustes ── */
+  const edited = () => { rev++; renderPhotos(); controls.renderMobile(); empty(); schedule(); };
+  const sections = [
+    { id: "proj", label: "Proyección y horizonte", props: [
+      { key: "projection", label: "Proyección", type: "select", options: PROJECTIONS },
+      { key: "level", label: "Nivelar el horizonte", type: "toggle" },
+      { key: "yaw", label: "Rumbo", type: "range", min: -180, max: 180, def: 0, unit: "°" },
+      { key: "pitch", label: "Inclinación (horizonte)", type: "range", min: -90, max: 90, def: 0, unit: "°" },
+      { key: "roll", label: "Giro (enderezar)", type: "range", min: -45, max: 45, step: .5, def: 0, unit: "°" }
+    ] },
+    { id: "mix", label: "Mezcla y lente", props: [
+      { key: "blend", label: "Mezcla", type: "select", options: [["multiband", "Calidad (multibanda)"], ["seam", "Rápida (costura)"], ["feather", "Degradado"]] },
+      { key: "exposure", label: "Igualar exposición", type: "toggle" },
+      { key: "lens", label: "Corregir distorsión de lente", type: "toggle" },
+      { key: "autoOrder", label: "Ordenar las fotos solas", type: "toggle" }
+    ] },
+    { id: "crop", label: "Recorte", props: [
+      { key: "autoCrop", label: "Recortar bordes automáticamente", type: "toggle" },
+      { key: "cropL", label: "Quitar a la izquierda", type: "range", min: 0, max: 45, def: 0, unit: " %" },
+      { key: "cropR", label: "Quitar a la derecha", type: "range", min: 0, max: 45, def: 0, unit: " %" },
+      { key: "cropT", label: "Quitar arriba", type: "range", min: 0, max: 45, def: 0, unit: " %" },
+      { key: "cropB", label: "Quitar abajo", type: "range", min: 0, max: 45, def: 0, unit: " %" }
+    ] },
+    { id: "tools", label: "Corregir uniones", note: "Si una foto no encaja: marca a mano el mismo detalle en dos fotos. Si se cuela gente o un coche: píntalos para no usarlos.", props: [
+      { type: "button", key: "t.preview", label: "Calcular vista previa", run: () => updatePreview(true) },
+      { type: "button", key: "t.points", label: "Puntos de control…", run: () => openPoints() },
+      { type: "button", key: "t.masks", label: "Máscaras…", run: () => openMasks() }
+    ] }
+  ];
+  const controls = mountControls(sh, {
+    sections, get: k => O[k],
+    set: (k, v, final) => {
+      O[k] = v;
+      if(REMEMBERED.includes(k)) savePrefs(O);
+      if(k === "lens" || k === "autoOrder"){ empty(); if(k === "autoOrder") subtitle(); }
+      schedule(final ? 0 : 120);
+    },
+    mobileExtra: () => mobilePhotos()
+  });
+
+  function openPoints(){
+    if(photos.length < 2){ toast("Añade al menos dos fotos", "err"); return; }
+    openPointsEditor({ photos: ordered(), manual, onChange: edited });
+  }
+  function openMasks(){
+    if(!photos.length){ toast("Añade fotos primero", "err"); return; }
+    openMaskEditor({ photos: ordered(), onChange: edited });
   }
 
-  function addPhotosFromFiles(files){
-    addItems(files.map(file => ({ file, name: file.name })));
+  /* ── Vista previa ── */
+  const idIndex = list => new Map(list.map((p, i) => [p.id, i]));
+  const manualFor = list => { const ix = idIndex(list); return manual.filter(m => ix.has(m.a) && ix.has(m.b)).map(m => ({ a: ix.get(m.a), b: ix.get(m.b), pts: m.pts })); };
+  const renderOpts = list => ({
+    projection: O.projection, blend: O.blend, exposure: O.exposure, autoCrop: O.autoCrop,
+    horizon: { level: O.level, yaw: O.yaw, pitch: O.pitch, roll: O.roll },
+    crop: { l: O.cropL / 100, t: O.cropT / 100, r: O.cropR / 100, b: O.cropB / 100 },
+    exclude: list.map(p => p.excl), keep: list.map(p => p.keep),
+    onProgress: msg => { if(!closed) sh.setBusy(msg); }
+  });
+  async function analyze(list, premium){
+    const key = keyNow();
+    const a = await analyzePhotos(list.map(p => p.full), { premium, lens: O.lens, autoOrder: autoOrderOn(), manual: manualFor(list), exclude: list.map(p => p.excl), onProgress: msg => { if(!closed) sh.setBusy(msg); } });
+    analysis = { ...a, key, premium, ids: list.map(p => p.id) };
+  }
+  function schedule(delay = 0){
+    clearTimeout(timer);
+    if(photos.length < 2) return;
+    if(stale()){ empty(); return; }
+    timer = setTimeout(() => updatePreview(false), delay);
+  }
+  /** `force`: pedida con el botón (analiza si hace falta); si no, sólo se repite el paso rápido cuando ya hay análisis. */
+  async function updatePreview(force){
+    if(applying || photos.length < 2 || closed) return;
+    const me = ++token;
+    try{
+      if(stale()){ if(!force) return; await analyze(ordered(), false); }
+      if(me !== token || closed) return;
+      const list = analyzed();
+      sh.setBusy("Montando la vista previa…");
+      const c = await renderPanorama(list.map(p => p.proxy), analysis, renderOpts(list));
+      if(me !== token || closed) return;
+      sh.setView(c, !!sh.view); sh.setEmpty(null);
+    }catch(err){
+      if(me !== token || closed) return;
+      toast(err.message || "No se pudo montar la vista previa", "err");
+      analysis = null; empty();
+    }finally{ if(me === token && !closed) sh.setBusy(null); }
   }
 
+  /* ── Crear ── */
   /** En el dispositivo; si falla, el servidor sólo con permiso expreso (las fotos saldrían del dispositivo). */
   async function stitch(){
+    const all = ordered();
     try{
-      return await stitchLocal(photos.map(p => p.full), { premium: S.premium, autoCrop, ...adv, onProgress: msg => { if(!closed) sh.setBusy(msg); } });
+      if(stale() || (S.premium && !analysis.premium)) await analyze(all, S.premium);
+      const list = analyzed();
+      return await renderPanorama(list.map(p => p.full), analysis, { ...renderOpts(list), premium: S.premium });
     }catch(err){
       if(closed || (err instanceof StitchError && err.code === "few")) throw err;
       sh.setBusy(null);
       const ok = await confirmDlg("No se pudo unir en tu dispositivo",
-        `${esc(err.message)}<br><br>¿Probar con el servidor de Realify? Las fotos se enviarían al servidor para unirlas (no se guardan).`, "Usar el servidor");
+        `${esc(err.message)}<br><br>¿Probar con el servidor de Realify? Las fotos se enviarían al servidor para unirlas (no se guardan; no usa tus máscaras ni puntos).`, "Usar el servidor");
       if(!ok) throw err;
       sh.setBusy("Enviando las fotos al servidor…");
-      return stitchOnServer(photos, { autoCrop });
+      return stitchOnServer(all, { autoCrop: O.autoCrop });
     }
   }
-
   async function apply(){
     if(applying || photos.length < 2) return;
-    applying = true;
-    sh.setApplyEnabled(false);
-    sh.setBusy("Preparando…");
-
-    try {
-      const finalCanvas = await stitch();
+    applying = true; token++; sh.setApplyEnabled(false); sh.setBusy("Preparando…");
+    try{
+      const canvas = await stitch();
       if(closed) return;
       toast("¡Panorámica creada con éxito!", "ok");
-      await onAccept(finalCanvas, { count: photos.length });
+      await onAccept(canvas, { count: photos.length });
       close();
-    } catch(err){
+    }catch(err){
       if(closed) return;
       toast("Error al crear panorámica: " + err.message, "err");
-      sh.setBusy(null);
-      sh.setApplyEnabled(true);
-      applying = false;
+      sh.setBusy(null); sh.setApplyEnabled(true); applying = false;
     }
   }
+  function close(){ if(closed) return; closed = true; clearTimeout(timer); sh.close(); }
 
-  function close(){
-    if(closed) return;
-    closed = true;
-    sh.close();
-  }
-
+  empty(); renderPhotos();
   return { close };
 }

@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v294)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v295)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -417,7 +417,12 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
       que en la v293. Aclaración: el ajuste de haces, la lente y la multibanda ya estaban en la versión normal desde las etapas 2–5 y no
       se han quitado. Pendiente: mezcla en luz lineal real (hoy raíz de luz lineal, para evitar halos), centro óptico, medir cuánto
       mejora Premium con fotos reales y en un móvil.
-- [ ] **Transversal**: más de 10 fotos con orden automático (grafo de coincidencias en vez de todas las parejas); límite de memoria
+- [x] **Etapa 8 · Editor completo** (v295): interfaz como «Unir fotos» (móvil y escritorio), vista previa con análisis en caché, proyecciones
+      Mercator y ojo de pez, horizonte (nivelar, rumbo, inclinación, giro), recorte manual, máscaras (excluir/mantener), puntos de control
+      a mano, orden automático hasta 15 fotos con aviso y opciones recordadas.
+      Pendiente de esta etapa: puntos de control con detección de errores (residuo por punto), zoom con pellizco en los editores, máscaras
+      automáticas (personas), proyecciones de Pannini y cúbica, lo que PTGui llama «optimizador» con elección de parámetros.
+- [ ] **Transversal**: más de 15 fotos con orden automático (grafo de coincidencias en vez de todas las parejas); límite de memoria
       en móvil; probar el cosido local en un móvil real; leer la focal del EXIF.
 
 **Seguridad de la copia**: etiqueta `v287-backup` en GitHub (estado antes de esta fase). Falta proteger `main` (Settings › Branches)

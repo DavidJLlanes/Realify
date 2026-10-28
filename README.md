@@ -142,6 +142,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v295** | **Panorámica con editor completo**: vista previa, proyecciones (Mercator, ojo de pez…), horizonte, recorte, máscaras y puntos de control a mano; orden automático hasta 15 fotos. |
 | **v294** | **Panorámica Premium 👑** con motor de más calidad: más puntos de unión, ajuste más fino y mezcla de 6 niveles. |
 | **v293** | **Panorámica con opciones avanzadas** plegadas: proyección (plana, estereográfica…), mezcla, lente, exposición y orden. |
 | **v292** | **Panorámica con fotos de poco contraste** (cielo, niebla, paredes lisas): ya encuentra puntos de unión donde antes no colocaba ninguna foto. |

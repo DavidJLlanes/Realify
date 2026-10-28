@@ -10,7 +10,7 @@ const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.u
   if(!fs.existsSync(f) || fs.statSync(f).isDirectory()){ r.writeHead(404); r.end(); return; } r.writeHead(200, { "Content-Type": T[path.extname(f)] || "application/octet-stream" }); fs.createReadStream(f).pipe(r); });
 await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(); page.setDefaultTimeout(0);
-const errs = []; page.on("pageerror", e => errs.push(e.message));
+const errs = []; page.on("pageerror", e => errs.push(e.message)); if(process.env.VERBOSO) page.on("console", m => console.log(m.text()));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 await page.evaluate(() => setInterval(() => { const bt = [...document.querySelectorAll("button")].find(x => x.textContent.trim() === "Descargar"); if(bt) bt.click(); }, 400));
 
@@ -29,16 +29,42 @@ const res = await page.evaluate(async () => {
     x.putImageData(im, 0, 0); return c; };
   const order = [2, 0, 3, 1], cans = order.map(k => view(YAWS[k]));
   const { cv } = await loadOpenCv();
+  console.log("paso vistas " + Math.round(performance.now()/1000));
   const cam = await R.solveCamera(cv, cans, {});
+  console.log("paso cam " + Math.round(performance.now()/1000));
   const out = await S.stitchLocal(cans, { premium: false, autoCrop: true });
+  console.log("paso proyecciones " + Math.round(performance.now() / 1000));
   // Opciones avanzadas: cada proyección y mezcla produce un mosaico válido
   const opts = {};
-  for(const projection of ["rect", "stereo", "sph"]){ const o = await S.stitchLocal(cans, { projection, blend: "seam", lens: false, exposure: false, autoOrder: false }); opts[projection] = [o.width, o.height]; }
+  for(const projection of ["rect", "stereo", "sph", "fish", "merc"]){ const o = await S.stitchLocal(cans, { projection, blend: "seam", lens: false, exposure: false, autoOrder: false }); opts[projection] = [o.width, o.height]; }
+  console.log("paso horizonte " + Math.round(performance.now() / 1000));
+  // Horizonte, recorte manual y máscaras (excluir / mantener)
+  const mk = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d")); return c; };
+  const analysis = await S.analyzePhotos(cans, {});
+  const lev = await S.renderPanorama(cans, analysis, { horizon: { level: true, roll: 8, pitch: 3 } });
+  const cropped = await S.renderPanorama(cans, analysis, { crop: { l: 0.1, r: 0.1 } }), plain = await S.renderPanorama(cans, analysis, {});
+  const excl = cans.map((_, i) => i === 1 ? mk(64, 40, x => { x.fillStyle = "#f00"; x.fillRect(0, 0, 32, 40); }) : null);
+  const keep = cans.map((_, i) => i === 2 ? mk(64, 40, x => { x.fillStyle = "#0f0"; x.fillRect(16, 10, 30, 20); }) : null);
+  const masked = await S.renderPanorama(cans, analysis, { exclude: excl, keep });
+  const horizon = { lev: [lev.width, lev.height], cropW: cropped.width / plain.width, masked: [masked.width, masked.height] };
+  console.log("paso manual " + Math.round(performance.now() / 1000));
+  // Puntos de control a mano: fotos sin textura (no se pueden emparejar solas) pero con puntos puestos por el usuario
+  const manualRes = await (async () => {
+    CONTRAST = 0; const blank = [view(-12), view(12)], pts = [];
+    for(const [az, ty] of [[-0.05, -0.1], [0.0, 0.12], [0.06, -0.05], [-0.02, 0.2], [0.04, 0.15], [-0.06, 0.05], [0.01, -0.2], [0.07, 0.1]]){
+      const u = y => (W / 2 + F * Math.tan(az - y * Math.PI / 180)) / W, v = y => (H / 2 + F * ty * Math.hypot(1, Math.tan(az - y * Math.PI / 180))) / H;
+      pts.push(u(-12), v(-12), u(12), v(12));
+    }
+    const none = await R.solveCamera(cv, blank, { autoOrder: false }), withPts = await R.solveCamera(cv, blank, { autoOrder: false, manual: [{ a: 0, b: 1, pts }] });
+    CONTRAST = 1; return { without: none.found.filter(Boolean).length, withPts: withPts.found.filter(Boolean).length, f: withPts.f };
+  })();
+  console.log("paso premium " + Math.round(performance.now() / 1000));
   // Premium 👑: más puntos de unión, ajuste y niveles; debe seguir uniendo las cuatro
   const t0 = performance.now(), prem = await S.stitchLocal(cans, { premium: true }), premMs = performance.now() - t0, premSize = [prem.width, prem.height];
+  console.log("paso poco contraste " + Math.round(performance.now() / 1000));
   // Misma escena con muy poco contraste y ruido: el estirado de contraste debe permitir colocar las cuatro
   CONTRAST = 0.12; NOISE = 3; const flat = order.map(k => view(YAWS[k])), cam2 = await R.solveCamera(cv, flat, {});
-  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f, opts, premSize, premMs };
+  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f, opts, horizon, manualRes, premSize, premMs };
 });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 console.log(JSON.stringify(res));
@@ -49,5 +75,8 @@ chk(Math.abs(res.f - res.F) / res.F < 0.01, `focal estimada ${res.f.toFixed(0)} 
 chk(res.size[0] > res.size[1] * 1.5, "el mosaico debería ser claramente más ancho que alto");
 for(const p of ["rect", "stereo", "sph"]) chk(res.opts[p] && res.opts[p][0] > 200 && res.opts[p][1] > 100, `proyección ${p}: mosaico ${res.opts[p]}`);
 chk(Math.abs(res.premSize[0] - res.size[0]) / res.size[0] < 0.1 && res.premSize[0] > res.premSize[1] * 1.5, `Premium: mosaico ${res.premSize} (normal ${res.size})`);
+chk(res.horizon.lev[0] > 200 && res.horizon.masked[0] > 200, "horizonte / máscaras: mosaico vacío " + JSON.stringify(res.horizon));
+chk(res.horizon.cropW > 0.7 && res.horizon.cropW < 0.9, `recorte manual del 20 %: ancho ${res.horizon.cropW.toFixed(2)} del normal`);
+chk(res.manualRes.without < 2 && res.manualRes.withPts === 2 && Math.abs(res.manualRes.f - res.F) / res.F < 0.08, "puntos manuales: " + JSON.stringify(res.manualRes));
 chk(!errs.length, "errores de página: " + errs.join("|"));
 await b.close(); srv.close(); console.log(bad ? "panorama-local: FALLO" : "panorama-local: OK"); process.exit(bad ? 1 : 0);

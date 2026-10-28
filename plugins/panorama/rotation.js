@@ -35,9 +35,10 @@
 
 import { createPairMatcher, mmul, minv } from "../../js/cv/align.js";
 import { refineCamera, medianResidual, undistort } from "./bundle.js";
+import { project as projectRay, unproject, UNBOUNDED_WIDTH } from "./projections.js";
 
-/** Más fotos que esto: se respeta el orden dado (comparar todas las parejas costaría demasiado). */
-const MAX_AUTO_ORDER = 10;
+/** Más fotos que esto (el límite que avisa la interfaz): se respeta el orden dado (comparar todas las parejas costaría demasiado). */
+export const MAX_AUTO_ORDER = 15;
 /** Lado (px) y mínimo de coincidencias con que se compara cada pareja para ORDENAR las fotos (más baratos que para alinearlas). */
 const ORDER_FEATURES = 1500, ORDER_SIDE = 640, ORDER_MIN_INLIERS = 10;
 /** Ajuste de haces: coincidencias que se usan como máximo por pareja, y fracción del campo horizontal por debajo de la cual dos fotos no consecutivas se esperan solapadas. */
@@ -50,6 +51,8 @@ const BA_SHORTCUT_WEIGHT = 0.3;
 const LENS_MIN_GAIN = 0.8, LENS_MIN_RESIDUAL = 1.2, LENS_MAX_K1 = 0.4, LENS_MAX_K2 = 0.6, LENS_MIN_POINTS = 300;
 /** Distancia máxima (norma de Frobenius) entre K⁻¹·H·K y su rotación más cercana; más allá la pareja no es un giro. */
 const MAX_NOT_ROTATION = 0.6;
+/** Puntos de control puestos a mano: pesan más que los automáticos y bastan 4 para colocar una foto. */
+const MANUAL_WEIGHT = 3, MANUAL_MIN_POINTS = 4;
 
 const I3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const tr3 = m => [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
@@ -121,8 +124,24 @@ const tick = () => new Promise(resolve => setTimeout(resolve, 0));
  * `autoOrder:false` respeta el orden dado; `lens:false` no corrige la distorsión de la lente.
  * Devuelve { R (por foto, null si no se pudo colocar), f (px de `set`), order, found, info, fEstimated }.
  */
-export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, autoOrder = true, lens = true, features = 5000, baPoints = BA_MAX_POINTS, onProgress = null } = {}){
+export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, autoOrder = true, lens = true, features = 5000, baPoints = BA_MAX_POINTS, manual = [], onProgress = null } = {}){
   const n = set.length;
+  // Puntos de control manuales: [{ a, b, pts: [xa, ya, xb, yb, …] }] con coordenadas normalizadas (0–1) de cada foto → píxeles de `set`
+  const manualPairs = manual.filter(m => m && m.a !== m.b && set[m.a] && set[m.b] && m.pts?.length >= 4 * MANUAL_MIN_POINTS).map(m => ({
+    a: m.a, b: m.b, pts: m.pts.map((v, i) => i % 2 ? v * set[i % 4 < 2 ? m.a : m.b].height : v * set[i % 4 < 2 ? m.a : m.b].width) }));
+  /** Homografía (de la foto `img` a la `ref`) con los puntos manuales de una pareja, o null. */
+  const manualLink = (ref, img) => {
+    const m = manualPairs.find(q => (q.a === img && q.b === ref) || (q.a === ref && q.b === img)); if(!m) return null;
+    const A = [], B = [], pts = [];   // pts: [x_img, y_img, x_ref, y_ref, …]
+    for(let i = 0; i < m.pts.length; i += 4){
+      const [xi, yi, xr, yr] = m.a === img ? [m.pts[i], m.pts[i + 1], m.pts[i + 2], m.pts[i + 3]] : [m.pts[i + 2], m.pts[i + 3], m.pts[i], m.pts[i + 1]];
+      A.push(xi, yi); B.push(xr, yr); pts.push(xi, yi, xr, yr);
+    }
+    const np = A.length / 2, src = cv.matFromArray(np, 1, cv.CV_32FC2, A), dst = cv.matFromArray(np, 1, cv.CV_32FC2, B);
+    let Hm = null;
+    try{ Hm = cv.findHomography(src, dst, np >= 8 ? cv.RANSAC : 0, 3); if(!Hm || Hm.empty()) return null; return { H: Array.from(Hm.data64F), inliers: np, matches: np, ratio: 1, pts, manual: true }; }
+    finally{ src.delete(); dst.delete(); Hm?.delete(); }
+  };
   // Orden: coincidencias entre todas las parejas a baja resolución (barato) y camino que más puntos reúne
   let order = set.map((_, i) => i);
   const roughMatches = new Map();   // "i:j" → coincidencias de la ordenación (baratas), que luego sirven de atajos en el ajuste
@@ -151,7 +170,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       onProgress?.(`Buscando coincidencias (${k} de ${n - 1})…`);
       await tick();
       const ref = order[k - 1], img = order[k];
-      links.push({ ref, img, pr: pairs.match(ref, img, { minInliers, withPoints: true }) });   // H lleva `img` a `ref`
+      links.push({ ref, img, pr: pairs.match(ref, img, { minInliers, withPoints: true }) || manualLink(ref, img) });   // H lleva `img` a `ref`
     }
     // Focal: mediana de lo que dice cada pareja (en coordenadas centradas en cada foto)
     const focals = [];
@@ -173,6 +192,18 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       if(!pose.every(Number.isFinite)) continue;
       R[img] = pose; info[img] = { inliers: pr.inliers, via: ref, notRotation: q.err };
     }
+    // Fotos que la cadena no alcanzó pero tienen puntos manuales con una ya colocada
+    for(let changed = true; changed;){
+      changed = false;
+      for(const m of manualPairs){
+        const [ref, img] = R[m.a] && !R[m.b] ? [m.a, m.b] : R[m.b] && !R[m.a] ? [m.b, m.a] : [-1, -1]; if(ref < 0) continue;
+        const pr = manualLink(ref, img); if(!pr) continue;
+        const q = nearestRotation(mmul(mmul(kInv(f, set[ref].width / 2, set[ref].height / 2), pr.H), kMat(f, set[img].width / 2, set[img].height / 2)));
+        if(!q || q.err > MAX_NOT_ROTATION) continue;
+        const pose = mmul(tr3(q.R), R[ref]); if(!pose.every(Number.isFinite)) continue;
+        R[img] = pose; info[img] = { inliers: pr.inliers, via: ref, notRotation: q.err, manual: true }; changed = true;
+      }
+    }
     // Ajuste de haces: focal y giros con todas las coincidencias (consecutivas y atajos verificados)
     const ba = { used: false };
     let k = [0, 0];
@@ -181,7 +212,9 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       const thin = pts => { const m = pts.length / 4; if(m <= baPoints) return pts; const out = [], step = m / baPoints; for(let k = 0; k < baPoints; k++){ const q = Math.floor(k * step) * 4; out.push(pts[q], pts[q + 1], pts[q + 2], pts[q + 3]); } return out; };
       const obs = [];
       for(const { ref, img, pr } of links) if(pr?.pts && R[ref] && R[img]) obs.push({ a: img, b: ref, pts: thin(pr.pts) });
-      const nConsecutive = obs.length, pos = new Map(order.map((idx, k) => [idx, k]));
+      const nConsecutive = obs.length;
+      for(const m of manualPairs) if(R[m.a] && R[m.b]) obs.push({ a: m.a, b: m.b, pts: m.pts, weight: MANUAL_WEIGHT });
+      const pos = new Map(order.map((idx, k) => [idx, k]));
       for(const [key, m] of roughMatches){
         const [ref, img] = key.split(":").map(Number);   // match(ref = i, img = j)
         if(Math.abs(pos.get(ref) - pos.get(img)) < 2 || !R[ref] || !R[img]) continue;
@@ -217,26 +250,18 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
 }
 
 /**
- * Lleva las fotos colocadas a un cilindro ("cyl") o a una esfera ("sph"). `set` y `cam.f` deben estar a la misma escala
+ * Lleva las fotos colocadas al mosaico en la proyección `projection` (ver projections.js: cyl, sph, merc, rect, stereo, fish). `set` y `cam.f` deben estar a la misma escala
  * (si se calculó la cámara con fotos pequeñas, multiplicar `f` por el cociente de alturas antes de llamar).
+ * `only` (Map índice → lienzo del mismo tamaño que la foto): el mosaico se calcula igual (misma huella y origen) pero sólo se remuestrean esos lienzos
+ * en vez de las fotos (sirve para llevar máscaras al mismo sitio que las fotos).
  * Devuelve { images:[{ w, h, data (RGBA, alfa 0 fuera de la foto), x, y, i }], W, H } o { error, tooBig? } (`tooBig`: no cabe en `maxArea`).
  */
-export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = "linear", maxArea = 16e6, onStep = null } = {}){
-  const { R, f } = cam, sph = projection === "sph", rect = projection === "rect", stereo = projection === "stereo", K = cam.k || [0, 0], lens = K[0] !== 0 || K[1] !== 0;
+export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = "linear", maxArea = 16e6, only = null, onStep = null } = {}){
+  const { R, f } = cam, K = cam.k || [0, 0], lens = K[0] !== 0 || K[1] !== 0, fast = projection === "cyl" || projection === "sph", sph = projection === "sph";
   const TOO_WIDE = "Las fotos abarcan un campo demasiado ancho para esta proyección. Prueba con la esférica o con menos fotos.";
   const idx = set.map((_, i) => i).filter(i => R[i]);
   if(idx.length < 2) return { error: "No se encontró solape suficiente entre las fotos. Revisa que se solapen al menos un tercio." };
-  const project = r => {   // rayo del mundo → coordenadas del mosaico (px)
-    if(rect) return r[2] > 0.05 * Math.hypot(r[0], r[1], r[2]) ? [f * r[0] / r[2], f * r[1] / r[2]] : null;
-    if(stereo){   // estereográfica: ρ = 2f·tan(θ/2), θ = ángulo con el eje de la foto central
-      const n = Math.hypot(r[0], r[1], r[2]), c = r[2] / n; if(c < -0.95) return null;
-      const rho2 = 2 * f * Math.tan(Math.acos(Math.max(-1, Math.min(1, c))) / 2), h = Math.hypot(r[0], r[1]);
-      return h < 1e-12 ? [0, 0] : [rho2 * r[0] / h, rho2 * r[1] / h];
-    }
-    const rho = Math.hypot(r[0], r[2]);
-    if(rho < 1e-9) return null;
-    return [f * Math.atan2(r[0], r[2]), sph ? f * Math.atan2(r[1], rho) : f * r[1] / rho];
-  };
+  const project = r => projectRay(projection, f, r);   // rayo del mundo → coordenadas del mosaico (px)
   // Huella de cada foto: se proyecta su borde
   const boxes = new Map();
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -258,21 +283,22 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
     minX = Math.min(minX, b.x0); minY = Math.min(minY, b.y0); maxX = Math.max(maxX, b.x1); maxY = Math.max(maxY, b.y1);
   }
   const W = maxX - minX, H = maxY - minY;
-  if(!Number.isFinite(W * H) || W < 8 || H < 8 || (!rect && !stereo && W > 2 * Math.PI * f * 0.98)) return { error: TOO_WIDE };
+  if(!Number.isFinite(W * H) || W < 8 || H < 8 || (!UNBOUNDED_WIDTH.has(projection) && W > 2 * Math.PI * f * 0.98)) return { error: TOO_WIDE };
   if(W * H > maxArea) return { error: "El resultado sería demasiado grande para este dispositivo. Prueba con menos fotos o con menos resolución.", tooBig: true };
 
   const cvInterp = interp === "lanczos" ? cv.INTER_LANCZOS4 : cv.INTER_LINEAR;
   const images = [];
   let done = 0;
-  for(const i of idx){
-    onStep?.(done++, idx.length);
-    const c = set[i], b = boxes.get(i), bw = b.x1 - b.x0, bh = b.y1 - b.y0, r = R[i];
+  const todo = only ? idx.filter(i => only.has(i)) : idx;
+  for(const i of todo){
+    onStep?.(done++, todo.length);
+    const c = only ? only.get(i) : set[i], b = boxes.get(i), bw = b.x1 - b.x0, bh = b.y1 - b.y0, r = R[i];
     const cx = c.width / 2, cy = c.height / 2;
     const srcM = cv.matFromImageData(c.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, c.width, c.height));
     const data = new Uint8ClampedArray(bw * bh * 4);
     // Senos y cosenos del ángulo de cada columna (no dependen de la fila)
     const sinT = new Float32Array(bw), cosT = new Float32Array(bw);
-    if(!rect && !stereo) for(let x = 0; x < bw; x++){ const th = (b.x0 + x) / f; sinT[x] = Math.sin(th); cosT[x] = Math.cos(th); }
+    if(fast) for(let x = 0; x < bw; x++){ const th = (b.x0 + x) / f; sinT[x] = Math.sin(th); cosT[x] = Math.cos(th); }
     // Por bandas de filas, para no gastar memoria con el mapa de remuestreo
     const band = Math.max(16, Math.floor(2e6 / bw));
     try{
@@ -282,11 +308,8 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
           const Yo = b.y0 + y0 + y, v = Yo / f, A = sph ? Math.cos(v) : 1, B = sph ? Math.sin(v) : v;
           for(let x = 0; x < bw; x++){
             let rx, rz, By = B;   // rayo del mundo que cae en este píxel del mosaico
-            if(rect){ rx = (b.x0 + x) / f; rz = 1; By = v; }
-            else if(stereo){
-              const X = b.x0 + x, hh = Math.hypot(X, Yo);
-              if(hh < 1e-9){ rx = 0; By = 0; rz = 1; } else { const th = 2 * Math.atan(hh / (2 * f)), k2 = Math.sin(th) / hh; rx = X * k2; By = Yo * k2; rz = Math.cos(th); }
-            } else { rx = sinT[x] * A; rz = cosT[x] * A; }
+            if(fast){ rx = sinT[x] * A; rz = cosT[x] * A; }
+            else { const q = unproject(projection, f, b.x0 + x, Yo); if(!q){ map[(y * bw + x) * 2] = -1; map[(y * bw + x) * 2 + 1] = -1; continue; } rx = q[0]; By = q[1]; rz = q[2]; }
             const o = (y * bw + x) * 2;
             const z = r[6] * rx + r[7] * By + r[8] * rz;
             if(z <= 1e-6){ map[o] = -1; map[o + 1] = -1; continue; }
@@ -311,6 +334,6 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
     } finally { srcM.delete(); }
     images.push({ w: bw, h: bh, data, x: b.x0 - minX, y: b.y0 - minY, i });
   }
-  onStep?.(idx.length, idx.length);
+  onStep?.(todo.length, todo.length);
   return { images, W, H, origin: { x: minX, y: minY } };
 }

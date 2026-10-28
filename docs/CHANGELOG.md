@@ -9,6 +9,18 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v295 · Panorámica: editor completo (vista previa, horizonte, máscaras, puntos de control)
+- **Interfaz nueva**, como «Unir fotos» y en móvil y escritorio: fotos a la izquierda (← →), vista previa en el centro y ajustes a la derecha; en el móvil, vista previa a pantalla completa, tira de fotos y un solo control cada vez. Los desplegables nacen cerrados.
+- **Vista previa**: «Calcular vista previa» analiza las fotos una vez (lo lento) y después proyección, horizonte, mezcla y recorte se repiten en segundos a tamaño pequeño. «Crear panorámica» reutiliza el análisis.
+- **Proyecciones**: cilíndrica, esférica, Mercator, plana, estereográfica y ojo de pez (nuevo `plugins/panorama/projections.js`).
+- **Horizonte y vertical**: nivelar solo (el «arriba» medio de las cámaras pasa a la vertical), rumbo, inclinación y giro.
+- **Recorte manual** por los cuatro lados, además del automático.
+- **Puntos de control a mano**: se marca el mismo detalle en dos fotos (con lupa al arrastrar). Colocan fotos que no se emparejan solas y pesan más que los automáticos en el ajuste de haces.
+- **Máscaras**: pintar de rojo lo que no debe usarse (gente, coches) y de verde lo que debe salir de una sola foto.
+- **Orden automático hasta 15 fotos** (antes 10); con más, se respeta el orden de la lista y se avisa.
+- Las opciones (proyección, mezcla, lente, exposición, orden, recorte automático) se recuerdan entre sesiones.
+- Con todo en sus valores por defecto el resultado es el de la v294. `stitchLocal` sigue existiendo; ahora son `analyzePhotos` + `renderPanorama`.
+
 ### v294 · Panorámica: reparto del modo Premium 👑
 - Con Premium encendido la panorámica usa un motor de más calidad: análisis con copias de 1600 px (antes 1100), 9000 puntos de unión por foto (antes 5000), 1200 coincidencias por pareja en el ajuste de haces (antes 400), mezcla multibanda de 6 niveles (antes 5) y para mosaicos mayores (24 MP en escritorio, 9 MP en móvil; antes 12 y 6), además de la mayor resolución y el remuestreo Lanczos que ya tenía.
 - Con Premium apagado todo queda exactamente igual que en la v293. Cuesta más tiempo y memoria: en la prueba sintética de 4 fotos, ~11 s.

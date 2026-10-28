@@ -1,186 +1,37 @@
 /* ═══════════════════════════════════════════════════════════════
-   ESTILOS ESPECÍFICOS DEL PLUGIN PANORÁMICA
-   Zona de Drag & Drop para subir varias imágenes, galería de miniaturas,
-   indicadores visuales y estado de arrastre.
+   PANORÁMICA · ESTILOS PROPIOS
+   El editor usa los estilos del kit (css/fsplugin.css); aquí sólo lo
+   de las capas de máscaras y puntos de control, igual en móvil y
+   escritorio.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Zona Drag & Drop interactiva cuando el lienzo está vacío o cuando se arrastran archivos */
-.fsp-pano-dropzone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 36px 24px;
-  border: 2px dashed #455060;
-  border-radius: 12px;
-  background: rgba(22, 27, 34, 0.7);
-  color: #cfd8e3;
-  text-align: center;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-  margin: 12px auto;
-  max-width: 480px;
-  box-sizing: border-box;
-  cursor: pointer;
-}
+.pano-ov{position:fixed;inset:0;z-index:2100;display:grid;grid-template-rows:48px minmax(0,1fr) auto;background:#121417;color:#e9edf4;font:13px/1.35 var(--sans,system-ui,sans-serif)}
+.pano-ov>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;padding-top:env(safe-area-inset-top);background:#1a1d21;border-bottom:1px solid #2b3037}
+.pano-ov>header b{font-size:14px}
+.pano-ov button,.pano-ov select{min-height:36px;background:#272b31;color:#e9edf4;border:1px solid #3b414b;border-radius:6px;padding:0 12px;font:inherit;cursor:pointer}
+.pano-ov button:hover{background:#35455e}
+.pano-ov button.primary{background:#4f7cff;border-color:#4f7cff;color:#fff}
+.pano-ov button:disabled{opacity:.45;cursor:default}
+.pano-ov-body{position:relative;min-height:0;display:flex;flex-direction:column;gap:8px;padding:10px;overflow:auto}
+.pano-ov-hint{margin:0;color:#9ca5b3;font-size:12px;text-align:center}
+.pano-ov-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#1a1d21;border-top:1px solid #2b3037}
+.pano-ov-tools label{display:flex;align-items:center;gap:6px;color:#9ca5b3}
+.pano-ov-tools select{max-width:46vw}
 
-.fsp-pano-dropzone:hover,
-.fsp-pano-dropzone.dragover {
-  border-color: #7fa6ff;
-  background: rgba(41, 59, 96, 0.45);
-  box-shadow: 0 0 24px rgba(103, 148, 255, 0.25);
-  color: #ffffff;
-}
+/* Máscaras */
+.pano-mask-stage{flex:1;min-height:0;display:grid;place-items:center}
+.pano-mask-stage canvas{max-width:100%;max-height:100%;object-fit:contain;cursor:crosshair;background:#000;border-radius:4px}
+.pano-seg{display:flex;border:1px solid #3b414b;border-radius:6px;overflow:hidden}
+.pano-seg button{border:0;border-radius:0}
+.pano-seg button.on{background:#4f7cff;color:#fff}
+.pano-range input{width:110px}
 
-.fsp-pano-dropzone svg {
-  width: 48px;
-  height: 48px;
-  color: #7fa6ff;
-  transition: transform 0.2s ease;
+/* Puntos de control */
+.pano-pts-pair{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pano-pts-cell{min-height:0;min-width:0;display:grid;place-items:center;background:#0b0d0f;border-radius:4px}
+.pano-pts-cell canvas{max-width:100%;max-height:100%;object-fit:contain;cursor:crosshair}
+.pano-loupe{position:absolute;top:8px;right:8px;width:110px;height:110px;border:2px solid #ffd33d;border-radius:8px;background:#000;pointer-events:none;box-shadow:0 4px 14px #000a;z-index:2}
+@media (max-width:900px){
+  .pano-pts-pair{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  .pano-ov-tools select{max-width:40vw}
 }
-
-.fsp-pano-dropzone:hover svg {
-  transform: translateY(-3px) scale(1.05);
-}
-
-.fsp-pano-dropzone b {
-  font-size: 15px;
-  color: #e9edf4;
-  letter-spacing: -0.01em;
-}
-
-.fsp-pano-dropzone span {
-  font-size: 12px;
-  color: #9aa5b5;
-  line-height: 1.4;
-  max-width: 320px;
-}
-
-/* Indicador global de arrastre sobre todo el stage */
-.fsp-stage.pano-dragover {
-  outline: 3px dashed #7fa6ff;
-  outline-offset: -8px;
-  background-color: rgba(103, 148, 255, 0.08) !important;
-}
-
-/* Galería de miniaturas y tira de fotos */
-.fsp-pano-gallery {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.fsp-pano-thumb-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.fsp-pano-thumb {
-  position: relative;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #30353d;
-  background: #181c21;
-  aspect-ratio: 4 / 3;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.fsp-pano-thumb:hover {
-  border-color: #556070;
-  transform: translateY(-1px);
-}
-
-.fsp-pano-thumb.on {
-  border-color: #7fa6ff;
-  box-shadow: 0 0 0 2px #7fa6ff66;
-}
-
-.fsp-pano-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.fsp-pano-thumb .thumb-idx {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
-  color: #e9edf4;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.fsp-pano-thumb .thumb-del {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
-  color: #ff8888;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: opacity 0.15s;
-}
-
-.fsp-pano-thumb .thumb-del:hover {
-  opacity: 1;
-  background: #c93b3b;
-  color: #ffffff;
-}
-
-.fsp-pano-thumb .thumb-label {
-  position: absolute;
-  bottom: 0;
-  inset-inline: 0;
-  padding: 3px 6px;
-  font-size: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #ced6e2;
-}
-
-/* En móvil la tira de miniaturas horizontal */
-@media (max-width: 900px) {
-  .fsp-pano-dropzone {
-    padding: 24px 16px;
-    margin: 8px;
-    gap: 10px;
-  }
-  .fsp-pano-dropzone svg {
-    width: 38px;
-    height: 38px;
-  }
-  .fsp-pano-dropzone b {
-    font-size: 14px;
-  }
-}
-
-/* Opciones avanzadas del editor (plegadas por defecto, mínimas) */
-.pano-adv{width:100%;box-sizing:border-box;background:rgba(22,27,34,.8);border:1px solid #30363d;border-radius:8px;color:#c9d1d9;font-size:13px}
-.pano-adv>summary{cursor:pointer;padding:8px 12px;color:#8b949e;list-style:none}
-.pano-adv>summary::-webkit-details-marker{display:none}
-.pano-adv>summary::before{content:"▸ "}
-.pano-adv[open]>summary::before{content:"▾ "}
-.pano-adv-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 16px;padding:4px 12px 12px}
-.pano-adv-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.pano-adv-row select{background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:5px 8px;font-size:13px;max-width:60%}
-.pano-adv-row input[type=checkbox]{accent-color:#58a6ff;width:18px;height:18px}
