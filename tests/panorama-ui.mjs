@@ -30,7 +30,7 @@ for(const mode of [{ name: "escritorio", w: 1280, h: 800, touch: false }, { name
   await shot("1-fotos");
   chk(await page.locator("[data-prev]").count() === 1, `${mode.name}: falta el botón «Calcular vista previa»`);
   await page.locator("[data-prev]").click();
-  await page.waitForFunction(() => !document.querySelector("[data-prev]") && document.querySelector(".fsp-stage canvas"), null, { timeout: 240000 });
+  await page.locator("[data-prev]").waitFor({ state: "hidden", timeout: 240000 });   // el aviso se oculta al haber vista previa
   await shot("2-vista");
   const size = async () => page.evaluate(() => { const c = document.querySelector(".fsp-stage canvas"); return [c.width, c.height]; });
   const s0 = await size(); chk(s0[0] > 100, `${mode.name}: vista previa vacía ${s0}`);
