@@ -79,14 +79,16 @@ const rows = await page.evaluate(async ({ only, nFotos }) => {
     try{ const c = await S.stitchLocal(cans, { premium: false, autoCrop: true }); res = [c.width, c.height]; tAll = performance.now() - t1; }catch(e){ msg = e.code + ": " + e.message; }
     out.push({ escena: name, fotos: cans.length, colocadas: cam.found.filter(Boolean).length, ordenOk: ok, focalErrPct: +(100 * Math.abs(cam.f - F) / F).toFixed(2),
       giroMedioGrados: errs.length ? +(errs.reduce((a, b) => a + b, 0) / errs.length).toFixed(3) : null, giroMaxGrados: errs.length ? +Math.max(...errs).toFixed(3) : null,
-      ba: cam.ba && (cam.ba.used ? `${cam.ba.pairs}p/${cam.ba.shortcuts}a ${cam.ba.medBefore.toFixed(1)}→${cam.ba.medAfter.toFixed(1)}px` : (cam.ba.error || 'no')), msSolve: Math.round(tSolve), msOrden: tOrden == null ? 0 : Math.round(tOrden), msTotal: tAll && Math.round(tAll), mosaico: res, heapMB: heap(), fallo: msg || undefined });
+      ba: cam.ba && (cam.ba.used ? `${cam.ba.pairs}p/${cam.ba.shortcuts}a ${cam.ba.medBefore.toFixed(1)}→${cam.ba.medAfter.toFixed(1)}px${cam.ba.lens ? (cam.ba.lens.accepted ? ` lente k=${cam.ba.lens.k.map(v => v.toFixed(3))}` : " lente no") : ""}` : (cam.ba.error || 'no')), msSolve: Math.round(tSolve), msOrden: tOrden == null ? 0 : Math.round(tOrden), msTotal: tAll && Math.round(tAll), mosaico: res, heapMB: heap(), fallo: msg || undefined });
   }
   // Fotos reales: sin verdad conocida
   if(nFotos){
     const cans = []; for(let i = 0; i < nFotos; i++){ const im = new Image(); im.src = `/__foto${i}`; await im.decode(); const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; c.getContext("2d", { willReadFrequently: true }).drawImage(im, 0, 0); cans.push(c); }
+    const small = cans.map(c => { const k = 1100 / c.height, o = document.createElement("canvas"); o.width = Math.round(c.width * k); o.height = 1100; o.getContext("2d", { willReadFrequently: true }).drawImage(c, 0, 0, o.width, o.height); return o; });
+    const cam = await R.solveCamera(cv, small, {}), lensInfo = cam.ba?.lens ? ` lente ${cam.ba.lens.accepted ? "k=" + cam.ba.lens.k.map(v => v.toFixed(3)) : "no"}` : "";
     const t0 = performance.now(); let res = null, msg = "";
     try{ const c = await S.stitchLocal(cans, { premium: false, autoCrop: true }); res = [c.width, c.height]; }catch(e){ msg = e.code + ": " + e.message; }
-    out.push({ escena: "fotos reales", fotos: cans.length, msTotal: Math.round(performance.now() - t0), mosaico: res, heapMB: heap(), fallo: msg || undefined });
+    out.push({ escena: "fotos reales", fotos: cans.length, colocadas: cam.found.filter(Boolean).length, ordenOk: undefined, ba: cam.ba?.used ? `${cam.ba.pairs}p/${cam.ba.shortcuts}a ${cam.ba.medBefore.toFixed(1)}→${cam.ba.medAfter.toFixed(1)}px${lensInfo} f=${cam.f.toFixed(0)}` : "no", msTotal: Math.round(performance.now() - t0), mosaico: res, heapMB: heap(), fallo: msg || undefined });
   }
   return out;
 }, { only: process.env.ESCENAS ? process.env.ESCENAS.split(",") : null, nFotos: FOTOS.length });

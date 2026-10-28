@@ -26,12 +26,15 @@
       como atajos, con menos peso, las no consecutivas que se solapan, sólo si
       encajan con los giros encadenados (así no vuelven las falsas
       coincidencias de fachadas repetidas).
+   6. Lente (v290): si baja el residuo de forma clara, se ajusta también la
+      distorsión radial (k1, k2) común a todas las fotos; la proyección final
+      la deshace al remuestrear.
    Límites: con paralaje fuerte (objetos
    cercanos y lejanos a la vez) quedan dobles en los solapes.
    ═══════════════════════════════════════════════════════════════ */
 
 import { createPairMatcher, mmul, minv } from "../../js/cv/align.js";
-import { refineCamera, medianResidual } from "./bundle.js";
+import { refineCamera, medianResidual, undistort } from "./bundle.js";
 
 /** Más fotos que esto: se respeta el orden dado (comparar todas las parejas costaría demasiado). */
 const MAX_AUTO_ORDER = 10;
@@ -43,6 +46,8 @@ const BA_MAX_POINTS = 400, BA_SHORTCUT_FRACTION = 0.8;
 const BA_SHORTCUT_MAX_RESIDUAL = 30;
 /** Los atajos vienen de la ordenación (640 px, menos puntos): pesan menos que las parejas consecutivas, medidas a la resolución completa. */
 const BA_SHORTCUT_WEIGHT = 0.3;
+/** Lente: sólo se acepta la distorsión si baja el residuo al menos un 20 % (con una lente corregida no hay nada que ajustar y se evita ajustar ruido), si el residuo previo era apreciable (px a 1100 de alto) y si k1 y k2 son plausibles. */
+const LENS_MIN_GAIN = 0.8, LENS_MIN_RESIDUAL = 1.2, LENS_MAX_K1 = 0.4, LENS_MAX_K2 = 0.6, LENS_MIN_POINTS = 300;
 /** Distancia máxima (norma de Frobenius) entre K⁻¹·H·K y su rotación más cercana; más allá la pareja no es un giro. */
 const MAX_NOT_ROTATION = 0.6;
 
@@ -168,6 +173,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
     }
     // Ajuste de haces: focal y giros con todas las coincidencias (consecutivas y atajos verificados)
     const ba = { used: false };
+    let k = [0, 0];
     try{
       const centers = set.map(c => ({ cx: c.width / 2, cy: c.height / 2 })), scale = Math.min(...set.map(c => c.height)) / 1100;
       const thin = pts => { const m = pts.length / 4; if(m <= BA_MAX_POINTS) return pts; const out = [], step = m / BA_MAX_POINTS; for(let k = 0; k < BA_MAX_POINTS; k++){ const q = Math.floor(k * step) * 4; out.push(pts[q], pts[q + 1], pts[q + 2], pts[q + 3]); } return out; };
@@ -185,7 +191,18 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       // bundle.js usa R = cámara→mundo; aquí R lleva del mundo a la cámara (pose = M·R_ref con M = K⁻¹·H·K), de ahí las traspuestas
       const out = refineCamera({ R: R.map(r => r && tr3(r)), f, centers, obs, fixed: order[0], huber: 2 * scale });
       Object.assign(ba, { pairs: obs.length, shortcuts: obs.length - nConsecutive, points: out.count, medBefore: out.medBefore, medAfter: out.medAfter, iters: out.iters, rejected: !!out.rejected });
-      if(!out.rejected){ for(let i = 0; i < n; i++) R[i] = out.R[i] && tr3(out.R[i]); f = out.f; ba.used = true; }
+      let best = out;
+      if(!out.rejected){
+        ba.used = true;
+        // Distorsión de lente (k1, k2) común a todas las fotos, con una pérdida que ignora las coincidencias lejanas
+        if(out.count >= LENS_MIN_POINTS && out.medAfter > LENS_MIN_RESIDUAL * scale){
+          const lens = refineCamera({ R: out.R, f: out.f, centers, obs, fixed: order[0], huber: 2 * scale, distortion: 2, loss: "cauchy" });
+          ba.lens = { medAfter: lens.medAfter, k: lens.k, f: lens.f, rejected: !!lens.rejected, accepted: false };
+          if(!lens.rejected && lens.medAfter < LENS_MIN_GAIN * out.medAfter && Math.abs(lens.k[0]) < LENS_MAX_K1 && Math.abs(lens.k[1]) < LENS_MAX_K2){ best = lens; ba.lens.accepted = true; }
+        }
+        for(let i = 0; i < n; i++) R[i] = best.R[i] && tr3(best.R[i]);
+        f = best.f; k = best.k ? [best.k[0], best.k[1]] : [0, 0];
+      }
     }catch(e){ ba.error = e?.message || String(e); }
     // Se centra en la foto de en medio (la que queda sin deformar)
     const placedOrder = order.filter(i => R[i]);
@@ -193,7 +210,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       const mid = placedOrder[(placedOrder.length - 1) >> 1], back = tr3(R[mid]);
       for(const i of placedOrder) R[i] = mmul(R[i], back);
     }
-    return { R, f, order, found: R.map(Boolean), info, fEstimated: estimated != null, ba };
+    return { R, f, k, order, found: R.map(Boolean), info, fEstimated: estimated != null, ba };
   } finally { pairs.dispose(); }
 }
 
@@ -203,7 +220,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
  * Devuelve { images:[{ w, h, data (RGBA, alfa 0 fuera de la foto), x, y, i }], W, H } o { error, tooBig? } (`tooBig`: no cabe en `maxArea`).
  */
 export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = "linear", maxArea = 16e6, onStep = null } = {}){
-  const { R, f } = cam, sph = projection === "sph";
+  const { R, f } = cam, sph = projection === "sph", K = cam.k || [0, 0], lens = K[0] !== 0 || K[1] !== 0;
   const idx = set.map((_, i) => i).filter(i => R[i]);
   if(idx.length < 2) return { error: "No se encontró solape suficiente entre las fotos. Revisa que se solapen al menos un tercio." };
   const project = r => {   // rayo del mundo → coordenadas del cilindro / esfera (px)
@@ -220,7 +237,8 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
     for(let k = 0; k <= N; k++){
       const t = k / N;
       for(const [px, py] of [[t * c.width, 0], [t * c.width, c.height], [0, t * c.height], [c.width, t * c.height]]){
-        const d = [(px - c.width / 2) / f, (py - c.height / 2) / f, 1];
+        const [ux, uy] = lens ? undistort((px - c.width / 2) / f, (py - c.height / 2) / f, K) : [(px - c.width / 2) / f, (py - c.height / 2) / f];
+        const d = [ux, uy, 1];
         const q = project([Rt[0] * d[0] + Rt[1] * d[1] + Rt[2] * d[2], Rt[3] * d[0] + Rt[4] * d[1] + Rt[5] * d[2], Rt[6] * d[0] + Rt[7] * d[1] + Rt[8] * d[2]]);
         if(!q || !Number.isFinite(q[0]) || !Number.isFinite(q[1]) || Math.abs(q[1]) > 1e6) return { error: "Las fotos abarcan un campo demasiado ancho para esta proyección. Prueba con la esférica o con menos fotos." };
         x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]);
@@ -257,8 +275,14 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
             const rx = sinT[x] * A, rz = cosT[x] * A, o = (y * bw + x) * 2;
             const z = r[6] * rx + r[7] * B + r[8] * rz;
             if(z <= 1e-6){ map[o] = -1; map[o + 1] = -1; continue; }
-            map[o] = f * (r[0] * rx + r[1] * B + r[2] * rz) / z + cx;
-            map[o + 1] = f * (r[3] * rx + r[4] * B + r[5] * rz) / z + cy;
+            let u = (r[0] * rx + r[1] * B + r[2] * rz) / z, w = (r[3] * rx + r[4] * B + r[5] * rz) / z;
+            if(lens){   // del plano sin distorsión al medido: se invierte x·(1 + k1·r² + k2·r⁴) por punto fijo
+              let xd = u, yd = w;
+              for(let it = 0; it < 8; it++){ const r2 = xd * xd + yd * yd, s = 1 + K[0] * r2 + K[1] * r2 * r2; xd = u / s; yd = w / s; }
+              u = xd; w = yd;
+            }
+            map[o] = f * u + cx;
+            map[o + 1] = f * w + cy;
           }
         }
         const mm = new cv.Mat(rows, bw, cv.CV_32FC2), dst = new cv.Mat(), none = new cv.Mat();

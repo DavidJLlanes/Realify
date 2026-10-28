@@ -89,7 +89,7 @@ export async function stitchLocal(photos, { premium = false, autoCrop = true, on
       onProgress("Colocando las fotos…");
       await tick();
       const full = toHeight(photos, height);
-      warped = await warpPanorama(cv, full, { R: cam.R, f: cam.f * height / matchH }, {
+      warped = await warpPanorama(cv, full, { R: cam.R, f: cam.f * height / matchH, k: cam.k }, {
         projection, interp: premium ? "lanczos" : "linear", maxArea: MAX_AREA,
         onStep: (i, n) => onProgress(`Colocando las fotos (${Math.min(i + 1, n)} de ${n})…`)
       });

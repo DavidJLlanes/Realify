@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v290 · Panorámica: distorsión de lente
+- El ajuste de haces estima también la **distorsión radial (k1, k2)** común a todas las fotos, y la proyección final la corrige al remuestrear. Sólo se aplica si baja el residuo al menos un 20 % y los valores son plausibles; con lentes ya corregidas (móviles) no cambia nada.
+- En el banco, la escena con distorsión (k1 = −0,08) pasa de 5° de error de giro medio y 9 % de focal a 0,27° y 0,5 %. Las demás escenas no cambian.
+- `bundle.js`: parámetros `distortion` y `loss` (`"cauchy"` ignora casi del todo las coincidencias lejanas; las falsas coincidencias tiraban de la distorsión con la pérdida de Huber). `tests/panorama-bundle.mjs` incluye ahora el caso con lente.
+
 ### v289 · Panorámica: ajuste de haces
 - **Ajuste de haces** (`plugins/panorama/bundle.js`): tras encadenar las parejas, la focal y el giro de cada foto se refinan a la vez con todas las coincidencias (Levenberg–Marquardt, pérdida de Huber). Entran también como atajos, con menos peso, las fotos no consecutivas que se solapan, sólo si encajan con los giros ya calculados.
 - En el banco: error de giro en la escena base 0,06° → 0,002°, a pulso 0,05° → 0,01°, y en la difícil (10 fotos, poco contraste y ruido) la focal pasa de un 5 % de error a 0,02 % y el giro de 0,37° a 0,06°. El tiempo no cambia.

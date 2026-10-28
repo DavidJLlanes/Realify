@@ -1,6 +1,6 @@
 {
   "name": "realify",
-  "version": "289.0.0",
+  "version": "290.0.0",
   "private": true,
   "description": "Realify: editor de imágenes en el navegador. La web NO se compila ni empaqueta: este package.json solo declara las herramientas de desarrollo (comprobaciones y pruebas). No hay dependencias de ejecución.",
   "license": "SEE LICENSE IN LICENSE",

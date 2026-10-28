@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v289)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v290)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -374,8 +374,14 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
       Sin cambio donde lo que falla es otra cosa: `distorsion` (etapa 3) y `pocatextura` (etapa 5). Con `paralaje` la focal mejora
       (3,9 → 1,5 %) pero el giro frente a la «verdad» empeora (2,5 → 3,5°): con la cámara desplazada no existe un giro puro correcto,
       y falta una medida de calidad de costura para juzgarlo (etapa 4). Tiempo igual (±0,3 s).
-- [ ] **Etapa 3 · Lente**: distorsión radial (k1, k2), centro óptico y focal del EXIF dentro del ajuste. Meta: la escena `distorsion`
-      por debajo de 0,3° de giro medio y 1 % de focal.
+- [x] **Etapa 3 · Lente** (v290): el ajuste de haces estima también la distorsión radial (k1, k2) común a todas las fotos (pérdida de Cauchy,
+      que ignora las coincidencias lejanas) y la proyección final la deshace al remuestrear. Sólo se acepta si el residuo baja al menos un
+      20 %, si el residuo previo es apreciable y si k1 y k2 son plausibles; con lentes ya corregidas (móviles) no se toca nada.
+      Resultado en `distorsion` (k1 real −0,08): giro medio/máx. **4,99°/9,99° → 0,27°/0,54°**, focal **9,0 → 0,5 %**, k1 estimada −0,074.
+      Las demás escenas y tus 5 fotos no cambian (lente no aceptada; residuo de tus fotos 15,4 → 1,1 px con sólo giros y focal).
+      `tests/panorama-bundle.mjs` recupera k1 y k2 (±0,01) y la focal (0,08 %) con falsas coincidencias.
+      Pendiente de esta etapa: centro óptico (se supone el centro de la foto) y leer la focal del EXIF como valor inicial/restricción
+      (la focal se sigue estimando sólo con las fotos); probar con una lente real muy distorsionada (ojo de pez, gran angular de réflex).
 - [ ] **Etapa 4 · Costura y mezcla**: costura óptima que esquive objetos en movimiento y mezcla multibanda (Laplaciana).
       Falta una medida de calidad de costura en el banco (diferencia en los solapes frente a la escena real).
 - [ ] **Etapa 5 · Mejores puntos**: detector más robusto que ORB (SIFT o equivalente en WASM; el OpenCV.js de `js/vendor` no lo trae)

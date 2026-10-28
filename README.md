@@ -142,6 +142,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v290** | **Panorámica: corrige la distorsión de la lente** (la estima sola cuando hace falta y la deshace al unir). |
 | **v289** | **Panorámica: ajuste de haces** — focal y giro de todas las fotos se refinan juntos con todas las coincidencias (más precisión en panorámicas largas y a pulso). |
 | **v288** | **Panorámica más rápida** (ordenar las fotos es ~3× más rápido) y banco de medidas con hoja de ruta hacia el nivel de PTGui (`docs/PENDIENTE.md`, fase 21). |
 | **v287** | **Panorámica en tu dispositivo**: las fotos se unen en el navegador (OpenCV.js, orden automático, cilíndrica/esférica, sin fantasmas); el servidor queda como respaldo opcional con confirmación. |
