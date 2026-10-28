@@ -1,5 +1,5 @@
 /* Prueba de «Panorámica» en el dispositivo (v287): cuatro vistas sintéticas de una escena con textura, tomadas girando la cámara (giro puro)
-   con focal y ángulos conocidos y entregadas desordenadas. Debe encontrar las cuatro, estimar la focal con un error < 1 % (y aplicar el ajuste de haces) y devolver
+   con focal y ángulos conocidos y entregadas desordenadas. Debe encontrar las cuatro (también con la escena casi sin contraste), estimar la focal con un error < 1 % (y aplicar el ajuste de haces) y devolver
    un mosaico ancho sin errores de página.
    Uso: node tests/panorama-local.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -22,7 +22,8 @@ const res = await page.evaluate(async () => {
   const noise = (u, v) => { const x = Math.floor(u), y = Math.floor(v), fx = u - x, fy = v - y, s = t => t * t * (3 - 2 * t);
     const a = hash(x, y), b2 = hash(x + 1, y), c = hash(x, y + 1), d = hash(x + 1, y + 1);
     return a + (b2 - a) * s(fx) + (c - a) * s(fy) + (a - b2 - c + d) * s(fx) * s(fy); };
-  const scene = (az, ty) => 0.15 + 0.85 * (0.5 * noise(az * 60, ty * 60) + 0.3 * noise(az * 150, ty * 150) + 0.2 * noise(az * 400, ty * 400));
+  let CONTRAST = 1, NOISE = 0, seed = 5; const rnd = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const scene = (az, ty) => 0.5 + CONTRAST * (0.15 + 0.85 * (0.5 * noise(az * 60, ty * 60) + 0.3 * noise(az * 150, ty * 150) + 0.2 * noise(az * 400, ty * 400)) - 0.5) + (NOISE ? (rnd() + rnd() + rnd() - 1.5) * NOISE / 255 * 2 : 0);
   const view = yaw => { const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d", { willReadFrequently: true }), im = x.createImageData(W, H), y0 = yaw * Math.PI / 180;
     for(let j = 0; j < H; j++) for(let i = 0; i < W; i++){ const px = (i - W / 2) / F, py = (j - H / 2) / F, az = y0 + Math.atan(px), ty = py / Math.hypot(1, px), v = Math.round(255 * scene(az, ty)), o = 4 * (j * W + i); im.data[o] = v; im.data[o + 1] = v * 0.92; im.data[o + 2] = v * 0.85; im.data[o + 3] = 255; }
     x.putImageData(im, 0, 0); return c; };
@@ -30,12 +31,15 @@ const res = await page.evaluate(async () => {
   const { cv } = await loadOpenCv();
   const cam = await R.solveCamera(cv, cans, {});
   const out = await S.stitchLocal(cans, { premium: false, autoCrop: true });
-  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height] };
+  // Misma escena con muy poco contraste y ruido: el estirado de contraste debe permitir colocar las cuatro
+  CONTRAST = 0.12; NOISE = 3; const flat = order.map(k => view(YAWS[k])), cam2 = await R.solveCamera(cv, flat, {});
+  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f };
 });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 console.log(JSON.stringify(res));
 chk(res.found === 4, "no se colocaron las cuatro vistas");
 chk(res.ba, "el ajuste de haces no se aplicó");
+chk(res.flatFound === 4 && Math.abs(res.flatF - res.F) / res.F < 0.03, `con poco contraste se colocaron ${res.flatFound} de 4 (focal ${res.flatF.toFixed(0)} frente a ${res.F})`);
 chk(Math.abs(res.f - res.F) / res.F < 0.01, `focal estimada ${res.f.toFixed(0)} frente a ${res.F}`);
 chk(res.size[0] > res.size[1] * 1.5, "el mosaico debería ser claramente más ancho que alto");
 chk(!errs.length, "errores de página: " + errs.join("|"));

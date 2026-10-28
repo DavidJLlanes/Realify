@@ -2,7 +2,7 @@
    cuánto se equivoca el motor (giro entre fotos y focal), cuánto tarda y cuánta memoria usa, y deja el resultado en JSON para comparar etapas.
    Calidad de costura (escenas sin paralaje ni cambios de exposición): error medio y percentil 95 (niveles 0-255) frente a la escena real, y «doble» = % de píxeles de solape que no se parecen a ninguna de las fotos que los cubren (error > 12: mezcla de dos fotos distintas, fantasmas) entre el mosaico y la escena real
    en los píxeles donde se solapan dos o más fotos, con la mezcla «seam» (por distancia al borde) y «multiband» (costura inteligente + bandas).
-   Escenas: base, larga, pulso (giros pequeños en las tres ejes), poca textura, distorsión de lente, paralaje, objetos en movimiento, ruido y exposición.
+   Escenas: base, larga, pulso (giros pequeños en las tres ejes), poca textura (y muy poca, y larga con poca textura), distorsión de lente, paralaje, objetos en movimiento, ruido y exposición.
    Fotos reales (opcional): FOTOS=<carpeta con jpg/png> añade una fila por conjunto, sin verdad conocida (sólo cuántas se colocan y el tiempo).
    Uso: node tests/panorama-banco.mjs   (SALIDA=ruta.json para guardar; ESCENAS=base,larga para elegir) */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -59,6 +59,8 @@ const { rows, png: pngs } = await page.evaluate(async ({ only, nFotos }) => {
     larga:       { views: range(10, 22), o: {} },
     pulso:       { views: range(6, 25).map(v => ({ ...v, pitch: (rnd() - 0.5) * 6, roll: (rnd() - 0.5) * 4 })), o: {} },
     pocatextura: { views: range(4, 24), o: { contrast: 0.12, noise: 3 } },
+    muypoca:     { views: range(4, 24), o: { contrast: 0.05, noise: 3 } },
+    texturalarga: { views: range(8, 22).map(v => ({ ...v, pitch: (rnd() - 0.5) * 4, roll: (rnd() - 0.5) * 3 })), o: { contrast: 0.15, noise: 4 } },
     distorsion:  { views: range(5, 24), o: { k1: -0.08 } },
     paralaje:    { views: range(5, 24).map((v, i) => ({ ...v, cx: 0.12 * (i - 2) })), o: {} },
     largadificil: { views: range(10, 22).map(v => ({ ...v, pitch: (rnd() - 0.5) * 4, roll: (rnd() - 0.5) * 3 })), o: { contrast: 0.35, noise: 6 } },

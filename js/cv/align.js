@@ -41,12 +41,34 @@ export function maxCornerShift(H, w, h){
 /* ── Utilidades de OpenCV ────────────────────────────────────── */
 const SIDE = { feat: 1600, ecc: 900, flow: 640 };
 
-function grayMat(cv, canvas, side){
+/** Desviación típica (0-255) por debajo de la cual una foto se considera de poco contraste y, con `boost`, se estira antes de buscar puntos (cielos, paredes, niebla, escenas planas). */
+const LOW_CONTRAST_STD = 22;
+
+/**
+ * Foto en gris (reducida a `side` px). Con `boost`, si tiene poco contraste se suaviza (3×3, contra el ruido) y se estira el rango entre
+ * los percentiles 1 y 99 a 0-255: ORB no encuentra esquinas cuando todas las diferencias están por debajo de su umbral. Una foto normal no se toca.
+ */
+function grayMat(cv, canvas, side, boost = false){
   const s = Math.min(1, side / Math.max(canvas.width, canvas.height)), w = Math.max(8, Math.round(canvas.width * s)), h = Math.max(8, Math.round(canvas.height * s));
   const c = document.createElement("canvas"); c.width = w; c.height = h;
   const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high"; x.drawImage(canvas, 0, 0, w, h);
   const rgba = cv.matFromImageData(x.getImageData(0, 0, w, h)), g = new cv.Mat();
   cv.cvtColor(rgba, g, cv.COLOR_RGBA2GRAY); rgba.delete();
+  if(boost){
+    const hist = new Float64Array(256), d = g.data, n = d.length;
+    let sum = 0, sum2 = 0;
+    for(let i = 0; i < n; i++){ const v = d[i]; hist[v]++; sum += v; sum2 += v * v; }
+    const mean = sum / n, std = Math.sqrt(Math.max(0, sum2 / n - mean * mean));
+    if(std < LOW_CONTRAST_STD){
+      let acc = 0, lo = 0, hi = 255;
+      for(let v = 0; v < 256; v++){ acc += hist[v]; if(acc >= 0.01 * n){ lo = v; break; } }
+      acc = 0; for(let v = 255; v >= 0; v--){ acc += hist[v]; if(acc >= 0.01 * n){ hi = v; break; } }
+      if(hi - lo >= 4){
+        const blur = new cv.Mat(); cv.GaussianBlur(g, blur, new cv.Size(3, 3), 0);
+        const k = 255 / (hi - lo); blur.convertTo(g, -1, k, -lo * k); blur.delete();
+      }
+    }
+  }
   return { g, s: w / canvas.width };
 }
 
@@ -93,7 +115,7 @@ export function createPairMatcher(cv, canvases, { maxSide = SIDE.feat, features 
   const orb = new cv.ORB(features), mask = new cv.Mat(), sets = [];
   try{
     for(const canvas of canvases){
-      const g = grayMat(cv, canvas, maxSide), keypoints = new cv.KeyPointVector(), descriptors = new cv.Mat();
+      const g = grayMat(cv, canvas, maxSide, true), keypoints = new cv.KeyPointVector(), descriptors = new cv.Mat();
       try{ orb.detectAndCompute(g.g, mask, keypoints, descriptors); }
       catch(e){ g.g.delete(); keypoints.delete(); descriptors.delete(); throw e; }
       sets.push({ g, keypoints, descriptors });

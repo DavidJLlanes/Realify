@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v292 · Panorámica: fotos de poco contraste
+- Las fotos de poco contraste (desviación típica < 22 de 255: cielos, niebla, paredes lisas) se suavizan y se estiran de rango antes de buscar los puntos de unión. Antes ORB no encontraba ni una esquina; en el banco, la escena de poca textura pasa de colocar 1 a colocar las 4 fotos (giro 0,004°), y otra todavía más plana también coloca las 4.
+- Una foto normal no se toca: el resto del banco y tus 5 fotos dan exactamente lo mismo. Sólo afecta a `createPairMatcher` (Panorámica).
+- Escenas nuevas en el banco: `muypoca` y `texturalarga`.
+
 ### v291 · Panorámica: costuras inteligentes y mezcla multibanda
 - **Costura por donde menos difieren las fotos** (`plugins/panorama/multiband.js`): para cada pareja que se solapa, el camino de menor diferencia (programación dinámica) rodea a los objetos que se mueven en vez de cruzarlos, así que cada uno sale entero y una sola vez, sin «medio transparentes».
 - **Mezcla multibanda** (pirámides de Laplace): las diferencias suaves de exposición y color se reparten en transiciones largas y el detalle fino en una costura estrecha, sin halos (se mezcla en raíz de la luz lineal).

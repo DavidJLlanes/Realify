@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v291)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v292)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -395,8 +395,19 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
       Pendiente: con paralaje (tus arcos cercanos) la costura puede cortar un borde y dejar una cuña; medirlo con una escena de paralaje con
       verdad conocida; optimizar (WebAssembly o menos niveles) si el tiempo molesta en móvil; costura por grafo (graph cut) en vez de un
       camino por pareja si hay solapes múltiples complicados.
-- [ ] **Etapa 5 · Mejores puntos**: detector más robusto que ORB (SIFT o equivalente en WASM; el OpenCV.js de `js/vendor` no lo trae)
-      y emparejado por zonas. Meta: la escena `pocatextura` coloca las 4.
+- [x] **Etapa 5 · Mejores puntos** (v292): no hizo falta otro detector. Con ORB, la escena de poca textura fallaba porque todas sus diferencias
+      quedaban por debajo del umbral de esquinas (FAST): 0 puntos con el umbral por defecto. Ahora, en `createPairMatcher`
+      (`js/cv/align.js › grayMat`, con `boost`), las fotos de poco contraste (desviación típica < 22 de 255) se suavizan 3×3 y se estiran entre
+      los percentiles 1 y 99; una foto normal no se toca (resultados idénticos, tus 5 fotos incluidas). En un par de la escena plana:
+      0 → 525 coincidencias buenas. Banco (v291 → v292):
+      `pocatextura` (contraste 12 %): **1 de 4 → 4 de 4 fotos**, giro 0,004°, focal 0,06 % · `muypoca` (5 %): 4 de 4, giro 0,38°, focal 1,1 % ·
+      `texturalarga` (8 fotos, 15 %): 8 de 8, giro 0,02° · `largadificil` (contraste 35 % con ruido): giro 0,061° → 0,019°, ahora con atajos
+      (17 parejas en vez de 9), a cambio de más tiempo (1,8 → 13,7 s: antes casi no encontraba coincidencias). Resto de escenas idénticas.
+      Probado y descartado: elegir otro detector (SIFT/AKAZE no están en el OpenCV.js incluido; compilar uno a medida pesaría más y no era necesario),
+      bajar el umbral FAST (4958 puntos pero sólo 308 coincidencias buenas frente a 525 con estiramiento) y la ecualización global (mejor en la escena sintética,
+      pero cambia el tono relativo entre fotos con contenido distinto).
+      Pendiente: fotos reales de baja textura (cielo, niebla, paredes lisas) para confirmar el umbral; emparejado por zonas si aparecen
+      concentraciones de puntos; fachadas repetidas sigue siendo un riesgo (se mantiene el filtro de atajos).
 - [ ] **Etapa 6 · Opciones avanzadas** (plegadas): más proyecciones, qué optimizar, edición de puntos de control, máscaras, recorte
       manual. Sin tocar la vista normal.
 - [ ] **Etapa 7 · Premium 👑**: repartir motor bueno y mejor (ajuste de haces completo, mezcla multibanda, luz lineal, resolución
