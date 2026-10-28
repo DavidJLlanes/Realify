@@ -49,9 +49,11 @@ se conecta a la red para:
 - Cargar la propia aplicación desde [realify.es](https://realify.es).
 - Descargar modelos de IA bajo demanda (Hugging Face), que quedan guardados en
   el navegador.
-- Enviar las fotos al servidor de realify.es, **solo** al usar «Panorámica»
-  (se unen con OpenCV en el servidor; no se guardan). El resto de funciones
-  procesa todo en el navegador.
+- Descargar OpenCV.js (11 MB) la primera vez que se usa «Panorámica», Apilar o
+  Escanear documento; queda en la caché del navegador.
+- Enviar las fotos al servidor de realify.es, **solo** si «Panorámica» no puede
+  unirlas en el dispositivo y el usuario acepta expresamente el respaldo (se unen
+  con OpenCV en el servidor; no se guardan). El resto procesa todo en el navegador.
 
 Las tipografías (todo el catálogo libre de Google Fonts) se sirven desde el
 propio sitio, en `/fonts/`: el navegador no se conecta con Google.

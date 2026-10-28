@@ -6,7 +6,7 @@
 
 # Realify
 
-**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor (salvo en «Panorámica», que las une en el servidor).**
+**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor (salvo el respaldo opcional de «Panorámica», que sólo se usa si lo confirmas).**
 
 [![Web](https://img.shields.io/badge/web-realify.es-f5b82e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://realify.es)
 [![Licencia no comercial](https://img.shields.io/badge/licencia-PolyForm%20Noncommercial-3b82f6?style=for-the-badge)](LICENSE)
@@ -59,7 +59,7 @@
 Realify es un editor de imágenes completo que funciona en el navegador. Todo el
 procesado —capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del
 usuario: **las imágenes no se suben a ningún servidor**, con una excepción:
-«Panorámica» envía las fotos al servidor de Realify para unirlas (no se guardan). Se instala como app
+«Panorámica» une las fotos en tu dispositivo; sólo si falla puedes elegir enviarlas al servidor de Realify (no se guardan). Se instala como app
 (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
@@ -142,6 +142,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v287** | **Panorámica en tu dispositivo**: las fotos se unen en el navegador (OpenCV.js, orden automático, cilíndrica/esférica, sin fantasmas); el servidor queda como respaldo opcional con confirmación. |
 | **v286** | **Revisión de errores**: «Panorámica» avisa de que envía las fotos al servidor (política de privacidad corregida) y su servicio tiene límites; se retira del filtro Unmark el apoyo por servidor que no funcionaba; el despliegue ejecuta las comprobaciones antes de publicar. |
 | **v285** | **Collage**: formas libres, miniaturas más grandes en móvil y zonas seguras de historias y TikTok. |
 | **v284** | Barra de progreso: se oculta siempre, aunque falle el remuestreo o no cargue OpenCV. |
@@ -253,7 +254,7 @@ plugins/                Herramientas a pantalla completa, cada una con su códig
   stickers/             Stickers (Fluent Emoji)
   hdr/                  Fusión HDR
   merge/                Unir imágenes (panorámica y unión)
-  panorama/             Panorámica (cliente; el servicio está en server/panorama)
+  panorama/             Panorámica (se une en el dispositivo; respaldo opcional en server/panorama)
   slice/                Cortar en partes
   shape-crop/           Recortar en forma
   compare/              Antes y después
@@ -349,7 +350,7 @@ y abre `http://localhost:8080`.
 
 ### Servicio de panorámicas (opcional)
 
-Las panorámicas de Realify se unen con un pequeño servicio en Python (FastAPI + OpenCV Stitcher) que corre en tu propio
+Las panorámicas de Realify se unen en el dispositivo del usuario. Como respaldo opcional (sólo si el usuario lo confirma tras un fallo local) existe un pequeño servicio en Python (FastAPI + OpenCV Stitcher) que corre en tu propio
 servidor. La guía paso a paso, con la configuración de nginx y la solución de problemas, está en
 [`server/panorama/README.md`](server/panorama/README.md).
 

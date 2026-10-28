@@ -1,11 +1,11 @@
 {
- "generated": "2026-10-27T14:18:41.089Z",
- "root": "/home/claude/davidjllanes/realify",
+ "generated": "2026-10-28T11:54:46.007Z",
+ "root": "/home/claude/realify",
  "jsFiles": 501,
- "jsLines": 93073,
+ "jsLines": 92538,
  "brokenRefs": [],
  "softMissing": [],
- "nonLiteralDynamicImports": 62,
+ "nonLiteralDynamicImports": 61,
  "staticCycles": [],
  "storage": {
   "localStorage": [
@@ -149,6 +149,7 @@
   "c2pa.claim",
   "c2pa.created",
   "c2pa.signature",
+  "cam.f",
   "catalog.json",
   "classify.js",
   "clone.pickSource",
@@ -3057,35 +3058,33 @@
   "plugins/memes/ui.js": [
    "openMemeEditor"
   ],
-  "plugins/merge/engine.js": [
-   "compose",
-   "cylindrical",
-   "layout",
-   "pairOffset",
-   "placed",
-   "resize",
-   "spherical"
-  ],
   "plugins/merge/index.js": [
    "openMerge"
-  ],
-  "plugins/merge/precise.js": [
-   "chainHomographies",
-   "placeMosaic"
   ],
   "plugins/merge/ui.js": [
    "openMergeEditor",
    "renderSimple"
   ],
   "plugins/panorama/engine.js": [
-   "calculateExposureGains",
-   "estimateTranslation",
-   "projectCanvas",
-   "scaleCanvas",
-   "stitchPanorama"
+   "compose",
+   "placed"
   ],
   "plugins/panorama/index.js": [
    "openPanorama"
+  ],
+  "plugins/panorama/rotation.js": [
+   "focalsFromHomography",
+   "nearestRotation",
+   "orderByOverlap",
+   "solveCamera",
+   "warpPanorama"
+  ],
+  "plugins/panorama/server.js": [
+   "stitchOnServer"
+  ],
+  "plugins/panorama/stitch.js": [
+   "StitchError",
+   "stitchLocal"
   ],
   "plugins/panorama/ui.js": [
    "openPanoramaEditor"
@@ -3369,7 +3368,7 @@
   "js/app -> js/features": 34,
   "js/features -> js/ai": 34,
   "js/ui -> js/editor": 33,
-  "plugins -> js/ui": 32,
+  "plugins -> js/ui": 33,
   "js/editor -> js/ui": 31,
   "plugins -> js/editor": 27,
   "js/main.js -> js/editor": 23,
@@ -3391,11 +3390,11 @@
   "js/io -> js/exif": 8,
   "js/ai -> js/editor": 6,
   "js/exif -> js/core": 6,
+  "plugins -> js/cv": 5,
   "js/editor -> plugins": 4,
   "js/filters -> js/ai": 4,
   "js/main.js -> js/io": 4,
   "js/pwa.js -> js/core": 4,
-  "plugins -> js/cv": 4,
   "js/ai -> js/core": 3,
   "js/ai -> js/io": 3,
   "js/app -> js/ai": 3,

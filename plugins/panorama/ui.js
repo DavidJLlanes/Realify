@@ -1,11 +1,18 @@
 /* ═══════════════════════════════════════════════════════════════
-   PANORÁMICA DESDE FOTOS · INTERFAZ (MOTOR OPENCV DE PRUEBA1)
+   PANORÁMICA DESDE FOTOS · INTERFAZ
+   Ventana a pantalla completa (js/ui/kit/fsshell.js): se añaden las
+   fotos (en cualquier orden) y se unen EN EL DISPOSITIVO (stitch.js).
+   Sólo si eso falla se ofrece, con permiso expreso, hacerlo en el
+   servidor (server.js).
    ═══════════════════════════════════════════════════════════════ */
 
 import { createShell, decodePhoto, pickFiles, scaledCanvas } from "../../js/ui/kit/fsshell.js";
+import { confirmDlg } from "../../js/ui/kit/dialog.js";
 import { toast } from "../../js/core/toast.js";
 import { premiumSwitch, premiumPref } from "../../js/ui/kit/premium.js";
 import { escText as esc } from "../../js/core/util/html.js";
+import { stitchLocal, StitchError } from "./stitch.js";
+import { stitchOnServer } from "./server.js";
 
 const MAX_PHOTOS = 25;
 
@@ -20,8 +27,8 @@ export function openPanoramaEditor({ current = null, onAccept }){
 
   const sh = createShell({
     title: "Panorámica desde fotos",
-    subtitle: "Arrastra tus fotos para unirlas con OpenCV",
-    applyLabel: "Crear panorámica con OpenCV",
+    subtitle: "Añade tus fotos para unirlas",
+    applyLabel: "Crear panorámica",
     cls: "fsp-panorama",
     onCancel: close,
     onApply: apply
@@ -65,7 +72,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
 
     if(photos.length === 0){
       sh.setApplyEnabled(false);
-      sh.setSubtitle("Arrastra tus fotos para unirlas con OpenCV");
+      sh.setSubtitle("Añade tus fotos para unirlas");
 
       const dropBox = document.createElement("div");
       dropBox.className = "fsp-pano-dropzone";
@@ -77,8 +84,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
           <path d="m16 16-4-4-4 4"/>
         </svg>
         <b style="font-size:16px;display:block;margin-bottom:6px;">Arrastra tus fotos aquí o haz clic para subir</b>
-        <span style="font-size:13px;color:#8b949e;display:block;margin-bottom:16px;">Toma varias fotos en secuencia horizontal con un 30-50% de solape.</span>
-        <span style="font-size:12px;color:#8b949e;display:block;margin-bottom:16px;">Aviso: para unirlas, las fotos se envían al servidor de Realify (no se guardan).</span>
+        <span style="font-size:13px;color:#8b949e;display:block;margin-bottom:16px;">Fotos tomadas girando sobre ti mismo, con un 30-50 % de solape. Se unen en tu dispositivo, sin subirlas a ningún servidor.</span>
         <button type="button" class="primary" style="padding:10px 20px;border-radius:8px;font-weight:600;background:#58a6ff;color:#0d1117;border:none;cursor:pointer;">Seleccionar archivos</button>
       `;
       dropBox.onclick = () => addPhotos();
@@ -95,7 +101,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
     }
 
     sh.setApplyEnabled(photos.length >= 2);
-    sh.setSubtitle(`${photos.length} fotos cargadas · Listas para unir con OpenCV`);
+    sh.setSubtitle(`${photos.length} fotos cargadas · Listas para unir`);
 
     const container = document.createElement("div");
     container.style.cssText = "width:100%;max-width:1100px;display:flex;flex-direction:column;gap:16px;align-items:center;";
@@ -192,61 +198,35 @@ export function openPanoramaEditor({ current = null, onAccept }){
     addItems(files.map(file => ({ file, name: file.name })));
   }
 
-  function canvasToBlob(cv){
-    return new Promise(resolve => cv.toBlob(resolve, "image/jpeg", 0.95));
+  /** En el dispositivo; si falla, el servidor sólo con permiso expreso (las fotos saldrían del dispositivo). */
+  async function stitch(){
+    try{
+      return await stitchLocal(photos.map(p => p.full), { premium: S.premium, autoCrop, onProgress: msg => { if(!closed) sh.setBusy(msg); } });
+    }catch(err){
+      if(closed || (err instanceof StitchError && err.code === "few")) throw err;
+      sh.setBusy(null);
+      const ok = await confirmDlg("No se pudo unir en tu dispositivo",
+        `${esc(err.message)}<br><br>¿Probar con el servidor de Realify? Las fotos se enviarían al servidor para unirlas (no se guardan).`, "Usar el servidor");
+      if(!ok) throw err;
+      sh.setBusy("Enviando las fotos al servidor…");
+      return stitchOnServer(photos, { autoCrop });
+    }
   }
 
   async function apply(){
     if(applying || photos.length < 2) return;
     applying = true;
     sh.setApplyEnabled(false);
-    sh.setBusy("Procesando con OpenCV (SIFT)... esto puede tardar unos segundos");
+    sh.setBusy("Preparando…");
 
     try {
-      const formData = new FormData();
-      formData.append("autocrop", autoCrop ? "true" : "false");
-
-      for(let i = 0; i < photos.length; i++){
-        const p = photos[i];
-        if(p.file){
-          formData.append("files", p.file, p.file.name);
-        } else {
-          const blob = await canvasToBlob(p.full);
-          formData.append("files", blob, `photo_${i}.jpg`);
-        }
-      }
-
-      const res = await fetch("/api/stitch", {
-        method: "POST",
-        body: formData
-      });
-
-      const contentType = res.headers.get("content-type") || "";
-      if(!res.ok || contentType.includes("application/json")){
-        let msg = "El servidor respondió con código " + res.status;
-        try{ const json = await res.json(); if(json.error) msg = json.error; }catch{}
-        throw new Error(msg);
-      }
-
-      const blob = await res.blob();
-      const img = new Image();
-      const objUrl = URL.createObjectURL(blob);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = objUrl;
-      });
-
-      const finalCanvas = document.createElement("canvas");
-      finalCanvas.width = img.naturalWidth || img.width;
-      finalCanvas.height = img.naturalHeight || img.height;
-      finalCanvas.getContext("2d").drawImage(img, 0, 0);
-      URL.revokeObjectURL(objUrl);
-
+      const finalCanvas = await stitch();
+      if(closed) return;
       toast("¡Panorámica creada con éxito!", "ok");
       await onAccept(finalCanvas, { count: photos.length });
       close();
     } catch(err){
+      if(closed) return;
       toast("Error al crear panorámica: " + err.message, "err");
       sh.setBusy(null);
       sh.setApplyEnabled(true);

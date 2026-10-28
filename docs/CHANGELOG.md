@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v287 · Panorámica en tu dispositivo
+- **«Panorámica» ya no usa el servidor por defecto**: las fotos se unen en el navegador (OpenCV.js, descarga única de 11 MB al usarla), así que el VPS no gasta recursos y las fotos no salen del dispositivo.
+- **Nuevo motor** (`plugins/panorama/`): puntos ORB + RANSAC entre parejas, distancia focal y giro de cada foto con modelo de cámara de giro puro, proyección cilíndrica o esférica (según el campo vertical), orden de las fotos automático (hasta 10) aunque se añadan desordenadas, igualado de exposición en luz lineal y mezcla por costuras (`seam`) sin fantasmas en los solapes, todo fuera del hilo de la interfaz salvo OpenCV. Premium 👑: más resolución y remuestreo Lanczos.
+- Con las 5 fotos de prueba (campo muy ancho, a pulso) se colocan las 5; el cosido del servidor (OpenCV Stitcher) sólo colocaba 3.
+- **Respaldo opcional**: si el cosido local falla, se ofrece —con confirmación expresa— enviarlas al servidor (`plugins/panorama/server.js`, sin cambios en `server/panorama/`).
+- Se retiran `plugins/merge/engine.js`, `worker.js` y `precise.js` (código sin uso tras la refactorización) y `tests/unir-preciso.mjs`; el motor de mezcla común queda en `plugins/panorama/engine.js` (`placed`, `compose`). El motor anterior por traslaciones está en v285.
+- Prueba nueva: `tests/panorama-local.mjs` (vistas sintéticas de giro puro con focal conocida: error de focal 0,1 %, orden recuperado).
+- Documentación: README, SECURITY.md, guía y FUNCIONALIDADES actualizados (ya no se suben fotos salvo en el respaldo).
+
 ### v286 · Revisión de errores
 - **Privacidad**: «Panorámica» envía las fotos al servidor de Realify para unirlas (no se guardan). Ahora lo avisa en su pantalla y la política de privacidad, el README y SECURITY.md lo recogen; antes decían que nunca se subía ninguna imagen.
 - **Servicio de panorámicas** (`server/panorama/server.py`): límites de fotos, tamaño y megapíxeles, un solo cosido a la vez, CORS sólo para realify.es, el cosido ya no bloquea el servidor, errores con códigos HTTP reales (413/422/503) y recorte de bordes acotado. nginx: `limit_req` (4/min por IP).

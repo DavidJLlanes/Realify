@@ -22,7 +22,7 @@
   # Política de Seguridad de Contenido (CSP)
   # blob: lo necesita el códec local y la exportación.
   # connect-src: la app sólo sale a la red para descargar modelos de IA y,
-  # en «Panorámica», para enviar las fotos al propio servidor (/api/stitch).
+  # en «Panorámica» (respaldo opcional con permiso), para enviar las fotos al propio servidor (/api/stitch).
   # Modelos de IA (js/ai): 'wasm-unsafe-eval' deja compilar el motor ONNX
   # Runtime local (js/vendor/ort), y huggingface.co + *.hf.co (su CDN)
   # sirven los pesos de los modelos grandes, que se DESCARGAN la primera

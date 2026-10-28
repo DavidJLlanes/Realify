@@ -1,6 +1,6 @@
 # Servicio de panorámicas (OpenCV Stitcher)
 
-Las panorámicas de Realify se unen con un pequeño servicio en Python (FastAPI + OpenCV Stitcher, algoritmo SIFT)
+Desde la v287 las panorámicas se unen en el dispositivo del usuario; este servicio es sólo un **respaldo opcional** que se usa si el usuario lo confirma tras un fallo local. Es un pequeño servicio en Python (FastAPI + OpenCV Stitcher, algoritmo SIFT)
 que corre en tu propio servidor. Esta guía te lleva paso a paso, sin necesidad de saber programar.
 
 ### Qué necesitas

@@ -57,10 +57,13 @@ export const imagenTopic = { id:"imagen", title:"Imagen (menú Imagen)",
           y también por el color, y trabaja el tono y el color en OKLab sin cambiar el tono de los
           colores. Añade <b>TIFF 16 bits</b> y la <b>radiancia .hdr</b> (32 bits) para seguir en otro
           programa. Apagado, el HDR es exactamente el de siempre.</li>
-        <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. <b>Panorámica</b>: fotos
-          solapadas (un tercio, más o menos) en el orden en que se hicieron; se alinean, se
-          iguala la exposición, se funden las uniones y se recortan los bordes. <b>Unión</b>:
-          en fila, columna o cuadrícula, con separación, margen, esquinas y fondo. La proyección <b>Precisa · OpenCV</b> une cada pareja de fotos con una homografía (puntos ORB + RANSAC: giro, escala y perspectiva con precisión subpíxel), mejor para panorámicas de campo moderado; la cilíndrica sigue siendo la de los campos muy anchos.</li>
+        <li id="img-merge"><b>Unir imágenes…</b> Pantalla completa. Une las fotos
+          en fila, columna o cuadrícula, con separación, margen, esquinas y fondo. Las panorámicas
+          tienen su propia herramienta (<b>Panorámica…</b>): las fotos solapadas (un tercio, más o
+          menos) se unen <b>en tu dispositivo</b>, sin subirlas a ningún servidor, en cualquier
+          orden; se calcula la posición de cada una, se iguala la exposición, se funden las
+          uniones y se recortan los bordes. La primera vez descarga OpenCV (11 MB). Si falla,
+          puedes elegir probar con el servidor.</li>
         <li id="img-stack"><b>Apilar fotos Premium 👑…</b> Varias tomas de la misma escena, hechas
           a pulso (del dispositivo o de las abiertas, de 2 a 16). Se <b>alinean con precisión
           subpíxel</b> aunque se hayan girado o movido y se combinan: <b>Reducir ruido</b> (media en

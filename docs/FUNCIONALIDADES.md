@@ -132,10 +132,13 @@ tiempo real mientras se pinta.
   Modo **Premium 👑**: curva de respuesta de la cámara estimada (Robertson), RAW en
   luz lineal, fusión de máxima verosimilitud, alineación subpíxel (Lucas–Kanade),
   antifantasmas por zonas, color en OKLab, TIFF de 16 bits y radiancia `.hdr`.
-- **Unir imágenes** (pantalla completa, `plugins/merge/`): panorámica automática
-  (proyección cilíndrica, solape por correlación de gradientes, exposición
-  igualada, costuras suaves y recorte) o unión en fila, columna o cuadrícula.
-  Detalles en [`plugins/merge/README.md`](.././plugins/merge/README.md).
+- **Unir imágenes** (pantalla completa, `plugins/merge/`): unión en fila, columna o
+  cuadrícula. Detalles en [`plugins/merge/README.md`](.././plugins/merge/README.md).
+- **Panorámica** (pantalla completa, `plugins/panorama/`): se une en el dispositivo
+  con OpenCV.js (puntos ORB + RANSAC, focal y giro de cada foto, orden automático,
+  proyección cilíndrica o esférica, exposición igualada y costuras sin fantasmas,
+  recorte). Premium 👑: más resolución y remuestreo Lanczos. Respaldo opcional en
+  el servidor, con confirmación.
 - **Apilar fotos Premium 👑** (`js/features/stack.js`, `js/cv/`): de 2 a 16 tomas de la
   misma escena, alineadas con precisión subpíxel con OpenCV.js (puntos ORB + RANSAC +
   afinado ECC, flujo óptico opcional; OpenCV 4.12, Apache-2.0, 11 MB, sólo al usarlo) y
@@ -143,7 +146,7 @@ tiempo real mientras se pinta.
   baja en √N) o ampliar el enfoque (la toma más nítida en cada punto). Admite RAW (se
   revelan con el motor Premium) y elige como referencia la toma más nítida. Foto nueva a
   resolución completa. La misma alineación sirve en la Fusión HDR («Alineación precisa»,
-  homografías ORB + ECC) y en Unir imágenes (proyección «Precisa», `plugins/merge/precise.js`).
+  homografías ORB + ECC) y en la Panorámica (`plugins/panorama/rotation.js`).
 - **Escanear documento Premium 👑** (`js/features/docscan.js`, `js/cv/docquad.js`,
   `js/cv/docclean.js`): detección del cuadrilátero del papel con OpenCV (Canny y Otsu),
   esquinas editables, proporción real por el método de Zhang y He, homografía Lanczos a
