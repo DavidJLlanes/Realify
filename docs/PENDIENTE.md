@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v290)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v291)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -382,8 +382,19 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
       `tests/panorama-bundle.mjs` recupera k1 y k2 (±0,01) y la focal (0,08 %) con falsas coincidencias.
       Pendiente de esta etapa: centro óptico (se supone el centro de la foto) y leer la focal del EXIF como valor inicial/restricción
       (la focal se sigue estimando sólo con las fotos); probar con una lente real muy distorsionada (ojo de pez, gran angular de réflex).
-- [ ] **Etapa 4 · Costura y mezcla**: costura óptima que esquive objetos en movimiento y mezcla multibanda (Laplaciana).
-      Falta una medida de calidad de costura en el banco (diferencia en los solapes frente a la escena real).
+- [x] **Etapa 4 · Costura y mezcla** (v291): `plugins/panorama/multiband.js` (+ `color.js`). Cada pareja que se solapa tiene su costura por el camino
+      de menor diferencia entre las dos fotos (programación dinámica en una rejilla gruesa, con margen alrededor de lo que difiere mucho),
+      de modo que rodea a los objetos que se mueven; la mezcla es multibanda (pirámides de Laplace de 5 niveles, escala de raíz de la luz
+      lineal, cada foto en su propia caja para no gastar memoria). Fusión `"multiband"` por defecto en `stitchLocal`; con un mosaico mayor
+      de 12 MP en ordenador o 6 MP en móvil se vuelve a la mezcla por distancia al borde.
+      Medida nueva en el banco: «doble» = % de píxeles de solape que no se parecen a ninguna de las fotos que los cubren (fantasmas).
+      Escena con objetos en las costuras: **3,19 % → 0 %** (la imagen ya no tiene objetos a medias); resto de escenas ≈ 0 % antes y después.
+      Pruebas: `tests/panorama-mezcla.mjs` (Node: un disco que sólo sale en una foto, 25 % de diferencia de exposición; sin dobles y escalón de
+      exposición 0,7 frente a 1,7 niveles con la mezcla antigua, con costura vertical y horizontal).
+      Coste: ~3× el tiempo de mezcla (mosaico de 7 MP: ~6 s en Node; tus 5 fotos pasan de ~9 a ~14 s de total en Chromium sin GPU).
+      Pendiente: con paralaje (tus arcos cercanos) la costura puede cortar un borde y dejar una cuña; medirlo con una escena de paralaje con
+      verdad conocida; optimizar (WebAssembly o menos niveles) si el tiempo molesta en móvil; costura por grafo (graph cut) en vez de un
+      camino por pareja si hay solapes múltiples complicados.
 - [ ] **Etapa 5 · Mejores puntos**: detector más robusto que ORB (SIFT o equivalente en WASM; el OpenCV.js de `js/vendor` no lo trae)
       y emparejado por zonas. Meta: la escena `pocatextura` coloca las 4.
 - [ ] **Etapa 6 · Opciones avanzadas** (plegadas): más proyecciones, qué optimizar, edición de puntos de control, máscaras, recorte

@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v291 · Panorámica: costuras inteligentes y mezcla multibanda
+- **Costura por donde menos difieren las fotos** (`plugins/panorama/multiband.js`): para cada pareja que se solapa, el camino de menor diferencia (programación dinámica) rodea a los objetos que se mueven en vez de cruzarlos, así que cada uno sale entero y una sola vez, sin «medio transparentes».
+- **Mezcla multibanda** (pirámides de Laplace): las diferencias suaves de exposición y color se reparten en transiciones largas y el detalle fino en una costura estrecha, sin halos (se mezcla en raíz de la luz lineal).
+- En el banco, la escena con objetos en las costuras pasa de 3,2 % a 0 % de píxeles «dobles»; el escalón de exposición de la prueba sintética baja de 1,7 a 0,7 niveles. Cuesta unos 4 s más con tus 5 fotos (Chromium sin GPU).
+- Con un mosaico mayor de 12 MP (6 MP en móvil) se sigue usando la mezcla anterior por distancia al borde, para no gastar memoria.
+- Nuevos: `plugins/panorama/color.js` (tablas sRGB↔luz lineal compartidas), `tests/panorama-mezcla.mjs`, la medida «doble» y el volcado de mosaicos en `tests/panorama-banco.mjs`. `warpPanorama` devuelve también el origen del mosaico.
+
 ### v290 · Panorámica: distorsión de lente
 - El ajuste de haces estima también la **distorsión radial (k1, k2)** común a todas las fotos, y la proyección final la corrige al remuestrear. Sólo se aplica si baja el residuo al menos un 20 % y los valores son plausibles; con lentes ya corregidas (móviles) no cambia nada.
 - En el banco, la escena con distorsión (k1 = −0,08) pasa de 5° de error de giro medio y 9 % de focal a 0,27° y 0,5 %. Las demás escenas no cambian.

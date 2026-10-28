@@ -6,8 +6,9 @@
         copias pequeñas (rápido).
      3. rotation.js › warpPanorama: cada foto, a la resolución final, al
         cilindro o a la esfera con un solo remuestreo.
-     4. worker.js: igualar exposición, mezclar y recortar fuera del hilo
-        de la interfaz.
+     4. worker.js: igualar exposición, mezclar (costura por donde menos
+        difieren las fotos + pirámides de Laplace) y recortar fuera del
+        hilo de la interfaz.
    Los fallos se lanzan como `StitchError` con un `code` para que la
    ventana decida qué ofrecer (p. ej. probar con el servidor).
    ═══════════════════════════════════════════════════════════════ */
@@ -22,6 +23,8 @@ const MATCH_HEIGHT = 1100;
 const BASIC_HEIGHT = TOUCH ? 1600 : 2200, PREMIUM_HEIGHT = TOUCH ? 2600 : 4200;
 /** Área máxima del mosaico: Safari no dibuja lienzos de más de ~16,7 MP, y la mezcla gasta 16 bytes por píxel. */
 const MAX_AREA = TOUCH ? 16e6 : 30e6;
+/** Área máxima del mosaico para la mezcla multibanda (costuras inteligentes y pirámides: ~21 bytes por píxel más las fotos); con más, se mezcla por distancia al borde. */
+const MULTIBAND_MAX_AREA = TOUCH ? 6e6 : 12e6;
 /** Con un campo vertical mayor que éste (grados) se proyecta en esfera: en cilindro se estirarían mucho los bordes. */
 const SPHERE_FROM_VFOV = 90;
 
@@ -100,7 +103,7 @@ export async function stitchLocal(photos, { premium = false, autoCrop = true, on
 
     onProgress("Igualando exposición y mezclando…");
     await tick();
-    return await blendInWorker(warped.images, { fusion: "seam", crop: autoCrop, useGain: true });
+    return await blendInWorker(warped.images, { fusion: "multiband", maxArea: MULTIBAND_MAX_AREA, crop: autoCrop, useGain: true });
   }catch(err){
     if(err instanceof StitchError) throw err;
     throw new StitchError(err?.message || "No se pudo crear la panorámica", "failed");

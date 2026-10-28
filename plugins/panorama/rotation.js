@@ -297,5 +297,5 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
     images.push({ w: bw, h: bh, data, x: b.x0 - minX, y: b.y0 - minY, i });
   }
   onStep?.(idx.length, idx.length);
-  return { images, W, H };
+  return { images, W, H, origin: { x: minX, y: minY } };
 }

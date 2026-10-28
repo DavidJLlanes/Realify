@@ -8,6 +8,9 @@
         a partir del brillo de TODAS las parejas que se solapan.
      2. `compose`: mezcla en luz lineal y recorte al mayor rectángulo sin
         huecos. Modos de mezcla:
+          · "multiband" (multiband.js) la costura va por donde menos se
+                      diferencian las dos fotos (rodea a lo que se mueve) y
+                      se mezcla por bandas de frecuencia;
           · "seam"    la costura cae donde la distancia al borde de cada
                       foto se iguala y sólo se suaviza a su alrededor: sin
                       dobles dentro de los solapes anchos (por defecto);
@@ -16,9 +19,11 @@
           · "average" promedio simple; "cut" la última foto cubre a la anterior.
    ═══════════════════════════════════════════════════════════════ */
 
-const TO_LIN = new Float32Array(256);
-for(let i = 0; i < 256; i++){ const v = i / 255; TO_LIN[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
-const enc = v => { v = v < 0 ? 0 : v > 1 ? 1 : v; return (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055) * 255; };
+import { TO_LIN, enc } from "./color.js";
+import { edgeDistance, seamOwners, blendMultiband } from "./multiband.js";
+
+/** Con un mosaico mayor (px) la mezcla multibanda no se hace (gasta ~21 bytes por píxel más las fotos) y se usa "seam". */
+const MULTIBAND_MAX_AREA = 12e6;
 
 /** Ganancia de exposición de b respecto a a en su solape (lineal). */
 function overlapGain(a, b, dx, dy){
@@ -67,29 +72,22 @@ export function placed(imgs, pos){
 
 /** Mezcla. `blend` (px) = ancho de la transición de "feather"; `sharpness` = lo brusca que es la transición de "seam"
     (mayor = costura más estrecha); `useGain` iguala la exposición; `crop` recorta al mayor rectángulo cubierto. */
-export function compose(imgs, L, { blend = 60, useGain = true, crop = true, fusion = "seam", sharpness = 8 } = {}){
+export function compose(imgs, L, { blend = 60, useGain = true, crop = true, fusion = "seam", sharpness = 8, maxArea = MULTIBAND_MAX_AREA } = {}){
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   imgs.forEach((im, i) => { const p = L.pos[i]; minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x + im.w); maxY = Math.max(maxY, p.y + im.h); });
   const W = Math.round(maxX - minX), H = Math.round(maxY - minY), N = W * H;
-  const acc = new Float32Array(N * 3), wsum = new Float32Array(N);
+  let acc, wsum;
+  if(fusion === "multiband" && N <= maxArea){
+    const offs = imgs.map((_, i) => ({ x: Math.round(L.pos[i].x - minX), y: Math.round(L.pos[i].y - minY) })), gains = imgs.map((_, i) => useGain ? L.gains[i] : 1);
+    const { lin, cover } = blendMultiband(imgs, offs, gains, seamOwners(imgs, offs, gains, W, H), W, H);
+    acc = lin; wsum = Float32Array.from(cover);   // ya normalizado: el divisor es 1 donde hay imagen
+  } else {
+  if(fusion === "multiband") fusion = "seam";   // mosaico demasiado grande
+  acc = new Float32Array(N * 3); wsum = new Float32Array(N);
   const F = Math.max(1, blend);
   imgs.forEach((im, i) => {
     const ox = Math.round(L.pos[i].x - minX), oy = Math.round(L.pos[i].y - minY), g = useGain ? L.gains[i] : 1;
-    // Distancia al borde de la zona válida (alfa), por filas y columnas
-    const { w, h, data } = im;
-    const dist = new Float32Array(w * h);
-    for(let y = 0; y < h; y++){
-      let run = 0;
-      for(let x = 0; x < w; x++){ run = data[(y * w + x) * 4 + 3] > 127 ? run + 1 : 0; dist[y * w + x] = run; }
-      run = 0;
-      for(let x = w - 1; x >= 0; x--){ run = data[(y * w + x) * 4 + 3] > 127 ? run + 1 : 0; dist[y * w + x] = Math.min(dist[y * w + x], run); }
-    }
-    for(let x = 0; x < w; x++){
-      let run = 0;
-      for(let y = 0; y < h; y++){ run = data[(y * w + x) * 4 + 3] > 127 ? run + 1 : 0; dist[y * w + x] = Math.min(dist[y * w + x], run); }
-      run = 0;
-      for(let y = h - 1; y >= 0; y--){ run = data[(y * w + x) * 4 + 3] > 127 ? run + 1 : 0; dist[y * w + x] = Math.min(dist[y * w + x], run); }
-    }
+    const { w, h, data } = im, dist = edgeDistance(im);   // distancia al borde de la zona válida (alfa)
     let dmax = 1;
     if(fusion === "seam") for(let k = 0; k < dist.length; k++) if(dist[k] > dmax) dmax = dist[k];
     for(let y = 0; y < h; y++){
@@ -110,6 +108,7 @@ export function compose(imgs, L, { blend = 60, useGain = true, crop = true, fusi
       }
     }
   });
+  }
   let rect = { x: 0, y: 0, w: W, h: H };
   if(crop) rect = coveredRect(wsum, W, H);
   const out = new Uint8ClampedArray(rect.w * rect.h * 4);
