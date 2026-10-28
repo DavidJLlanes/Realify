@@ -117,10 +117,11 @@ const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 /**
  * Estima focal y giro de cada foto. `set`: lienzos de la misma altura. Cede el hilo entre pareja y pareja para que la
  * interfaz siga viva; `onProgress(texto)` informa de lo que se está haciendo.
+ * `features` (puntos ORB por foto) y `baPoints` (coincidencias por pareja en el ajuste) suben la precisión a costa de tiempo (Premium).
  * `autoOrder:false` respeta el orden dado; `lens:false` no corrige la distorsión de la lente.
  * Devuelve { R (por foto, null si no se pudo colocar), f (px de `set`), order, found, info, fEstimated }.
  */
-export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, autoOrder = true, lens = true, onProgress = null } = {}){
+export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, autoOrder = true, lens = true, features = 5000, baPoints = BA_MAX_POINTS, onProgress = null } = {}){
   const n = set.length;
   // Orden: coincidencias entre todas las parejas a baja resolución (barato) y camino que más puntos reúne
   let order = set.map((_, i) => i);
@@ -142,7 +143,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
   }
   onProgress?.("Analizando las fotos…");
   await tick();
-  const pairs = createPairMatcher(cv, set, { maxSide });
+  const pairs = createPairMatcher(cv, set, { maxSide, features });
   try{
     const side = Math.max(...set.map(c => Math.max(c.width, c.height)));
     const links = [];
@@ -177,7 +178,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
     let k = [0, 0];
     try{
       const centers = set.map(c => ({ cx: c.width / 2, cy: c.height / 2 })), scale = Math.min(...set.map(c => c.height)) / 1100;
-      const thin = pts => { const m = pts.length / 4; if(m <= BA_MAX_POINTS) return pts; const out = [], step = m / BA_MAX_POINTS; for(let k = 0; k < BA_MAX_POINTS; k++){ const q = Math.floor(k * step) * 4; out.push(pts[q], pts[q + 1], pts[q + 2], pts[q + 3]); } return out; };
+      const thin = pts => { const m = pts.length / 4; if(m <= baPoints) return pts; const out = [], step = m / baPoints; for(let k = 0; k < baPoints; k++){ const q = Math.floor(k * step) * 4; out.push(pts[q], pts[q + 1], pts[q + 2], pts[q + 3]); } return out; };
       const obs = [];
       for(const { ref, img, pr } of links) if(pr?.pts && R[ref] && R[img]) obs.push({ a: img, b: ref, pts: thin(pr.pts) });
       const nConsecutive = obs.length, pos = new Map(order.map((idx, k) => [idx, k]));

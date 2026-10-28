@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v293)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v294)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -412,8 +412,11 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
       esférica, plana, estereográfica), mezcla (multibanda / costura / degradado), lente, exposición y orden automático.
       Pendiente de esta etapa: edición manual de puntos de control, máscaras (excluir/forzar zonas) y recorte manual; proyecciones
       de pez-ojo y de Mercator; guardar los ajustes entre sesiones.
-- [ ] **Etapa 7 · Premium 👑**: repartir motor bueno y mejor (ajuste de haces completo, mezcla multibanda, luz lineal, resolución
-      mayor); apagado, queda como antes.
+- [x] **Etapa 7 · Premium 👑** (v294): Premium sube la calidad del motor (copias de análisis de 1600 px, 9000 puntos por foto, 1200
+      coincidencias por pareja en el ajuste, multibanda de 6 niveles y hasta 24 MP/9 MP) además de resolución y Lanczos; apagado, igual
+      que en la v293. Aclaración: el ajuste de haces, la lente y la multibanda ya estaban en la versión normal desde las etapas 2–5 y no
+      se han quitado. Pendiente: mezcla en luz lineal real (hoy raíz de luz lineal, para evitar halos), centro óptico, medir cuánto
+      mejora Premium con fotos reales y en un móvil.
 - [ ] **Transversal**: más de 10 fotos con orden automático (grafo de coincidencias en vez de todas las parejas); límite de memoria
       en móvil; probar el cosido local en un móvil real; leer la focal del EXIF.
 

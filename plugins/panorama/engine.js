@@ -72,14 +72,14 @@ export function placed(imgs, pos){
 
 /** Mezcla. `blend` (px) = ancho de la transición de "feather"; `sharpness` = lo brusca que es la transición de "seam"
     (mayor = costura más estrecha); `useGain` iguala la exposición; `crop` recorta al mayor rectángulo cubierto. */
-export function compose(imgs, L, { blend = 60, useGain = true, crop = true, fusion = "seam", sharpness = 8, maxArea = MULTIBAND_MAX_AREA } = {}){
+export function compose(imgs, L, { blend = 60, useGain = true, crop = true, fusion = "seam", sharpness = 8, maxArea = MULTIBAND_MAX_AREA, levels = 5 } = {}){
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   imgs.forEach((im, i) => { const p = L.pos[i]; minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x + im.w); maxY = Math.max(maxY, p.y + im.h); });
   const W = Math.round(maxX - minX), H = Math.round(maxY - minY), N = W * H;
   let acc, wsum;
   if(fusion === "multiband" && N <= maxArea){
     const offs = imgs.map((_, i) => ({ x: Math.round(L.pos[i].x - minX), y: Math.round(L.pos[i].y - minY) })), gains = imgs.map((_, i) => useGain ? L.gains[i] : 1);
-    const { lin, cover } = blendMultiband(imgs, offs, gains, seamOwners(imgs, offs, gains, W, H), W, H);
+    const { lin, cover } = blendMultiband(imgs, offs, gains, seamOwners(imgs, offs, gains, W, H), W, H, { levels });
     acc = lin; wsum = Float32Array.from(cover);   // ya normalizado: el divisor es 1 donde hay imagen
   } else {
   if(fusion === "multiband") fusion = "seam";   // mosaico demasiado grande

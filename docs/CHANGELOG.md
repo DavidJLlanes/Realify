@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v294 · Panorámica: reparto del modo Premium 👑
+- Con Premium encendido la panorámica usa un motor de más calidad: análisis con copias de 1600 px (antes 1100), 9000 puntos de unión por foto (antes 5000), 1200 coincidencias por pareja en el ajuste de haces (antes 400), mezcla multibanda de 6 niveles (antes 5) y para mosaicos mayores (24 MP en escritorio, 9 MP en móvil; antes 12 y 6), además de la mayor resolución y el remuestreo Lanczos que ya tenía.
+- Con Premium apagado todo queda exactamente igual que en la v293. Cuesta más tiempo y memoria: en la prueba sintética de 4 fotos, ~11 s.
+- `solveCamera` admite `features` y `baPoints`; `compose` admite `levels`.
+
 ### v293 · Panorámica: opciones avanzadas
 - Nuevo bloque plegado «Opciones avanzadas» en el editor de Panorámica (móvil y escritorio; cerrado por defecto, con los desplegables cerrados): **proyección** (automática, cilíndrica, esférica, plana, estereográfica), **mezcla** (calidad multibanda, rápida por costura, degradado), corregir la **distorsión de la lente**, igualar la **exposición** y ordenar las fotos **solas**.
 - Los valores por defecto son los de siempre: sin tocar nada, el resultado es idéntico al de la v292.

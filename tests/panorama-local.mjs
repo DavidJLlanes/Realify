@@ -34,9 +34,11 @@ const res = await page.evaluate(async () => {
   // Opciones avanzadas: cada proyección y mezcla produce un mosaico válido
   const opts = {};
   for(const projection of ["rect", "stereo", "sph"]){ const o = await S.stitchLocal(cans, { projection, blend: "seam", lens: false, exposure: false, autoOrder: false }); opts[projection] = [o.width, o.height]; }
+  // Premium 👑: más puntos de unión, ajuste y niveles; debe seguir uniendo las cuatro
+  const t0 = performance.now(), prem = await S.stitchLocal(cans, { premium: true }), premMs = performance.now() - t0, premSize = [prem.width, prem.height];
   // Misma escena con muy poco contraste y ruido: el estirado de contraste debe permitir colocar las cuatro
   CONTRAST = 0.12; NOISE = 3; const flat = order.map(k => view(YAWS[k])), cam2 = await R.solveCamera(cv, flat, {});
-  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f, opts };
+  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f, opts, premSize, premMs };
 });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 console.log(JSON.stringify(res));
@@ -46,5 +48,6 @@ chk(res.flatFound === 4 && Math.abs(res.flatF - res.F) / res.F < 0.03, `con poco
 chk(Math.abs(res.f - res.F) / res.F < 0.01, `focal estimada ${res.f.toFixed(0)} frente a ${res.F}`);
 chk(res.size[0] > res.size[1] * 1.5, "el mosaico debería ser claramente más ancho que alto");
 for(const p of ["rect", "stereo", "sph"]) chk(res.opts[p] && res.opts[p][0] > 200 && res.opts[p][1] > 100, `proyección ${p}: mosaico ${res.opts[p]}`);
+chk(Math.abs(res.premSize[0] - res.size[0]) / res.size[0] < 0.1 && res.premSize[0] > res.premSize[1] * 1.5, `Premium: mosaico ${res.premSize} (normal ${res.size})`);
 chk(!errs.length, "errores de página: " + errs.join("|"));
 await b.close(); srv.close(); console.log(bad ? "panorama-local: FALLO" : "panorama-local: OK"); process.exit(bad ? 1 : 0);
