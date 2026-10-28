@@ -58,9 +58,12 @@
 
 Realify es un editor de imágenes completo que funciona en el navegador. Todo el
 procesado —capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del
-usuario: **las imágenes no se suben a ningún servidor**, con una excepción:
-«Panorámica» une las fotos en tu dispositivo; sólo si falla puedes elegir enviarlas al servidor de Realify (no se guardan). Se instala como app
-(PWA) y funciona sin conexión.
+usuario: **las imágenes no se suben a ningún servidor**. Hay una única excepción,
+y es opcional: si «Panorámica» no consigue unir las fotos en tu dispositivo, puede
+ofrecerte enviarlas a un pequeño servicio en Python del servidor de Realify
+(sólo si lo aceptas; no se guardan). Quien instale Realify por su cuenta **no
+necesita montar ese servicio** (ver [«Servicio de panorámicas»](#servicio-de-panorámicas-opcional)).
+Se instala como app (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
 describe la versión **286** (ver la [lista de cambios](./docs/CHANGELOG.md)).
@@ -126,8 +129,9 @@ el pulgar. Instalable y disponible sin conexión.
 
 - **Sin instalación ni cuenta**: basta con abrir [realify.es](https://realify.es).
 - **Privado por diseño**: el procesado es local; los modelos de IA se
-  descargan y las imágenes no se suben (única excepción: «Panorámica», que las
-  envía al servidor de Realify para unirlas, sin guardarlas).
+  descargan y las imágenes no se suben (única excepción, opcional: el respaldo
+  de «Panorámica», que sólo envía las fotos al servicio en Python si lo aceptas
+  tras un fallo local, sin guardarlas).
 - **Escritorio y móvil**: menús clásicos en escritorio; en móvil, barra
   inferior y un cajón de herramientas ordenado por objetivo (básicos,
   automáticos, mejorar, corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
@@ -358,9 +362,28 @@ y abre `http://localhost:8080`.
 
 ### Servicio de panorámicas (opcional)
 
-Las panorámicas de Realify se unen en el dispositivo del usuario. Como respaldo opcional (sólo si el usuario lo confirma tras un fallo local) existe un pequeño servicio en Python (FastAPI + OpenCV Stitcher) que corre en tu propio
-servidor. La guía paso a paso, con la configuración de nginx y la solución de problemas, está en
-[`server/panorama/README.md`](server/panorama/README.md).
+**No es obligatorio instalarlo.** Desde la v287 las panorámicas se unen **en el dispositivo
+del usuario** (OpenCV.js en el navegador): orden automático, proyecciones, horizonte,
+máscaras, puntos de control… todo sin servidor. Con Realify funcionando y este servicio
+parado o sin instalar, la panorámica funciona igual.
+
+El servicio en Python (FastAPI + OpenCV Stitcher, en `server/panorama/`) es sólo un
+**respaldo de emergencia**:
+
+- **Cuándo se usa:** únicamente si la unión en el dispositivo falla (por ejemplo, no se
+  encuentra solape entre las fotos o no se puede cargar OpenCV). Entonces el editor
+  pregunta «¿Probar con el servidor de Realify?» y las fotos se envían **sólo si el
+  usuario acepta** (no se guardan). Si dice que no, no se envía nada.
+- **Qué pierde el usuario en ese caso:** el servidor hace una unión básica; no usa las
+  máscaras, los puntos de control, la proyección, el horizonte ni el recorte manual.
+- **Si no lo instalas:** el respaldo simplemente no está disponible y el editor muestra
+  el error de la unión local. Nada más se ve afectado.
+- **Si lo instalas:** conviene sólo si quieres ofrecer esa segunda oportunidad a tus
+  usuarios y aceptas que ese camino envíe las fotos a tu servidor. Gasta CPU y memoria
+  del servidor mientras une.
+
+Si lo quieres, la guía paso a paso, con la configuración de nginx y la solución de
+problemas, está en [`server/panorama/README.md`](server/panorama/README.md).
 
 ## 20. Tecnología
 

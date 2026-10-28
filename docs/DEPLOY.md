@@ -111,7 +111,7 @@ Al publicar por primera vez la estructura reorganizada hay **dos pasos manuales 
 1. **nginx**: copia al bloque `server { … }` de realify.es las líneas `location ^~ /tests/`, `/tools/`, `/docs/`,
    `/design/`, `/node_modules/` y `package.json` de [`server/nginx/nginx-realify.conf.example`](../server/nginx/nginx-realify.conf.example) y recarga
    (`sudo nginx -t && sudo systemctl reload nginx`). Hasta entonces esas carpetas internas quedarían visibles.
-2. **Servicio de panorámicas** (`/api/stitch`): su código pasa de `panorama/` a `server/panorama/`. El proceso que
+2. **Servicio de panorámicas** (`/api/stitch`, opcional: sólo si lo tienes instalado como respaldo): su código pasa de `panorama/` a `server/panorama/`. El proceso que
    ya está en marcha sigue funcionando hasta que se reinicie, pero no volvería a arrancar con la ruta antigua. Tras
    desplegar:
    ```bash
