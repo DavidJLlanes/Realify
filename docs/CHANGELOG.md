@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v288 · Panorámica: banco de medidas y ordenación más rápida
+- **Más rápida**: las fotos se ordenan con 1500 puntos por foto (antes 5000), sin perder precisión. Con 10 fotos pasa de ~50 s a ~15 s y con las 5 fotos de prueba de ~14 s a ~9 s (Chromium sin GPU). El alineado final sigue usando 5000.
+- `createPairMatcher` (`js/cv/align.js`) admite `features` (por defecto 5000: HDR y Apilar no cambian).
+- **Banco de medidas** `tests/panorama-banco.mjs`: ocho escenas sintéticas de verdad conocida (base, larga, a pulso, poca textura, distorsión de lente, paralaje, objetos en movimiento, ruido y exposición) que miden error de giro y de focal, tiempos y tamaño del mosaico, y guardan JSON para comparar etapas.
+- **Hoja de ruta** de la panorámica en `docs/PENDIENTE.md` (fase 21): medidas de partida y etapas siguientes (ajuste de haces, lente, costura y mezcla, mejores puntos, opciones avanzadas, Premium).
+
 ### v287 · Panorámica en tu dispositivo
 - **«Panorámica» ya no usa el servidor por defecto**: las fotos se unen en el navegador (OpenCV.js, descarga única de 11 MB al usarla), así que el VPS no gasta recursos y las fotos no salen del dispositivo.
 - **Nuevo motor** (`plugins/panorama/`): puntos ORB + RANSAC entre parejas, distancia focal y giro de cada foto con modelo de cámara de giro puro, proyección cilíndrica o esférica (según el campo vertical), orden de las fotos automático (hasta 10) aunque se añadan desordenadas, igualado de exposición en luz lineal y mezcla por costuras (`seam`) sin fantasmas en los solapes, todo fuera del hilo de la interfaz salvo OpenCV. Premium 👑: más resolución y remuestreo Lanczos.

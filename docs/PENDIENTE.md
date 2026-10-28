@@ -341,6 +341,47 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → …)
+
+Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
+`main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
+revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs` (`SALIDA=ruta.json`, `FOTOS=<carpeta>`).
+
+- [x] **Etapa 0 · Base** (v287): cosido en el dispositivo (ORB + RANSAC, giro puro, cilindro/esfera, orden automático, costuras `seam`);
+      servidor sólo como respaldo con permiso.
+- [x] **Etapa 1 · Medir y afinar** (v288): banco `tests/panorama-banco.mjs` con ocho escenas de verdad conocida; ordenar las fotos con
+      1500 puntos (en vez de 5000) deja la precisión igual y quita ~70 % del tiempo (10 fotos: 50 s → 15 s; tus 5 fotos: 14 s → 9 s,
+      en Chromium sin GPU).
+      Medidas de partida (v288, giro entre fotos / focal):
+
+      | Escena | Colocadas | Giro medio | Giro máx. | Focal | Veredicto |
+      |---|---|---|---|---|---|
+      | base (4) · larga (10) · pulso (6) | todas | 0,05–0,09° | ≤ 0,2° | ≤ 0,5 % | bien |
+      | objetos en movimiento · ruido y exposición | todas | ≤ 0,06° | ≤ 0,11° | ≤ 0,1 % | bien |
+      | **distorsión de lente** (k1 = −0,08) | todas | **5,0°** | **9,9°** | **8,5 %** | falla → etapa 3 |
+      | **paralaje** (cámara desplazada 12 cm/foto) | todas | **2,5°** | **4,8°** | 3,9 % | límite del giro puro → etapas 2, 4 y 6 |
+      | **poca textura** (contraste 12 %) | **1 de 4** | — | — | — | falla → etapa 5 |
+
+      Pendiente de la etapa: medir con fotos reales variadas (panorámica de 10+, personas/coches, interior, móvil) y más de 10 fotos
+      (hoy sólo se ordenan solas hasta 10); medir memoria real (el heap de JS del banco es poco fiable con WASM).
+- [ ] **Etapa 2 · Ajuste de haces**: optimizar a la vez focal y giro de todas las fotos (Levenberg–Marquardt sobre todos los
+      puntos), para que una panorámica larga no se descuadre al final. Debe bajar el error de paralaje y de `larga` sin tocar el resto.
+- [ ] **Etapa 3 · Lente**: distorsión radial (k1, k2), centro óptico y focal del EXIF dentro del ajuste. Meta: la escena `distorsion`
+      por debajo de 0,3° de giro medio y 1 % de focal.
+- [ ] **Etapa 4 · Costura y mezcla**: costura óptima que esquive objetos en movimiento y mezcla multibanda (Laplaciana).
+      Falta una medida de calidad de costura en el banco (diferencia en los solapes frente a la escena real).
+- [ ] **Etapa 5 · Mejores puntos**: detector más robusto que ORB (SIFT o equivalente en WASM; el OpenCV.js de `js/vendor` no lo trae)
+      y emparejado por zonas. Meta: la escena `pocatextura` coloca las 4.
+- [ ] **Etapa 6 · Opciones avanzadas** (plegadas): más proyecciones, qué optimizar, edición de puntos de control, máscaras, recorte
+      manual. Sin tocar la vista normal.
+- [ ] **Etapa 7 · Premium 👑**: repartir motor bueno y mejor (ajuste de haces completo, mezcla multibanda, luz lineal, resolución
+      mayor); apagado, queda como antes.
+- [ ] **Transversal**: más de 10 fotos con orden automático (grafo de coincidencias en vez de todas las parejas); límite de memoria
+      en móvil; probar el cosido local en un móvil real; leer la focal del EXIF.
+
+**Seguridad de la copia**: etiqueta `v287-backup` en GitHub (estado antes de esta fase). Falta proteger `main` (Settings › Branches)
+y una copia `--mirror` fuera de GitHub.
+
 ---
 
 ## Descartado y por qué

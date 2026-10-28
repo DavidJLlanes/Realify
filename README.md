@@ -142,6 +142,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v288** | **Panorámica más rápida** (ordenar las fotos es ~3× más rápido) y banco de medidas con hoja de ruta hacia el nivel de PTGui (`docs/PENDIENTE.md`, fase 21). |
 | **v287** | **Panorámica en tu dispositivo**: las fotos se unen en el navegador (OpenCV.js, orden automático, cilíndrica/esférica, sin fantasmas); el servidor queda como respaldo opcional con confirmación. |
 | **v286** | **Revisión de errores**: «Panorámica» avisa de que envía las fotos al servidor (política de privacidad corregida) y su servicio tiene límites; se retira del filtro Unmark el apoyo por servidor que no funcionaba; el despliegue ejecuta las comprobaciones antes de publicar. |
 | **v285** | **Collage**: formas libres, miniaturas más grandes en móvil y zonas seguras de historias y TikTok. |

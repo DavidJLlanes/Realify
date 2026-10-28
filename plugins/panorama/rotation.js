@@ -30,7 +30,7 @@ import { createPairMatcher, mmul, minv } from "../../js/cv/align.js";
 /** Más fotos que esto: se respeta el orden dado (comparar todas las parejas costaría demasiado). */
 const MAX_AUTO_ORDER = 10;
 /** Lado (px) y mínimo de coincidencias con que se compara cada pareja para ORDENAR las fotos (más baratos que para alinearlas). */
-const ORDER_SIDE = 640, ORDER_MIN_INLIERS = 10;
+const ORDER_FEATURES = 1500, ORDER_SIDE = 640, ORDER_MIN_INLIERS = 10;
 /** Distancia máxima (norma de Frobenius) entre K⁻¹·H·K y su rotación más cercana; más allá la pareja no es un giro. */
 const MAX_NOT_ROTATION = 0.6;
 
@@ -107,7 +107,7 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
   // Orden: coincidencias entre todas las parejas a baja resolución (barato) y camino que más puntos reúne
   let order = set.map((_, i) => i);
   if(autoOrder && n > 2 && n <= MAX_AUTO_ORDER){
-    const rough = createPairMatcher(cv, set, { maxSide: ORDER_SIDE }), score = Array.from({ length: n }, () => Array(n).fill(0));
+    const rough = createPairMatcher(cv, set, { maxSide: ORDER_SIDE, features: ORDER_FEATURES }), score = Array.from({ length: n }, () => Array(n).fill(0));
     try{
       let done = 0;
       const total = n * (n - 1) / 2;

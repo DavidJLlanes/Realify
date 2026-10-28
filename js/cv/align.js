@@ -89,8 +89,8 @@ function featureHomography(cv, ref, img){
  * El alineado panorámico usa un grafo de coincidencias; recalcular los
  * descriptores en cada arista multiplica innecesariamente el coste.
  */
-export function createPairMatcher(cv, canvases, { maxSide = SIDE.feat } = {}){
-  const orb = new cv.ORB(5000), mask = new cv.Mat(), sets = [];
+export function createPairMatcher(cv, canvases, { maxSide = SIDE.feat, features = 5000 } = {}){
+  const orb = new cv.ORB(features), mask = new cv.Mat(), sets = [];
   try{
     for(const canvas of canvases){
       const g = grayMat(cv, canvas, maxSide), keypoints = new cv.KeyPointVector(), descriptors = new cv.Mat();
