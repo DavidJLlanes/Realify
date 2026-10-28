@@ -65,7 +65,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
     subtitle();
   }
   sh.stage.addEventListener("click", e => {
-    if(e.target.closest("[data-add]")) addPhotos(); else if(e.target.closest("[data-cur]")) addCurrent(); else if(e.target.closest("[data-prev]")) updatePreview();
+    if(e.target.closest("[data-add]")) addPhotos(); else if(e.target.closest("[data-cur]")) addCurrent(); else if(e.target.closest("[data-prev]")) updatePreview(true);
   });
   sh.stage.addEventListener("dragover", e => e.preventDefault());
   sh.stage.addEventListener("drop", e => {
