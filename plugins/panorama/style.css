@@ -35,3 +35,7 @@
   .pano-pts-pair{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
   .pano-ov-tools select{max-width:40vw}
 }
+
+/* Panorámica no lleva historial: sin deshacer/rehacer (en el móvil el botón «Crear» no cabía con ellos) */
+.fsp-panorama [data-a="undo"],.fsp-panorama [data-a="redo"]{display:none}
+.pano-ov-tools label{white-space:nowrap}

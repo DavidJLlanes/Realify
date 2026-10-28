@@ -1,16 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
    PANORÁMICA · COSIDO EN EL DISPOSITIVO
-   Coordina el cosido sin servidor:
-     1. Descarga OpenCV.js si hace falta (js/cv/opencv.js, ~11 MB, una vez).
-     2. rotation.js › solveCamera: focal, orden y giro de cada foto, con
-        copias pequeñas (rápido).
-     3. rotation.js › warpPanorama: cada foto, a la resolución final, al
-        cilindro o a la esfera con un solo remuestreo.
-     4. worker.js: igualar exposición, mezclar (costura por donde menos
-        difieren las fotos + pirámides de Laplace) y recortar fuera del
-        hilo de la interfaz.
-   Los fallos se lanzan como `StitchError` con un `code` para que la
-   ventana decida qué ofrecer (p. ej. probar con el servidor).
+   Coordina el cosido sin servidor en dos pasos:
+     analyzePhotos (lento, una vez)
+       1. Descarga OpenCV.js si hace falta (js/cv/opencv.js, ~11 MB).
+       2. rotation.js › solveCamera: focal, lente, orden y giro de cada
+          foto con copias pequeñas, con los puntos de control manuales.
+     renderPanorama (rápido, se repite al cambiar opciones)
+       3. projections.js: horizonte (nivelar, rumbo, inclinación, giro).
+       4. rotation.js › warpPanorama: cada foto, a la resolución final, a
+          la proyección elegida con un solo remuestreo.
+       5. masks.js: zonas excluidas y «mantener».
+       6. worker.js: igualar exposición, mezclar (costura por donde menos
+          difieren las fotos + pirámides de Laplace) y recortar fuera del
+          hilo de la interfaz; recorte manual al final.
+   `stitchLocal` hace los dos pasos seguidos. Los fallos se lanzan como
+   `StitchError` con un `code` para que la ventana decida qué ofrecer
+   (p. ej. probar con el servidor).
    ═══════════════════════════════════════════════════════════════ */
 
 import { loadOpenCv } from "../../js/cv/opencv.js";

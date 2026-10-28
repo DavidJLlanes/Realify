@@ -1,11 +1,11 @@
 {
- "generated": "2026-10-28T11:54:46.007Z",
+ "generated": "2026-10-28T16:31:23.774Z",
  "root": "/home/claude/realify",
- "jsFiles": 501,
- "jsLines": 92538,
+ "jsFiles": 516,
+ "jsLines": 94096,
  "brokenRefs": [],
  "softMissing": [],
- "nonLiteralDynamicImports": 61,
+ "nonLiteralDynamicImports": 64,
  "staticCycles": [],
  "storage": {
   "localStorage": [
@@ -44,6 +44,7 @@
    "realify.lensProfiles",
    "realify.onboarded.v1",
    "realify.opencvAsked",
+   "realify.panorama.options",
    "realify.paraStyles",
    "realify.pdf",
    "realify.premium.",
@@ -138,6 +139,7 @@
   "an.palette",
   "an.spectrum",
   "an.strip",
+  "analysis.cam",
   "brush.gradient",
   "brush.settings",
   "brush.symmetric",
@@ -388,6 +390,8 @@
   "perspective.clear",
   "perspective.fill",
   "perspective.reset",
+  "photo.excl",
+  "photo.keep",
   "policy.maker",
   "portapapeles.png",
   "profile.normDiag",
@@ -461,6 +465,9 @@
   "state.cropRect",
   "state.s",
   "t.content",
+  "t.masks",
+  "t.points",
+  "t.preview",
   "text.path",
   "text.removePath",
   "text.saveCharStyle",
@@ -3065,6 +3072,17 @@
    "openMergeEditor",
    "renderSimple"
   ],
+  "plugins/panorama/bundle.js": [
+   "angleBetween",
+   "expRot",
+   "medianResidual",
+   "refineCamera",
+   "undistort"
+  ],
+  "plugins/panorama/color.js": [
+   "TO_LIN",
+   "enc"
+  ],
   "plugins/panorama/engine.js": [
    "compose",
    "placed"
@@ -3072,7 +3090,42 @@
   "plugins/panorama/index.js": [
    "openPanorama"
   ],
+  "plugins/panorama/mask-editor.js": [
+   "openMaskEditor"
+  ],
+  "plugins/panorama/masks.js": [
+   "applyKeep",
+   "excludedCopy",
+   "grayedCopy",
+   "hasInk",
+   "keepCanvas"
+  ],
+  "plugins/panorama/multiband.js": [
+   "blendMultiband",
+   "edgeDistance",
+   "pyramidLevels",
+   "seamOwners"
+  ],
+  "plugins/panorama/overlay.js": [
+   "createOverlay",
+   "unitPoint"
+  ],
+  "plugins/panorama/points-editor.js": [
+   "MIN_POINTS",
+   "openPointsEditor",
+   "pairPoints"
+  ],
+  "plugins/panorama/projections.js": [
+   "PROJECTION_IDS",
+   "UNBOUNDED_WIDTH",
+   "levelRotation",
+   "project",
+   "rotateWorld",
+   "unproject",
+   "worldRotation"
+  ],
   "plugins/panorama/rotation.js": [
+   "MAX_AUTO_ORDER",
    "focalsFromHomography",
    "nearestRotation",
    "orderByOverlap",
@@ -3083,7 +3136,10 @@
    "stitchOnServer"
   ],
   "plugins/panorama/stitch.js": [
+   "AUTO_ORDER_LIMIT",
    "StitchError",
+   "analyzePhotos",
+   "renderPanorama",
    "stitchLocal"
   ],
   "plugins/panorama/ui.js": [
@@ -3353,7 +3409,7 @@
  },
  "dirEdges": {
   "js/editor -> js/core": 265,
-  "plugins -> js/core": 101,
+  "plugins -> js/core": 104,
   "js/app -> js/editor": 97,
   "js/features -> js/core": 91,
   "js/io -> js/core": 66,

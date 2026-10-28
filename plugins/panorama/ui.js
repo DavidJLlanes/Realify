@@ -43,7 +43,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
   const O = { projection: "auto", blend: "multiband", lens: true, exposure: true, autoOrder: true, autoCrop: true,
               level: false, yaw: 0, pitch: 0, roll: 0, cropL: 0, cropT: 0, cropR: 0, cropB: 0, ...Object.fromEntries(Object.entries(loadPrefs()).filter(([k]) => REMEMBERED.includes(k))) };
 
-  const sh = createShell({ title: "Panorámica desde fotos", subtitle: "Añade tus fotos para unirlas", applyLabel: "Crear panorámica", cls: "fsp-panorama", onCancel: () => close(), onApply: () => apply() });
+  const sh = createShell({ title: "Panorámica desde fotos", subtitle: "Añade tus fotos para unirlas", applyLabel: TOUCH ? "Crear" : "Crear panorámica", cls: "fsp-panorama", onCancel: () => close(), onApply: () => apply() });
   sh.addAction(premiumSwitch({ checked: S.premium, title: "Procesado panorámico Premium", onChange: on => { S.premium = on; premiumPref.set("panorama", on); sh.setClass("is-premium", on); } }));
   sh.setClass("is-premium", S.premium);
   sh.setApplyEnabled(false);
