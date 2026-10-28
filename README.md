@@ -142,6 +142,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v293** | **Panorámica con opciones avanzadas** plegadas: proyección (plana, estereográfica…), mezcla, lente, exposición y orden. |
 | **v292** | **Panorámica con fotos de poco contraste** (cielo, niebla, paredes lisas): ya encuentra puntos de unión donde antes no colocaba ninguna foto. |
 | **v291** | **Panorámica: costuras inteligentes y mezcla multibanda** (sin objetos a medias ni escalones de exposición). |
 | **v290** | **Panorámica: corrige la distorsión de la lente** (la estima sola cuando hace falta y la deshace al unir). |

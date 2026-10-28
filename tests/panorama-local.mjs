@@ -31,9 +31,12 @@ const res = await page.evaluate(async () => {
   const { cv } = await loadOpenCv();
   const cam = await R.solveCamera(cv, cans, {});
   const out = await S.stitchLocal(cans, { premium: false, autoCrop: true });
+  // Opciones avanzadas: cada proyección y mezcla produce un mosaico válido
+  const opts = {};
+  for(const projection of ["rect", "stereo", "sph"]){ const o = await S.stitchLocal(cans, { projection, blend: "seam", lens: false, exposure: false, autoOrder: false }); opts[projection] = [o.width, o.height]; }
   // Misma escena con muy poco contraste y ruido: el estirado de contraste debe permitir colocar las cuatro
   CONTRAST = 0.12; NOISE = 3; const flat = order.map(k => view(YAWS[k])), cam2 = await R.solveCamera(cv, flat, {});
-  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f };
+  return { f: cam.f, F, ba: !!cam.ba?.used, found: cam.found.filter(Boolean).length, order: cam.order, size: [out.width, out.height], flatFound: cam2.found.filter(Boolean).length, flatF: cam2.f, opts };
 });
 let bad = 0; const chk = (c, m) => { if(!c){ bad++; console.log("FALLO:", m); } };
 console.log(JSON.stringify(res));
@@ -42,5 +45,6 @@ chk(res.ba, "el ajuste de haces no se aplicó");
 chk(res.flatFound === 4 && Math.abs(res.flatF - res.F) / res.F < 0.03, `con poco contraste se colocaron ${res.flatFound} de 4 (focal ${res.flatF.toFixed(0)} frente a ${res.F})`);
 chk(Math.abs(res.f - res.F) / res.F < 0.01, `focal estimada ${res.f.toFixed(0)} frente a ${res.F}`);
 chk(res.size[0] > res.size[1] * 1.5, "el mosaico debería ser claramente más ancho que alto");
+for(const p of ["rect", "stereo", "sph"]) chk(res.opts[p] && res.opts[p][0] > 200 && res.opts[p][1] > 100, `proyección ${p}: mosaico ${res.opts[p]}`);
 chk(!errs.length, "errores de página: " + errs.join("|"));
 await b.close(); srv.close(); console.log(bad ? "panorama-local: FALLO" : "panorama-local: OK"); process.exit(bad ? 1 : 0);

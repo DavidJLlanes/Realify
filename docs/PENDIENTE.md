@@ -341,7 +341,7 @@ compensa adoptar ninguna**:
 - [x] **Límite de memoria** (v248, `tests/codec-memoria.mjs`): AVIF 8/10 bits aguantan 24 MP (pico ≈ 2,4 GB); JPEG XL aborta a 24 MP
       (se agota el WASM de 4 GB) y funciona a 20 MP, así que el límite pasa a 16 MP en ordenador y 6 MP en móvil.
 
-## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v292)
+## Fase 21 · Panorámica al nivel de PTGui 🚧 en curso (v287 → v293)
 
 Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propia, versión, prueba y documentación; no se sube a
 `main` hasta que lo pida el titular. La interfaz sigue mínima (vista normal casi sin opciones; lo avanzado, plegado) y todo se
@@ -408,8 +408,10 @@ revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs`
       pero cambia el tono relativo entre fotos con contenido distinto).
       Pendiente: fotos reales de baja textura (cielo, niebla, paredes lisas) para confirmar el umbral; emparejado por zonas si aparecen
       concentraciones de puntos; fachadas repetidas sigue siendo un riesgo (se mantiene el filtro de atajos).
-- [ ] **Etapa 6 · Opciones avanzadas** (plegadas): más proyecciones, qué optimizar, edición de puntos de control, máscaras, recorte
-      manual. Sin tocar la vista normal.
+- [x] **Etapa 6 · Opciones avanzadas** (v293), plegadas y con los valores de siempre por defecto: proyección (automática, cilíndrica,
+      esférica, plana, estereográfica), mezcla (multibanda / costura / degradado), lente, exposición y orden automático.
+      Pendiente de esta etapa: edición manual de puntos de control, máscaras (excluir/forzar zonas) y recorte manual; proyecciones
+      de pez-ojo y de Mercator; guardar los ajustes entre sesiones.
 - [ ] **Etapa 7 · Premium 👑**: repartir motor bueno y mejor (ajuste de haces completo, mezcla multibanda, luz lineal, resolución
       mayor); apagado, queda como antes.
 - [ ] **Transversal**: más de 10 fotos con orden automático (grafo de coincidencias en vez de todas las parejas); límite de memoria

@@ -117,9 +117,10 @@ const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 /**
  * Estima focal y giro de cada foto. `set`: lienzos de la misma altura. Cede el hilo entre pareja y pareja para que la
  * interfaz siga viva; `onProgress(texto)` informa de lo que se está haciendo.
+ * `autoOrder:false` respeta el orden dado; `lens:false` no corrige la distorsión de la lente.
  * Devuelve { R (por foto, null si no se pudo colocar), f (px de `set`), order, found, info, fEstimated }.
  */
-export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, autoOrder = true, onProgress = null } = {}){
+export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, autoOrder = true, lens = true, onProgress = null } = {}){
   const n = set.length;
   // Orden: coincidencias entre todas las parejas a baja resolución (barato) y camino que más puntos reúne
   let order = set.map((_, i) => i);
@@ -195,10 +196,10 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
       if(!out.rejected){
         ba.used = true;
         // Distorsión de lente (k1, k2) común a todas las fotos, con una pérdida que ignora las coincidencias lejanas
-        if(out.count >= LENS_MIN_POINTS && out.medAfter > LENS_MIN_RESIDUAL * scale){
-          const lens = refineCamera({ R: out.R, f: out.f, centers, obs, fixed: order[0], huber: 2 * scale, distortion: 2, loss: "cauchy" });
-          ba.lens = { medAfter: lens.medAfter, k: lens.k, f: lens.f, rejected: !!lens.rejected, accepted: false };
-          if(!lens.rejected && lens.medAfter < LENS_MIN_GAIN * out.medAfter && Math.abs(lens.k[0]) < LENS_MAX_K1 && Math.abs(lens.k[1]) < LENS_MAX_K2){ best = lens; ba.lens.accepted = true; }
+        if(lens && out.count >= LENS_MIN_POINTS && out.medAfter > LENS_MIN_RESIDUAL * scale){
+          const fit = refineCamera({ R: out.R, f: out.f, centers, obs, fixed: order[0], huber: 2 * scale, distortion: 2, loss: "cauchy" });
+          ba.lens = { medAfter: fit.medAfter, k: fit.k, f: fit.f, rejected: !!fit.rejected, accepted: false };
+          if(!fit.rejected && fit.medAfter < LENS_MIN_GAIN * out.medAfter && Math.abs(fit.k[0]) < LENS_MAX_K1 && Math.abs(fit.k[1]) < LENS_MAX_K2){ best = fit; ba.lens.accepted = true; }
         }
         for(let i = 0; i < n; i++) R[i] = best.R[i] && tr3(best.R[i]);
         f = best.f; k = best.k ? [best.k[0], best.k[1]] : [0, 0];
@@ -220,10 +221,17 @@ export async function solveCamera(cv, set, { minInliers = 18, maxSide = 1600, au
  * Devuelve { images:[{ w, h, data (RGBA, alfa 0 fuera de la foto), x, y, i }], W, H } o { error, tooBig? } (`tooBig`: no cabe en `maxArea`).
  */
 export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = "linear", maxArea = 16e6, onStep = null } = {}){
-  const { R, f } = cam, sph = projection === "sph", K = cam.k || [0, 0], lens = K[0] !== 0 || K[1] !== 0;
+  const { R, f } = cam, sph = projection === "sph", rect = projection === "rect", stereo = projection === "stereo", K = cam.k || [0, 0], lens = K[0] !== 0 || K[1] !== 0;
+  const TOO_WIDE = "Las fotos abarcan un campo demasiado ancho para esta proyección. Prueba con la esférica o con menos fotos.";
   const idx = set.map((_, i) => i).filter(i => R[i]);
   if(idx.length < 2) return { error: "No se encontró solape suficiente entre las fotos. Revisa que se solapen al menos un tercio." };
-  const project = r => {   // rayo del mundo → coordenadas del cilindro / esfera (px)
+  const project = r => {   // rayo del mundo → coordenadas del mosaico (px)
+    if(rect) return r[2] > 0.05 * Math.hypot(r[0], r[1], r[2]) ? [f * r[0] / r[2], f * r[1] / r[2]] : null;
+    if(stereo){   // estereográfica: ρ = 2f·tan(θ/2), θ = ángulo con el eje de la foto central
+      const n = Math.hypot(r[0], r[1], r[2]), c = r[2] / n; if(c < -0.95) return null;
+      const rho2 = 2 * f * Math.tan(Math.acos(Math.max(-1, Math.min(1, c))) / 2), h = Math.hypot(r[0], r[1]);
+      return h < 1e-12 ? [0, 0] : [rho2 * r[0] / h, rho2 * r[1] / h];
+    }
     const rho = Math.hypot(r[0], r[2]);
     if(rho < 1e-9) return null;
     return [f * Math.atan2(r[0], r[2]), sph ? f * Math.atan2(r[1], rho) : f * r[1] / rho];
@@ -240,7 +248,7 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
         const [ux, uy] = lens ? undistort((px - c.width / 2) / f, (py - c.height / 2) / f, K) : [(px - c.width / 2) / f, (py - c.height / 2) / f];
         const d = [ux, uy, 1];
         const q = project([Rt[0] * d[0] + Rt[1] * d[1] + Rt[2] * d[2], Rt[3] * d[0] + Rt[4] * d[1] + Rt[5] * d[2], Rt[6] * d[0] + Rt[7] * d[1] + Rt[8] * d[2]]);
-        if(!q || !Number.isFinite(q[0]) || !Number.isFinite(q[1]) || Math.abs(q[1]) > 1e6) return { error: "Las fotos abarcan un campo demasiado ancho para esta proyección. Prueba con la esférica o con menos fotos." };
+        if(!q || !Number.isFinite(q[0]) || !Number.isFinite(q[1]) || Math.abs(q[1]) > 1e6) return { error: TOO_WIDE };
         x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]);
       }
     }
@@ -249,7 +257,7 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
     minX = Math.min(minX, b.x0); minY = Math.min(minY, b.y0); maxX = Math.max(maxX, b.x1); maxY = Math.max(maxY, b.y1);
   }
   const W = maxX - minX, H = maxY - minY;
-  if(!Number.isFinite(W * H) || W < 8 || H < 8 || W > 2 * Math.PI * f * 0.98) return { error: "Las fotos abarcan un campo demasiado ancho para esta proyección. Prueba con la esférica o con menos fotos." };
+  if(!Number.isFinite(W * H) || W < 8 || H < 8 || (!rect && !stereo && W > 2 * Math.PI * f * 0.98)) return { error: TOO_WIDE };
   if(W * H > maxArea) return { error: "El resultado sería demasiado grande para este dispositivo. Prueba con menos fotos o con menos resolución.", tooBig: true };
 
   const cvInterp = interp === "lanczos" ? cv.INTER_LANCZOS4 : cv.INTER_LINEAR;
@@ -263,19 +271,25 @@ export async function warpPanorama(cv, set, cam, { projection = "cyl", interp = 
     const data = new Uint8ClampedArray(bw * bh * 4);
     // Senos y cosenos del ángulo de cada columna (no dependen de la fila)
     const sinT = new Float32Array(bw), cosT = new Float32Array(bw);
-    for(let x = 0; x < bw; x++){ const th = (b.x0 + x) / f; sinT[x] = Math.sin(th); cosT[x] = Math.cos(th); }
+    if(!rect && !stereo) for(let x = 0; x < bw; x++){ const th = (b.x0 + x) / f; sinT[x] = Math.sin(th); cosT[x] = Math.cos(th); }
     // Por bandas de filas, para no gastar memoria con el mapa de remuestreo
     const band = Math.max(16, Math.floor(2e6 / bw));
     try{
       for(let y0 = 0; y0 < bh; y0 += band){
         const rows = Math.min(band, bh - y0), map = new Float32Array(bw * rows * 2);
         for(let y = 0; y < rows; y++){
-          const v = (b.y0 + y0 + y) / f, A = sph ? Math.cos(v) : 1, B = sph ? Math.sin(v) : v;
+          const Yo = b.y0 + y0 + y, v = Yo / f, A = sph ? Math.cos(v) : 1, B = sph ? Math.sin(v) : v;
           for(let x = 0; x < bw; x++){
-            const rx = sinT[x] * A, rz = cosT[x] * A, o = (y * bw + x) * 2;
-            const z = r[6] * rx + r[7] * B + r[8] * rz;
+            let rx, rz, By = B;   // rayo del mundo que cae en este píxel del mosaico
+            if(rect){ rx = (b.x0 + x) / f; rz = 1; By = v; }
+            else if(stereo){
+              const X = b.x0 + x, hh = Math.hypot(X, Yo);
+              if(hh < 1e-9){ rx = 0; By = 0; rz = 1; } else { const th = 2 * Math.atan(hh / (2 * f)), k2 = Math.sin(th) / hh; rx = X * k2; By = Yo * k2; rz = Math.cos(th); }
+            } else { rx = sinT[x] * A; rz = cosT[x] * A; }
+            const o = (y * bw + x) * 2;
+            const z = r[6] * rx + r[7] * By + r[8] * rz;
             if(z <= 1e-6){ map[o] = -1; map[o + 1] = -1; continue; }
-            let u = (r[0] * rx + r[1] * B + r[2] * rz) / z, w = (r[3] * rx + r[4] * B + r[5] * rz) / z;
+            let u = (r[0] * rx + r[1] * By + r[2] * rz) / z, w = (r[3] * rx + r[4] * By + r[5] * rz) / z;
             if(lens){   // del plano sin distorsión al medido: se invierte x·(1 + k1·r² + k2·r⁴) por punto fijo
               let xd = u, yd = w;
               for(let it = 0; it < 8; it++){ const r2 = xd * xd + yd * yd, s = 1 + K[0] * r2 + K[1] * r2 * r2; xd = u / s; yd = w / s; }

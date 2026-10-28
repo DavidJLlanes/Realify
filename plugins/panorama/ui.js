@@ -20,6 +20,9 @@ export function openPanoramaEditor({ current = null, onAccept }){
   let photos = [];
   let seq = 0, closed = false, applying = false;
   let autoCrop = true;
+  /** Opciones avanzadas (plegadas por defecto): los valores por defecto son el comportamiento de siempre. */
+  const adv = { projection: "auto", blend: "multiband", lens: true, exposure: true, autoOrder: true };
+  let advOpen = false;
 
   const S = {
     premium: premiumPref.get("panorama")
@@ -120,6 +123,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
       </div>
     `;
     container.appendChild(topBar);
+    container.appendChild(advancedPanel());
 
     const grid = document.createElement("div");
     grid.style.cssText = "width:100%;display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:16px;background:rgba(22, 27, 34, 0.8);border:1px solid #30363d;border-radius:12px;padding:16px;box-sizing:border-box;";
@@ -153,6 +157,25 @@ export function openPanoramaEditor({ current = null, onAccept }){
     topBar.querySelector("#chk-autocrop").onchange = e => { autoCrop = e.target.checked; };
     topBar.querySelector("#btn-add-more").onclick = () => addPhotos();
     topBar.querySelector("#btn-clear-all").onclick = () => { photos = []; renderUI(); };
+  }
+
+  /** «Opciones avanzadas»: bloque plegado y mínimo; los desplegables nacen cerrados (sin foco) y se ve igual en móvil y escritorio. */
+  function advancedPanel(){
+    const sel = (key, label, options) => `<label class="pano-adv-row"><span>${label}</span><select data-adv="${key}">${options.map(([v, t]) => `<option value="${v}"${adv[key] === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>`;
+    const chk = (key, label) => `<label class="pano-adv-row"><span>${label}</span><input type="checkbox" data-adv="${key}"${adv[key] ? " checked" : ""} /></label>`;
+    const d = document.createElement("details");
+    d.className = "pano-adv"; d.open = advOpen; d.ontoggle = () => { advOpen = d.open; };
+    d.innerHTML = `<summary>Opciones avanzadas</summary><div class="pano-adv-body">
+      ${sel("projection", "Proyección", [["auto", "Automática"], ["cyl", "Cilíndrica"], ["sph", "Esférica"], ["rect", "Plana (rectilínea)"], ["stereo", "Estereográfica"]])}
+      ${sel("blend", "Mezcla", [["multiband", "Calidad (multibanda)"], ["seam", "Rápida (costura)"], ["feather", "Degradado"]])}
+      ${chk("lens", "Corregir distorsión de lente")}
+      ${chk("exposure", "Igualar exposición")}
+      ${chk("autoOrder", "Ordenar las fotos solas")}
+    </div>`;
+    d.querySelectorAll("[data-adv]").forEach(el => {
+      el.onchange = () => { adv[el.dataset.adv] = el.type === "checkbox" ? el.checked : el.value; };
+    });
+    return d;
   }
 
   async function addItems(items){
@@ -201,7 +224,7 @@ export function openPanoramaEditor({ current = null, onAccept }){
   /** En el dispositivo; si falla, el servidor sólo con permiso expreso (las fotos saldrían del dispositivo). */
   async function stitch(){
     try{
-      return await stitchLocal(photos.map(p => p.full), { premium: S.premium, autoCrop, onProgress: msg => { if(!closed) sh.setBusy(msg); } });
+      return await stitchLocal(photos.map(p => p.full), { premium: S.premium, autoCrop, ...adv, onProgress: msg => { if(!closed) sh.setBusy(msg); } });
     }catch(err){
       if(closed || (err instanceof StitchError && err.code === "few")) throw err;
       sh.setBusy(null);

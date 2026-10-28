@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v293 · Panorámica: opciones avanzadas
+- Nuevo bloque plegado «Opciones avanzadas» en el editor de Panorámica (móvil y escritorio; cerrado por defecto, con los desplegables cerrados): **proyección** (automática, cilíndrica, esférica, plana, estereográfica), **mezcla** (calidad multibanda, rápida por costura, degradado), corregir la **distorsión de la lente**, igualar la **exposición** y ordenar las fotos **solas**.
+- Los valores por defecto son los de siempre: sin tocar nada, el resultado es idéntico al de la v292.
+- `warpPanorama` admite las proyecciones `rect` y `stereo`; `solveCamera` y `stitchLocal` aceptan `lens`, `autoOrder`, `projection`, `blend` y `exposure`. `tests/panorama-local.mjs` comprueba cada proyección.
+
 ### v292 · Panorámica: fotos de poco contraste
 - Las fotos de poco contraste (desviación típica < 22 de 255: cielos, niebla, paredes lisas) se suavizan y se estiran de rango antes de buscar los puntos de unión. Antes ORB no encontraba ni una esquina; en el banco, la escena de poca textura pasa de colocar 1 a colocar las 4 fotos (giro 0,004°), y otra todavía más plana también coloca las 4.
 - Una foto normal no se toca: el resto del banco y tus 5 fotos dan exactamente lo mismo. Sólo afecta a `createPairMatcher` (Panorámica).

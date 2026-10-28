@@ -62,7 +62,9 @@ export const imagenTopic = { id:"imagen", title:"Imagen (menú Imagen)",
           tienen su propia herramienta (<b>Panorámica…</b>): las fotos solapadas (un tercio, más o
           menos) se unen <b>en tu dispositivo</b>, sin subirlas a ningún servidor, en cualquier
           orden; se calcula la posición de cada una, se iguala la exposición, se funden las
-          uniones y se recortan los bordes. La primera vez descarga OpenCV (11 MB). Si falla,
+          uniones y se recortan los bordes. En <b>Opciones avanzadas</b> (plegado) puedes elegir la
+          proyección (cilíndrica, esférica, plana, estereográfica), el tipo de mezcla, y activar o
+          no la corrección de la lente, la igualación de exposición y el orden automático. La primera vez descarga OpenCV (11 MB). Si falla,
           puedes elegir probar con el servidor.</li>
         <li id="img-stack"><b>Apilar fotos Premium 👑…</b> Varias tomas de la misma escena, hechas
           a pulso (del dispositivo o de las abiertas, de 2 a 16). Se <b>alinean con precisión

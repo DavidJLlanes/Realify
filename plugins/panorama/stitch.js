@@ -28,6 +28,9 @@ const MULTIBAND_MAX_AREA = TOUCH ? 6e6 : 12e6;
 /** Con un campo vertical mayor que éste (grados) se proyecta en esfera: en cilindro se estirarían mucho los bordes. */
 const SPHERE_FROM_VFOV = 90;
 
+/** Valores admitidos de las opciones avanzadas (el valor por defecto es lo de siempre). */
+const PROJECTIONS = ["auto", "cyl", "sph", "rect", "stereo"], BLENDS = ["multiband", "seam", "feather"];
+
 /** code: "few" · "no-opencv" · "no-overlap" · "too-big" · "failed" */
 export class StitchError extends Error {
   constructor(message, code){ super(message); this.name = "StitchError"; this.code = code; }
@@ -67,9 +70,14 @@ function blendInWorker(images, options){
  * Une las fotos (lienzos, en cualquier orden) en una panorámica y devuelve el lienzo.
  * @param opts.premium    más resolución y remuestreo Lanczos
  * @param opts.autoCrop   recortar al mayor rectángulo sin huecos
+ * @param opts.projection "auto" (cilindro o esfera según el campo) · "cyl" · "sph" · "rect" (plana) · "stereo"
+ * @param opts.lens       corregir la distorsión de la lente
+ * @param opts.exposure   igualar la exposición entre fotos
+ * @param opts.blend      "multiband" · "seam" (costura sin pirámides) · "feather" (degradado)
+ * @param opts.autoOrder  ordenar las fotos solas (si no, se respeta el orden dado)
  * @param opts.onProgress texto de lo que se está haciendo
  */
-export async function stitchLocal(photos, { premium = false, autoCrop = true, onProgress = () => {} } = {}){
+export async function stitchLocal(photos, { premium = false, autoCrop = true, projection: wanted = "auto", lens = true, exposure = true, blend = "multiband", autoOrder = true, onProgress = () => {} } = {}){
   if(!photos || photos.length < 2) throw new StitchError("Añade al menos dos fotos para crear una panorámica", "few");
   onProgress("Preparando OpenCV…");
   let lib = null;
@@ -81,11 +89,11 @@ export async function stitchLocal(photos, { premium = false, autoCrop = true, on
   try{
     const minHeight = Math.min(...photos.map(c => c.height)), matchH = Math.min(MATCH_HEIGHT, minHeight);
     const small = toHeight(photos, matchH);
-    const cam = await solveCamera(cv, small, { onProgress });
+    const cam = await solveCamera(cv, small, { lens, autoOrder, onProgress });
     if(cam.found.filter(Boolean).length < 2) throw new StitchError("No se encontró solape suficiente entre las fotos. Comprueba que se solapan al menos un tercio.", "no-overlap");
 
     const vFov = 2 * Math.atan(matchH / (2 * cam.f)) * 180 / Math.PI;
-    const projection = vFov > SPHERE_FROM_VFOV ? "sph" : "cyl";
+    const projection = wanted !== "auto" && PROJECTIONS.includes(wanted) ? wanted : vFov > SPHERE_FROM_VFOV ? "sph" : "cyl";
     // Si el mosaico no cabe, se repite más pequeño en vez de fallar
     let height = Math.min(premium ? PREMIUM_HEIGHT : BASIC_HEIGHT, minHeight), warped = null;
     for(let attempt = 0; attempt < 5; attempt++){
@@ -103,7 +111,7 @@ export async function stitchLocal(photos, { premium = false, autoCrop = true, on
 
     onProgress("Igualando exposición y mezclando…");
     await tick();
-    return await blendInWorker(warped.images, { fusion: "multiband", maxArea: MULTIBAND_MAX_AREA, crop: autoCrop, useGain: true });
+    return await blendInWorker(warped.images, { fusion: BLENDS.includes(blend) ? blend : "multiband", maxArea: MULTIBAND_MAX_AREA, crop: autoCrop, useGain: exposure });
   }catch(err){
     if(err instanceof StitchError) throw err;
     throw new StitchError(err?.message || "No se pudo crear la panorámica", "failed");
