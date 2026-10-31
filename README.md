@@ -140,6 +140,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v297** | **Menú Filtro**: los submenús se llaman «Filtros» y «Creativo». |
 | **v296** | **Panorámica sin servidor**: se elimina el respaldo en Python; todo se une en el dispositivo. |
 | **v295** | **Panorámica con editor completo**: vista previa, proyecciones (Mercator, ojo de pez…), horizonte, recorte, máscaras y puntos de control a mano; orden automático hasta 15 fotos. |
 | **v294** | **Panorámica Premium 👑** con motor de más calidad: más puntos de unión, ajuste más fino y mezcla de 6 niveles. |

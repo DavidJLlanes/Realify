@@ -286,7 +286,7 @@ export const MENUS = [
     /* Las mismas secciones «Filtros» y «Creativo» del cajón «Herramientas»
        del móvil, con sus mismas opciones. Se repiten a propósito: cada
        opción sigue también en su sitio de siempre. */
-    { label:"Filtros (como en el móvil)", submenu:[
+    { label:"Filtros", submenu:[
       { cmd:"adj.photoFilter", ic:"funnel", label:"Filtro fotográfico…" },
       { cmd:"adj.grayscale", ic:"eclipse", label:"Blanco y negro" },
       { cmd:"filter.camera", label:"Realify…",
@@ -303,7 +303,7 @@ export const MENUS = [
       { cmd:"filter.artisticGallery", ic:"brush", label:"Artísticos…" },
       { cmd:"filter.textureEffects", ic:"brick-wall", label:"Texturas…" }
     ]},
-    { label:"Creativo (como en el móvil)", submenu:[
+    { label:"Creativo", submenu:[
       { cmd:"filter.photoDevelop", ic:"sliders-horizontal", label:"Revelado RAW…" },
       { cmd:"image.hdr", ic:"hdr", label:"Fusión HDR…" },
       { cmd:"image.panorama", ic:"panorama", label:"Crear panorámica…" },

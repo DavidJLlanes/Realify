@@ -28,7 +28,7 @@ for(const mobile of [false, true]){
   const before = await page.evaluate(async () => { const D = await import("/js/core/doc.js"), L = D.doc.layers[D.doc.layers.length - 1]; return { n: D.doc.layers.length, px: Array.from(L.canvas.getContext("2d").getImageData(1867, 1100, 1, 1).data) }; });
   // 0) entradas de menú
   const entries = await page.evaluate(async () => { const M = (await import("/js/ui/menu.js")).MENUS, out = []; const walk = (a, path) => { for(const i of a){ if(i.submenu) walk(i.submenu, path + ">" + i.label); else if(i.items) walk(i.items, path + ">" + i.label); else if(i.cmd === "filter.luts") out.push(path); } }; walk(M, ""); return out; });
-  chk(entries.some(e => /Especiales/.test(e)) && entries.some(e => /Filtros \(como en el móvil\)/.test(e)), tag + ": falta la entrada de menú en Especiales y en «Filtros (como en el móvil)»: " + entries.join(" | "));
+  chk(entries.some(e => /Especiales/.test(e)) && entries.some(e => />Filtro>Filtros$/.test(e)), tag + ": falta la entrada de menú en Especiales y en «Filtros»: " + entries.join(" | "));
   if(mobile){
     await page.locator("#toolsHandle").click({ timeout: 5000 }); await page.waitForTimeout(700);
     await page.locator("#toolDrawer [data-cat=filtros]").click(); await page.waitForTimeout(400);

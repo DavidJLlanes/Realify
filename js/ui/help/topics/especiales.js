@@ -89,7 +89,7 @@ export const especialesTopic = { id:"especiales", title:"Filtros especiales",
           interruptor <b>Premium 👑</b> la luz se calcula en luz lineal (resplandores, flash y
           desenfoques más naturales), con hombro suave en las luces y tramado de salida. Queda
           como capa de filtro reeditable (botón fx). Se abre desde Filtro › Especiales › Cámaras…,
-          Filtro › «Filtros (como en el móvil)» y, en el móvil, desde la pestaña Filtros del cajón
+          Filtro › Filtros y, en el móvil, desde la pestaña Filtros del cajón
           «Herramientas».</li>
         <li id="sp-luts"><b>Efectos LUT…</b> Galería a pantalla completa con <b>226 efectos de color</b> (tablas LUT .cube
           de 3D) en siete <b>familias</b>: negativo en color, diapositiva, instantánea, blanco y negro,
@@ -100,8 +100,7 @@ export const especialesTopic = { id:"especiales", title:"Filtros especiales",
           intensidad a la derecha; en el móvil, un desplegable de familia, otro de efecto (abre una hoja con
           miniaturas) y la intensidad. Con el interruptor <b>Premium 👑</b> se usa interpolación
           tetraédrica en coma flotante de 32 bits (no tiñe los grises) y tramado de salida. Queda como capa de
-          filtro reeditable (botón fx). Se abre desde Filtro › Especiales › Efectos LUT…, Filtro › «Filtros
-          (como en el móvil)» y, en el móvil, desde la pestaña Filtros del cajón «Herramientas». Para cargar
+          filtro reeditable (botón fx). Se abre desde Filtro › Especiales › Efectos LUT…, Filtro › Filtros y, en el móvil, desde la pestaña Filtros del cajón «Herramientas». Para cargar
           tu propio archivo .cube, usa «Tabla de color (LUT)…».</li>
         <li><b>PurePixel…</b> Suaviza residuos finos de luminancia y color y añade textura
           controlada; experimental, no garantiza nada frente a un detector.</li>

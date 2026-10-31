@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v297 · Menú Filtro: «Filtros» y «Creativo»
+- Los submenús de Filtro «Filtros (como en el móvil)» y «Creativo (como en el móvil)» pasan a llamarse **Filtros** y **Creativo**. Mismas opciones y orden; guía y pruebas actualizadas.
+
 ### v296 · Panorámica: se elimina el servidor de respaldo en Python
 - Se borran `server/panorama/` (FastAPI + OpenCV Stitcher, servicio systemd y configuración de nginx) y `plugins/panorama/server.js`. Si la unión en el dispositivo falla, la ventana muestra el motivo y ya no ofrece enviar las fotos a ningún servidor.
 - Ninguna foto sale del navegador. README, `docs/DEPLOY.md` (pasos para retirarlo del VPS), `docs/SECURITY.md`, `docs/FUNCIONALIDADES.md` y la cabecera CSP del `.htaccess` actualizados.

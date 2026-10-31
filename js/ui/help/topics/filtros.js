@@ -11,7 +11,7 @@ export const filtrosTopic = { id:"filtros", title:"Filtros (menú Filtro)",
         <li><b>Especiales.</b> Realify, Revelado fotográfico, Collage, memes, Filtro Vintage, Cámaras, Efectos LUT,
           PurePixel, Unmark, Estilos, Adaptive Photo Lens y Tabla de color: ver el tema
           «Filtros especiales», en el índice.</li>
-        <li><b>Filtros y Creativo (como en el móvil).</b> Dos submenús al principio con las mismas
+        <li><b>Filtros y Creativo.</b> Dos submenús al principio con las mismas
           opciones que las pestañas Filtros y Creativo del cajón «Herramientas» del móvil. Las
           opciones siguen también en sus menús de siempre.</li>
         <li><b>Todo filtro deja su resultado en una capa nueva</b> reeditable (insignia «fx»);
