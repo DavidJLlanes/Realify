@@ -8,16 +8,14 @@
    Las fotos se unen EN EL DISPOSITIVO (stitch.js). El análisis lento
    (dónde está cada foto) se hace una vez al pedir la vista previa; las
    opciones de proyección, horizonte, mezcla y recorte sólo repiten el
-   paso rápido. Si falla, y sólo con permiso, se ofrece el servidor.
+   paso rápido. Nada sale del dispositivo.
    ═══════════════════════════════════════════════════════════════ */
 
 import { createShell, mountControls, decodePhoto, pickFiles, scaledCanvas } from "../../js/ui/kit/fsshell.js";
-import { confirmDlg } from "../../js/ui/kit/dialog.js";
 import { toast } from "../../js/core/toast.js";
 import { premiumSwitch, premiumPref } from "../../js/ui/kit/premium.js";
 import { escText as esc } from "../../js/core/util/html.js";
-import { analyzePhotos, renderPanorama, StitchError, AUTO_ORDER_LIMIT } from "./stitch.js";
-import { stitchOnServer } from "./server.js";
+import { analyzePhotos, renderPanorama, AUTO_ORDER_LIMIT } from "./stitch.js";
 import { hasInk } from "./masks.js";
 import { openMaskEditor } from "./mask-editor.js";
 import { openPointsEditor } from "./points-editor.js";
@@ -246,22 +244,12 @@ export function openPanoramaEditor({ current = null, onAccept }){
   }
 
   /* ── Crear ── */
-  /** En el dispositivo; si falla, el servidor sólo con permiso expreso (las fotos saldrían del dispositivo). */
+  /** Une las fotos en el dispositivo (las fotos nunca salen de él). */
   async function stitch(){
     const all = ordered();
-    try{
-      if(stale() || (S.premium && !analysis.premium)) await analyze(all, S.premium);
-      const list = analyzed();
-      return await renderPanorama(list.map(p => p.full), analysis, { ...renderOpts(list), premium: S.premium });
-    }catch(err){
-      if(closed || (err instanceof StitchError && err.code === "few")) throw err;
-      sh.setBusy(null);
-      const ok = await confirmDlg("No se pudo unir en tu dispositivo",
-        `${esc(err.message)}<br><br>¿Probar con el servidor de Realify? Las fotos se enviarían al servidor para unirlas (no se guardan; no usa tus máscaras ni puntos).`, "Usar el servidor");
-      if(!ok) throw err;
-      sh.setBusy("Enviando las fotos al servidor…");
-      return stitchOnServer(all, { autoCrop: O.autoCrop });
-    }
+    if(stale() || (S.premium && !analysis.premium)) await analyze(all, S.premium);
+    const list = analyzed();
+    return renderPanorama(list.map(p => p.full), analysis, { ...renderOpts(list), premium: S.premium });
   }
   async function apply(){
     if(applying || photos.length < 2) return;

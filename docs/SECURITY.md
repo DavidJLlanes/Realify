@@ -51,9 +51,7 @@ se conecta a la red para:
   el navegador.
 - Descargar OpenCV.js (11 MB) la primera vez que se usa «Panorámica», Apilar o
   Escanear documento; queda en la caché del navegador.
-- Enviar las fotos al servidor de realify.es, **solo** si «Panorámica» no puede
-  unirlas en el dispositivo y el usuario acepta expresamente el respaldo (se unen
-  con OpenCV en el servidor; no se guardan). El resto procesa todo en el navegador.
+- Ninguna foto sale del navegador: todo se procesa en el dispositivo.
 
 Las tipografías (todo el catálogo libre de Google Fonts) se sirven desde el
 propio sitio, en `/fonts/`: el navegador no se conecta con Google.

@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-28T16:31:23.774Z",
+ "generated": "2026-10-31T09:19:22.824Z",
  "root": "/home/claude/realify",
- "jsFiles": 516,
- "jsLines": 94096,
+ "jsFiles": 515,
+ "jsLines": 94047,
  "brokenRefs": [],
  "softMissing": [],
  "nonLiteralDynamicImports": 64,
@@ -3132,9 +3132,6 @@
    "solveCamera",
    "warpPanorama"
   ],
-  "plugins/panorama/server.js": [
-   "stitchOnServer"
-  ],
   "plugins/panorama/stitch.js": [
    "AUTO_ORDER_LIMIT",
    "StitchError",
@@ -3424,7 +3421,7 @@
   "js/app -> js/features": 34,
   "js/features -> js/ai": 34,
   "js/ui -> js/editor": 33,
-  "plugins -> js/ui": 33,
+  "plugins -> js/ui": 32,
   "js/editor -> js/ui": 31,
   "plugins -> js/editor": 27,
   "js/main.js -> js/editor": 23,

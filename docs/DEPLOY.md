@@ -111,14 +111,10 @@ Al publicar por primera vez la estructura reorganizada hay **dos pasos manuales 
 1. **nginx**: copia al bloque `server { … }` de realify.es las líneas `location ^~ /tests/`, `/tools/`, `/docs/`,
    `/design/`, `/node_modules/` y `package.json` de [`server/nginx/nginx-realify.conf.example`](../server/nginx/nginx-realify.conf.example) y recarga
    (`sudo nginx -t && sudo systemctl reload nginx`). Hasta entonces esas carpetas internas quedarían visibles.
-2. **Servicio de panorámicas** (`/api/stitch`, opcional: sólo si lo tienes instalado como respaldo): su código pasa de `panorama/` a `server/panorama/`. El proceso que
-   ya está en marcha sigue funcionando hasta que se reinicie, pero no volvería a arrancar con la ruta antigua. Tras
-   desplegar:
+2. **Servicio de panorámicas (ya no existe)**: desde la v296 las panorámicas se unen sólo en el dispositivo. Si lo tenías instalado, retíralo:
    ```bash
-   cd /var/www/realify.es/server/panorama
-   sudo python3 -m venv venv && sudo ./venv/bin/pip install -r requirements.txt
-   sudo cp realify-panorama.service /etc/systemd/system/
-   sudo systemctl daemon-reload && sudo systemctl restart realify-panorama
-   sudo rm -rf /var/www/realify.es/panorama/venv   # el entorno antiguo, ya sin uso
+   sudo systemctl disable --now realify-panorama
+   sudo rm -f /etc/systemd/system/realify-panorama.service && sudo systemctl daemon-reload
+   sudo rm -rf /var/www/realify.es/panorama /var/www/realify.es/server/panorama   # código y venv antiguos
    ```
-   (No se mueve el `venv` antiguo: los entornos virtuales guardan rutas absolutas y se rompen al cambiar de sitio.)
+   Y quita de nginx el bloque `location = /api/stitch { … }` (y su `client_max_body_size`), después `sudo nginx -t && sudo systemctl reload nginx`.

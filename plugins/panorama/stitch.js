@@ -14,8 +14,7 @@
           difieren las fotos + pirámides de Laplace) y recortar fuera del
           hilo de la interfaz; recorte manual al final.
    `stitchLocal` hace los dos pasos seguidos. Los fallos se lanzan como
-   `StitchError` con un `code` para que la ventana decida qué ofrecer
-   (p. ej. probar con el servidor).
+   `StitchError` con un `code` para que la ventana muestre el motivo.
    ═══════════════════════════════════════════════════════════════ */
 
 import { loadOpenCv } from "../../js/cv/opencv.js";

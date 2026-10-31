@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### v296 · Panorámica: se elimina el servidor de respaldo en Python
+- Se borran `server/panorama/` (FastAPI + OpenCV Stitcher, servicio systemd y configuración de nginx) y `plugins/panorama/server.js`. Si la unión en el dispositivo falla, la ventana muestra el motivo y ya no ofrece enviar las fotos a ningún servidor.
+- Ninguna foto sale del navegador. README, `docs/DEPLOY.md` (pasos para retirarlo del VPS), `docs/SECURITY.md`, `docs/FUNCIONALIDADES.md` y la cabecera CSP del `.htaccess` actualizados.
+
 ### v295 · Panorámica: editor completo (vista previa, horizonte, máscaras, puntos de control)
 - **Interfaz nueva**, como «Unir fotos» y en móvil y escritorio: fotos a la izquierda (← →), vista previa en el centro y ajustes a la derecha; en el móvil, vista previa a pantalla completa, tira de fotos y un solo control cada vez. Los desplegables nacen cerrados.
 - **Vista previa**: «Calcular vista previa» analiza las fotos una vez (lo lento) y después proyección, horizonte, mezcla y recorte se repiten en segundos a tamaño pequeño. «Crear panorámica» reutiliza el análisis.

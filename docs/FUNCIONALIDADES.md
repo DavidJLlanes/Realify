@@ -137,8 +137,7 @@ tiempo real mientras se pinta.
 - **Panorámica** (pantalla completa, `plugins/panorama/`): se une en el dispositivo
   con OpenCV.js (puntos ORB + RANSAC, focal y giro de cada foto, orden automático,
   proyección cilíndrica o esférica, exposición igualada y costuras sin fantasmas,
-  recorte). Premium 👑: más resolución y remuestreo Lanczos. Respaldo opcional en
-  el servidor, con confirmación.
+  recorte). Premium 👑: más resolución y remuestreo Lanczos. Todo en el dispositivo, sin servidor.
 - **Apilar fotos Premium 👑** (`js/features/stack.js`, `js/cv/`): de 2 a 16 tomas de la
   misma escena, alineadas con precisión subpíxel con OpenCV.js (puntos ORB + RANSAC +
   afinado ECC, flujo óptico opcional; OpenCV 4.12, Apache-2.0, 11 MB, sólo al usarlo) y

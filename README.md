@@ -6,7 +6,7 @@
 
 # Realify
 
-**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor (salvo el respaldo opcional de «Panorámica», que sólo se usa si lo confirmas).**
+**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor.**
 
 [![Web](https://img.shields.io/badge/web-realify.es-f5b82e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://realify.es)
 [![Licencia no comercial](https://img.shields.io/badge/licencia-PolyForm%20Noncommercial-3b82f6?style=for-the-badge)](LICENSE)
@@ -58,11 +58,7 @@
 
 Realify es un editor de imágenes completo que funciona en el navegador. Todo el
 procesado —capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del
-usuario: **las imágenes no se suben a ningún servidor**. Hay una única excepción,
-y es opcional: si «Panorámica» no consigue unir las fotos en tu dispositivo, puede
-ofrecerte enviarlas a un pequeño servicio en Python del servidor de Realify
-(sólo si lo aceptas; no se guardan). Quien instale Realify por su cuenta **no
-necesita montar ese servicio** (ver [«Servicio de panorámicas»](#servicio-de-panorámicas-opcional)).
+usuario: **las imágenes no se suben a ningún servidor**.
 Se instala como app (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
@@ -129,9 +125,7 @@ el pulgar. Instalable y disponible sin conexión.
 
 - **Sin instalación ni cuenta**: basta con abrir [realify.es](https://realify.es).
 - **Privado por diseño**: el procesado es local; los modelos de IA se
-  descargan y las imágenes no se suben (única excepción, opcional: el respaldo
-  de «Panorámica», que sólo envía las fotos al servicio en Python si lo aceptas
-  tras un fallo local, sin guardarlas).
+  descargan y las imágenes no se suben.
 - **Escritorio y móvil**: menús clásicos en escritorio; en móvil, barra
   inferior y un cajón de herramientas ordenado por objetivo (básicos,
   automáticos, mejorar, corregir, color, estilo…) con buscador tolerante a tildes y erratas. Los
@@ -146,6 +140,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **v296** | **Panorámica sin servidor**: se elimina el respaldo en Python; todo se une en el dispositivo. |
 | **v295** | **Panorámica con editor completo**: vista previa, proyecciones (Mercator, ojo de pez…), horizonte, recorte, máscaras y puntos de control a mano; orden automático hasta 15 fotos. |
 | **v294** | **Panorámica Premium 👑** con motor de más calidad: más puntos de unión, ajuste más fino y mezcla de 6 niveles. |
 | **v293** | **Panorámica con opciones avanzadas** plegadas: proyección (plana, estereográfica…), mezcla, lente, exposición y orden. |
@@ -154,7 +149,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 | **v290** | **Panorámica: corrige la distorsión de la lente** (la estima sola cuando hace falta y la deshace al unir). |
 | **v289** | **Panorámica: ajuste de haces** — focal y giro de todas las fotos se refinan juntos con todas las coincidencias (más precisión en panorámicas largas y a pulso). |
 | **v288** | **Panorámica más rápida** (ordenar las fotos es ~3× más rápido) y banco de medidas con hoja de ruta hacia el nivel de PTGui (`docs/PENDIENTE.md`, fase 21). |
-| **v287** | **Panorámica en tu dispositivo**: las fotos se unen en el navegador (OpenCV.js, orden automático, cilíndrica/esférica, sin fantasmas); el servidor queda como respaldo opcional con confirmación. |
+| **v287** | **Panorámica en tu dispositivo**: las fotos se unen en el navegador (OpenCV.js, orden automático, cilíndrica/esférica, sin fantasmas). |
 | **v286** | **Revisión de errores**: «Panorámica» avisa de que envía las fotos al servidor (política de privacidad corregida) y su servicio tiene límites; se retira del filtro Unmark el apoyo por servidor que no funcionaba; el despliegue ejecuta las comprobaciones antes de publicar. |
 | **v285** | **Collage**: formas libres, miniaturas más grandes en móvil y zonas seguras de historias y TikTok. |
 | **v284** | Barra de progreso: se oculta siempre, aunque falle el remuestreo o no cargue OpenCV. |
@@ -266,7 +261,7 @@ plugins/                Herramientas a pantalla completa, cada una con su códig
   stickers/             Stickers (Fluent Emoji)
   hdr/                  Fusión HDR
   merge/                Unir imágenes (panorámica y unión)
-  panorama/             Panorámica (se une en el dispositivo; respaldo opcional en server/panorama)
+  panorama/             Panorámica (se une en el dispositivo)
   slice/                Cortar en partes
   shape-crop/           Recortar en forma
   compare/              Antes y después
@@ -359,31 +354,6 @@ python -m http.server 8080
 ```
 
 y abre `http://localhost:8080`.
-
-### Servicio de panorámicas (opcional)
-
-**No es obligatorio instalarlo.** Desde la v287 las panorámicas se unen **en el dispositivo
-del usuario** (OpenCV.js en el navegador): orden automático, proyecciones, horizonte,
-máscaras, puntos de control… todo sin servidor. Con Realify funcionando y este servicio
-parado o sin instalar, la panorámica funciona igual.
-
-El servicio en Python (FastAPI + OpenCV Stitcher, en `server/panorama/`) es sólo un
-**respaldo de emergencia**:
-
-- **Cuándo se usa:** únicamente si la unión en el dispositivo falla (por ejemplo, no se
-  encuentra solape entre las fotos o no se puede cargar OpenCV). Entonces el editor
-  pregunta «¿Probar con el servidor de Realify?» y las fotos se envían **sólo si el
-  usuario acepta** (no se guardan). Si dice que no, no se envía nada.
-- **Qué pierde el usuario en ese caso:** el servidor hace una unión básica; no usa las
-  máscaras, los puntos de control, la proyección, el horizonte ni el recorte manual.
-- **Si no lo instalas:** el respaldo simplemente no está disponible y el editor muestra
-  el error de la unión local. Nada más se ve afectado.
-- **Si lo instalas:** conviene sólo si quieres ofrecer esa segunda oportunidad a tus
-  usuarios y aceptas que ese camino envíe las fotos a tu servidor. Gasta CPU y memoria
-  del servidor mientras une.
-
-Si lo quieres, la guía paso a paso, con la configuración de nginx y la solución de
-problemas, está en [`server/panorama/README.md`](server/panorama/README.md).
 
 ## 20. Tecnología
 

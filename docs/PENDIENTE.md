@@ -348,7 +348,7 @@ Hoja de ruta acordada el 28 oct 2026. Cada etapa se publica sola, con rama propi
 revisa en móvil y escritorio. Banco de medidas: `node tests/panorama-banco.mjs` (`SALIDA=ruta.json`, `FOTOS=<carpeta>`).
 
 - [x] **Etapa 0 · Base** (v287): cosido en el dispositivo (ORB + RANSAC, giro puro, cilindro/esfera, orden automático, costuras `seam`);
-      servidor sólo como respaldo con permiso.
+      (el respaldo en servidor se retiró en la v296).
 - [x] **Etapa 1 · Medir y afinar** (v288): banco `tests/panorama-banco.mjs` con ocho escenas de verdad conocida; ordenar las fotos con
       1500 puntos (en vez de 5000) deja la precisión igual y quita ~70 % del tiempo (10 fotos: 50 s → 15 s; tus 5 fotos: 14 s → 9 s,
       en Chromium sin GPU).
