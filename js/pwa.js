@@ -186,10 +186,10 @@ export async function checkForUpdateDialog(){
   const info = watcherRef ? await watcherRef.checkNow() : { ...updateInfo };
   const newer = info.latest !== null && loaded !== null && info.latest > loaded;
   const body = newer
-    ? `<p>Hay una versión nueva de Realify: <b>${info.latest}</b> (esta es la ${loaded}).</p><p class="hint">Se guardan tus documentos abiertos y se recuperan al reiniciar.</p>`
+    ? `<p>Hay una versión nueva de Realify: <b>${info.release || info.latest}</b>.</p><p class="hint">Se guardan tus documentos abiertos y se recuperan al reiniciar.</p>`
     : info.error && info.latest === null
       ? `<p>No se ha podido consultar la última versión (${String(info.error).replace(/</g, "&lt;")}).</p><p class="hint">Versión de esta copia: ${loaded ?? "?"}. Comprueba la conexión e inténtalo de nuevo.</p>`
-      : `<p>Realify está al día: versión <b>${loaded ?? "?"}</b>.</p>`;
+      : `<p>Realify está al día: versión <b>${info.release || loaded || "?"}</b>.</p>`;
   const r = await dialog({ title: "Buscar actualización", body, buttons: newer ? [{ label: "Luego", value: null }, { label: "Actualizar ahora", primary: true, value: "go" }] : [{ label: "Cerrar", primary: true, value: null }] });
   if(r === "go") await applyUpdate();
 }

@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.0.0 (compilación 298) · Numeración de versiones normal
+- Desde ahora la versión pública es **1.0.0** (semver: 1.0.1 para arreglos, 1.1.0 para funciones, 2.0.0 para cambios grandes). Las entradas anteriores (v287–v297) eran el contador de compilación.
+- El contador entero sigue existiendo por dentro (ahora 298) porque la app lo compara con `version.json` para avisar de actualizaciones; si se reiniciara, las apps instaladas no avisarían. `version.json` lleva además `release`, y «Ayuda › Buscar actualización» muestra esa versión.
+- La validación del despliegue comprueba que `release`, `package.json` y `package-lock.json` coinciden.
+
 ### v297 · Menú Filtro: «Filtros» y «Creativo»
 - Los submenús de Filtro «Filtros (como en el móvil)» y «Creativo (como en el móvil)» pasan a llamarse **Filtros** y **Creativo**. Mismas opciones y orden; guía y pruebas actualizadas.
 

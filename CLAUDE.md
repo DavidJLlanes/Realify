@@ -7,8 +7,11 @@ en realify.es con GitHub Actions al subir a `main`.
 - Responder siempre en **español**.
 - Desarrollar en la rama de trabajo; subir a `main` sólo cuando el usuario lo pida
   («Sube a main y publica»). No crear PR salvo que se pida.
-- En cada versión: subir `VERSION` en `sw.js` y `main.js?v=` en `index.html`, y
-  actualizar `docs/CHANGELOG.md`, la guía (`js/ui/help/guide.js`) y los README afectados.
+- **Versionado**: la versión pública es semver (`1.0.0`, `1.0.1`, `1.1.0`…) y está en `version.json` (`release`),
+  `package.json` y `package-lock.json`. Además hay un **contador de compilación entero** (298, 299…, sólo sube) que la
+  app usa para detectar actualizaciones: `VERSION`, `version.json` (`version`/`build`), `sw.js` y `main.js?v=` en
+  `index.html`. En cada versión se suben los dos (el contador siempre; la pública según el cambio) y se
+  actualizan `docs/CHANGELOG.md`, la guía (`js/ui/help/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
 - Al modificar una herramienta, comprobar sólo esa con `node tests/calidad-herramienta.mjs <comando>` (móvil y escritorio); no publicar con FALLO.
 

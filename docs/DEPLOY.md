@@ -35,8 +35,10 @@ internos con la configuración de
 Si cambian archivos de la app, sube la versión para que los usuarios reciban la
 nueva y no la guardada por el service worker:
 
-- `VERSION` en `sw.js`
-- el `?v=` de `js/main.js` en `index.html`
+- el contador de compilación (entero, sólo sube): `VERSION`, `version.json` (`version` y `build`), `VERSION` en `sw.js` y el `?v=` de `js/main.js` en `index.html`
+- la versión pública (`1.0.0`, `1.0.1`, `1.1.0`…): `release` en `version.json`, `package.json` y `package-lock.json`
+
+El contador es lo que compara la app para avisar de actualizaciones, así que nunca debe bajar; por eso la versión pública y el contador son números distintos.
 
 ## Secretos de GitHub
 

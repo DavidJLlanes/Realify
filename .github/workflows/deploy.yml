@@ -41,12 +41,13 @@ jobs:
           JSON_VERSION="$(python -c 'import json; print(json.load(open("version.json", encoding="utf-8"))["version"])')"
           SW_VERSION="$(python -c 'import re; s=open("sw.js", encoding="utf-8").read(); m=re.search(r"const VERSION = \"realify-v(\d+)", s); print(m.group(1) if m else "")')"
           MAIN_VERSION="$(python -c 'import re; s=open("index.html", encoding="utf-8").read(); m=re.search(r"js/main\.js\?v=(\d+)", s); print(m.group(1) if m else "")')"
-          PKG_VERSION="$(python -c 'import json; print(json.load(open("package.json", encoding="utf-8"))["version"].split(".")[0])')"
-          LOCK_VERSION="$(python -c 'import json; print(json.load(open("package-lock.json", encoding="utf-8"))["version"].split(".")[0])')"
+          PKG_VERSION="$(python -c 'import json; print(json.load(open("package.json", encoding="utf-8"))["version"])')"
+          LOCK_VERSION="$(python -c 'import json; print(json.load(open("package-lock.json", encoding="utf-8"))["version"])')"
+          RELEASE="$(python -c 'import json; print(json.load(open("version.json", encoding="utf-8"))["release"])')"
           BOOT_VERSION="$(python -c 'import re; s=open("index.html", encoding="utf-8").read(); m=re.search(r"js/boot-guard\.js\?v=(\d+)", s); print(m.group(1) if m else "")')"
 
-          if [ "$VERSION" != "$JSON_VERSION" ] || [ "$VERSION" != "$SW_VERSION" ] || [ "$VERSION" != "$MAIN_VERSION" ] || [ "$VERSION" != "$BOOT_VERSION" ] || [ "$VERSION" != "$PKG_VERSION" ] || [ "$VERSION" != "$LOCK_VERSION" ]; then
-            echo "::error::Versionado desincronizado: VERSION=$VERSION version.json=$JSON_VERSION sw.js=$SW_VERSION main.js=$MAIN_VERSION boot-guard=$BOOT_VERSION package.json=$PKG_VERSION package-lock.json=$LOCK_VERSION"
+          if [ "$VERSION" != "$JSON_VERSION" ] || [ "$VERSION" != "$SW_VERSION" ] || [ "$VERSION" != "$MAIN_VERSION" ] || [ "$VERSION" != "$BOOT_VERSION" ] || [ "$RELEASE" != "$PKG_VERSION" ] || [ "$RELEASE" != "$LOCK_VERSION" ]; then
+            echo "::error::Versionado desincronizado: VERSION=$VERSION version.json=$JSON_VERSION sw.js=$SW_VERSION main.js=$MAIN_VERSION boot-guard=$BOOT_VERSION release=$RELEASE package.json=$PKG_VERSION package-lock.json=$LOCK_VERSION"
             exit 1
           fi
 
@@ -55,7 +56,7 @@ jobs:
           # incrementado exactamente en este último commit, porque los archivos
           # de release pueden llegar en varios commits consecutivos.
           echo "SHOULD_DEPLOY=true" >> "$GITHUB_ENV"
-          echo "Release Realify v$VERSION autorizado; se publicará el HEAD actual de main."
+          echo "Release Realify $RELEASE (compilación $VERSION) autorizado; se publicará el HEAD actual de main."
 
       - name: Preparar clave SSH
         if: env.SHOULD_DEPLOY == 'true'

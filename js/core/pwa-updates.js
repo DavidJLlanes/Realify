@@ -7,7 +7,7 @@ export function loadedVersion(){
 }
 
 /* Estado de la última comprobación, a la vista (Ayuda › Buscar actualización y Diagnóstico). */
-export const updateInfo={loaded:loadedVersion(),latest:null,checkedAt:0,error:null,log:[]};
+export const updateInfo={loaded:loadedVersion(),latest:null,release:null,checkedAt:0,error:null,log:[]};
 /* Registro corto de lo que ha pasado (comprobaciones, avisos, actualizaciones automáticas), también en
    localStorage: si el aviso no llega, Ayuda › Diagnóstico dice por qué sin tener que adivinar. */
 const LOG_KEY='realify.updLog';
@@ -33,7 +33,7 @@ export function watchPWAUpdates({onUpdate,currentVersion=loadedVersion()}={}){
         if(!response.ok)throw new Error('HTTP '+response.status);
         const data=await response.json(),latest=Number(data.version);
         if(!Number.isSafeInteger(latest))throw new Error('version.json sin número de versión');
-        updateInfo.latest=latest;updateInfo.checkedAt=Date.now();updateInfo.error=null;
+        updateInfo.latest=latest;updateInfo.release=typeof data.release==='string'?data.release:null;updateInfo.checkedAt=Date.now();updateInfo.error=null;
         updateLog('version.json: '+latest+' (cargada '+currentVersion+')'+(latest>currentVersion?' → NUEVA':''));
         if(!silent&&!disposed&&currentVersion!==null&&latest>currentVersion)onUpdate?.(latest);
         return;

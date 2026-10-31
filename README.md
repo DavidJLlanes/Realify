@@ -62,7 +62,7 @@ usuario: **las imágenes no se suben a ningún servidor**.
 Se instala como app (PWA) y funciona sin conexión.
 
 La versión pública está en **[realify.es](https://realify.es)**. Este documento
-describe la versión **286** (ver la [lista de cambios](./docs/CHANGELOG.md)).
+describe la versión **1.0.0** (ver la [lista de cambios](./docs/CHANGELOG.md)).
 
 ## Características destacadas
 
@@ -140,6 +140,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **1.0.0** | **Numeración normal**: versión pública 1.0.0 (antes, contador v297). |
 | **v297** | **Menú Filtro**: los submenús se llaman «Filtros» y «Creativo». |
 | **v296** | **Panorámica sin servidor**: se elimina el respaldo en Python; todo se une en el dispositivo. |
 | **v295** | **Panorámica con editor completo**: vista previa, proyecciones (Mercator, ojo de pez…), horizonte, recorte, máscaras y puntos de control a mano; orden automático hasta 15 fotos. |
