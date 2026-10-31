@@ -13,6 +13,8 @@ que las entradas se agrupan por fecha.
 - Desde ahora la versión pública es **1.0.0** (semver: 1.0.1 para arreglos, 1.1.0 para funciones, 2.0.0 para cambios grandes). Las entradas anteriores (v287–v297) eran el contador de compilación.
 - El contador entero sigue existiendo por dentro (ahora 298) porque la app lo compara con `version.json` para avisar de actualizaciones; si se reiniciara, las apps instaladas no avisarían. `version.json` lleva además `release`, y «Ayuda › Buscar actualización» muestra esa versión.
 - La validación del despliegue comprueba que `release`, `package.json` y `package-lock.json` coinciden.
+- **Ayuda › Acerca de…** rediseñado (`js/ui/help/about.js`): logotipo, versión pública y compilación, tres puntos clave (privacidad, fotografía, sin conexión), accesos a Buscar actualización, Guía, Aviso legal y Privacidad, y datos de contacto. Igual en móvil y escritorio.
+- Corregido: `js/boot-guard.js?v=` de `index.html` se había quedado en 295 y la validación del despliegue lo rechazaría; ahora va con el contador (298).
 
 ### v297 · Menú Filtro: «Filtros» y «Creativo»
 - Los submenús de Filtro «Filtros (como en el móvil)» y «Creativo (como en el móvil)» pasan a llamarse **Filtros** y **Creativo**. Mismas opciones y orden; guía y pruebas actualizadas.

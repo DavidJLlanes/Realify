@@ -10,20 +10,7 @@ import { dialog } from "../../ui/kit/dialog.js";
 registerAll({
   "help.install": () => promptInstall(),
   "help.update": async () => (await import("../../pwa.js")).checkForUpdateDialog(),
-  "help.about": () => dialog({
-    title: "Acerca de Realify",
-    body: `<p class="hint">Editor de imagen con simulación de captura fotográfica.</p>
-           <p class="hint">Todo el procesado ocurre en tu equipo: tus imágenes no se
-             suben a ningún servidor, no hay analítica y no hace falta cuenta. Sólo
-             los modelos de IA grandes se descargan de un tercero (Hugging Face), y
-             sólo si los usas; las tipografías se sirven desde el propio sitio. Los
-             detalles están en la Política de privacidad.</p>
-           <p class="hint">El filtro Realify reproduce el recorrido físico de la luz
-             —óptica, sensor, procesador y códec— sobre imágenes generadas, para
-             investigación sobre detectores, trabajo artístico y prueba de defensas
-             propias.</p>`,
-    buttons:[{ label:"Cerrar", primary:true }]
-  }),
+  "help.about": async () => (await import("../../ui/help/about.js")).openAbout(),
   "help.guide":     async () => (await import("../../ui/help/guide.js")).openGuide(),
   "help.legal":     async () => (await import("../../ui/help/legal.js")).openLegalNotice(),
   "help.report":    async () => (await import("../../ui/help/bugreport.js")).openBugReport(),

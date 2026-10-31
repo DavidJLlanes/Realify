@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-31T09:19:22.824Z",
+ "generated": "2026-10-31T09:33:51.787Z",
  "root": "/home/claude/realify",
- "jsFiles": 515,
- "jsLines": 94047,
+ "jsFiles": 516,
+ "jsLines": 94117,
  "brokenRefs": [],
  "softMissing": [],
  "nonLiteralDynamicImports": 64,
@@ -2685,6 +2685,9 @@
   "js/ui/docbar.js": [
    "initDocbar"
   ],
+  "js/ui/help/about.js": [
+   "openAbout"
+  ],
   "js/ui/help/bugreport.js": [
    "diagnosticText",
    "imageSample",
@@ -3410,8 +3413,8 @@
   "js/app -> js/editor": 97,
   "js/features -> js/core": 91,
   "js/io -> js/core": 66,
+  "js/ui -> js/core": 51,
   "js/features -> js/editor": 49,
-  "js/ui -> js/core": 48,
   "js/app -> js/core": 47,
   "js/filters -> js/core": 46,
   "js/editor -> js/filters": 39,
@@ -3425,7 +3428,7 @@
   "js/editor -> js/ui": 31,
   "plugins -> js/editor": 27,
   "js/main.js -> js/editor": 23,
-  "js/app -> js/ui": 18,
+  "js/app -> js/ui": 19,
   "js/app -> plugins": 18,
   "js/io -> js/editor": 18,
   "js/main.js -> js/app": 18,

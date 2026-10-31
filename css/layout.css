@@ -1323,3 +1323,23 @@ body.wb-picking .modal,body.wb-picking #stage,body.wb-picking #stage canvas{curs
 .rh-dot.mod::after{content:"";position:absolute;right:-1px;top:-1px;width:9px;height:9px;border-radius:50%;background:var(--ac);border:2px solid var(--s-700)}
 .rh-reset{margin-top:6px}
 @media (pointer:coarse){.rh-dot{width:32px;height:32px}.rh-eye{width:38px;height:38px}.rh-reset{min-height:34px}}
+
+/* Ayuda › Acerca de (js/ui/help/about.js) */
+.about{display:flex;flex-direction:column;gap:14px}
+.about-head{display:flex;align-items:center;gap:14px}
+.about-logo{width:64px;height:64px;border-radius:14px;flex:none}
+.about-name{font-size:22px;font-weight:700;letter-spacing:.01em;color:var(--tx)}
+.about-tag{font-size:var(--fs-sm);color:var(--tx-dim);margin-top:1px}
+.about-ver{display:inline-block;margin-top:7px;padding:2px 9px;border:1px solid var(--line-soft);border-radius:999px;
+           font-size:var(--fs-xs);color:var(--tx-dim);background:var(--s-900)}
+.about-ver b{color:var(--ac)}
+.about-feats{display:flex;flex-direction:column;gap:9px}
+.about-feat{display:flex;gap:11px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line-soft);border-radius:var(--r);background:var(--s-900)}
+.about-feat>span{font-size:18px;line-height:1.3}
+.about-feat b{display:block;font-size:var(--fs-sm);color:var(--tx);font-weight:600}
+.about-feat small{display:block;margin-top:2px;font-size:var(--fs-xs);color:var(--tx-dim);line-height:1.5}
+.about-note{margin:0;font-size:var(--fs-xs);color:var(--tx-dim);line-height:1.6}
+.about-links{display:flex;flex-wrap:wrap;gap:7px}
+.about-links button{flex:1 1 auto}
+.about-foot{font-size:var(--fs-xs);color:var(--tx-dim);text-align:center;padding-top:2px}
+.about-foot a{color:var(--ac)}
