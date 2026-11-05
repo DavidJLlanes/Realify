@@ -91,6 +91,10 @@ cualquier función nueva.
   editor a pantalla completa del estilo del collage con zoom, en móvil y escritorio. La cara tiene su propio editor con zoom en la
   cara (`plugins/face-editor/`). **No duplicar código**: los mandos salen de `params` con `js/ui/kit/params-panel.js`, los editores se
   montan sobre `js/ui/kit/ai-editor/` (que usa `fsshell`) y las funciones no importan `fsshell` ni `dialog` (solo declaran su panel).
+- **Editor de vídeo (sección 4.8 del plan, MUY IMPORTANTE)**: código propio y aislado en `plugins/video/` (puerta única `index.js`, contacto
+  con el resto sólo por `plugins/video/bridge/`, comprobado con `tools/verify/aislamiento.mjs`), menú **«Vídeo» exclusivo** en
+  escritorio y móvil (no es un submenú de IA) y arquitectura profesional y escalable (registros de efectos y códecs, proyecto con
+  versión, motor sin DOM). Antes de programarlo, `docs/VIDEO.md` aprobado por el titular (F15.0).
 - **Modelos**: se anotan en `docs/MODELOS.md` (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`). Hasta ~30 MB
   van en `assets/models`; los más grandes, en Hugging Face con la revisión (`HF_REV`) y el `sha256` fijados. El catálogo
   se reparte por familia en `js/ai/models/` y las tareas del worker en `js/ai/tasks/`.

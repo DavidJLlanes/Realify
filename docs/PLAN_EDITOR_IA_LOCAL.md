@@ -67,6 +67,10 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
   ropa; perfiles adulto (hombre, mujer) e infantil (niño, niña) con mandos distintos; el perfil infantil no incluye mandos de
   pecho, caderas ni glúteos y usa rangos reducidos; si las proporciones sugieren un menor, el perfil infantil es el de partida.
   No se usa ningún modelo que estime edad o sexo: el perfil lo elige la persona.
+- **⚠ MUY IMPORTANTE · Editor de vídeo aislado y escalable** (decisión del titular, 5 nov 2026; ya era su idea integrar un editor de
+  vídeo): el editor de vídeo tiene **código propio, aislado del resto de la web** para que sea legible; un **menú exclusivo**, tanto
+  en móvil como en escritorio, con sus funciones (ya **no** es un submenú de «Inteligencia Artificial»); y una organización del
+  código **absolutamente profesional y escalable**. Normas en la sección 4.8 y tareas en la Fase 15 (F15.0 primero).
 - **Interfaces** (decisión del titular, 5 nov 2026): la **cara tiene su propio editor a pantalla completa que hace zoom en la cara**
   (`plugins/face-editor/`); el cuerpo tiene el suyo (`plugins/body-editor/`). En general, una función con **muchas opciones** usa un editor
   a pantalla completa del estilo del collage (`plugins/social-post`: zoom con rueda, pellizco y doble clic, barra superior, panel
@@ -116,19 +120,21 @@ js/
 │  └─ assistant/                   NUEVO · asistente (Fase 14)
 ├─ app/commands/
 │  ├─ ai.js                        (existe) fachada: sus 19 comandos + importa ai/*.js
-│  └─ ai/                          NUEVO · un archivo por familia (portrait, body, clothing, scene, restore, objects, authenticity, style, library, assistant)
+│  ├─ ai/                          NUEVO · un archivo por familia (portrait, body, clothing, scene, restore, objects, authenticity, style, library, assistant)
+│  └─ video.js                     NUEVO · comandos `video.*`: solo cargan el módulo con import() (4.8)
 ├─ ui/kit/                          (capa «kit»: la pueden importar los motores y los plugins)
 │  ├─ params-panel.js              NUEVO · pinta los mandos de cualquier función a partir de su `params` (Fase 0)
 │  └─ ai-editor/                   NUEVO · armazón común de los editores a pantalla completa, sobre `fsshell` (Fase 0)
 └─ ui/
    ├─ menu/ia/                     NUEVO · árbol declarativo del menú IA (un archivo por submenú)
+   ├─ menu/video.js                NUEVO · menú «Vídeo» exclusivo: solo datos (4.8)
    └─ help/topics/ia-*.js          NUEVO · un tema de guía por familia
 plugins/
 ├─ face-editor/                    NUEVO · editor de cara a pantalla completa con zoom en la cara (Fase 3; crece en 4 y 6)
 ├─ body-editor/                    NUEVO · pantalla completa del editor de cuerpo (Fase 6)
 ├─ clothing-editor/                NUEVO · editor de ropa y tejidos a pantalla completa (Fase 7)
 ├─ culling/                        NUEVO · selección rápida de lotes (Fase 13)
-└─ video/                          NUEVO · editor de vídeo (Fase 15)
+└─ video/                          NUEVO · editor de vídeo, MÓDULO AISLADO con su propia arquitectura (4.8, Fase 15)
 tests/ia/                          NUEVO · pruebas por familia + baseline + fixtures
 tools/models/                      NUEVO · conversión, cuantización y sumas de comprobación de modelos
 tools/scaffold/                    NUEVO · generador de funciones nuevas
@@ -237,7 +243,7 @@ No contiene motor ni mandos propios.
 | Estilo desde una foto, estilos de cámara | 12 | Editor a pantalla completa (dos imágenes y zonas), con el armazón común |
 | Selección rápida de lotes | 13 | Editor a pantalla completa (`plugins/culling/`) |
 | Asistente | 14 | Simple (panel de texto) |
-| Vídeo | 15 | Editor a pantalla completa (`plugins/video/`) |
+| Vídeo | 15 | Editor a pantalla completa en **módulo aislado** con menú propio (4.8) |
 
 **Reglas para no duplicar** (las vigila la revisión de cada fase y `tests/ia/interfaces.mjs`):
 
@@ -246,6 +252,64 @@ No contiene motor ni mandos propios.
 - Si dos editores necesitan lo mismo (selector de persona, zoom a objetivo, comparar), se añade al armazón `ai-editor/`, no al editor.
 - Los estilos van en `css/fsplugin.css` (ya existe) y, si hace falta, en un solo `css/ai-editor.css`; nada de CSS por función.
 - Móvil y escritorio comparten el mismo código del editor; solo cambia la disposición (la decide `fsshell`).
+
+### 4.8 Editor de vídeo: módulo aislado y escalable ⚠ MUY IMPORTANTE
+
+El editor de vídeo **no es una función más**: es un producto dentro de Realify con su propio código, su propio menú y su propia
+arquitectura. Debe poder leerse, probarse y crecer **sin tocar el resto de la web**, y el resto de la web no debe depender de él.
+
+**Aislamiento (se comprueba con una herramienta, no solo con la revisión)**
+
+- Todo el código vive en `plugins/video/`, con su `README.md`, sus estilos (`plugins/video/css/`), sus pruebas (`tests/video/`) y su
+  documentación de arquitectura (`docs/VIDEO.md`). Nada de vídeo se mezcla en archivos de otras familias.
+- **Una sola puerta de entrada y una sola de salida.** Hacia fuera, el resto de la web solo ve `plugins/video/index.js`, y solo con
+  `import()` desde `js/app/commands/video.js`. Hacia dentro, el módulo solo importa de la capa común desde **un único sitio**,
+  `plugins/video/bridge/` (capa anticorrupción): ahí se reexporta lo que el vídeo toma prestado (`js/core`, `js/ui/kit`, tareas de
+  `js/ai`, motores de color y de sensor). Si el resto de la app cambia, se arregla el puente, no el módulo.
+- `tools/verify/aislamiento.mjs` (F0.15) falla si algo fuera de `plugins/video/` lo importa de forma estática, o si algo dentro
+  importa de fuera sin pasar por `bridge/`. Se ejecuta con `npm run verify`.
+- Se cumple la regla de capas existente (`node tools/verify/layers.mjs`).
+
+**Organización interna** (cada carpeta con una responsabilidad; tamaño de archivo como en el resto del plan)
+
+```
+plugins/video/
+├─ README.md            qué es, cómo se ejecuta, cómo se prueba
+├─ index.js             puerta de entrada (≤ 40 líneas): abre el editor
+├─ manifest.js          datos: comandos `video.*`, menú, ayuda, versión del formato de proyecto
+├─ bridge/              ÚNICO punto de contacto con el resto de Realify
+├─ project/             modelo del proyecto (pistas, clips, ajustes) con versión de formato y migraciones; sin DOM
+├─ timeline/            operaciones sobre la línea de tiempo (cortar, mover, recortar, zoom) como funciones puras con deshacer
+├─ media/               importar, decodificar y codificar: `decoders/` y `encoders/` con un registro de códecs (WebCodecs, respaldo)
+├─ render/              motor de fotogramas: cadena de efectos, caché, previsualización a baja resolución, aplicación al clip completo
+├─ effects/             un efecto por carpeta con su manifiesto (sensor de Realify, color, estilos de cámara, segmentación…); se registran solos
+├─ audio/               pista de audio, volumen y sincronía
+├─ export/              exportar MP4 o WebM y presets por red social
+├─ workers/             decodificación, efectos y codificación fuera del hilo principal
+├─ ui/                  editor a pantalla completa (armazón `ai-editor`/`fsshell` vía bridge), paneles y menú contextual
+├─ css/                 estilos propios del editor
+└─ tests/ (en tests/video/)   proyecto y línea de tiempo en Node; render con fotogramas sintéticos; interfaz en móvil y escritorio
+```
+
+**Escalabilidad**
+
+- **Registros, no condicionales.** Efectos, decodificadores, codificadores y presets de exportación se **registran** (cada uno con su
+  manifiesto); añadir uno nuevo es crear una carpeta, sin editar el motor.
+- **Proyecto con versión.** El formato del proyecto lleva `schemaVersion` y migraciones; los proyectos antiguos siguen abriéndose.
+- **Motor sin DOM.** `project`, `timeline` y `render` funcionan en Node; así se prueban y se pueden ejecutar en un worker.
+- **Contratos pequeños.** Un efecto implementa una interfaz mínima (`prepare`, `process(frame, params, t)`, `dispose`); el motor no
+  conoce ningún efecto concreto.
+- **Carga diferida total.** Nada del vídeo se descarga ni se ejecuta hasta abrir el editor (regla de librerías pesadas con `ensureVendor`).
+
+**Menú exclusivo, en móvil y en escritorio**
+
+- **Escritorio:** un menú propio **«Vídeo»** en la barra superior, junto a «Inteligencia Artificial» (no es un submenú de IA). Se
+  describe en `js/ui/menu/video.js` (solo datos) y se muestra solo cuando el módulo está listo.
+- **Móvil:** el mismo menú, con las mismas entradas y el mismo orden, en una **sección propia «Vídeo» del menú ☰** y en una
+  **pestaña propia «Vídeo» del cajón** situada al final (las pestañas **Básicos** y **Automáticos** no se tocan, `tests/ia/cajon-basicos-auto.mjs`).
+  Dentro del editor de vídeo a pantalla completa, sus funciones se alcanzan desde su propia barra.
+- Las entradas son comandos `video.*` registrados en `js/app/commands/video.js`, que solo cargan el módulo con `import()`.
+- Una prueba comprueba que el menú de escritorio, la sección de ☰ y la pestaña del cajón muestran lo mismo (como `menu-ia`).
 
 ---
 
@@ -270,21 +334,22 @@ del submenú cuando haga falta). Un submenú sin entradas listas **no se muestra
 | 10 | **Color y estilos** | — | Estilo desde una foto `ai.styleFromReference`, Estilos de cámara `ai.cameraPacks`, Mis estilos `ai.myStyles` (F12) |
 | 11 | **Lote y biblioteca** | — | Selección rápida `ai.culling`, Buscar fotos por texto `ai.searchPhotos`, Etiquetas y nombres `ai.autoTags`, Texto alternativo `ai.altText` (F13) |
 | 12 | **Asistente** | — | Pídeselo a Realify `ai.assistant` (F14) |
-| 13 | **Vídeo** | — | Editor de vídeo `ai.videoEditor` (F15) |
-| 14 | **Realismo y autenticidad** (antes «Para imágenes de IA») | Realify, Realify Premium 👑, PurePixel, Unmark, Plausibilidad, Segunda opinión, Limpiar metadatos | Zonas demasiado lisas `ai.smoothZones`, Manos y dientes sospechosos `ai.aiArtifacts`, Informe de realismo `ai.photoReport` (F11) |
+| 13 | **Realismo y autenticidad** (antes «Para imágenes de IA») | Realify, Realify Premium 👑, PurePixel, Unmark, Plausibilidad, Segunda opinión, Limpiar metadatos | Zonas demasiado lisas `ai.smoothZones`, Manos y dientes sospechosos `ai.aiArtifacts`, Informe de realismo `ai.photoReport` (F11) |
 
 Las entradas de **Retrato** (piel, ojos, labios, dientes, pelo, gafas, luz, forma) y de **Cuerpo** y **Ropa y tejidos** son **accesos
 directos al mismo editor, abierto en su grupo** (4.7); cada una conserva su comando propio, su sitio en el menú y en el cajón.
 
 Orden en el menú, con separadores entre grupos: *(Seleccionar, Borrar y rellenar)* · *(Retrato, Cuerpo, Ropa y tejidos)* ·
-*(Escena y cielo, Profundidad, Mejorar y restaurar, Encuadre y composición, Color y estilos)* · *(Lote y biblioteca, Asistente, Vídeo)* ·
+*(Escena y cielo, Profundidad, Mejorar y restaurar, Encuadre y composición, Color y estilos)* · *(Lote y biblioteca, Asistente)* ·
 *(Realismo y autenticidad)*. Dentro de cada submenú, primero lo existente (sin cambiar su `cmd`, su etiqueta ni su ayuda) y después lo nuevo.
+
+**El editor de vídeo no está aquí**: tiene su propio menú «Vídeo» (4.8).
 
 ### 5.2 Cajón del móvil
 
 - Las dos primeras pestañas, **Básicos** y **Automáticos**, no se tocan: ni su orden, ni su contenido, ni `BASICS`, ni el
   orden de `CATS`. Ninguna entrada nueva lleva `basicos` ni `auto`.
-- La pestaña **Inteligencia Artificial** gana una **segunda fila de chips** con los mismos 14 submenús, en el mismo orden, más
+- La pestaña **Inteligencia Artificial** gana una **segunda fila de chips** con los mismos 13 submenús, en el mismo orden, más
   «Todo». Cada chip filtra la cuadrícula; los títulos de sección (`td-sec`) son los de las secciones del submenú. El chip activo se
   recuerda. Con algo escrito en el buscador se busca en todos los chips, como hoy.
 - **Pestañas afines (D3).** Cada función nueva aparece también en las pestañas que le corresponden, indicadas en el campo `tabs`
@@ -302,7 +367,6 @@ Orden en el menú, con separadores entre grupos: *(Seleccionar, Borrar y rellena
   | Color y estilos | Estilo; Color |
   | Lote y biblioteca | Analizar |
   | Asistente | — (solo IA y Todos) |
-  | Vídeo | Creativo |
   | Realismo y autenticidad | Analizar (informe y zonas lisas) |
 
 - El deslizamiento lateral entre pestañas sigue igual; la fila de chips se desliza sola, sin cambiar de pestaña.
@@ -310,7 +374,7 @@ Orden en el menú, con separadores entre grupos: *(Seleccionar, Borrar y rellena
 
 ### 5.3 Menú ☰ del móvil
 
-`flattenForMobile` hoy antepone el nombre del grupo a cada entrada («Grupo: Entrada»). Con 14 submenús eso daría etiquetas largas:
+`flattenForMobile` hoy antepone el nombre del grupo a cada entrada («Grupo: Entrada»). Con 13 submenús eso daría etiquetas largas:
 el submenú IA se aplana con **un título de sección por submenú** (`flattenAsHeader: true`) y sus entradas debajo, con el buscador
 funcionando igual.
 
@@ -395,7 +459,7 @@ Origen: **E** = revisión de Evoto · **M** = modelos de IA en móvil · **I** =
 | 63 | Exportación por lotes lista para redes | E, A | Parcial («Editar en lote», «Prueba para redes sociales») | F13 |
 | 64 | Aplicar una edición a todo el lote | E | Sí | — |
 | 65 | Asistente por texto o voz con un modelo pequeño | I | No | F14 |
-| 66 | Vídeo: efectos de sensor y color, segmentación, estabilización | I, A | No | F15 |
+| 66 | Editor de vídeo (aislado, con menú propio): efectos de sensor y color, segmentación, estabilización | I, A | No | F15 |
 | 67 | PWA instalable y sin conexión | E | Sí | F16 (comprobar modelos sin conexión) |
 | 68 | EXIF realista | A | Parcial en Realify (coincidencia de EXIF) | F11 |
 | 69 | Limpieza de marcas de IA (mejoras de Unmark) | A | Existe (Unmark) | F11 |
@@ -433,12 +497,13 @@ Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado
 - [ ] F0.12 `js/ui/kit/params-panel.js`: pinta los mandos desde el `params` del manifiesto (deslizador, interruptor, chips, selector cerrado); lo usarán el diálogo simple y los editores. Prueba en Playwright, móvil y escritorio.
 - [ ] F0.13 `js/ui/kit/ai-editor/`: armazón común de los editores sobre `createShell` (selector de persona o cara, `zoomTo(caja)`, chips de grupo, antes/después, deshacer por función, `dockPremium`, capa nueva con «mezcla»). No reescribe el zoom de `fsshell`. Prueba con un editor de ejemplo.
 - [ ] F0.14 `tests/ia/interfaces.mjs`: ninguna función importa `fsshell` ni `dialog` directamente; ningún mando dibujado a mano; el campo `ui` de cada manifiesto es válido.
+- [ ] F0.15 `tools/verify/aislamiento.mjs`: comprueba que un módulo aislado (empieza por `plugins/video/`) solo se importa por su puerta y solo importa de fuera por su `bridge/`; entra en `npm run verify`.
 - [x] F0.11 Decisiones D1, D2 y D3 resueltas (5 nov 2026).
 
 Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas a la línea base, cero cambios visibles.
 
 ### Fase 1 · Menú IA con submenús y cajón del móvil
-Objetivo: dejar los 14 submenús y el cajón listos, con todo lo existente ya colocado. Aún no hay funciones nuevas.
+Objetivo: dejar los 13 submenús y el cajón listos, con todo lo existente ya colocado. Aún no hay funciones nuevas.
 Depende de: F0.
 
 - [ ] F1.1 Esquema del manifiesto y cargador `js/ui/menu/ia/index.js` + un archivo por submenú (`seleccionar.js`, `borrar.js`, `retrato.js`…).
@@ -449,6 +514,7 @@ Depende de: F0.
 - [ ] F1.6 Registro de comandos a partir de los manifiestos (`js/app/commands/ai/…` con fachada en `ai.js`).
 - [ ] F1.7 Regenerar la huella de menús del `smoke` revisándola a mano (el cambio de estructura es intencionado).
 - [ ] F1.8 Prueba `tests/ia/menu-ia.mjs`: cada comando IA aparece **una sola vez** en el menú, en el cajón (IA) y en ☰, en el mismo orden, en móvil y escritorio, y en las pestañas afines que dice su manifiesto; `cajon-basicos-auto` sigue en verde.
+- [ ] F1.10 Menú «Vídeo» exclusivo (4.8): hueco en la barra de escritorio junto a «Inteligencia Artificial», sección propia en ☰ y pestaña propia al final del cajón; **oculto hasta que el módulo esté listo**. No toca Básicos ni Automáticos.
 - [ ] F1.9 Guía: actualizar `js/ui/help/topics/ia.js` con los submenús; `CHANGELOG.md`.
 
 Hecho cuando: nada de lo existente cambia de comportamiento, y las dos vistas muestran el mismo árbol.
@@ -637,15 +703,21 @@ Diseño: el modelo **no ejecuta código**; devuelve un plan en JSON que se valid
 - [ ] F14.5 Pruebas con un conjunto de órdenes en español; rechazo de lo que salga del esquema.
 - [ ] F14.6 Menú, cajón, ☰, guía.
 
-### Fase 15 · Vídeo 👑
-Depende de: F9, F12. Es la fase más grande: se divide en sub-fases.
+### Fase 15 · Editor de vídeo 👑 ⚠ módulo aislado y escalable
+Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el código vive aislado en `plugins/video/` (4.8) con menú propio.**
 
+- [ ] F15.0 **Arquitectura primero.** Redactar `docs/VIDEO.md` (carpetas, contratos de efecto y de códec, formato de proyecto con `schemaVersion`), crear el esqueleto vacío de `plugins/video/` con `bridge/`, `README.md` y `manifest.js`, y comprobar `tools/verify/aislamiento.mjs`. El titular aprueba el documento antes de seguir.
 - [ ] F15.1 Estudio de viabilidad: decodificación y codificación con WebCodecs, memoria y tiempo por fotograma en móviles reales y en escritorio; **fijar aquí los límites** de duración y resolución (D5: se miden primero) y anotarlos en este plan.
-- [ ] F15.2 `plugins/video/`: línea de tiempo mínima, previsualización a baja resolución, aplicar al clip completo.
-- [ ] F15.3 Efectos por fotograma: cadena de sensor de Realify, color, estilos de cámara.
-- [ ] F15.4 Segmentación por fotograma (MODNet) con suavizado temporal y estabilización ligera (OpenCV.js).
-- [ ] F15.5 Exportar MP4 o WebM con el códec del dispositivo.
-- [ ] F15.6 Menú, cajón, ☰, guía, pruebas y medición de rendimiento.
+- [ ] F15.2 `project/` y `timeline/`: modelo del proyecto con versión y migraciones, operaciones de línea de tiempo con deshacer; pruebas en Node.
+- [ ] F15.3 `media/` y `workers/`: importar, decodificar y codificar con registro de códecs y respaldo; todo fuera del hilo principal.
+- [ ] F15.4 `render/` y `ui/`: motor de fotogramas, previsualización a baja resolución, aplicar al clip completo; editor a pantalla completa (armazón común, vía `bridge/`) en móvil y escritorio.
+- [ ] F15.5 `effects/`: registro de efectos y los primeros: cadena de sensor de Realify, color, estilos de cámara.
+- [ ] F15.6 Segmentación por fotograma (MODNet) con suavizado temporal y estabilización ligera (OpenCV.js), como efectos del registro.
+- [ ] F15.7 `audio/` y `export/`: pista de audio y exportar MP4 o WebM con el códec del dispositivo; presets por red.
+- [ ] F15.8 Menú «Vídeo» exclusivo (escritorio, sección de ☰ y pestaña del cajón; mismo contenido y orden) y comandos `video.*` en `js/app/commands/video.js`; se hace visible al estar listo.
+- [ ] F15.9 Guía `js/ui/help/topics/video.js`, `CHANGELOG.md`, pruebas en `tests/video/` y medición de rendimiento.
+
+Hecho cuando: el editor se abre y se usa sin que el resto de la web cargue una línea suya, `aislamiento.mjs` y `layers.mjs` pasan, y añadir un efecto nuevo es crear una carpeta.
 
 ### Fase 16 · Cierre, posicionamiento y publicación
 - [ ] F16.1 Nuevo texto de presentación («editor completo con IA local», D6; borradores para aprobar) en `index.html`, `manifest.webmanifest`, README y «Acerca de».
@@ -718,6 +790,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | Peso del repositorio (`assets/models` ya 326 MB) | Modelos grandes en Hugging Face con revisión fija |
 | Archivos que vuelven a crecer | `file-size.mjs` y revisión en cada fase |
 | LLM poco fiable | Salida validada contra un esquema; el usuario confirma antes de aplicar |
+| El vídeo se mezcla con el resto del código y se vuelve ilegible | Módulo aislado con puente único, `aislamiento.mjs` en `npm run verify` y `docs/VIDEO.md` aprobado en F15.0 (4.8) |
 | Vídeo demasiado pesado en móvil | Estudio previo (F15.1) y límites fijados con datos (D5) |
 
 ---
@@ -750,5 +823,5 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 12 · Estilos | | | |
 | 13 · Lotes | | | |
 | 14 · Asistente | | | |
-| 15 · Vídeo | | | |
+| 15 · Editor de vídeo (aislado, menú propio) | | | |
 | 16 · Cierre | | | |
