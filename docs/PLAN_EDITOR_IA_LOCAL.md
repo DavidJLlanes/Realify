@@ -812,7 +812,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 |---|---|---|---|
 | P · Plan | — | 5 nov 2026 | En `main`; resueltas D1 a D6, el editor de cuerpo y Unmark; interfaces definidas (4.7: editor de cara con zoom, editores a pantalla completa y simples); listo para empezar por la Fase 0 |
 | 0 · Cimientos | v299 (1.0.0) | 5 nov 2026 | Hecha. Worker, catálogo y funciones de IA reorganizados sin cambios visibles: `smoke` equivalente al de antes, huella de matte idéntica, catálogo idéntico, Básicos y Automáticos intactos. Pendiente heredado: `smoke.copia.json` ya estaba desfasado antes de la fase (F1.7) |
-| 1 · Menús y cajón | | | |
+| 1 · Menús y cajón | v300 (1.0.0) | 5 nov 2026 | Hecha. Menú IA con submenús (8 con herramientas de 13), chips en el cajón, ☰ con título por submenú, comandos desde manifiestos, hueco «Vídeo» oculto. `smoke` equivalente salvo el árbol de menús (intencionado) y el error de consola de Unmark que ya existía; Básicos y Automáticos idénticos. |
 | 2 · Personas | | | |
 | 3 · Retrato I | | | |
 | 4 · Retrato II | | | |
