@@ -699,12 +699,12 @@ Modelos candidatos: CLIP (búsqueda y etiquetas), captioning pequeño (texto alt
 Depende de: F1 (manifiestos con `params`). Modelo: Qwen2.5 1,5B Instruct (D4).
 Diseño: el modelo **no ejecuta código**; devuelve un plan en JSON que se valida contra el esquema de `params` de los manifiestos; el usuario lo ve y lo confirma; se aplica con el motor de «Acciones».
 
-- [ ] F14.1 Cargar Qwen2.5 1,5B bajo demanda con `ensureVendor` y WebGPU (avisando del tamaño); medir en un móvil de gama media y, si no cabe, bajar a 0,5B; respaldo claro si el dispositivo no puede.
-- [ ] F14.2 Esquema de herramientas generado desde los manifiestos (comando, parámetros, rangos).
-- [ ] F14.3 Interfaz mínima de texto: «hazla más cálida y con grano de película» → vista previa → aplicar.
-- [ ] F14.4 Voz opcional con un modelo local (tipo Whisper tiny); sin enviar audio fuera del equipo.
-- [ ] F14.5 Pruebas con un conjunto de órdenes en español; rechazo de lo que salga del esquema.
-- [ ] F14.6 Menú, cajón, ☰, guía.
+- [ ] F14.1 (pendiente: el modelo no se puede descargar desde el entorno de desarrollo; ver PENDIENTE_TITULAR) Cargar Qwen2.5 1,5B bajo demanda con `ensureVendor` y WebGPU (avisando del tamaño); medir en un móvil de gama media y, si no cabe, bajar a 0,5B; respaldo claro si el dispositivo no puede.
+- [x] F14.2 (v315) Esquema de herramientas generado desde los manifiestos (comando, parámetros, rangos).
+- [x] F14.3 (v315) Interfaz mínima de texto: «hazla más cálida y con grano de película» → vista previa → aplicar.
+- [ ] F14.4 (pendiente: igual que F14.1) Voz opcional con un modelo local (tipo Whisper tiny); sin enviar audio fuera del equipo.
+- [x] F14.5 (v315) Pruebas con un conjunto de órdenes en español; rechazo de lo que salga del esquema.
+- [x] F14.6 (v315) Menú, cajón, ☰, guía.
 
 ### Fase 15 · Editor de vídeo 👑 ⚠ módulo aislado y escalable
 Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el código vive aislado en `plugins/video/` (4.8) con menú propio.**
@@ -825,6 +825,6 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 11 · Realismo | v312 (1.9.0) | 5 nov 2026 | Hecha salvo F11.7 (mejoras de Unmark) y F11.8 (EXIF): esperan que el titular defina el alcance. Avisos de manos y dientes sin probar con fotos reales. |
 | 12 · Estilos | v313 (1.10.0) | 5 nov 2026 | Hecha. Estilo desde referencia (con sugerencias), packs de cámara y Mis estilos. Solo estilos de color y tono se guardan en archivo; «aplicar a todas las abiertas» sin probar con varias pestañas. |
 | 13 · Lotes | v314 (1.11.0) | 5 nov 2026 | Hecha. Búsqueda, etiquetas y texto alternativo sin CLIP ni captioning (no hay modelo accesible): usan la lente, MobileNet y los colores. Plantilla de nombre y formatos para redes en el ZIP del lote. |
-| 14 · Asistente | | | |
+| 14 · Asistente | v315 (1.12.0) | 5 nov 2026 | Parcial. Esquema desde manifiestos, validación, confirmación y aplicación en capas; intérprete de reglas en español. Faltan Qwen (F14.1) y voz (F14.4) por no poder descargar los modelos. |
 | 15 · Editor de vídeo (aislado, menú propio) | | | |
 | 16 · Cierre | | | |

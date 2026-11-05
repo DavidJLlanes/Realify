@@ -8,6 +8,11 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - F11.8 · **EXIF de Realify** (`js/filters/camera/exifmatch.js`): alcance de la ampliación. El titular lo decidirá al final de todas las fases.
 - Si algún día se cobra Premium: sustituir los modelos marcados `noncommercial: true` (BiSeNet, Zero-DCE++, UltraSharp V2 Lite…).
 
+## Modelos que Claude no puede descargar
+- **Qwen2.5 1,5B Instruct (F14.1)** y **Whisper tiny (F14.4)**: Hugging Face no es accesible desde el entorno de desarrollo. Hace falta descargar los pesos ONNX (y su `sha256`) y dejarlos donde indique `docs/MODELOS.md`, o darme acceso a otra fuente. El asistente ya funciona con reglas y el modelo sólo tendrá que devolver el mismo plan.
+- **CLIP** (búsqueda de fotos, F13.2) y **captioning** (texto alternativo, F13.4): igual; hoy usan MobileNet, la lente y los colores.
+- **MI-GAN / NAFNet / Depth Anything Base**: igual.
+
 ## Dispositivos y navegadores que Claude no tiene
 - Mediciones en un **móvil de gama media** (WebGPU, memoria, tiempos) de las funciones con modelos.
 - `node tests/calidad-herramienta.mjs <comando>` en **Edge** (móvil y escritorio) antes de publicar.

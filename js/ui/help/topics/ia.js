@@ -160,6 +160,9 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           por zonas (cielo, personas, resto); «Sugerir ajustes» sólo te dice cuánto subir o bajar exposición, contraste, calidez y saturación. <b>Packs de cámara</b> reúne las cámaras de Película, Móvil y Réflex en un
           selector y las aplica como capa de filtro reeditable (se copian a otras fotos con «Aplicar esta edición a otras fotos»). <b>Mis estilos</b> guarda una referencia como estilo, lo aplica a esta foto o a todas
           las abiertas, y lo guarda o importa como archivo para pasarlo a otra persona.</li>
+        <li id="ia-assistant"><b>Asistente de edición 👑</b> (Inteligencia Artificial › Asistente). Escribe lo que quieres, por ejemplo «más cálida y con grano de película»,
+          «muy luminosa y con contraste» o «quita la neblina y mejora el cielo». Te enseña el plan paso a paso y, si aceptas, lo aplica: los ajustes quedan en capas de ajuste que puedes retocar, y
+          todo se puede deshacer. Sólo usa herramientas de Realify; no ejecuta nada más. Por ahora entiende frases sencillas en español.</li>
         <li id="ia-library"><b>Lote y biblioteca 👑</b> (Inteligencia Artificial › Lote y biblioteca). <b>Selección rápida</b>: añade varias fotos y la IA
           puntúa nitidez, ojos cerrados y composición, agrupa las repetidas y marca cuál es la mejor; toca una foto para descartarla o recuperarla y abre las elegidas en pestañas.
           <b>Buscar fotos</b>: indexa tus fotos en este dispositivo (sólo guarda lo que la IA ve y una miniatura) y búscalas con una frase como «perro en la playa» o «de noche».

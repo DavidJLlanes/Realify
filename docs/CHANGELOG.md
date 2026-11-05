@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.12.0 (compilación 315) · Asistente de edición 👑
+- **Asistente de edición** (Inteligencia Artificial › Asistente): escribes lo que quieres («hazla más cálida y con grano de película», «quita la neblina y mejora el cielo», «en blanco y negro»), ves el plan y lo aplicas. Los ajustes van en capas de ajuste reeditables, el grano en una capa nueva y las funciones de IA se ejecutan con sus mandos ya rellenos.
+- Seguro por diseño: el asistente nunca ejecuta código; sólo puede usar una lista cerrada de herramientas (21, generadas desde los manifiestos), cada valor se recorta a su rango y lo que no existe se rechaza con el motivo.
+- Por ahora entiende las órdenes con reglas en español (calidez, luz, contraste, saturación, blanco y negro, grano, neblina, cielo, luces quemadas). El modelo de lenguaje local (Qwen) y la voz quedan para cuando se puedan descargar; devolverán el mismo plan y pasarán por la misma validación.
+- Motores puros en `js/features/assistant/engine/` (esquema, intérprete, validación); `ai-kit/plan-host.js` muestra el plan y rellena los diálogos de las funciones
+- Pruebas en `tests/ia/asistente/` (motor en Node y navegador, móvil y escritorio)
+
 ### 1.11.0 (compilación 314) · Lote, biblioteca y entrega 👑
 - Cuatro funciones nuevas en **Lote y biblioteca**, todas Premium: **Selección rápida** (carga varias fotos y puntúa nitidez, ojos cerrados y composición, agrupa duplicados, compara hasta 4 y marca las descartables), **Buscar fotos** (índice local en IndexedDB con el tipo de foto, los objetos y los colores de cada una; se busca con una frase en español; nunca se guarda la foto), **Etiquetas y nombre** (etiquetas en español y nombre de archivo con plantilla: `{fecha}`, `{etiqueta}`, `{color}`, `{n}`…) y **Texto alternativo** (descripción corta o larga para lectores de pantalla, copiada al portapapeles).
 - «Aplicar esta edición a otras fotos» en ZIP admite **plantilla de nombre** y **formato para redes** (Instagram cuadrado y vertical, historia, X, Facebook, web, miniatura): recorta al centro, sin ampliar.

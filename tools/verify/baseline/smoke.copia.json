@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T22:20:04.817Z",
+ "generated": "2026-11-05T22:27:49.686Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1349,
+     "readyMs": 1185,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2130105,
+     "jsBytes": 2130698,
      "cssBytes": 177122,
-     "transferBytes": 885151,
-     "domContentLoaded": 1247,
-     "fcp": 1020
+     "transferBytes": 885340,
+     "domContentLoaded": 1084,
+     "fcp": 1076
     },
     {
-     "readyMs": 1000,
+     "readyMs": 1190,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2130087,
+     "jsBytes": 2130680,
      "cssBytes": 177122,
-     "transferBytes": 885133,
-     "domContentLoaded": 938,
-     "fcp": 356
+     "transferBytes": 885322,
+     "domContentLoaded": 1001,
+     "fcp": 336
     },
     {
-     "readyMs": 986,
+     "readyMs": 1211,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2130130,
+     "jsBytes": 2130716,
      "cssBytes": 177122,
-     "transferBytes": 885176,
-     "domContentLoaded": 908,
-     "fcp": 452
+     "transferBytes": 885358,
+     "domContentLoaded": 1118,
+     "fcp": 248
     }
    ],
-   "medianReadyMs": 1000,
-   "medianTransferBytes": 885151
+   "medianReadyMs": 1190,
+   "medianTransferBytes": 885340
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -97,6 +97,7 @@
     "adj.whiteBalance",
     "ai.aiArtifacts",
     "ai.altText",
+    "ai.assistant",
     "ai.autoTags",
     "ai.bodyEditor",
     "ai.bodyPosture",
@@ -2632,6 +2633,24 @@
        "flattenAsHeader": true
       },
       {
+       "label": "Asistente",
+       "submenu": [
+        {
+         "cmd": "ai.assistant",
+         "ic": "wand",
+         "label": "Asistente de edición Premium 👑…",
+         "premium": true,
+         "help": "Escribe lo que quieres («más cálida y con grano», «quita la neblina y mejora el cielo»), mira el plan y aplícalo. Todo va en capas que puedes retocar o deshacer.",
+         "short": "Asistente",
+         "tabs": [
+          "mejorar"
+         ]
+        }
+       ],
+       "iaId": "asistente",
+       "flattenAsHeader": true
+      },
+      {
        "sep": true
       },
       {
@@ -2915,11 +2934,11 @@
      ]
     }
    ],
-   "menuHash": "fbc688cab75e2d1f"
+   "menuHash": "59a85c94dc6b2fac"
   },
   "screens": {
-   "welcome": "832bd27e419fc6c7",
-   "withImage": "370d3b8b9ddf8ddf"
+   "welcome": "e8aab073050dda2e",
+   "withImage": "9248b096530b73fb"
   },
   "opened": true,
   "afterOpen": {
@@ -4858,15 +4877,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 871,
+   "readyMs": 942,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2129971,
+   "jsBytes": 2130716,
    "cssBytes": 177122,
-   "transferBytes": 885017,
-   "domContentLoaded": 818,
-   "fcp": 452
+   "transferBytes": 885358,
+   "domContentLoaded": 880,
+   "fcp": 460
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
