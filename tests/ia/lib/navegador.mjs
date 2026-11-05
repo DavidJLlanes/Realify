@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+export const RAIZ = process.env.REALIFY_RAIZ ? path.resolve(process.env.REALIFY_RAIZ) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");   // REALIFY_RAIZ: comparar con otra copia (p. ej. la anterior a un cambio)
 const TIPOS = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
   ".json": "application/json", ".wasm": "application/wasm", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json" };
 
