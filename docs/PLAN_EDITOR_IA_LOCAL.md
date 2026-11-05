@@ -678,12 +678,12 @@ Objetivo: reforzar lo que hace único a Realify.
 ### Fase 12 · Estilos de cámara, color por referencia y presets 👑
 Depende de: F1. Interfaz: editor a pantalla completa con el armazón común (4.7).
 
-- [ ] F12.1 `ai.styleFromReference` · Estilo desde una foto de referencia: transferencia de color y tono en OKLab, por zonas con segmentación; mejora «Igualar color…» sin cambiar el existente.
-- [ ] F12.2 `ai.cameraPacks` · Packs de estilos de cámara (película analógica, móvil, réflex) sobre `plugins/cameras`, `plugins/vintage` y `js/filters/looks`.
-- [ ] F12.3 `ai.myStyles` · Guardar, importar y compartir estilos como archivo.
-- [ ] F12.4 Ajustes sugeridos por «estilo objetivo» (propone valores a partir de una foto de referencia).
-- [ ] F12.5 Aplicar un estilo a un lote con «Aplicar esta edición a otras fotos».
-- [ ] F12.6 Menús, cajón, ☰, guía, pruebas.
+- [x] F12.1 (v313) `ai.styleFromReference` · Estilo desde una foto de referencia: transferencia de color y tono en OKLab, por zonas con segmentación; mejora «Igualar color…» sin cambiar el existente.
+- [x] F12.2 (v313) `ai.cameraPacks` · Packs de estilos de cámara (película analógica, móvil, réflex) sobre `plugins/cameras`, `plugins/vintage` y `js/filters/looks`.
+- [x] F12.3 (v313) `ai.myStyles` · Guardar, importar y compartir estilos como archivo.
+- [x] F12.4 (v313) Ajustes sugeridos por «estilo objetivo» (propone valores a partir de una foto de referencia).
+- [x] F12.5 (v313) Aplicar un estilo a un lote con «Aplicar esta edición a otras fotos».
+- [x] F12.6 (v313) Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 13 · Lote, biblioteca y entrega 👑
 Modelos candidatos: CLIP (búsqueda y etiquetas), captioning pequeño (texto alternativo). Tokenizador de CLIP ya incluido.
@@ -823,7 +823,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 9 · Restaurar y limpiar | v310 (1.7.0) | 5 nov 2026 | Hecha con algoritmos propios (sin NAFNet). Falta probar con fotos reales borrosas, con polvo y con moiré. |
 | 10 · Objetos | v311 (1.8.0) | 5 nov 2026 | Hecha. Pincel inteligente, borrado ligero (sin MI-GAN, usa el relleno actual), texto en zona libre y 3 propuestas de recorte. Falta MI-GAN y probar SAM con fotos reales. |
 | 11 · Realismo | v312 (1.9.0) | 5 nov 2026 | Hecha salvo F11.7 (mejoras de Unmark) y F11.8 (EXIF): esperan que el titular defina el alcance. Avisos de manos y dientes sin probar con fotos reales. |
-| 12 · Estilos | | | |
+| 12 · Estilos | v313 (1.10.0) | 5 nov 2026 | Hecha. Estilo desde referencia (con sugerencias), packs de cámara y Mis estilos. Solo estilos de color y tono se guardan en archivo; «aplicar a todas las abiertas» sin probar con varias pestañas. |
 | 13 · Lotes | | | |
 | 14 · Asistente | | | |
 | 15 · Editor de vídeo (aislado, menú propio) | | | |

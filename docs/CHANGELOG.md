@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.10.0 (compilación 313) · Estilos y color por referencia 👑
+- Tres funciones nuevas en **Color y estilos**, todas Premium: **Estilo desde una foto de referencia** (lleva el color y el tono de tu foto hacia los de otra, por zonas —cielo, personas, resto— y en OKLab; también puede **sugerir ajustes**: exposición, contraste, calidez, tinte y saturación), **Packs de cámara** (Película, Móvil, Réflex y óptica: las cámaras de Cámaras en un selector; el resultado es una capa de filtro reeditable, así que «Aplicar esta edición a otras fotos» la copia a un lote) y **Mis estilos** (guardar una referencia como estilo, aplicarlo a una foto o a todas las abiertas, y exportarlo/importarlo como archivo `.realify-estilo.json`)
+- Motor puro `js/features/style/engine/transferir.js` (cuantiles para el tono, media y desviación para el color, razón limitada a ×0,5-×2); «Igualar color…» no cambia
+- El flujo común de escena admite funciones que sólo informan (`fin`)
+- Pruebas en `tests/ia/estilo/` (motor en Node y navegador, móvil y escritorio)
+
 ### 1.9.0 (compilación 312) · Realismo y autenticidad 👑
 - Tres funciones nuevas en **Realismo y autenticidad**, todas Premium: **Zonas demasiado lisas** (detecta cielos, pieles y fondos sin textura de sensor y añade grano sólo ahí; también las puede mostrar en rojo), **Manos y dientes sospechosos** (avisa de dedos largos o desiguales, nudillos irregulares, articulaciones imposibles y filas de dientes con demasiadas separaciones; sólo avisa, no corrige) e **Informe de realismo** (nitidez, ruido, rango dinámico, recortes, zonas lisas, metadatos y puntuación; se guarda en PDF o JSON)
 - **Plausibilidad** permite marcar una medición como «antes» y, tras un cambio, muestra «antes → ahora» en la puntuación y en cada barra

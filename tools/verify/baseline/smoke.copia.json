@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T19:50:07.878Z",
+ "generated": "2026-11-05T20:04:45.111Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1697,
+     "readyMs": 1896,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2127693,
+     "jsBytes": 2101735,
      "cssBytes": 177122,
-     "transferBytes": 885410,
-     "domContentLoaded": 1607,
-     "fcp": 1008
+     "transferBytes": 875480,
+     "domContentLoaded": 1795,
+     "fcp": 1396
     },
     {
-     "readyMs": 1219,
+     "readyMs": 1196,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2127708,
+     "jsBytes": 2128877,
      "cssBytes": 177122,
-     "transferBytes": 884864,
-     "domContentLoaded": 1148,
-     "fcp": 576
+     "transferBytes": 884751,
+     "domContentLoaded": 1117,
+     "fcp": 560
     },
     {
-     "readyMs": 1410,
+     "readyMs": 1351,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2127857,
+     "jsBytes": 2128928,
      "cssBytes": 177122,
-     "transferBytes": 883886,
-     "domContentLoaded": 1334,
-     "fcp": 340
+     "transferBytes": 884802,
+     "domContentLoaded": 1283,
+     "fcp": 408
     }
    ],
-   "medianReadyMs": 1410,
-   "medianTransferBytes": 884864
+   "medianReadyMs": 1351,
+   "medianTransferBytes": 884751
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -101,6 +101,7 @@
     "ai.bodyShape",
     "ai.bodySkin",
     "ai.bodyTone",
+    "ai.cameraPacks",
     "ai.categoryBoost",
     "ai.clothesWrinkles",
     "ai.colorize",
@@ -134,6 +135,7 @@
     "ai.lowLight",
     "ai.magicErase",
     "ai.moire",
+    "ai.myStyles",
     "ai.partsSelect",
     "ai.photo3d",
     "ai.photoReport",
@@ -148,6 +150,7 @@
     "ai.smartBrush",
     "ai.smartCrop",
     "ai.smoothZones",
+    "ai.styleFromReference",
     "ai.tapSelect",
     "ai.teeth",
     "ai.textPlacement",
@@ -2531,6 +2534,46 @@
        "flattenAsHeader": true
       },
       {
+       "label": "Color y estilos",
+       "submenu": [
+        {
+         "cmd": "ai.styleFromReference",
+         "ic": "palette",
+         "label": "Estilo desde una foto de referencia Premium 👑…",
+         "premium": true,
+         "help": "Elige una foto de referencia y lleva el color y el tono de tu foto hacia los suyos, por zonas (cielo, personas, resto) y en OKLab. También puede sugerir ajustes (exposición, contraste, calidez, saturación).",
+         "short": "Estilo de referencia",
+         "tabs": [
+          "color"
+         ]
+        },
+        {
+         "cmd": "ai.cameraPacks",
+         "ic": "camera",
+         "label": "Packs de cámara Premium 👑…",
+         "premium": true,
+         "help": "Elige un estilo de película analógica, de móvil o de réflex/óptica y se aplica como capa de filtro reeditable (con el motor de Cámaras). Al ser una capa de filtro, «Aplicar esta edición a otras fotos» la copia a un lote.",
+         "short": "Packs de cámara",
+         "tabs": [
+          "estilo"
+         ]
+        },
+        {
+         "cmd": "ai.myStyles",
+         "ic": "heart",
+         "label": "Mis estilos Premium 👑…",
+         "premium": true,
+         "help": "Guarda el color y el tono de una foto de referencia como estilo, aplícalo a esta foto o a todas las abiertas, y pásalo a otra persona o ordenador como archivo.",
+         "short": "Mis estilos",
+         "tabs": [
+          "estilo"
+         ]
+        }
+       ],
+       "iaId": "color",
+       "flattenAsHeader": true
+      },
+      {
        "sep": true
       },
       {
@@ -2814,7 +2857,7 @@
      ]
     }
    ],
-   "menuHash": "f517a993a136f2a3"
+   "menuHash": "14ef2c30f79bb038"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4757,19 +4800,19 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1443,
+   "readyMs": 1331,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2127825,
+   "jsBytes": 2128791,
    "cssBytes": 177122,
-   "transferBytes": 884415,
-   "domContentLoaded": 1368,
-   "fcp": 668
+   "transferBytes": 885241,
+   "domContentLoaded": 1230,
+   "fcp": 724
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
-   "withImage": "91216a462b558bfe",
+   "withImage": "42cefdfe7129c827",
    "drawer": "53b3b078245a5530"
   },
   "opened": true,

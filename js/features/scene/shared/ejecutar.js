@@ -19,6 +19,7 @@ export async function ejecutarEscena({ panel, nombre, datos = null, motor }){
   try{
     const prep = trabajar(src, WORK());
     const ctx = datos ? await datos(src, prep, r.values) : {};
+    if(ctx && ctx.fin) return;                       // la función ya hizo lo suyo (p. ej. mostrar un informe): nada más que hacer
     if(ctx && ctx.aviso){ toast(ctx.aviso, "err"); return; }
     await aiSession(nombre, async () => { await motor(prep.planes, ctx || {}, r.values); }, { unit: "paso" });
     await toNewLayer(aLienzo(prep, src), nombre);

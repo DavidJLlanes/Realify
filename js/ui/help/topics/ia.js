@@ -156,6 +156,10 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           de sensor y añade grano sólo ahí (o te los muestra en rojo); <b>Manos y dientes sospechosos</b> te avisa de proporciones raras en los dedos o en la fila de dientes (sólo avisa,
           no corrige, y puede equivocarse con manos de perfil o tapadas); <b>Informe de realismo</b> mide nitidez, ruido, rango dinámico, recortes, zonas lisas y metadatos, y se guarda en PDF o JSON.
           En <i>Plausibilidad</i>, «Marcar como antes» guarda la puntuación para ver «antes → ahora» después de aplicar un cambio.</li>
+        <li id="ia-estilos-ia"><b>Estilos y color por referencia 👑</b> (Inteligencia Artificial › Color y estilos): <b>Estilo desde una foto de referencia</b> elige otra foto y lleva el color y el tono de la tuya hacia los suyos,
+          por zonas (cielo, personas, resto); «Sugerir ajustes» sólo te dice cuánto subir o bajar exposición, contraste, calidez y saturación. <b>Packs de cámara</b> reúne las cámaras de Película, Móvil y Réflex en un
+          selector y las aplica como capa de filtro reeditable (se copian a otras fotos con «Aplicar esta edición a otras fotos»). <b>Mis estilos</b> guarda una referencia como estilo, lo aplica a esta foto o a todas
+          las abiertas, y lo guarda o importa como archivo para pasarlo a otra persona.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>
