@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.2.0 (compilación 303) · Retrato I: piel y arrugas 👑
+- Cinco funciones nuevas en **Inteligencia Artificial › Retrato** (Premium 👑, también en la pestaña Retoque del cajón): **Arrugas**, **Ojeras y bolsas**, **Brillos de la piel**, **Textura de piel** e **Imperfecciones y tono**. Todas abren el nuevo **editor de cara** (`plugins/face-editor/`) a pantalla completa con zoom en la cara elegida, un selector si hay varias, vista previa en vivo y el resultado en capa nueva con «mezcla».
+- Motor de piel en luz lineal y coma flotante (`js/features/portrait/`): zonas de la cara a partir de los 478 puntos (frente, entrecejo, patas de gallo, ojeras, surcos, comisuras, cuello), máscara de piel del modelo de partes sin ojos, cejas ni labios, y una cadena de cinco etapas. Las arrugas se detectan con un filtro de crestas y se atenúan conservando la textura fina; las ojeras se igualan a la mejilla; los brillos se apagan devolviendo el color de la piel; la textura (poros y grano) sólo se añade donde la piel es demasiado lisa; los granos se rellenan y las rojeces se igualan sin tocar la luz.
+- Pruebas nuevas `tests/ia/retrato/piel-motor.mjs` (Node) y `piel-editor.mjs` (navegador, móvil y escritorio, con `REALIFY_FOTO`).
+- Pendiente de la fase: arrugas de las manos, y medir el tiempo en un móvil de gama media.
+
 ### 1.1.0 (compilación 302) · Seleccionar partes y análisis de personas con modelos 👑
 - Nueva herramienta **Inteligencia Artificial › Seleccionar › Seleccionar partes** (Premium 👑): pelo, cara, piel, ropa, brazos, piernas, zapatos, gafas, sombrero… de una o varias personas, como selección o máscara de la capa. Primera vez: descarga de unos 82 MB (RTMPose y SegFormer).
 - Fase 2: modelos de puntos de cara, manos, pose y partes del cuerpo en `assets/models/people/` (≈103 MB, ONNX; los dos grandes con pesos en fp16), tareas del worker, `analyze()` con los proveedores reales y `ai-kit/simple-host.js`. Registro en `docs/MODELOS.md`.

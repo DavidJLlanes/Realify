@@ -16,7 +16,7 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
         <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto, Seleccionar cielo, Seleccionar por texto 👑,
           Seleccionar por profundidad 👑 y Seleccionar partes 👑.</li>
         <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo y Expandir con IA.</li>
-        <li><b>Retrato:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑 y Ojos rojos 👑.</li>
+        <li><b>Retrato:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑, Ojos rojos 👑, Arrugas 👑, Ojeras y bolsas 👑, Brillos de la piel 👑, Textura de piel 👑 e Imperfecciones y tono 👑.</li>
         <li><b>Escena y cielo:</b> Reemplazar cielo y Adaptive Photo Lens.</li>
         <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑, Luz por profundidad 👑, Separar planos 👑 y Foto 3D 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
@@ -114,6 +114,12 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           <b>máscara de la capa activa</b>. Si hay varias personas, eliges una o todas; «Suavidad del borde» ajusta la transición.
           Usa RTMPose (pose) y SegFormer (partes); la primera vez descarga los modelos (unos 82 MB en total) y todo se hace en tu
           equipo. No separa cuello ni orejas: para eso, «Seleccionar por texto».</li>
+        <li id="ia-piel"><b>Retoque de piel 👑</b> (Inteligencia Artificial › Retrato, y en la pestaña Retoque del cajón):
+          <b>Arrugas</b>, <b>Ojeras y bolsas</b>, <b>Brillos de la piel</b>, <b>Textura de piel</b> e <b>Imperfecciones y tono</b>.
+          Cada una abre el <b>editor de cara</b> a pantalla completa, con zoom en la cara (si hay varias, eliges cuál arriba), con los
+          mandos de las cinco en grupos: sube el que quieras y la vista previa cambia al momento («Antes» compara). Todo conserva la
+          textura real de la piel; ojos, cejas y labios no se tocan. Al aplicar, el resultado va a una <b>capa nueva</b> con «mezcla»
+          (porcentaje de aplicación). <i>Textura de piel</i> es ideal para imágenes de IA demasiado lisas: sólo añade poros donde faltan.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

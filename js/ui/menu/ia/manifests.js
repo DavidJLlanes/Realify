@@ -7,8 +7,14 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import partsSelect from "../../../features/people/parts-select/manifest.js";
+import skinWrinkles from "../../../features/portrait/skin-wrinkles/manifest.js";
+import darkCircles from "../../../features/portrait/skin-dark-circles/manifest.js";
+import skinShine from "../../../features/portrait/skin-shine/manifest.js";
+import skinTexture from "../../../features/portrait/skin-texture/manifest.js";
+import skinEven from "../../../features/portrait/skin-even/manifest.js";
 
 export const MANIFESTS = [
   partsSelect,
+  skinWrinkles, darkCircles, skinShine, skinTexture, skinEven,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

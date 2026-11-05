@@ -547,15 +547,15 @@ Técnica (sin modelo nuevo salvo F2): zonas de la cara por puntos y partes; sepa
 detección de surcos con filtros de crestas (Hessiano o Frangi) limitada a cada zona; se atenúa la amplitud de baja y media frecuencia
 del surco y se **reinyecta la textura fina** (poros).
 
-- [ ] F3.0 **`plugins/face-editor/`** (editor de cara a pantalla completa, sobre `ai-editor/` de F0.13): zoom automático a la cara elegida, selector si hay varias, grupo «Piel» ahora; los demás grupos se añaden en F4 y F6. Solo configuración, sin mandos propios.
-- [ ] F3.1 `js/features/portrait/shared/`: máscaras de piel por zonas (frente, entrecejo, contorno de ojos, surcos nasogenianos, comisuras, cuello, manos) y separación de frecuencias en coma flotante.
-- [ ] F3.2 **`ai.skinWrinkles` · Arrugas**: frente, entrecejo, patas de gallo, surcos, cuello y manos; mandos: intensidad global, conservar textura, zonas.
-- [ ] F3.3 `ai.darkCircles` · Ojeras y bolsas: igualar tono y luz sin borrar la textura.
-- [ ] F3.4 `ai.skinShine` · Brillos de la piel: detectar zonas brillantes y atenuarlas sin apagar el reflejo de los ojos.
-- [ ] F3.5 `ai.skinTexture` · Textura de piel: añadir poros y grano fino solo donde la piel es demasiado lisa (pieza clave de Realify).
-- [ ] F3.6 `ai.skinEven` · Imperfecciones y tono: acné, manchas, rojeces; uniformar el tono por zonas.
-- [ ] F3.7 Menús, cajón y ☰ (las 5 entradas, cada una abre el editor de cara en el grupo «Piel»; su `ui.js` solo declara el panel) y comandos; guía `ia-retrato.js`.
-- [ ] F3.8 Pruebas: motor en Node (la atenuación no baja de un umbral de textura), `calidad-herramienta` por comando, móvil y escritorio, zoom a la cara, varias caras.
+- [x] F3.0 **`plugins/face-editor/`** (editor de cara a pantalla completa, sobre `ai-editor/` de F0.13): zoom automático a la cara elegida, selector si hay varias, grupo «Piel» ahora; los demás grupos se añaden en F4 y F6. Solo configuración, sin mandos propios. (v303)
+- [x] F3.1 `js/features/portrait/shared/`: máscaras de piel por zonas (frente, entrecejo, contorno de ojos, surcos nasogenianos, comisuras, cuello, manos) y separación de frecuencias en coma flotante. (v303; las manos quedan para más adelante)
+- [x] F3.2 **`ai.skinWrinkles` · Arrugas**: frente, entrecejo, patas de gallo, surcos, cuello y manos; mandos: intensidad global, conservar textura, zonas. (v303; sin las manos aún)
+- [x] F3.3 `ai.darkCircles` · Ojeras y bolsas: igualar tono y luz sin borrar la textura. (v303)
+- [x] F3.4 `ai.skinShine` · Brillos de la piel: detectar zonas brillantes y atenuarlas sin apagar el reflejo de los ojos. (v303)
+- [x] F3.5 `ai.skinTexture` · Textura de piel: añadir poros y grano fino solo donde la piel es demasiado lisa (pieza clave de Realify). (v303)
+- [x] F3.6 `ai.skinEven` · Imperfecciones y tono: acné, manchas, rojeces; uniformar el tono por zonas. (v303)
+- [x] F3.7 Menús, cajón y ☰ (las 5 entradas, cada una abre el editor de cara en el grupo «Piel»; su `ui.js` solo declara el panel) y comandos; guía `ia-retrato.js`. (v303)
+- [~] F3.8 Pruebas: motor en Node (la atenuación no baja de un umbral de textura), `calidad-herramienta` por comando, móvil y escritorio, zoom a la cara, varias caras. **Hecho (v303):** motor en Node (`piel-motor.mjs`, con umbral de textura) y editor en el navegador, móvil y escritorio, con una cara real (`piel-editor.mjs`). **Falta:** `calidad-herramienta` por comando (necesita Edge), varias caras reales y medir en un móvil de gama media.
 
 Hecho cuando: un retrato de IA muy liso gana textura y uno real pierde arrugas sin verse plástico, con el resultado en capa nueva con «mezcla».
 
@@ -814,7 +814,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 0 · Cimientos | v299 (1.0.0) | 5 nov 2026 | Hecha. Worker, catálogo y funciones de IA reorganizados sin cambios visibles: `smoke` equivalente al de antes, huella de matte idéntica, catálogo idéntico, Básicos y Automáticos intactos. Pendiente heredado: `smoke.copia.json` ya estaba desfasado antes de la fase (F1.7) |
 | 1 · Menús y cajón | v300 (1.0.0) | 5 nov 2026 | Hecha. Menú IA con submenús (8 con herramientas de 13), chips en el cajón, ☰ con título por submenú, comandos desde manifiestos, hueco «Vídeo» oculto. `smoke` equivalente salvo el árbol de menús (intencionado) y el error de consola de Unmark que ya existía; Básicos y Automáticos idénticos. |
 | 2 · Personas | v302 | 5 nov 2026 | Hecha salvo F2.1, F2.2 (medidas y WebGPU en un móvil real), F2.4 (manos sin validar) y F2.8. Modelos incluidos en `assets/models/people/` (≈103 MB), tareas del worker, API `analyze()` real, `ai.partsSelect`. Probado con una foto real (CPU/WASM). **Pendiente:** medir tiempo y memoria en un móvil de gama media y probar con fotos con manos y varias personas. |
-| 3 · Retrato I | | | |
+| 3 · Retrato I | v303 (1.2.0) | 5 nov 2026 | Hecha salvo las manos (F3.1/F3.2) y F3.8 completa. Editor de cara + 5 funciones de piel en luz lineal; probado con una cara real. |
 | 4 · Retrato II | | | |
 | 5 · Deformación | | | |
 | 6 · Cuerpo | | | |

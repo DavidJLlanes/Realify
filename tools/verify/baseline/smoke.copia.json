@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T14:17:02.782Z",
+ "generated": "2026-11-05T15:34:09.683Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1643,
-     "requests": 219,
-     "jsRequests": 202,
+     "readyMs": 1684,
+     "requests": 228,
+     "jsRequests": 212,
      "cssRequests": 12,
-     "jsBytes": 2089433,
+     "jsBytes": 2101496,
      "cssBytes": 177122,
-     "transferBytes": 945277,
-     "domContentLoaded": 1530,
-     "fcp": 1500
+     "transferBytes": 953381,
+     "domContentLoaded": 1578,
+     "fcp": 1420
     },
     {
-     "readyMs": 1025,
-     "requests": 216,
-     "jsRequests": 201,
+     "readyMs": 1256,
+     "requests": 228,
+     "jsRequests": 212,
      "cssRequests": 12,
-     "jsBytes": 2081588,
+     "jsBytes": 2101496,
      "cssBytes": 177122,
-     "transferBytes": 938085,
-     "domContentLoaded": 943,
-     "fcp": 400
+     "transferBytes": 953381,
+     "domContentLoaded": 966,
+     "fcp": 520
     },
     {
-     "readyMs": 1257,
-     "requests": 218,
-     "jsRequests": 202,
+     "readyMs": 1329,
+     "requests": 228,
+     "jsRequests": 212,
      "cssRequests": 12,
-     "jsBytes": 2089433,
+     "jsBytes": 2101496,
      "cssBytes": 177122,
-     "transferBytes": 943280,
-     "domContentLoaded": 1085,
-     "fcp": 556
+     "transferBytes": 953381,
+     "domContentLoaded": 1238,
+     "fcp": 624
     }
    ],
-   "medianReadyMs": 1257,
-   "medianTransferBytes": 943280
+   "medianReadyMs": 1329,
+   "medianTransferBytes": 953381
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -96,6 +96,7 @@
     "adj.vibrance",
     "adj.whiteBalance",
     "ai.colorize",
+    "ai.darkCircles",
     "ai.depthBlur",
     "ai.depthFog",
     "ai.depthLight",
@@ -111,6 +112,10 @@
     "ai.partsSelect",
     "ai.photo3d",
     "ai.redEye",
+    "ai.skinEven",
+    "ai.skinShine",
+    "ai.skinTexture",
+    "ai.skinWrinkles",
     "ai.smartCrop",
     "ai.tapSelect",
     "ai.textSelect",
@@ -1949,6 +1954,61 @@
          "label": "Ojos rojos Premium 👑",
          "premium": true,
          "help": "Encuentra los ojos y les quita el rojo del flash sin tocar el reflejo. Capa nueva."
+        },
+        {
+         "cmd": "ai.skinWrinkles",
+         "ic": "waves-horizontal",
+         "label": "Arrugas Premium 👑…",
+         "premium": true,
+         "help": "Atenúa las arrugas de la frente, el entrecejo, las patas de gallo, los surcos y el cuello sin borrar la textura de la piel: detecta cada surco con un filtro de crestas y reinyecta los poros. En el editor de cara, capa nueva con «mezcla».",
+         "short": "Arrugas",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.darkCircles",
+         "ic": "eye",
+         "label": "Ojeras y bolsas Premium 👑…",
+         "premium": true,
+         "help": "Iguala la luz y el tono de la zona bajo los ojos con el de la mejilla, sin borrar la textura de la piel. En el editor de cara, capa nueva con «mezcla».",
+         "short": "Ojeras",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.skinShine",
+         "ic": "sun-medium",
+         "label": "Brillos de la piel Premium 👑…",
+         "premium": true,
+         "help": "Detecta las zonas brillantes de la piel (frente, nariz, mejillas) y las atenúa sin apagar el reflejo de los ojos. En el editor de cara, capa nueva con «mezcla».",
+         "short": "Brillos",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.skinTexture",
+         "ic": "grip",
+         "label": "Textura de piel Premium 👑…",
+         "premium": true,
+         "help": "Añade poros y grano fino sólo donde la piel es demasiado lisa (típico de las imágenes de IA); la piel que ya tiene textura no cambia. En el editor de cara, capa nueva con «mezcla».",
+         "short": "Textura",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.skinEven",
+         "ic": "bandage",
+         "label": "Imperfecciones y tono Premium 👑…",
+         "premium": true,
+         "help": "Rellena granos y manchas pequeñas con la piel de alrededor y uniforma las rojeces por zonas, sin tocar la luz ni la textura. En el editor de cara, capa nueva con «mezcla».",
+         "short": "Imperfecciones",
+         "tabs": [
+          "retoque"
+         ]
         }
        ],
        "iaId": "retrato",
@@ -2328,7 +2388,7 @@
      ]
     }
    ],
-   "menuHash": "4c86fa82ab0229a7"
+   "menuHash": "31ef94be57ddedaf"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4275,20 +4335,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1227,
-   "requests": 218,
-   "jsRequests": 202,
+   "readyMs": 1016,
+   "requests": 229,
+   "jsRequests": 212,
    "cssRequests": 12,
-   "jsBytes": 2089433,
+   "jsBytes": 2101496,
    "cssBytes": 177122,
-   "transferBytes": 943280,
-   "domContentLoaded": 1086,
-   "fcp": 824
+   "transferBytes": 955378,
+   "domContentLoaded": 924,
+   "fcp": 768
   },
   "screens": {
-   "welcome": "8c8003c5c6eef62a",
+   "welcome": "469103aec01f4e01",
    "withImage": "91216a462b558bfe",
-   "drawer": "53b3b078245a5530"
+   "drawer": "2898ca98f29c0ccb"
   },
   "opened": true,
   "drawer": true,
