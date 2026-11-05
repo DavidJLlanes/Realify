@@ -7,5 +7,5 @@
    ═══════════════════════════════════════════════════════════════ */
 
 export const MANIFESTS = [
-  /* import m from "../../../features/<familia>/<función>/manifest.js"; → se añade aquí (el generador imprime la línea) */
+  /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

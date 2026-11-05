@@ -1,11 +1,17 @@
 {
- "generated": "2026-10-31T09:33:51.787Z",
+ "generated": "2026-11-05T12:51:38.704Z",
  "root": "/home/claude/realify",
- "jsFiles": 516,
- "jsLines": 94117,
+ "jsFiles": 579,
+ "jsLines": 95453,
  "brokenRefs": [],
- "softMissing": [],
- "nonLiteralDynamicImports": 64,
+ "softMissing": [
+  {
+   "file": "js/ui/menu/ia/manifests.js",
+   "spec": "js/features/<familia>/<función>/manifest.js",
+   "target": "js/features/<familia>/<función>/manifest.js"
+  }
+ ],
+ "nonLiteralDynamicImports": 68,
  "staticCycles": [],
  "storage": {
   "localStorage": [
@@ -27,6 +33,7 @@
    "realify.curves.presets",
    "realify.dlgpos",
    "realify.drawer.cat",
+   "realify.drawer.chip",
    "realify.es",
    "realify.exif",
    "realify.fillEngine",
@@ -523,6 +530,31 @@
    "quantileBounds",
    "zoneAlpha"
   ],
+  "js/ai/engine/model-store.js": [
+   "dbHas",
+   "deleteStored",
+   "fetchModel",
+   "listStored"
+  ],
+  "js/ai/engine/post.js": [
+   "post"
+  ],
+  "js/ai/engine/sessions.js": [
+   "getSession",
+   "release",
+   "runSession",
+   "sessions"
+  ],
+  "js/ai/engine/tensors.js": [
+   "inputType",
+   "makeTensor",
+   "readFloats",
+   "rgbaToPlanar"
+  ],
+  "js/ai/engine/tiling.js": [
+   "mirror",
+   "starts"
+  ],
   "js/ai/es2en.js": [
    "toEnglish"
   ],
@@ -537,6 +569,29 @@
   "js/ai/matte.js": [
    "matteAlpha",
    "refineAlpha"
+  ],
+  "js/ai/models/base.js": [
+   "HF",
+   "HF_REV",
+   "LOCAL"
+  ],
+  "js/ai/models/depth.js": [
+   "DEPTH"
+  ],
+  "js/ai/models/enhance.js": [
+   "ENHANCE"
+  ],
+  "js/ai/models/faces.js": [
+   "FACES"
+  ],
+  "js/ai/models/inpaint.js": [
+   "INPAINT"
+  ],
+  "js/ai/models/scene.js": [
+   "SCENE"
+  ],
+  "js/ai/models/segmentation.js": [
+   "SEGMENTATION"
   ],
   "js/ai/models.js": [
    "MODELS",
@@ -558,6 +613,53 @@
    "previewMask",
    "samPredict",
    "samPrepare"
+  ],
+  "js/ai/tasks/classify.js": [
+   "classify"
+  ],
+  "js/ai/tasks/clipseg.js": [
+   "clipseg"
+  ],
+  "js/ai/tasks/colorize.js": [
+   "colorize"
+  ],
+  "js/ai/tasks/depth.js": [
+   "depth"
+  ],
+  "js/ai/tasks/face-restore.js": [
+   "faceRestore"
+  ],
+  "js/ai/tasks/faces.js": [
+   "faces"
+  ],
+  "js/ai/tasks/inpaint.js": [
+   "inpaint"
+  ],
+  "js/ai/tasks/matte.js": [
+   "matte"
+  ],
+  "js/ai/tasks/parse.js": [
+   "parse"
+  ],
+  "js/ai/tasks/person.js": [
+   "segPerson"
+  ],
+  "js/ai/tasks/probe.js": [
+   "probe"
+  ],
+  "js/ai/tasks/restore.js": [
+   "restore"
+  ],
+  "js/ai/tasks/sam.js": [
+   "clearSamCache",
+   "samDecode",
+   "samEncode"
+  ],
+  "js/ai/tasks/sky.js": [
+   "segSky"
+  ],
+  "js/ai/tasks/upscale.js": [
+   "upscale"
   ],
   "js/ai/textclasses.js": [
    "CLASSES",
@@ -1917,6 +2019,35 @@
    "startRecording",
    "stopRecording"
   ],
+  "js/features/ai-kit/float.js": [
+   "DEC",
+   "enc",
+   "hash"
+  ],
+  "js/features/ai-kit/model-gate.js": [
+   "crashedBefore",
+   "isModelCached",
+   "sizeNote"
+  ],
+  "js/features/ai-kit/new-layer.js": [
+   "toNewLayer"
+  ],
+  "js/features/ai-kit/preview.js": [
+   "PREVIEW",
+   "WORK",
+   "scaled"
+  ],
+  "js/features/ai-kit/session.js": [
+   "aiSession",
+   "runModel",
+   "withHeavyGuard"
+  ],
+  "js/features/ai-kit/simple-panel.js": [
+   "buildSimpleBody"
+  ],
+  "js/features/ai-kit/visible-image.js": [
+   "visibleImage"
+  ],
   "js/features/aitools.js": [
    "aiColorize",
    "aiExpand",
@@ -2776,6 +2907,9 @@
    "initHistogramPanel",
    "showHistogramPanel"
   ],
+  "js/ui/kit/ai-editor/index.js": [
+   "createAiEditor"
+  ],
   "js/ui/kit/compact.js": [
    "autoCompact",
    "compactSliders"
@@ -2804,6 +2938,13 @@
    "keyboardHeight",
    "opensKeyboard"
   ],
+  "js/ui/kit/params-panel.js": [
+   "appliesTo",
+   "defaultsOf",
+   "paramsFor",
+   "toSections",
+   "validate"
+  ],
   "js/ui/kit/premium.js": [
    "crownIcon",
    "dockPremium",
@@ -2826,6 +2967,53 @@
   ],
   "js/ui/menu/data.js": [
    "MENUS"
+  ],
+  "js/ui/menu/ia/asistente.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/borrar.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/color.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/cuerpo.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/encuadre.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/escena.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/index.js": [
+   "IA_MENU",
+   "IA_SUBMENUS",
+   "tabsOf"
+  ],
+  "js/ui/menu/ia/lote.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/manifests.js": [
+   "MANIFESTS"
+  ],
+  "js/ui/menu/ia/mejorar.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/profundidad.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/realismo.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/retrato.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/ropa.js": [
+   "SUBMENU"
+  ],
+  "js/ui/menu/ia/seleccionar.js": [
+   "SUBMENU"
   ],
   "js/ui/menu.js": [
    "MENUS",
@@ -3413,22 +3601,22 @@
   "js/app -> js/editor": 97,
   "js/features -> js/core": 91,
   "js/io -> js/core": 66,
-  "js/ui -> js/core": 51,
-  "js/features -> js/editor": 49,
-  "js/app -> js/core": 47,
+  "js/ui -> js/core": 52,
+  "js/app -> js/core": 48,
+  "js/features -> js/editor": 48,
   "js/filters -> js/core": 46,
   "js/editor -> js/filters": 39,
   "js/filters -> js/editor": 39,
   "js/app -> js/filters": 37,
-  "js/features -> js/ui": 36,
+  "js/features -> js/ui": 37,
+  "js/features -> js/ai": 36,
   "js/app -> js/features": 34,
-  "js/features -> js/ai": 34,
   "js/ui -> js/editor": 33,
   "plugins -> js/ui": 32,
   "js/editor -> js/ui": 31,
   "plugins -> js/editor": 27,
   "js/main.js -> js/editor": 23,
-  "js/app -> js/ui": 19,
+  "js/app -> js/ui": 20,
   "js/app -> plugins": 18,
   "js/io -> js/editor": 18,
   "js/main.js -> js/app": 18,
@@ -3440,6 +3628,7 @@
   "js/app -> js/io": 11,
   "js/features -> js/cv": 11,
   "js/main.js -> js/core": 11,
+  "js/ai -> js/vendor": 10,
   "js/editor -> js/features": 9,
   "js/io -> js/ui": 9,
   "js/io -> js/vendor": 9,
@@ -3461,7 +3650,6 @@
   "js/filters -> js/exif": 3,
   "js/pwa.js -> js/ui": 3,
   "plugins -> js/lens": 3,
-  "js/ai -> js/vendor": 2,
   "js/analysis -> js/core": 2,
   "js/app -> js/exif": 2,
   "js/app -> js/pwa.js": 2,
