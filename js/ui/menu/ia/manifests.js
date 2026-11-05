@@ -43,6 +43,7 @@ import photoReport from "../../../features/realism/photo-report/manifest.js";
 import styleFromReference from "../../../features/style/reference-style/manifest.js";
 import cameraPacks from "../../../features/style/camera-packs/manifest.js";
 import myStyles from "../../../features/style/my-styles/manifest.js";
+import culling from "../../../features/library/culling/manifest.js";
 import smartBrush from "../../../features/compose/smart-brush/manifest.js";
 import quickErase from "../../../features/compose/quick-erase/manifest.js";
 import textPlacement from "../../../features/compose/text-placement/manifest.js";
@@ -56,7 +57,7 @@ export const MANIFESTS = [
   faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare, faceShape,
   bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
   clothesWrinkles, fabricWrinkles, recolorClothes, fabricTexture,
-  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight, textPlacement, smartBrush, quickErase, smoothZones, aiArtifacts, photoReport, styleFromReference, cameraPacks, myStyles,
+  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight, textPlacement, smartBrush, quickErase, smoothZones, aiArtifacts, photoReport, styleFromReference, cameraPacks, myStyles, culling,
   deblur, dustSpots, moire,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];
