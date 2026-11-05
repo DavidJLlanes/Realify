@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T19:00:27.157Z",
+ "generated": "2026-11-05T19:19:32.536Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1657,
+     "readyMs": 1717,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2123342,
+     "jsBytes": 2127095,
      "cssBytes": 177122,
-     "transferBytes": 882278,
-     "domContentLoaded": 1520,
-     "fcp": 1064
+     "transferBytes": 882062,
+     "domContentLoaded": 1647,
+     "fcp": 1348
     },
     {
-     "readyMs": 1353,
+     "readyMs": 1210,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2122791,
+     "jsBytes": 2126669,
      "cssBytes": 177122,
-     "transferBytes": 882660,
-     "domContentLoaded": 1276,
-     "fcp": 416
+     "transferBytes": 882489,
+     "domContentLoaded": 1136,
+     "fcp": 468
     },
     {
-     "readyMs": 1314,
+     "readyMs": 1345,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2123218,
+     "jsBytes": 2126225,
      "cssBytes": 177122,
-     "transferBytes": 882154,
-     "domContentLoaded": 1201,
-     "fcp": 508
+     "transferBytes": 882184,
+     "domContentLoaded": 1265,
+     "fcp": 544
     }
    ],
-   "medianReadyMs": 1353,
-   "medianTransferBytes": 882278
+   "medianReadyMs": 1345,
+   "medianTransferBytes": 882184
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -104,6 +104,7 @@
     "ai.clothesWrinkles",
     "ai.colorize",
     "ai.darkCircles",
+    "ai.deblur",
     "ai.dehaze",
     "ai.depthBlur",
     "ai.depthChroma",
@@ -112,6 +113,7 @@
     "ai.depthPlanes",
     "ai.depthRelight",
     "ai.depthSelect",
+    "ai.dustSpots",
     "ai.expand",
     "ai.eyes",
     "ai.fabricTexture",
@@ -130,6 +132,7 @@
     "ai.lipsBrows",
     "ai.lowLight",
     "ai.magicErase",
+    "ai.moire",
     "ai.partsSelect",
     "ai.photo3d",
     "ai.recolorClothes",
@@ -2426,6 +2429,42 @@
          "ic": "colorize",
          "label": "Colorear con IA…",
          "help": "Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva."
+        },
+        {
+         "cmd": "ai.deblur",
+         "ic": "focus",
+         "label": "Quitar desenfoque Premium 👑…",
+         "premium": true,
+         "help": "Quita el desenfoque de movimiento o de enfoque con un núcleo medido en la propia foto (o puesto a mano) y frena los halos.",
+         "short": "Quitar desenfoque",
+         "tabs": [
+          "mejorar",
+          "corregir"
+         ]
+        },
+        {
+         "cmd": "ai.dustSpots",
+         "ic": "spray-can",
+         "label": "Polvo y motas del sensor Premium 👑…",
+         "premium": true,
+         "help": "Detecta las motas del sensor (manchas pequeñas y oscuras sobre zonas lisas) y las rellena con el color de su alrededor, sin tocar la textura.",
+         "short": "Polvo y motas",
+         "tabs": [
+          "mejorar",
+          "corregir"
+         ]
+        },
+        {
+         "cmd": "ai.moire",
+         "ic": "grid-3x3",
+         "label": "Moiré y bandas Premium 👑…",
+         "premium": true,
+         "help": "Quita el moiré y las bandas periódicas buscando picos en el espectro de cada bloque y atenuándolos; el color se limpia más fuerte.",
+         "short": "Moiré y bandas",
+         "tabs": [
+          "mejorar",
+          "corregir"
+         ]
         }
        ],
        "iaId": "mejorar",
@@ -2703,7 +2742,7 @@
      ]
     }
    ],
-   "menuHash": "f3d9c2c8a3d0dd9b"
+   "menuHash": "4a774ab4f083ccaf"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4650,20 +4689,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1111,
+   "readyMs": 1261,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2123772,
+   "jsBytes": 2127120,
    "cssBytes": 177122,
-   "transferBytes": 881792,
-   "domContentLoaded": 1008,
-   "fcp": 552
+   "transferBytes": 882007,
+   "domContentLoaded": 1186,
+   "fcp": 744
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
    "withImage": "91216a462b558bfe",
-   "drawer": "2898ca98f29c0ccb"
+   "drawer": "53b3b078245a5530"
   },
   "opened": true,
   "drawer": true,

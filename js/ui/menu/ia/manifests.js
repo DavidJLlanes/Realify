@@ -37,6 +37,9 @@ import highlightRecovery from "../../../features/scene/highlights/manifest.js";
 import harmonize from "../../../features/scene/harmonize/manifest.js";
 import depthChroma from "../../../features/scene/depth-chroma/manifest.js";
 import depthRelight from "../../../features/scene/depth-relight/manifest.js";
+import deblur from "../../../features/restore/deblur/manifest.js";
+import dustSpots from "../../../features/restore/dust-spots/manifest.js";
+import moire from "../../../features/restore/moire/manifest.js";
 
 export const MANIFESTS = [
   partsSelect,
@@ -45,5 +48,6 @@ export const MANIFESTS = [
   bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
   clothesWrinkles, fabricWrinkles, recolorClothes, fabricTexture,
   skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight,
+  deblur, dustSpots, moire,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

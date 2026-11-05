@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.7.0 (compilación 310) · Restaurar y limpiar 👑
+- Tres funciones nuevas en **Mejorar y restaurar** (pestañas Mejorar y Corregir): **Quitar desenfoque** (movimiento y fuera de foco), **Polvo y motas del sensor** y **Moiré y bandas**, todas Premium 👑 con diálogo simple y resultado en capa nueva.
+- Motor en `js/features/restore/engine/` (sin DOM, luz lineal, sin modelos): deconvolución de Wiener por bloques solapados con núcleo medido en la propia foto (ángulo por energía direccional, largo por autocorrelación, radio por el ancho de los bordes) y límite de halos; motas por contraste con el entorno, tamaño, redondez y contorno liso, rellenadas por convolución normalizada; moiré por picos del espectro de cada bloque (FFT 2D de `js/analysis/fft.js`) con muesca gaussiana y color más fuerte que luz; ruido adaptativo con filtro guiado.
+- **F9.4**: «Reducción de ruido» gana la casilla **Limpiar para Realify (adaptativo)**: quita el ruido medido antes de añadir el grano propio.
+- Nota: no se añadió NAFNet (sin acceso a Hugging Face desde aquí); el desenfoque usa el algoritmo clásico. Queda abierto para cuando se pueda descargar y medir el modelo.
+- Pruebas: `tests/ia/restaurar/motor.mjs` (Node) y `tests/ia/restaurar/editor.mjs` (navegador, móvil y escritorio).
 ### 1.6.0 (compilación 309) · Escena, cielo y color 👑
 - Ocho funciones nuevas, todas Premium 👑 con diálogo simple y resultado en capa nueva: en **Escena y cielo** (y pestañas Mejorar/Color del cajón) **Mejorar cielo**, **Quitar neblina con IA**, **Realzar por tipo**, **Balance de blancos por zonas**, **Recuperar luces** y **Unificar iluminación**; en **Profundidad** (pestaña Efectos) **Aberración por distancia** y **Luz direccional con relieve**.
 - Motor en `js/features/scene/engine/` (sin DOM, luz lineal): relleno de cielo con degradado que conserva las nubes, neblina por canal oscuro + distancia con filtro guiado, recetas por tipo sobre las clases de ADE20K, iluminante por zonas (shades of gray) interpolado sin costuras, reconstrucción de canales quemados con color de los vecinos sanos y hombro suave, armonía de color en OKLab, aberración radial según la distancia y luz de Lambert con normales sacadas de la profundidad.

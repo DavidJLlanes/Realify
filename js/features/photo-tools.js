@@ -2,6 +2,7 @@
    trabajan sobre una copia, crean un paso de historial y respetan la capa
    activa. Las selecciones y máscaras siguen el modelo nativo del editor. */
 
+import { limpiarParaRealify } from "./restore/shared/rgba.js";
 import { doc, addLayer } from "../core/doc.js";
 import { record } from "../core/history.js";
 import { emit } from "../core/bus.js";
@@ -46,12 +47,13 @@ export async function reduceNoise(opts = {}){
   return liveDialog("Reducción de ruido", `
     ${sliderRow("dnLum","Luminancia",0,100,35,"%")}
     ${sliderRow("dnChroma","Color",0,100,60,"%")}
-    <p class="hint">Suaviza el ruido conservando bordes mediante diferencias de luminancia.</p>`, {
+    <label class="field"><span class="grow">Limpiar para Realify (adaptativo)</span><input type="checkbox" id="dnClean"></label>
+    <p class="hint">Suaviza el ruido conservando bordes mediante diferencias de luminancia. «Limpiar para Realify» mide el ruido de la foto y lo quita con un filtro guiado antes de añadir el grano propio de sensor (la fuerza es la de Luminancia).</p>`, {
     label: "Reducción de ruido", float: "delta",
-    defaults: { lum: 35, chroma: 60 },
-    compute: (src, w, h, p) => denoisePixels(src, w, h, p.lum, p.chroma),
-    read: host => ({ lum: +host.querySelector("#dnLum").value, chroma: +host.querySelector("#dnChroma").value }),
-    fill: (host, p) => fillFields(host, { dnLum: p.lum, dnChroma: p.chroma })
+    defaults: { lum: 35, chroma: 60, clean: false },
+    compute: (src, w, h, p) => p.clean ? limpiarParaRealify(src, w, h, Math.max(p.lum, 20)) : denoisePixels(src, w, h, p.lum, p.chroma),
+    read: host => ({ lum: +host.querySelector("#dnLum").value, chroma: +host.querySelector("#dnChroma").value, clean: host.querySelector("#dnClean").checked }),
+    fill: (host, p) => { fillFields(host, { dnLum: p.lum, dnChroma: p.chroma }); host.querySelector("#dnClean").checked = !!p.clean; }
   }, opts);
 }
 

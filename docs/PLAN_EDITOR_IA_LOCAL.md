@@ -647,11 +647,11 @@ Depende de: F1, F4.1. Interfaz: simple (4.7) salvo que una función supere los 4
 ### Fase 9 · Restaurar y limpiar 👑
 Modelos candidatos: NAFNet (desenfoque). Resto: algoritmos clásicos.
 
-- [ ] F9.1 `ai.deblur` · Quitar desenfoque de movimiento y de enfoque, por bloques y con refinado.
-- [ ] F9.2 `ai.dustSpots` · Polvo y motas: detección automática de manchas del sensor y relleno.
-- [ ] F9.3 `ai.moire` · Moiré y bandas: análisis en frecuencia (`js/analysis/fft.js`) y atenuación selectiva.
-- [ ] F9.4 Modo «Limpiar para Realify» en la reducción de ruido: quita el ruido antes de añadir el grano propio de sensor.
-- [ ] F9.5 Menús, cajón, ☰, guía, pruebas.
+- [x] F9.1 (v310) `ai.deblur` · Quitar desenfoque de movimiento y de enfoque, por bloques y con refinado.
+- [x] F9.2 (v310) `ai.dustSpots` · Polvo y motas: detección automática de manchas del sensor y relleno.
+- [x] F9.3 (v310) `ai.moire` · Moiré y bandas: análisis en frecuencia (`js/analysis/fft.js`) y atenuación selectiva.
+- [x] F9.4 (v310) Modo «Limpiar para Realify» en la reducción de ruido: quita el ruido antes de añadir el grano propio de sensor.
+- [x] F9.5 (v310) Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 10 · Objetos y composición 👑
 Modelos candidatos: MI-GAN (relleno ligero para móvil).
@@ -820,7 +820,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 6 · Cuerpo | v307 (1.4.0) | 5 nov 2026 | Hecha salvo probar con cuerpo entero real (F6.3 cerrada en v308). Editor de cuerpo con 5 funciones, forma de la cara y tamaño de ojos. |
 | 7 · Ropa y tejidos | v308 (1.5.0) | 5 nov 2026 | Hecha. Planchar, color y textura de prendas y telas en un editor propio; F6.3 (puntos arrastrables) cerrada. Falta probar con fotos reales de ropa muy estampada. |
 | 8 · Escena, cielo y color | v309 (1.6.0) | 5 nov 2026 | Hecha. Ocho funciones con diálogo simple y motor propio. Falta probar con fotos reales (cielo, neblina) y los modelos. |
-| 9 · Restaurar | | | |
+| 9 · Restaurar y limpiar | v310 (1.7.0) | 5 nov 2026 | Hecha con algoritmos propios (sin NAFNet). Falta probar con fotos reales borrosas, con polvo y con moiré. |
 | 10 · Objetos | | | |
 | 11 · Realismo | | | |
 | 12 · Estilos | | | |
