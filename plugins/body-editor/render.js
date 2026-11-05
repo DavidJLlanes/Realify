@@ -22,6 +22,13 @@ export const hayAlgo = v => hayCambio(v) || hayDefinicion(v);
 const cv = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
 const escalar = (p, k) => p && [p[0] * k, p[1] * k, p[2]];
 
+/* Tras mover una articulación: se vuelven a escalar los puntos de pose y se recalcula la unidad (largo del torso). */
+export function actualizarPose(prep){
+  const persona = prep.persona, k = prep.k;
+  prep.p.pose = persona.pose && { puntos: Object.fromEntries(Object.entries(persona.pose.puntos).map(([n, q]) => [n, escalar(q, k)])) };
+  const e = esqueleto(prep.p); prep.u = e ? e.u : prep.W / 3;
+}
+
 export function prepararPersona(src, persona, maxSide){
   const k = Math.min(1, maxSide / Math.max(src.width, src.height)), W = Math.max(1, Math.round(src.width * k)), H = Math.max(1, Math.round(src.height * k));
   const crop = { x: 0, y: 0, w: src.width, h: src.height, k, W, H };

@@ -14,7 +14,8 @@ import { analyze } from "../../js/ai/people/analyze.js";
 import { suggestProfile, sanitize } from "../../js/ai/people/profiles.js";
 import { toast } from "../../js/core/toast.js";
 import { GRUPOS, PARAMS, PERFILES, aplicarAjuste } from "./params.js";
-import { prepararPersona, pintarVista, aplicarPersona, hayAlgo } from "./render.js";
+import { prepararPersona, pintarVista, aplicarPersona, hayAlgo, actualizarPose } from "./render.js";
+import { buscar, mover, pintar } from "./puntos.js";
 
 const PREVIEW_SIDE = 1000;
 const lienzo = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
@@ -56,7 +57,7 @@ export async function abrirEditorCuerpo({ group = "silueta" } = {}){
     onChange: c => {
       const t = targets.find(x => x.id === c.target), ajuste = c.key === "ajusteAdulto" || c.key === "ajusteInfantil";
       if(ajuste && c.values[c.key]){ const v = aplicarAjuste(t.profile, c.values[c.key]); if(v) ed.setValues(c.target, { ...v, [c.key]: "" }); }
-      programar();
+      if(c.key === "puntos") ed.sh.redraw(); else programar();
     },
     onApply: async e => {
       clearTimeout(timer); await enCurso;
@@ -74,6 +75,19 @@ export async function abrirEditorCuerpo({ group = "silueta" } = {}){
       } catch(err){ e.sh.setBusy(""); if(!err.cancelled) toast("No se pudo retocar el cuerpo: " + (err.message || err), "err"); }
     }
   });
+  /* Articulaciones arrastrables (F6.3): con el interruptor «Ver y mover las articulaciones» se dibujan y se arrastran; la vista previa se recalcula */
+  let arrastro = null;
+  const verPuntos = () => !!ed.values(ed.target).puntos, indice = () => targets.findIndex(t => t.id === ed.target);
+  ed.sh.setOverlay((cx, t) => { if(verPuntos()) pintar(cx, t, personas[indice()], src.width, src.height, arrastro); });
+  ed.sh.setInteract((tipo, p) => {
+    if(!verPuntos()) return false;
+    const i = indice(), pers = personas[i], t = ed.sh.transform;
+    if(tipo === "down"){ const n = buscar(pers, p.x, p.y, 22 * (t.dpr || 1) / t.k, src.width, src.height); if(!n) return false; arrastro = n; mover(pers, n, p.x, p.y, src.width, src.height); actualizarPose(preps[i]); ed.sh.redraw(); return true; }
+    if(tipo === "move" && arrastro){ mover(pers, arrastro, p.x, p.y, src.width, src.height); actualizarPose(preps[i]); programar(); ed.sh.redraw(); return true; }
+    if(tipo === "up" || tipo === "cancel"){ arrastro = null; programar(); ed.sh.redraw(); }
+    return false;
+  });
+  if(globalThis.__realifyTest) globalThis.__realifyTest.cuerpo = { ed, personas };   /* gancho para las pruebas */
   ed.setImage(vista, false); ed.setOriginal(src);
   ed.openGroup(group);
   programar();

@@ -25,11 +25,16 @@ import bodyShape from "../../../features/body/shape/manifest.js";
 import bodyPosture from "../../../features/body/posture/manifest.js";
 import bodyTone from "../../../features/body/tone/manifest.js";
 import bodySkin from "../../../features/body/skin/manifest.js";
+import clothesWrinkles from "../../../features/clothing/iron/manifest.js";
+import fabricWrinkles from "../../../features/clothing/fabric/manifest.js";
+import recolorClothes from "../../../features/clothing/recolor/manifest.js";
+import fabricTexture from "../../../features/clothing/texture/manifest.js";
 
 export const MANIFESTS = [
   partsSelect,
   skinWrinkles, darkCircles, skinShine, skinTexture, skinEven,
   faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare, faceShape,
   bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
+  clothesWrinkles, fabricWrinkles, recolorClothes, fabricTexture,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

@@ -17,7 +17,8 @@ const ADULTO = ["hombre", "mujer"], INFANTIL = ["nino", "nina"];
 export const PARAMS = [
   ...BODY_PARAMS,
   { key: "ajusteAdulto", label: "Ajuste rápido", type: "select", def: "", group: "silueta", only: ADULTO, options: () => opciones("mujer") },
-  { key: "ajusteInfantil", label: "Ajuste rápido", type: "select", def: "", group: "silueta", only: INFANTIL, options: () => opciones("nino") }
+  { key: "ajusteInfantil", label: "Ajuste rápido", type: "select", def: "", group: "silueta", only: INFANTIL, options: () => opciones("nino") },
+  { key: "puntos", label: "Ver y mover las articulaciones", type: "toggle", def: false, group: "silueta" }
 ];
 
 export const PERFILES = PROFILE_IDS.map(id => ({ id, label: PROFILES[id].label }));

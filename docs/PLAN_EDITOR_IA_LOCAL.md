@@ -611,7 +611,7 @@ Presets por perfil: «Equilibrar proporciones», «Más alto», «Esbelto», «A
 
 - [x] F6.1 (v307) `js/features/body/engine/`: de los sliders a un campo de deformación (usa F5), con simetría opcional y protección de cara y manos.
 - [x] F6.2 (v307) `js/features/body/definition/`: musculatura y tono con normales (F4.1) y máscaras de partes; **sin generar piel**. **Hecho sin normales:** realza la luz y la sombra que ya hay (contraste local en log-luminancia).
-- [~] F6.3 (v307) `plugins/body-editor/` (sobre `ai-editor/` de F0.13, a pantalla completa como el collage, con zoom); selector de persona (varias), chips de grupo, un mando visible a la vez en móvil, puntos arrastrables sobre las articulaciones, antes/después, deshacer. Interfaz mínima (regla del móvil). **Falta:** puntos arrastrables sobre las articulaciones.
+- [x] F6.3 (v308) `plugins/body-editor/` (sobre `ai-editor/` de F0.13, a pantalla completa como el collage, con zoom); selector de persona (varias), chips de grupo, un mando visible a la vez en móvil, puntos arrastrables sobre las articulaciones, antes/después, deshacer. Interfaz mínima (regla del móvil).
 - [x] F6.4 (v307) Selector de perfil (hombre, mujer, niño, niña); si las proporciones sugieren un menor, el perfil de partida es el infantil.
 - [x] F6.5 (v307) `ai.bodyEditor`, `ai.bodyShape`, `ai.bodyPosture`, `ai.bodyTone`, `ai.bodySkin` (los cuatro últimos son accesos directos que abren el mismo editor en su grupo).
 - [x] F6.6 (v307) `ai.faceShape` · Forma de la cara (en «Retrato»): grupo «Forma» del **editor de cara** (`plugins/face-editor/`, con zoom en la cara), no del editor de cuerpo; usa el motor de deformación (F5) y el rango reducido del perfil infantil.
@@ -624,12 +624,12 @@ Hecho cuando: se puede editar a una persona adulta o a un niño con resultado na
 ### Fase 7 · Ropa y tejidos 👑
 Depende de: F2, F3.1.
 
-- [ ] F7.1 `js/features/clothing/shared/`: máscara de prenda (partes de F2 + SAM para ajustar), luminancia en luz lineal.
-- [ ] F7.2 `ai.clothesWrinkles` · **Planchar arrugas de ropa**: separar sombreado de pliegue y textura del tejido, aplanar el sombreado de baja y media frecuencia con filtro guiado y reinyectar la trama.
-- [ ] F7.3 `ai.fabricWrinkles` · Arrugas de telas y fondos: lo mismo sobre cualquier zona elegida con un toque (sábanas, cortinas, manteles).
-- [ ] F7.4 `ai.recolorClothes` · Cambiar color de prendas: tono en OKLab con conservación de sombras y brillos del tejido.
-- [ ] F7.5 `ai.fabricTexture` · Textura de tejido: coherencia de trama y grano tras planchar o recolorear.
-- [ ] F7.6 `plugins/clothing-editor/` (sobre `ai-editor/`; zoom a la prenda tocada; grupos Planchar, Color, Textura, Telas y fondos). Menús, cajón, ☰, guía, pruebas.
+- [x] F7.1 (v308) `js/features/clothing/shared/`: máscara de prenda (partes de F2 + SAM para ajustar), luminancia en luz lineal.
+- [x] F7.2 (v308) `ai.clothesWrinkles` · **Planchar arrugas de ropa**: separar sombreado de pliegue y textura del tejido, aplanar el sombreado de baja y media frecuencia con filtro guiado y reinyectar la trama.
+- [x] F7.3 (v308) `ai.fabricWrinkles` · Arrugas de telas y fondos: lo mismo sobre cualquier zona elegida con un toque (sábanas, cortinas, manteles).
+- [x] F7.4 (v308) `ai.recolorClothes` · Cambiar color de prendas: tono en OKLab con conservación de sombras y brillos del tejido.
+- [x] F7.5 (v308) `ai.fabricTexture` · Textura de tejido: coherencia de trama y grano tras planchar o recolorear.
+- [x] F7.6 (v308) `plugins/clothing-editor/` (sobre `ai-editor/`; zoom a la prenda tocada; grupos Planchar, Color, Textura, Telas y fondos). Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 8 · Escena, cielo y color 👑
 Depende de: F1, F4.1. Interfaz: simple (4.7) salvo que una función supere los 4 mandos.
@@ -817,8 +817,8 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 3 · Retrato I | v303 (1.2.0) | 5 nov 2026 | Hecha salvo las manos (F3.1/F3.2) y F3.8 completa. Editor de cara + 5 funciones de piel en luz lineal; probado con una cara real. |
 | 4 · Retrato II | v304 (1.3.0) | 5 nov 2026 | Hecha salvo F4.9 (mirada, sin investigar) y el tamaño de ojos (espera a F5). 7 funciones en el editor de cara; F4.7 sin LaMa (refuerzo de hebras). |
 | 5 · Deformación | v305 | 5 nov 2026 | Hecha salvo MI-GAN en F5.4. Motor MLS + GPU/CPU + fondo con LaMa; sin interfaz. |
-| 6 · Cuerpo | v307 (1.4.0) | 5 nov 2026 | Hecha salvo puntos arrastrables (F6.3) y probar con cuerpo entero real. Editor de cuerpo con 5 funciones, forma de la cara y tamaño de ojos. |
-| 7 · Ropa | | | |
+| 6 · Cuerpo | v307 (1.4.0) | 5 nov 2026 | Hecha salvo probar con cuerpo entero real (F6.3 cerrada en v308). Editor de cuerpo con 5 funciones, forma de la cara y tamaño de ojos. |
+| 7 · Ropa y tejidos | v308 (1.5.0) | 5 nov 2026 | Hecha. Planchar, color y textura de prendas y telas en un editor propio; F6.3 (puntos arrastrables) cerrada. Falta probar con fotos reales de ropa muy estampada. |
 | 8 · Escena | | | |
 | 9 · Restaurar | | | |
 | 10 · Objetos | | | |

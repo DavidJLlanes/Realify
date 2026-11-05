@@ -25,6 +25,7 @@ async function probar(tipo){
     const D = await import("/js/core/doc.js"); D.newDoc(img.naturalWidth, img.naturalHeight, { name: "persona" });
     const l = D.addLayer({ name: "Fondo" }); l.ctx.drawImage(img, 0, 0);
   }, b64);
+  await m.page.evaluate(() => { globalThis.__realifyTest = {}; });
   const t0 = Date.now();
   await m.page.evaluate(async () => { const C = await import("/js/core/commands.js"); window.__run = C.run("ai.bodyShape"); });
   const salio = await m.page.waitForSelector(".ai-editor", { timeout: 240000 }).then(() => true).catch(() => false);
@@ -45,6 +46,27 @@ async function probar(tipo){
     const adulto = await leer(); ok(adulto.includes("Pecho") && adulto.includes("Caderas"), "adulto: faltan Pecho o Caderas (el infantil se probaría en vacío)");
   }
 
+  /* F6.3: con «Ver y mover las articulaciones» se arrastra un hombro y el punto se queda donde se suelta */
+  await m.page.evaluate(() => { const T = globalThis.__realifyTest.cuerpo; if (T) T.ed.openGroup("silueta"); });
+  await m.page.waitForTimeout(300);
+  await m.page.evaluate(() => { const fila = [...document.querySelectorAll(".ai-editor *")].filter(e => e.offsetParent && e.children.length < 4 && e.textContent.trim().startsWith("Ver y mover")).pop(); const c = fila && (fila.querySelector("input,button,[role=switch]") || fila.closest("label,.row")?.querySelector("input,button,[role=switch]") || fila); if (c) c.click(); });
+  if (tipo === "movil") await m.page.evaluate(() => { const sel = [...document.querySelectorAll(".ai-editor select[aria-label=Ajuste]")].find(e => e.offsetParent); if (sel) { sel.value = "puntos"; sel.dispatchEvent(new Event("change", { bubbles: true })); } });
+  await m.page.waitForTimeout(200);
+  await m.page.evaluate(() => { const c = [...document.querySelectorAll(".ai-editor .fsp-toggle input")].filter(e => e.offsetParent && (e.closest(".fsp-mobile") || e.parentElement.textContent.includes("Ver y mover"))).pop(); if (c && !c.checked) c.click(); });
+  await m.page.waitForTimeout(300);
+  const mov = await m.page.evaluate(async () => {
+    const T = globalThis.__realifyTest && globalThis.__realifyTest.cuerpo; if (!T) return { sinGancho: true };
+    const pers = T.personas[0], q = pers.pose.puntos.hombroI, t = T.ed.sh.transform, cv = document.querySelector(".ai-editor canvas"), r = cv.getBoundingClientRect(), d = cv.width / r.width;
+    const px = (x, y) => [r.left + (t.ox + x * t.k) / d, r.top + (t.oy + y * t.k) / d];
+    return { ini: [q[0], q[1]], a: px(q[0], q[1]), b: px(q[0] + 40, q[1] + 30), d: t.k / d };
+  });
+  if (!mov.sinGancho) {
+    await m.page.mouse.move(mov.a[0], mov.a[1]); await m.page.mouse.down(); await m.page.mouse.move((mov.a[0] + mov.b[0]) / 2, (mov.a[1] + mov.b[1]) / 2); await m.page.mouse.move(mov.b[0], mov.b[1]); await m.page.mouse.up();
+    const fin = await m.page.evaluate(() => globalThis.__realifyTest.cuerpo.personas[0].pose.puntos.hombroI);
+    const dx = fin[0] - mov.ini[0], dy = fin[1] - mov.ini[1], esp = 40;
+    ok(Math.abs(dx - esp) < 3 && Math.abs(dy - 30) < 3, `${tipo}: el hombro no siguió al dedo (${dx.toFixed(1)}, ${dy.toFixed(1)}; esperado ${esp.toFixed(1)}, 30)`);
+    ok(fin[2] === 1, `${tipo}: el punto movido no tiene confianza 1`);
+  }
   await m.page.evaluate(() => { const i = document.querySelector('.ai-editor input[type="range"]'); i.value = -12; i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); });
   await m.page.waitForTimeout(500);
   await m.page.waitForFunction(() => { const b = document.querySelector(".ai-editor .fsp-busy"); return !b || b.hidden; }, null, { timeout: 120000 });

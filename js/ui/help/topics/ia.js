@@ -132,6 +132,13 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           Si las proporciones sugieren un menor, el editor parte del perfil infantil. Deforma sin pliegues, deja quieto el fondo lejano y cada persona va a su
           <b>capa nueva</b> (transparente donde no cambia, con «mezcla»). Necesita ver los hombros: en un retrato a medio cuerpo funcionan la cabeza, el cuello,
           los hombros, el torso alto y los brazos. «Definición» sólo realza la luz y la sombra que ya hay: no genera piel ni músculos.</li>
+        <li id="ia-ropa"><b>Ropa y tejidos 👑</b> (Inteligencia Artificial › Ropa y tejidos, y en la pestaña Retoque del cajón): <b>Planchar arrugas de ropa</b>,
+          <b>Arrugas de telas y fondos</b>, <b>Cambiar color de prendas</b> y <b>Textura de tejido</b>. Las cuatro abren el mismo editor a pantalla completa, con zoom
+          en la prenda y los grupos Planchar, Color, Textura y Telas y fondos. <i>Planchar</i> aplana el sombreado de los pliegues y conserva la trama del tejido; las rayas
+          y los estampados no se tocan porque se distinguen de una arruga por el cambio de <i>color</i>. <i>Color</i> gira el tono en OKLab conservando sombras y brillos; con el
+          «Tinte» también se colorea una prenda blanca, gris o negra. <i>Textura</i> realza o apaga la trama y rellena las zonas que quedaron demasiado lisas. En
+          <i>Telas y fondos</i> tocas una sábana, cortina o mantel (con «Ajustar el borde con IA» se apoya en Segment Anything) y puedes sumar o quitar zonas con más
+          toques. El resultado va a <b>una capa nueva</b> con transparencia: sólo cambia la tela.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>
