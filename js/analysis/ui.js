@@ -11,9 +11,15 @@ import { spectrum, FN } from "./fft.js";
 
 const col = v => v >= 0.70 ? "var(--ok)" : v >= 0.40 ? "var(--warn)" : "var(--bad)";
 
-function bar(name, value, frac, note){
+/* «Antes»: la medición que la persona marcó para comparar (una por documento). Se pierde al recargar. */
+let antes = null;
+const claveDoc = () => `${doc.name}|${doc.w}x${doc.h}`;
+const delta = (a, b) => { const d = Math.round(b - a); return `${d > 0 ? "+" : ""}${d}`; };
+
+function bar(name, value, frac, note, prev = null){
   return `<div class="metric">
-    <div class="mlabel"><span>${name}</span><span class="mv">${value}</span></div>
+    <div class="mlabel"><span>${name}</span><span class="mv">${prev ? `${prev.fmt} → ` : ""}${value}</span></div>
+    ${prev ? `<div class="mbar" style="height:4px;opacity:.55"><i style="width:${Math.round(prev.v * 100)}%;background:${col(prev.v)}"></i></div>` : ""}
     <div class="mbar"><i style="width:${Math.round(frac * 100)}%;background:${col(frac)}"></i></div>
     <p class="mnote">${note}</p>
   </div>`;
@@ -38,19 +44,23 @@ export async function openMetrics(){
       ? "Parcial. Mira qué barra va corta y sube esa etapa del filtro."
       : "Faltan rasgos de captura. Aplica el filtro Realify y revisa el ruido de sensor y la micro-deformación.";
 
-  dialog({
+  const ant = antes && antes.clave === claveDoc() ? antes.res : null;
+  const r = await dialog({
     title:"Plausibilidad", wide:true,
     body:
       `<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px">
+         ${ant ? `<span style="font-size:20px;font-family:var(--mono);opacity:.6">${ant.score} →</span>` : ""}
          <span style="font-size:30px;font-family:var(--mono);color:${col(res.score/100)}">${res.score}</span>
+         ${ant ? `<span style="font-family:var(--mono);color:${res.score >= ant.score ? "var(--ok)" : "var(--bad)"}">${delta(ant.score, res.score)}</span>` : ""}
          <small class="hint" style="margin:0">${note}</small>
        </div>` +
-      METRICS.map(m => bar(m.name, m.fmt(res[m.k]), res[m.k].v, m.note)).join("") +
+      METRICS.map(m => bar(m.name, m.fmt(res[m.k]), res[m.k].v, m.note, ant ? { v: ant[m.k].v, fmt: m.fmt(ant[m.k]) } : null)).join("") +
       `<div class="callout-note">Este panel mide justo los cinco rasgos que el filtro
          fabrica, así que por construcción tiende a darte la razón. La comprobación
          independiente está en «Segunda opinión».</div>`,
-    buttons:[{ label:"Cerrar", primary:true }]
+    buttons:[{ label: ant ? "Marcar de nuevo como «antes»" : "Marcar como «antes»", value:"antes" }, { label:"Cerrar", value:"cerrar", primary:true }]
   });
+  if(r === "antes"){ antes = { clave: claveDoc(), res }; toast("Medición guardada: aplica un cambio y vuelve a abrir Plausibilidad para compararla"); }
 }
 
 export async function openForensics(){

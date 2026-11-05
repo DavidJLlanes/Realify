@@ -140,7 +140,7 @@ async function renderPreview(){
     const { canvas, info } = await process(S.proxy, eff, {
       seed: filterState.seed, preview: true, ctx
     });
-    if(ticket !== S.ticket || !S) return;
+    if(!S || ticket !== S.ticket) return;
     S.last = canvas;
     const x = S.layer.ctx;
     x.save(); x.setTransform(1, 0, 0, 1, 0, 0);

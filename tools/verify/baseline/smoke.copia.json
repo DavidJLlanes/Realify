@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T19:38:14.549Z",
+ "generated": "2026-11-05T19:50:07.878Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1851,
+     "readyMs": 1697,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2126829,
+     "jsBytes": 2127693,
      "cssBytes": 177122,
-     "transferBytes": 883538,
-     "domContentLoaded": 1761,
-     "fcp": 1480
+     "transferBytes": 885410,
+     "domContentLoaded": 1607,
+     "fcp": 1008
     },
     {
-     "readyMs": 1382,
+     "readyMs": 1219,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2126858,
+     "jsBytes": 2127708,
      "cssBytes": 177122,
-     "transferBytes": 883020,
-     "domContentLoaded": 1306,
-     "fcp": 432
+     "transferBytes": 884864,
+     "domContentLoaded": 1148,
+     "fcp": 576
     },
     {
-     "readyMs": 1442,
+     "readyMs": 1410,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2126855,
+     "jsBytes": 2127857,
      "cssBytes": 177122,
-     "transferBytes": 883017,
-     "domContentLoaded": 1354,
-     "fcp": 372
+     "transferBytes": 883886,
+     "domContentLoaded": 1334,
+     "fcp": 340
     }
    ],
-   "medianReadyMs": 1442,
-   "medianTransferBytes": 883020
+   "medianReadyMs": 1410,
+   "medianTransferBytes": 884864
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -95,6 +95,7 @@
     "adj.toneBand",
     "adj.vibrance",
     "adj.whiteBalance",
+    "ai.aiArtifacts",
     "ai.bodyEditor",
     "ai.bodyPosture",
     "ai.bodyShape",
@@ -135,6 +136,7 @@
     "ai.moire",
     "ai.partsSelect",
     "ai.photo3d",
+    "ai.photoReport",
     "ai.quickErase",
     "ai.recolorClothes",
     "ai.redEye",
@@ -145,6 +147,7 @@
     "ai.skyEnhance",
     "ai.smartBrush",
     "ai.smartCrop",
+    "ai.smoothZones",
     "ai.tapSelect",
     "ai.teeth",
     "ai.textPlacement",
@@ -2572,6 +2575,39 @@
          "cmd": "an.strip",
          "ic": "shield-check",
          "label": "Limpiar metadatos de un archivo…"
+        },
+        {
+         "cmd": "ai.smoothZones",
+         "ic": "layers",
+         "label": "Zonas demasiado lisas con IA Premium 👑…",
+         "premium": true,
+         "help": "Detecta las zonas sin textura creíble (cielos, pieles y fondos de imágenes generadas) y añade grano de sensor solo ahí. También puede mostrártelas marcadas en rojo.",
+         "short": "Zonas lisas",
+         "tabs": [
+          "efectos"
+         ]
+        },
+        {
+         "cmd": "ai.aiArtifacts",
+         "ic": "scan-eye",
+         "label": "Manos y dientes sospechosos Premium 👑…",
+         "premium": true,
+         "help": "Revisa las manos (proporciones, dedos, articulaciones) y los dientes (separaciones) de las personas de la foto y te avisa de lo que parece generado. Solo avisa: no corrige nada.",
+         "short": "Manos y dientes",
+         "tabs": [
+          "analizar"
+         ]
+        },
+        {
+         "cmd": "ai.photoReport",
+         "ic": "scan",
+         "label": "Informe de realismo Premium 👑…",
+         "premium": true,
+         "help": "Mide nitidez, ruido, rango dinámico, zonas lisas, metadatos y la puntuación de Plausibilidad. Se puede guardar en PDF o JSON.",
+         "short": "Informe de realismo",
+         "tabs": [
+          "analizar"
+         ]
         }
        ],
        "iaId": "realismo",
@@ -2778,7 +2814,7 @@
      ]
     }
    ],
-   "menuHash": "482123b20d0618f8"
+   "menuHash": "f517a993a136f2a3"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -3283,9 +3319,7 @@
     "kind": "fsp.lkf.cmf",
     "title": "Cámaras",
     "closed": "escape",
-    "newErrors": [
-     "console: [unmark] TypeError: Cannot read properties of null (reading 'ticket') at renderPreview (http://HOST/js/filters/unmark/ui.js:143:21)"
-    ]
+    "newErrors": []
    },
    {
     "id": "filter.luts",
@@ -4718,22 +4752,20 @@
    "agPsd": "object"
   },
   "heicLoader": true,
-  "finalErrors": [
-   "console: [unmark] TypeError: Cannot read properties of null (reading 'ticket') at renderPreview (http://HOST/js/filters/unmark/ui.js:143:21)"
-  ]
+  "finalErrors": []
  },
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1234,
+   "readyMs": 1443,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2115821,
+   "jsBytes": 2127825,
    "cssBytes": 177122,
-   "transferBytes": 879214,
-   "domContentLoaded": 1171,
-   "fcp": 712
+   "transferBytes": 884415,
+   "domContentLoaded": 1368,
+   "fcp": 668
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",

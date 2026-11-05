@@ -7,15 +7,7 @@
    ═══════════════════════════════════════════════════════════════ */
 import { gauss, smoothstep } from "../shared/blur.js";
 import { sqrtPlane, channels, luma } from "../shared/planes.js";
-import { hash } from "../../ai-kit/float.js";
-
-function ruido(W, H, sigma, semilla){
-  const r = new Float32Array(W * H);
-  for(let i = 0; i < r.length; i++){ const u = hash(i + semilla * 7919), v = hash(i * 3 + semilla * 104729 + 1); r[i] = Math.sqrt(-2 * Math.log(u + 1e-9)) * Math.cos(6.2832 * v); }
-  const g = gauss(r, W, H, sigma); let s = 0; for(let i = 0; i < g.length; i++) s += g[i] * g[i];
-  const k = 1 / Math.sqrt(s / g.length + 1e-12); for(let i = 0; i < g.length; i++) g[i] *= k;
-  return g;
-}
+import { ruido } from "../shared/ruido.js";
 
 /** Energía de detalle fino (desviación de la luminancia perceptual sin su desenfoque) en un entorno. */
 export function detalleFino(ctx){

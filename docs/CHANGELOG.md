@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.9.0 (compilación 312) · Realismo y autenticidad 👑
+- Tres funciones nuevas en **Realismo y autenticidad**, todas Premium: **Zonas demasiado lisas** (detecta cielos, pieles y fondos sin textura de sensor y añade grano sólo ahí; también las puede mostrar en rojo), **Manos y dientes sospechosos** (avisa de dedos largos o desiguales, nudillos irregulares, articulaciones imposibles y filas de dientes con demasiadas separaciones; sólo avisa, no corrige) e **Informe de realismo** (nitidez, ruido, rango dinámico, recortes, zonas lisas, metadatos y puntuación; se guarda en PDF o JSON)
+- **Plausibilidad** permite marcar una medición como «antes» y, tras un cambio, muestra «antes → ahora» en la puntuación y en cada barra
+- Motor puro en `js/features/realism/engine/` (zonas, grano, avisos, informe); el ruido de banda limitada de la textura de piel pasa a `portrait/shared/ruido.js` y se comparte; nuevo host de informes `ai-kit/report-host.js`
+- Arreglo: Unmark ya no da un error en consola si se cierra el panel mientras se calcula la vista previa
+- Pruebas en `tests/ia/realismo/` (motor en Node y navegador, móvil y escritorio)
+
 ### 1.8.0 (compilación 311) · Objetos y composición 👑
 - Tres funciones nuevas, todas Premium: **Pincel inteligente** (Seleccionar: pintas sobre un objeto y la selección se pega a sus bordes con MobileSAM; el trazo se reparte en hasta 6 puntos), **Borrado ligero** (Borrar y rellenar: pintas lo que sobra y se rellena en una capa nueva; usa el relleno actual, MI-GAN queda pendiente) y **Texto en zona libre** (Encuadre y composición: busca el rectángulo con menos sujeto, caras y textura, y escribe ahí tu texto, claro u oscuro según el fondo, en una capa nueva)
 - **Recorte inteligente** ofrece ahora hasta 3 propuestas de encuadre distintas (selector «Propuesta»); el comando no cambia

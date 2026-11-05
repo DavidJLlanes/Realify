@@ -665,12 +665,12 @@ Modelos candidatos: MI-GAN (relleno ligero para móvil).
 ### Fase 11 · Realismo y autenticidad 👑
 Objetivo: reforzar lo que hace único a Realify.
 
-- [ ] F11.1 `ai.smoothZones` · Zonas demasiado lisas: detectar zonas sin textura creíble y proponer grano, poros o trama (enlaza con F3.5 y F7.5).
-- [ ] F11.2 `ai.aiArtifacts` · Manos y dientes sospechosos: coherencia de puntos (número de dedos, proporciones, dientes) y **aviso**, no corrección automática.
-- [ ] F11.3 Ampliar «Plausibilidad» con la puntuación antes/después (`js/analysis/metrics.js`).
-- [ ] F11.4 `ai.photoReport` · Informe de realismo: nitidez, ruido, rango dinámico, metadatos y puntuación, exportable a PDF o JSON.
-- [ ] F11.5 Antes/después comparable con la puntuación en pantalla.
-- [ ] F11.6 Menús, cajón, ☰, guía, pruebas.
+- [x] F11.1 (v312) `ai.smoothZones` · Zonas demasiado lisas: detectar zonas sin textura creíble y proponer grano, poros o trama (enlaza con F3.5 y F7.5).
+- [x] F11.2 (v312) `ai.aiArtifacts` · Manos y dientes sospechosos: coherencia de puntos (número de dedos, proporciones, dientes) y **aviso**, no corrección automática.
+- [x] F11.3 (v312) Ampliar «Plausibilidad» con la puntuación antes/después (`js/analysis/metrics.js`).
+- [x] F11.4 (v312) `ai.photoReport` · Informe de realismo: nitidez, ruido, rango dinámico, metadatos y puntuación, exportable a PDF o JSON.
+- [x] F11.5 (v312) Antes/después comparable con la puntuación en pantalla.
+- [x] F11.6 (v312) Menús, cajón, ☰, guía, pruebas.
 - [ ] F11.7 **Mejoras de Unmark** (el titular levantó el límite el 5 nov 2026). Antes de empezar se define con él el alcance:
       qué marcas, qué mejoras y cómo se mide el resultado; después se redactan aquí sus tareas.
 - [ ] F11.8 Ampliar la coincidencia de EXIF de Realify (`js/filters/camera/exifmatch.js`); alcance a definir con el titular.
@@ -822,7 +822,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 8 · Escena, cielo y color | v309 (1.6.0) | 5 nov 2026 | Hecha. Ocho funciones con diálogo simple y motor propio. Falta probar con fotos reales (cielo, neblina) y los modelos. |
 | 9 · Restaurar y limpiar | v310 (1.7.0) | 5 nov 2026 | Hecha con algoritmos propios (sin NAFNet). Falta probar con fotos reales borrosas, con polvo y con moiré. |
 | 10 · Objetos | v311 (1.8.0) | 5 nov 2026 | Hecha. Pincel inteligente, borrado ligero (sin MI-GAN, usa el relleno actual), texto en zona libre y 3 propuestas de recorte. Falta MI-GAN y probar SAM con fotos reales. |
-| 11 · Realismo | | | |
+| 11 · Realismo | v312 (1.9.0) | 5 nov 2026 | Hecha salvo F11.7 (mejoras de Unmark) y F11.8 (EXIF): esperan que el titular defina el alcance. Avisos de manos y dientes sin probar con fotos reales. |
 | 12 · Estilos | | | |
 | 13 · Lotes | | | |
 | 14 · Asistente | | | |

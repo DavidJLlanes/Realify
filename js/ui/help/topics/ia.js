@@ -152,6 +152,10 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           «Quitar» excluye partes. <b>Borrado ligero</b> (Borrar y rellenar): pintas lo que sobra y se rellena en una capa nueva. <b>Texto en zona libre</b> (Encuadre y composición):
           escribes el texto y Realify lo coloca donde menos molesta (lejos del sujeto, las caras y las zonas con mucha textura), claro u oscuro según el fondo. Además, <i>Recorte inteligente</i>
           ofrece hasta tres propuestas de encuadre.</li>
+        <li id="ia-realismo-ia"><b>Realismo y autenticidad 👑</b> (Inteligencia Artificial › Realismo y autenticidad): <b>Zonas demasiado lisas</b> busca los cielos, pieles y fondos sin textura
+          de sensor y añade grano sólo ahí (o te los muestra en rojo); <b>Manos y dientes sospechosos</b> te avisa de proporciones raras en los dedos o en la fila de dientes (sólo avisa,
+          no corrige, y puede equivocarse con manos de perfil o tapadas); <b>Informe de realismo</b> mide nitidez, ruido, rango dinámico, recortes, zonas lisas y metadatos, y se guarda en PDF o JSON.
+          En <i>Plausibilidad</i>, «Marcar como antes» guarda la puntuación para ver «antes → ahora» después de aplicar un cambio.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

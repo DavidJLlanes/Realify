@@ -37,6 +37,9 @@ import highlightRecovery from "../../../features/scene/highlights/manifest.js";
 import harmonize from "../../../features/scene/harmonize/manifest.js";
 import depthChroma from "../../../features/scene/depth-chroma/manifest.js";
 import depthRelight from "../../../features/scene/depth-relight/manifest.js";
+import smoothZones from "../../../features/realism/smooth-zones/manifest.js";
+import aiArtifacts from "../../../features/realism/ai-artifacts/manifest.js";
+import photoReport from "../../../features/realism/photo-report/manifest.js";
 import smartBrush from "../../../features/compose/smart-brush/manifest.js";
 import quickErase from "../../../features/compose/quick-erase/manifest.js";
 import textPlacement from "../../../features/compose/text-placement/manifest.js";
@@ -50,7 +53,7 @@ export const MANIFESTS = [
   faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare, faceShape,
   bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
   clothesWrinkles, fabricWrinkles, recolorClothes, fabricTexture,
-  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight, textPlacement, smartBrush, quickErase,
+  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight, textPlacement, smartBrush, quickErase, smoothZones, aiArtifacts, photoReport,
   deblur, dustSpots, moire,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];
