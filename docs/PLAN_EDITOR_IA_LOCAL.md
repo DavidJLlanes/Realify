@@ -76,7 +76,7 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
       afines de cada una** (tabla en 5.2); nunca a Básicos ni Automáticos (5 nov 2026)
 - [x] D4 · LLM del asistente: **Qwen2.5 1,5B Instruct** (Apache-2.0). Si en la medición del F14.1 no cabe o va demasiado lento en un
       móvil de gama media, se baja a la de 0,5B y se anota aquí (5 nov 2026)
-- [ ] D5 · Límites del vídeo (duración y resolución en móvil y en escritorio). — antes de la Fase 15
+- [x] D5 · Límites del vídeo: **se miden primero**; no se fijan números hasta terminar el estudio F15.1, con móviles reales (5 nov 2026)
 - [ ] D6 · Nuevo texto de presentación de la web («editor completo con IA local») en `index.html`, manifiesto, README y «Acerca de». — Fase 16
 
 ---
@@ -341,8 +341,8 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase P · Plan (esta tarea)
 - [x] P.1 Revisión del repositorio en solo lectura (normas, menús, cajón, modelos, motores, pruebas).
 - [x] P.2 Redacción de este plan y subida a una rama del repositorio.
-- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1 a D4, restricciones del
-      editor de cuerpo y Unmark. Quedan D5 y D6.
+- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1 a D5, restricciones del
+      editor de cuerpo y Unmark. Queda D6.
 - [x] P.4 Plan en `main` (5 nov 2026).
 
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
@@ -563,9 +563,9 @@ Diseño: el modelo **no ejecuta código**; devuelve un plan en JSON que se valid
 - [ ] F14.6 Menú, cajón, ☰, guía.
 
 ### Fase 15 · Vídeo 👑
-Depende de: F9, F12, D5. Es la fase más grande: se divide en sub-fases.
+Depende de: F9, F12. Es la fase más grande: se divide en sub-fases.
 
-- [ ] F15.1 Estudio de viabilidad: decodificación y codificación con WebCodecs, memoria y tiempo por fotograma en móvil y escritorio; fijar límites (D5).
+- [ ] F15.1 Estudio de viabilidad: decodificación y codificación con WebCodecs, memoria y tiempo por fotograma en móviles reales y en escritorio; **fijar aquí los límites** de duración y resolución (D5: se miden primero) y anotarlos en este plan.
 - [ ] F15.2 `plugins/video/`: línea de tiempo mínima, previsualización a baja resolución, aplicar al clip completo.
 - [ ] F15.3 Efectos por fotograma: cadena de sensor de Realify, color, estilos de cámara.
 - [ ] F15.4 Segmentación por fotograma (MODNet) con suavizado temporal y estabilización ligera (OpenCV.js).
@@ -642,7 +642,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | Peso del repositorio (`assets/models` ya 326 MB) | Modelos grandes en Hugging Face con revisión fija |
 | Archivos que vuelven a crecer | `file-size.mjs` y revisión en cada fase |
 | LLM poco fiable | Salida validada contra un esquema; el usuario confirma antes de aplicar |
-| Vídeo demasiado pesado en móvil | Estudio previo (F15.1) y límites (D5) |
+| Vídeo demasiado pesado en móvil | Estudio previo (F15.1) y límites fijados con datos (D5) |
 
 ---
 
@@ -658,7 +658,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | En `main`; decididas D1 a D4, el editor de cuerpo y Unmark; quedan D5 y D6 |
+| P · Plan | — | 5 nov 2026 | En `main`; decididas D1 a D5, el editor de cuerpo y Unmark; queda D6 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
