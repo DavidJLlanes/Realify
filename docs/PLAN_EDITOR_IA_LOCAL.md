@@ -656,11 +656,11 @@ Modelos candidatos: NAFNet (desenfoque). Resto: algoritmos clásicos.
 ### Fase 10 · Objetos y composición 👑
 Modelos candidatos: MI-GAN (relleno ligero para móvil).
 
-- [ ] F10.1 `ai.smartBrush` · Pincel inteligente: se pinta y la selección se pega a los bordes (MobileSAM ya incluido).
-- [ ] F10.2 `ai.quickErase` · Borrado ligero con MI-GAN, pensado para móvil.
-- [ ] F10.3 «Recorte inteligente»: ofrecer varias propuestas de encuadre (amplía `ai.smartCrop`; el comando no cambia).
-- [ ] F10.4 `ai.textPlacement` · Texto y marcas de agua sin tapar sujetos: zonas vacías por saliencia y cara.
-- [ ] F10.5 Menús, cajón, ☰, guía, pruebas.
+- [x] F10.1 (v311) `ai.smartBrush` · Pincel inteligente: se pinta y la selección se pega a los bordes (MobileSAM ya incluido).
+- [x] F10.2 (v311) `ai.quickErase` · Borrado ligero con MI-GAN, pensado para móvil.
+- [x] F10.3 (v311) «Recorte inteligente»: ofrecer varias propuestas de encuadre (amplía `ai.smartCrop`; el comando no cambia).
+- [x] F10.4 (v311) `ai.textPlacement` · Texto y marcas de agua sin tapar sujetos: zonas vacías por saliencia y cara.
+- [x] F10.5 (v311) Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 11 · Realismo y autenticidad 👑
 Objetivo: reforzar lo que hace único a Realify.
@@ -821,7 +821,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 7 · Ropa y tejidos | v308 (1.5.0) | 5 nov 2026 | Hecha. Planchar, color y textura de prendas y telas en un editor propio; F6.3 (puntos arrastrables) cerrada. Falta probar con fotos reales de ropa muy estampada. |
 | 8 · Escena, cielo y color | v309 (1.6.0) | 5 nov 2026 | Hecha. Ocho funciones con diálogo simple y motor propio. Falta probar con fotos reales (cielo, neblina) y los modelos. |
 | 9 · Restaurar y limpiar | v310 (1.7.0) | 5 nov 2026 | Hecha con algoritmos propios (sin NAFNet). Falta probar con fotos reales borrosas, con polvo y con moiré. |
-| 10 · Objetos | | | |
+| 10 · Objetos | v311 (1.8.0) | 5 nov 2026 | Hecha. Pincel inteligente, borrado ligero (sin MI-GAN, usa el relleno actual), texto en zona libre y 3 propuestas de recorte. Falta MI-GAN y probar SAM con fotos reales. |
 | 11 · Realismo | | | |
 | 12 · Estilos | | | |
 | 13 · Lotes | | | |

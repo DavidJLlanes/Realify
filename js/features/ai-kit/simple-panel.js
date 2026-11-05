@@ -23,6 +23,11 @@ export function buildSimpleBody(params, { profile = null, onChange = () => {} } 
       row.innerHTML = `<span class="grow">${esc(p.label)}</span><input type="checkbox"${values[p.key] ? " checked" : ""}>`;
       row.querySelector("input").addEventListener("change", e => emit(p.key, e.target.checked));
       body.appendChild(row);
+    } else if(p.type === "text"){
+      const row = document.createElement("div"); row.className = "field";
+      row.innerHTML = `<label>${esc(p.label)}</label><input type="text" class="grow" value="${esc(values[p.key] ?? "")}" autocomplete="off" spellcheck="false">`;
+      row.querySelector("input").addEventListener("input", e => emit(p.key, e.target.value));
+      body.appendChild(row);
     } else if(p.type === "seg" || p.type === "select"){
       const opts = typeof p.options === "function" ? p.options() : p.options;
       const row = document.createElement("div"); row.className = "field";

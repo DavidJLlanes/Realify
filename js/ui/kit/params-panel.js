@@ -29,7 +29,7 @@ export function paramsFor(params, profile = null){
 /** Valores por defecto { clave: def } de los parámetros del perfil. */
 export function defaultsOf(params, profile = null){
   const out = {};
-  for(const p of paramsFor(params, profile)) out[p.key] = p.def !== undefined ? p.def : p.type === "toggle" ? false : p.type === "range" ? (p.min ?? 0) : "";
+  for(const p of paramsFor(params, profile)) out[p.key] = p.def !== undefined ? p.def : p.type === "toggle" ? false : p.type === "text" ? "" : p.type === "range" ? (p.min ?? 0) : "";
   return out;
 }
 
@@ -45,6 +45,9 @@ export function validate(params, values, profile = null){
     if(p.type === "range" || p.type === "number"){
       if(typeof v !== "number" || !Number.isFinite(v)){ rejected.push(k); continue; }
       out[k] = clamp(v, p.min ?? -Infinity, p.max ?? Infinity);
+    } else if(p.type === "text"){
+      if(typeof v !== "string"){ rejected.push(k); continue; }
+      out[k] = v.slice(0, p.max || 200);
     } else if(p.type === "toggle"){
       if(typeof v !== "boolean"){ rejected.push(k); continue; }
       out[k] = v;

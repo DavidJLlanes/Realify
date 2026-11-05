@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T19:19:32.536Z",
+ "generated": "2026-11-05T19:38:14.549Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1717,
+     "readyMs": 1851,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2127095,
+     "jsBytes": 2126829,
      "cssBytes": 177122,
-     "transferBytes": 882062,
-     "domContentLoaded": 1647,
-     "fcp": 1348
+     "transferBytes": 883538,
+     "domContentLoaded": 1761,
+     "fcp": 1480
     },
     {
-     "readyMs": 1210,
+     "readyMs": 1382,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2126669,
+     "jsBytes": 2126858,
      "cssBytes": 177122,
-     "transferBytes": 882489,
-     "domContentLoaded": 1136,
-     "fcp": 468
+     "transferBytes": 883020,
+     "domContentLoaded": 1306,
+     "fcp": 432
     },
     {
-     "readyMs": 1345,
+     "readyMs": 1442,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2126225,
+     "jsBytes": 2126855,
      "cssBytes": 177122,
-     "transferBytes": 882184,
-     "domContentLoaded": 1265,
-     "fcp": 544
+     "transferBytes": 883017,
+     "domContentLoaded": 1354,
+     "fcp": 372
     }
    ],
-   "medianReadyMs": 1345,
-   "medianTransferBytes": 882184
+   "medianReadyMs": 1442,
+   "medianTransferBytes": 883020
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -135,6 +135,7 @@
     "ai.moire",
     "ai.partsSelect",
     "ai.photo3d",
+    "ai.quickErase",
     "ai.recolorClothes",
     "ai.redEye",
     "ai.skinEven",
@@ -142,9 +143,11 @@
     "ai.skinTexture",
     "ai.skinWrinkles",
     "ai.skyEnhance",
+    "ai.smartBrush",
     "ai.smartCrop",
     "ai.tapSelect",
     "ai.teeth",
+    "ai.textPlacement",
     "ai.textSelect",
     "ai.upscale",
     "ai.zonedWhiteBalance",
@@ -1919,6 +1922,17 @@
          "tabs": [
           "seleccion"
          ]
+        },
+        {
+         "cmd": "ai.smartBrush",
+         "ic": "brush",
+         "label": "Pincel inteligente con IA Premium 👑…",
+         "premium": true,
+         "help": "Pinta sobre un objeto y la selección se ajusta a sus bordes (MobileSAM). Puedes añadir o quitar; el resultado es la selección activa.",
+         "short": "Pincel inteligente",
+         "tabs": [
+          "seleccion"
+         ]
         }
        ],
        "iaId": "seleccionar",
@@ -1944,6 +1958,17 @@
          "ic": "expand",
          "label": "Expandir con IA…",
          "help": "Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva."
+        },
+        {
+         "cmd": "ai.quickErase",
+         "ic": "eraser",
+         "label": "Borrado ligero con IA Premium 👑…",
+         "premium": true,
+         "help": "Pinta sobre lo que sobra y se rellena en una capa nueva; el original queda intacto. Pensado para el móvil.",
+         "short": "Borrado ligero",
+         "tabs": [
+          "retoque"
+         ]
         }
        ],
        "iaId": "borrar",
@@ -2486,6 +2511,17 @@
          "label": "Recorte de retrato Premium 👑",
          "premium": true,
          "help": "Abre Recortar con el marco encuadrado en la cara (ojos en el tercio superior, cabeza y hombros)."
+        },
+        {
+         "cmd": "ai.textPlacement",
+         "ic": "type",
+         "label": "Texto en zona libre con IA Premium 👑…",
+         "premium": true,
+         "help": "Busca la zona de la foto que menos molesta (sin sujeto, caras ni texturas) y escribe ahí tu texto o marca de agua, en claro u oscuro según el fondo, en una capa nueva.",
+         "short": "Texto zona libre",
+         "tabs": [
+          "estilo"
+         ]
         }
        ],
        "iaId": "encuadre",
@@ -2742,7 +2778,7 @@
      ]
     }
    ],
-   "menuHash": "4a774ab4f083ccaf"
+   "menuHash": "482123b20d0618f8"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4689,15 +4725,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1261,
+   "readyMs": 1234,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2127120,
+   "jsBytes": 2115821,
    "cssBytes": 177122,
-   "transferBytes": 882007,
-   "domContentLoaded": 1186,
-   "fcp": 744
+   "transferBytes": 879214,
+   "domContentLoaded": 1171,
+   "fcp": 712
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",

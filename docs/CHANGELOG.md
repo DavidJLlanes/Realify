@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.8.0 (compilación 311) · Objetos y composición 👑
+- Tres funciones nuevas, todas Premium: **Pincel inteligente** (Seleccionar: pintas sobre un objeto y la selección se pega a sus bordes con MobileSAM; el trazo se reparte en hasta 6 puntos), **Borrado ligero** (Borrar y rellenar: pintas lo que sobra y se rellena en una capa nueva; usa el relleno actual, MI-GAN queda pendiente) y **Texto en zona libre** (Encuadre y composición: busca el rectángulo con menos sujeto, caras y textura, y escribe ahí tu texto, claro u oscuro según el fondo, en una capa nueva)
+- **Recorte inteligente** ofrece ahora hasta 3 propuestas de encuadre distintas (selector «Propuesta»); el comando no cambia
+- Motor puro `js/features/compose/engine/zona-texto.js`; el panel simple admite mandos de tipo `text`
+- Pruebas en `tests/ia/composicion/` (motor en Node y navegador, móvil y escritorio)
+
 ### 1.7.0 (compilación 310) · Restaurar y limpiar 👑
 - Tres funciones nuevas en **Mejorar y restaurar** (pestañas Mejorar y Corregir): **Quitar desenfoque** (movimiento y fuera de foco), **Polvo y motas del sensor** y **Moiré y bandas**, todas Premium 👑 con diálogo simple y resultado en capa nueva.
 - Motor en `js/features/restore/engine/` (sin DOM, luz lineal, sin modelos): deconvolución de Wiener por bloques solapados con núcleo medido en la propia foto (ángulo por energía direccional, largo por autocorrelación, radio por el ancho de los bordes) y límite de halos; motas por contraste con el entorno, tamaño, redondez y contorno liso, rellenadas por convolución normalizada; moiré por picos del espectro de cada bloque (FFT 2D de `js/analysis/fft.js`) con muesca gaussiana y color más fuerte que luz; ruido adaptativo con filtro guiado.

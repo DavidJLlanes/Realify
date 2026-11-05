@@ -62,8 +62,9 @@ export async function importanceMap(src){
   return { imp, gw, gh, k, faces: fb };
 }
 
-/* Mejor recorte del formato `ar` (ancho/alto) en coordenadas de la foto */
-export function bestCrop(M, ar, W, H){
+/* Las `n` mejores propuestas distintas del formato `ar` (ancho/alto), en coordenadas de la foto: se ordenan todos los recortes por puntuación y
+   se descartan los que se parecen (solapan más del 55 %) a uno ya elegido, así cada propuesta es un encuadre diferente. `bestCrop` es la primera. */
+export function cropProposals(M, ar, W, H, n = 3){
   const { imp, gw, gh, k, faces } = M;
   // Suma acumulada 2D
   const S = new Float64Array((gw + 1) * (gh + 1));
@@ -73,7 +74,7 @@ export function bestCrop(M, ar, W, H){
   // Recorte máximo del formato
   let mw = gw, mh = gw / ar;
   if(mh > gh){ mh = gh; mw = gh * ar; }
-  let best = null;
+  const cands = [];
   for(let s = 1; s >= 0.55; s -= 0.05){
     const cw = Math.max(2, Math.round(mw * s)), ch = Math.max(2, Math.round(mh * s));
     const stepX = Math.max(1, Math.round((gw - cw) / 40)), stepY = Math.max(1, Math.round((gh - ch) / 40));
@@ -98,16 +99,30 @@ export function bestCrop(M, ar, W, H){
         thirds = Math.max(0, 1 - d / 0.3);
       }
       const score = inside * 1.0 - band * 0.08 - cut * 0.6 + thirds * 0.06 + s * 0.25;
-      if(!best || score > best.score) best = { score, x, y, cw, ch };
+      cands.push({ score, x, y, cw, ch });
     }
   }
+  cands.sort((a, b) => b.score - a.score);
+  const elegidos = [];
+  for(const c of cands){
+    if(elegidos.every(e => iou(c, e) < 0.55)) elegidos.push(c);
+    if(elegidos.length >= n) break;
+  }
   const f = 1 / k;
-  let rw = best.cw * f, rh = rw / ar;
-  if(rh > H){ rh = H; rw = rh * ar; }
-  if(rw > W){ rw = W; rh = rw / ar; }
-  const rx = Math.max(0, Math.min(W - rw, best.x * f)), ry = Math.max(0, Math.min(H - rh, best.y * f));
-  return { x: rx, y: ry, w: rw, h: rh };
+  return elegidos.map(best => {
+    let rw = best.cw * f, rh = rw / ar;
+    if(rh > H){ rh = H; rw = rh * ar; }
+    if(rw > W){ rw = W; rh = rw / ar; }
+    return { x: Math.max(0, Math.min(W - rw, best.x * f)), y: Math.max(0, Math.min(H - rh, best.y * f)), w: rw, h: rh };
+  });
 }
+
+function iou(a, b){
+  const ox = Math.max(0, Math.min(a.x + a.cw, b.x + b.cw) - Math.max(a.x, b.x)), oy = Math.max(0, Math.min(a.y + a.ch, b.y + b.ch) - Math.max(a.y, b.y)), i = ox * oy;
+  return i / (a.cw * a.ch + b.cw * b.ch - i);
+}
+
+export const bestCrop = (M, ar, W, H) => cropProposals(M, ar, W, H, 1)[0];
 
 let open = false;
 export async function openSmartCrop(){
@@ -123,7 +138,7 @@ export async function openSmartCrop(){
   open = true;
   const { createShell, ensureShellStyles } = await import("../ui/kit/fsshell.js");
   await ensureShellStyles();
-  let fmt = FORMATS[1], rect = bestCrop(M, fmt[2], W, H);
+  let fmt = FORMATS[1], props = cropProposals(M, fmt[2], W, H, 3), rect = props[0];
   const close = () => { open = false; sh.close(); };
   const sh = createShell({
     title: "Recorte inteligente", subtitle: "Premium 👑 · arrastra el marco para afinarlo", applyLabel: "Recortar",
@@ -167,13 +182,15 @@ export async function openSmartCrop(){
   // Mando mínimo: el formato (desplegable cerrado)
   const ctl = () => {
     const el = document.createElement("div"); el.className = "face-ctl smartcrop-ctl";
-    el.innerHTML = `<select aria-label="Formato">${FORMATS.map(f => `<option value="${f[0]}">${f[1]}</option>`).join("")}</select>`;
-    const s = el.querySelector("select"); s.value = fmt[0];
+    el.innerHTML = `<select aria-label="Formato">${FORMATS.map(f => `<option value="${f[0]}">${f[1]}</option>`).join("")}</select>
+      <select aria-label="Propuesta">${props.map((_, i) => `<option value="${i}">Propuesta ${i + 1}</option>`).join("")}</select>`;
+    const s = el.querySelector("select"), pr = el.querySelectorAll("select")[1]; s.value = fmt[0];
     s.addEventListener("change", () => {
-      fmt = FORMATS.find(f => f[0] === s.value); rect = bestCrop(M, fmt[2], W, H);
-      sh.root.querySelectorAll(".smartcrop-ctl select").forEach(o => o.value = fmt[0]);
+      fmt = FORMATS.find(f => f[0] === s.value); props = cropProposals(M, fmt[2], W, H, 3); rect = props[0];
+      sh.root.querySelectorAll(".smartcrop-ctl select").forEach(o => { if(o.getAttribute("aria-label") === "Formato") o.value = fmt[0]; else { o.innerHTML = props.map((_, i) => `<option value="${i}">Propuesta ${i + 1}</option>`).join(""); o.value = "0"; } });
       sh.redraw();
     });
+    pr.addEventListener("change", () => { rect = props[+pr.value] || props[0]; sh.root.querySelectorAll(".smartcrop-ctl select").forEach(o => { if(o.getAttribute("aria-label") === "Propuesta") o.value = pr.value; }); sh.redraw(); });
     return el;
   };
   sh.mobile.appendChild(ctl()); sh.right.appendChild(ctl());

@@ -148,6 +148,10 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           (movimiento o fuera de foco; mide el ángulo y el tamaño en tu foto o los pones tú, y frena los halos), <b>Polvo y motas del sensor</b> (detecta manchas pequeñas y oscuras
           sobre zonas lisas y las rellena con su entorno) y <b>Moiré y bandas</b> (busca picos periódicos en el espectro y los atenúa). Además, <i>Reducción de ruido</i> tiene
           ahora «Limpiar para Realify»: mide el ruido de la foto y lo quita con un filtro guiado antes de añadir el grano propio de sensor. No usan modelos: son algoritmos propios en luz lineal.</li>
+        <li id="ia-composicion"><b>Objetos y composición 👑</b>: <b>Pincel inteligente</b> (Inteligencia Artificial › Seleccionar): pintas por encima de un objeto y la selección se pega a sus bordes;
+          «Quitar» excluye partes. <b>Borrado ligero</b> (Borrar y rellenar): pintas lo que sobra y se rellena en una capa nueva. <b>Texto en zona libre</b> (Encuadre y composición):
+          escribes el texto y Realify lo coloca donde menos molesta (lejos del sujeto, las caras y las zonas con mucha textura), claro u oscuro según el fondo. Además, <i>Recorte inteligente</i>
+          ofrece hasta tres propuestas de encuadre.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

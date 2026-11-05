@@ -32,18 +32,37 @@ const MODES = {
   select: { title: "Selección con un toque", apply: "Seleccionar", tint: [30, 144, 255],
             hint: "Toca lo que quieras seleccionar. «Quitar» para excluir partes." },
   erase:  { title: "Borrador mágico", apply: "Borrar", tint: [255, 70, 60],
-            hint: "Toca lo que quieras borrar. «Quitar» para respetar partes." }
+            hint: "Toca lo que quieras borrar. «Quitar» para respetar partes." },
+  brush:  { title: "Pincel inteligente", apply: "Seleccionar", tint: [30, 144, 255], stroke: true, as: "select",
+            hint: "Pinta por encima de lo que quieras seleccionar: la selección se ajusta a sus bordes. «Quitar» para excluir." },
+  quick:  { title: "Borrado ligero", apply: "Borrar", tint: [255, 70, 60], stroke: true, as: "erase",
+            hint: "Pinta por encima de lo que quieras borrar: se rellena en una capa nueva. «Quitar» para respetar partes." }
 };
+
+/** Puntos repartidos a lo largo de un trazo (a igual distancia, 1 a 6): SAM los toma como toques. */
+export function puntosDeTrazo(tr, n = 6){
+  if(tr.length < 2) return tr.slice();
+  const L = [0]; for(let i = 1; i < tr.length; i++) L[i] = L[i - 1] + Math.hypot(tr[i].x - tr[i - 1].x, tr[i].y - tr[i - 1].y);
+  const tot = L[L.length - 1], out = [];
+  if(tot < 1) return [tr[0]];
+  const m = Math.max(2, Math.min(n, Math.round(tot / 24) + 1));
+  for(let k = 0, j = 1; k < m; k++){
+    const d = tot * k / (m - 1); while(j < L.length - 1 && L[j] < d) j++;
+    const t = (d - L[j - 1]) / Math.max(1e-6, L[j] - L[j - 1]);
+    out.push({ x: tr[j - 1].x + (tr[j].x - tr[j - 1].x) * Math.min(1, t), y: tr[j - 1].y + (tr[j].y - tr[j - 1].y) * Math.min(1, t) });
+  }
+  return out;
+}
 
 let open = false;
 
 export async function openSamTool(mode = "select"){
   if(open) return;
-  const M = MODES[mode];
+  const M = MODES[mode], kind = M.as || mode;   // «brush» selecciona y «quick» borra, como los modos de toque
   const layer = activeLayer();
   if(!doc.open || !layer){ toast("Abre una imagen primero"); return; }
   if(layer.type === "adjust" || !layer.canvas){ toast("Selecciona una capa de imagen"); return; }
-  if(mode === "erase" && layer.locked){ toast("La capa está bloqueada"); return; }
+  if(kind === "erase" && layer.locked){ toast("La capa está bloqueada"); return; }
   open = true;
   await ensureShellStyles();
 
@@ -56,8 +75,8 @@ export async function openSamTool(mode = "select"){
     cls: "sam-tool",
     onCancel: () => close(),
     onApply: () => apply(),
-    onUndo: () => { if(points.length){ redo.push(points.pop()); update(); } },
-    onRedo: () => { if(redo.length){ points.push(redo.pop()); update(); } }
+    onUndo: () => { if(points.length){ const g = points[points.length - 1].g, grp = []; while(points.length && points[points.length - 1].g === g) grp.unshift(points.pop()); redo.push(grp); update(); } },
+    onRedo: () => { if(redo.length){ points.push(...redo.pop()); update(); } }
   });
   sh.setView(src, false);
   sh.setApplyEnabled(false);
@@ -84,6 +103,10 @@ export async function openSamTool(mode = "select"){
   // Vista previa: máscara teñida y los puntos
   sh.setOverlay((cx, t) => {
     if(maskCanvas) cx.drawImage(maskCanvas, t.ox, t.oy, src.width * t.k, src.height * t.k);
+    if(trazo && trazo.length > 1){
+      cx.beginPath(); trazo.forEach((q, i) => cx[i ? "lineTo" : "moveTo"](t.ox + q.x * t.k, t.oy + q.y * t.k));
+      cx.lineWidth = 6 * t.dpr; cx.lineCap = cx.lineJoin = "round"; cx.strokeStyle = sign ? "rgba(46,204,113,.7)" : "rgba(231,76,60,.7)"; cx.stroke();
+    }
     for(const p of points){
       const x = t.ox + p.x * t.k, y = t.oy + p.y * t.k, r = 7 * t.dpr;
       cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2);
@@ -95,9 +118,20 @@ export async function openSamTool(mode = "select"){
   });
 
   // Un toque (sin arrastrar) añade un punto; arrastrar no hace nada
-  let down = null;
+  let down = null, trazo = null, grupo = 0;
   sh.setInteract((type, p, e) => {
     if(!st || busy && type === "down") return type === "down";
+    if(M.stroke){                            // pincel: el trazo se convierte en varios puntos de SAM
+      if(type === "down"){ trazo = [p]; return true; }
+      if(type === "move" && trazo){ trazo.push(p); sh.redraw(); }
+      if(type === "up" && trazo){
+        if(p) trazo.push(p);
+        const tr = trazo.filter(q => q.x >= 0 && q.y >= 0 && q.x < src.width && q.y < src.height); trazo = null;
+        if(tr.length){ const g = ++grupo, pos = sign && !e.altKey && !e.shiftKey; for(const q of puntosDeTrazo(tr)) points.push({ x: q.x, y: q.y, pos, g }); redo.length = 0; update(); } else sh.redraw();
+      }
+      if(type === "cancel"){ trazo = null; sh.redraw(); }
+      return false;
+    }
     if(type === "down"){ down = { x: e.clientX, y: e.clientY, p }; return true; }
     if(type === "up" && down){
       const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
@@ -144,12 +178,12 @@ export async function openSamTool(mode = "select"){
   async function apply(){
     if(!mask || busy) return;
     sh.setApplyEnabled(false);
-    sh.setBusy(mode === "select" ? "Afinando el borde…" : "Borrando con IA…");
+    sh.setBusy(kind === "select" ? "Afinando el borde…" : "Borrando con IA…");
     await new Promise(r => setTimeout(r, 30));
     try{
       const rgba = src.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, src.width, src.height).data;
       const fm = finalMask(mask, points, st, rgba);
-      if(mode === "select"){
+      if(kind === "select"){
         close();
         commitSelection(fm, "new");
         toast("Selección creada con IA", "ok");
