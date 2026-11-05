@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T17:01:38.105Z",
+ "generated": "2026-11-05T18:51:33.304Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1943,
+     "readyMs": 1649,
      "requests": 250,
-     "jsRequests": 235,
+     "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2139787,
+     "jsBytes": 2133922,
      "cssBytes": 177122,
-     "transferBytes": 974527,
-     "domContentLoaded": 1838,
-     "fcp": 1448
+     "transferBytes": 884040,
+     "domContentLoaded": 1567,
+     "fcp": 1336
     },
     {
-     "readyMs": 1436,
+     "readyMs": 1311,
      "requests": 250,
-     "jsRequests": 234,
+     "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2131942,
+     "jsBytes": 2133922,
      "cssBytes": 177122,
-     "transferBytes": 973088,
-     "domContentLoaded": 1101,
-     "fcp": 408
+     "transferBytes": 884040,
+     "domContentLoaded": 1037,
+     "fcp": 572
     },
     {
-     "readyMs": 1333,
+     "readyMs": 1233,
      "requests": 250,
-     "jsRequests": 234,
+     "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2131942,
+     "jsBytes": 2133922,
      "cssBytes": 177122,
-     "transferBytes": 973088,
-     "domContentLoaded": 1246,
-     "fcp": 584
+     "transferBytes": 884040,
+     "domContentLoaded": 1018,
+     "fcp": 660
     }
    ],
-   "medianReadyMs": 1436,
-   "medianTransferBytes": 973088
+   "medianReadyMs": 1311,
+   "medianTransferBytes": 884040
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -100,6 +100,7 @@
     "ai.bodyShape",
     "ai.bodySkin",
     "ai.bodyTone",
+    "ai.clothesWrinkles",
     "ai.colorize",
     "ai.darkCircles",
     "ai.depthBlur",
@@ -109,6 +110,8 @@
     "ai.depthSelect",
     "ai.expand",
     "ai.eyes",
+    "ai.fabricTexture",
+    "ai.fabricWrinkles",
     "ai.faceBlur",
     "ai.faceCrop",
     "ai.faceRelight",
@@ -123,6 +126,7 @@
     "ai.magicErase",
     "ai.partsSelect",
     "ai.photo3d",
+    "ai.recolorClothes",
     "ai.redEye",
     "ai.skinEven",
     "ai.skinShine",
@@ -2178,6 +2182,57 @@
        "flattenAsHeader": true
       },
       {
+       "label": "Ropa y tejidos",
+       "submenu": [
+        {
+         "cmd": "ai.clothesWrinkles",
+         "ic": "wind",
+         "label": "Planchar arrugas de ropa Premium 👑…",
+         "premium": true,
+         "help": "Plancha las arrugas de la ropa: aplana el sombreado de los pliegues y conserva la trama del tejido, las rayas y los estampados.",
+         "short": "Planchar ropa",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.fabricWrinkles",
+         "ic": "waves-horizontal",
+         "label": "Arrugas de telas y fondos Premium 👑…",
+         "premium": true,
+         "help": "Plancha las arrugas de sábanas, cortinas, manteles o fondos de tela: tocas la tela y se alisa sin perder su trama.",
+         "short": "Arrugas telas",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.recolorClothes",
+         "ic": "palette",
+         "label": "Cambiar color de prendas Premium 👑…",
+         "premium": true,
+         "help": "Cambia el color de una prenda en OKLab conservando sus sombras, brillos y pliegues; las prendas blancas, grises o negras se tiñen con el tinte.",
+         "short": "Color ropa",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.fabricTexture",
+         "ic": "grid-3x3",
+         "label": "Textura de tejido Premium 👑…",
+         "premium": true,
+         "help": "Realza, apaga o devuelve la trama del tejido y rellena las zonas que quedaron demasiado lisas tras planchar o recolorear.",
+         "short": "Textura tela",
+         "tabs": [
+          "retoque"
+         ]
+        }
+       ],
+       "iaId": "ropa",
+       "flattenAsHeader": true
+      },
+      {
        "sep": true
       },
       {
@@ -2551,7 +2606,7 @@
      ]
     }
    ],
-   "menuHash": "4949bea88940851d"
+   "menuHash": "b3d6896e89843ae0"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4498,20 +4553,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1178,
+   "readyMs": 1186,
    "requests": 250,
-   "jsRequests": 235,
+   "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2139787,
+   "jsBytes": 2126021,
    "cssBytes": 177122,
-   "transferBytes": 974527,
-   "domContentLoaded": 1035,
-   "fcp": 800
+   "transferBytes": 881873,
+   "domContentLoaded": 1121,
+   "fcp": 552
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
    "withImage": "91216a462b558bfe",
-   "drawer": "2c8066d87986d537"
+   "drawer": "53b3b078245a5530"
   },
   "opened": true,
   "drawer": true,
