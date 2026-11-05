@@ -16,6 +16,15 @@ const std = (a, x0 = 0, x1 = W, y0 = 0, y1 = H) => { let s = 0, s2 = 0, c = 0; f
 const media = (a, x0, x1, y0, y1) => { let s = 0, c = 0; for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { s += a[y * W + x]; c++; } return s / c; };
 const sinCambio = (a, b, mask) => { let d = 0; for (let i = 0; i < n; i++) if (!mask || mask[i] === 0) d += Math.abs(a.R[i] - b.R[i]) + Math.abs(a.G[i] - b.G[i]) + Math.abs(a.B[i] - b.B[i]); return d; };
 
+/* 0 · una foto SIN neblina (contrastada, con negros y paredes claras) casi no cambia con la fuerza por defecto (fallo visto con una foto real) */
+{
+  const p = nuevo(), d = new Float32Array(n);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x, muro = x < W * 0.6 && y < H * 0.6, v = muro ? 0.75 + 0.1 * rnd() : 0.01 + 0.03 * rnd(); p.R[i] = v; p.G[i] = v * 0.97; p.B[i] = v * 0.9; d[i] = 1 - y / H; } fijaY(p);
+  const o = copia(p); quitarNeblina(p, d, { fuerza: 60, profundidad: 50 });
+  const cambio = sinCambio(p, o) / (3 * n); console.log(`neblina (foto sin neblina): cambio medio ${cambio.toFixed(4)}`);
+  ok(cambio < 0.02, "quita «neblina» que no existe: cambio medio " + cambio.toFixed(4));
+}
+
 /* 1 · neblina con profundidad */
 {
   const J = nuevo(), d = new Float32Array(n), A = 0.85;
