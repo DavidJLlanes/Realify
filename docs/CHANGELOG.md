@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.3.0 (compilación 305) · Motor de deformación (sin cambios visibles)
+- Fase 5 del plan: `js/features/warp/`, el motor que usarán el editor de cuerpo y la forma de la cara. Campo de deformación por mínimos cuadrados móviles (similitud, rígida o afín) con puntos fijos, zonas protegidas que no se mueven ni un píxel y rectas que siguen rectas.
+- Control de plegados: si el determinante del jacobiano baja de 0,15 se reduce la amplitud y se avisa.
+- Render bicúbico en luz lineal con alfa premultiplicado: WebGL2 con respaldo en CPU dentro de un worker (GPU y CPU coinciden, diferencia media 0,01 sobre 255).
+- Compensación del fondo: calcula lo que deja libre un cuerpo al estrecharse y lo rellena con LaMa.
+- Corrige `index.html`, que en la compilación 304 se quedó apuntando a `?v=303`.
+- Pruebas `tests/ia/warp/campo.mjs` (Node) y `render.mjs` (navegador).
+- Pendiente de la fase: líneas rectas del fondo junto al contorno y MI-GAN para móvil.
+
 ### 1.3.0 (compilación 304) · Retrato II: luz, ojos, boca, pelo y gafas 👑
 - Siete funciones nuevas en **Inteligencia Artificial › Retrato** (Premium 👑, pestaña Retoque del cajón): **Luz en la cara**, **Ojos**, **Labios y cejas**, **Dientes**, **Cabello**, **Pelos sueltos** y **Reflejos en gafas**. Se abren en el mismo editor de cara, que ahora tiene doce grupos y un único resultado en la capa «Cara · retoque».
 - Luz: `js/features/relight/` calcula normales mezclando la profundidad (Depth Anything V2 Small, se descarga sólo al usarla) con un elipsoide de la cara, y mezcla una luz Lambert en luz lineal (dirección, altura, intensidad, suavidad). Si falla la profundidad, usa sólo la forma de la cara.

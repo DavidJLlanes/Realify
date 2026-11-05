@@ -579,12 +579,12 @@ Hecho cuando: cada función es utilizable en móvil sin pasar de la memoria y co
 Objetivo: un motor de deformación reutilizable por el editor de cuerpo, la forma de la cara y los ajustes finos.
 Depende de: F2.
 
-- [ ] F5.1 `js/features/warp/`: campo de deformación por mínimos cuadrados móviles (MLS) con restricciones (puntos fijos, zonas protegidas, líneas rectas).
-- [ ] F5.2 Control de plegados: el determinante del jacobiano debe ser > 0 en todo el campo; si no, se reduce la amplitud y se avisa.
-- [ ] F5.3 Render por GPU (WebGL/WebGPU) con remuestreo bicúbico en coma flotante y respaldo en CPU en un worker.
-- [ ] F5.4 Compensación del fondo: al estrechar el cuerpo se descubre fondo; rellenar con LaMa (escritorio) o MI-GAN (móvil), y conservar las líneas rectas del fondo cerca del contorno.
-- [ ] F5.5 Reutilizar lo que ya hay (`js/editor/tools/liquify.js`, `filter.puppetWarp`) solo como referencia; no se modifican.
-- [ ] F5.6 Pruebas en Node del campo (invertibilidad, ausencia de plegados, conservación del área protegida).
+- [x] F5.1 (v305) `js/features/warp/`: campo de deformación por mínimos cuadrados móviles (MLS) con restricciones (puntos fijos, zonas protegidas, líneas rectas).
+- [x] F5.2 (v305) Control de plegados: el determinante del jacobiano debe ser > 0 en todo el campo; si no, se reduce la amplitud y se avisa.
+- [x] F5.3 (v305) Render por GPU (WebGL/WebGPU) con remuestreo bicúbico en coma flotante y respaldo en CPU en un worker.
+- [~] F5.4 (v305) Compensación del fondo: al estrechar el cuerpo se descubre fondo; rellenar con LaMa (escritorio) o MI-GAN (móvil), y conservar las líneas rectas del fondo cerca del contorno. **Hecho:** hueco y relleno con LaMa. **Falta:** líneas rectas y MI-GAN.
+- [x] F5.5 (v305) Reutilizar lo que ya hay (`js/editor/tools/liquify.js`, `filter.puppetWarp`) solo como referencia; no se modifican.
+- [x] F5.6 (v305) Pruebas en Node del campo (invertibilidad, ausencia de plegados, conservación del área protegida).
 
 Hecho cuando: una deformación de prueba no pliega, no mueve las zonas protegidas y se aplica a resolución completa.
 
@@ -816,7 +816,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 2 · Personas | v302 | 5 nov 2026 | Hecha salvo F2.1, F2.2 (medidas y WebGPU en un móvil real), F2.4 (manos sin validar) y F2.8. Modelos incluidos en `assets/models/people/` (≈103 MB), tareas del worker, API `analyze()` real, `ai.partsSelect`. Probado con una foto real (CPU/WASM). **Pendiente:** medir tiempo y memoria en un móvil de gama media y probar con fotos con manos y varias personas. |
 | 3 · Retrato I | v303 (1.2.0) | 5 nov 2026 | Hecha salvo las manos (F3.1/F3.2) y F3.8 completa. Editor de cara + 5 funciones de piel en luz lineal; probado con una cara real. |
 | 4 · Retrato II | v304 (1.3.0) | 5 nov 2026 | Hecha salvo F4.9 (mirada, sin investigar) y el tamaño de ojos (espera a F5). 7 funciones en el editor de cara; F4.7 sin LaMa (refuerzo de hebras). |
-| 5 · Deformación | | | |
+| 5 · Deformación | v305 | 5 nov 2026 | Hecha salvo F5.4 completa (líneas rectas del fondo, MI-GAN). Motor MLS + GPU/CPU + fondo con LaMa; sin interfaz. |
 | 6 · Cuerpo | | | |
 | 7 · Ropa | | | |
 | 8 · Escena | | | |
