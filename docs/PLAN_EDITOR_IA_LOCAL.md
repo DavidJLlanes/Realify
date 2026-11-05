@@ -562,16 +562,16 @@ Hecho cuando: un retrato de IA muy liso gana textura y uno real pierde arrugas s
 ### Fase 4 · Retrato II: ojos, boca, pelo, gafas y luz 👑
 Depende de: F2, F3.
 
-- [ ] F4.1 `js/features/relight/`: normales a partir de la profundidad (Depth Anything V2 Small), luz direccional (Lambert + suavizado) mezclada en luz lineal. Sin modelo generativo.
-- [ ] F4.2 `ai.faceRelight` · Luz en la cara: dirección, altura, intensidad, suavidad; respeta el color de la piel.
-- [ ] F4.3 `ai.eyes` · Ojos: luz, color del iris, tamaño sutil (con deformación de F5 cuando esté).
-- [ ] F4.4 `ai.lipsBrows` · Labios y cejas: color, definición, relleno de huecos en cejas.
-- [ ] F4.5 `ai.teeth` · Dientes: blanqueado por zonas con landmarks, conservando el brillo (afina el de «Retoque de cara»).
-- [ ] F4.6 `ai.hair` · Cabello: color en OKLab, brillo, volumen suave (máscara de pelo de BiSeNet + matting).
-- [ ] F4.7 `ai.flyawayHair` · Pelos sueltos: detectar líneas finas sobre el fondo y rellenar con LaMa o MI-GAN.
-- [ ] F4.8 `ai.glassesGlare` · Reflejos en gafas: detectar brillos especulares dentro de la máscara de las gafas y atenuarlos.
+- [x] F4.1 (v304) `js/features/relight/`: normales a partir de la profundidad (Depth Anything V2 Small), luz direccional (Lambert + suavizado) mezclada en luz lineal. Sin modelo generativo.
+- [x] F4.2 (v304) `ai.faceRelight` · Luz en la cara: dirección, altura, intensidad, suavidad; respeta el color de la piel.
+- [x] F4.3 (v304) `ai.eyes` · Ojos: luz, color del iris, tamaño sutil (con deformación de F5 cuando esté). **Falta el tamaño** (F5).
+- [x] F4.4 (v304) `ai.lipsBrows` · Labios y cejas: color, definición, relleno de huecos en cejas.
+- [x] F4.5 (v304) `ai.teeth` · Dientes: blanqueado por zonas con landmarks, conservando el brillo (afina el de «Retoque de cara»).
+- [x] F4.6 (v304) `ai.hair` · Cabello: color en OKLab, brillo, volumen suave (máscara de pelo de BiSeNet + matting).
+- [x] F4.7 (v304) `ai.flyawayHair` · Pelos sueltos: detectar líneas finas sobre el fondo y rellenar con LaMa o MI-GAN. **Hecho sin LaMa:** refuerzo de hebras con filtro de crestas.
+- [x] F4.8 (v304) `ai.glassesGlare` · Reflejos en gafas: detectar brillos especulares dentro de la máscara de las gafas y atenuarlos.
 - [ ] F4.9 `ai.eyeGaze` · Mirada y ojos cerrados: **investigación acotada** (viabilidad en móvil y calidad). Si no cumple, se descarta y se anota aquí.
-- [ ] F4.10 Grupos Ojos, Labios y cejas, Dientes, Pelo, Gafas y Luz en `plugins/face-editor/` (cada función aporta su panel; el editor no cambia). Menús, cajón, ☰, guía, pruebas.
+- [x] F4.10 (v304) Grupos Ojos, Labios y cejas, Dientes, Pelo, Gafas y Luz en `plugins/face-editor/` (cada función aporta su panel; el editor no cambia). Menús, cajón, ☰, guía, pruebas.
 
 Hecho cuando: cada función es utilizable en móvil sin pasar de la memoria y con resultado en capa nueva.
 
@@ -815,7 +815,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 1 · Menús y cajón | v300 (1.0.0) | 5 nov 2026 | Hecha. Menú IA con submenús (8 con herramientas de 13), chips en el cajón, ☰ con título por submenú, comandos desde manifiestos, hueco «Vídeo» oculto. `smoke` equivalente salvo el árbol de menús (intencionado) y el error de consola de Unmark que ya existía; Básicos y Automáticos idénticos. |
 | 2 · Personas | v302 | 5 nov 2026 | Hecha salvo F2.1, F2.2 (medidas y WebGPU en un móvil real), F2.4 (manos sin validar) y F2.8. Modelos incluidos en `assets/models/people/` (≈103 MB), tareas del worker, API `analyze()` real, `ai.partsSelect`. Probado con una foto real (CPU/WASM). **Pendiente:** medir tiempo y memoria en un móvil de gama media y probar con fotos con manos y varias personas. |
 | 3 · Retrato I | v303 (1.2.0) | 5 nov 2026 | Hecha salvo las manos (F3.1/F3.2) y F3.8 completa. Editor de cara + 5 funciones de piel en luz lineal; probado con una cara real. |
-| 4 · Retrato II | | | |
+| 4 · Retrato II | v304 (1.3.0) | 5 nov 2026 | Hecha salvo F4.9 (mirada, sin investigar) y el tamaño de ojos (espera a F5). 7 funciones en el editor de cara; F4.7 sin LaMa (refuerzo de hebras). |
 | 5 · Deformación | | | |
 | 6 · Cuerpo | | | |
 | 7 · Ropa | | | |

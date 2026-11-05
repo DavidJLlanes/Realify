@@ -5,5 +5,5 @@
    ═══════════════════════════════════════════════════════════════ */
 
 export const PARAMS = [
-  { key: "brillos_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "brillos" }
+  { key: "brillos_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "brillos", fx: true }
 ];

@@ -9,5 +9,5 @@ import { analyze } from "../../../ai/people/analyze.js";
 
 export async function analizarCaras(src){
   const res = await aiSession("Buscando las caras con IA", () => analyze(src, { quality: "mejor", kinds: ["landmarks", "partes"] }), { unit: "cara" });
-  return { ...res, personas: res.personas.filter(p => p.cara && p.cara.puntos && p.cara.puntos.length >= 468) };
+  return { ...res, personas: res.personas.filter(p => p.cara && p.cara.puntos && p.cara.puntos.length >= 478) };
 }

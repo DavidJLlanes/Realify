@@ -9,6 +9,15 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.3.0 (compilación 304) · Retrato II: luz, ojos, boca, pelo y gafas 👑
+- Siete funciones nuevas en **Inteligencia Artificial › Retrato** (Premium 👑, pestaña Retoque del cajón): **Luz en la cara**, **Ojos**, **Labios y cejas**, **Dientes**, **Cabello**, **Pelos sueltos** y **Reflejos en gafas**. Se abren en el mismo editor de cara, que ahora tiene doce grupos y un único resultado en la capa «Cara · retoque».
+- Luz: `js/features/relight/` calcula normales mezclando la profundidad (Depth Anything V2 Small, se descarga sólo al usarla) con un elipsoide de la cara, y mezcla una luz Lambert en luz lineal (dirección, altura, intensidad, suavidad). Si falla la profundidad, usa sólo la forma de la cara.
+- Ojos (luz del iris, color, blanco), labios y cejas (color, definición, huecos), dientes (blanqueado con compuertas de tono y croma para no tocar encías), cabello (tono/saturación en OKLab, luz, brillo, volumen) y gafas (atenúa brillos especulares dentro de la máscara de gafas).
+- Pelos sueltos: detecta hebras finas con el filtro de crestas y las refuerza sobre la máscara de pelo; no usa LaMa ni MI-GAN.
+- Comunes nuevos: `ai-kit/oklab.js`, `portrait/shared/partes.js` (máscaras de partes refinadas con filtro guiado) y `zones-rasgos.js` (ojos, iris, labios, cejas). El recorte de la cara es mayor para incluir pelo y fondo.
+- Prueba nueva `tests/ia/retrato/rasgos-motor.mjs`; `piel-editor.mjs` cubre los doce comandos en móvil y escritorio.
+- Pendiente de la fase: tamaño de ojos (necesita la deformación de la Fase 5), mirada y ojos cerrados (F4.9, sin investigar), medir en un móvil de gama media.
+
 ### 1.2.0 (compilación 303) · Retrato I: piel y arrugas 👑
 - Cinco funciones nuevas en **Inteligencia Artificial › Retrato** (Premium 👑, también en la pestaña Retoque del cajón): **Arrugas**, **Ojeras y bolsas**, **Brillos de la piel**, **Textura de piel** e **Imperfecciones y tono**. Todas abren el nuevo **editor de cara** (`plugins/face-editor/`) a pantalla completa con zoom en la cara elegida, un selector si hay varias, vista previa en vivo y el resultado en capa nueva con «mezcla».
 - Motor de piel en luz lineal y coma flotante (`js/features/portrait/`): zonas de la cara a partir de los 478 puntos (frente, entrecejo, patas de gallo, ojeras, surcos, comisuras, cuello), máscara de piel del modelo de partes sin ojos, cejas ni labios, y una cadena de cinco etapas. Las arrugas se detectan con un filtro de crestas y se atenúan conservando la textura fina; las ojeras se igualan a la mejilla; los brillos se apagan devolviendo el color de la piel; la textura (poros y grano) sólo se añade donde la piel es demasiado lisa; los granos se rellenan y las rojeces se igualan sin tocar la luz.

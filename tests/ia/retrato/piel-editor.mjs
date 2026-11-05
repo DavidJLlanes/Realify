@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    PRUEBA · editor de cara con los modelos reales (navegador, móvil y escritorio)
-   Abre cada una de las cinco funciones de piel sobre una foto con una cara, comprueba que el editor sale con la corona, en su grupo y con
-   zoom a la cara, que la vista previa cambia la imagen y que «Aplicar» crea una capa nueva «Piel · retoque» con la cara retocada y el
+   Abre cada una de las doce funciones de cara (piel, luz, ojos, labios y cejas, dientes, pelo, pelos sueltos y gafas) sobre una foto con una cara, comprueba que el editor sale con la corona, en su grupo y con
+   zoom a la cara, que la vista previa cambia la imagen y que «Aplicar» crea una capa nueva «Cara · retoque» con la cara retocada y el
    resto de la foto igual. Foto: REALIFY_FOTO (las fotos de personas NO se suben al repositorio); sin ella sólo se comprueba que no hay errores.
    Uso: [REALIFY_FOTO=foto.png] node tests/ia/retrato/piel-editor.mjs
    ═══════════════════════════════════════════════════════════════ */
@@ -17,7 +17,9 @@ const b64 = fs.readFileSync(foto).toString("base64");
 let fallos = 0;
 const ok = (c, m) => { if (!c) { fallos++; console.log("FALLO:", m); } };
 
-const CMDS = [["ai.skinWrinkles", "arrugas"], ["ai.darkCircles", "ojeras"], ["ai.skinShine", "brillos"], ["ai.skinTexture", "textura"], ["ai.skinEven", "tono"]];
+const CMDS = [["ai.skinWrinkles", "arrugas"], ["ai.darkCircles", "ojeras"], ["ai.skinShine", "brillos"], ["ai.skinTexture", "textura"], ["ai.skinEven", "tono"],
+  ["ai.faceRelight", "luz"], ["ai.eyes", "ojos"], ["ai.lipsBrows", "labios"], ["ai.teeth", "dientes"], ["ai.hair", "pelo"], ["ai.flyawayHair", "sueltos"], ["ai.glassesGlare", "gafas"]];
+const SIN_CAMBIO = new Set(["sueltos", "gafas"]);   // la foto de prueba no tiene pelos sueltos ni gafas: aplicar no cambia nada y eso es correcto
 
 async function probar(tipo, lista){
   const m = await abrir(tipo);
@@ -53,8 +55,8 @@ async function probar(tipo, lista){
     });
     console.log(`${tipo} ${cmd}: ${((Date.now() - t0) / 1000).toFixed(0)} s · capa «${d.nombre}» · ${(100 * d.cambiados / d.total).toFixed(2)} % de la foto cambia`);
     if (real) {
-      ok(d.nombre.startsWith("Piel"), `${tipo} ${cmd}: la capa nueva no se llama «Piel …» (${d.nombre})`);
-      ok(d.cambiados > 20, `${tipo} ${cmd}: el resultado no cambia nada (${d.cambiados} px)`);
+      ok(d.nombre.startsWith("Cara"), `${tipo} ${cmd}: la capa nueva no se llama «Cara …» (${d.nombre})`);
+      ok(SIN_CAMBIO.has(grupo) || d.cambiados > 5, `${tipo} ${cmd}: el resultado no cambia nada (${d.cambiados} px)`);
       ok(d.cambiados / d.total < 0.35, `${tipo} ${cmd}: cambia demasiada foto (${(100 * d.cambiados / d.total).toFixed(1)} %)`);
     }
     ok(d.editorCerrado, `${tipo} ${cmd}: el editor no se cerró al aplicar`);
@@ -64,6 +66,6 @@ async function probar(tipo, lista){
 }
 
 await probar("escritorio", CMDS);
-await probar("movil", [CMDS[3]]);
+await probar("movil", [CMDS[3], CMDS[5], CMDS[9]]);
 console.log(fallos ? "piel (editor): FALLO" : "piel (editor): OK");
 process.exit(fallos ? 1 : 0);

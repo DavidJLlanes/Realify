@@ -8,5 +8,5 @@ Funciones de retrato de la IA local (Fase 3 y siguientes). Cada función tiene s
 - `blur.js`, `raster.js`, `ridges.js`, `planes.js` · desenfoques, trazado de máscaras, filtro de crestas y planos en luz lineal
 - `analysis.js` · análisis de caras (puntos + partes) con progreso
 
-Funciones: `skin-wrinkles`, `skin-dark-circles`, `skin-shine`, `skin-texture`, `skin-even`. Todas abren el editor de cara
+Funciones: `skin-wrinkles`, `skin-dark-circles`, `skin-shine`, `skin-texture`, `skin-even`, `face-relight`, `eyes`, `lips-brows`, `teeth`, `hair`, `flyaway-hair`, `glasses-glare`. Todas abren el editor de cara
 (`plugins/face-editor/`). Pendiente: las manos como zona de arrugas.

@@ -5,6 +5,6 @@
    ═══════════════════════════════════════════════════════════════ */
 
 export const PARAMS = [
-  { key: "textura_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 50, unit: " %", group: "textura" },
+  { key: "textura_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 50, unit: " %", group: "textura", fx: true },
   { key: "textura_poros", label: "Poros", type: "range", min: 0, max: 100, step: 1, def: 50, unit: " %", group: "textura" }
 ];

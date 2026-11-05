@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T15:34:09.683Z",
+ "generated": "2026-11-05T16:03:57.782Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1684,
-     "requests": 228,
-     "jsRequests": 212,
+     "readyMs": 2565,
+     "requests": 243,
+     "jsRequests": 226,
      "cssRequests": 12,
-     "jsBytes": 2101496,
+     "jsBytes": 2118309,
      "cssBytes": 177122,
-     "transferBytes": 953381,
-     "domContentLoaded": 1578,
-     "fcp": 1420
+     "transferBytes": 968060,
+     "domContentLoaded": 915,
+     "fcp": null
     },
     {
-     "readyMs": 1256,
-     "requests": 228,
-     "jsRequests": 212,
+     "readyMs": 2361,
+     "requests": 239,
+     "jsRequests": 225,
      "cssRequests": 12,
-     "jsBytes": 2101496,
+     "jsBytes": 2110464,
      "cssBytes": 177122,
-     "transferBytes": 953381,
-     "domContentLoaded": 966,
-     "fcp": 520
+     "transferBytes": 960506,
+     "domContentLoaded": 1141,
+     "fcp": 368
     },
     {
-     "readyMs": 1329,
-     "requests": 228,
-     "jsRequests": 212,
+     "readyMs": 2268,
+     "requests": 236,
+     "jsRequests": 223,
      "cssRequests": 12,
-     "jsBytes": 2101496,
+     "jsBytes": 2103066,
      "cssBytes": 177122,
-     "transferBytes": 953381,
-     "domContentLoaded": 1238,
-     "fcp": 624
+     "transferBytes": 868626,
+     "domContentLoaded": 938,
+     "fcp": 460
     }
    ],
-   "medianReadyMs": 1329,
-   "medianTransferBytes": 953381
+   "medianReadyMs": 2361,
+   "medianTransferBytes": 960506
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -103,10 +103,16 @@
     "ai.depthPlanes",
     "ai.depthSelect",
     "ai.expand",
+    "ai.eyes",
     "ai.faceBlur",
     "ai.faceCrop",
+    "ai.faceRelight",
     "ai.faceRestore",
     "ai.faceRetouch",
+    "ai.flyawayHair",
+    "ai.glassesGlare",
+    "ai.hair",
+    "ai.lipsBrows",
     "ai.lowLight",
     "ai.magicErase",
     "ai.partsSelect",
@@ -118,6 +124,7 @@
     "ai.skinWrinkles",
     "ai.smartCrop",
     "ai.tapSelect",
+    "ai.teeth",
     "ai.textSelect",
     "ai.upscale",
     "an.exif",
@@ -2009,6 +2016,83 @@
          "tabs": [
           "retoque"
          ]
+        },
+        {
+         "cmd": "ai.faceRelight",
+         "ic": "lightbulb",
+         "label": "Luz en la cara Premium 👑…",
+         "premium": true,
+         "help": "Cambia la luz de la cara: dirección, altura, intensidad y suavidad, sobre la forma real de la cara (profundidad + elipsoide), en luz lineal y respetando el color de la piel. Capa nueva con «mezcla».",
+         "short": "Luz",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.eyes",
+         "ic": "aperture",
+         "label": "Ojos Premium 👑…",
+         "premium": true,
+         "help": "Da luz y detalle al iris sin quemar el reflejo, cambia el color del iris sin teñir la pupila y aclara el blanco del ojo. Capa nueva con «mezcla».",
+         "short": "Ojos",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.lipsBrows",
+         "ic": "heart",
+         "label": "Labios y cejas Premium 👑…",
+         "premium": true,
+         "help": "Labios: más o menos color y definición. Cejas: oscurecer, dar color y rellenar los huecos. Capa nueva con «mezcla».",
+         "short": "Labios y cejas",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.teeth",
+         "ic": "sparkle",
+         "label": "Dientes Premium 👑…",
+         "premium": true,
+         "help": "Blanquea los dientes por zonas, conservando el brillo: no toca encías, lengua ni labios. Capa nueva con «mezcla».",
+         "short": "Dientes",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.hair",
+         "ic": "feather",
+         "label": "Cabello Premium 👑…",
+         "premium": true,
+         "help": "Cambia el color del pelo (tono y saturación en OKLab, conservando sombras y mechones), su luz y su brillo, y le da volumen suave. Capa nueva con «mezcla».",
+         "short": "Cabello",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.flyawayHair",
+         "ic": "wind",
+         "label": "Pelos sueltos Premium 👑…",
+         "premium": true,
+         "help": "Quita los pelos sueltos que cruzan el fondo junto a la cabeza: los detecta como líneas finas y los rellena con el fondo. No toca el peinado. Capa nueva con «mezcla».",
+         "short": "Pelos sueltos",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.glassesGlare",
+         "ic": "glasses",
+         "label": "Reflejos en gafas Premium 👑…",
+         "premium": true,
+         "help": "Atenúa los brillos y reflejos de los cristales de las gafas, sin tocar los ojos ni la montura. Capa nueva con «mezcla».",
+         "short": "Reflejos gafas",
+         "tabs": [
+          "retoque"
+         ]
         }
        ],
        "iaId": "retrato",
@@ -2388,11 +2472,11 @@
      ]
     }
    ],
-   "menuHash": "31ef94be57ddedaf"
+   "menuHash": "995b542910afe37a"
   },
   "screens": {
-   "welcome": "e8aab073050dda2e",
-   "withImage": "9248b096530b73fb"
+   "welcome": "6e004fd88b7043af",
+   "withImage": "9fbb87094580b8e0"
   },
   "opened": true,
   "afterOpen": {
@@ -4335,20 +4419,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1016,
-   "requests": 229,
-   "jsRequests": 212,
+   "readyMs": 2423,
+   "requests": 239,
+   "jsRequests": 224,
    "cssRequests": 12,
-   "jsBytes": 2101496,
+   "jsBytes": 2109054,
    "cssBytes": 177122,
-   "transferBytes": 955378,
-   "domContentLoaded": 924,
-   "fcp": 768
+   "transferBytes": 959929,
+   "domContentLoaded": 999,
+   "fcp": 404
   },
   "screens": {
-   "welcome": "469103aec01f4e01",
-   "withImage": "91216a462b558bfe",
-   "drawer": "2898ca98f29c0ccb"
+   "welcome": "6f4e6e9771778d44",
+   "withImage": "457bad4f68c2990a",
+   "drawer": "dbd0122ec50ea226"
   },
   "opened": true,
   "drawer": true,

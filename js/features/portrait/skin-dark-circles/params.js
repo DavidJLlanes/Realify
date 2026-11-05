@@ -5,5 +5,5 @@
    ═══════════════════════════════════════════════════════════════ */
 
 export const PARAMS = [
-  { key: "ojeras_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "ojeras" }
+  { key: "ojeras_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "ojeras", fx: true }
 ];

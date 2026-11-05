@@ -120,6 +120,10 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           mandos de las cinco en grupos: sube el que quieras y la vista previa cambia al momento («Antes» compara). Todo conserva la
           textura real de la piel; ojos, cejas y labios no se tocan. Al aplicar, el resultado va a una <b>capa nueva</b> con «mezcla»
           (porcentaje de aplicación). <i>Textura de piel</i> es ideal para imágenes de IA demasiado lisas: sólo añade poros donde faltan.</li>
+        <li id="ia-retrato2"><b>Retoque de cara II 👑</b> (Inteligencia Artificial › Retrato): <b>Luz en la cara</b>, <b>Ojos</b>, <b>Labios y cejas</b>,
+          <b>Dientes</b>, <b>Cabello</b>, <b>Pelos sueltos</b> y <b>Reflejos en gafas</b>. Usan el mismo editor de cara que el retoque de piel:
+          cada función abre su grupo, pero puedes saltar a cualquier otro y todo se aplica junto en una capa nueva. La luz descarga un
+          modelo de profundidad la primera vez. Los cambios son sutiles a propósito para que la cara siga pareciendo real.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

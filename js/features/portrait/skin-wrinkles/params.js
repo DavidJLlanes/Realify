@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 export const PARAMS = [
-  { key: "arrugas_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "arrugas" },
+  { key: "arrugas_int", label: "Intensidad", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "arrugas", fx: true },
   { key: "arrugas_tex", label: "Conservar textura", type: "range", min: 0, max: 100, step: 1, def: 70, unit: " %", group: "arrugas" },
   { key: "z_frente", label: "Frente", type: "toggle", def: true, group: "arrugas" },
   { key: "z_entrecejo", label: "Entrecejo", type: "toggle", def: true, group: "arrugas" },

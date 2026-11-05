@@ -5,6 +5,6 @@
    ═══════════════════════════════════════════════════════════════ */
 
 export const PARAMS = [
-  { key: "imperf_int", label: "Imperfecciones", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "tono" },
-  { key: "tono_int", label: "Uniformar tono", type: "range", min: 0, max: 100, step: 1, def: 50, unit: " %", group: "tono" }
+  { key: "imperf_int", label: "Imperfecciones", type: "range", min: 0, max: 100, step: 1, def: 60, unit: " %", group: "tono", fx: true },
+  { key: "tono_int", label: "Uniformar tono", type: "range", min: 0, max: 100, step: 1, def: 50, unit: " %", group: "tono", fx: true }
 ];

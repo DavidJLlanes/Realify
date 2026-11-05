@@ -6,24 +6,13 @@
    ═══════════════════════════════════════════════════════════════ */
 import { multiply, union } from "./raster.js";
 import { gauss, smoothstep } from "./blur.js";
-
-function muestra(m, w, h, caja, X, Y){
-  const fx = Math.min(w - 1.001, Math.max(0, (X - caja.x) / caja.w * w - 0.5)), fy = Math.min(h - 1.001, Math.max(0, (Y - caja.y) / caja.h * h - 0.5));
-  const a = fy | 0, b = fx | 0, tx = fx - b, ty = fy - a;
-  return ((m[a * w + b] * (1 - tx) + m[a * w + b + 1] * tx) * (1 - ty) + (m[(a + 1) * w + b] * (1 - tx) + m[(a + 1) * w + b + 1] * tx) * ty) / 255;
-}
+import { mascaraParte } from "./partes.js";
 
 export function skinMask(partes, zonas, crop, F = 0){
   const { W, H } = crop, zona = union([zonas.ovalo, zonas.cuello]);
   let piel = zona;
-  const mp = partes && (partes.mascaras.piel || partes.mascaras.cara);
-  if(mp){
-    const modelo = new Float32Array(W * H);
-    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++)
-      modelo[y * W + x] = muestra(mp, partes.w, partes.h, partes.caja, crop.x + (x + 0.5) / crop.k, crop.y + (y + 0.5) / crop.k);
-    // el modelo manda en el contorno (pelo, barba, gafas); la malla evita que se cuele nada lejos de la cara
-    piel = multiply(modelo, zona);
-  }
+  const modelo = partes && (mascaraParte(partes, "piel", crop) || mascaraParte(partes, "cara", crop));
+  if(modelo) piel = multiply(modelo, zona);       // el modelo manda en el contorno (pelo, barba, gafas); la malla evita que se cuele nada lejos de la cara
   const out = new Float32Array(W * H);
   for(let i = 0; i < out.length; i++) out[i] = piel[i] * (1 - zonas.excluir[i]);
   if(F <= 0) return out;
