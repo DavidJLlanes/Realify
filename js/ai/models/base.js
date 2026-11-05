@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* Revisión del repositorio de pesos. «main» es una rama que su autor puede cambiar: para fijarla, pon aquí el
-   hash de un commit de ese repositorio y, por modelo, el campo `sha256` (lo comprueba js/ai/worker.js).
+   hash de un commit de ese repositorio y, por modelo, el campo `sha256` (lo comprueba js/ai/engine/model-store.js).
    Ojo: la caché de IndexedDB se indexa por URL, así que cambiar la revisión vuelve a descargar los modelos. */
 export const HF_REV = "main";
 export const HF = `https://huggingface.co/T8RIN/ImageToolbox-models/resolve/${HF_REV}/`;
