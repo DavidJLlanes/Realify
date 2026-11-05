@@ -273,12 +273,7 @@
     "auto": false
    },
    {
-    "etiqueta": "Reemplazar cielo",
-    "corona": false,
-    "auto": false
-   },
-   {
-    "seccion": "Caras"
+    "seccion": "Retrato"
    },
    {
     "etiqueta": "Difuminar caras",
@@ -301,16 +296,16 @@
     "auto": false
    },
    {
-    "seccion": "Encuadre"
+    "seccion": "Escena y cielo"
    },
    {
-    "etiqueta": "Recorte para redes",
-    "corona": true,
+    "etiqueta": "Reemplazar cielo",
+    "corona": false,
     "auto": false
    },
    {
-    "etiqueta": "Recorte de retrato",
-    "corona": true,
+    "etiqueta": "Photo Lens",
+    "corona": false,
     "auto": false
    },
    {
@@ -370,12 +365,20 @@
     "auto": false
    },
    {
-    "etiqueta": "Photo Lens",
-    "corona": false,
+    "seccion": "Encuadre y composición"
+   },
+   {
+    "etiqueta": "Recorte para redes",
+    "corona": true,
     "auto": false
    },
    {
-    "seccion": "Para imágenes de IA"
+    "etiqueta": "Recorte de retrato",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Realismo y autenticidad"
    },
    {
     "etiqueta": "Realify",

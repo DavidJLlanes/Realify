@@ -637,6 +637,22 @@
   }
   .td-tab.on{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
 
+  /* Segunda fila de la pestaña Inteligencia Artificial: un chip por submenú. */
+  .td-chips{
+    display:flex;gap:6px;flex:none;
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+    padding:8px 12px 2px;-webkit-overflow-scrolling:touch;
+  }
+  .td-chips[hidden]{display:none}
+  .td-chips::-webkit-scrollbar{display:none}
+  .td-chip{
+    flex:none;min-height:30px;padding:0 12px;
+    border-radius:15px;border:1px solid var(--line);
+    background:transparent;color:var(--tx-dim);
+    font-size:var(--fs-sm);white-space:nowrap;
+  }
+  .td-chip.on{border-color:var(--ac);color:var(--ac);font-weight:600}
+
   /* Buscador: filtra en vivo la pestaña activa (ver tooldrawer.js). */
   .td-search{
     position:relative;flex:none;

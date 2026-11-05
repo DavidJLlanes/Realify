@@ -60,8 +60,18 @@ function buildSubPop(items, anchor, onCmd){
       sub.appendChild(s);
       continue;
     }
+    if(it.header){
+      const h = document.createElement("div");
+      h.className = "menu-head";
+      h.textContent = it.header;
+      sub.appendChild(h);
+      continue;
+    }
     sub.appendChild(submenuRow(it, onCmd));
   }
+  /* Un submenú más alto que la pantalla se desplaza en vez de salirse. */
+  sub.style.maxHeight = (innerHeight - 16) + "px";
+  sub.style.overflowY = "auto";
   document.body.appendChild(sub);
   const r = anchor.getBoundingClientRect();
   sub.style.top = r.top + "px";
@@ -214,7 +224,7 @@ function buildPop(menu, anchor, fullWidth){
 
 export function initMenu(){
   roots.innerHTML = "";
-  MENUS.forEach(m => {
+  MENUS.filter(m => m.items.length).forEach(m => {
     const b = document.createElement("button");
     b.className = "menu-root";
     b.textContent = m.label;
@@ -402,9 +412,11 @@ function flattenForMobile(items){
   const out = [];
   for(const it of items){
     if(it.submenu){
+      /* `flattenAsHeader` (menú IA): un título por submenú y sus entradas debajo, sin prefijo. */
+      if(it.flattenAsHeader) out.push({ header: it.label });
       for(const sub of it.submenu){
         if(sub.sep) continue;
-        out.push({ ...sub, label: it.label + ": " + sub.label });
+        out.push(it.flattenAsHeader ? sub : { ...sub, label: it.label + ": " + sub.label });
       }
       continue;
     }
@@ -416,7 +428,7 @@ function flattenForMobile(items){
 export function openMobileMenu(anchor){
   if(openRoot === anchor){ closeMenu(); return; }
   const all = { items: [] };
-  MENUS.forEach((m, i) => {
+  MENUS.filter(m => m.items.length).forEach((m, i) => {
     if(i) all.items.push({ sep:true });
     all.items.push({ header: m.label });
     /* `desktopOnly`: herramientas que en un móvil no son viables (p. ej.

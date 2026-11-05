@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.0.0 (compilación 300) · Menú IA con submenús y cajón con chips (sin cambios de comportamiento)
+- Fase 1 del plan. El menú **Inteligencia Artificial** pasa a submenús (Seleccionar, Borrar y rellenar, Retrato, Escena y cielo, Profundidad, Mejorar y restaurar, Encuadre y composición, Realismo y autenticidad; los demás aparecen cuando tengan herramientas). Cada herramienta conserva su comando, nombre y ayuda; solo cambian de sitio **Reemplazar cielo** y **Adaptive Photo Lens** (ahora en «Escena y cielo»).
+- Móvil: la pestaña IA del cajón tiene una fila de chips con los mismos submenús (se recuerda el elegido); ☰ muestra un título por submenú. **Básicos y Automáticos no cambian.**
+- El árbol sale de `js/ui/menu/ia/` (un archivo por submenú + `manifests.js`); las funciones nuevas se añaden solo con su manifiesto: menú, cajón, ☰ y comando salen solos (`js/app/commands/ai/manifests.js`).
+- Hueco para el menú **Vídeo** (barra, ☰ y última pestaña del cajón), oculto hasta que el módulo lo rellene.
+- Prueba nueva `tests/ia/menu-ia.mjs`; regenerada la huella de menús del smoke.
+
 ### 1.0.0 (compilación 299) · Cimientos del plan «editor completo con IA local» (sin cambios visibles)
 - Fase 0 de [`docs/PLAN_EDITOR_IA_LOCAL.md`](PLAN_EDITOR_IA_LOCAL.md). La app se comporta igual; cambia cómo está organizado el código de IA.
 - `js/ai/worker.js` queda como despachador: la infraestructura pasa a `js/ai/engine/` y cada tarea a `js/ai/tasks/`. El catálogo `js/ai/models.js` se reparte por familia en `js/ai/models/` con la misma API.

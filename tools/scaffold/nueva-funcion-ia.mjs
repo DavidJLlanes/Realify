@@ -3,8 +3,8 @@
    Crea la carpeta de una función nueva con la plantilla acordada y su prueba, para que todas nazcan con la misma forma:
      js/features/<familia>/<función>/  README.md · manifest.js · index.js · ui.js · controller.js · analysis.js · engine.js · params.js
      tests/ia/<familia>/<función>.mjs  (el motor se prueba en Node, sin navegador)
-   No toca ningún archivo existente. El comando se registrará solo desde el manifiesto cuando esté hecha la Fase 1 (F1.6);
-   hasta entonces el generador imprime la línea de registro para js/app/commands/ai.js.
+   No toca ningún archivo existente. El menú, el cajón, ☰ y el comando salen solos del manifiesto (Fase 1):
+   el generador imprime la línea que hay que añadir a js/ui/menu/ia/manifests.js.
    Uso:
      node tools/scaffold/nueva-funcion-ia.mjs --familia portrait --nombre skin-wrinkles --cmd ai.skinWrinkles \
           --etiqueta "Arrugas" --corto "Arrugas" --submenu retrato --ui face:piel [--icono sparkles] [--raiz <ruta>] [--dry]
@@ -122,4 +122,4 @@ if (!dry) {
   fs.mkdirSync(path.dirname(prueba), { recursive: true });
   fs.writeFileSync(prueba, test);
 }
-console.log(`\nMientras no esté la Fase 1 (F1.6), añade a registerAll de js/app/commands/ai.js:\n  "${cmd}": { run: async () => (await import("../../features/${familia}/${nombre}/index.js")).open${pascal}(), enabled: needsDoc },`);
+console.log(`\nSiguiente paso: añade en js/ui/menu/ia/manifests.js\n  import m${pascal} from "../../../features/${familia}/${nombre}/manifest.js";\ny mete m${pascal} en la lista MANIFESTS. El menú, el cajón, ☰ y el comando salen solos.`);

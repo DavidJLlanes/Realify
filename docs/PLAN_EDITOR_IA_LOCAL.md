@@ -509,16 +509,16 @@ Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas 
 Objetivo: dejar los 13 submenús y el cajón listos, con todo lo existente ya colocado. Aún no hay funciones nuevas.
 Depende de: F0.
 
-- [ ] F1.1 Esquema del manifiesto y cargador `js/ui/menu/ia/index.js` + un archivo por submenú (`seleccionar.js`, `borrar.js`, `retrato.js`…).
-- [ ] F1.2 Migrar las ~40 entradas actuales del menú IA a los manifiestos con **el mismo `cmd`, etiqueta y ayuda** (solo cambian de sitio).
-- [ ] F1.3 Escritorio: `buildSubPop` con `header`, desplazamiento y teclado; los submenús vacíos no se muestran.
-- [ ] F1.4 Móvil ☰: aplanado con un título por submenú (`flattenAsHeader`).
-- [ ] F1.5 Cajón: fila de chips en la pestaña IA, `iaOrder` recursivo, memoria del chip, buscador global y campo `tabs` del manifiesto (pestañas afines, 5.2); **sin tocar Básicos ni Automáticos**.
-- [ ] F1.6 Registro de comandos a partir de los manifiestos (`js/app/commands/ai/…` con fachada en `ai.js`).
-- [ ] F1.7 Regenerar la huella de menús del `smoke` revisándola a mano (el cambio de estructura es intencionado).
-- [ ] F1.8 Prueba `tests/ia/menu-ia.mjs`: cada comando IA aparece **una sola vez** en el menú, en el cajón (IA) y en ☰, en el mismo orden, en móvil y escritorio, y en las pestañas afines que dice su manifiesto; `cajon-basicos-auto` sigue en verde.
-- [ ] F1.10 Menú «Vídeo» exclusivo (4.8): hueco en la barra de escritorio junto a «Inteligencia Artificial», sección propia en ☰ y pestaña propia al final del cajón; **oculto hasta que el módulo esté listo**. No toca Básicos ni Automáticos.
-- [ ] F1.9 Guía: actualizar `js/ui/help/topics/ia.js` con los submenús; `CHANGELOG.md`.
+- [x] F1.1 Esquema del manifiesto y cargador `js/ui/menu/ia/index.js` + un archivo por submenú (`seleccionar.js`, `borrar.js`, `retrato.js`…). Esquema en `js/ui/menu/ia/manifests.js` (+ `index.js`), 13 archivos de submenú. **(v300)**
+- [x] F1.2 Migrar las ~40 entradas actuales del menú IA a los manifiestos con **el mismo `cmd`, etiqueta y ayuda** (solo cambian de sitio). 33 entradas migradas con el mismo `cmd`, etiqueta y ayuda; solo `sky.replace` y `filter.lens` cambian de submenú. **(v300)**
+- [x] F1.3 Escritorio: `buildSubPop` con `header`, desplazamiento y teclado; los submenús vacíos no se muestran. `buildSubPop` admite `header`, se desplaza si es más alto que la pantalla y los submenús vacíos no se ven (falta navegación con flechas; el menú no la tenía). **(v300)**
+- [x] F1.4 Móvil ☰: aplanado con un título por submenú (`flattenAsHeader`). `flattenAsHeader`. **(v300)**
+- [x] F1.5 Cajón: fila de chips en la pestaña IA, `iaOrder` recursivo, memoria del chip, buscador global y campo `tabs` del manifiesto (pestañas afines, 5.2); **sin tocar Básicos ni Automáticos**. Chips, `iaOrder` por submenús, chip recordado, búsqueda global y `tabs` (nunca basicos/auto). **(v300)**
+- [x] F1.6 Registro de comandos a partir de los manifiestos (`js/app/commands/ai/…` con fachada en `ai.js`). `js/app/commands/ai/manifests.js` (fachada en `ai.js`); el generador ya imprime el paso de `manifests.js`. **(v300)**
+- [x] F1.7 Regenerar la huella de menús del `smoke` revisándola a mano (el cambio de estructura es intencionado). Huella del smoke regenerada. **(v300)**
+- [x] F1.8 Prueba `tests/ia/menu-ia.mjs`: cada comando IA aparece **una sola vez** en el menú, en el cajón (IA) y en ☰, en el mismo orden, en móvil y escritorio, y en las pestañas afines que dice su manifiesto; `cajon-basicos-auto` sigue en verde. `tests/ia/menu-ia.mjs`. **(v300)**
+- [x] F1.10 Menú «Vídeo» exclusivo (4.8): hueco en la barra de escritorio junto a «Inteligencia Artificial», sección propia en ☰ y pestaña propia al final del cajón; **oculto hasta que el módulo esté listo**. No toca Básicos ni Automáticos. Hueco «Vídeo» (barra, ☰, última pestaña), oculto sin entradas. **(v300)**
+- [x] F1.9 Guía: actualizar `js/ui/help/topics/ia.js` con los submenús; `CHANGELOG.md`. Guía y CHANGELOG. **(v300)**
 
 Hecho cuando: nada de lo existente cambia de comportamiento, y las dos vistas muestran el mismo árbol.
 

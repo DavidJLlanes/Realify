@@ -21,6 +21,7 @@ import { TOOLS, current, setTool } from "../editor/tools/tools.js";
 import { haptic } from "../core/device.js";
 import { keyboardHeight } from "./kit/keyboard.js";
 import { MENUS } from "./menu.js";
+import { IA_SUBMENUS } from "./menu/ia/index.js";
 import { ICONS } from "./tooldrawer-icons.js";
 import { crownIcon } from "./kit/premium.js";
 import { matchScore, searchable } from "../core/search.js";
@@ -41,8 +42,12 @@ const CATS = [
   ["pintar",    "Pintar"],
   ["creativo",  "Creativo"],      // editores a pantalla completa que crean algo nuevo (collage, panorámica, memes…)
   ["capas",     "Capas"],         // todas las opciones del menú Capa, en el orden del menú
-  ["analizar",  "Analizar"]
+  ["analizar",  "Analizar"],
+  ["video",     "Vídeo"]          // menú exclusivo del editor de vídeo (4.8): oculta mientras no tenga entradas
 ];
+
+/* Pestañas que se ven: «Vídeo» sólo cuando el módulo ha puesto entradas en ella. */
+const visibleCats = () => CATS.filter(c => c[0] !== "video" || ITEMS.some(i => i.cat.split(" ").includes("video")));
 
 /* «Básicos»: lo que más usa la gente al editar una foto, en el orden en
    que suele hacerse (encuadrar, luz, color, detalle, estilo, retoque y
@@ -343,7 +348,17 @@ const ITEMS = [
   { cmd:"help.report",   label:"Informar de un error", ic:"bug",       cat:"analizar" }
 ];
 
+/* Funciones nuevas de IA: salen de sus manifiestos (nunca a mano). Van en «Inteligencia Artificial», en «Todos» y en las
+   pestañas afines del campo `tabs`. Jamás en Básicos ni Automáticos. */
+for(const sm of IA_SUBMENUS) for(const e of sm.items){
+  if(!e.tabs) continue;                      // sólo las que vienen de un manifiesto
+  const tabs = e.tabs.filter(t => t !== "basicos" && t !== "auto");
+  ITEMS.push({ cmd:e.cmd, label:e.short || e.label.replace(/\s*Premium 👑|…/g, "").trim(), ic:e.ic,
+    premium:!!e.premium, cat:["ia", ...tabs].join(" ") });
+}
+
 const KEY = "realify.drawer.cat";
+const CHIP_KEY = "realify.drawer.chip";
 const svgWrap = inner =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
 
@@ -373,12 +388,9 @@ function iconFor(it){
    menú del mismo nombre (sus `header`), para que coincidan siempre. */
 const iaOrder = new Map();
 (() => {
-  const m = MENUS.find(x => x.label === "Inteligencia Artificial");
-  let sec = null, i = 0;
-  for(const it of m ? m.items : []){
-    if(it.header) sec = it.header;
-    else if(it.cmd) iaOrder.set(it.cmd, { sec, i: i++ });
-  }
+  let i = 0;
+  for(const sm of IA_SUBMENUS) for(const it of sm.items)
+    if(it.cmd) iaOrder.set(it.cmd, { sec: sm.label, sub: sm.id, i: i++ });
 })();
 
 const isEnabled = it =>
@@ -399,7 +411,7 @@ function checkCoverage(){
   if(missing.length) console.warn("[cajón] comandos sin entrada:", missing.join(", "));
 }
 
-let drawer, veil, tabsEl, gridEl, searchEl, emptyEl, handle, cat = "basicos", openState = false, query = "";
+let drawer, veil, tabsEl, gridEl, searchEl, emptyEl, chipsEl, handle, chip = "todo", cat = "basicos", openState = false, query = "";
 
 /* Texto en el que busca el buscador: el nombre corto del cajón y, si
    el comando está en un menú con otro nombre, también ése. */
@@ -433,7 +445,9 @@ function itemsFor(c){
   if(c === "basicos" && !query.trim()) return BASICS.map(k => ITEMS.find(i => keyOf(i) === k)).filter(Boolean);
   if(c === "basicos") c = "todos";
   const list = c === "todos" ? ITEMS.slice() : ITEMS.filter(i => i.cat.split(" ").includes(c));
-  const auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto);
+  let auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto);
+  // Chip de submenú de IA (con algo escrito se busca en todos)
+  if(c === "ia" && chip !== "todo" && !query.trim()) rest = rest.filter(i => iaOrder.get(i.cmd)?.sub === chip);
   // Capas va en el orden del menú Capa (por secciones), no alfabético
   if(c !== "capas") rest.sort(byLabel);
   else if(!query.trim()) rest.sort((a, b) => secRank(a.sec) - secRank(b.sec));
@@ -444,9 +458,31 @@ function itemsFor(c){
   return [...scored.filter(([, s]) => s === 2), ...scored.filter(([, s]) => s === 1)].map(([it]) => it);
 }
 
+/* Segunda fila de la pestaña IA: un chip por submenú del menú «Inteligencia Artificial» (mismo orden) y «Todo». */
+function renderChips(){
+  chipsEl.hidden = cat !== "ia";
+  if(chipsEl.hidden) return;
+  chipsEl.innerHTML = "";
+  for(const [id, label] of [["todo", "Todo"], ...IA_SUBMENUS.map(s => [s.id, s.label])]){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "td-chip" + (id === chip ? " on" : "");
+    b.textContent = label;
+    b.dataset.chip = id;
+    b.addEventListener("click", () => {
+      chip = id;
+      try{ localStorage.setItem(CHIP_KEY, id); }catch{}
+      renderChips(); renderGrid();
+    });
+    chipsEl.appendChild(b);
+  }
+  const on = chipsEl.querySelector(".on");
+  if(on) chipsEl.scrollLeft = Math.max(0, on.offsetLeft - (chipsEl.clientWidth - on.offsetWidth) / 2);
+}
+
 function renderTabs(){
   tabsEl.innerHTML = "";
-  for(const [id, label] of CATS){
+  for(const [id, label] of visibleCats()){
     const b = document.createElement("button");
     b.type = "button";
     b.className = "td-tab" + (id === cat ? " on" : "");
@@ -459,6 +495,7 @@ function renderTabs(){
     tabsEl.appendChild(b);
   }
   centerActiveTab();
+  renderChips();
 }
 
 /* Centra la pestaña activa desplazando SÓLO la fila. scrollIntoView
@@ -615,8 +652,8 @@ function wireSwipe(){
   gridEl.addEventListener("touchend", e => {
     const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
     if(Date.now() - t0 > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-    const i = CATS.findIndex(c => c[0] === cat);
-    const next = CATS[i + (dx < 0 ? 1 : -1)];
+    const vc = visibleCats(), i = vc.findIndex(c => c[0] === cat);
+    const next = vc[i + (dx < 0 ? 1 : -1)];
     if(next) setCat(next[0]);
   }, { passive:true });
 }
@@ -659,7 +696,8 @@ function syncHandle(){
 }
 
 export function initToolDrawer(){
-  try{ const saved = localStorage.getItem(KEY); if(CATS.some(c => c[0] === saved)) cat = saved; }catch{}
+  try{ const saved = localStorage.getItem(KEY); if(visibleCats().some(c => c[0] === saved)) cat = saved; }catch{}
+  try{ const c2 = localStorage.getItem(CHIP_KEY); if(c2 === "todo" || IA_SUBMENUS.some(x => x.id === c2)) chip = c2; }catch{}
 
   handle = document.getElementById("toolsHandle");
   drawer = document.createElement("section");
@@ -674,6 +712,7 @@ export function initToolDrawer(){
       <button type="button" class="td-close icon ghost" aria-label="Cerrar">${svgWrap(ICONS["x"])}</button>
     </div>
     <nav class="td-tabs" role="tablist" aria-label="Categorías"></nav>
+    <nav class="td-chips" aria-label="Submenús de Inteligencia Artificial" hidden></nav>
     <div class="td-search">
       ${svgWrap('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')}
       <input type="search" enterkeyhint="search" autocomplete="off" spellcheck="false"
@@ -688,6 +727,7 @@ export function initToolDrawer(){
   document.body.appendChild(veil);
 
   tabsEl = drawer.querySelector(".td-tabs");
+  chipsEl = drawer.querySelector(".td-chips");
   gridEl = drawer.querySelector(".td-grid");
   searchEl = drawer.querySelector(".td-search input");
   emptyEl = drawer.querySelector(".td-empty");

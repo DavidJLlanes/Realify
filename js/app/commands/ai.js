@@ -5,6 +5,7 @@
 
 import { registerAll } from "../../core/commands.js";
 import { needsDoc } from "./helpers.js";
+import "./ai/manifests.js";   // las funciones nuevas se registran solas desde sus manifiestos
 
 registerAll({
   "ai.tapSelect":   { run: async () => (await import("../../features/samtools.js")).openSamTool("select"), enabled: needsDoc },

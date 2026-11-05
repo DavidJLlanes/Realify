@@ -7,21 +7,26 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
     desc:"Selección con un toque, Borrador mágico, caras y profundidad 👑, fondo, ampliar, colorear, expandir, cielo, ruido, Realify, Unmark…",
     html:`
       <h3>Inteligencia Artificial (menú Inteligencia Artificial)</h3>
-      <p>Todas las herramientas de IA están juntas en este menú (tras Filtro) y, en el móvil,
-        en la pestaña <b>Inteligencia Artificial</b> del cajón (la tercera, tras Básicos y
-        Automáticos), con las mismas secciones y en el mismo orden:</p>
+      <p>Todas las herramientas de IA están juntas en este menú (tras Filtro), agrupadas en <b>submenús</b>. En el móvil
+        están en la pestaña <b>Inteligencia Artificial</b> del cajón (la tercera, tras Básicos y Automáticos), que tiene una
+        segunda fila de <b>chips</b> con los mismos submenús, en el mismo orden (el chip elegido se recuerda; al buscar se
+        busca en todos). En el menú ☰ aparecen igual, con un título por submenú. Un submenú sin herramientas listas no se
+        muestra:</p>
       <ul>
-        <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto y Seleccionar cielo.</li>
-        <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo, Expandir con IA y
-          Reemplazar cielo.</li>
-        <li><b>Caras:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑 y Ojos rojos 👑.</li>
-        <li><b>Encuadre:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
-        <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑, Luz por profundidad 👑, Separar planos 👑 y Foto 3D 👑 (y Seleccionar por profundidad 👑 en «Seleccionar»).</li>
+        <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto, Seleccionar cielo, Seleccionar por texto 👑 y
+          Seleccionar por profundidad 👑.</li>
+        <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo y Expandir con IA.</li>
+        <li><b>Retrato:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑 y Ojos rojos 👑.</li>
+        <li><b>Escena y cielo:</b> Reemplazar cielo y Adaptive Photo Lens.</li>
+        <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑, Luz por profundidad 👑, Separar planos 👑 y Foto 3D 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
-          artefactos JPEG con IA, Iluminar con IA 👑, Colorear con IA y Adaptive Photo Lens.</li>
-        <li><b>Para imágenes de IA</b> (trabajan con imágenes generadas por IA): Realify,
+          artefactos JPEG con IA, Iluminar con IA 👑 y Colorear con IA.</li>
+        <li><b>Encuadre y composición:</b> Recorte inteligente para redes 👑 y Recorte de retrato 👑.</li>
+        <li><b>Realismo y autenticidad</b> (trabajan con imágenes generadas por IA): Realify, Realify Premium 👑,
           PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
       </ul>
+      <p>Irán llegando más submenús (Cuerpo, Ropa y tejidos, Color y estilos, Lote y biblioteca, Asistente) a medida que
+        tengan herramientas.</p>
       <p><b>Resolución completa.</b> Los modelos trabajan a un tamaño fijo (unos 512 px). En
         fotos grandes, la profundidad y las máscaras de cielo y de persona se calculan además
         <b>por bloques</b>: una pasada de la foto entera da la escena y los bloques, a más
