@@ -37,6 +37,7 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 | Funciones de IA nuevas **solo Premium 👑**, sin versión básica ni interruptor | Todo lo nuevo usa el procesado de alta calidad («el bueno y el mejor»); en menú y cajón llevan «Premium 👑» y la corona. De momento sin pago |
 | Modelos: bajo demanda, avisando del tamaño, guardados en IndexedDB | Se reutiliza `confirmDownload` de `js/ai/runtime.js` |
 | Modelos: **el de más calidad que pueda ejecutar un móvil de gama media, con cualquier licencia** | Decisión del titular (5 nov 2026): se aceptan también los de uso no comercial; se anotan en `docs/MODELOS.md` con `noncommercial: true`, y hay que sustituirlos si algún día se cobra Premium |
+| **Interfaces: simple o pantalla completa estilo collage** (decisión del titular, 5 nov 2026) | Pocas opciones → interfaz simple como las que ya hay; muchas opciones → editor a pantalla completa con zoom (armazón de `fsshell`, como el collage), en móvil y escritorio. Un solo código para los dos tipos: sección 4.7 |
 | Vista previa de la imagen prioritaria; interfaz **mínima** en móvil | Pocas filas, sin miniaturas aparte, sin textos de ayuda que quiten sitio |
 | Desplegables siempre cerrados; el teclado no tapa lo que se escribe | Se usa `js/ui/kit/keyboard.js` |
 | Resultados a **capa nueva** siempre que se pueda (con «mezcla» %) | `markMixLayer`; las funciones que cambian el tamaño abren pestaña nueva |
@@ -66,6 +67,11 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
   ropa; perfiles adulto (hombre, mujer) e infantil (niño, niña) con mandos distintos; el perfil infantil no incluye mandos de
   pecho, caderas ni glúteos y usa rangos reducidos; si las proporciones sugieren un menor, el perfil infantil es el de partida.
   No se usa ningún modelo que estime edad o sexo: el perfil lo elige la persona.
+- **Interfaces** (decisión del titular, 5 nov 2026): la **cara tiene su propio editor a pantalla completa que hace zoom en la cara**
+  (`plugins/face-editor/`); el cuerpo tiene el suyo (`plugins/body-editor/`). En general, una función con **muchas opciones** usa un editor
+  a pantalla completa del estilo del collage (`plugins/social-post`: zoom con rueda, pellizco y doble clic, barra superior, panel
+  lateral en escritorio y un mando cada vez en móvil), y una función **simple** usa una interfaz simple como las que ya hay
+  (`dialog()` / `runAdjust`). **Prioridad absoluta: no duplicar código** (4.7).
 
 **Decisiones del titular (D1 a D6, resueltas el 5 nov 2026)**
 
@@ -111,11 +117,16 @@ js/
 ├─ app/commands/
 │  ├─ ai.js                        (existe) fachada: sus 19 comandos + importa ai/*.js
 │  └─ ai/                          NUEVO · un archivo por familia (portrait, body, clothing, scene, restore, objects, authenticity, style, library, assistant)
+├─ ui/kit/                          (capa «kit»: la pueden importar los motores y los plugins)
+│  ├─ params-panel.js              NUEVO · pinta los mandos de cualquier función a partir de su `params` (Fase 0)
+│  └─ ai-editor/                   NUEVO · armazón común de los editores a pantalla completa, sobre `fsshell` (Fase 0)
 └─ ui/
    ├─ menu/ia/                     NUEVO · árbol declarativo del menú IA (un archivo por submenú)
    └─ help/topics/ia-*.js          NUEVO · un tema de guía por familia
 plugins/
+├─ face-editor/                    NUEVO · editor de cara a pantalla completa con zoom en la cara (Fase 3; crece en 4 y 6)
 ├─ body-editor/                    NUEVO · pantalla completa del editor de cuerpo (Fase 6)
+├─ clothing-editor/                NUEVO · editor de ropa y tejidos a pantalla completa (Fase 7)
 ├─ culling/                        NUEVO · selección rápida de lotes (Fase 13)
 └─ video/                          NUEVO · editor de vídeo (Fase 15)
 tests/ia/                          NUEVO · pruebas por familia + baseline + fixtures
@@ -132,9 +143,9 @@ capa 5, que cargan todo con `import()`.
 ```
 js/features/<familia>/<función>/
 ├─ README.md       qué hace, modelos, parámetros, límites, cómo probarla (≤ 40 líneas)
-├─ manifest.js     DATOS: cmd, nombre del menú, nombre corto del cajón, icono, ayuda, submenú, params (rangos), load()
+├─ manifest.js     DATOS: cmd, nombre del menú, nombre corto del cajón, icono, ayuda, submenú, params (rangos), ui ("simple" | "editor" + grupo), load()
 ├─ index.js        fachada: export async function open<Nombre>() (≤ 40 líneas, solo conecta)
-├─ ui.js           interfaz (diálogo o panel) con js/ui/kit; sin cálculo de píxeles
+├─ ui.js           SOLO declara el panel de mandos (a partir de `params`) y la vista previa; no monta ventanas propias (4.7); sin cálculo de píxeles
 ├─ controller.js   flujo: analizar → previsualizar → aplicar → capa nueva (≤ 250)
 ├─ analysis.js     llamadas a modelos y máscaras (usa ai-kit)
 ├─ engine.js       cálculo de píxeles PURO (sin DOM; se prueba en Node)
@@ -173,12 +184,68 @@ De él salen, sin escribir nada a mano dos veces:
 3. la entrada de la lista **☰ del móvil**;
 4. el **comando** (`js/app/commands/ai/<familia>.js` lo registra con `registerAll`).
 
-Además deja preparado el esquema de parámetros (`params`) que usará el asistente de la Fase 14 para ejecutar acciones sin código libre.
+El campo `ui` del manifiesto dice cómo se abre: `"simple"` (diálogo) o `{ editor: "face", group: "ojos" }` (el editor a pantalla
+completa, abierto en ese grupo). Además deja preparado el esquema de parámetros (`params`) que usará el asistente de la Fase 14 para ejecutar acciones sin código libre.
 
 ### 4.6 Pruebas
 
 `tests/ia/<familia>/<función>.mjs` (motor en Node puro + interfaz con Playwright), `tests/ia/baseline/` (huellas), `tests/ia/fixtures/`
 (imágenes sintéticas o CC0 con su autoría anotada). Además, siempre `node tests/calidad-herramienta.mjs <comando>`.
+
+### 4.7 Interfaces: simple o pantalla completa (sin duplicar código)
+
+**Regla de elección** (la decide el manifiesto de cada función, campo `ui`):
+
+| Criterio | Interfaz |
+|---|---|
+| Hasta 4 mandos globales, el efecto se ve en la propia imagen, sin señalar zonas ni personas | **Simple**: como las que ya hay (`dialog()` / `runAdjust`, con el interruptor de aplicar y la vista previa de la imagen) |
+| Más de 4 mandos, varias personas o zonas, puntos que arrastrar, zoom para ver el detalle, antes/después | **Editor a pantalla completa**, del estilo del collage: armazón `fsshell` (barra superior, deshacer/rehacer, zoom con rueda, pellizco, doble clic y Ctrl + / − / 0, desplazar arrastrando), panel lateral en escritorio y un mando cada vez en móvil |
+| Una función simple que gane mandos o necesite señalar zonas | Pasa a editor cambiando una línea del manifiesto, sin tocar su motor |
+
+**Tres piezas comunes, escritas una vez** (Fase 0):
+
+1. `js/ui/kit/params-panel.js`: pinta deslizadores, interruptores, chips y selectores **a partir del `params` del manifiesto**. Lo usan
+   el diálogo simple y el editor. Es el único sitio donde se dibuja un mando de las funciones nuevas.
+2. `js/ui/kit/ai-editor/`: el armazón común de los editores sobre `createShell` de `fsshell` (no se reescribe zoom ni barra). Añade lo
+   que comparten: selector de persona o cara, **zoom automático a un objetivo** (`zoomTo(caja)`), chips de grupo, antes/después,
+   deshacer por función, interruptor Premium con `dockPremium`, capa de resultado nueva con «mezcla» (`ai-kit/new-layer.js`) y
+   vista previa por bloques (`ai-kit/preview.js`).
+3. Las funciones **no montan ventanas**: su `ui.js` exporta el panel (sus mandos y su vista previa). El host (diálogo simple o
+   editor) lo monta. El mismo panel sirve en los dos hosts.
+
+**Cada editor es solo configuración** (≈ 100 líneas): qué objetivo hace zoom, qué grupos tiene y qué funciones van en cada grupo.
+No contiene motor ni mandos propios.
+
+| Editor | Carpeta | Zoom y objetivo | Grupos (cada uno es una o más funciones) |
+|---|---|---|---|
+| **Cara** | `plugins/face-editor/` | **Zoom en la cara elegida** (caja y puntos de F2); selector si hay varias | Piel (arrugas, ojeras, brillos, textura, imperfecciones) · Ojos · Labios y cejas · Dientes · Pelo · Gafas · Luz · Forma |
+| **Cuerpo** | `plugins/body-editor/` | Persona entera; zoom a la parte tocada (hombros, cintura, piernas…) | Silueta · Cabeza y cuello · Torso · Brazos · Piernas · Postura · Definición · Piel del cuerpo |
+| **Ropa y tejidos** | `plugins/clothing-editor/` | La prenda o zona tocada | Planchar arrugas · Color · Textura · Telas y fondos |
+| Existentes reutilizados | `plugins/cameras`, `plugins/social-post`… | — | No se tocan; los nuevos usan su mismo armazón |
+
+**Interfaz de cada familia**
+
+| Familia | Fase | Interfaz |
+|---|---|---|
+| Piel, ojos, boca, pelo, gafas, luz y forma de la cara | 3, 4, 6 | **Editor de cara** (las entradas del menú son accesos directos al grupo) |
+| Cuerpo | 6 | **Editor de cuerpo** |
+| Ropa y tejidos | 7 | **Editor de ropa** |
+| Escena, cielo y color (mejorar cielo, neblina, luces, balance por zonas…) | 8 | Simple (los mandos globales se ven en la imagen); «Realzar por tipo» y «Balance por zonas» pasan a editor si superan el límite |
+| Restaurar y limpiar (desenfoque, polvo, moiré) | 9 | Simple |
+| Pincel inteligente y borrado ligero | 10 | Herramientas del lienzo (como las que ya hay) |
+| Texto sin tapar, informe de realismo, etiquetas, texto alternativo, búsqueda | 10, 11, 13 | Simple |
+| Estilo desde una foto, estilos de cámara | 12 | Editor a pantalla completa (dos imágenes y zonas), con el armazón común |
+| Selección rápida de lotes | 13 | Editor a pantalla completa (`plugins/culling/`) |
+| Asistente | 14 | Simple (panel de texto) |
+| Vídeo | 15 | Editor a pantalla completa (`plugins/video/`) |
+
+**Reglas para no duplicar** (las vigila la revisión de cada fase y `tests/ia/interfaces.mjs`):
+
+- Ninguna función importa `fsshell` ni `dialog` directamente: solo el host lo hace.
+- Ningún editor ni función dibuja un deslizador a mano: todos usan `params-panel.js`.
+- Si dos editores necesitan lo mismo (selector de persona, zoom a objetivo, comparar), se añade al armazón `ai-editor/`, no al editor.
+- Los estilos van en `css/fsplugin.css` (ya existe) y, si hace falta, en un solo `css/ai-editor.css`; nada de CSS por función.
+- Móvil y escritorio comparten el mismo código del editor; solo cambia la disposición (la decide `fsshell`).
 
 ---
 
@@ -205,6 +272,9 @@ del submenú cuando haga falta). Un submenú sin entradas listas **no se muestra
 | 12 | **Asistente** | — | Pídeselo a Realify `ai.assistant` (F14) |
 | 13 | **Vídeo** | — | Editor de vídeo `ai.videoEditor` (F15) |
 | 14 | **Realismo y autenticidad** (antes «Para imágenes de IA») | Realify, Realify Premium 👑, PurePixel, Unmark, Plausibilidad, Segunda opinión, Limpiar metadatos | Zonas demasiado lisas `ai.smoothZones`, Manos y dientes sospechosos `ai.aiArtifacts`, Informe de realismo `ai.photoReport` (F11) |
+
+Las entradas de **Retrato** (piel, ojos, labios, dientes, pelo, gafas, luz, forma) y de **Cuerpo** y **Ropa y tejidos** son **accesos
+directos al mismo editor, abierto en su grupo** (4.7); cada una conserva su comando propio, su sitio en el menú y en el cajón.
 
 Orden en el menú, con separadores entre grupos: *(Seleccionar, Borrar y rellenar)* · *(Retrato, Cuerpo, Ropa y tejidos)* ·
 *(Escena y cielo, Profundidad, Mejorar y restaurar, Encuadre y composición, Color y estilos)* · *(Lote y biblioteca, Asistente, Vídeo)* ·
@@ -360,6 +430,9 @@ Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado
 - [ ] F0.8 Plantilla de función (4.2) y generador `tools/scaffold/nueva-funcion-ia.mjs` (crea carpeta, manifiesto, prueba y entrada de comando).
 - [ ] F0.9 `tools/verify/file-size.mjs`: avisa de archivos nuevos de más de 300 líneas (aviso, no bloquea; no toca los archivos antiguos).
 - [ ] F0.10 `tests/ia/README.md` y `tests/ia/fixtures/` (imágenes sintéticas o CC0 con su autoría).
+- [ ] F0.12 `js/ui/kit/params-panel.js`: pinta los mandos desde el `params` del manifiesto (deslizador, interruptor, chips, selector cerrado); lo usarán el diálogo simple y los editores. Prueba en Playwright, móvil y escritorio.
+- [ ] F0.13 `js/ui/kit/ai-editor/`: armazón común de los editores sobre `createShell` (selector de persona o cara, `zoomTo(caja)`, chips de grupo, antes/después, deshacer por función, `dockPremium`, capa nueva con «mezcla»). No reescribe el zoom de `fsshell`. Prueba con un editor de ejemplo.
+- [ ] F0.14 `tests/ia/interfaces.mjs`: ninguna función importa `fsshell` ni `dialog` directamente; ningún mando dibujado a mano; el campo `ui` de cada manifiesto es válido.
 - [x] F0.11 Decisiones D1, D2 y D3 resueltas (5 nov 2026).
 
 Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas a la línea base, cero cambios visibles.
@@ -405,14 +478,15 @@ Técnica (sin modelo nuevo salvo F2): zonas de la cara por puntos y partes; sepa
 detección de surcos con filtros de crestas (Hessiano o Frangi) limitada a cada zona; se atenúa la amplitud de baja y media frecuencia
 del surco y se **reinyecta la textura fina** (poros).
 
+- [ ] F3.0 **`plugins/face-editor/`** (editor de cara a pantalla completa, sobre `ai-editor/` de F0.13): zoom automático a la cara elegida, selector si hay varias, grupo «Piel» ahora; los demás grupos se añaden en F4 y F6. Solo configuración, sin mandos propios.
 - [ ] F3.1 `js/features/portrait/shared/`: máscaras de piel por zonas (frente, entrecejo, contorno de ojos, surcos nasogenianos, comisuras, cuello, manos) y separación de frecuencias en coma flotante.
 - [ ] F3.2 **`ai.skinWrinkles` · Arrugas**: frente, entrecejo, patas de gallo, surcos, cuello y manos; mandos: intensidad global, conservar textura, zonas.
 - [ ] F3.3 `ai.darkCircles` · Ojeras y bolsas: igualar tono y luz sin borrar la textura.
 - [ ] F3.4 `ai.skinShine` · Brillos de la piel: detectar zonas brillantes y atenuarlas sin apagar el reflejo de los ojos.
 - [ ] F3.5 `ai.skinTexture` · Textura de piel: añadir poros y grano fino solo donde la piel es demasiado lisa (pieza clave de Realify).
 - [ ] F3.6 `ai.skinEven` · Imperfecciones y tono: acné, manchas, rojeces; uniformar el tono por zonas.
-- [ ] F3.7 Menús, cajón y ☰ (las 5 entradas) y comandos; guía `ia-retrato.js`.
-- [ ] F3.8 Pruebas: motor en Node (la atenuación no baja de un umbral de textura), `calidad-herramienta` por comando, móvil y escritorio.
+- [ ] F3.7 Menús, cajón y ☰ (las 5 entradas, cada una abre el editor de cara en el grupo «Piel»; su `ui.js` solo declara el panel) y comandos; guía `ia-retrato.js`.
+- [ ] F3.8 Pruebas: motor en Node (la atenuación no baja de un umbral de textura), `calidad-herramienta` por comando, móvil y escritorio, zoom a la cara, varias caras.
 
 Hecho cuando: un retrato de IA muy liso gana textura y uno real pierde arrugas sin verse plástico, con el resultado en capa nueva con «mezcla».
 
@@ -428,7 +502,7 @@ Depende de: F2, F3.
 - [ ] F4.7 `ai.flyawayHair` · Pelos sueltos: detectar líneas finas sobre el fondo y rellenar con LaMa o MI-GAN.
 - [ ] F4.8 `ai.glassesGlare` · Reflejos en gafas: detectar brillos especulares dentro de la máscara de las gafas y atenuarlos.
 - [ ] F4.9 `ai.eyeGaze` · Mirada y ojos cerrados: **investigación acotada** (viabilidad en móvil y calidad). Si no cumple, se descarta y se anota aquí.
-- [ ] F4.10 Menús, cajón, ☰, guía, pruebas.
+- [ ] F4.10 Grupos Ojos, Labios y cejas, Dientes, Pelo, Gafas y Luz en `plugins/face-editor/` (cada función aporta su panel; el editor no cambia). Menús, cajón, ☰, guía, pruebas.
 
 Hecho cuando: cada función es utilizable en móvil sin pasar de la memoria y con resultado en capa nueva.
 
@@ -462,16 +536,16 @@ Depende de: F2, F4.1, F5.
 | Postura | erguir espalda, cuello adelantado, hombros | sí | sí |
 | Definición | musculatura por zonas, tono (luz y sombra con relieve) | sí | **no existe** |
 | Piel del cuerpo | suavizar, uniformar, bronceado | sí | solo uniformar |
-| Cara | mandíbula, mentón, nariz, ojos, labios (por puntos de F2) | sí | rango reducido |
+| Cara | **se hace en el editor de cara** (grupo «Forma»): mandíbula, mentón, nariz, ojos, labios (por puntos de F2) | sí | rango reducido |
 
 Presets por perfil: «Equilibrar proporciones», «Más alto», «Esbelto», «Atlético» (adultos); «Más alto» y «Postura» (infantil).
 
 - [ ] F6.1 `js/features/body/engine/`: de los sliders a un campo de deformación (usa F5), con simetría opcional y protección de cara y manos.
 - [ ] F6.2 `js/features/body/definition/`: musculatura y tono con normales (F4.1) y máscaras de partes; **sin generar piel**.
-- [ ] F6.3 `plugins/body-editor/`: pantalla completa; selector de persona (varias), chips de grupo, un mando visible a la vez en móvil, puntos arrastrables sobre las articulaciones, antes/después, deshacer. Interfaz mínima (regla del móvil).
+- [ ] F6.3 `plugins/body-editor/` (sobre `ai-editor/` de F0.13, a pantalla completa como el collage, con zoom); selector de persona (varias), chips de grupo, un mando visible a la vez en móvil, puntos arrastrables sobre las articulaciones, antes/después, deshacer. Interfaz mínima (regla del móvil).
 - [ ] F6.4 Selector de perfil (hombre, mujer, niño, niña); si las proporciones sugieren un menor, el perfil de partida es el infantil.
-- [ ] F6.5 `ai.bodyEditor`, `ai.bodyShape`, `ai.bodyPosture`, `ai.bodyTone`, `ai.bodySkin` (los cuatro últimos abren el editor en su grupo).
-- [ ] F6.6 `ai.faceShape` · Forma de la cara (en «Retrato»).
+- [ ] F6.5 `ai.bodyEditor`, `ai.bodyShape`, `ai.bodyPosture`, `ai.bodyTone`, `ai.bodySkin` (los cuatro últimos son accesos directos que abren el mismo editor en su grupo).
+- [ ] F6.6 `ai.faceShape` · Forma de la cara (en «Retrato»): grupo «Forma» del **editor de cara** (`plugins/face-editor/`, con zoom en la cara), no del editor de cuerpo; usa el motor de deformación (F5) y el rango reducido del perfil infantil.
 - [ ] F6.7 Salida en capa nueva reabrible con máscara; varias personas = varias capas.
 - [ ] F6.8 Menús, cajón, ☰, guía `ia-cuerpo.js`, pruebas (engine en Node, interfaz en móvil y escritorio, rangos por perfil).
 - [ ] F6.9 Prueba de seguridad: en el perfil infantil no se puede alcanzar ningún mando de pecho, caderas ni glúteos, ni por interfaz ni por parámetros.
@@ -486,10 +560,10 @@ Depende de: F2, F3.1.
 - [ ] F7.3 `ai.fabricWrinkles` · Arrugas de telas y fondos: lo mismo sobre cualquier zona elegida con un toque (sábanas, cortinas, manteles).
 - [ ] F7.4 `ai.recolorClothes` · Cambiar color de prendas: tono en OKLab con conservación de sombras y brillos del tejido.
 - [ ] F7.5 `ai.fabricTexture` · Textura de tejido: coherencia de trama y grano tras planchar o recolorear.
-- [ ] F7.6 Menús, cajón, ☰, guía, pruebas.
+- [ ] F7.6 `plugins/clothing-editor/` (sobre `ai-editor/`; zoom a la prenda tocada; grupos Planchar, Color, Textura, Telas y fondos). Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 8 · Escena, cielo y color 👑
-Depende de: F1, F4.1.
+Depende de: F1, F4.1. Interfaz: simple (4.7) salvo que una función supere los 4 mandos.
 
 - [ ] F8.1 `ai.skyEnhance` · Mejorar cielo: realce y relleno de cielos apagados, con ajuste de luz del primer plano.
 - [ ] F8.2 `ai.dehaze` · Quitar neblina con profundidad (amplía el «Quitar neblina…» clásico; el existente no cambia).
@@ -533,7 +607,7 @@ Objetivo: reforzar lo que hace único a Realify.
 - [ ] F11.8 Ampliar la coincidencia de EXIF de Realify (`js/filters/camera/exifmatch.js`); alcance a definir con el titular.
 
 ### Fase 12 · Estilos de cámara, color por referencia y presets 👑
-Depende de: F1.
+Depende de: F1. Interfaz: editor a pantalla completa con el armazón común (4.7).
 
 - [ ] F12.1 `ai.styleFromReference` · Estilo desde una foto de referencia: transferencia de color y tono en OKLab, por zonas con segmentación; mejora «Igualar color…» sin cambiar el existente.
 - [ ] F12.2 `ai.cameraPacks` · Packs de estilos de cámara (película analógica, móvil, réflex) sobre `plugins/cameras`, `plugins/vintage` y `js/filters/looks`.
@@ -639,6 +713,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | WebGPU irregular entre dispositivos | Respaldo en WASM probado desde F2; GPU solo donde está validada |
 | Modelos de uso no comercial si algún día se cobra Premium | Marcados con `noncommercial: true` y listados en `docs/MODELOS.md`; tarea F16.7 para sustituirlos o quitarlos |
 | Deformaciones del cuerpo con artefactos (líneas del fondo, plegados) | Control del jacobiano, compensación del fondo, zonas protegidas, límites por mando |
+| Interfaces duplicadas o distintas entre funciones | Panel único desde `params`, dos hosts (simple y editor), `tests/ia/interfaces.mjs` (4.7) |
 | Mal uso del editor de cuerpo | Reglas de seguridad de la sección 3 y prueba F6.9 |
 | Peso del repositorio (`assets/models` ya 326 MB) | Modelos grandes en Hugging Face con revisión fija |
 | Archivos que vuelven a crecer | `file-size.mjs` y revisión en cada fase |
@@ -659,7 +734,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | En `main`; resueltas D1 a D6, el editor de cuerpo y Unmark; listo para empezar por la Fase 0 |
+| P · Plan | — | 5 nov 2026 | En `main`; resueltas D1 a D6, el editor de cuerpo y Unmark; interfaces definidas (4.7: editor de cara con zoom, editores a pantalla completa y simples); listo para empezar por la Fase 0 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |

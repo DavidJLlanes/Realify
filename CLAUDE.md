@@ -87,6 +87,10 @@ cualquier función nueva.
   mismos submenús y en el mismo orden. Un submenú sin funciones listas no se muestra. **Las pestañas «Básicos» y
   «Automáticos» del cajón no se tocan** (lo vigila `tests/ia/cajon-basicos-auto.mjs`).
   Cada función también aparece en sus pestañas afines (campo `tabs` del manifiesto, tabla de la sección 5.2) y en «Todos».
+- **Interfaces (sección 4.7 del plan)**: función simple (≤ 4 mandos globales) → interfaz simple como las existentes; muchas opciones →
+  editor a pantalla completa del estilo del collage con zoom, en móvil y escritorio. La cara tiene su propio editor con zoom en la
+  cara (`plugins/face-editor/`). **No duplicar código**: los mandos salen de `params` con `js/ui/kit/params-panel.js`, los editores se
+  montan sobre `js/ui/kit/ai-editor/` (que usa `fsshell`) y las funciones no importan `fsshell` ni `dialog` (solo declaran su panel).
 - **Modelos**: se anotan en `docs/MODELOS.md` (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`). Hasta ~30 MB
   van en `assets/models`; los más grandes, en Hugging Face con la revisión (`HF_REV`) y el `sha256` fijados. El catálogo
   se reparte por familia en `js/ai/models/` y las tareas del worker en `js/ai/tasks/`.
