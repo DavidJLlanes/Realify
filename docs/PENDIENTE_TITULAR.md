@@ -9,6 +9,8 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - Si algún día se cobra Premium: sustituir los modelos marcados `noncommercial: true` (BiSeNet, Zero-DCE++, UltraSharp V2 Lite…).
 
 ## Modelos que Claude no puede descargar
+*(Reintentado el 5 nov 2026: `huggingface.co`, `hf-mirror.com`, `modelscope.cn` y las descargas de GitHub Releases devuelven 403 desde el entorno de desarrollo.)*
+- **Cuando terminen las fases, hacer F14.1 y F14.4** (pendientes en el plan): F14.1 = cargar Qwen2.5 1,5B (0,5B de respaldo) con `ensureVendor` + WebGPU y que devuelva el plan JSON que ya valida `assistant/engine/validar.js`; F14.4 = voz con Whisper tiny local para dictar la orden. Necesitan los pesos ONNX descargados desde un equipo con acceso.
 - **Qwen2.5 1,5B Instruct (F14.1)** y **Whisper tiny (F14.4)**: Hugging Face no es accesible desde el entorno de desarrollo. Hace falta descargar los pesos ONNX (y su `sha256`) y dejarlos donde indique `docs/MODELOS.md`, o darme acceso a otra fuente. El asistente ya funciona con reglas y el modelo sólo tendrá que devolver el mismo plan.
 - **CLIP** (búsqueda de fotos, F13.2) y **captioning** (texto alternativo, F13.4): igual; hoy usan MobileNet, la lente y los colores.
 - **MI-GAN / NAFNet / Depth Anything Base**: igual.
