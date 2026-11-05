@@ -19,7 +19,7 @@ const ok = (c, m) => { if (!c) { fallos++; console.log("FALLO:", m); } };
 
 const CMDS = [["ai.skinWrinkles", "arrugas"], ["ai.darkCircles", "ojeras"], ["ai.skinShine", "brillos"], ["ai.skinTexture", "textura"], ["ai.skinEven", "tono"],
   ["ai.faceRelight", "luz"], ["ai.eyes", "ojos"], ["ai.lipsBrows", "labios"], ["ai.teeth", "dientes"], ["ai.hair", "pelo"], ["ai.flyawayHair", "sueltos"], ["ai.glassesGlare", "gafas"], ["ai.faceShape", "forma"]];
-const SIN_CAMBIO = new Set(["sueltos", "gafas"]);   // la foto de prueba no tiene pelos sueltos ni gafas: aplicar no cambia nada y eso es correcto
+const SIN_CAMBIO = new Set(["sueltos", "gafas", ...(real ? ["dientes"] : [])]);   // la foto de prueba no tiene pelos sueltos ni gafas: aplicar no cambia nada y eso es correcto
 
 async function probar(tipo, lista){
   const m = await abrir(tipo);

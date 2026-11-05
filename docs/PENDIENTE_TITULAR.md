@@ -15,7 +15,7 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 
 ## Fotos reales (no se suben al repositorio)
 Basta con una carpeta y `REALIFY_FOTOS=carpeta node tests/ia/reales/<prueba>.mjs`:
-- Cuerpo entero (hombre, mujer, niño, niña) para el editor de cuerpo; varias personas; manos de cerca.
+- Cuerpo entero (hombre, mujer, niño, niña) para el editor de cuerpo; manos de cerca (en las fotos de prueba solo había manos a distancia).
 - Telas muy estampadas, prendas con pliegues.
 - Fotos con polvo de sensor, moiré, desenfoque de movimiento.
 - Imágenes generadas con manos o dientes raros (avisos de la Fase 11) y fotos reales sin esos fallos, para ajustar umbrales.
