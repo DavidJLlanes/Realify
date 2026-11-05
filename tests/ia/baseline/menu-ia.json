@@ -1,0 +1,254 @@
+{
+ "barra": [
+  "Archivo",
+  "Editar",
+  "Imagen",
+  "Selección",
+  "Capa",
+  "Ajustes",
+  "Filtro",
+  "Inteligencia Artificial",
+  "Análisis",
+  "Ver",
+  "Ayuda"
+ ],
+ "ia": [
+  {
+   "header": "Seleccionar"
+  },
+  {
+   "cmd": "ai.tapSelect",
+   "label": "Selección con un toque Premium 👑…",
+   "premium": true,
+   "help": "Toca un objeto y la IA (Segment Anything) lo selecciona entero; toca más para añadir o quitar partes. Borde afinado a la resolución de la foto."
+  },
+  {
+   "cmd": "sel.subject",
+   "label": "Seleccionar sujeto",
+   "premium": false,
+   "help": "Detecta a la persona con IA (BodyPix); si no encuentra a nadie, cae al fondo por color conectado a los bordes."
+  },
+  {
+   "cmd": "sel.sky",
+   "label": "Seleccionar cielo",
+   "premium": false,
+   "help": "Detecta el cielo con IA (DeepLab/ADE20K)."
+  },
+  {
+   "cmd": "ai.textSelect",
+   "label": "Seleccionar por texto Premium 👑…",
+   "premium": true,
+   "help": "Escribe lo que quieres seleccionar —«persona», «cielo», «coche rojo», «césped sin personas»— y sale una selección o la máscara de la capa. Reconoce 150 tipos de cosas (nombres y sinónimos en español) y colores; el borde se ajusta a la foto. Todo en tu equipo."
+  },
+  {
+   "cmd": "ai.depthSelect",
+   "label": "Seleccionar por profundidad Premium 👑…",
+   "premium": true,
+   "help": "La IA calcula la distancia de cada punto: elige primer plano, plano medio, fondo o un intervalo (toca la imagen para elegir una distancia) y deja una selección o la máscara de una capa, con el borde ajustado a la foto."
+  },
+  {
+   "sep": true
+  },
+  {
+   "header": "Borrar y rellenar"
+  },
+  {
+   "cmd": "ai.magicErase",
+   "label": "Borrador mágico Premium 👑…",
+   "premium": true,
+   "help": "Toca lo que quieras quitar (personas, cables, objetos): la IA lo selecciona y LaMa rellena el hueco. El resultado va a una capa nueva."
+  },
+  {
+   "cmd": "image.removeBackground",
+   "label": "Eliminar fondo…",
+   "premium": false,
+   "help": ""
+  },
+  {
+   "cmd": "ai.expand",
+   "label": "Expandir con IA…",
+   "premium": false,
+   "help": "Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva."
+  },
+  {
+   "cmd": "sky.replace",
+   "label": "Reemplazar cielo…",
+   "premium": false,
+   "help": "Detecta el cielo con IA (DeepLab/ADE20K) y lo sustituye por un color, un degradado o una foto propia, en una capa nueva con su propia máscara."
+  },
+  {
+   "sep": true
+  },
+  {
+   "header": "Caras"
+  },
+  {
+   "cmd": "ai.faceBlur",
+   "label": "Difuminar caras Premium 👑…",
+   "premium": true,
+   "help": "Encuentra las caras (YuNet) y las difumina, pixela o tapa para proteger la privacidad; toca una para excluirla. Capa nueva."
+  },
+  {
+   "cmd": "ai.faceRetouch",
+   "label": "Retoque de cara Premium 👑…",
+   "premium": true,
+   "help": "La IA separa piel, ojos, dientes y labios en cada cara: suaviza la piel conservando la textura, da luz a los ojos, blanquea los dientes y ajusta el color de los labios. Capa nueva."
+  },
+  {
+   "cmd": "ai.faceRestore",
+   "label": "Restaurar caras Premium 👑…",
+   "premium": true,
+   "help": "Reconstruye caras borrosas, pequeñas, antiguas o muy comprimidas con IA (GFPGAN), conservando el color de piel y el grano de la foto; toca una para excluirla. Capa nueva. La primera vez descarga el modelo (170 MB)."
+  },
+  {
+   "cmd": "ai.redEye",
+   "label": "Ojos rojos Premium 👑",
+   "premium": true,
+   "help": "Encuentra los ojos y les quita el rojo del flash sin tocar el reflejo. Capa nueva."
+  },
+  {
+   "sep": true
+  },
+  {
+   "header": "Encuadre"
+  },
+  {
+   "cmd": "ai.smartCrop",
+   "label": "Recorte inteligente para redes Premium 👑…",
+   "premium": true,
+   "help": "Elige el formato (Instagram, historias, YouTube, Pinterest…) y la IA propone el mejor encuadre: conserva el sujeto y las caras, no corta cabezas y deja el sujeto en los tercios. Arrastra para afinarlo."
+  },
+  {
+   "cmd": "ai.faceCrop",
+   "label": "Recorte de retrato Premium 👑",
+   "premium": true,
+   "help": "Abre Recortar con el marco encuadrado en la cara (ojos en el tercio superior, cabeza y hombros)."
+  },
+  {
+   "sep": true
+  },
+  {
+   "header": "Profundidad"
+  },
+  {
+   "cmd": "ai.depthBlur",
+   "label": "Desenfoque por profundidad Premium 👑…",
+   "premium": true,
+   "help": "La IA (Depth Anything) calcula la distancia de cada punto: toca donde enfocar y lo demás se desenfoca según su distancia, sin halos y con bokeh en las luces. Capa nueva."
+  },
+  {
+   "cmd": "ai.depthFog",
+   "label": "Niebla por distancia Premium 👑…",
+   "premium": true,
+   "help": "Añade bruma que crece con la distancia, del color de lo más lejano de la foto (o blanca, cálida, fría). Capa nueva."
+  },
+  {
+   "cmd": "ai.depthLight",
+   "label": "Luz por profundidad Premium 👑…",
+   "premium": true,
+   "help": "Aclara lo cercano y oscurece lo lejano (o al revés) según la distancia, con punto de giro y transición suaves y sin recortar las luces. Capa nueva."
+  },
+  {
+   "cmd": "ai.depthPlanes",
+   "label": "Separar planos Premium 👑…",
+   "premium": true,
+   "help": "Reparte la foto en 2, 3 o 4 planos por distancia y crea una capa por plano con su máscara, para retocarlos por separado."
+  },
+  {
+   "cmd": "ai.photo3d",
+   "label": "Foto 3D Premium 👑…",
+   "premium": true,
+   "help": "Anima la foto con paralaje (lo cercano se mueve más que lo lejano) y la guarda como GIF."
+  },
+  {
+   "sep": true
+  },
+  {
+   "header": "Mejorar y restaurar"
+  },
+  {
+   "cmd": "ai.upscale",
+   "label": "Ampliar con IA…",
+   "premium": false,
+   "help": "Amplía ×2 o ×4 recuperando detalle (Real-ESRGAN, SPAN, UltraSharp). Se procesa en tu equipo; el resultado se abre en una pestaña nueva."
+  },
+  {
+   "cmd": "filter.aiDenoise",
+   "label": "Reducción de ruido con IA…",
+   "premium": false,
+   "help": "SCUNet (modelo de ImageToolbox): quita el ruido real de cámara conservando el detalle. La primera vez descarga el modelo (91 MB)."
+  },
+  {
+   "cmd": "filter.aiDejpeg",
+   "label": "Quitar artefactos JPEG con IA…",
+   "premium": false,
+   "help": "FBCNN (modelo de ImageToolbox): elimina bloques y halos de compresión. La primera vez descarga el modelo (144 MB)."
+  },
+  {
+   "cmd": "ai.lowLight",
+   "label": "Iluminar con IA Premium 👑…",
+   "premium": true,
+   "help": "Para fotos oscuras o a contraluz: la IA (Zero-DCE++) decide cuánto levantar cada zona y cada color, sin halos, limpiando el ruido que aparece en las sombras. Automático: una foto bien expuesta no cambia. Capa que se reabre."
+  },
+  {
+   "cmd": "ai.colorize",
+   "label": "Colorear con IA…",
+   "premium": false,
+   "help": "Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva."
+  },
+  {
+   "cmd": "filter.lens",
+   "label": "Adaptive Photo Lens…",
+   "premium": false,
+   "help": "Reconoce el tipo de foto con un modelo local y aplica el revelado que le va"
+  },
+  {
+   "sep": true
+  },
+  {
+   "header": "Para imágenes de IA"
+  },
+  {
+   "cmd": "filter.camera",
+   "label": "Realify…",
+   "premium": false,
+   "help": "Simula óptica, sensor y compresión de una cámara. Abre un panel con controles avanzados; con interruptor Premium 👑 en la propia ventana."
+  },
+  {
+   "cmd": "filter.cameraPremium",
+   "label": "Realify Premium 👑…",
+   "premium": true,
+   "help": "Realify con el motor Premium: cadena en coma flotante de 32 bits, luces que no viran, color en OKLab con mapeo de gama y tramado."
+  },
+  {
+   "cmd": "filter.purepixel",
+   "label": "PurePixel…",
+   "premium": false,
+   "help": "Aplica cambios sutiles a los píxeles de la capa activa. Función experimental."
+  },
+  {
+   "cmd": "filter.unmark",
+   "label": "Unmark…",
+   "premium": false,
+   "help": "Elimina la marca visible del generador, perturba las marcas invisibles de los píxeles y limpia la procedencia del archivo (C2PA, XMP, EXIF). Panel por secciones con vista previa."
+  },
+  {
+   "cmd": "an.metrics",
+   "label": "Plausibilidad…",
+   "premium": false,
+   "help": ""
+  },
+  {
+   "cmd": "an.forensics",
+   "label": "Segunda opinión…",
+   "premium": false,
+   "help": ""
+  },
+  {
+   "cmd": "an.strip",
+   "label": "Limpiar metadatos de un archivo…",
+   "premium": false,
+   "help": ""
+  }
+ ]
+}

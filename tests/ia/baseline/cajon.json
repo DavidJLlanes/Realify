@@ -1,0 +1,3238 @@
+{
+ "pestanas": [
+  {
+   "id": "basicos",
+   "texto": "Básicos"
+  },
+  {
+   "id": "auto",
+   "texto": "Automáticos"
+  },
+  {
+   "id": "ia",
+   "texto": "Inteligencia Artificial"
+  },
+  {
+   "id": "todos",
+   "texto": "Todos"
+  },
+  {
+   "id": "mejorar",
+   "texto": "Mejorar"
+  },
+  {
+   "id": "corregir",
+   "texto": "Corregir"
+  },
+  {
+   "id": "color",
+   "texto": "Color"
+  },
+  {
+   "id": "estilo",
+   "texto": "Estilo"
+  },
+  {
+   "id": "filtros",
+   "texto": "Filtros"
+  },
+  {
+   "id": "efectos",
+   "texto": "Efectos"
+  },
+  {
+   "id": "retoque",
+   "texto": "Retoque"
+  },
+  {
+   "id": "seleccion",
+   "texto": "Selección"
+  },
+  {
+   "id": "pintar",
+   "texto": "Pintar"
+  },
+  {
+   "id": "creativo",
+   "texto": "Creativo"
+  },
+  {
+   "id": "capas",
+   "texto": "Capas"
+  },
+  {
+   "id": "analizar",
+   "texto": "Analizar"
+  }
+ ],
+ "contenido": {
+  "basicos": [
+   {
+    "etiqueta": "Automático",
+    "corona": false,
+    "auto": true
+   },
+   {
+    "etiqueta": "Auto Premium",
+    "corona": true,
+    "auto": true
+   },
+   {
+    "etiqueta": "Recortar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Girar a la derecha",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Brillo y contraste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exposición",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Sombras y luces",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Balance de blancos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Intensidad",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y saturación",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enfocar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro Vintage",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blanco y negro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Viñeteado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitamanchas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar fondo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Stickers",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear meme",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Collage / Post",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "auto": [
+   {
+    "etiqueta": "Automático",
+    "corona": false,
+    "auto": true
+   },
+   {
+    "etiqueta": "Auto Premium",
+    "corona": true,
+    "auto": true
+   },
+   {
+    "etiqueta": "Contraste auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar foto oscura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar oscura Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto. Premium",
+    "corona": true,
+    "auto": false
+   }
+  ],
+  "ia": [
+   {
+    "seccion": "Seleccionar"
+   },
+   {
+    "etiqueta": "Selección con un toque",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar sujeto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar cielo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar por texto",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Borrar y rellenar"
+   },
+   {
+    "etiqueta": "Borrador mágico",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar fondo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Expandir con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reemplazar cielo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Caras"
+   },
+   {
+    "etiqueta": "Difuminar caras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Retoque de cara",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Restaurar caras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ojos rojos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Encuadre"
+   },
+   {
+    "etiqueta": "Recorte para redes",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recorte de retrato",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Profundidad"
+   },
+   {
+    "etiqueta": "Desenfoque profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niebla por distancia",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Luz por profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Separar planos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Foto 3D",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Mejorar y restaurar"
+   },
+   {
+    "etiqueta": "Ampliar con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ruido con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar JPEG con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar con IA",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Colorear con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Photo Lens",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Para imágenes de IA"
+   },
+   {
+    "etiqueta": "Realify",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Realify Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "PurePixel",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unmark",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Plausibilidad",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Segunda opinión",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Limpiar metadatos",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "todos": [
+   {
+    "etiqueta": "Automático",
+    "corona": false,
+    "auto": true
+   },
+   {
+    "etiqueta": "Auto Premium",
+    "corona": true,
+    "auto": true
+   },
+   {
+    "etiqueta": "Acciones",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Acoplar imagen",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Activar o desactivar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Agrupar capas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear abajo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear arriba",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear derecha",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear izquierda",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ampliar con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Análisis de nitidez",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Antes y después",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Añadir ruido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Apilar fotos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Aplicar edición a otras fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Aplicar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Artísticos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Bajar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Balance de blancos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blanco y negro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrador",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrador mágico",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrar guías",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Bote de pintura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Brillo y contraste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cámaras",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Capa de ajuste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Capa de texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Centrar contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Centrar horizontal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Centrar vertical",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cerrar todas las fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Clonar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Collage / Post",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color por canales",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color por rangos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Colorear con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Combinar con la de abajo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Combinar seleccionadas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Combinar visibles",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Comparar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste local",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste local Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste tonal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Convolución",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Corrección selectiva",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Corregir lente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Corregir perspectiva",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cortar en partes",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear meme",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear panorámica",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuadrícula inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuentagotas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuentagotas de pantalla",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas de la máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas Lab",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "D&B: ver gris",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Deformación libre",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desagrupar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desaturar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Deseleccionar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desenfoque",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desenfoque de lente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desenfoque profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desplazar y mín./máx.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Detalle",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Difuminar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Difuminar caras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Distorsionar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Distribuir horizontal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Distribuir vertical",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Dodge & Burn",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Duplicar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ecualizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar capa de ajuste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar en lote",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar metadatos al exportar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Efectos LUT",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar fondo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Elipse",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Emborronar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enderezar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enfocar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enfoque selectivo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Equilibrio de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Escala por contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Escanear documento",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Esferizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Espectro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos de capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Expandir con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exponer",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exportar PDF",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exposición",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro fotográfico",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro Vintage",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Formas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Foto 3D",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Fusión HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Fusionar si…",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Galería de desenfoque",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "GIF animado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Girar a la derecha",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Girar a la izquierda",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Gradación de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Graduado y radial",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Gran angular",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Histograma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Hoja de contactos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Igualar color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar con IA",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar foto oscura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar oscura Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Informar de un error",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Inspector de metadatos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Intensidad",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Invertir",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Invertir máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Invertir selección",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Lazo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Lente automática",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Lente por perfil",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Licuar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Limpiar metadatos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Luz por profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mano",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mapa de degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marca de agua",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marcos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara de enfoque",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara degradada",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara por profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara por texto",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: descubrir selección",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: descubrir todo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: ocultar selección",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: ocultar todo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscaras de luz",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Metadatos EXIF",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mezclador de canales",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mover",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mover por contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Movimiento",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niebla por distancia",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Nitidez inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles de la máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Nubes y luces",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Nueva capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Objeto inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ojos rojos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Otros desenfoques",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Paleta de colores",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Parche",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Paso alto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Perspectiva",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Photo Lens",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel con textura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel corrector",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel de historial",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel simétrico",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pintar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pixelizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Plausibilidad",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pluma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Posterizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Propiedades de la máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "PurePixel",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitamanchas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar JPEG con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar neblina",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Radial y zoom",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rasterizar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rasterizar objeto inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rasterizar texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Realify",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Realify Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recortar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recortar en forma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recorte de retrato",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recorte para redes",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rectángulo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reducir ruido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reemplazar cielo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reemplazar color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Refinar borde",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Refinar borde de máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relieve y bordes",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rellenar por contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relleno de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relleno de degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relleno de motivo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Renombrar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Restauración",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Restaurar caras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Retoque de cara",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Retrato",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Revelado RAW",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ruido con IA",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ruido por canal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Segunda opinión",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Selección con un toque",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar cielo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar por texto",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar sujeto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar todo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Separar frecuencias",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Separar planos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Sombras y luces",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Stickers",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Suavizar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Subir capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Superficie",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tabla de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tamaño de imagen",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tamaño de lienzo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texturas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y saturación",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tonos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tonos del histograma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Transformación libre",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Transformar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Transformar capa (deslizadores)",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Umbral",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unir fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unmark",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Varita mágica",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Viñeteado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Virado dividido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Voltear horizontal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Voltear vertical",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Zoom",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "mejorar": [
+   {
+    "etiqueta": "Automático",
+    "corona": false,
+    "auto": true
+   },
+   {
+    "etiqueta": "Auto Premium",
+    "corona": true,
+    "auto": true
+   },
+   {
+    "etiqueta": "Acciones",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Análisis de nitidez",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Apilar fotos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Aplicar edición a otras fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Balance de blancos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Brillo y contraste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste local",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste local Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Contraste tonal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Detalle",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ecualizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar en lote",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enderezar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enfocar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enfoque selectivo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Escanear documento",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exposición",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Fusión HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Graduado y radial",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Histograma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar foto oscura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Iluminar oscura Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Intensidad",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara de enfoque",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Nitidez inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Paso alto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar neblina",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reducir ruido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Revelado RAW",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Sombras y luces",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y saturación",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tonos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tonos del histograma",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "corregir": [
+   {
+    "etiqueta": "Análisis de nitidez",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Balance de blancos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrar guías",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Corregir lente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Corregir perspectiva",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cortar en partes",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuadrícula inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Enderezar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Equilibrio de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Escala por contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Escanear documento",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Girar a la derecha",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Girar a la izquierda",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Gran angular",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Lente automática",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Lente por perfil",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Perspectiva",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel corrector",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar neblina",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recortar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recortar en forma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reducir ruido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Restauración",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ruido por canal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tamaño de imagen",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tamaño de lienzo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Transformar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unir fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Voltear horizontal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Voltear vertical",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "color": [
+   {
+    "etiqueta": "Balance de blancos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blanco y negro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color por canales",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color por rangos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Corrección selectiva",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuentagotas de pantalla",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas Lab",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desaturar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ecualizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Equilibrio de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro fotográfico",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Gradación de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Igualar color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Intensidad",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Invertir",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mapa de degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mezclador de canales",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Paleta de colores",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Posterizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reemplazar color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Revelado RAW",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tabla de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y color auto. Premium",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono y saturación",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Umbral",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Virado dividido",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "estilo": [
+   {
+    "etiqueta": "Acciones",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Antes y después",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Añadir ruido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Apilar fotos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Aplicar edición a otras fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Artísticos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blanco y negro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cámaras",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Collage / Post",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cortar en partes",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear meme",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar en lote",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Efectos LUT",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos de capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exportar PDF",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro fotográfico",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro Vintage",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Fusión HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "GIF animado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Gradación de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Hoja de contactos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mapa de degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marcos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Posterizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recortar en forma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Stickers",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tabla de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texturas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tono HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Umbral",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unir fotos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Viñeteado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Virado dividido",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "filtros": [
+   {
+    "etiqueta": "Artísticos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blanco y negro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cámaras",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Efectos LUT",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro fotográfico",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro Vintage",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Realify",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Tabla de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texturas",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "efectos": [
+   {
+    "etiqueta": "Añadir ruido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Artísticos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cámaras",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Convolución",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Deformación libre",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desenfoque",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desenfoque de lente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desplazar y mín./máx.",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Distorsionar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Efectos LUT",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Esferizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Filtro Vintage",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Galería de desenfoque",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "GIF animado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Licuar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Movimiento",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Nubes y luces",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Otros desenfoques",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Paso alto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pixelizar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Radial y zoom",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relieve y bordes",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Superficie",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texturas",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "retoque": [
+   {
+    "etiqueta": "Clonar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "D&B: ver gris",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Deformación libre",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Dodge & Burn",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Emborronar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Exponer",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Licuar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mover por contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Parche",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel corrector",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel de historial",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitamanchas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rellenar por contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Restauración",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Retrato",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Separar frecuencias",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Superficie",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "seleccion": [
+   {
+    "etiqueta": "Deseleccionar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Difuminar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Elipse",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Invertir selección",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Lazo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscaras de luz",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mover",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pluma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rectángulo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Refinar borde",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Seleccionar todo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Varita mágica",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "pintar": [
+   {
+    "etiqueta": "Borrador",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Bote de pintura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Collage / Post",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear meme",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuentagotas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Emborronar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos de capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Formas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marca de agua",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marcos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel con textura",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel de historial",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel simétrico",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Stickers",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "creativo": [
+   {
+    "etiqueta": "Collage / Post",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cortar en partes",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear meme",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Crear panorámica",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Foto 3D",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Fusión HDR",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "GIF animado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Hoja de contactos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marcos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recortar en forma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Revelado RAW",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Stickers",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unir fotos",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "capas": [
+   {
+    "seccion": "Capa activa"
+   },
+   {
+    "etiqueta": "Nueva capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Duplicar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Renombrar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Subir capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Bajar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Transformar"
+   },
+   {
+    "etiqueta": "Transformación libre",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Transformar capa (deslizadores)",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Centrar contenido",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Tipo de capa"
+   },
+   {
+    "etiqueta": "Objeto inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rasterizar objeto inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rasterizar capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Capa de texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Rasterizar texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Capa de ajuste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar capa de ajuste",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Capas de relleno"
+   },
+   {
+    "etiqueta": "Relleno de color",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relleno de degradado",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Relleno de motivo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Grupos y estilo"
+   },
+   {
+    "etiqueta": "Agrupar capas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Desagrupar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Fusionar si…",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilos de capa",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Alinear y distribuir"
+   },
+   {
+    "etiqueta": "Alinear izquierda",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Centrar horizontal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear derecha",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear arriba",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Centrar vertical",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Alinear abajo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Distribuir horizontal",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Distribuir vertical",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Combinar"
+   },
+   {
+    "etiqueta": "Combinar con la de abajo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Combinar seleccionadas",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Combinar visibles",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Acoplar imagen",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Máscara de capa"
+   },
+   {
+    "etiqueta": "Máscara: descubrir todo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: ocultar todo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: descubrir selección",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara: ocultar selección",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara degradada",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara por texto",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Máscara por profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Editar la máscara"
+   },
+   {
+    "etiqueta": "Pintar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Invertir máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Activar o desactivar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Niveles de la máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Curvas de la máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Suavizar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Propiedades de la máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Refinar borde de máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Aplicar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Eliminar máscara",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "seccion": "Añadir a la foto"
+   },
+   {
+    "etiqueta": "Stickers",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Marca de agua",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "analizar": [
+   {
+    "etiqueta": "Antes y después",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrar guías",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Comparar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuadrícula inteligente",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuentagotas de pantalla",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editar metadatos al exportar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Espectro",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Histograma",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Informar de un error",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Inspector de metadatos",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mano",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Metadatos EXIF",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Paleta de colores",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Zoom",
+    "corona": false,
+    "auto": false
+   }
+  ]
+ }
+}
