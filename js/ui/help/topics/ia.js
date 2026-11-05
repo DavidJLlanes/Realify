@@ -160,6 +160,11 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           por zonas (cielo, personas, resto); «Sugerir ajustes» sólo te dice cuánto subir o bajar exposición, contraste, calidez y saturación. <b>Packs de cámara</b> reúne las cámaras de Película, Móvil y Réflex en un
           selector y las aplica como capa de filtro reeditable (se copian a otras fotos con «Aplicar esta edición a otras fotos»). <b>Mis estilos</b> guarda una referencia como estilo, lo aplica a esta foto o a todas
           las abiertas, y lo guarda o importa como archivo para pasarlo a otra persona.</li>
+        <li id="ia-library"><b>Lote y biblioteca 👑</b> (Inteligencia Artificial › Lote y biblioteca). <b>Selección rápida</b>: añade varias fotos y la IA
+          puntúa nitidez, ojos cerrados y composición, agrupa las repetidas y marca cuál es la mejor; toca una foto para descartarla o recuperarla y abre las elegidas en pestañas.
+          <b>Buscar fotos</b>: indexa tus fotos en este dispositivo (sólo guarda lo que la IA ve y una miniatura) y búscalas con una frase como «perro en la playa» o «de noche».
+          <b>Etiquetas y nombre</b> propone etiquetas en español y un nombre de archivo con una plantilla ({fecha}, {etiqueta}, {color}, {n}…). <b>Texto alternativo</b> escribe una descripción
+          corta o larga para lectores de pantalla y la copia. En «Aplicar esta edición a otras fotos», el ZIP admite plantilla de nombre y formatos para redes.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

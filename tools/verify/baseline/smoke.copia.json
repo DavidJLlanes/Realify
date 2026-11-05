@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T20:04:45.111Z",
+ "generated": "2026-11-05T22:20:04.817Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1896,
+     "readyMs": 1349,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2101735,
+     "jsBytes": 2130105,
      "cssBytes": 177122,
-     "transferBytes": 875480,
-     "domContentLoaded": 1795,
-     "fcp": 1396
+     "transferBytes": 885151,
+     "domContentLoaded": 1247,
+     "fcp": 1020
     },
     {
-     "readyMs": 1196,
+     "readyMs": 1000,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2128877,
+     "jsBytes": 2130087,
      "cssBytes": 177122,
-     "transferBytes": 884751,
-     "domContentLoaded": 1117,
-     "fcp": 560
+     "transferBytes": 885133,
+     "domContentLoaded": 938,
+     "fcp": 356
     },
     {
-     "readyMs": 1351,
+     "readyMs": 986,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2128928,
+     "jsBytes": 2130130,
      "cssBytes": 177122,
-     "transferBytes": 884802,
-     "domContentLoaded": 1283,
-     "fcp": 408
+     "transferBytes": 885176,
+     "domContentLoaded": 908,
+     "fcp": 452
     }
    ],
-   "medianReadyMs": 1351,
-   "medianTransferBytes": 884751
+   "medianReadyMs": 1000,
+   "medianTransferBytes": 885151
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -96,6 +96,8 @@
     "adj.vibrance",
     "adj.whiteBalance",
     "ai.aiArtifacts",
+    "ai.altText",
+    "ai.autoTags",
     "ai.bodyEditor",
     "ai.bodyPosture",
     "ai.bodyShape",
@@ -105,6 +107,7 @@
     "ai.categoryBoost",
     "ai.clothesWrinkles",
     "ai.colorize",
+    "ai.culling",
     "ai.darkCircles",
     "ai.deblur",
     "ai.dehaze",
@@ -142,6 +145,7 @@
     "ai.quickErase",
     "ai.recolorClothes",
     "ai.redEye",
+    "ai.searchPhotos",
     "ai.skinEven",
     "ai.skinShine",
     "ai.skinTexture",
@@ -2577,6 +2581,60 @@
        "sep": true
       },
       {
+       "label": "Lote y biblioteca",
+       "submenu": [
+        {
+         "cmd": "ai.culling",
+         "ic": "layers",
+         "label": "Selección rápida Premium 👑…",
+         "premium": true,
+         "help": "Carga varias fotos y elige las mejores: puntúa nitidez, ojos y composición, agrupa duplicados y te deja comparar y descartar.",
+         "short": "Selección rápida",
+         "tabs": [
+          "analizar"
+         ]
+        },
+        {
+         "cmd": "ai.searchPhotos",
+         "ic": "scan-eye",
+         "label": "Buscar fotos Premium 👑…",
+         "premium": true,
+         "help": "Indexa tus fotos en este dispositivo y búscalas con una frase («perro en la playa», «de noche», «retrato en blanco y negro»). Nada sale de tu equipo.",
+         "short": "Buscar fotos",
+         "tabs": [
+          "analizar"
+         ]
+        },
+        {
+         "cmd": "ai.autoTags",
+         "ic": "type",
+         "label": "Etiquetas y nombre Premium 👑…",
+         "premium": true,
+         "help": "La IA describe la foto con etiquetas en español (tipo, objetos, colores) y propone un nombre de archivo con una plantilla: {fecha}, {etiqueta}, {color}, {n}…",
+         "short": "Etiquetas",
+         "tabs": [
+          "analizar"
+         ]
+        },
+        {
+         "cmd": "ai.altText",
+         "ic": "scan",
+         "label": "Texto alternativo Premium 👑…",
+         "premium": true,
+         "help": "Escribe en español una descripción de la foto para lectores de pantalla (corta, de hasta 125 caracteres, o larga). Se copia al portapapeles.",
+         "short": "Texto alternativo",
+         "tabs": [
+          "analizar"
+         ]
+        }
+       ],
+       "iaId": "lote",
+       "flattenAsHeader": true
+      },
+      {
+       "sep": true
+      },
+      {
        "label": "Realismo y autenticidad",
        "submenu": [
         {
@@ -2857,11 +2915,11 @@
      ]
     }
    ],
-   "menuHash": "14ef2c30f79bb038"
+   "menuHash": "fbc688cab75e2d1f"
   },
   "screens": {
-   "welcome": "e8aab073050dda2e",
-   "withImage": "9248b096530b73fb"
+   "welcome": "832bd27e419fc6c7",
+   "withImage": "370d3b8b9ddf8ddf"
   },
   "opened": true,
   "afterOpen": {
@@ -4800,19 +4858,19 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1331,
+   "readyMs": 871,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2128791,
+   "jsBytes": 2129971,
    "cssBytes": 177122,
-   "transferBytes": 885241,
-   "domContentLoaded": 1230,
-   "fcp": 724
+   "transferBytes": 885017,
+   "domContentLoaded": 818,
+   "fcp": 452
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
-   "withImage": "42cefdfe7129c827",
+   "withImage": "91216a462b558bfe",
    "drawer": "53b3b078245a5530"
   },
   "opened": true,

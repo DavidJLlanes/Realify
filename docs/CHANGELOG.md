@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.11.0 (compilación 314) · Lote, biblioteca y entrega 👑
+- Cuatro funciones nuevas en **Lote y biblioteca**, todas Premium: **Selección rápida** (carga varias fotos y puntúa nitidez, ojos cerrados y composición, agrupa duplicados, compara hasta 4 y marca las descartables), **Buscar fotos** (índice local en IndexedDB con el tipo de foto, los objetos y los colores de cada una; se busca con una frase en español; nunca se guarda la foto), **Etiquetas y nombre** (etiquetas en español y nombre de archivo con plantilla: `{fecha}`, `{etiqueta}`, `{color}`, `{n}`…) y **Texto alternativo** (descripción corta o larga para lectores de pantalla, copiada al portapapeles).
+- «Aplicar esta edición a otras fotos» en ZIP admite **plantilla de nombre** y **formato para redes** (Instagram cuadrado y vertical, historia, X, Facebook, web, miniatura): recorta al centro, sin ampliar.
+- Motores puros en `js/features/library/` (colores, consulta, etiquetas, plantillas, formatos) y `plugins/culling/engine.js`; el análisis de una foto se comparte en `library/shared/indexar.js`; `es2en.js` gana `toSpanish`.
+- Búsqueda sin CLIP (no hay modelo accesible): entiende objetos, escenas y colores, no relaciones
+- Pruebas en `tests/ia/biblioteca/` (motor en Node y navegador, móvil y escritorio)
+
 ### 1.10.0 (compilación 313) · Estilos y color por referencia 👑
 - Tres funciones nuevas en **Color y estilos**, todas Premium: **Estilo desde una foto de referencia** (lleva el color y el tono de tu foto hacia los de otra, por zonas —cielo, personas, resto— y en OKLab; también puede **sugerir ajustes**: exposición, contraste, calidez, tinte y saturación), **Packs de cámara** (Película, Móvil, Réflex y óptica: las cámaras de Cámaras en un selector; el resultado es una capa de filtro reeditable, así que «Aplicar esta edición a otras fotos» la copia a un lote) y **Mis estilos** (guardar una referencia como estilo, aplicarlo a una foto o a todas las abiertas, y exportarlo/importarlo como archivo `.realify-estilo.json`)
 - Motor puro `js/features/style/engine/transferir.js` (cuantiles para el tono, media y desviación para el color, razón limitada a ×0,5-×2); «Igualar color…» no cambia

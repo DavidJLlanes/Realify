@@ -31,7 +31,8 @@ export async function openBatchEdit(){
   openBatchEditor({
     edit, tabs, hasFields: !!shared,
     onApply: async (list, S) => {
-      const [{ openFile }, { renderExport, saveOrShare, stamp }] = await Promise.all([import("../../js/io/open.js"), import("../../js/io/export/export.js")]);
+      const [{ openFile }, { renderExport, saveOrShare, stamp }, SAL] = await Promise.all([import("../../js/io/open.js"), import("../../js/io/export/export.js"), import("./salida.js")]);
+      const usados = new Set();
       const zip = S.output === "zip", entries = [], failed = [];
       const BM = await import("../../js/io/meta/batchmeta.js"), fields = S.metaFields ? shared : null;
       const ext = { "image/png": "png", "image/webp": "webp", "image/avif": "avif" }[S.format] || "jpg";
@@ -46,8 +47,11 @@ export async function openBatchEdit(){
           if(zip){
             const blob = await renderExport({ w: doc.w, h: doc.h, type: S.format, quality: S.format === "image/png" ? undefined : S.quality / 100, alpha: S.alpha, background: S.bg });
             if(!blob) throw new Error("no se pudo exportar");
-            const withMeta = await BM.embedForBatch(blob, { keep: S.metaKeep, fields });
-            entries.push({ name: `${t.name}.${ext}`, data: new Uint8Array(await withMeta.arrayBuffer()) });
+            let outBlob = blob, extN = ext, ancho = doc.w, alto = doc.h;
+            if(SAL.necesitaRecodificar(S.social)){ const a = await SAL.adaptarAFormato(blob, S.social, { type: S.format, quality: S.quality / 100, background: S.bg }); outBlob = a.blob; ancho = a.w; alto = a.h; extN = { "image/png": "png", "image/webp": "webp" }[a.type] || "jpg"; }
+            const withMeta = await BM.embedForBatch(outBlob, { keep: S.metaKeep, fields });
+            const nombre = SAL.nombreUnico(S.plantilla, { nombre: t.name, n: i + 1, ancho, alto, fecha: new Date(), etiquetas: [S.social !== "original" ? S.social : ""] }, usados);
+            entries.push({ name: `${nombre}.${extN}`, data: new Uint8Array(await withMeta.arrayBuffer()) });
             if(opened){ const a = docs.activeTab(); if(a) await docs.closeTab(a.tabId, { confirm: false }); }
             else res.undo();   // en modo ZIP las pestañas abiertas quedan como estaban
           }

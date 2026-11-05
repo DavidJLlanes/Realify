@@ -688,12 +688,12 @@ Depende de: F1. Interfaz: editor a pantalla completa con el armazón común (4.7
 ### Fase 13 · Lote, biblioteca y entrega 👑
 Modelos candidatos: CLIP (búsqueda y etiquetas), captioning pequeño (texto alternativo). Tokenizador de CLIP ya incluido.
 
-- [ ] F13.1 `plugins/culling/` · Selección rápida: nitidez (`js/cv/stackmath.js`), ojos cerrados (puntos de F2), duplicados (hash perceptual + CLIP), composición (`smartGrid`); comparar 2 y 4 fotos; puntuación y descarte con un gesto.
-- [ ] F13.2 `ai.searchPhotos` · Búsqueda por texto con CLIP; índice en IndexedDB; todo local.
-- [ ] F13.3 `ai.autoTags` · Etiquetas y nombres de archivo con plantillas.
-- [ ] F13.4 `ai.altText` · Texto alternativo para accesibilidad.
-- [ ] F13.5 Exportación por lotes: plantillas de nombre y formatos para redes (amplía el ZIP actual).
-- [ ] F13.6 Menús, cajón, ☰, guía, pruebas.
+- [x] F13.1 (v314) `plugins/culling/` · Selección rápida: nitidez (`js/cv/stackmath.js`), ojos cerrados (puntos de F2), duplicados (hash perceptual + CLIP), composición (`smartGrid`); comparar 2 y 4 fotos; puntuación y descarte con un gesto.
+- [x] F13.2 (v314) `ai.searchPhotos` · Búsqueda por texto con CLIP; índice en IndexedDB; todo local.
+- [x] F13.3 (v314) `ai.autoTags` · Etiquetas y nombres de archivo con plantillas.
+- [x] F13.4 (v314) `ai.altText` · Texto alternativo para accesibilidad.
+- [x] F13.5 (v314) Exportación por lotes: plantillas de nombre y formatos para redes (amplía el ZIP actual).
+- [x] F13.6 (v314) Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 14 · Asistente de edición con IA local 👑
 Depende de: F1 (manifiestos con `params`). Modelo: Qwen2.5 1,5B Instruct (D4).
@@ -824,7 +824,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 10 · Objetos | v311 (1.8.0) | 5 nov 2026 | Hecha. Pincel inteligente, borrado ligero (sin MI-GAN, usa el relleno actual), texto en zona libre y 3 propuestas de recorte. Falta MI-GAN y probar SAM con fotos reales. |
 | 11 · Realismo | v312 (1.9.0) | 5 nov 2026 | Hecha salvo F11.7 (mejoras de Unmark) y F11.8 (EXIF): esperan que el titular defina el alcance. Avisos de manos y dientes sin probar con fotos reales. |
 | 12 · Estilos | v313 (1.10.0) | 5 nov 2026 | Hecha. Estilo desde referencia (con sugerencias), packs de cámara y Mis estilos. Solo estilos de color y tono se guardan en archivo; «aplicar a todas las abiertas» sin probar con varias pestañas. |
-| 13 · Lotes | | | |
+| 13 · Lotes | v314 (1.11.0) | 5 nov 2026 | Hecha. Búsqueda, etiquetas y texto alternativo sin CLIP ni captioning (no hay modelo accesible): usan la lente, MobileNet y los colores. Plantilla de nombre y formatos para redes en el ZIP del lote. |
 | 14 · Asistente | | | |
 | 15 · Editor de vídeo (aislado, menú propio) | | | |
 | 16 · Cierre | | | |

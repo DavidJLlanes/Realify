@@ -13,6 +13,7 @@ import { createShell, mountControls, decodePhoto, pickFiles, scaledCanvas } from
 import { previewEdit, kindName } from "./edit.js";
 import { toast } from "../../js/core/toast.js";
 import { escText as esc } from "../../js/core/util/html.js";
+import { FORMATOS } from "../../js/features/library/shared/formatos-redes.js";
 
 const TOUCH = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
 const THUMB = TOUCH ? 240 : 320;
@@ -20,7 +21,7 @@ const THUMB = TOUCH ? 240 : 320;
 export function openBatchEditor({ edit, tabs, onApply, hasFields = false }){
   // tabs: [{ tabId, name, proxy }] — las otras pestañas abiertas
   const targets = tabs.map(t => ({ ...t, kind: "tab", on: true, preview: null }));
-  const S = { expo: true, expoStrength: 100, output: "tabs", format: "image/jpeg", quality: 90, alpha: true, bg: "#ffffff", metaKeep: true, metaFields: true, hasFields };
+  const S = { plantilla: "{nombre}", social: "original", expo: true, expoStrength: 100, output: "tabs", format: "image/jpeg", quality: 90, alpha: true, bg: "#ffffff", metaKeep: true, metaFields: true, hasFields };
   let closed = false, seq = 0, grid = null;
 
   const sh = createShell({ title: "Aplicar esta edición a otras fotos", subtitle: `Referencia: ${edit.name}`, applyLabel: "Aplicar",
@@ -142,6 +143,8 @@ export function openBatchEditor({ edit, tabs, onApply, hasFields = false }){
     ], note: "Añade a cada foto una capa «Exposición» (reeditable) para que su brillo medio sea el de la foto de referencia." },
     { id: "out", label: "Resultado", props: [
       { key: "output", label: "Resultado", type: "seg", options: [["tabs", "En sus pestañas"], ["zip", "ZIP"]] },
+      { key: "social", label: "Formato para redes", type: "select", options: FORMATOS.map(f => [f.id, f.label]), when: () => S.output === "zip" },
+      { key: "plantilla", label: "Nombre de cada archivo", type: "text", def: "{nombre}", max: 80, when: () => S.output === "zip" },
       { key: "format", label: "Formato", type: "select", options: [["image/jpeg", "JPEG"], ["image/png", "PNG"], ["image/webp", "WebP"], ["image/avif", "AVIF"]], when: () => S.output === "zip" },
       { key: "quality", label: "Calidad", type: "range", min: 40, max: 100, unit: " %", def: 90, when: () => S.output === "zip" && S.format !== "image/png" },
       // Transparencia (ver js/io/formats/alpha.js): se conserva en los formatos que la admiten.
