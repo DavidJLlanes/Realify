@@ -29,32 +29,14 @@ import { doc, activeLayer } from "../core/doc.js";
 import { toast, status } from "../core/toast.js";
 import { depthMap, depthAt } from "../ai/depth.js";
 import { boxBlurFloat } from "../editor/selection/refineedge-math.js";
-import { clamp01, hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
+import { clamp01 } from "../core/util/math.js";
 import { readPixels as pixelsOf } from "../core/util/canvas.js";
-export { hash, enc, pixelsOf };
-
-export const DEC = new Float32Array(256);
-for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
-export const PREVIEW = 1280;   // lado largo de la vista previa
-
-/* Lo que se ve (la imagen compuesta), en un lienzo legible */
-export async function visibleImage(){
-  if(!doc.open || !activeLayer()){ toast("Abre una imagen primero"); return null; }
-  const { flatten } = await import("../editor/layers/layertree.js");
-  const c = flatten();
-  const r = document.createElement("canvas"); r.width = c.width; r.height = c.height;
-  r.getContext("2d", { willReadFrequently: true }).drawImage(c, 0, 0);
-  return r;
-}
-
-export function scaled(src, side){
-  const k = Math.min(1, side / Math.max(src.width, src.height));
-  const c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
-  const x = c.getContext("2d", { willReadFrequently: true });
-  x.imageSmoothingQuality = "high"; x.drawImage(src, 0, 0, c.width, c.height);
-  return c;
-}
+import { DEC, hash, enc } from "./ai-kit/float.js";
+import { visibleImage } from "./ai-kit/visible-image.js";
+import { toNewLayer } from "./ai-kit/new-layer.js";
+import { PREVIEW, WORK, scaled } from "./ai-kit/preview.js";
+/* La API de siempre: lo común vive en ai-kit/ y se reexporta aquí para no tocar a quien lo importa */
+export { hash, enc, pixelsOf, DEC, visibleImage, toNewLayer, PREVIEW, WORK, scaled };
 
 /* Foto (a w×h) en luz lineal y su profundidad afinada */
 export function prepare(canvas, map){
@@ -68,12 +50,6 @@ export function prepare(canvas, map){
 export async function getDepth(src){
   try{ return await depthMap(src); }
   catch(err){ if(!err.cancelled) toast("No se pudo calcular la profundidad: " + err.message, "err"); return null; }
-}
-
-/* Capa nueva encima de la activa, un paso de deshacer */
-export async function toNewLayer(canvas, name){
-  const { resultToLayer } = await import("../ui/kit/fsshell.js");
-  await resultToLayer(canvas, { name, mix: true });
 }
 
 /* Ventana a pantalla completa común: vista, comparar y mandos */
@@ -208,16 +184,6 @@ function renderDepthBlur(P, S, { parts = false } = {}){
   }
   return out;
 }
-
-/* ── A resolución completa sin agotar la memoria ─────────────────
-   Lo desenfocado no tiene detalle que perder: se calcula a una
-   resolución de trabajo (WORK) y se compone con la foto ORIGINAL a su
-   tamaño real, píxel a píxel y en luz lineal: lo enfocado queda
-   exactamente como el original y el grano se añade a tamaño real.
-   Antes todo se calculaba a tamaño completo (una treintena de matrices
-   de la foto entera): con 12 MP, unos 2 GB, y el móvil cerraba la
-   pestaña. */
-export const WORK = () => (matchMedia("(max-width:900px)").matches || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.deviceMemory || 8) <= 4) ? 1600 : 2400;
 
 /* Muestreo bilineal de una matriz w×h en el punto (x, y) de la foto grande */
 export function sampler(w, h, W, H){

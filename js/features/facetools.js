@@ -22,38 +22,9 @@ import { doc, activeLayer } from "../core/doc.js";
 import { toast, status } from "../core/toast.js";
 import { detectFaces } from "../ai/faces.js";
 import { boxBlurFloat } from "../editor/selection/refineedge-math.js";
-import { hash32 as hash, linearToSrgb255 as enc } from "../core/util/math.js";
-
-const DEC = new Float32Array(256);
-for(let i = 0; i < 256; i++){ const v = i / 255; DEC[i] = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
-
-/* Las caras se buscan en lo que se VE (la imagen compuesta), no sólo en
-   la capa activa: tras difuminar, por ejemplo, la activa es la capa
-   nueva, casi transparente. */
-async function visibleImage(){
-  if(!doc.open || !activeLayer()){ toast("Abre una imagen primero"); return null; }
-  const { flatten } = await import("../editor/layers/layertree.js");
-  const c = flatten();
-  // flatten puede dejar el lienzo en la GPU: una copia legible
-  const r = document.createElement("canvas"); r.width = c.width; r.height = c.height;
-  r.getContext("2d", { willReadFrequently: true }).drawImage(c, 0, 0);
-  return r;
-}
-
-/* Capa nueva encima de la activa con `canvas`, un paso de deshacer */
-async function toNewLayer(canvas, name){
-  const [{ addLayer }, { record }, { emit }] = await Promise.all([import("../core/doc.js"), import("../core/history.js"), import("../core/bus.js")]);
-  const prevLayers = doc.layers.slice(), prevActive = doc.activeId;
-  const l = addLayer({ name });
-  l.ctx.drawImage(canvas, 0, 0);
-  l.thumbDirty = true;
-  // Porcentaje de aplicación (mezcla con la capa de debajo)
-  (await import("../editor/layers/filterlayer.js")).markMixLayer(l, name);
-  const nextLayers = doc.layers.slice(), nextActive = l.id;
-  const put = (layers, active) => { doc.layers = layers.slice(); doc.activeId = active; emit("doc:structure"); emit("doc:change"); };
-  record(name, () => put(prevLayers, prevActive), () => put(nextLayers, nextActive));
-  emit("doc:structure"); emit("doc:change");
-}
+import { DEC, hash, enc } from "./ai-kit/float.js";
+import { visibleImage } from "./ai-kit/visible-image.js";
+import { toNewLayer } from "./ai-kit/new-layer.js";
 
 async function findFaces(src){
   status("Buscando caras…");
