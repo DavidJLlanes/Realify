@@ -29,6 +29,14 @@ import clothesWrinkles from "../../../features/clothing/iron/manifest.js";
 import fabricWrinkles from "../../../features/clothing/fabric/manifest.js";
 import recolorClothes from "../../../features/clothing/recolor/manifest.js";
 import fabricTexture from "../../../features/clothing/texture/manifest.js";
+import skyEnhance from "../../../features/scene/sky/manifest.js";
+import dehaze from "../../../features/scene/dehaze/manifest.js";
+import categoryBoost from "../../../features/scene/category-boost/manifest.js";
+import zonedWhiteBalance from "../../../features/scene/zoned-wb/manifest.js";
+import highlightRecovery from "../../../features/scene/highlights/manifest.js";
+import harmonize from "../../../features/scene/harmonize/manifest.js";
+import depthChroma from "../../../features/scene/depth-chroma/manifest.js";
+import depthRelight from "../../../features/scene/depth-relight/manifest.js";
 
 export const MANIFESTS = [
   partsSelect,
@@ -36,5 +44,6 @@ export const MANIFESTS = [
   faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare, faceShape,
   bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
   clothesWrinkles, fabricWrinkles, recolorClothes, fabricTexture,
+  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

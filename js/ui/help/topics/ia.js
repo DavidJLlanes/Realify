@@ -139,6 +139,11 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           «Tinte» también se colorea una prenda blanca, gris o negra. <i>Textura</i> realza o apaga la trama y rellena las zonas que quedaron demasiado lisas. En
           <i>Telas y fondos</i> tocas una sábana, cortina o mantel (con «Ajustar el borde con IA» se apoya en Segment Anything) y puedes sumar o quitar zonas con más
           toques. El resultado va a <b>una capa nueva</b> con transparencia: sólo cambia la tela.</li>
+        <li id="ia-escena"><b>Escena, cielo y color 👑</b> (Inteligencia Artificial › Escena y cielo, y en las pestañas Mejorar y Color del cajón): <b>Mejorar cielo</b> (realce,
+          relleno azul de los cielos apagados conservando las nubes y luz del primer plano), <b>Quitar neblina con IA</b> (usa la distancia de cada punto), <b>Realzar por tipo</b> (agua,
+          follaje, cielo, edificios o piel), <b>Balance de blancos por zonas</b> (luz mezclada), <b>Recuperar luces</b> (canales quemados) y <b>Unificar iluminación</b> (acerca el sujeto
+          al color y la luz del fondo). En Profundidad: <b>Aberración por distancia</b> y <b>Luz direccional con relieve</b>. Todas son diálogos simples con pocos mandos y el resultado
+          va a una capa nueva con «mezcla». «Reemplazar cielo» y «Adaptive Photo Lens» siguen en este mismo submenú.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

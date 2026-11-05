@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T18:51:33.304Z",
+ "generated": "2026-11-05T19:00:27.157Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1649,
+     "readyMs": 1657,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2133922,
+     "jsBytes": 2123342,
      "cssBytes": 177122,
-     "transferBytes": 884040,
-     "domContentLoaded": 1567,
-     "fcp": 1336
+     "transferBytes": 882278,
+     "domContentLoaded": 1520,
+     "fcp": 1064
     },
     {
-     "readyMs": 1311,
+     "readyMs": 1353,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2133922,
+     "jsBytes": 2122791,
      "cssBytes": 177122,
-     "transferBytes": 884040,
-     "domContentLoaded": 1037,
-     "fcp": 572
+     "transferBytes": 882660,
+     "domContentLoaded": 1276,
+     "fcp": 416
     },
     {
-     "readyMs": 1233,
+     "readyMs": 1314,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2133922,
+     "jsBytes": 2123218,
      "cssBytes": 177122,
-     "transferBytes": 884040,
-     "domContentLoaded": 1018,
-     "fcp": 660
+     "transferBytes": 882154,
+     "domContentLoaded": 1201,
+     "fcp": 508
     }
    ],
-   "medianReadyMs": 1311,
-   "medianTransferBytes": 884040
+   "medianReadyMs": 1353,
+   "medianTransferBytes": 882278
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -100,13 +100,17 @@
     "ai.bodyShape",
     "ai.bodySkin",
     "ai.bodyTone",
+    "ai.categoryBoost",
     "ai.clothesWrinkles",
     "ai.colorize",
     "ai.darkCircles",
+    "ai.dehaze",
     "ai.depthBlur",
+    "ai.depthChroma",
     "ai.depthFog",
     "ai.depthLight",
     "ai.depthPlanes",
+    "ai.depthRelight",
     "ai.depthSelect",
     "ai.expand",
     "ai.eyes",
@@ -121,6 +125,8 @@
     "ai.flyawayHair",
     "ai.glassesGlare",
     "ai.hair",
+    "ai.harmonize",
+    "ai.highlightRecovery",
     "ai.lipsBrows",
     "ai.lowLight",
     "ai.magicErase",
@@ -132,11 +138,13 @@
     "ai.skinShine",
     "ai.skinTexture",
     "ai.skinWrinkles",
+    "ai.skyEnhance",
     "ai.smartCrop",
     "ai.tapSelect",
     "ai.teeth",
     "ai.textSelect",
     "ai.upscale",
+    "ai.zonedWhiteBalance",
     "an.exif",
     "an.eyedropper",
     "an.forensics",
@@ -2249,6 +2257,73 @@
          "label": "Adaptive Photo Lens…",
          "icon": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"3.2\"/><path d=\"M12 3v3.5M12 17.5V21M3 12h3.5M17.5 12H21\"/><path d=\"M5.6 5.6l2.5 2.5M15.9 15.9l2.5 2.5\"/></svg>",
          "help": "Reconoce el tipo de foto con un modelo local y aplica el revelado que le va"
+        },
+        {
+         "cmd": "ai.skyEnhance",
+         "ic": "cloud-sun",
+         "label": "Mejorar cielo Premium 👑…",
+         "premium": true,
+         "help": "Realza el cielo (contraste y saturación), rellena de azul los cielos apagados conservando las nubes y ajusta la luz del primer plano.",
+         "short": "Mejorar cielo",
+         "tabs": [
+          "mejorar"
+         ]
+        },
+        {
+         "cmd": "ai.dehaze",
+         "ic": "wind",
+         "label": "Quitar neblina con IA Premium 👑…",
+         "premium": true,
+         "help": "Quita la neblina usando la distancia de cada punto (mapa de profundidad) además del canal oscuro, sin halos en los bordes.",
+         "short": "Quitar neblina IA",
+         "tabs": [
+          "mejorar"
+         ]
+        },
+        {
+         "cmd": "ai.categoryBoost",
+         "ic": "palette",
+         "label": "Realzar por tipo Premium 👑…",
+         "premium": true,
+         "help": "Realza por tipo de cosa —agua, follaje, cielo, edificios o piel— con la receta de cada una: saturación y detalle sólo donde toca.",
+         "short": "Realzar tipo",
+         "tabs": [
+          "mejorar",
+          "color"
+         ]
+        },
+        {
+         "cmd": "ai.zonedWhiteBalance",
+         "ic": "thermometer",
+         "label": "Balance de blancos por zonas Premium 👑…",
+         "premium": true,
+         "help": "Estima el iluminante de cada zona de la foto y lo corrige por separado: sirve con luz mezclada (ventana fría y lámpara cálida).",
+         "short": "Blancos zonas",
+         "tabs": [
+          "color"
+         ]
+        },
+        {
+         "cmd": "ai.highlightRecovery",
+         "ic": "sun-medium",
+         "label": "Recuperar luces Premium 👑…",
+         "premium": true,
+         "help": "Reconstruye los canales quemados: toma el color de los vecinos sanos y comprime el exceso con un hombro suave.",
+         "short": "Recuperar luces",
+         "tabs": [
+          "mejorar"
+         ]
+        },
+        {
+         "cmd": "ai.harmonize",
+         "ic": "contrast",
+         "label": "Unificar iluminación Premium 👑…",
+         "premium": true,
+         "help": "Acerca el color y la luz del sujeto a los del fondo que lo rodea, para que parezca hecho en la misma escena.",
+         "short": "Unificar luz",
+         "tabs": [
+          "color"
+         ]
         }
        ],
        "iaId": "escena",
@@ -2291,6 +2366,28 @@
          "label": "Foto 3D Premium 👑…",
          "premium": true,
          "help": "Anima la foto con paralaje (lo cercano se mueve más que lo lejano) y la guarda como GIF."
+        },
+        {
+         "cmd": "ai.depthChroma",
+         "ic": "rainbow",
+         "label": "Aberración por distancia Premium 👑…",
+         "premium": true,
+         "help": "Aberración cromática que crece con la distancia, como un objetivo que se resiente en lo lejano.",
+         "short": "Aberración distancia",
+         "tabs": [
+          "efectos"
+         ]
+        },
+        {
+         "cmd": "ai.depthRelight",
+         "ic": "lightbulb",
+         "label": "Luz direccional con relieve Premium 👑…",
+         "premium": true,
+         "help": "Luz direccional con relieve: saca las normales del mapa de profundidad y ilumina la escena desde donde elijas.",
+         "short": "Luz relieve",
+         "tabs": [
+          "efectos"
+         ]
         }
        ],
        "iaId": "profundidad",
@@ -2606,7 +2703,7 @@
      ]
     }
    ],
-   "menuHash": "b3d6896e89843ae0"
+   "menuHash": "f3d9c2c8a3d0dd9b"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4553,20 +4650,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1186,
+   "readyMs": 1111,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2126021,
+   "jsBytes": 2123772,
    "cssBytes": 177122,
-   "transferBytes": 881873,
-   "domContentLoaded": 1121,
+   "transferBytes": 881792,
+   "domContentLoaded": 1008,
    "fcp": 552
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
    "withImage": "91216a462b558bfe",
-   "drawer": "53b3b078245a5530"
+   "drawer": "2898ca98f29c0ccb"
   },
   "opened": true,
   "drawer": true,

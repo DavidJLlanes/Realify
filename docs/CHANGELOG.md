@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.6.0 (compilación 309) · Escena, cielo y color 👑
+- Ocho funciones nuevas, todas Premium 👑 con diálogo simple y resultado en capa nueva: en **Escena y cielo** (y pestañas Mejorar/Color del cajón) **Mejorar cielo**, **Quitar neblina con IA**, **Realzar por tipo**, **Balance de blancos por zonas**, **Recuperar luces** y **Unificar iluminación**; en **Profundidad** (pestaña Efectos) **Aberración por distancia** y **Luz direccional con relieve**.
+- Motor en `js/features/scene/engine/` (sin DOM, luz lineal): relleno de cielo con degradado que conserva las nubes, neblina por canal oscuro + distancia con filtro guiado, recetas por tipo sobre las clases de ADE20K, iluminante por zonas (shades of gray) interpolado sin costuras, reconstrucción de canales quemados con color de los vecinos sanos y hombro suave, armonía de color en OKLab, aberración radial según la distancia y luz de Lambert con normales sacadas de la profundidad.
+- Flujo común en `js/features/scene/shared/ejecutar.js` (imagen visible → panel → datos de IA → motor → capa nueva), para no copiar el flujo en cada función.
+- «Reemplazar cielo» y «Adaptive Photo Lens» ya estaban en «Escena y cielo» (F8.8).
+- Pruebas: `tests/ia/escena/motor.mjs` (Node, escenas con respuesta conocida) y `tests/ia/escena/editor.mjs` (navegador, móvil y escritorio).
 ### 1.5.0 (compilación 308) · Ropa y tejidos 👑
 - Submenú nuevo **Inteligencia Artificial › Ropa y tejidos** (Premium 👑, pestaña Retoque del cajón): **Planchar arrugas de ropa**, **Arrugas de telas y fondos**, **Cambiar color de prendas** y **Textura de tejido**. Las cuatro abren el mismo editor a pantalla completa (`plugins/clothing-editor/`, sobre `ai-editor/`) con zoom en la prenda, un objetivo por persona y otro «Telas y fondos», y grupos Planchar, Color, Textura y Telas y fondos.
 - Motor (`js/features/clothing/`, sin DOM, en luz lineal): *planchar* separa forma general, sombreado de pliegues y trama; aplana los pliegues (filtro por clases de color, de modo que una raya o un estampado no se confunde con una arruga) y aplica el cambio como factor sobre R, G y B para no mover el color. *Color* en OKLab con la luminosidad intacta, tinte para prendas neutras y reducción de saturación por píxel si se sale de la gama. *Textura* realza o apaga la trama y rellena las zonas lisas con la trama de otro punto de la misma prenda.

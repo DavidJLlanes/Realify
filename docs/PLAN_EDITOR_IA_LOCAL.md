@@ -634,15 +634,15 @@ Depende de: F2, F3.1.
 ### Fase 8 · Escena, cielo y color 👑
 Depende de: F1, F4.1. Interfaz: simple (4.7) salvo que una función supere los 4 mandos.
 
-- [ ] F8.1 `ai.skyEnhance` · Mejorar cielo: realce y relleno de cielos apagados, con ajuste de luz del primer plano.
-- [ ] F8.2 `ai.dehaze` · Quitar neblina con profundidad (amplía el «Quitar neblina…» clásico; el existente no cambia).
-- [ ] F8.3 `ai.categoryBoost` · Realzar por tipo (agua, follaje, cielo, edificios, piel) con las 150 clases de ADE20K del modelo ya incluido.
-- [ ] F8.4 `ai.zonedWhiteBalance` · Balance de blancos por zonas: estima el iluminante de cada zona.
-- [ ] F8.5 `ai.highlightRecovery` · Recuperar luces: reconstruir canales recortados.
-- [ ] F8.6 `ai.harmonize` · Unificar iluminación: acerca color y luz del sujeto a los del fondo.
-- [ ] F8.7 `ai.depthChroma` y `ai.depthRelight`: aberración cromática que crece con la distancia y luz direccional con relieve (usa `js/features/relight/`).
-- [ ] F8.8 Mover «Reemplazar cielo» y «Adaptive Photo Lens» a «Escena y cielo» (solo de sitio).
-- [ ] F8.9 Menús, cajón, ☰, guía, pruebas.
+- [x] F8.1 (v309) `ai.skyEnhance` · Mejorar cielo: realce y relleno de cielos apagados, con ajuste de luz del primer plano.
+- [x] F8.2 (v309) `ai.dehaze` · Quitar neblina con profundidad (amplía el «Quitar neblina…» clásico; el existente no cambia).
+- [x] F8.3 (v309) `ai.categoryBoost` · Realzar por tipo (agua, follaje, cielo, edificios, piel) con las 150 clases de ADE20K del modelo ya incluido.
+- [x] F8.4 (v309) `ai.zonedWhiteBalance` · Balance de blancos por zonas: estima el iluminante de cada zona.
+- [x] F8.5 (v309) `ai.highlightRecovery` · Recuperar luces: reconstruir canales recortados.
+- [x] F8.6 (v309) `ai.harmonize` · Unificar iluminación: acerca color y luz del sujeto a los del fondo.
+- [x] F8.7 (v309) `ai.depthChroma` y `ai.depthRelight`: aberración cromática que crece con la distancia y luz direccional con relieve (usa `js/features/relight/`).
+- [x] F8.8 (v309) Mover «Reemplazar cielo» y «Adaptive Photo Lens» a «Escena y cielo» (solo de sitio).
+- [x] F8.9 (v309) Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 9 · Restaurar y limpiar 👑
 Modelos candidatos: NAFNet (desenfoque). Resto: algoritmos clásicos.
@@ -819,7 +819,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 5 · Deformación | v305 | 5 nov 2026 | Hecha salvo MI-GAN en F5.4. Motor MLS + GPU/CPU + fondo con LaMa; sin interfaz. |
 | 6 · Cuerpo | v307 (1.4.0) | 5 nov 2026 | Hecha salvo probar con cuerpo entero real (F6.3 cerrada en v308). Editor de cuerpo con 5 funciones, forma de la cara y tamaño de ojos. |
 | 7 · Ropa y tejidos | v308 (1.5.0) | 5 nov 2026 | Hecha. Planchar, color y textura de prendas y telas en un editor propio; F6.3 (puntos arrastrables) cerrada. Falta probar con fotos reales de ropa muy estampada. |
-| 8 · Escena | | | |
+| 8 · Escena, cielo y color | v309 (1.6.0) | 5 nov 2026 | Hecha. Ocho funciones con diálogo simple y motor propio. Falta probar con fotos reales (cielo, neblina) y los modelos. |
 | 9 · Restaurar | | | |
 | 10 · Objetos | | | |
 | 11 · Realismo | | | |
