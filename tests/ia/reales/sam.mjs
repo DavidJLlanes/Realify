@@ -11,6 +11,7 @@ import { abrir } from "../lib/navegador.mjs";
 const dir = process.env.REALIFY_FOTOS || "/tmp/claude-0/fotos", [foto = "dog.jpg", ax = "0.5", ay = "0.6", bx = "0.5", by = "0.75"] = process.argv.slice(2);
 if (!fs.existsSync(path.join(dir, foto))) { console.log("sam (real): sin foto, se salta"); process.exit(0); }
 const m = await abrir("escritorio"); let fallos = 0; const ok = (c, t) => { if (!c) { fallos++; console.log("FALLO:", t); } };
+await m.page.evaluate(() => setInterval(() => { const b = [...document.querySelectorAll(".modal button")].find(x => x.textContent.trim() === "Descargar"); if (b) b.click(); }, 300));   // aviso de descarga del modelo (se sirve en local)
 const url = "data:image/jpeg;base64," + fs.readFileSync(path.join(dir, foto)).toString("base64");
 await m.page.evaluate(async url => { const img = new Image(); img.src = url; await img.decode(); const D = await import("/js/core/doc.js"); D.newDoc(img.naturalWidth, img.naturalHeight, { name: "real", fill: "#fff" }); D.doc.layers[0].ctx.drawImage(img, 0, 0); }, url);
 await m.page.evaluate(async () => { const C = await import("/js/core/commands.js"); window.__p = C.run("ai.smartBrush"); });
