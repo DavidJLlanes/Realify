@@ -9,12 +9,12 @@ import { toSpanish } from "../../../../ai/es2en.js";
 const minus = s => String(s || "").toLowerCase().trim();
 const palabrasEn = label => minus(label).replace(/[^a-z\s-]/g, " ").split(/\s+/).filter(Boolean);
 
-export function etiquetasDe(r, { max = 8 } = {}){
+export function etiquetasDe(r, { max = 8, minP = 0.06 } = {}){
   const out = []; const poner = t => { t = minus(t); if(t && !out.includes(t)) out.push(t); };
   if(r.catEtiqueta && !/detecci/i.test(r.catEtiqueta)) poner(r.catEtiqueta);
   if(r.grupo && !/detecci|especial/i.test(r.grupo)) poner(r.grupo.replace(/\s*&\s*.*/, ""));
   for(const t of r.top || []){
-    if(t.p < 0.06) continue;
+    if(t.p < minP) continue;
     const w = palabrasEn(t.label), es = toSpanish(w.join(" ")) || toSpanish(w[w.length - 1]);
     if(es) poner(es);
   }
