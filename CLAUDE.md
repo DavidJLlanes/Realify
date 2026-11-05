@@ -1,7 +1,8 @@
 # Realify · normas del proyecto
 
 Editor de imágenes PWA (JavaScript con módulos ES, sin compilación) que se publica
-en realify.es con GitHub Actions al subir a `main`.
+en realify.es. **El despliegue lo hace el titular a mano con `git` en el VPS**: el flujo
+`deploy.yml` de GitHub Actions está desactivado, así que subir a `main` no publica nada por sí solo.
 
 ## Trabajo
 - Responder siempre en **español**.
@@ -13,9 +14,9 @@ en realify.es con GitHub Actions al subir a `main`.
   `index.html`. En cada versión se suben los dos (el contador siempre; la pública según el cambio) y se
   actualizan `docs/CHANGELOG.md`, la guía (`js/ui/help/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
-- **Plan vigente**: el trabajo de ampliar Realify a editor completo con IA local sigue `docs/PLAN_EDITOR_IA_LOCAL.md`
-  (fases 0 a 16). Leerlo al empezar, hacer la fase que toque y marcar `[x]` con la versión al terminar cada tarea.
-  Todo lo nuevo va en archivos y carpetas nuevos, con la plantilla y los límites de tamaño de su sección 4.
+- **Plan vigente**: ampliar Realify a editor completo con IA local sigue `docs/PLAN_EDITOR_IA_LOCAL.md` (fases 0 a 16).
+  Leerlo al empezar, hacer la fase que toque y marcar `[x]` con la versión al terminar cada tarea. Normas de ese trabajo:
+  sección «Plan: editor completo con IA local», más abajo.
 - Al modificar una herramienta, comprobar sólo esa con `node tests/calidad-herramienta.mjs <comando>` (móvil y escritorio); no publicar con FALLO.
 
 ## Móvil y escritorio
@@ -59,7 +60,11 @@ exactamente igual que antes.
   y en el cajón llevan «Premium 👑» / la corona.
 - **De momento sin pago**: cualquiera puede usarlas.
 - Sus modelos sólo se descargan al usarlas (avisando antes del tamaño) y se
-  guardan en IndexedDB; licencias que permitan uso comercial (MIT, Apache…).
+  guardan en IndexedDB.
+- **Modelos: el de más calidad que pueda ejecutar un móvil de gama media (medido), sea cual sea su licencia**
+  (decisión del titular, 5 nov 2026). Se aceptan también las licencias de uso NO comercial. Cada modelo queda anotado en
+  `docs/MODELOS.md` y, si es no comercial, con `noncommercial: true` en el catálogo. Si algún día se cobra Premium, hay que
+  sustituir los marcados. Ya no hace falta pedir permiso para cada uno; las excepciones de abajo siguen anotadas como historial.
 - **Excepción aceptada por el usuario**: «Retoque de cara» y «Seleccionar por
   texto» (pelo, ojos, labios, orejas, cuello, gafas, sombrero) usan BiSeNet
   (`assets/models/faceparsing/`, entrenado con CelebAMask-HQ, uso NO comercial;
@@ -68,8 +73,29 @@ exactamente igual que antes.
 - Excepción aceptada por el usuario: Zero-DCE++ (CC BY-NC, uso NO comercial) para iluminar fotos oscuras con IA. Si se cobra Premium, quitarlo o sustituirlo.
 - Excepción aceptada por el usuario: UltraSharp V2 Lite (CC BY-NC-SA 4.0, uso NO comercial) como modelo de máximo detalle de «Ampliar con IA», en Premium 👑 (se elige entre él y Real-ESRGAN). El usuario no cobra y es responsable de su uso; la licencia real está en el README.
 
+## Plan: editor completo con IA local
+Sigue `docs/PLAN_EDITOR_IA_LOCAL.md`. Las fases se hacen en orden: la 0 (cimientos) y la 1 (menús y cajón) van antes de
+cualquier función nueva.
+- **Una carpeta por función**: `js/features/<familia>/<función>/` con `README.md`, `manifest.js`, `index.js`, `ui.js`,
+  `controller.js`, `analysis.js`, `engine.js` y `params.js` (plantilla en la sección 4.2 del plan). El motor de píxeles es puro
+  (sin DOM) y la interfaz no calcula píxeles. Lo común va en `<familia>/shared/` o en `js/features/ai-kit/`: no se copian helpers.
+- **Tamaño de archivo**: objetivo ≤ 250 líneas, tope 400; `index.js` ≤ 40. Si un archivo crece, se divide por etapas (con
+  `splitter.mjs`). Cada archivo lleva su cabecera con el banner `═` en español (qué hace, entradas y salidas, límites).
+- **El manifiesto manda**: el menú de escritorio, el cajón del móvil, la lista ☰ y el registro de comandos salen del
+  `manifest.js` de cada función. No se escriben entradas a mano en `js/ui/menu/` ni en `ITEMS` del cajón para lo nuevo.
+- **Menú «Inteligencia Artificial»**: submenús de un solo nivel (sección 5 del plan) y, en el cajón, una fila de chips con los
+  mismos submenús y en el mismo orden. Un submenú sin funciones listas no se muestra. **Las pestañas «Básicos» y
+  «Automáticos» del cajón no se tocan** (lo vigila `tests/ia/cajon-basicos-auto.mjs`).
+- **Modelos**: se anotan en `docs/MODELOS.md` (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`). El catálogo
+  se reparte por familia en `js/ai/models/` y las tareas del worker en `js/ai/tasks/`.
+- **Pruebas**: `tests/ia/<familia>/`, además de `calidad-herramienta` y `npm run verify`.
+
 ## Límites
-- No mejorar Unmark (eliminación de marcas de agua).
+- **Unmark** (eliminación de marcas de agua) **sí se puede mejorar** (decisión del titular, 5 nov 2026); el alcance de cada
+  mejora se define con él antes de empezar.
+- **Editor de cuerpo**: sólo deforma y ajusta luz y color; nunca genera piel ni ropa. Perfiles adulto (hombre, mujer) e infantil
+  (niño, niña): el infantil no tiene mandos de pecho, caderas, glúteos ni definición muscular y usa rangos reducidos; si las
+  proporciones sugieren un menor, se parte del perfil infantil. Ningún modelo estima la edad ni el sexo: el perfil lo elige la persona.
 
 ## Estructura del código
 - **Capas** (ver README, «Capas del código»): un módulo sólo importa de su capa o de las de abajo. Comprobar con

@@ -1,7 +1,8 @@
 # Plan de acción · Realify como editor completo con IA local
 
 > **Documento vivo.** Se tacha (`[x]`) lo hecho con su versión, igual que en [`PENDIENTE.md`](PENDIENTE.md).
-> Redactado el 5 nov 2026 sobre la v298 (release 1.0.0). **Este documento no contiene cambios de código**: es solo el plan.
+> Redactado el 5 nov 2026 sobre la v298 (release 1.0.0) y actualizado ese mismo día con las decisiones del titular (licencias,
+> Unmark, restricciones del editor de cuerpo). **Este documento no contiene cambios de código**: es solo el plan.
 
 Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho (con la versión, p. ej. `[x] F3.2 … (v312)`).
 
@@ -35,17 +36,17 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 | **Móvil y escritorio siempre** | Cada función se prueba y se entrega en los dos modos, con el diseño actual de cada uno |
 | Funciones de IA nuevas **solo Premium 👑**, sin versión básica ni interruptor | Todo lo nuevo usa el procesado de alta calidad («el bueno y el mejor»); en menú y cajón llevan «Premium 👑» y la corona. De momento sin pago |
 | Modelos: bajo demanda, avisando del tamaño, guardados en IndexedDB | Se reutiliza `confirmDownload` de `js/ai/runtime.js` |
-| Licencias que permitan uso comercial (MIT, Apache…) | Los de uso no comercial solo entran con aceptación expresa del titular y constancia en `CLAUDE.md` (como BiSeNet, Zero-DCE++ y UltraSharp) |
+| Modelos: **el de más calidad que pueda ejecutar un móvil de gama media, con cualquier licencia** | Decisión del titular (5 nov 2026): se aceptan también los de uso no comercial; se anotan en `docs/MODELOS.md` con `noncommercial: true`, y hay que sustituirlos si algún día se cobra Premium |
 | Vista previa de la imagen prioritaria; interfaz **mínima** en móvil | Pocas filas, sin miniaturas aparte, sin textos de ayuda que quiten sitio |
 | Desplegables siempre cerrados; el teclado no tapa lo que se escribe | Se usa `js/ui/kit/keyboard.js` |
 | Resultados a **capa nueva** siempre que se pueda (con «mezcla» %) | `markMixLayer`; las funciones que cambian el tamaño abren pestaña nueva |
 | Comando nuevo → `js/app/commands/<dominio>.js`; nada en `js/main.js` | Ver 4.5 |
 | Capas del código (`node tools/verify/layers.mjs`) | `js/features/` (capa 2) no importa de `plugins/` (capa 4); los plugins se cargan con `import()` |
 | Librerías pesadas bajo demanda (`ensureVendor`), nunca en `index.html` | LLM, voz y vídeo |
-| **No mejorar Unmark** | Ver sección 11 |
+| **Unmark sí se puede mejorar** (decisión del titular, 5 nov 2026) | Tarea F11.7; el alcance se define con él antes de empezar |
 | Versionado: contador de compilación (siempre) + semver (según el cambio); actualizar `CHANGELOG.md`, la guía y los README | Parte de «hecho» en cada fase |
 | Tras tocar una herramienta: `node tests/calidad-herramienta.mjs <comando>` en móvil y escritorio; no publicar con FALLO | Parte de «hecho» |
-| Subir a `main` solo cuando el usuario lo pida | Cada push a `main` publica en realify.es |
+| Subir a `main` solo cuando el usuario lo pida | El despliegue lo hace el titular a mano con `git` en el VPS (el flujo de GitHub Actions está desactivado) |
 | **No tocar** las pestañas **Básicos** y **Automáticos** del cajón | Prueba de regresión desde la Fase 0 (F0.2) |
 
 ---
@@ -59,7 +60,9 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
   escritorio, el cajón del móvil, la lista del menú ☰ del móvil y el registro de comandos (4.2 y 4.5).
 - **Archivos pequeños.** Objetivo ≤ 250 líneas, tope 400. Hoy la mediana del proyecto es de 153 líneas y solo el 10 % pasa de 449.
 - **Primero el esqueleto.** La Fase 1 deja listos los submenús y el cajón; las fases siguientes solo añaden entradas.
-- **Seguridad del editor de cuerpo** (Fase 6): solo deformación geométrica y de luz o color, nunca síntesis de piel ni de
+- **Modelos: el mejor que pueda ejecutar un móvil de gama media** (medido en un dispositivo real), con cualquier licencia, también
+  las de uso no comercial (D2, resuelta el 5 nov 2026). Cada modelo se anota en `docs/MODELOS.md`.
+- **Seguridad del editor de cuerpo** (Fase 6, **confirmada por el titular el 5 nov 2026**): solo deformación geométrica y de luz o color, nunca síntesis de piel ni de
   ropa; perfiles adulto (hombre, mujer) e infantil (niño, niña) con mandos distintos; el perfil infantil no incluye mandos de
   pecho, caderas ni glúteos y usa rangos reducidos; si las proporciones sugieren un menor, el perfil infantil es el de partida.
   No se usa ningún modelo que estime edad o sexo: el perfil lo elige la persona.
@@ -68,7 +71,7 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 
 - [ ] D1 · ¿Dónde viven los modelos nuevos? `assets/models` ya pesa 326 MB. (Recomendado: ≤ 30 MB en `assets/models`; el resto en
       Hugging Face con revisión y `sha256` fijados.) — antes de la Fase 2
-- [ ] D2 · ¿Se aceptan modelos de uso no comercial en alguna función nueva? (Recomendado: no.) — antes de la Fase 2
+- [x] D2 · ¿Se aceptan modelos de uso no comercial? **Sí**: se elige lo mejor que pueda ejecutar un móvil, con cualquier licencia (5 nov 2026)
 - [ ] D3 · ¿Se añaden las funciones nuevas también a otras pestañas del cajón (Retoque, Selección, Mejorar…)? (Recomendado: solo
       «Inteligencia Artificial» y, si procede, «Retoque».) — antes de la Fase 1
 - [ ] D4 · LLM del asistente: tamaño y modelo. (Recomendado: Qwen2.5 0,5B o 1,5B, Apache-2.0.) — antes de la Fase 14
@@ -304,8 +307,8 @@ Origen: **E** = revisión de Evoto · **M** = modelos de IA en móvil · **I** =
 | 65 | Asistente por texto o voz con un modelo pequeño | I | No | F14 |
 | 66 | Vídeo: efectos de sensor y color, segmentación, estabilización | I, A | No | F15 |
 | 67 | PWA instalable y sin conexión | E | Sí | F16 (comprobar modelos sin conexión) |
-| 68 | EXIF realista | A | Parcial en Realify | Fuera (11) |
-| 69 | Limpieza de marcas de IA | A | Existe (Unmark) | Fuera (11) |
+| 68 | EXIF realista | A | Parcial en Realify (coincidencia de EXIF) | F11 |
+| 69 | Limpieza de marcas de IA (mejoras de Unmark) | A | Existe (Unmark) | F11 |
 | 70 | Galería con enlace de entrega y sincronización entre dispositivos | E | No | Fuera (11) |
 
 ---
@@ -319,8 +322,9 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase P · Plan (esta tarea)
 - [x] P.1 Revisión del repositorio en solo lectura (normas, menús, cajón, modelos, motores, pruebas).
 - [x] P.2 Redacción de este plan y subida a una rama del repositorio.
-- [ ] P.3 Revisión del plan por el titular y resolución de las decisiones D1 a D6 que bloqueen la Fase 0 y la 1.
-- [ ] P.4 Paso del plan a `main` («Sube a main y publica»).
+- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D2, restricciones del
+      editor de cuerpo y Unmark. Quedan D1, D3, D4, D5 y D6.
+- [x] P.4 Plan en `main` (5 nov 2026).
 
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
 Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado. Para el usuario no cambia nada.
@@ -336,7 +340,7 @@ Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado
 - [ ] F0.8 Plantilla de función (4.2) y generador `tools/scaffold/nueva-funcion-ia.mjs` (crea carpeta, manifiesto, prueba y entrada de comando).
 - [ ] F0.9 `tools/verify/file-size.mjs`: avisa de archivos nuevos de más de 300 líneas (aviso, no bloquea; no toca los archivos antiguos).
 - [ ] F0.10 `tests/ia/README.md` y `tests/ia/fixtures/` (imágenes sintéticas o CC0 con su autoría).
-- [ ] F0.11 Resolver D1, D2 y D3.
+- [ ] F0.11 Resolver D1 y D3 (D2 ya está resuelta).
 
 Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas a la línea base, cero cambios visibles.
 
@@ -358,10 +362,12 @@ Hecho cuando: nada de lo existente cambia de comportamiento, y las dos vistas mu
 
 ### Fase 2 · Análisis de personas (base del retrato y del cuerpo)
 Objetivo: una API única que diga quién hay en la foto y dónde está cada parte.
-Depende de: F0, D1, D2.
+Depende de: F0, D1.
+Criterio de elección: el modelo de mayor calidad que corra en un móvil de gama media, medido; la licencia no descarta (D2).
 Modelos candidatos: puntos de la cara (MediaPipe Face Landmarker), manos (MediaPipe Hand Landmarker), pose del cuerpo (RTMPose, MoveNet o BlazePose), partes del cuerpo y ropa (SegFormer o SCHP; licencia de los datos por revisar). Ver sección 8.
 
-- [ ] F2.1 Auditar licencias (pesos **y** datos) de los candidatos y registrarlos en `docs/MODELOS.md`; elegir.
+- [ ] F2.1 Medir los candidatos en un móvil de gama media (calidad, tiempo, memoria), registrar su licencia (pesos **y** datos) en
+      `docs/MODELOS.md` y elegir el mejor que quepa.
 - [ ] F2.2 Convertir a ONNX y probar WebGPU y WASM (`tools/models/`); anotar tamaños reales.
 - [ ] F2.3 Tareas del worker: `tasks/landmarks.js`, `tasks/hands.js`, `tasks/pose.js`, `tasks/humanparse.js`.
 - [ ] F2.4 `js/ai/people/analyze.js`: devuelve por persona `{ caja, cara (puntos), manos, pose, partes (máscaras), proporciones }`; Bueno = una pasada; Mejor = teselas para personas pequeñas y borde refinado.
@@ -494,7 +500,7 @@ Modelos candidatos: MI-GAN (relleno ligero para móvil).
 - [ ] F10.5 Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 11 · Realismo y autenticidad 👑
-Objetivo: reforzar lo que hace único a Realify, sin tocar Unmark.
+Objetivo: reforzar lo que hace único a Realify.
 
 - [ ] F11.1 `ai.smoothZones` · Zonas demasiado lisas: detectar zonas sin textura creíble y proponer grano, poros o trama (enlaza con F3.5 y F7.5).
 - [ ] F11.2 `ai.aiArtifacts` · Manos y dientes sospechosos: coherencia de puntos (número de dedos, proporciones, dientes) y **aviso**, no corrección automática.
@@ -502,6 +508,9 @@ Objetivo: reforzar lo que hace único a Realify, sin tocar Unmark.
 - [ ] F11.4 `ai.photoReport` · Informe de realismo: nitidez, ruido, rango dinámico, metadatos y puntuación, exportable a PDF o JSON.
 - [ ] F11.5 Antes/después comparable con la puntuación en pantalla.
 - [ ] F11.6 Menús, cajón, ☰, guía, pruebas.
+- [ ] F11.7 **Mejoras de Unmark** (el titular levantó el límite el 5 nov 2026). Antes de empezar se define con él el alcance:
+      qué marcas, qué mejoras y cómo se mide el resultado; después se redactan aquí sus tareas.
+- [ ] F11.8 Ampliar la coincidencia de EXIF de Realify (`js/filters/camera/exifmatch.js`); alcance a definir con el titular.
 
 ### Fase 12 · Estilos de cámara, color por referencia y presets 👑
 Depende de: F1.
@@ -551,14 +560,17 @@ Depende de: F9, F12, D5. Es la fase más grande: se divide en sub-fases.
 - [ ] F16.4 Comprobar que los modelos descargados funcionan sin conexión (PWA) y que Diagnóstico muestra y borra los nuevos.
 - [ ] F16.5 Medición con `tools/verify/perf.mjs`; el arranque no debe empeorar (los manifiestos son solo datos).
 - [ ] F16.6 Release 2.0.0.
+- [ ] F16.7 Lista de modelos no comerciales (de `docs/MODELOS.md`) con su sustituto previsto, por si algún día se cobra Premium.
 
 ---
 
 ## 8. Modelos y licencias
 
-Todos los candidatos están **sin auditar**: en la fase correspondiente se comprueba la licencia de los **pesos** y la de los **datos de
-entrenamiento** (como pasó con BiSeNet y CelebAMask-HQ) y se registra en `docs/MODELOS.md` antes de adoptarlos. Los tamaños se
-miden al convertir; ningún número de este plan es medido.
+Criterio: **el mejor modelo que pueda ejecutar un móvil de gama media**, con cualquier licencia (D2). Todos los candidatos están
+**sin medir ni auditar**: en la fase correspondiente se mide calidad, tiempo y memoria en un móvil real, y se registra la licencia de
+los **pesos** y la de los **datos de entrenamiento** en `docs/MODELOS.md` (con `noncommercial: true` si procede). Ningún número de
+este plan es medido. Como ya no se descartan por licencia, en cada tarea de modelos se compara también con las variantes más
+grandes de la misma familia y se elige la mayor que quepa.
 
 | Para qué | Candidato | Licencia esperada (verificar) | Notas |
 |---|---|---|---|
@@ -573,12 +585,13 @@ miden al convertir; ningún número de este plan es medido.
 | Texto alternativo | Captioning pequeño (p. ej. Florence-2 base) | MIT (a verificar) | Alternativa: etiquetas CLIP con plantillas |
 | Asistente | Qwen2.5 0,5B o 1,5B, SmolLM2 | Apache-2.0 | Gemma tiene términos propios: revisar antes |
 | Voz a texto | Whisper tiny o base | MIT | Opcional |
-| Profundidad | Depth Anything V2 **Small** (ya incluido) | Apache-2.0 | **No** usar Base ni Large (no comercial) |
+| Profundidad | Depth Anything V2 **Small** (ya incluido, Apache-2.0); **Base** como candidato de más calidad | Base y Large: no comercial (según recuerdo; verificar) | Se mide si Base cabe en un móvil de gama media; Large casi seguro no |
 | Normales, arrugas, polvo, moiré, brillos | Sin modelo (algoritmos propios) | — | |
 | Vídeo | MODNet (ya), OpenCV.js (ya), WebCodecs | — | |
 
-Reglas: no se añade ningún modelo no comercial sin aceptación expresa y constancia en `CLAUDE.md`; los modelos de más de ~150 MB se
-marcan como avanzados y avisan en el móvil; ningún modelo estima edad o sexo.
+Reglas: los modelos no comerciales se aceptan y se marcan (`noncommercial: true`); si algún día se cobra Premium hay que
+sustituirlos (tarea de F16); los de más de ~150 MB se marcan como avanzados y avisan en el móvil; ningún modelo estima edad o sexo.
+Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0).
 
 ---
 
@@ -604,7 +617,7 @@ marcan como avanzados y avisan en el móvil; ningún modelo estima edad o sexo.
 |---|---|
 | Memoria del móvil con modelos y fotos grandes | Análisis a baja resolución, aplicación por bloques, cancelación, protección `HEAVY` ya existente, aviso en modelos grandes |
 | WebGPU irregular entre dispositivos | Respaldo en WASM probado desde F2; GPU solo donde está validada |
-| Licencias de datos de entrenamiento | Auditoría en cada fase (D2) y registro en `docs/MODELOS.md` |
+| Modelos de uso no comercial si algún día se cobra Premium | Marcados con `noncommercial: true` y listados en `docs/MODELOS.md`; tarea F16.7 para sustituirlos o quitarlos |
 | Deformaciones del cuerpo con artefactos (líneas del fondo, plegados) | Control del jacobiano, compensación del fondo, zonas protegidas, límites por mando |
 | Mal uso del editor de cuerpo | Reglas de seguridad de la sección 3 y prueba F6.9 |
 | Peso del repositorio (`assets/models` ya 326 MB) | Modelos grandes en Hugging Face con revisión fija |
@@ -616,8 +629,6 @@ marcan como avanzados y avisan en el móvil; ningún modelo estima edad o sexo.
 
 ## 11. Fuera de este plan
 
-- **Limpieza de marcas de IA y cualquier mejora de Unmark**: `CLAUDE.md` dice «No mejorar Unmark». Lo que existe se queda como está.
-- **EXIF realista**: ya hay coincidencia de EXIF en Realify; no se amplía aquí.
 - **Galería con enlace de entrega y sincronización entre dispositivos**: necesitan un servidor; el proyecto es local y sin servidores.
 - **Estimar la edad o el sexo de una persona con un modelo**: el perfil del editor de cuerpo lo elige la persona.
 - **Generar contenido nuevo del cuerpo** (piel, ropa quitada o añadida): solo se deforma y se ajusta luz y color.
@@ -628,7 +639,7 @@ marcan como avanzados y avisan en el móvil; ningún modelo estima edad o sexo.
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | Redactado; pendiente de revisión |
+| P · Plan | — | 5 nov 2026 | En `main`; decididas D2, el editor de cuerpo y Unmark; quedan D1, D3, D4, D5 y D6 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
