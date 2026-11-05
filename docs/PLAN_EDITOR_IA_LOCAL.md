@@ -74,7 +74,8 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 - [x] D2 · ¿Se aceptan modelos de uso no comercial? **Sí**: se elige lo mejor que pueda ejecutar un móvil, con cualquier licencia (5 nov 2026)
 - [x] D3 · ¿Se añaden las funciones nuevas también a otras pestañas del cajón? **Sí: a «Inteligencia Artificial» y a las pestañas
       afines de cada una** (tabla en 5.2); nunca a Básicos ni Automáticos (5 nov 2026)
-- [ ] D4 · LLM del asistente: tamaño y modelo. (Recomendado: Qwen2.5 0,5B o 1,5B, Apache-2.0.) — antes de la Fase 14
+- [x] D4 · LLM del asistente: **Qwen2.5 1,5B Instruct** (Apache-2.0). Si en la medición del F14.1 no cabe o va demasiado lento en un
+      móvil de gama media, se baja a la de 0,5B y se anota aquí (5 nov 2026)
 - [ ] D5 · Límites del vídeo (duración y resolución en móvil y en escritorio). — antes de la Fase 15
 - [ ] D6 · Nuevo texto de presentación de la web («editor completo con IA local») en `index.html`, manifiesto, README y «Acerca de». — Fase 16
 
@@ -340,8 +341,8 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase P · Plan (esta tarea)
 - [x] P.1 Revisión del repositorio en solo lectura (normas, menús, cajón, modelos, motores, pruebas).
 - [x] P.2 Redacción de este plan y subida a una rama del repositorio.
-- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1, D2, D3, restricciones del
-      editor de cuerpo y Unmark. Quedan D4, D5 y D6.
+- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1 a D4, restricciones del
+      editor de cuerpo y Unmark. Quedan D5 y D6.
 - [x] P.4 Plan en `main` (5 nov 2026).
 
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
@@ -551,10 +552,10 @@ Modelos candidatos: CLIP (búsqueda y etiquetas), captioning pequeño (texto alt
 - [ ] F13.6 Menús, cajón, ☰, guía, pruebas.
 
 ### Fase 14 · Asistente de edición con IA local 👑
-Depende de: F1 (manifiestos con `params`), D4.
+Depende de: F1 (manifiestos con `params`). Modelo: Qwen2.5 1,5B Instruct (D4).
 Diseño: el modelo **no ejecuta código**; devuelve un plan en JSON que se valida contra el esquema de `params` de los manifiestos; el usuario lo ve y lo confirma; se aplica con el motor de «Acciones».
 
-- [ ] F14.1 Cargar el LLM bajo demanda con `ensureVendor` y WebGPU (avisando del tamaño); respaldo claro si el dispositivo no puede.
+- [ ] F14.1 Cargar Qwen2.5 1,5B bajo demanda con `ensureVendor` y WebGPU (avisando del tamaño); medir en un móvil de gama media y, si no cabe, bajar a 0,5B; respaldo claro si el dispositivo no puede.
 - [ ] F14.2 Esquema de herramientas generado desde los manifiestos (comando, parámetros, rangos).
 - [ ] F14.3 Interfaz mínima de texto: «hazla más cálida y con grano de película» → vista previa → aplicar.
 - [ ] F14.4 Voz opcional con un modelo local (tipo Whisper tiny); sin enviar audio fuera del equipo.
@@ -601,7 +602,7 @@ grandes de la misma familia y se elige la mayor que quepa.
 | Quitar desenfoque | NAFNet | MIT | Por bloques |
 | Búsqueda, etiquetas, calidad | CLIP ViT-B/32 o SigLIP | MIT / Apache-2.0 | Tokenizador de CLIP ya incluido |
 | Texto alternativo | Captioning pequeño (p. ej. Florence-2 base) | MIT (a verificar) | Alternativa: etiquetas CLIP con plantillas |
-| Asistente | Qwen2.5 0,5B o 1,5B, SmolLM2 | Apache-2.0 | Gemma tiene términos propios: revisar antes |
+| Asistente | **Qwen2.5 1,5B Instruct** (elegido, D4); 0,5B de respaldo | Apache-2.0 | Gemma tiene términos propios: revisar antes |
 | Voz a texto | Whisper tiny o base | MIT | Opcional |
 | Profundidad | Depth Anything V2 **Small** (ya incluido, Apache-2.0); **Base** como candidato de más calidad | Base y Large: no comercial (según recuerdo; verificar) | Se mide si Base cabe en un móvil de gama media; Large casi seguro no |
 | Normales, arrugas, polvo, moiré, brillos | Sin modelo (algoritmos propios) | — | |
@@ -657,7 +658,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | En `main`; decididas D1, D2, D3, el editor de cuerpo y Unmark; quedan D4, D5 y D6 |
+| P · Plan | — | 5 nov 2026 | En `main`; decididas D1 a D4, el editor de cuerpo y Unmark; quedan D5 y D6 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
