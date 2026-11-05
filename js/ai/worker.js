@@ -14,7 +14,7 @@
      · js/ai/engine/ → mensajes, almacén de modelos, sesiones, tensores, teselas
      · js/ai/tasks/  → una tarea por archivo (matte, inpaint, restore, upscale,
                        colorize, probe, sam, faces, parse, depth, face-restore,
-                       classify, sky, person, clipseg)
+                       classify, sky, person, clipseg, landmarks, hands, pose, humanparse)
    Una tarea nueva = un archivo en tasks/ y una línea en TASKS.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -44,6 +44,10 @@ import { faceRestore } from "./tasks/face-restore.js";
 import { classify } from "./tasks/classify.js";
 import { segSky } from "./tasks/sky.js";
 import { segPerson } from "./tasks/person.js";
+import { landmarks } from "./tasks/landmarks.js";
+import { handDetect, handLandmarks } from "./tasks/hands.js";
+import { pose } from "./tasks/pose.js";
+import { humanParse } from "./tasks/humanparse.js";
 import { post } from "./engine/post.js";
 import { sessions } from "./engine/sessions.js";
 
@@ -64,7 +68,7 @@ const OBSOLETE = ["gfpgan/gfpgan_1.4_fp16.onnx"].map(p => new URL("../../assets/
 
 setTimeout(() => { for(const u of OBSOLETE) deleteStored(u).catch?.(() => {}); }, 3000);
 
-const TASKS = { clipseg, matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore, classify, segSky, segPerson };
+const TASKS = { clipseg, matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore, classify, segSky, segPerson, landmarks, handDetect, handLandmarks, pose, humanParse };
 
 self.onmessage = async e => {
   const m = e.data || {};
@@ -85,7 +89,7 @@ self.onmessage = async e => {
     const t0 = performance.now();
     const res = await task(m);
     const backend = sessions.get(m.id)?.backend;
-    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer, res.depth?.buffer, res.prob?.buffer,
+    const transfer = [res.mask?.buffer, res.rgba?.buffer, res.ab?.buffer, res.logits?.buffer, res.lowRes?.buffer, res.depth?.buffer, res.prob?.buffer, res.pts?.buffer, res.probs?.buffer,
                       ...(res.outs || []).map(o => o.buffer),
                       ...Object.values(res.groups || {}).map(g => g.buffer)].filter(Boolean);
     post({ type:"result", req: m.req, ...res, backend, ms: Math.round(performance.now() - t0) }, transfer);

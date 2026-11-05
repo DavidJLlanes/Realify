@@ -13,8 +13,8 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
         busca en todos). En el menú ☰ aparecen igual, con un título por submenú. Un submenú sin herramientas listas no se
         muestra:</p>
       <ul>
-        <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto, Seleccionar cielo, Seleccionar por texto 👑 y
-          Seleccionar por profundidad 👑.</li>
+        <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto, Seleccionar cielo, Seleccionar por texto 👑,
+          Seleccionar por profundidad 👑 y Seleccionar partes 👑.</li>
         <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo y Expandir con IA.</li>
         <li><b>Retrato:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑 y Ojos rojos 👑.</li>
         <li><b>Escena y cielo:</b> Reemplazar cielo y Adaptive Photo Lens.</li>
@@ -108,6 +108,12 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           que se destapa con el fondo, y la guarda como <b>GIF</b>: en el iPhone, «Crear GIF» y luego
           «Guardar» (en la hoja del sistema, «Guardar imagen» la deja en Fotos); en Android y en el
           ordenador se descarga.</li>
+        <li id="ia-parts"><b>Seleccionar partes 👑</b> (Inteligencia Artificial › Seleccionar, y en la pestaña Selección del
+          cajón). Elige una parte de la persona —pelo, cara, piel, ropa (toda, de arriba, pantalón, falda, vestido), cinturón,
+          zapatos, brazos, piernas, gafas, sombrero, bolso, bufanda o la persona entera— y la IA la deja como <b>selección</b> o como
+          <b>máscara de la capa activa</b>. Si hay varias personas, eliges una o todas; «Suavidad del borde» ajusta la transición.
+          Usa RTMPose (pose) y SegFormer (partes); la primera vez descarga los modelos (unos 82 MB en total) y todo se hace en tu
+          equipo. No separa cuello ni orejas: para eso, «Seleccionar por texto».</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

@@ -255,6 +255,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Partes",
+    "corona": true,
+    "auto": false
+   },
+   {
     "seccion": "Borrar y rellenar"
    },
    {
@@ -1245,6 +1250,11 @@
    {
     "etiqueta": "Parche",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Partes",
+    "corona": true,
     "auto": false
    },
    {
@@ -2671,6 +2681,11 @@
    {
     "etiqueta": "Mover",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Partes",
+    "corona": true,
     "auto": false
    },
    {

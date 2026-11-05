@@ -8,6 +8,7 @@
   "Ajustes",
   "Filtro",
   "Inteligencia Artificial",
+  "Vídeo",
   "Análisis",
   "Ver",
   "Ayuda"
@@ -45,6 +46,12 @@
      "label": "Seleccionar por profundidad Premium 👑…",
      "premium": true,
      "help": "La IA calcula la distancia de cada punto: elige primer plano, plano medio, fondo o un intervalo (toca la imagen para elegir una distancia) y deja una selección o la máscara de una capa, con el borde ajustado a la foto."
+    },
+    {
+     "cmd": "ai.partsSelect",
+     "label": "Seleccionar partes Premium 👑…",
+     "premium": true,
+     "help": "Elige una parte de la persona —pelo, cara, piel, ropa, brazos, piernas, zapatos…— y la IA (SegFormer + pose) la selecciona o la deja como máscara de la capa. Reconoce varias personas. Todo en tu equipo."
     }
    ]
   },

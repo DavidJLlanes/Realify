@@ -18,23 +18,23 @@ export function createPeopleCache(){
     get revision(){ return revision; },
     bump(){ revision++; entry = null; pending.clear(); return revision; },
     /** Resultado guardado válido para esa calidad (el de «mejor» sirve para «bueno»), o null. */
-    get(quality = "bueno"){
-      return entry && entry.revision === revision && RANK[entry.quality] >= RANK[quality] ? entry.result : null;
+    get(quality = "bueno", kinds = []){
+      return entry && entry.revision === revision && RANK[entry.quality] >= RANK[quality] && kinds.every(k => entry.kinds.includes(k)) ? entry.result : null;
     },
-    set(quality, result, forRevision = revision){
+    set(quality, result, forRevision = revision, kinds = []){
       if(forRevision !== revision) return false;          // el documento cambió mientras se analizaba: se descarta
-      entry = { revision, quality, result };
+      entry = { revision, quality, result, kinds };
       return true;
     },
     /** Devuelve el análisis guardado o lo calcula con `compute()` (una sola vez aunque lo pidan varios a la vez). */
-    async getOrCompute(quality, compute){
-      const hit = this.get(quality);
+    async getOrCompute(quality, compute, kinds = []){
+      const hit = this.get(quality, kinds);
       if(hit) return hit;
-      const rev = revision;
-      let p = pending.get(quality);
+      const rev = revision, key = quality + ":" + kinds.join(",");
+      let p = pending.get(key);
       if(!p){
-        p = (async () => { try { const r = await compute(); this.set(quality, r, rev); return r; } finally { if(rev === revision) pending.delete(quality); } })();
-        pending.set(quality, p);
+        p = (async () => { try { const r = await compute(); this.set(quality, r, rev, kinds); return r; } finally { if(rev === revision) pending.delete(key); } })();
+        pending.set(key, p);
       }
       return p;
     }

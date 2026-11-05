@@ -29,3 +29,6 @@ node_modules/
 # Resultados de las comprobaciones locales (tools/verify); la línea base de partida sí se versiona
 tools/verify/baseline/*.actual.json
 tools/verify/baseline/screens/actual-*.png
+
+# Modelos de entrada sin procesar (se convierten con tools/models/convertir-personas.py; no se suben)
+assets/models/_entrada/

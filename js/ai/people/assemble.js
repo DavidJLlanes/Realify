@@ -62,6 +62,6 @@ export function buildPersons(caras, res = {}, imgW = 0, imgH = 0){
       if((inside(p.caja, cx, cy) || dd < 3) && dd < d){ best = i; d = dd; } });
     if(best >= 0) personas[best].manos.push(m);
   }
-  for(const s of res.partes || []) if(personas[s.persona]) personas[s.persona].partes = { w: s.w, h: s.h, mascaras: s.mascaras };
+  for(const s of res.partes || []) if(personas[s.persona]) personas[s.persona].partes = { caja: s.caja, w: s.w, h: s.h, mascaras: s.mascaras };
   return personas;
 }

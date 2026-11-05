@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T12:47:41.726Z",
+ "generated": "2026-11-05T14:17:02.782Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 2094,
-     "requests": 217,
-     "jsRequests": 200,
+     "readyMs": 1643,
+     "requests": 219,
+     "jsRequests": 202,
      "cssRequests": 12,
-     "jsBytes": 2085217,
+     "jsBytes": 2089433,
      "cssBytes": 177122,
-     "transferBytes": 942893,
-     "domContentLoaded": 1961,
-     "fcp": 1928
+     "transferBytes": 945277,
+     "domContentLoaded": 1530,
+     "fcp": 1500
     },
     {
-     "readyMs": 1541,
+     "readyMs": 1025,
      "requests": 216,
-     "jsRequests": 200,
+     "jsRequests": 201,
      "cssRequests": 12,
-     "jsBytes": 2085217,
+     "jsBytes": 2081588,
      "cssBytes": 177122,
-     "transferBytes": 940896,
-     "domContentLoaded": 1080,
-     "fcp": 784
+     "transferBytes": 938085,
+     "domContentLoaded": 943,
+     "fcp": 400
     },
     {
-     "readyMs": 1338,
-     "requests": 216,
-     "jsRequests": 200,
+     "readyMs": 1257,
+     "requests": 218,
+     "jsRequests": 202,
      "cssRequests": 12,
-     "jsBytes": 2085217,
+     "jsBytes": 2089433,
      "cssBytes": 177122,
-     "transferBytes": 940896,
-     "domContentLoaded": 1240,
-     "fcp": 492
+     "transferBytes": 943280,
+     "domContentLoaded": 1085,
+     "fcp": 556
     }
    ],
-   "medianReadyMs": 1541,
-   "medianTransferBytes": 940896
+   "medianReadyMs": 1257,
+   "medianTransferBytes": 943280
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -108,6 +108,7 @@
     "ai.faceRetouch",
     "ai.lowLight",
     "ai.magicErase",
+    "ai.partsSelect",
     "ai.photo3d",
     "ai.redEye",
     "ai.smartCrop",
@@ -1874,6 +1875,17 @@
          "label": "Seleccionar por profundidad Premium 👑…",
          "premium": true,
          "help": "La IA calcula la distancia de cada punto: elige primer plano, plano medio, fondo o un intervalo (toca la imagen para elegir una distancia) y deja una selección o la máscara de una capa, con el borde ajustado a la foto."
+        },
+        {
+         "cmd": "ai.partsSelect",
+         "ic": "user-round",
+         "label": "Seleccionar partes Premium 👑…",
+         "premium": true,
+         "help": "Elige una parte de la persona —pelo, cara, piel, ropa, brazos, piernas, zapatos…— y la IA (SegFormer + pose) la selecciona o la deja como máscara de la capa. Reconoce varias personas. Todo en tu equipo.",
+         "short": "Partes",
+         "tabs": [
+          "seleccion"
+         ]
         }
        ],
        "iaId": "seleccionar",
@@ -2316,7 +2328,7 @@
      ]
     }
    ],
-   "menuHash": "f59ad02b88bfd1ee"
+   "menuHash": "4c86fa82ab0229a7"
   },
   "screens": {
    "welcome": "e8aab073050dda2e",
@@ -4263,20 +4275,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1285,
-   "requests": 216,
-   "jsRequests": 200,
+   "readyMs": 1227,
+   "requests": 218,
+   "jsRequests": 202,
    "cssRequests": 12,
-   "jsBytes": 2085727,
+   "jsBytes": 2089433,
    "cssBytes": 177122,
-   "transferBytes": 941108,
-   "domContentLoaded": 1190,
-   "fcp": 872
+   "transferBytes": 943280,
+   "domContentLoaded": 1086,
+   "fcp": 824
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
    "withImage": "91216a462b558bfe",
-   "drawer": "2c8066d87986d537"
+   "drawer": "53b3b078245a5530"
   },
   "opened": true,
   "drawer": true,

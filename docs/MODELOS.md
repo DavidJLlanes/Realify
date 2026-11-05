@@ -16,7 +16,7 @@ en [`assets/models/`](../assets/models/). Las atribuciones completas están en [
 - **Al añadir un modelo**: una línea en esta tabla (con la huella: `node tools/models/sha256.mjs <archivo>`), su entrada en el archivo de su
   familia en `js/ai/models/`, su atribución en `ATTRIBUTIONS.md` y, si no es comercial, `noncommercial: true`.
 
-## Modelos en uso (24 del catálogo + Zero-DCE++)
+## Modelos en uso (29 del catálogo + Zero-DCE++)
 
 «Datos» = licencia de los datos de entrenamiento. **«no revisada»** significa que todavía no se ha comprobado y hay que hacerlo antes de
 cobrar Premium; los únicos con restricción conocida están marcados. «Móvil» indica cómo se usa hoy; la medición en móviles reales de gama
@@ -49,6 +49,18 @@ media se hace en F15.1 (vídeo) y F14.1 (LLM) y al incorporar cada modelo nuevo.
 | `sky` | Cielo y 150 clases más (DeepLab v3 ADE20K) | 9,2 MB | Apache-2.0 | ADE20K (no revisada) | tfjs-models convertido con tf2onnx; `assets/models/deeplab-ade20k/` | `79faffc49de400c6df20e8fda5115d20ef13fe3d8b661153b884d5677a84832e` | sí | incluido |
 | `person` | Personas (BodyPix MobileNetV1 0,75) | 5,2 MB | Apache-2.0 | no revisada | tfjs-models convertido con tf2onnx; `assets/models/bodypix/` | `e6eddaa8825e32a2b9f605de8188a73ec79ccc423f86977b9c96dbb0f9112695` | sí | incluido |
 | `zerodce (aparte)` | Iluminar fotos oscuras (Zero-DCE++) | 0,04 MB | CC BY-NC 4.0 | no revisada | Chongyi Li et al. (TPAMI 2021); `assets/models/zerodce/zerodce_pp.bin`; no está en `js/ai/models/` (lo carga `js/ai/zerodce.js`) | `621274928a1c991aa6cd55487811c0123acda50aa064155b4440085c05cb6466` | **no** | excepción aceptada por el titular |
+| `facelm` | Puntos de la cara (478) | 4,9 MB | Apache-2.0 | no revisada | MediaPipe Face Landmarker (`face_landmarker.task`, Google; `face_landmarks_detector.tflite` convertido a ONNX con tf2onnx, opset 17); en `assets/models/people/` | `2403895bbf7797cd3014ed6f195ee83c4c939381e186d27aa237b4d288f61df2` | sí | validado con una foto real (nariz de la malla = nariz de la pose) |
+| `handdet` | Detector de manos (palma) | 4,6 MB | Apache-2.0 | no revisada | MediaPipe Hand Landmarker (`hand_detector.tflite` → ONNX); en `assets/models/people/` | `eb62da01b7c27bb021ebbec3f612df551af77b525c0219b4ed02eb79c671f756` | sí | **sin validar con una mano real** (el decodificador de anclas es el estándar de MediaPipe) |
+| `handlm` | 21 puntos de la mano | 10,9 MB | Apache-2.0 | no revisada | MediaPipe Hand Landmarker (`hand_landmarks_detector.tflite` → ONNX); en `assets/models/people/` | `8130649ed54bbe8f4530cf8c0df05b4dcb046c10c184905c22a6e26e7b875f9e` | sí | **sin validar con una mano real** |
+| `pose` | Pose del cuerpo, 17 puntos COCO (RTMPose-m, Body7) | 27 MB | Apache-2.0 | Body7 (COCO, AIC, CrowdPose, MPII, sub-JHMDB, Halpe, PoseTrack18): por revisar | OpenMMLab (`rtmpose-m_simcc-body7_pt-body7_420e-256x192`, ONNX del SDK); pesos pasados a fp16 con cálculo fp32 (`tools/models/pesos-fp16.py`); en `assets/models/people/` | `fa1e31010ae80ac7fdffbdff1654d02d1b9edee98fe58ee1a0d664596552087c` | por revisar | fp16 vs fp32: < 0,5 px de diferencia; 0,04 s en CPU |
+| `humanparse` | Partes del cuerpo y ropa (18 clases) | 55 MB | MIT | ATR (Look into Person): por revisar | `mattmdjaga/segformer_b2_clothes` (Hugging Face), ONNX exportado a 512×512; pesos a fp16 con cálculo fp32; en `assets/models/people/` | `9d5f033f70ac6cff33113ed05699bc2e26eaed8d01cdcd1841d19bdab73195e4` | **no** (por precaución) | `noncommercial: true` hasta revisar hasta revisar los datos; fp16 vs fp32: 99,98 % de píxeles iguales |
+
+### Modelos de personas (Fase 2, v302)
+
+Medidos en CPU (WASM) con una foto real de 512×512: SegFormer 2,4 s, RTMPose 0,04 s, malla de cara 0,02 s. **Falta medir en un móvil de gama media
+(F2.8)**; con WebGPU deben ir bastante más rápido. Descartado: YOLOX-m (101 MB) como detector de personas: la caja de cada persona sale
+de la cara y se afina con la propia pose. Los originales (`face_landmarker.task`, `hand_landmarker.task`, los zip de OpenMMLab y el ONNX de
+SegFormer en fp32) no se guardan en el repositorio; se reproducen con `tools/models/convertir-personas.py`.
 
 ## Pendiente de este registro
 

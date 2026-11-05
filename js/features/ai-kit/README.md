@@ -13,3 +13,4 @@ Aquí vive lo que usan varias funciones de IA. **Nada de esto se copia en cada f
 
 Se añadirán cuando la primera función los necesite (no antes): `masks.js` (pluma, unión, resta, borde refinado) y el resto de
 `float.js`. Reglas: sin DOM salvo `visible-image`, `new-layer` y `preview`; ≤ 250 líneas por archivo; ver `docs/PLAN_EDITOR_IA_LOCAL.md` (4.3).
+- `simple-host.js`: monta como diálogo el panel de una función simple (usa `simple-panel.js`); es el único sitio que importa `dialog` para ellas.

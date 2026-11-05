@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.1.0 (compilación 302) · Seleccionar partes y análisis de personas con modelos 👑
+- Nueva herramienta **Inteligencia Artificial › Seleccionar › Seleccionar partes** (Premium 👑): pelo, cara, piel, ropa, brazos, piernas, zapatos, gafas, sombrero… de una o varias personas, como selección o máscara de la capa. Primera vez: descarga de unos 82 MB (RTMPose y SegFormer).
+- Fase 2: modelos de puntos de cara, manos, pose y partes del cuerpo en `assets/models/people/` (≈103 MB, ONNX; los dos grandes con pesos en fp16), tareas del worker, `analyze()` con los proveedores reales y `ai-kit/simple-host.js`. Registro en `docs/MODELOS.md`.
+- El modelo de partes se marca como no comercial hasta revisar los datos de entrenamiento.
+
 ### 1.0.0 (compilación 301) · Base del análisis de personas (sin cambios visibles)
 - Fase 2 del plan, parte sin modelos: `js/ai/people/` con los perfiles hombre/mujer/niño/niña (el infantil no tiene mandos de pecho, caderas, glúteos ni definición y usa rangos reducidos), proporciones, ensamblado de personas, caché por revisión del documento y `analyze()` con proveedores enchufables y cancelación. Prueba `tests/ia/personas.mjs`.
 - Pendiente de la fase: modelos de puntos de cara, manos, pose y partes del cuerpo.

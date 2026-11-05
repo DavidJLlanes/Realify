@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    IA · CATÁLOGO DE MODELOS (fachada)
-   El catálogo está repartido por familia en js/ai/models/ (segmentation, inpaint, enhance, faces, depth, scene).
+   El catálogo está repartido por familia en js/ai/models/ (segmentation, inpaint, enhance, faces, depth, scene, people).
    Este archivo conserva la API de siempre: MODELS (todos juntos) y mb(). Un modelo nuevo se añade en el archivo de su familia
    y se anota en docs/MODELOS.md.
    
@@ -18,7 +18,8 @@ import { ENHANCE } from "./models/enhance.js";
 import { FACES } from "./models/faces.js";
 import { DEPTH } from "./models/depth.js";
 import { SCENE } from "./models/scene.js";
+import { PEOPLE } from "./models/people.js";
 
-export const MODELS = { ...SEGMENTATION, ...INPAINT, ...ENHANCE, ...FACES, ...DEPTH, ...SCENE };
+export const MODELS = { ...SEGMENTATION, ...INPAINT, ...ENHANCE, ...FACES, ...DEPTH, ...SCENE, ...PEOPLE };
 
 export const mb = bytes => Math.round(bytes / 1e6) + " MB";

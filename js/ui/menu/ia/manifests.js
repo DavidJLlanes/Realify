@@ -6,6 +6,9 @@
    Esquema de un manifiesto: { cmd, label, short, icon, help, submenu, tabs:[], premium:true, ui, params, load }.
    ═══════════════════════════════════════════════════════════════ */
 
+import partsSelect from "../../../features/people/parts-select/manifest.js";
+
 export const MANIFESTS = [
+  partsSelect,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];
