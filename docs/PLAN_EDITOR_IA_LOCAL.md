@@ -67,7 +67,7 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
   pecho, caderas ni glúteos y usa rangos reducidos; si las proporciones sugieren un menor, el perfil infantil es el de partida.
   No se usa ningún modelo que estime edad o sexo: el perfil lo elige la persona.
 
-**Por decidir** (valor recomendado entre paréntesis; se resuelven antes de la fase indicada)
+**Decisiones del titular (D1 a D6, resueltas el 5 nov 2026)**
 
 - [x] D1 · ¿Dónde viven los modelos nuevos? **Hasta ~30 MB dentro del repositorio (`assets/models`); los más grandes en Hugging Face
       con la revisión (`HF_REV`) y el `sha256` fijados** (5 nov 2026). `assets/models` ya pesa 326 MB.
@@ -77,7 +77,8 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 - [x] D4 · LLM del asistente: **Qwen2.5 1,5B Instruct** (Apache-2.0). Si en la medición del F14.1 no cabe o va demasiado lento en un
       móvil de gama media, se baja a la de 0,5B y se anota aquí (5 nov 2026)
 - [x] D5 · Límites del vídeo: **se miden primero**; no se fijan números hasta terminar el estudio F15.1, con móviles reales (5 nov 2026)
-- [ ] D6 · Nuevo texto de presentación de la web («editor completo con IA local») en `index.html`, manifiesto, README y «Acerca de». — Fase 16
+- [x] D6 · Presentación: **«editor completo con IA local»** como mensaje principal, con la simulación de cámara de Realify como sello
+      propio. Los textos los redacta Claude en la Fase 16 (F16.1) y el titular los aprueba (5 nov 2026)
 
 ---
 
@@ -341,8 +342,8 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase P · Plan (esta tarea)
 - [x] P.1 Revisión del repositorio en solo lectura (normas, menús, cajón, modelos, motores, pruebas).
 - [x] P.2 Redacción de este plan y subida a una rama del repositorio.
-- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1 a D5, restricciones del
-      editor de cuerpo y Unmark. Queda D6.
+- [x] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas: D1 a D6, restricciones del editor de cuerpo y
+      Unmark (5 nov 2026).
 - [x] P.4 Plan en `main` (5 nov 2026).
 
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
@@ -573,7 +574,7 @@ Depende de: F9, F12. Es la fase más grande: se divide en sub-fases.
 - [ ] F15.6 Menú, cajón, ☰, guía, pruebas y medición de rendimiento.
 
 ### Fase 16 · Cierre, posicionamiento y publicación
-- [ ] F16.1 Nuevo texto de presentación (D6) en `index.html`, `manifest.webmanifest`, README y «Acerca de».
+- [ ] F16.1 Nuevo texto de presentación («editor completo con IA local», D6; borradores para aprobar) en `index.html`, `manifest.webmanifest`, README y «Acerca de».
 - [ ] F16.2 `docs/FUNCIONALIDADES.md` (recuentos), README sección 12, `js/vendor/ATTRIBUTIONS.md` con cada modelo nuevo, `docs/MODELOS.md` completo.
 - [ ] F16.3 Guía completa de IA por familias (`ia-*.js`) y tema de novedades.
 - [ ] F16.4 Comprobar que los modelos descargados funcionan sin conexión (PWA) y que Diagnóstico muestra y borra los nuevos.
@@ -658,7 +659,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | En `main`; decididas D1 a D5, el editor de cuerpo y Unmark; queda D6 |
+| P · Plan | — | 5 nov 2026 | En `main`; resueltas D1 a D6, el editor de cuerpo y Unmark; listo para empezar por la Fase 0 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
