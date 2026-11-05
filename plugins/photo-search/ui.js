@@ -6,7 +6,7 @@
    ═══════════════════════════════════════════════════════════════ */
 import { createShell, mountControls, decodePhoto, pickFiles } from "../../js/ui/kit/fsshell.js";
 import { toast } from "../../js/core/toast.js";
-import { indexarFoto } from "../../js/features/library/search-photos/analisis.js";
+import { indexarFoto } from "../../js/features/library/shared/indexar.js";
 import { buscar } from "../../js/features/library/search-photos/engine/consulta.js";
 import { todos, guardar, conocida, vaciar, claveDe } from "../../js/features/library/search-photos/indice.js";
 

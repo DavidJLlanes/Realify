@@ -45,6 +45,7 @@ import cameraPacks from "../../../features/style/camera-packs/manifest.js";
 import myStyles from "../../../features/style/my-styles/manifest.js";
 import culling from "../../../features/library/culling/manifest.js";
 import searchPhotos from "../../../features/library/search-photos/manifest.js";
+import autoTags from "../../../features/library/auto-tags/manifest.js";
 import smartBrush from "../../../features/compose/smart-brush/manifest.js";
 import quickErase from "../../../features/compose/quick-erase/manifest.js";
 import textPlacement from "../../../features/compose/text-placement/manifest.js";
@@ -58,7 +59,7 @@ export const MANIFESTS = [
   faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare, faceShape,
   bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
   clothesWrinkles, fabricWrinkles, recolorClothes, fabricTexture,
-  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight, textPlacement, smartBrush, quickErase, smoothZones, aiArtifacts, photoReport, styleFromReference, cameraPacks, myStyles, culling, searchPhotos,
+  skyEnhance, dehaze, categoryBoost, zonedWhiteBalance, highlightRecovery, harmonize, depthChroma, depthRelight, textPlacement, smartBrush, quickErase, smoothZones, aiArtifacts, photoReport, styleFromReference, cameraPacks, myStyles, culling, searchPhotos, autoTags,
   deblur, dustSpots, moire,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

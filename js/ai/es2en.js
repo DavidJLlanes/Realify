@@ -29,9 +29,10 @@ playa:beach|montaña:mountain|montana:mountain|río:river|rio:river|lago:lake|ma
 cara:face|rostro:face|pelo:hair|cabello:hair|ojo:eye|ojos:eyes|nariz:nose|boca:mouth|labios:lips|dientes:teeth|oreja:ear|orejas:ears|mano:hand|manos:hands|dedo:finger|pie:foot|pies:feet|brazo:arm|pierna:leg|piernas:legs|cabeza:head|cuello:neck|espalda:back|barba:beard|bigote:mustache|tatuaje:tattoo|
 velero:sailboat|barco:boat|helicóptero:helicopter|helicoptero:helicopter|patinete:scooter|tractor:tractor|ambulancia:ambulance|taxi:taxi|coche de policía:police car|coche de policia:police car|camión de bomberos:fire truck|camion de bomberos:fire truck|furgón:van|furgon:van|remolque:trailer|globo aerostático:hot air balloon|globo aerostatico:hot air balloon|monopatín:skateboard|monopatin:skateboard|patín:skate|
 `;
-const MAP = new Map();
+const MAP = new Map(), REV = new Map();
 for(const entry of PAIRS.split("|")){
   const e = entry.trim(); const i = e.indexOf(":"); if(i < 1) continue;
+  if(!REV.has(e.slice(i + 1).trim().toLowerCase())) REV.set(e.slice(i + 1).trim().toLowerCase(), e.slice(0, i).trim());
   const key = e.slice(0, i).trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ñ/g, "n"), val = e.slice(i + 1).trim();
   if(!MAP.has(key)) MAP.set(key, val);
 }
@@ -70,4 +71,10 @@ export function toEnglish(text){
     }
   }
   return { text: out.join(" ").trim(), changed };
+}
+
+/** Inglés → español para una palabra o expresión del diccionario («dog» → «perro»). Devuelve null si no la conoce. */
+export function toSpanish(word){
+  const k = String(word || "").toLowerCase().trim();
+  return (k.endsWith("s") ? REV.get(k.slice(0, -1)) : null) || REV.get(k) || null;
 }

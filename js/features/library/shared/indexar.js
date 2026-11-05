@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   BUSCAR FOTOS · INDEXAR UNA FOTO
+   BIBLIOTECA · INDEXAR UNA FOTO (lo usan Buscar fotos, Etiquetas y Texto alternativo)
    Con una copia reducida: la lente (js/filters/lens/classify.js: tipo de foto en español y las 10 clases de MobileNet) y los colores
    dominantes. Entradas: lienzo ≤ 640 px. Salida: { reg, mini } listo para guardar en el índice. El modelo se descarga sólo si hace falta.
    ═══════════════════════════════════════════════════════════════ */
-import { coloresDominantes } from "./engine/color.js";
+import { coloresDominantes } from "../search-photos/engine/color.js";
 
 export async function indexarFoto(c){
   const { classify } = await import("../../../filters/lens/classify.js"), { CATEGORY_BY_ID, GROUPS } = await import("../../../filters/lens/categories.js");

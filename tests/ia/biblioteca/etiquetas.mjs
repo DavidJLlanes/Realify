@@ -1,0 +1,22 @@
+/* ═════════════════════════════════════════════════
+   PRUEBA · Etiquetas y nombre (navegador, móvil y escritorio)
+   Foto roja sintética: el informe trae «Etiquetas» y «Nombre propuesto» con la plantilla, y el documento toma el nombre.
+   Uso: node tests/ia/biblioteca/etiquetas.mjs
+   ═════════════════════════════════════════════════ */
+import { abrir } from "../lib/navegador.mjs";
+let fallos = 0; const ok = (c, m) => { if (!c) { fallos++; console.log("FALLO:", m); } };
+async function probar(tipo){
+  const m = await abrir(tipo);
+  await m.page.evaluate(() => { setInterval(() => [...document.querySelectorAll("button")].find(b => /^Descargar/.test(b.textContent.trim()))?.click(), 300); });
+  await m.page.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(300, 200, { name: "x", fill: "#d02020" }); const C = await import("/js/core/commands.js"); window.__p = Promise.resolve(C.run("ai.autoTags")).catch(() => {}); });
+  await m.page.waitForSelector(".modal", { timeout: 20000 });
+  await m.page.fill('.modal input[type=text]', "{etiqueta}_{color}_{n}");
+  await m.page.click(".modal-foot button.primary");
+  const txt = await m.page.waitForFunction(() => { const t = document.querySelector(".modal-body")?.textContent || ""; return /Nombre propuesto/.test(t) ? t : false; }, null, { timeout: 90000 }).then(h => h.jsonValue()).catch(() => "");
+  console.log(tipo, txt.replace(/\s+/g, " ").slice(0, 200));
+  ok(/Etiquetas/.test(txt) && /rojo/.test(txt), `${tipo}: no sale «rojo»`); ok(/_rojo_001/.test(txt), `${tipo}: plantilla`);
+  const nombre = await m.page.evaluate(async () => (await import("/js/core/doc.js")).doc.name); ok(/_rojo_001$/.test(nombre), `${tipo}: nombre del documento ${nombre}`);
+  ok(m.errs.length === 0, `${tipo}: errores ${m.errs.slice(0, 2)}`); await m.cerrar();
+}
+await probar("escritorio"); await probar("movil");
+console.log(fallos ? `FALLOS: ${fallos}` : "OK · etiquetas"); process.exit(fallos ? 1 : 0);
