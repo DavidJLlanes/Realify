@@ -15,6 +15,8 @@ Herramientas **de desarrollo** (no se despliegan funciones nuevas en la web). So
 | `lint-refs.mjs` | ESLint con solo reglas de corrección (`no-undef`, `no-import-assign`…): detecta imports que faltan o variables de módulo asignadas desde otro módulo, **también en funciones que ninguna prueba ejecuta**. Con `--vs` muestra solo lo nuevo respecto a la versión de partida. | ~1 min |
 | `docs-links.mjs` | Comprueba los enlaces de los archivos Markdown (archivos y anclas). | segundos |
 | `units-equal.mjs` | Comprueba que al dividir un módulo no se perdió, duplicó ni alteró ninguna sentencia (ignora solo el `export ` añadido y las rutas relativas). | segundos |
+| `aislamiento.mjs` | Módulos aislados (hoy el editor de vídeo, `plugins/video/`): nada de fuera lo importa de forma estática, sólo se carga su puerta con `import()` y desde su archivo de comandos, y el módulo sólo importa de fuera desde su `bridge/`. Falla si se rompe. | segundos |
+| `file-size.mjs` | Avisa de los archivos de código creados desde que empezó el plan de IA que pasan de 250, 300 o 400 líneas (y de `index.js` de función de más de 40). Aviso, no bloquea (salvo `--estricto`). | segundos |
 
 ## Uso
 

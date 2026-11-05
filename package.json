@@ -9,13 +9,16 @@
   },
   "scripts": {
     "serve": "node tools/serve.mjs",
-    "verify": "npm run check:layers && npm run check:refs && npm run check:static && npm run check:docs && npm run check:smoke",
+    "verify": "npm run check:layers && npm run check:aislamiento && npm run check:refs && npm run check:static && npm run check:docs && npm run check:size && npm run check:smoke",
     "check:layers": "node tools/verify/layers.mjs",
     "check:refs": "node tools/verify/lint-refs.mjs . tools/verify/baseline/lint.actual.json --vs tools/verify/baseline/lint.copia.json",
     "check:static": "node tools/verify/static-check.mjs . tools/verify/baseline/static.actual.json && node tools/verify/compare.mjs static tools/verify/baseline/static.copia.json tools/verify/baseline/static.actual.json tools/verify/moves.phase1.json,tools/verify/moves.phase2.json",
     "check:smoke": "node tools/verify/smoke.mjs --root . --label actual --modules modules.fase2.json && node tools/verify/compare.mjs smoke tools/verify/baseline/smoke.copia.json tools/verify/baseline/smoke.actual.json",
     "perf": "node tools/verify/perf.mjs --root . --label actual --profile 4g --runs 3",
-    "check:docs": "node tools/verify/docs-links.mjs"
+    "check:docs": "node tools/verify/docs-links.mjs",
+    "check:aislamiento": "node tools/verify/aislamiento.mjs",
+    "check:size": "node tools/verify/file-size.mjs",
+    "test:ia": "node tests/ia/params-panel.mjs && node tests/ia/interfaces.mjs && node tests/ia/ai-kit.mjs && node tests/ia/ai-editor.mjs && node tests/ia/cajon-basicos-auto.mjs"
   },
   "devDependencies": {
     "acorn": "^8.19.0",
