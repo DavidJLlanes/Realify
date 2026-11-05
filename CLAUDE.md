@@ -86,7 +86,8 @@ cualquier función nueva.
 - **Menú «Inteligencia Artificial»**: submenús de un solo nivel (sección 5 del plan) y, en el cajón, una fila de chips con los
   mismos submenús y en el mismo orden. Un submenú sin funciones listas no se muestra. **Las pestañas «Básicos» y
   «Automáticos» del cajón no se tocan** (lo vigila `tests/ia/cajon-basicos-auto.mjs`).
-- **Modelos**: se anotan en `docs/MODELOS.md` (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`). El catálogo
+- **Modelos**: se anotan en `docs/MODELOS.md` (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`). Hasta ~30 MB
+  van en `assets/models`; los más grandes, en Hugging Face con la revisión (`HF_REV`) y el `sha256` fijados. El catálogo
   se reparte por familia en `js/ai/models/` y las tareas del worker en `js/ai/tasks/`.
 - **Pruebas**: `tests/ia/<familia>/`, además de `calidad-herramienta` y `npm run verify`.
 

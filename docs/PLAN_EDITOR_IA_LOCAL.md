@@ -69,8 +69,8 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 
 **Por decidir** (valor recomendado entre paréntesis; se resuelven antes de la fase indicada)
 
-- [ ] D1 · ¿Dónde viven los modelos nuevos? `assets/models` ya pesa 326 MB. (Recomendado: ≤ 30 MB en `assets/models`; el resto en
-      Hugging Face con revisión y `sha256` fijados.) — antes de la Fase 2
+- [x] D1 · ¿Dónde viven los modelos nuevos? **Hasta ~30 MB dentro del repositorio (`assets/models`); los más grandes en Hugging Face
+      con la revisión (`HF_REV`) y el `sha256` fijados** (5 nov 2026). `assets/models` ya pesa 326 MB.
 - [x] D2 · ¿Se aceptan modelos de uso no comercial? **Sí**: se elige lo mejor que pueda ejecutar un móvil, con cualquier licencia (5 nov 2026)
 - [ ] D3 · ¿Se añaden las funciones nuevas también a otras pestañas del cajón (Retoque, Selección, Mejorar…)? (Recomendado: solo
       «Inteligencia Artificial» y, si procede, «Retoque».) — antes de la Fase 1
@@ -322,8 +322,8 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase P · Plan (esta tarea)
 - [x] P.1 Revisión del repositorio en solo lectura (normas, menús, cajón, modelos, motores, pruebas).
 - [x] P.2 Redacción de este plan y subida a una rama del repositorio.
-- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D2, restricciones del
-      editor de cuerpo y Unmark. Quedan D1, D3, D4, D5 y D6.
+- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1, D2, restricciones del
+      editor de cuerpo y Unmark. Quedan D3, D4, D5 y D6.
 - [x] P.4 Plan en `main` (5 nov 2026).
 
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
@@ -340,7 +340,7 @@ Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado
 - [ ] F0.8 Plantilla de función (4.2) y generador `tools/scaffold/nueva-funcion-ia.mjs` (crea carpeta, manifiesto, prueba y entrada de comando).
 - [ ] F0.9 `tools/verify/file-size.mjs`: avisa de archivos nuevos de más de 300 líneas (aviso, no bloquea; no toca los archivos antiguos).
 - [ ] F0.10 `tests/ia/README.md` y `tests/ia/fixtures/` (imágenes sintéticas o CC0 con su autoría).
-- [ ] F0.11 Resolver D1 y D3 (D2 ya está resuelta).
+- [ ] F0.11 Resolver D3 (D1 y D2 ya están resueltas).
 
 Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas a la línea base, cero cambios visibles.
 
@@ -362,7 +362,7 @@ Hecho cuando: nada de lo existente cambia de comportamiento, y las dos vistas mu
 
 ### Fase 2 · Análisis de personas (base del retrato y del cuerpo)
 Objetivo: una API única que diga quién hay en la foto y dónde está cada parte.
-Depende de: F0, D1.
+Depende de: F0.
 Criterio de elección: el modelo de mayor calidad que corra en un móvil de gama media, medido; la licencia no descarta (D2).
 Modelos candidatos: puntos de la cara (MediaPipe Face Landmarker), manos (MediaPipe Hand Landmarker), pose del cuerpo (RTMPose, MoveNet o BlazePose), partes del cuerpo y ropa (SegFormer o SCHP; licencia de los datos por revisar). Ver sección 8.
 
@@ -639,7 +639,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | En `main`; decididas D2, el editor de cuerpo y Unmark; quedan D1, D3, D4, D5 y D6 |
+| P · Plan | — | 5 nov 2026 | En `main`; decididas D1, D2, el editor de cuerpo y Unmark; quedan D3, D4, D5 y D6 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
