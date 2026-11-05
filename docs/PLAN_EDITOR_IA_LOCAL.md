@@ -536,7 +536,7 @@ Modelos candidatos: puntos de la cara (MediaPipe Face Landmarker), manos (MediaP
 - [x] F2.5 `js/ai/people/cache.js`: caché por revisión del documento para que varias herramientas reutilicen el análisis. **(v301)** Invalida con cualquier cambio del documento, comparte la pasada entre herramientas y descarta un análisis que acaba tras un cambio.
 - [x] F2.6 `js/ai/people/profiles.js`: definición de los perfiles hombre, mujer, niño y niña (mandos, rangos, proporciones de referencia) — solo datos. **(v301)** 31 mandos adultos / 21 infantiles, presets, `sanitize` y `suggestProfile`; prueba de seguridad en `tests/ia/personas.mjs`.
 - [x] F2.7 Nueva entrada «Seleccionar partes» `ai.partsSelect` (piel, pelo, ropa, brazos, piernas…) que produce selección o máscara de capa. `ai.partsSelect` en `js/features/people/parts-select/` (interfaz simple, host `ai-kit/simple-host.js`). **(v302)**
-- [ ] F2.8 Pruebas con imágenes de varias personas, poses, tamaños y fondos; medir memoria y tiempo en un móvil de gama media.
+- [ ] F2.8 Pruebas con imágenes de varias personas, poses, tamaños y fondos; medir memoria y tiempo en un móvil de gama media. **Hecho a medias (v302):** probado con una composición de 3 personas de distinto tamaño y orientación (Bueno y Mejor: 3 personas, 478 puntos, pose y partes en cada una; `REALIFY_PERSONAS=3`). **Falta:** fotos reales de varias personas con solapes, poses y fondos variados, y medir memoria y tiempo en un móvil de gama media.
 
 Hecho cuando: el análisis funciona en móvil y escritorio, con cancelación y sin pasar de la memoria disponible.
 

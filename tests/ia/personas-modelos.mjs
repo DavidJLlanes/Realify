@@ -4,7 +4,7 @@
    Mejor; caché y cancelación. Los modelos se aceptan solos (el aviso de descarga se pulsa automáticamente).
    Foto: la de REALIFY_FOTO (ruta a una imagen con una persona; las fotos de personas NO se suben al repositorio) o, si no hay, el
    retrato sintético de tests/ia/fixtures (sólo se comprueba que el proceso corre sin errores).
-   Uso: [REALIFY_FOTO=foto.png] node tests/ia/personas-modelos.mjs
+   Uso: [REALIFY_FOTO=foto.png [REALIFY_PERSONAS=n]] node tests/ia/personas-modelos.mjs
    ═══════════════════════════════════════════════════════════════ */
 import fs from "node:fs";
 import path from "node:path";
@@ -14,6 +14,7 @@ import { abrir } from "./lib/navegador.mjs";
 const aqui = path.dirname(fileURLToPath(import.meta.url));
 const foto = process.env.REALIFY_FOTO || path.join(aqui, "fixtures", "retrato-sintetico.png");
 const real = !!process.env.REALIFY_FOTO;
+const ESPERADAS = +(process.env.REALIFY_PERSONAS || 1);   // nº de personas que hay en la foto (por defecto 1)
 const b64 = fs.readFileSync(foto).toString("base64");
 let fallos = 0;
 const ok = (c, m) => { if (!c) { fallos++; console.log("FALLO:", m); } };
@@ -41,12 +42,13 @@ ok(r.mismoObjeto, "la segunda petición no sale de la caché");
 ok(r.abortado, "la cancelación no lanza AbortError");
 if (real) {
   for (const [q, a] of [["bueno", r.bueno], ["mejor", r.mejor]]) {
-    ok(a.personas.length === 1, `${q}: debería haber 1 persona y hay ${a.personas.length}`);
-    const p = a.personas[0]; if (!p) continue;
-    ok(p.puntos === 478, `${q}: puntos de la cara ${p.puntos}`);
-    ok(p.nariz && p.nariz[2] > 0.5, `${q}: la pose no encuentra la nariz`);
-    ok(p.puntaNariz && p.nariz && Math.hypot(p.puntaNariz[0] - p.nariz[0], p.puntaNariz[1] - p.nariz[1]) < p.anchoCara * 0.3, `${q}: los puntos de la cara y la pose no coinciden en la nariz`);
-    ok(p.partes && p.partes.pelo > 0.01 && p.partes.cara > 0.01 && p.partes.ropaArriba > 0.05, `${q}: partes sin pelo, cara o ropa`);
+    ok(a.personas.length === ESPERADAS, `${q}: debería haber ${ESPERADAS} persona(s) y hay ${a.personas.length}`);
+    for (const p of a.personas) {
+      ok(p.puntos === 478, `${q}: puntos de la cara ${p.puntos}`);
+      ok(p.nariz && p.nariz[2] > 0.5, `${q}: la pose no encuentra la nariz`);
+      ok(p.puntaNariz && p.nariz && Math.hypot(p.puntaNariz[0] - p.nariz[0], p.puntaNariz[1] - p.nariz[1]) < p.anchoCara * 0.3, `${q}: los puntos de la cara y la pose no coinciden en la nariz`);
+      ok(p.partes && p.partes.pelo > 0.01 && p.partes.cara > 0.01 && p.partes.ropaArriba > 0.05, `${q}: partes sin pelo, cara o ropa`);
+    }
   }
   const d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   ok(d(r.bueno.personas[0].nariz, r.mejor.personas[0].nariz) < 12, "Bueno y Mejor sitúan la nariz muy distinto");
