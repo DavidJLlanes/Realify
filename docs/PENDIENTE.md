@@ -6,6 +6,9 @@ Cada fase es corta y se publica sola. Al terminar una tarea se marca `[x]` con l
 
 Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 
+> El plan de ampliar Realify a editor completo con IA local (fases 0 a 16) vive aparte, en
+> [`PLAN_EDITOR_IA_LOCAL.md`](PLAN_EDITOR_IA_LOCAL.md).
+
 ## Resumen de lo pendiente (actualizado en la v260, 6 oct 2026)
 Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada una (el detalle está en su fase).
 

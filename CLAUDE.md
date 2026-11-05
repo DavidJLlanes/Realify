@@ -13,6 +13,9 @@ en realify.es con GitHub Actions al subir a `main`.
   `index.html`. En cada versión se suben los dos (el contador siempre; la pública según el cambio) y se
   actualizan `docs/CHANGELOG.md`, la guía (`js/ui/help/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
+- **Plan vigente**: el trabajo de ampliar Realify a editor completo con IA local sigue `docs/PLAN_EDITOR_IA_LOCAL.md`
+  (fases 0 a 16). Leerlo al empezar, hacer la fase que toque y marcar `[x]` con la versión al terminar cada tarea.
+  Todo lo nuevo va en archivos y carpetas nuevos, con la plantilla y los límites de tamaño de su sección 4.
 - Al modificar una herramienta, comprobar sólo esa con `node tests/calidad-herramienta.mjs <comando>` (móvil y escritorio); no publicar con FALLO.
 
 ## Móvil y escritorio
