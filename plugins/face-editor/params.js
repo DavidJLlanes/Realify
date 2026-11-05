@@ -16,12 +16,17 @@ import { PARAMS as dientes } from "../../js/features/portrait/teeth/params.js";
 import { PARAMS as pelo } from "../../js/features/portrait/hair/params.js";
 import { PARAMS as sueltos } from "../../js/features/portrait/flyaway-hair/params.js";
 import { PARAMS as gafas } from "../../js/features/portrait/glasses-glare/params.js";
+import { PARAMS as forma } from "../../js/features/portrait/face-shape/params.js";
+import { PROFILES, PROFILE_IDS } from "../../js/ai/people/profiles.js";
 
 export const GRUPOS = [{ id: "arrugas", label: "Arrugas" }, { id: "ojeras", label: "Ojeras" }, { id: "brillos", label: "Brillos" },
   { id: "textura", label: "Textura" }, { id: "tono", label: "Imperfecciones" }, { id: "luz", label: "Luz" }, { id: "ojos", label: "Ojos" },
   { id: "labios", label: "Labios y cejas" }, { id: "dientes", label: "Dientes" }, { id: "pelo", label: "Pelo" }, { id: "sueltos", label: "Pelos sueltos" },
-  { id: "gafas", label: "Gafas" }];
-export const PARAMS = [...arrugas, ...ojeras, ...brillos, ...textura, ...tono, ...luz, ...ojos, ...labios, ...dientes, ...pelo, ...sueltos, ...gafas];
+  { id: "gafas", label: "Gafas" }, { id: "forma", label: "Forma" }];
+export const PARAMS = [...arrugas, ...ojeras, ...brillos, ...textura, ...tono, ...luz, ...ojos, ...labios, ...dientes, ...pelo, ...sueltos, ...gafas, ...forma];
+
+/** Perfiles que se ofrecen (sólo cambian el rango de la forma: el infantil lo tiene reducido). */
+export const PERFILES = PROFILE_IDS.map(id => ({ id, label: PROFILES[id].label }));
 
 /** Valores de arranque: los mandos que activan un efecto (`fx`) de los demás grupos empiezan en su valor neutro, para que sólo actúe la
     función que se abrió. */

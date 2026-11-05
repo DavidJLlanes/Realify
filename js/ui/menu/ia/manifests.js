@@ -19,10 +19,17 @@ import teeth from "../../../features/portrait/teeth/manifest.js";
 import hair from "../../../features/portrait/hair/manifest.js";
 import flyawayHair from "../../../features/portrait/flyaway-hair/manifest.js";
 import glassesGlare from "../../../features/portrait/glasses-glare/manifest.js";
+import faceShape from "../../../features/portrait/face-shape/manifest.js";
+import bodyEditor from "../../../features/body/editor/manifest.js";
+import bodyShape from "../../../features/body/shape/manifest.js";
+import bodyPosture from "../../../features/body/posture/manifest.js";
+import bodyTone from "../../../features/body/tone/manifest.js";
+import bodySkin from "../../../features/body/skin/manifest.js";
 
 export const MANIFESTS = [
   partsSelect,
   skinWrinkles, darkCircles, skinShine, skinTexture, skinEven,
-  faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare,
+  faceRelight, eyes, lipsBrows, teeth, hair, flyawayHair, glassesGlare, faceShape,
+  bodyEditor, bodyShape, bodyPosture, bodyTone, bodySkin,
   /* aquí se añade el import del manifiesto de cada función nueva (el generador imprime la línea) */
 ];

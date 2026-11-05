@@ -7,9 +7,11 @@
 import { deformarGPU } from "./render-gpu.js";
 import { deformarCPU } from "./render-cpu.js";
 
-export { crearCampo, muestrear, adelante, escalarCampo, maximo } from "./field.js";
+export { crearCampo, muestrear, adelante, escalarCampo, maximo, reescalar } from "./field.js";
 export { campoMLS, enderezar } from "./mls.js";
 export { limitar, minDet } from "./jacobian.js";
+export { Acum } from "./acum.js";
+export { deformarPlanos } from "./render-planos.js";
 export { deformarCPU } from "./render-cpu.js";
 export { descubierto, rellenar } from "./fondo.js";
 export { lamaInpaint } from "./lama.js";

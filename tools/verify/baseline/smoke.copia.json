@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T16:29:25.370Z",
+ "generated": "2026-11-05T17:01:38.105Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1566,
-     "requests": 243,
-     "jsRequests": 226,
+     "readyMs": 1943,
+     "requests": 250,
+     "jsRequests": 235,
      "cssRequests": 12,
-     "jsBytes": 2118309,
+     "jsBytes": 2139787,
      "cssBytes": 177122,
-     "transferBytes": 968060,
-     "domContentLoaded": 1430,
-     "fcp": 1144
+     "transferBytes": 974527,
+     "domContentLoaded": 1838,
+     "fcp": 1448
     },
     {
-     "readyMs": 1157,
-     "requests": 242,
-     "jsRequests": 226,
+     "readyMs": 1436,
+     "requests": 250,
+     "jsRequests": 234,
      "cssRequests": 12,
-     "jsBytes": 2118309,
+     "jsBytes": 2131942,
      "cssBytes": 177122,
-     "transferBytes": 966063,
-     "domContentLoaded": 1081,
-     "fcp": 504
+     "transferBytes": 973088,
+     "domContentLoaded": 1101,
+     "fcp": 408
     },
     {
-     "readyMs": 1362,
-     "requests": 242,
-     "jsRequests": 226,
+     "readyMs": 1333,
+     "requests": 250,
+     "jsRequests": 234,
      "cssRequests": 12,
-     "jsBytes": 2118309,
+     "jsBytes": 2131942,
      "cssBytes": 177122,
-     "transferBytes": 966063,
-     "domContentLoaded": 1086,
-     "fcp": 436
+     "transferBytes": 973088,
+     "domContentLoaded": 1246,
+     "fcp": 584
     }
    ],
-   "medianReadyMs": 1362,
-   "medianTransferBytes": 966063
+   "medianReadyMs": 1436,
+   "medianTransferBytes": 973088
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -95,6 +95,11 @@
     "adj.toneBand",
     "adj.vibrance",
     "adj.whiteBalance",
+    "ai.bodyEditor",
+    "ai.bodyPosture",
+    "ai.bodyShape",
+    "ai.bodySkin",
+    "ai.bodyTone",
     "ai.colorize",
     "ai.darkCircles",
     "ai.depthBlur",
@@ -109,6 +114,7 @@
     "ai.faceRelight",
     "ai.faceRestore",
     "ai.faceRetouch",
+    "ai.faceShape",
     "ai.flyawayHair",
     "ai.glassesGlare",
     "ai.hair",
@@ -2093,9 +2099,82 @@
          "tabs": [
           "retoque"
          ]
+        },
+        {
+         "cmd": "ai.faceShape",
+         "ic": "scan-face",
+         "label": "Forma de la cara Premium 👑…",
+         "premium": true,
+         "help": "Retoca la forma de la cara con cambios pequeños y naturales: mandíbula, mentón, anchura, nariz, tamaño de los ojos y grosor de los labios, deformando sin pliegues a partir de los 478 puntos de la cara. El perfil infantil usa un rango reducido. Capa nueva con «mezcla».",
+         "short": "Forma",
+         "tabs": [
+          "retoque"
+         ]
         }
        ],
        "iaId": "retrato",
+       "flattenAsHeader": true
+      },
+      {
+       "label": "Cuerpo",
+       "submenu": [
+        {
+         "cmd": "ai.bodyEditor",
+         "ic": "user-round",
+         "label": "Editor de cuerpo Premium 👑…",
+         "premium": true,
+         "help": "Abre el editor de cuerpo: silueta, proporciones, cabeza y cuello, torso, brazos, piernas, postura, definición y piel, con zoom en la persona. Eliges el perfil (hombre, mujer, niño o niña) y cada persona va a su propia capa.",
+         "short": "Cuerpo",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.bodyShape",
+         "ic": "ruler",
+         "label": "Silueta y proporciones Premium 👑…",
+         "premium": true,
+         "help": "Cambia la silueta y las proporciones: delgado o ancho, altura, piernas y torso, hombros, cintura, caderas, brazos y piernas. Deforma sin pliegues, protege el fondo lejano y deja cada persona en su capa.",
+         "short": "Silueta",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.bodyPosture",
+         "ic": "move-vertical",
+         "label": "Postura Premium 👑…",
+         "premium": true,
+         "help": "Endereza la postura: erguir la espalda, cuello adelantado y hombros caídos. Cambios pequeños y naturales, con el perfil de la persona.",
+         "short": "Postura",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.bodyTone",
+         "ic": "contrast",
+         "label": "Definición y tono Premium 👑…",
+         "premium": true,
+         "help": "Realza la definición del cuerpo adulto: relieve de luz y sombra y musculatura por zonas, sin generar piel. No existe para el perfil infantil.",
+         "short": "Definición",
+         "tabs": [
+          "retoque"
+         ]
+        },
+        {
+         "cmd": "ai.bodySkin",
+         "ic": "sun-medium",
+         "label": "Piel del cuerpo Premium 👑…",
+         "premium": true,
+         "help": "Piel del cuerpo: suavizar, uniformar el color y bronceado (adultos); el perfil infantil solo tiene «uniformar».",
+         "short": "Piel cuerpo",
+         "tabs": [
+          "retoque"
+         ]
+        }
+       ],
+       "iaId": "cuerpo",
        "flattenAsHeader": true
       },
       {
@@ -2472,11 +2551,11 @@
      ]
     }
    ],
-   "menuHash": "995b542910afe37a"
+   "menuHash": "4949bea88940851d"
   },
   "screens": {
-   "welcome": "832bd27e419fc6c7",
-   "withImage": "370d3b8b9ddf8ddf"
+   "welcome": "e8aab073050dda2e",
+   "withImage": "9248b096530b73fb"
   },
   "opened": true,
   "afterOpen": {
@@ -4419,20 +4498,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1253,
-   "requests": 243,
-   "jsRequests": 226,
+   "readyMs": 1178,
+   "requests": 250,
+   "jsRequests": 235,
    "cssRequests": 12,
-   "jsBytes": 2118309,
+   "jsBytes": 2139787,
    "cssBytes": 177122,
-   "transferBytes": 968060,
-   "domContentLoaded": 1123,
-   "fcp": 764
+   "transferBytes": 974527,
+   "domContentLoaded": 1035,
+   "fcp": 800
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",
    "withImage": "91216a462b558bfe",
-   "drawer": "53b3b078245a5530"
+   "drawer": "2c8066d87986d537"
   },
   "opened": true,
   "drawer": true,

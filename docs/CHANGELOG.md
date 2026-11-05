@@ -9,6 +9,17 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.4.0 (compilación 307) · Cuerpo y forma de la cara 👑
+- Submenú nuevo **Inteligencia Artificial › Cuerpo** (Premium 👑, pestaña Retoque del cajón): **Editor de cuerpo**, **Silueta y proporciones**, **Postura**, **Definición y tono** y **Piel del cuerpo**. Un editor a pantalla completa (`plugins/body-editor/`) con zoom en la persona, selector de persona y de **perfil** (hombre, mujer, niño, niña), ajustes rápidos por perfil y vista previa en vivo. Cada persona va a su propia capa (transparente donde no cambia, con «mezcla»).
+- Motor (`js/features/body/engine/`): de los mandos al campo de deformación de la Fase 5. Silueta, hombros, pecho, cintura, abdomen, caderas y glúteos, brazos, piernas, cuello, muñecas, rodillas y tobillos por cortes del cuerpo sobre la máscara de la persona; altura, proporción piernas/torso, largo de brazos y piernas, cabeza, manos y pies, y postura moviendo articulaciones. Sin plegados (se reduce la amplitud y se avisa) y con el fondo lejano protegido.
+- Definición y piel (`js/features/body/definition/`): relieve de luz y sombra, musculatura, suavizar, uniformar y bronceado en luz lineal y OKLab, sólo sobre la piel del cuerpo (sin cara ni pelo). No genera piel ni músculos.
+- Seguridad: el perfil infantil no tiene mandos de pecho, caderas, glúteos, cintura, abdomen, espalda ni definición, ni en la interfaz ni en los valores (prueba `tests/ia/cuerpo/motor.mjs`); usa rangos reducidos y parte de él si las proporciones sugieren un menor.
+- **Forma de la cara** (Retrato): mandíbula, mentón, anchura, nariz, tamaño de los ojos y grosor de los labios con la malla de 478 puntos como anclas. Grupo «Forma» del editor de cara, que gana un selector de perfil (rango reducido para el infantil). Con esto queda hecho el tamaño de los ojos pendiente de la Fase 4.
+- Un retrato que acaba en el pecho se admite: las caderas se estiman y valen los mandos de la parte alta.
+- Nuevos comunes: `warp/render-planos.js` (deformar planos Float32), `warp/acum.js`, `ai-kit/crop-compose.js` (pegar recortes, antes dentro del editor de cara) y selector de perfil en `ai-editor`.
+- Pruebas nuevas: `tests/ia/cuerpo/motor.mjs`, `tests/ia/cuerpo/editor.mjs`, `tests/ia/retrato/forma-motor.mjs`; `piel-editor.mjs` cubre ya trece funciones y espera bien el final de «Aplicar».
+- Pendiente de la fase: puntos arrastrables sobre las articulaciones, probar con fotos de cuerpo entero reales, y la definición con normales (ahora realza la luz que hay).
+
 ### 1.3.0 (compilación 306) · Líneas rectas del fondo en la compensación del fondo (sin cambios visibles)
 - F5.4: al rellenar el hueco que deja un cuerpo al estrecharse, las rectas del fondo que lo cruzan (marcos, horizontes, juntas) se detectan con una transformada de Hough guiada por el gradiente y se vuelven a trazar dentro del hueco continuando su perfil desde fuera (`js/features/warp/lineas.js`). Antes el modelo de relleno las rompía.
 - Prueba nueva en `tests/ia/warp/campo.mjs`: una recta inclinada que cruza el hueco vuelve a verse tras un relleno que la borra.

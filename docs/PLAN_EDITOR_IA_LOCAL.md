@@ -609,15 +609,15 @@ Depende de: F2, F4.1, F5.
 
 Presets por perfil: «Equilibrar proporciones», «Más alto», «Esbelto», «Atlético» (adultos); «Más alto» y «Postura» (infantil).
 
-- [ ] F6.1 `js/features/body/engine/`: de los sliders a un campo de deformación (usa F5), con simetría opcional y protección de cara y manos.
-- [ ] F6.2 `js/features/body/definition/`: musculatura y tono con normales (F4.1) y máscaras de partes; **sin generar piel**.
-- [ ] F6.3 `plugins/body-editor/` (sobre `ai-editor/` de F0.13, a pantalla completa como el collage, con zoom); selector de persona (varias), chips de grupo, un mando visible a la vez en móvil, puntos arrastrables sobre las articulaciones, antes/después, deshacer. Interfaz mínima (regla del móvil).
-- [ ] F6.4 Selector de perfil (hombre, mujer, niño, niña); si las proporciones sugieren un menor, el perfil de partida es el infantil.
-- [ ] F6.5 `ai.bodyEditor`, `ai.bodyShape`, `ai.bodyPosture`, `ai.bodyTone`, `ai.bodySkin` (los cuatro últimos son accesos directos que abren el mismo editor en su grupo).
-- [ ] F6.6 `ai.faceShape` · Forma de la cara (en «Retrato»): grupo «Forma» del **editor de cara** (`plugins/face-editor/`, con zoom en la cara), no del editor de cuerpo; usa el motor de deformación (F5) y el rango reducido del perfil infantil.
-- [ ] F6.7 Salida en capa nueva reabrible con máscara; varias personas = varias capas.
-- [ ] F6.8 Menús, cajón, ☰, guía `ia-cuerpo.js`, pruebas (engine en Node, interfaz en móvil y escritorio, rangos por perfil).
-- [ ] F6.9 Prueba de seguridad: en el perfil infantil no se puede alcanzar ningún mando de pecho, caderas ni glúteos, ni por interfaz ni por parámetros.
+- [x] F6.1 (v307) `js/features/body/engine/`: de los sliders a un campo de deformación (usa F5), con simetría opcional y protección de cara y manos.
+- [x] F6.2 (v307) `js/features/body/definition/`: musculatura y tono con normales (F4.1) y máscaras de partes; **sin generar piel**. **Hecho sin normales:** realza la luz y la sombra que ya hay (contraste local en log-luminancia).
+- [~] F6.3 (v307) `plugins/body-editor/` (sobre `ai-editor/` de F0.13, a pantalla completa como el collage, con zoom); selector de persona (varias), chips de grupo, un mando visible a la vez en móvil, puntos arrastrables sobre las articulaciones, antes/después, deshacer. Interfaz mínima (regla del móvil). **Falta:** puntos arrastrables sobre las articulaciones.
+- [x] F6.4 (v307) Selector de perfil (hombre, mujer, niño, niña); si las proporciones sugieren un menor, el perfil de partida es el infantil.
+- [x] F6.5 (v307) `ai.bodyEditor`, `ai.bodyShape`, `ai.bodyPosture`, `ai.bodyTone`, `ai.bodySkin` (los cuatro últimos son accesos directos que abren el mismo editor en su grupo).
+- [x] F6.6 (v307) `ai.faceShape` · Forma de la cara (en «Retrato»): grupo «Forma» del **editor de cara** (`plugins/face-editor/`, con zoom en la cara), no del editor de cuerpo; usa el motor de deformación (F5) y el rango reducido del perfil infantil.
+- [x] F6.7 (v307) Salida en capa nueva reabrible con máscara; varias personas = varias capas. Capa con alfa por persona (no máscara de capa).
+- [x] F6.8 (v307) Menús, cajón, ☰, guía `ia-cuerpo.js`, pruebas (engine en Node, interfaz en móvil y escritorio, rangos por perfil).
+- [x] F6.9 (v307) Prueba de seguridad: en el perfil infantil no se puede alcanzar ningún mando de pecho, caderas ni glúteos, ni por interfaz ni por parámetros.
 
 Hecho cuando: se puede editar a una persona adulta o a un niño con resultado natural, sin plegados, con el fondo íntegro.
 
@@ -817,7 +817,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 3 · Retrato I | v303 (1.2.0) | 5 nov 2026 | Hecha salvo las manos (F3.1/F3.2) y F3.8 completa. Editor de cara + 5 funciones de piel en luz lineal; probado con una cara real. |
 | 4 · Retrato II | v304 (1.3.0) | 5 nov 2026 | Hecha salvo F4.9 (mirada, sin investigar) y el tamaño de ojos (espera a F5). 7 funciones en el editor de cara; F4.7 sin LaMa (refuerzo de hebras). |
 | 5 · Deformación | v305 | 5 nov 2026 | Hecha salvo MI-GAN en F5.4. Motor MLS + GPU/CPU + fondo con LaMa; sin interfaz. |
-| 6 · Cuerpo | | | |
+| 6 · Cuerpo | v307 (1.4.0) | 5 nov 2026 | Hecha salvo puntos arrastrables (F6.3) y probar con cuerpo entero real. Editor de cuerpo con 5 funciones, forma de la cara y tamaño de ojos. |
 | 7 · Ropa | | | |
 | 8 · Escena | | | |
 | 9 · Restaurar | | | |

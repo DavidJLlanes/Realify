@@ -43,3 +43,13 @@ export function maximo(c){
   let m = 0; for(let i = 0; i < c.dx.length; i++) m = Math.max(m, Math.hypot(c.dx[i], c.dy[i]));
   return m;
 }
+
+/* Campo calculado a una resolución de trabajo (W0×H0) → campo a otra resolución (W×H, `paso` px). Los desplazamientos se escalan. */
+export function reescalar(c, W, H, paso = 8){
+  const r = crearCampo(W, H, paso), kx = c.W / W, ky = c.H / H, d = [0, 0];
+  for(let j = 0; j < r.gh; j++) for(let i = 0; i < r.gw; i++){
+    muestrear(c, i * paso * kx, j * paso * ky, d);
+    r.dx[j * r.gw + i] = d[0] / kx; r.dy[j * r.gw + i] = d[1] / ky;
+  }
+  return r;
+}

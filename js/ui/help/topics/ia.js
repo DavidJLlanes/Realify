@@ -16,7 +16,8 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
         <li><b>Seleccionar:</b> Selección con un toque 👑, Seleccionar sujeto, Seleccionar cielo, Seleccionar por texto 👑,
           Seleccionar por profundidad 👑 y Seleccionar partes 👑.</li>
         <li><b>Borrar y rellenar:</b> Borrador mágico 👑, Eliminar fondo y Expandir con IA.</li>
-        <li><b>Retrato:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑, Ojos rojos 👑, Arrugas 👑, Ojeras y bolsas 👑, Brillos de la piel 👑, Textura de piel 👑 e Imperfecciones y tono 👑.</li>
+        <li><b>Retrato:</b> Difuminar caras 👑, Retoque de cara 👑, Restaurar caras 👑, Ojos rojos 👑, Arrugas 👑, Ojeras y bolsas 👑, Brillos de la piel 👑, Textura de piel 👑, Imperfecciones y tono 👑, Luz en la cara 👑, Ojos 👑, Labios y cejas 👑, Dientes 👑, Cabello 👑, Pelos sueltos 👑, Reflejos en gafas 👑 y Forma de la cara 👑.</li>
+        <li><b>Cuerpo:</b> Editor de cuerpo 👑, Silueta y proporciones 👑, Postura 👑, Definición y tono 👑 y Piel del cuerpo 👑.</li>
         <li><b>Escena y cielo:</b> Reemplazar cielo y Adaptive Photo Lens.</li>
         <li><b>Profundidad:</b> Desenfoque por profundidad 👑, Niebla por distancia 👑, Luz por profundidad 👑, Separar planos 👑 y Foto 3D 👑.</li>
         <li><b>Mejorar y restaurar:</b> Ampliar con IA, Reducción de ruido con IA, Quitar
@@ -25,7 +26,7 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
         <li><b>Realismo y autenticidad</b> (trabajan con imágenes generadas por IA): Realify, Realify Premium 👑,
           PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
       </ul>
-      <p>Irán llegando más submenús (Cuerpo, Ropa y tejidos, Color y estilos, Lote y biblioteca, Asistente) a medida que
+      <p>Irán llegando más submenús (Ropa y tejidos, Color y estilos, Lote y biblioteca, Asistente) a medida que
         tengan herramientas.</p>
       <p><b>Resolución completa.</b> Los modelos trabajan a un tamaño fijo (unos 512 px). En
         fotos grandes, la profundidad y las máscaras de cielo y de persona se calculan además
@@ -121,9 +122,16 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           textura real de la piel; ojos, cejas y labios no se tocan. Al aplicar, el resultado va a una <b>capa nueva</b> con «mezcla»
           (porcentaje de aplicación). <i>Textura de piel</i> es ideal para imágenes de IA demasiado lisas: sólo añade poros donde faltan.</li>
         <li id="ia-retrato2"><b>Retoque de cara II 👑</b> (Inteligencia Artificial › Retrato): <b>Luz en la cara</b>, <b>Ojos</b>, <b>Labios y cejas</b>,
-          <b>Dientes</b>, <b>Cabello</b>, <b>Pelos sueltos</b> y <b>Reflejos en gafas</b>. Usan el mismo editor de cara que el retoque de piel:
+          <b>Dientes</b>, <b>Cabello</b>, <b>Pelos sueltos</b>, <b>Reflejos en gafas</b> y <b>Forma de la cara</b> (mandíbula, mentón, anchura, nariz, tamaño de los ojos y grosor de los labios, con cambios pequeños). Usan el mismo editor de cara que el retoque de piel:
           cada función abre su grupo, pero puedes saltar a cualquier otro y todo se aplica junto en una capa nueva. La luz descarga un
           modelo de profundidad la primera vez. Los cambios son sutiles a propósito para que la cara siga pareciendo real.</li>
+        <li id="ia-cuerpo"><b>Editor de cuerpo 👑</b> (Inteligencia Artificial › Cuerpo, y en la pestaña Retoque del cajón): <b>Editor de cuerpo</b>,
+          <b>Silueta y proporciones</b>, <b>Postura</b>, <b>Definición y tono</b> y <b>Piel del cuerpo</b>. Todas abren el mismo editor a pantalla completa, con zoom
+          en la persona (si hay varias, eliges cuál arriba). Eliges el <b>perfil</b> (hombre, mujer, niño o niña): el perfil infantil sólo tiene los mandos que
+          le corresponden (altura, proporciones, hombros, brazos, piernas y postura, con rangos reducidos) y no tiene pecho, caderas, glúteos ni definición.
+          Si las proporciones sugieren un menor, el editor parte del perfil infantil. Deforma sin pliegues, deja quieto el fondo lejano y cada persona va a su
+          <b>capa nueva</b> (transparente donde no cambia, con «mezcla»). Necesita ver los hombros: en un retrato a medio cuerpo funcionan la cabeza, el cuello,
+          los hombros, el torso alto y los brazos. «Definición» sólo realza la luz y la sombra que ya hay: no genera piel ni músculos.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

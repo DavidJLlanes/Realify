@@ -14,7 +14,7 @@ import { aiSession } from "../../js/features/ai-kit/session.js";
 import { WORK } from "../../js/features/ai-kit/preview.js";
 import { toast } from "../../js/core/toast.js";
 import { profundidadRecorte } from "../../js/features/relight/depth-crop.js";
-import { GRUPOS, PARAMS, inicio, hayEfecto, pideProfundidad } from "./params.js";
+import { GRUPOS, PARAMS, PERFILES, inicio, hayEfecto, pideProfundidad } from "./params.js";
 import { prepararCara, renderCara, componer } from "./render.js";
 
 const PREVIEW_SIDE = 1000;
@@ -31,7 +31,7 @@ export async function abrirEditorCara({ group = "arrugas" } = {}){
 
   const vista = copia(src), preps = new Map(), pendiente = new Set();
   let timer = 0, version = 0, ed = null, enfocada = false;
-  const targets = personas.map((p, i) => ({ id: String(i), label: `Cara ${i + 1}`, box: ampliar(p.cara.caja, 0.35), profile: null }));
+  const targets = personas.map((p, i) => ({ id: String(i), label: `Cara ${i + 1}`, box: ampliar(p.cara.caja, 0.35), profile: "mujer" }));      // el perfil sólo cambia el rango de «Forma» (el infantil lo tiene reducido)
 
   /* La luz necesita el mapa de profundidad de la foto (Depth Anything V2 Small): se calcula una vez, sólo si se pide. Sin él (error) la luz usa el elipsoide. */
   let mapaProf = null, profFallo = false, enCurso = Promise.resolve();
@@ -64,7 +64,7 @@ export async function abrirEditorCara({ group = "arrugas" } = {}){
   }
 
   ed = await createAiEditor({
-    title: "Cara", subtitle: "Piel, luz, ojos, boca, pelo y gafas", groups: GRUPOS, params: PARAMS, targets,
+    title: "Cara", subtitle: "Piel, luz, ojos, boca, pelo y gafas", groups: GRUPOS, params: PARAMS, targets, profiles: PERFILES,
     onChange: c => programar(c.target),
     onApply: async e => {
       clearTimeout(timer); await enCurso;                                  // si la vista previa está calculando (p. ej. la profundidad), se espera
