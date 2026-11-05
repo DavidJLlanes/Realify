@@ -72,8 +72,8 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 - [x] D1 · ¿Dónde viven los modelos nuevos? **Hasta ~30 MB dentro del repositorio (`assets/models`); los más grandes en Hugging Face
       con la revisión (`HF_REV`) y el `sha256` fijados** (5 nov 2026). `assets/models` ya pesa 326 MB.
 - [x] D2 · ¿Se aceptan modelos de uso no comercial? **Sí**: se elige lo mejor que pueda ejecutar un móvil, con cualquier licencia (5 nov 2026)
-- [ ] D3 · ¿Se añaden las funciones nuevas también a otras pestañas del cajón (Retoque, Selección, Mejorar…)? (Recomendado: solo
-      «Inteligencia Artificial» y, si procede, «Retoque».) — antes de la Fase 1
+- [x] D3 · ¿Se añaden las funciones nuevas también a otras pestañas del cajón? **Sí: a «Inteligencia Artificial» y a las pestañas
+      afines de cada una** (tabla en 5.2); nunca a Básicos ni Automáticos (5 nov 2026)
 - [ ] D4 · LLM del asistente: tamaño y modelo. (Recomendado: Qwen2.5 0,5B o 1,5B, Apache-2.0.) — antes de la Fase 14
 - [ ] D5 · Límites del vídeo (duración y resolución en móvil y en escritorio). — antes de la Fase 15
 - [ ] D6 · Nuevo texto de presentación de la web («editor completo con IA local») en `index.html`, manifiesto, README y «Acerca de». — Fase 16
@@ -215,6 +215,24 @@ Orden en el menú, con separadores entre grupos: *(Seleccionar, Borrar y rellena
 - La pestaña **Inteligencia Artificial** gana una **segunda fila de chips** con los mismos 14 submenús, en el mismo orden, más
   «Todo». Cada chip filtra la cuadrícula; los títulos de sección (`td-sec`) son los de las secciones del submenú. El chip activo se
   recuerda. Con algo escrito en el buscador se busca en todos los chips, como hoy.
+- **Pestañas afines (D3).** Cada función nueva aparece también en las pestañas que le corresponden, indicadas en el campo `tabs`
+  de su manifiesto, y siempre en «Todos». Las entradas que ya existen **conservan** las pestañas que tienen hoy.
+
+  | Submenú | Pestañas afines (además de «Inteligencia Artificial») |
+  |---|---|
+  | Seleccionar | Selección |
+  | Borrar y rellenar | Retoque |
+  | Retrato, Cuerpo, Ropa y tejidos | Retoque |
+  | Escena y cielo | Mejorar; Color (balance de blancos, realzar por tipo, unificar iluminación) |
+  | Profundidad | Efectos |
+  | Mejorar y restaurar | Mejorar; Corregir (desenfoque, polvo, moiré) |
+  | Encuadre y composición | Corregir |
+  | Color y estilos | Estilo; Color |
+  | Lote y biblioteca | Analizar |
+  | Asistente | — (solo IA y Todos) |
+  | Vídeo | Creativo |
+  | Realismo y autenticidad | Analizar (informe y zonas lisas) |
+
 - El deslizamiento lateral entre pestañas sigue igual; la fila de chips se desliza sola, sin cambiar de pestaña.
 - `iaOrder` pasa a recorrer también los submenús; `checkCoverage` avisa en consola si un comando del menú IA no tiene entrada.
 
@@ -322,8 +340,8 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase P · Plan (esta tarea)
 - [x] P.1 Revisión del repositorio en solo lectura (normas, menús, cajón, modelos, motores, pruebas).
 - [x] P.2 Redacción de este plan y subida a una rama del repositorio.
-- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1, D2, restricciones del
-      editor de cuerpo y Unmark. Quedan D3, D4, D5 y D6.
+- [~] P.3 Revisión del plan por el titular y resolución de las decisiones abiertas. Hecho el 5 nov 2026: D1, D2, D3, restricciones del
+      editor de cuerpo y Unmark. Quedan D4, D5 y D6.
 - [x] P.4 Plan en `main` (5 nov 2026).
 
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
@@ -340,7 +358,7 @@ Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado
 - [ ] F0.8 Plantilla de función (4.2) y generador `tools/scaffold/nueva-funcion-ia.mjs` (crea carpeta, manifiesto, prueba y entrada de comando).
 - [ ] F0.9 `tools/verify/file-size.mjs`: avisa de archivos nuevos de más de 300 líneas (aviso, no bloquea; no toca los archivos antiguos).
 - [ ] F0.10 `tests/ia/README.md` y `tests/ia/fixtures/` (imágenes sintéticas o CC0 con su autoría).
-- [ ] F0.11 Resolver D3 (D1 y D2 ya están resueltas).
+- [x] F0.11 Decisiones D1, D2 y D3 resueltas (5 nov 2026).
 
 Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas a la línea base, cero cambios visibles.
 
@@ -352,10 +370,10 @@ Depende de: F0.
 - [ ] F1.2 Migrar las ~40 entradas actuales del menú IA a los manifiestos con **el mismo `cmd`, etiqueta y ayuda** (solo cambian de sitio).
 - [ ] F1.3 Escritorio: `buildSubPop` con `header`, desplazamiento y teclado; los submenús vacíos no se muestran.
 - [ ] F1.4 Móvil ☰: aplanado con un título por submenú (`flattenAsHeader`).
-- [ ] F1.5 Cajón: fila de chips en la pestaña IA, `iaOrder` recursivo, memoria del chip, buscador global; **sin tocar Básicos ni Automáticos**.
+- [ ] F1.5 Cajón: fila de chips en la pestaña IA, `iaOrder` recursivo, memoria del chip, buscador global y campo `tabs` del manifiesto (pestañas afines, 5.2); **sin tocar Básicos ni Automáticos**.
 - [ ] F1.6 Registro de comandos a partir de los manifiestos (`js/app/commands/ai/…` con fachada en `ai.js`).
 - [ ] F1.7 Regenerar la huella de menús del `smoke` revisándola a mano (el cambio de estructura es intencionado).
-- [ ] F1.8 Prueba `tests/ia/menu-ia.mjs`: cada comando IA aparece **una sola vez** en el menú, en el cajón y en ☰, en el mismo orden, en móvil y escritorio; `cajon-basicos-auto` sigue en verde.
+- [ ] F1.8 Prueba `tests/ia/menu-ia.mjs`: cada comando IA aparece **una sola vez** en el menú, en el cajón (IA) y en ☰, en el mismo orden, en móvil y escritorio, y en las pestañas afines que dice su manifiesto; `cajon-basicos-auto` sigue en verde.
 - [ ] F1.9 Guía: actualizar `js/ui/help/topics/ia.js` con los submenús; `CHANGELOG.md`.
 
 Hecho cuando: nada de lo existente cambia de comportamiento, y las dos vistas muestran el mismo árbol.
@@ -639,7 +657,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
-| P · Plan | — | 5 nov 2026 | En `main`; decididas D1, D2, el editor de cuerpo y Unmark; quedan D3, D4, D5 y D6 |
+| P · Plan | — | 5 nov 2026 | En `main`; decididas D1, D2, D3, el editor de cuerpo y Unmark; quedan D4, D5 y D6 |
 | 0 · Cimientos | | | |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
