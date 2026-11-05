@@ -5,10 +5,11 @@
    (LaMa en escritorio, ver lama.js; en las pruebas, uno falso). Se trabaja en un recorte cuadrado a N×N alrededor del hueco y se
    mezcla de vuelta con borde suave, así el resto de la imagen no cambia ni un píxel.
    Entradas: máscara de persona (Float32Array 0-1) y campo; imagen RGBA, hueco y `inpaint(rgbaN, huecoN, N)`. Sin DOM.
-   Límites: no conserva todavía las líneas rectas del fondo junto al contorno (sigue pendiente de la F5.4); MI-GAN no está en el catálogo.
+   Las rectas del fondo que cruzan el hueco se vuelven a trazar (lineas.js). Límites: MI-GAN no está en el catálogo (sólo LaMa).
    ═══════════════════════════════════════════════════════════════ */
 import { muestrear } from "./field.js";
 import { gauss } from "../portrait/shared/blur.js";
+import { lineas, pintarLineas } from "./lineas.js";
 
 /* Máscara 0/1 de lo que era persona y tras aplicar el campo ya no lo es (algo agrandada, para llevarse el halo). */
 export function descubierto(persona, W, H, campo, { dilatar = 3 } = {}){
@@ -45,7 +46,7 @@ function recortar(rgba, W, H, r, N){
   return out;
 }
 
-export async function rellenar({ rgba, W, H, hueco, inpaint, N = 512, margen = 0.5 }){
+export async function rellenar({ rgba, W, H, hueco, inpaint, N = 512, margen = 0.5, persona = null, rectas = true }){
   const b = cajaDe(hueco, W, H); if(!b) return rgba;
   const lado = Math.min(Math.min(W, H), Math.max(64, Math.round(Math.max(b.x1 - b.x0, b.y1 - b.y0) * (1 + margen * 2))));
   const r = { s: lado, x: Math.max(0, Math.min(W - lado, Math.round((b.x0 + b.x1) / 2 - lado / 2))), y: Math.max(0, Math.min(H - lado, Math.round((b.y0 + b.y1) / 2 - lado / 2))) };
@@ -67,6 +68,11 @@ export async function rellenar({ rgba, W, H, hueco, inpaint, N = 512, margen = 0
       const v = res[(y0 * N + x0) * 4 + c] * (1 - u) * (1 - t) + res[(y0 * N + x0 + 1) * 4 + c] * u * (1 - t) + res[((y0 + 1) * N + x0) * 4 + c] * (1 - u) * t + res[((y0 + 1) * N + x0 + 1) * 4 + c] * u * t;
       out[i * 4 + c] = rgba[i * 4 + c] * (1 - a) + v * a;
     }
+  }
+  if(rectas){                                                // las rectas del fondo que cruzan el hueco se vuelven a trazar
+    const ex = new Float32Array(W * H); for(let i = 0; i < ex.length; i++) ex[i] = Math.max(hueco[i], persona ? persona[i] : 0);
+    const ls = lineas(rgba, W, H, hueco, ex);
+    if(ls.length) pintarLineas(out, rgba, W, H, hueco, ex, ls);
   }
   return out;
 }

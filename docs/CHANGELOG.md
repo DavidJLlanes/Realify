@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.3.0 (compilación 306) · Líneas rectas del fondo en la compensación del fondo (sin cambios visibles)
+- F5.4: al rellenar el hueco que deja un cuerpo al estrecharse, las rectas del fondo que lo cruzan (marcos, horizontes, juntas) se detectan con una transformada de Hough guiada por el gradiente y se vuelven a trazar dentro del hueco continuando su perfil desde fuera (`js/features/warp/lineas.js`). Antes el modelo de relleno las rompía.
+- Prueba nueva en `tests/ia/warp/campo.mjs`: una recta inclinada que cruza el hueco vuelve a verse tras un relleno que la borra.
+- Pendiente: MI-GAN como relleno ligero para móvil (no está en el catálogo); de momento se usa LaMa, como «Borrar con IA».
+
 ### 1.3.0 (compilación 305) · Motor de deformación (sin cambios visibles)
 - Fase 5 del plan: `js/features/warp/`, el motor que usarán el editor de cuerpo y la forma de la cara. Campo de deformación por mínimos cuadrados móviles (similitud, rígida o afín) con puntos fijos, zonas protegidas que no se mueven ni un píxel y rectas que siguen rectas.
 - Control de plegados: si el determinante del jacobiano baja de 0,15 se reduce la amplitud y se avisa.

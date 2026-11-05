@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T16:14:42.248Z",
+ "generated": "2026-11-05T16:29:25.370Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1589,
+     "readyMs": 1566,
      "requests": 243,
      "jsRequests": 226,
      "cssRequests": 12,
      "jsBytes": 2118309,
      "cssBytes": 177122,
      "transferBytes": 968060,
-     "domContentLoaded": 1453,
-     "fcp": 1240
+     "domContentLoaded": 1430,
+     "fcp": 1144
     },
     {
-     "readyMs": 1291,
+     "readyMs": 1157,
      "requests": 242,
      "jsRequests": 226,
      "cssRequests": 12,
      "jsBytes": 2118309,
      "cssBytes": 177122,
      "transferBytes": 966063,
-     "domContentLoaded": 1207,
-     "fcp": 516
+     "domContentLoaded": 1081,
+     "fcp": 504
     },
     {
-     "readyMs": 1281,
-     "requests": 243,
+     "readyMs": 1362,
+     "requests": 242,
      "jsRequests": 226,
      "cssRequests": 12,
      "jsBytes": 2118309,
      "cssBytes": 177122,
-     "transferBytes": 968060,
-     "domContentLoaded": 1162,
-     "fcp": 560
+     "transferBytes": 966063,
+     "domContentLoaded": 1086,
+     "fcp": 436
     }
    ],
-   "medianReadyMs": 1291,
-   "medianTransferBytes": 968060
+   "medianReadyMs": 1362,
+   "medianTransferBytes": 966063
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -2475,8 +2475,8 @@
    "menuHash": "995b542910afe37a"
   },
   "screens": {
-   "welcome": "e8aab073050dda2e",
-   "withImage": "9248b096530b73fb"
+   "welcome": "832bd27e419fc6c7",
+   "withImage": "370d3b8b9ddf8ddf"
   },
   "opened": true,
   "afterOpen": {
@@ -4419,15 +4419,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1393,
-   "requests": 241,
+   "readyMs": 1253,
+   "requests": 243,
    "jsRequests": 226,
    "cssRequests": 12,
    "jsBytes": 2118309,
    "cssBytes": 177122,
-   "transferBytes": 964185,
-   "domContentLoaded": 1255,
-   "fcp": 796
+   "transferBytes": 968060,
+   "domContentLoaded": 1123,
+   "fcp": 764
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",

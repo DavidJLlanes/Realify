@@ -75,3 +75,25 @@ for(const modo of ["similitud", "rigida", "afin"]){
   assert(dentro > n * 0.7, "el hueco se rellena de fondo (" + dentro + "/" + n + ")"); assert.equal(fuera, 0, "lejos del hueco nada cambia"); }
 
 console.log("warp (campo): OK");
+
+/* 10 · rectas del fondo: una recta inclinada que cruza el hueco se continúa aunque el relleno la borre */
+{
+  const { lineas } = await import("../../../js/features/warp/lineas.js");
+  const W2 = 200, H2 = 160, img = new Uint8ClampedArray(W2 * H2 * 4), persona = new Float32Array(W2 * H2), hueco = new Float32Array(W2 * H2);
+  for(let y = 0; y < H2; y++) for(let x = 0; x < W2; x++){
+    const i = y * W2 + x, o = i * 4, d = (y - (0.3 * x + 40)) * 0.958;                // distancia con signo a la recta, con bordes suaves (como una foto)
+    const sm = (a0, a1, v) => Math.min(1, Math.max(0, (v - a0) / (a1 - a0))), linea = 1 - sm(0.8, 2.2, Math.abs(d));
+    const v = 60 + 40 * sm(-1, 1, d) + 190 * linea;
+    img[o] = img[o + 1] = img[o + 2] = v; img[o + 3] = 255;
+    if(x >= 85 && x < 115) hueco[i] = persona[i] = 1;
+  }
+  const ex = new Float32Array(hueco), ls = lineas(img, W2, H2, hueco, ex);
+  assert(ls.length >= 1, "se detecta la recta"); 
+  const fake = async (rgba, hole, N) => { const o = new Uint8ClampedArray(rgba); for(let i = 0; i < N * N; i++) if(hole[i]) o[i * 4] = o[i * 4 + 1] = o[i * 4 + 2] = 80; return o; };
+  const sinRecta = await rellenar({ rgba: img, W: W2, H: H2, hueco, inpaint: fake, N: 128, rectas: false });
+  const conRecta = await rellenar({ rgba: img, W: W2, H: H2, hueco, inpaint: fake, N: 128, persona });
+  const media = r => { let e = 0, n = 0; for(let x = 90; x < 110; x++){ const y = Math.round(0.3 * x + 40); e += r[(y * W2 + x) * 4]; n++; } return e / n; };
+  assert(media(sinRecta) < 100 && media(conRecta) > 140, `la recta se recupera (${media(conRecta).toFixed(0)} frente a ${media(sinRecta).toFixed(0)})`);
+  const x = 100, y = Math.round(0.3 * x + 40); assert(conRecta[(y * W2 + x) * 4] > 140, "el centro de la recta vuelve a ser claro: " + conRecta[(y * W2 + x) * 4]);
+  console.log("warp (rectas del fondo): OK");
+}
