@@ -126,6 +126,17 @@ export function createShell({ title, subtitle = "", applyLabel = "Aplicar", cls 
     redraw();
   };
   const fitView = () => { zoom = 1; panX = panY = 0; redraw(); };
+  /** Encuadra una caja de la imagen {x, y, w, h} (en píxeles de la imagen) en el centro de la vista, con un margen
+      relativo alrededor. La usan los editores que hacen zoom en un objetivo (la cara, una prenda). */
+  const focusBox = (b, margin = 0.25) => {
+    const t = T(); if(!t || !b || !(b.w > 0) || !(b.h > 0)) return;
+    const k = Math.min(cv.width / (b.w * (1 + 2 * margin)), cv.height / (b.h * (1 + 2 * margin)));
+    zoom = clamp(k / t.k0, 0.25, 40);
+    const kk = t.k0 * zoom;
+    panX = (view.width / 2 - (b.x + b.w / 2)) * kk;
+    panY = (view.height / 2 - (b.y + b.h / 2)) * kk;
+    redraw();
+  };
   /** Pantalla → imagen */
   const toImage = (clientX, clientY) => {
     const t = T(); if(!t) return null;
@@ -235,7 +246,7 @@ export function createShell({ title, subtitle = "", applyLabel = "Aplicar", cls 
 
   const api = {
     root, left: $(".fsp-left"), right: $(".fsp-right"), mobile: $(".fsp-mobile"), stage,
-    redraw, fitView, zoomTo, toImage, openSheet, closeSheet,
+    redraw, fitView, focusBox, zoomTo, toImage, openSheet, closeSheet,
     get transform(){ return T(); },
     /** Imagen que se muestra (un lienzo). `keep` conserva zoom y encuadre. */
     setView(canvas, keep = true){
