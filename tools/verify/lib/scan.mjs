@@ -15,8 +15,8 @@ export function walk(root, { exts = null, skipBulk = true } = {}) {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       if (SKIP_DIRS.has(e.name)) continue;
       const p = path.join(d, e.name);
-      /* Las herramientas de verificación y migración no forman parte de la web que se analiza. */
-      if (e.isDirectory() && /^tools\/(verify|migrate)$/.test(toPosix(path.relative(root, p)))) continue;
+      /* Las herramientas de verificación, migración, andamio y modelos no forman parte de la web que se analiza. */
+      if (e.isDirectory() && /^tools\/(verify|migrate|scaffold|models)$/.test(toPosix(path.relative(root, p)))) continue;
       if (e.isDirectory()) {
         if (skipBulk && BULK_DIRS.has(e.name)) continue;
         rec(p);

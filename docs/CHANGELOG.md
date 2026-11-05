@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.0.0 (compilación 299) · Cimientos del plan «editor completo con IA local» (sin cambios visibles)
+- Fase 0 de [`docs/PLAN_EDITOR_IA_LOCAL.md`](PLAN_EDITOR_IA_LOCAL.md). La app se comporta igual; cambia cómo está organizado el código de IA.
+- `js/ai/worker.js` queda como despachador: la infraestructura pasa a `js/ai/engine/` y cada tarea a `js/ai/tasks/`. El catálogo `js/ai/models.js` se reparte por familia en `js/ai/models/` con la misma API.
+- Nuevo `js/features/ai-kit/` (imagen visible, capa nueva, luz lineal, vista previa, panel simple) que usan `facetools.js` y `depthtools.js` en lugar de copias propias.
+- Nuevo `js/ui/kit/params-panel.js` (esquema de parámetros) y `js/ui/kit/ai-editor/` (armazón de los editores a pantalla completa sobre `fsshell`); `fsshell` gana `focusBox` (zoom a una caja de la imagen).
+- Herramientas: `tools/verify/aislamiento.mjs`, `tools/verify/file-size.mjs`, `tools/models/` y el generador `tools/scaffold/nueva-funcion-ia.mjs`. Nuevo registro de modelos `docs/MODELOS.md`.
+- Pruebas en `tests/ia/` (línea base del menú IA y del cajón, Básicos y Automáticos, interfaces, ai-kit, ai-editor, worker); `npm run test:ia`.
+
 ### 1.0.0 (compilación 298) · Numeración de versiones normal
 - Desde ahora la versión pública es **1.0.0** (semver: 1.0.1 para arreglos, 1.1.0 para funciones, 2.0.0 para cambios grandes). Las entradas anteriores (v287–v297) eran el contador de compilación.
 - El contador entero sigue existiendo por dentro (ahora 298) porque la app lo compara con `version.json` para avisar de actualizaciones; si se reiniciara, las apps instaladas no avisarían. `version.json` lleva además `release`, y «Ayuda › Buscar actualización» muestra esa versión.

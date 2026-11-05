@@ -99,9 +99,10 @@ Salen de [`CLAUDE.md`](../CLAUDE.md) y del encargo. Si una tarea choca con una r
 ```
 js/
 ├─ ai/
-│  ├─ models.js                    (existe) pasa a fachada que reexporta
+│  ├─ models.js                    (existe) fachada que reexporta (MODELS, mb) · HECHO en F0.4
 │  ├─ models/                      NUEVO · catálogo por familia: segmentation, people, faces, depth, enhance, inpaint, language, audio
-│  ├─ worker.js                    (existe) pasa a despachador de mensajes (≈100 líneas)
+│  ├─ worker.js                    (existe) despachador de mensajes (98 líneas) · HECHO en F0.3
+│  ├─ engine/                      NUEVO · infraestructura del worker: mensajes, almacén de modelos, sesiones, tensores, teselas
 │  ├─ tasks/                       NUEVO · una tarea del worker por archivo (matte, inpaint, upscale, pose, landmarks, hands, humanparse, deblur, clip, llm, whisper…)
 │  └─ people/                      NUEVO · API única de análisis de personas (Fase 2)
 ├─ features/
@@ -123,8 +124,9 @@ js/
 │  ├─ ai/                          NUEVO · un archivo por familia (portrait, body, clothing, scene, restore, objects, authenticity, style, library, assistant)
 │  └─ video.js                     NUEVO · comandos `video.*`: solo cargan el módulo con import() (4.8)
 ├─ ui/kit/                          (capa «kit»: la pueden importar los motores y los plugins)
-│  ├─ params-panel.js              NUEVO · pinta los mandos de cualquier función a partir de su `params` (Fase 0)
+│  ├─ params-panel.js              NUEVO · esquema de `params`: defaults, perfiles, rangos, validación y secciones, sin DOM (Fase 0)
 │  └─ ai-editor/                   NUEVO · armazón común de los editores a pantalla completa, sobre `fsshell` (Fase 0)
+   (el panel simple desde `params` está en `js/features/ai-kit/simple-panel.js`)
 └─ ui/
    ├─ menu/ia/                     NUEVO · árbol declarativo del menú IA (un archivo por submenú)
    ├─ menu/video.js                NUEVO · menú «Vídeo» exclusivo: solo datos (4.8)
@@ -210,12 +212,13 @@ completa, abierto en ese grupo). Además deja preparado el esquema de parámetro
 
 **Tres piezas comunes, escritas una vez** (Fase 0):
 
-1. `js/ui/kit/params-panel.js`: pinta deslizadores, interruptores, chips y selectores **a partir del `params` del manifiesto**. Lo usan
-   el diálogo simple y el editor. Es el único sitio donde se dibuja un mando de las funciones nuevas.
+1. `js/ui/kit/params-panel.js`: el esquema de `params` del manifiesto (valores por defecto, parámetros y rangos por perfil, validación, paso a
+   secciones), sin DOM. Los mandos los dibujan los componentes que ya existen: `mountControls` de `fsshell` en los editores y
+   `js/features/ai-kit/simple-panel.js` (sobre `slider()`) en los diálogos simples. Ninguna función dibuja un mando.
 2. `js/ui/kit/ai-editor/`: el armazón común de los editores sobre `createShell` de `fsshell` (no se reescribe zoom ni barra). Añade lo
    que comparten: selector de persona o cara, **zoom automático a un objetivo** (`zoomTo(caja)`), chips de grupo, antes/después,
-   deshacer por función, interruptor Premium con `dockPremium`, capa de resultado nueva con «mezcla» (`ai-kit/new-layer.js`) y
-   vista previa por bloques (`ai-kit/preview.js`).
+   deshacer, marca Premium 👑 en el título (**sin interruptor**: las funciones nuevas son sólo Premium), y se apoya en lo que ya hay:
+   antes/después de `fsshell`, capa de resultado nueva con «mezcla» (`ai-kit/new-layer.js`) y vista previa (`ai-kit/preview.js`).
 3. Las funciones **no montan ventanas**: su `ui.js` exporta el panel (sus mandos y su vista previa). El host (diálogo simple o
    editor) lo monta. El mismo panel sirve en los dos hosts.
 
@@ -483,21 +486,21 @@ F14 → 1.7.0, F15 → 1.8.0, F16 → 2.0.0.
 ### Fase 0 · Cimientos (sin funciones nuevas visibles)
 Objetivo: dejar el terreno ordenado para que todo lo nuevo nazca bien organizado. Para el usuario no cambia nada.
 
-- [ ] F0.1 `npm run verify` en verde y guardar en `tests/ia/baseline/` las huellas del menú IA y del cajón (incluidas Básicos y Automáticos).
-- [ ] F0.2 Prueba `tests/ia/cajon-basicos-auto.mjs`: compara orden y contenido de **Básicos** y **Automáticos** con la línea base; se ejecuta en todas las fases.
-- [ ] F0.3 Dividir `js/ai/worker.js` (798 líneas) en despachador + `js/ai/tasks/<tarea>.js` con `tools/migrate/lib/splitter.mjs`;
+- [x] F0.1 `npm run verify` (todo en verde salvo `check:smoke`, que ya fallaba ANTES de empezar la fase: el árbol de menús y un error de consola de Unmark difieren de `tools/verify/baseline/smoke.copia.json`, una huella anterior a los menús actuales; lo que se exige en la fase es que el resultado sea **equivalente al de antes de empezar**, y lo es; la huella se regenera a mano en F1.7) y guardar en `tests/ia/baseline/` las huellas del menú IA y del cajón (incluidas Básicos y Automáticos; las escribe `node tests/ia/baseline/capturar.mjs`). **(v299)**
+- [x] F0.2 Prueba `tests/ia/cajon-basicos-auto.mjs`: compara orden y contenido de **Básicos** y **Automáticos** con la línea base; se ejecuta en todas las fases. **(v299)**
+- [x] F0.3 Dividir `js/ai/worker.js` (798 líneas) en despachador + `js/ai/engine/` (mensajes, almacén de modelos, sesiones, tensores, teselas) + `js/ai/tasks/<tarea>.js` (15 tareas) con `tools/migrate/lib/splitter.mjs`; **(v299)**
       comprobar con `units-equal.mjs`, `lint-refs.mjs` y las pruebas de IA existentes (`tests/clipseg.mjs`, `tests/restaurar-caras.mjs`, `tests/depth-viva.mjs`, `tests/matte.mjs`).
-- [ ] F0.4 Dividir `js/ai/models.js` en `js/ai/models/<familia>.js` + fachada con la misma API (`MODELS`, `mb`).
-- [ ] F0.5 Crear `js/features/ai-kit/` (4.3) y dejar `facetools.js` y `depthtools.js` usándolo sin cambiar su comportamiento.
-- [ ] F0.6 `docs/MODELOS.md`: registro de los 24 modelos del catálogo y Zero-DCE++ (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`, uso comercial, apto para móvil).
-- [ ] F0.7 `tools/models/`: scripts documentados para convertir y cuantizar a ONNX y calcular `sha256`; fijar la revisión (`HF_REV`) para los modelos nuevos.
-- [ ] F0.8 Plantilla de función (4.2) y generador `tools/scaffold/nueva-funcion-ia.mjs` (crea carpeta, manifiesto, prueba y entrada de comando).
-- [ ] F0.9 `tools/verify/file-size.mjs`: avisa de archivos nuevos de más de 300 líneas (aviso, no bloquea; no toca los archivos antiguos).
-- [ ] F0.10 `tests/ia/README.md` y `tests/ia/fixtures/` (imágenes sintéticas o CC0 con su autoría).
-- [ ] F0.12 `js/ui/kit/params-panel.js`: pinta los mandos desde el `params` del manifiesto (deslizador, interruptor, chips, selector cerrado); lo usarán el diálogo simple y los editores. Prueba en Playwright, móvil y escritorio.
-- [ ] F0.13 `js/ui/kit/ai-editor/`: armazón común de los editores sobre `createShell` (selector de persona o cara, `zoomTo(caja)`, chips de grupo, antes/después, deshacer por función, `dockPremium`, capa nueva con «mezcla»). No reescribe el zoom de `fsshell`. Prueba con un editor de ejemplo.
-- [ ] F0.14 `tests/ia/interfaces.mjs`: ninguna función importa `fsshell` ni `dialog` directamente; ningún mando dibujado a mano; el campo `ui` de cada manifiesto es válido.
-- [ ] F0.15 `tools/verify/aislamiento.mjs`: comprueba que un módulo aislado (empieza por `plugins/video/`) solo se importa por su puerta y solo importa de fuera por su `bridge/`; entra en `npm run verify`.
+- [x] F0.4 Dividir `js/ai/models.js` en `js/ai/models/<familia>.js` + fachada con la misma API (`MODELS`, `mb`). **(v299)**
+- [x] F0.5 Crear `js/features/ai-kit/` (4.3: `visible-image`, `new-layer`, `float`, `preview`, `session`, `model-gate`, `simple-panel`) y dejar `facetools.js` y `depthtools.js` usándolo sin cambiar su comportamiento. `masks.js` y el resto de `float.js` (OKLab, tramado) se añaden cuando la primera función los necesite. **(v299)**
+- [x] F0.6 `docs/MODELOS.md`: registro de los 24 modelos del catálogo y Zero-DCE++ (propósito, tamaño, licencia de pesos y de datos, origen, `sha256`, uso comercial, apto para móvil). **(v299)**
+- [x] F0.7 `tools/models/`: `sha256.mjs`, `check-catalog.mjs` (catálogo, archivos y `MODELOS.md` cuadran) y README con el procedimiento para convertir, cuantizar y fijar `HF_REV`. La huella de los modelos remotos existentes se calcula al fijar la revisión (pendiente, anotado en `MODELOS.md`). **(v299)**
+- [x] F0.8 Plantilla de función (4.2) y generador `tools/scaffold/nueva-funcion-ia.mjs` (crea carpeta, manifiesto y prueba, e imprime la línea de registro del comando; F1.6 lo hará solo desde el manifiesto). **(v299)**
+- [x] F0.9 `tools/verify/file-size.mjs`: avisa de archivos nuevos de más de 300 líneas (aviso, no bloquea; no toca los archivos antiguos). **(v299)**
+- [x] F0.10 `tests/ia/README.md` y `tests/ia/fixtures/` (imágenes sintéticas o CC0 con su autoría). **(v299)**
+- [x] F0.12 `js/ui/kit/params-panel.js`: esquema único de `params` (valores por defecto, parámetros y rangos por perfil, validación, paso a secciones) sin DOM. **No dibuja**: los editores usan `mountControls` de `fsshell` (que ya pinta rango, selector, segmentado, interruptor y color, un mando cada vez en móvil) y los diálogos simples, `js/features/ai-kit/simple-panel.js` (sobre `slider()` y `pickerGroup()`); así no hay un tercer sitio donde dibujar mandos. Pruebas en Node y en móvil y escritorio. **(v299)**
+- [x] F0.13 `js/ui/kit/ai-editor/`: armazón común de los editores sobre `createShell` (objetivos con selector y zoom automático, grupos, valores y perfil por objetivo, deshacer, marca 👑 en el título; **sin interruptor Premium**, las funciones nuevas son sólo Premium). `fsshell` gana `focusBox(caja)` (adición; no cambia nada existente). Prueba con un editor de ejemplo en móvil y escritorio. El antes/después y la capa nueva ya los dan `fsshell` (`setOriginal`) y `ai-kit/new-layer.js`. **(v299)**
+- [x] F0.14 `tests/ia/interfaces.mjs`: ninguna función importa `fsshell` ni `dialog` directamente; ningún mando dibujado a mano; el campo `ui` de cada manifiesto es válido. **(v299)**
+- [x] F0.15 `tools/verify/aislamiento.mjs`: comprueba que un módulo aislado (empieza por `plugins/video/`) solo se importa por su puerta y solo importa de fuera por su `bridge/`; entra en `npm run verify`. **(v299)**
 - [x] F0.11 Decisiones D1, D2 y D3 resueltas (5 nov 2026).
 
 Hecho cuando: `npm run verify` verde, huellas de comandos y píxeles idénticas a la línea base, cero cambios visibles.
@@ -808,7 +811,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | Fase | Versión | Fecha | Notas |
 |---|---|---|---|
 | P · Plan | — | 5 nov 2026 | En `main`; resueltas D1 a D6, el editor de cuerpo y Unmark; interfaces definidas (4.7: editor de cara con zoom, editores a pantalla completa y simples); listo para empezar por la Fase 0 |
-| 0 · Cimientos | | | |
+| 0 · Cimientos | v299 (1.0.0) | 5 nov 2026 | Hecha. Worker, catálogo y funciones de IA reorganizados sin cambios visibles: `smoke` equivalente al de antes, huella de matte idéntica, catálogo idéntico, Básicos y Automáticos intactos. Pendiente heredado: `smoke.copia.json` ya estaba desfasado antes de la fase (F1.7) |
 | 1 · Menús y cajón | | | |
 | 2 · Personas | | | |
 | 3 · Retrato I | | | |

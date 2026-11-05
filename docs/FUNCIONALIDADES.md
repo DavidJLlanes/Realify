@@ -394,7 +394,7 @@ Los modelos son de dos tipos:
 | Reemplazar cielo | Inteligencia Artificial | DeepLab v3 · ADE20K (detección del cielo) | incluido | Apache-2.0 | No |
 | Apilar, Escanear documento, Perspectiva automática, Corrección de lente | Imagen | OpenCV.js (no es IA, visión clásica) | 11 MB bajo demanda | Apache-2.0 | Sí |
 
-Las licencias de cada modelo están en `js/ai/models.js`; las restricciones de uso no comercial se resumen en la
+Las licencias de cada modelo están en `js/ai/models/` (catálogo por familia) y en [`docs/MODELOS.md`](MODELOS.md); las restricciones de uso no comercial se resumen en la
 [sección 23](../README.md#23-licencias).
 
 **Eliminar fondo y segmentación**: el resultado va a una capa nueva y la original se oculta. Se puede usar
