@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 1.0.0 (compilación 301) · Base del análisis de personas (sin cambios visibles)
+- Fase 2 del plan, parte sin modelos: `js/ai/people/` con los perfiles hombre/mujer/niño/niña (el infantil no tiene mandos de pecho, caderas, glúteos ni definición y usa rangos reducidos), proporciones, ensamblado de personas, caché por revisión del documento y `analyze()` con proveedores enchufables y cancelación. Prueba `tests/ia/personas.mjs`.
+- Pendiente de la fase: modelos de puntos de cara, manos, pose y partes del cuerpo.
+
 ### 1.0.0 (compilación 300) · Menú IA con submenús y cajón con chips (sin cambios de comportamiento)
 - Fase 1 del plan. El menú **Inteligencia Artificial** pasa a submenús (Seleccionar, Borrar y rellenar, Retrato, Escena y cielo, Profundidad, Mejorar y restaurar, Encuadre y composición, Realismo y autenticidad; los demás aparecen cuando tengan herramientas). Cada herramienta conserva su comando, nombre y ayuda; solo cambian de sitio **Reemplazar cielo** y **Adaptive Photo Lens** (ahora en «Escena y cielo»).
 - Móvil: la pestaña IA del cajón tiene una fila de chips con los mismos submenús (se recuerda el elegido); ☰ muestra un título por submenú. **Básicos y Automáticos no cambian.**

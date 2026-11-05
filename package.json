@@ -18,7 +18,7 @@
     "check:docs": "node tools/verify/docs-links.mjs",
     "check:aislamiento": "node tools/verify/aislamiento.mjs",
     "check:size": "node tools/verify/file-size.mjs",
-    "test:ia": "node tests/ia/params-panel.mjs && node tests/ia/interfaces.mjs && node tests/ia/ai-kit.mjs && node tests/ia/ai-editor.mjs && node tests/ia/cajon-basicos-auto.mjs"
+    "test:ia": "node tests/ia/params-panel.mjs && node tests/ia/interfaces.mjs && node tests/ia/ai-kit.mjs && node tests/ia/ai-editor.mjs && node tests/ia/cajon-basicos-auto.mjs && node tests/ia/menu-ia.mjs && node tests/ia/personas.mjs"
   },
   "devDependencies": {
     "acorn": "^8.19.0",

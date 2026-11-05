@@ -532,9 +532,9 @@ Modelos candidatos: puntos de la cara (MediaPipe Face Landmarker), manos (MediaP
       `docs/MODELOS.md` y elegir el mejor que quepa.
 - [ ] F2.2 Convertir a ONNX y probar WebGPU y WASM (`tools/models/`); anotar tamaños reales.
 - [ ] F2.3 Tareas del worker: `tasks/landmarks.js`, `tasks/hands.js`, `tasks/pose.js`, `tasks/humanparse.js`.
-- [ ] F2.4 `js/ai/people/analyze.js`: devuelve por persona `{ caja, cara (puntos), manos, pose, partes (máscaras), proporciones }`; Bueno = una pasada; Mejor = teselas para personas pequeñas y borde refinado.
-- [ ] F2.5 `js/ai/people/cache.js`: caché por revisión del documento para que varias herramientas reutilicen el análisis.
-- [ ] F2.6 `js/ai/people/profiles.js`: definición de los perfiles hombre, mujer, niño y niña (mandos, rangos, proporciones de referencia) — solo datos.
+- [ ] F2.4 `js/ai/people/analyze.js`: devuelve por persona `{ caja, cara (puntos), manos, pose, partes (máscaras), proporciones }`; Bueno = una pasada; Mejor = teselas para personas pequeñas y borde refinado. **Hecho (v301): la API, el ensamblado (`assemble.js`), las proporciones (`proportions.js`) y los proveedores enchufables con cancelación; hoy devuelve las caras (YuNet) y la caja estimada. Falta enchufar los modelos (F2.1–F2.3).**
+- [x] F2.5 `js/ai/people/cache.js`: caché por revisión del documento para que varias herramientas reutilicen el análisis. **(v301)** Invalida con cualquier cambio del documento, comparte la pasada entre herramientas y descarta un análisis que acaba tras un cambio.
+- [x] F2.6 `js/ai/people/profiles.js`: definición de los perfiles hombre, mujer, niño y niña (mandos, rangos, proporciones de referencia) — solo datos. **(v301)** 31 mandos adultos / 21 infantiles, presets, `sanitize` y `suggestProfile`; prueba de seguridad en `tests/ia/personas.mjs`.
 - [ ] F2.7 Nueva entrada «Seleccionar partes» `ai.partsSelect` (piel, pelo, ropa, brazos, piernas…) que produce selección o máscara de capa.
 - [ ] F2.8 Pruebas con imágenes de varias personas, poses, tamaños y fondos; medir memoria y tiempo en un móvil de gama media.
 
@@ -813,7 +813,7 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | P · Plan | — | 5 nov 2026 | En `main`; resueltas D1 a D6, el editor de cuerpo y Unmark; interfaces definidas (4.7: editor de cara con zoom, editores a pantalla completa y simples); listo para empezar por la Fase 0 |
 | 0 · Cimientos | v299 (1.0.0) | 5 nov 2026 | Hecha. Worker, catálogo y funciones de IA reorganizados sin cambios visibles: `smoke` equivalente al de antes, huella de matte idéntica, catálogo idéntico, Básicos y Automáticos intactos. Pendiente heredado: `smoke.copia.json` ya estaba desfasado antes de la fase (F1.7) |
 | 1 · Menús y cajón | v300 (1.0.0) | 5 nov 2026 | Hecha. Menú IA con submenús (8 con herramientas de 13), chips en el cajón, ☰ con título por submenú, comandos desde manifiestos, hueco «Vídeo» oculto. `smoke` equivalente salvo el árbol de menús (intencionado) y el error de consola de Unmark que ya existía; Básicos y Automáticos idénticos. |
-| 2 · Personas | | | |
+| 2 · Personas | v301 (parcial) | 5 nov 2026 | Hechas F2.4 (API), F2.5 y F2.6. **Bloqueadas** F2.1–F2.3, F2.7 y F2.8: hacen falta los modelos (Hugging Face / Google no accesibles desde el entorno de desarrollo) y medidas en un móvil de gama media. |
 | 3 · Retrato I | | | |
 | 4 · Retrato II | | | |
 | 5 · Deformación | | | |
