@@ -1,7 +1,7 @@
 {
-  "name": "Realify - Editor de Imágenes para Evitar Detectores de IA",
+  "name": "Realify · Editor de fotos y vídeo con IA local",
   "short_name": "Realify",
-  "description": "Editor de imágenes que convierte fotos generadas por IA en fotografías realistas y evita detectores. Herramientas avanzadas, privado y sin servidores.",
+  "description": "Editor completo de fotos y vídeo con IA que funciona en tu dispositivo: retoque, retrato, restauración, lotes, vídeo y simulación de cámara real. Privado y sin servidores.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.0.0 (compilación 321) · Presentación nueva aprobada
+- Nuevos textos públicos (aprobados por el titular): título, descripción, Open Graph, Twitter, JSON-LD, manifiesto y «Acerca de» presentan Realify como editor completo de fotos y vídeo con IA local, con la simulación de cámara como sello.
+
 ### 2.0.0 (compilación 320) · Editor de vídeo: Color en WebGL y proyecto guardado
 - **El proyecto de vídeo se guarda solo** (1,2 s tras cada cambio) en este dispositivo, con copia de los vídeos importados (`plugins/video/project/guardado.js`, IndexedDB). Al volver a abrir el editor sigue donde lo dejaste; el botón **Nuevo** lo borra todo (con confirmación). Prueba: `tests/video/guardado.mjs`.
 - **Color en WebGL** (`effects/color/gl.js`): misma matemática que la de CPU y diferencia máxima de 2 niveles (`tests/video/color-gl.mjs`); sin WebGL vuelve a la CPU. En el navegador de pruebas (sin tarjeta gráfica) la CPU es más rápida; la ventaja es para el móvil con GPU, aún por medir en dispositivo real.

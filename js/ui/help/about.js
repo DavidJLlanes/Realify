@@ -28,8 +28,8 @@ async function publicRelease(){
 }
 
 const FEATURES = [
-  ["🔒", "Privado por diseño", "Todo se procesa en tu equipo. Sin cuenta, sin analítica y sin subir tus imágenes a ningún servidor."],
-  ["📷", "Hecho para fotografía", "Capas, revelado RAW, ajustes y filtros de cámara, IA que se ejecuta en tu dispositivo, panorámicas, HDR y más."],
+  ["🔒", "Privado por diseño", "Todo se procesa en tu dispositivo. Sin cuenta, sin analítica y sin subir tus imágenes ni tus vídeos a ningún servidor. Los modelos de IA se descargan sólo cuando los usas, avisando antes del tamaño."],
+  ["📷", "Fotos y vídeo con IA local", "Capas, revelado RAW, retrato, restauración, lotes y un editor de vídeo, con más de 70 funciones de IA que se ejecutan en tu dispositivo. Su sello: la simulación de cámara real (ruido de sensor, óptica y compresión)."],
   ["📲", "Funciona sin conexión", "Se instala como aplicación (PWA) en móvil y escritorio y sigue funcionando sin internet."]
 ];
 
@@ -42,7 +42,7 @@ function body(release, build){
       <img class="about-logo" src="assets/android-96.webp" alt="" width="64" height="64">
       <div>
         <div class="about-name">Realify</div>
-        <div class="about-tag">Editor de imágenes en el navegador</div>
+        <div class="about-tag">Editor de fotos y vídeo con IA local</div>
         <div class="about-ver" data-about="ver">${ver}</div>
       </div>
     </div>

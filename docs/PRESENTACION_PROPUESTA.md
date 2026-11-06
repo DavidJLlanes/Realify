@@ -1,6 +1,6 @@
-# Propuesta de textos de presentación (F16.1) · pendiente de aprobación del titular
+# Textos de presentación (F16.1) · APROBADOS el 6 nov 2026 y aplicados en la compilación 321
 
-No se han aplicado a `index.html` ni a `manifest.webmanifest`: son textos públicos y los aprueba David. El README y la guía ya
+Aplicados en `index.html`, `manifest.webmanifest` y «Acerca de». El README y la guía ya
 usan el posicionamiento nuevo (D6: «editor completo de fotos y vídeo con IA local», con la simulación de cámara como sello).
 
 ## index.html
