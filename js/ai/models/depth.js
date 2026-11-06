@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    IA · CATÁLOGO · PROFUNDIDAD
-   Depth Anything V2 Small en float16.
+   Depth Anything V2 Small (en la web) y Base (remoto, uso no comercial), en float16.
    ═══════════════════════════════════════════════════════════════ */
 
 import { LOCAL } from "./base.js";
@@ -11,4 +11,12 @@ export const DEPTH = {
         web, se guarda en IndexedDB y se avisa antes de bajarlo. ── */
   depth:    { url: LOCAL + "depthanything/depth_anything_v2_small_fp16.onnx", size: 49981786, store: true, premium: true,
               label: "Depth Anything V2", license: "Apache-2.0" },
+
+  /* ── Profundidad de más calidad: Depth Anything V2 Base (CC-BY-NC-4.0, NO comercial) en float16 de
+        onnx-community/depth-anything-v2-base. Entrada pixel_values [1, 3, alto, ancho] (múltiplos de 14, media/desviación de
+        ImageNet) y salida predicted_depth [1, alto, ancho]; entradas y salidas en float32. 195 MB remoto, con aviso de tamaño.
+        Falta fijar el commit largo (hoy d13a228 abreviado y la URL usa «main»); el sha256 protege el archivo. ── */
+  depth_base: { url: "https://huggingface.co/onnx-community/depth-anything-v2-base/resolve/main/onnx/model_fp16.onnx", size: 194570657,
+                sha256: "822e6c12f36cd46753dcf229ce87199310533de2d533a527756b8ef30a76d158", store: true, premium: true,
+                label: "Depth Anything V2 Base (fp16)", license: "CC-BY-NC-4.0", noncommercial: true },
 };

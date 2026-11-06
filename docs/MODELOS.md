@@ -16,7 +16,7 @@ en [`assets/models/`](../assets/models/). Las atribuciones completas están en [
 - **Al añadir un modelo**: una línea en esta tabla (con la huella: `node tools/models/sha256.mjs <archivo>`), su entrada en el archivo de su
   familia en `js/ai/models/`, su atribución en `ATTRIBUTIONS.md` y, si no es comercial, `noncommercial: true`.
 
-## Modelos en uso (38 del catálogo + Zero-DCE++)
+## Modelos en uso (39 del catálogo + Zero-DCE++)
 
 «Datos» = licencia de los datos de entrenamiento. **«no revisada»** significa que todavía no se ha comprobado y hay que hacerlo antes de
 cobrar Premium; los únicos con restricción conocida están marcados. «Móvil» indica cómo se usa hoy; la medición en móviles reales de gama
@@ -63,6 +63,7 @@ media se hace en F15.1 (vídeo) y F14.1 (LLM) y al incorporar cada modelo nuevo.
 | `florence_embed` | Describir fotos: incrustaciones de texto de Florence-2 base | 39 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/embed_tokens_quantized.onnx` | `8818c58a214e53bf7e22c48bb4674c2fa3112b9539c3ce4075a2eac797b1ef74` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
 | `florence_enc` | Describir fotos: codificador de Florence-2 base | 44 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/encoder_model_quantized.onnx` | `a0459867dc116e8e49f53073e368e45c21169d0b0dd7dc350abed06926e0d835` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
 | `florence_dec` | Describir fotos: decodificador «merged» de Florence-2 base | 98 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/decoder_model_merged_quantized.onnx` | `7ffecf4dd98784308878fd52a7f95ed64f5ed025b4785f6f105450be8fe2be04` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
+| `depth_base` | Profundidad de más calidad (Depth Anything V2 Base, fp16) | 195 MB | CC-BY-NC-4.0 (**no comercial**) | no revisada | `onnx-community/depth-anything-v2-base` en Hugging Face (commit `d13a228`, hash largo por fijar), `onnx/model_fp16.onnx` | `822e6c12f36cd46753dcf229ce87199310533de2d533a527756b8ef30a76d158` | **no** | remoto, con aviso de tamaño; sustituto previsto: el Small (Apache-2.0); pendiente de integrar |
 
 ### Modelos de personas (Fase 2, v302)
 
@@ -82,6 +83,7 @@ salvo Zero-DCE++, que se carga aparte). Los sustitutos son una **propuesta** sin
 | `faceparse` (BiSeNet) | Seleccionar por texto (pelo, ojos, labios…), Retoque de cara | Datos CelebAMask-HQ de investigación no comercial | Zonas de ojos, labios y cejas por los 478 puntos de `facelm` (Apache-2.0); pelo, cuello y gafas por `humanparse` una vez revisada su licencia, o un modelo de partes de la cara entrenado con datos permisivos (por buscar) |
 | `humanparse` (SegFormer ATR) | Seleccionar partes, Editor de cuerpo, Ropa | Datos de entrenamiento por revisar (por precaución) | Si la revisión de ATR no lo permite: un modelo de segmentación de personas con datos de licencia comercial (por buscar) y la pose `pose` (Apache-2.0) para las extremidades |
 | Zero-DCE++ | Iluminar con IA | Pesos CC BY-NC 4.0 | El algoritmo clásico «Iluminar foto oscura» (`adj.lowLight`, sin modelo), que ya existe |
+| `depth_base` (Depth Anything V2 Base) | Profundidad de más calidad | Pesos CC-BY-NC-4.0 | `depth` (Depth Anything V2 Small, Apache-2.0), que ya viaja con la web |
 | `span_x2`, `sponge`, `colorizer` | Ampliar ×2 y colorear | Licencia **por revisar** en OpenModelDB | `esrgan_x4` para ampliar y `ddcolor` (Apache-2.0) para colorear |
 
 Además, **antes de cobrar** hay que revisar la columna «Datos» de todos los modelos (hoy «no revisada») y calcular el `sha256` de los remotos.
