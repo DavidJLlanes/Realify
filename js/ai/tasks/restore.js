@@ -11,7 +11,7 @@ import { post } from "../engine/post.js";
 
 /* Teselas con solape, como el AiProcessor de ImageToolbox: si la
    imagen es menor que una tesela se amplía en espejo hasta un múltiplo
-   de 8 (y al mínimo que pida el modelo), y en la costura con la
+   de 8, o de `model.multiple` (16 en NAFNet), (y al mínimo que pida el modelo), y en la costura con la
    tesela anterior se mezcla con un «smoothstep» para que no quede
    rejilla visible. */
 export async function restore({ model, id, rgba, w, h, strength = 50 }){
@@ -33,7 +33,7 @@ export async function restore({ model, id, rgba, w, h, strength = 50 }){
     // Solape REAL con la tesela anterior: la última se pega al borde,
     // así que puede solapar más de `overlap`.
     const ovL = c ? xs[c - 1] + tw - x0 : 0, ovT = r ? ys[r - 1] + th - y0 : 0;
-    const align = v => Math.max(model.minSide || 0, Math.ceil(v / 8) * 8);
+    const align = v => Math.max(model.minSide || 0, Math.ceil(v / (model.multiple || 8)) * (model.multiple || 8));
     const pw = align(tw), ph = align(th), n = pw * ph;
     const input = new Float32Array(3 * n);
     for(let y = 0; y < ph; y++){

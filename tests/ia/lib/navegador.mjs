@@ -34,13 +34,14 @@ function servir() {
   return new Promise(res => srv.listen(0, "127.0.0.1", () => res(srv)));
 }
 
-export async function abrir(tipo = "escritorio", { sw = false } = {}) {   // sw: deja actuar al service worker (pruebas sin conexión)
+export async function abrir(tipo = "escritorio", { sw = false, args = [], depth = "small" } = {}) {   // depth: modelo de profundidad de la prueba (por defecto el incluido en la web; «base» baja el remoto)   // sw: deja actuar al service worker (pruebas sin conexión)
   const chromium = await cargarPlaywright();
   const srv = await servir();
-  const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_EXE ? { executablePath: process.env.CHROME_EXE } : {}) });
+  const browser = await chromium.launch({ headless: true, args, ...(process.env.CHROME_EXE ? { executablePath: process.env.CHROME_EXE } : {}) });
   const ctx = await browser.newContext(tipo === "movil"
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: sw ? "allow" : "block" }
     : { viewport: { width: 1366, height: 768 }, serviceWorkers: sw ? "allow" : "block" });
+  await ctx.addInitScript(d => { try { localStorage.setItem("realify.depth", d); } catch {} }, depth);
   const page = await ctx.newPage();
   const errs = [];
   page.on("pageerror", e => errs.push(e.message));

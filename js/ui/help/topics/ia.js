@@ -148,7 +148,7 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           al color y la luz del fondo). En Profundidad: <b>Aberración por distancia</b> y <b>Luz direccional con relieve</b>. Todas son diálogos simples con pocos mandos y el resultado
           va a una capa nueva con «mezcla». «Reemplazar cielo» y «Adaptive Photo Lens» siguen en este mismo submenú.</li>
         <li id="ia-restaurar"><b>Restaurar y limpiar 👑</b> (Inteligencia Artificial › Mejorar y restaurar, y en las pestañas Mejorar y Corregir del cajón): <b>Quitar desenfoque</b>
-          (movimiento o fuera de foco; mide el ángulo y el tamaño en tu foto o los pones tú, y frena los halos), <b>Polvo y motas del sensor</b> (detecta manchas pequeñas y oscuras
+          (movimiento o fuera de foco; mide el ángulo y el tamaño en tu foto o los pones tú, y frena los halos; o con el motor <i>IA · NAFNet</i>, para el desenfoque de movimiento real), <b>Polvo y motas del sensor</b> (detecta manchas pequeñas y oscuras
           sobre zonas lisas y las rellena con su entorno) y <b>Moiré y bandas</b> (busca picos periódicos en el espectro y los atenúa). Además, <i>Reducción de ruido</i> tiene
           ahora «Limpiar para Realify»: mide el ruido de la foto y lo quita con un filtro guiado antes de añadir el grano propio de sensor. No usan modelos: son algoritmos propios en luz lineal.</li>
         <li id="ia-composicion"><b>Objetos y composición 👑</b>: <b>Pincel inteligente</b> (Inteligencia Artificial › Seleccionar): pintas por encima de un objeto y la selección se pega a sus bordes;
@@ -165,12 +165,12 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
           las abiertas, y lo guarda o importa como archivo para pasarlo a otra persona.</li>
         <li id="ia-assistant"><b>Asistente de edición 👑</b> (Inteligencia Artificial › Asistente). Escribe lo que quieres, por ejemplo «más cálida y con grano de película»,
           «muy luminosa y con contraste» o «quita la neblina y mejora el cielo». Te enseña el plan paso a paso y, si aceptas, lo aplica: los ajustes quedan en capas de ajuste que puedes retocar, y
-          todo se puede deshacer. Sólo usa herramientas de Realify; no ejecuta nada más. Por ahora entiende frases sencillas en español.</li>
+          todo se puede deshacer. Sólo usa herramientas de Realify; no ejecuta nada más. Por ahora entiende frases sencillas en español. Con el motor <b>IA · Qwen</b> (1,2 GB, necesita WebGPU y memoria; si no puede, usa las reglas) entiende frases más libres, y el botón <b>🎤 Dictar</b> (Whisper, en tu equipo; hace falta el permiso del micrófono) escribe lo que dices.</li>
         <li id="ia-library"><b>Lote y biblioteca 👑</b> (Inteligencia Artificial › Lote y biblioteca). <b>Selección rápida</b>: añade varias fotos y la IA
           puntúa nitidez, ojos cerrados y composición, agrupa las repetidas y marca cuál es la mejor; toca una foto para descartarla o recuperarla y abre las elegidas en pestañas.
-          <b>Buscar fotos</b>: indexa tus fotos en este dispositivo (sólo guarda lo que la IA ve y una miniatura) y búscalas con una frase como «perro en la playa» o «de noche».
+          <b>Buscar fotos</b>: indexa tus fotos en este dispositivo (sólo guarda lo que la IA ve y una miniatura) y búscalas con una frase como «perro en la playa» o «de noche» (con CLIP: entiende el contenido de la foto, no sólo colores y tipos; si no quieres bajar los 153 MB, sigue buscando como antes).
           <b>Etiquetas y nombre</b> propone etiquetas en español y un nombre de archivo con una plantilla ({fecha}, {etiqueta}, {color}, {n}…). <b>Texto alternativo</b> escribe una descripción
-          corta o larga para lectores de pantalla y la copia. En «Aplicar esta edición a otras fotos», el ZIP admite plantilla de nombre y formatos para redes.</li>
+          corta o larga para lectores de pantalla y la copia; con el motor <i>Florence-2</i> (275 MB) enseña además lo que ve la IA, en inglés. En «Aplicar esta edición a otras fotos», el ZIP admite plantilla de nombre y formatos para redes.</li>
         <li id="ia-depth-tools"><b>Seleccionar por profundidad 👑</b> (Inteligencia Artificial › Seleccionar, y
           Capa › Máscara de capa › Por profundidad). Elige el <b>primer plano</b>, el <b>plano medio</b>,
           el <b>fondo</b> (tercios de la foto por cantidad de píxeles) o un <b>intervalo manual</b>

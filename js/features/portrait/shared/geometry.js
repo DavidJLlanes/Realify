@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    RETRATO · GEOMETRÍA DE LA CARA (puro)
    Escala y orientación de una cara a partir de su malla de puntos, y el recorte (caja con margen) sobre el que trabajan los motores
-   de piel. Entradas: puntos [[x,y]…] de la foto. Salidas: frame() = { F, up, c, P }, cropFor() = { x, y, w, h, k }.
+   de piel. Entradas: puntos [[x,y]…] de la foto (y, opcional, la caja del pelo). Salidas: frame() = { F, up, c, P }, cropFor() = { x, y, w, h, k }.
    ═══════════════════════════════════════════════════════════════ */
 import { IDX } from "./landmarks.js";
 
@@ -14,10 +14,13 @@ export function frame(pts){
 }
 
 /** Recorte alrededor de la cara con margen para cuello, pelo y fondo cercano; `maxSide` limita el lado largo de trabajo (escala k ≤ 1 → píxeles de trabajo / píxeles de la foto). */
-export function cropFor(pts, imgW, imgH, maxSide = 1600){
+export function cropFor(pts, imgW, imgH, maxSide = 1600, extra = null){
   const { F, c } = frame(pts);
-  const x0 = Math.max(0, Math.floor(c[0] - F * 1.5)), x1 = Math.min(imgW, Math.ceil(c[0] + F * 1.5));      // margen para el pelo y los pelos sueltos
-  const y0 = Math.max(0, Math.floor(c[1] - F * 1.7)), y1 = Math.min(imgH, Math.ceil(c[1] + F * 1.6));
+  let ax = c[0] - F * 1.5, bx = c[0] + F * 1.5, ay = c[1] - F * 1.7, by = c[1] + F * 1.6;      // margen para el pelo y los pelos sueltos
+  /* `extra`: caja del pelo según el modelo (el pelo largo cae mucho más abajo que el margen fijo: sin esto el cambio se cortaba en línea recta).
+     Se limita a 4 anchos de cara a cada lado y 6 hacia abajo para no trabajar con media foto. */
+  if(extra){ ax = Math.min(ax, Math.max(extra.x0 - F * 0.1, c[0] - F * 4)); bx = Math.max(bx, Math.min(extra.x1 + F * 0.1, c[0] + F * 4)); ay = Math.min(ay, Math.max(extra.y0 - F * 0.1, c[1] - F * 3)); by = Math.max(by, Math.min(extra.y1 + F * 0.1, c[1] + F * 6)); }
+  const x0 = Math.max(0, Math.floor(ax)), x1 = Math.min(imgW, Math.ceil(bx)), y0 = Math.max(0, Math.floor(ay)), y1 = Math.min(imgH, Math.ceil(by));
   const w = x1 - x0, h = y1 - y0, k = Math.min(1, maxSide / Math.max(w, h));
   return { x: x0, y: y0, w, h, k, W: Math.max(1, Math.round(w * k)), H: Math.max(1, Math.round(h * k)) };
 }

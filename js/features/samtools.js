@@ -255,11 +255,11 @@ export async function eraseToLayer(layer, fm, rgba, inpaint = null){
   try{
     if(inpaint) res = await inpaint(inRgba, hole, N);
     else {
-      const { runModel } = await import("../ai/runtime.js");
-      res = await runModel("inpaint", "lama", { rgba: inRgba, hole, size: N }, [inRgba.buffer, hole.buffer], { title: "Borrando con IA" });
+      const { rellenar } = await import("../ai/relleno.js");
+      res = await rellenar(inRgba, hole, N, { title: "Borrando con IA" });
     }
   }
-  catch(err){ if(!err.cancelled) toast("No se pudo borrar con LaMa: " + err.message, "err"); return false; }
+  catch(err){ if(!err.cancelled) toast("No se pudo borrar con IA: " + err.message, "err"); return false; }
 
   // Relleno de vuelta al tamaño del recorte
   const outC = document.createElement("canvas"); outC.width = outC.height = N;

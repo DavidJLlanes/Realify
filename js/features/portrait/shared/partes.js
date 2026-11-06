@@ -23,3 +23,13 @@ export function mascaraParte(partes, nombre, crop, refinar = null){
   const g = new Float32Array(W * H); for(let i = 0; i < g.length; i++) g[i] = Math.sqrt(Math.max(0, refinar.Y[i]));
   return guidedFilterAlpha(g, out, W, H, Math.max(2, refinar.radio | 0), 0.002);
 }
+
+/** Caja (en píxeles de la foto) que ocupa la parte `nombre` según el modelo, o null. Sirve para que el recorte de trabajo no corte el pelo. */
+export function cajaParte(partes, nombre, umbral = 100){
+  const m = partes && partes.mascaras[nombre]; if(!m) return null;
+  let x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+  for(let y = 0; y < partes.h; y++) for(let x = 0; x < partes.w; x++) if(m[y * partes.w + x] > umbral){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  if(x1 < 0) return null;
+  const c = partes.caja, sx = c.w / partes.w, sy = c.h / partes.h;
+  return { x0: c.x + x0 * sx, y0: c.y + y0 * sy, x1: c.x + (x1 + 1) * sx, y1: c.y + (y1 + 1) * sy };
+}

@@ -15,10 +15,9 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - **F15.7 · sonido en móviles:** comprobar en tus móviles que el vídeo exportado con sonido se oye en WhatsApp, Instagram y TikTok. Si el dispositivo no codifica AAC, el MP4 lleva Opus, que algún reproductor antiguo (iOS viejo) puede no reproducir; en ese caso habría que exportar WebM o decidir si añadir un codificador AAC propio.
 - **F15.6 · MODNet en vídeo:** probar «Fondo con IA» con un vídeo real de una persona en un móvil de gama media (velocidad por fotograma y calidad del borde); aquí sólo se probó con un alfa simulado.
 *(Reintentado el 5 nov 2026: `huggingface.co`, `hf-mirror.com`, `modelscope.cn` y las descargas de GitHub Releases devuelven 403 desde el entorno de desarrollo.)*
-- **Cuando terminen las fases, hacer F14.1 y F14.4** (pendientes en el plan): F14.1 = cargar Qwen2.5 1,5B (0,5B de respaldo) con `ensureVendor` + WebGPU y que devuelva el plan JSON que ya valida `assistant/engine/validar.js`; F14.4 = voz con Whisper tiny local para dictar la orden. Necesitan los pesos ONNX descargados desde un equipo con acceso.
-- **Qwen2.5 1,5B Instruct (F14.1)** y **Whisper tiny (F14.4)**: Hugging Face no es accesible desde el entorno de desarrollo. Hace falta descargar los pesos ONNX (y su `sha256`) y dejarlos donde indique `docs/MODELOS.md`, o darme acceso a otra fuente. El asistente ya funciona con reglas y el modelo sólo tendrá que devolver el mismo plan.
-- **CLIP** (búsqueda de fotos, F13.2) y **captioning** (texto alternativo, F13.4): igual; hoy usan MobileNet, la lente y los colores.
-- **MI-GAN / NAFNet / Depth Anything Base**: igual.
+- *(Hecho en la v325 con los pesos que subió David: Qwen2.5 1,5B, Whisper tiny, CLIP, Florence-2, Depth Anything Base, MI-GAN y NAFNet.)*
+- **Qwen 1,5B no se ha podido probar de punta a punta** (los pesos de 1,2 GB no están en el entorno): sólo el tokenizador, la plantilla, el aviso y la lectura del plan. Probarlo en tu equipo con WebGPU: Asistente › Motor «IA · Qwen».
+- **nginx**: cambiar `microphone=()` por `microphone=(self)` en `Permissions-Policy` para que el dictado por voz pueda usar el micrófono.
 
 ## Dispositivos y navegadores que Claude no tiene
 - Mediciones en un **móvil de gama media** (WebGPU, memoria, tiempos) de las funciones con modelos.

@@ -33,6 +33,11 @@ import { clipseg } from "./tasks/clipseg.js";
 import { matte } from "./tasks/matte.js";
 import { inpaint } from "./tasks/inpaint.js";
 import { restore } from "./tasks/restore.js";
+import { migan } from "./tasks/migan.js";
+import { clip } from "./tasks/clip.js";
+import { florence } from "./tasks/florence.js";
+import { whisper } from "./tasks/whisper.js";
+import { llm } from "./tasks/llm.js";
 import { upscale } from "./tasks/upscale.js";
 import { colorize } from "./tasks/colorize.js";
 import { probe } from "./tasks/probe.js";
@@ -68,7 +73,7 @@ const OBSOLETE = ["gfpgan/gfpgan_1.4_fp16.onnx"].map(p => new URL("../../assets/
 
 setTimeout(() => { for(const u of OBSOLETE) deleteStored(u).catch?.(() => {}); }, 3000);
 
-const TASKS = { clipseg, matte, inpaint, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore, classify, segSky, segPerson, landmarks, handDetect, handLandmarks, pose, humanParse };
+const TASKS = { clipseg, matte, inpaint, migan, clip, florence, whisper, llm, restore, upscale, colorize, probe, samEncode, samDecode, faces, parse, depth, faceRestore, classify, segSky, segPerson, landmarks, handDetect, handLandmarks, pose, humanParse };
 
 self.onmessage = async e => {
   const m = e.data || {};

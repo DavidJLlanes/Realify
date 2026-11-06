@@ -7,7 +7,7 @@
 import { createShell, mountControls, decodePhoto, pickFiles } from "../../js/ui/kit/fsshell.js";
 import { toast } from "../../js/core/toast.js";
 import { indexarFoto } from "../../js/features/library/shared/indexar.js";
-import { buscar } from "../../js/features/library/search-photos/engine/consulta.js";
+import { buscarConClip } from "../../js/features/library/search-photos/engine/clip.js";
 import { todos, guardar, conocida, vaciar, claveDe } from "../../js/features/library/search-photos/indice.js";
 
 const TOUCH = matchMedia("(pointer:coarse)").matches || matchMedia("(max-width:900px)").matches;
@@ -22,16 +22,22 @@ export function openPhotoSearchEditor(){
     sh.setApplyEnabled(false);
 
     const mapa = () => { const o = {}; regs.forEach((r, i) => { o[i] = r; }); return o; };
-    function filtrar(){
-      const q = S.q.trim();
-      lista = q ? buscar(regs.map(r => r.reg), q).map(x => regs[x.i]) : [...regs].sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+    const vecs = new Map();   // frase → vector de CLIP (o null si no hay modelo): se pide una sola vez
+    async function vectorDe(q){
+      if(!regs.some(r => r.reg && r.reg.clip)) return null;
+      if(!vecs.has(q)) vecs.set(q, await import("../../js/ai/clip.js").then(m => m.embedText(q)).catch(() => null));
+      return vecs.get(q);
+    }
+    async function filtrar(){
+      const q = S.q.trim(), qv = q ? await vectorDe(q) : null;
+      lista = q ? buscarConClip(regs.map(r => r.reg), q, qv).map(x => regs[x.i]) : [...regs].sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
       sh.setApplyEnabled(lista.some(r => sesion.has(r.clave)));
     }
     async function bitmapDe(r){ if(!bmp.has(r.clave)) bmp.set(r.clave, r.mini ? await createImageBitmap(r.mini) : null); return bmp.get(r.clave); }
 
     const view = document.createElement("canvas");
     async function dibujar(){
-      filtrar();
+      await filtrar();
       if(!lista.length){ sh.setView(null); sh.setEmpty(`<b>Buscar fotos</b><span>${regs.length ? "No hay fotos que cumplan eso. Prueba con otra palabra." : "Añade fotos de la galería para crear tu índice."}</span>`); return; }
       sh.setEmpty(null);
       const n = lista.length, cols = Math.max(1, Math.min(n, TOUCH ? 3 : 5)), rows = Math.ceil(n / cols), cw = TOUCH ? 200 : 250, ch = Math.round(cw * 0.75), g = 12, lab = 22;

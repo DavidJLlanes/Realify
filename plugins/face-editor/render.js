@@ -11,7 +11,7 @@ import { buildZones } from "../../js/features/portrait/shared/zones.js";
 import { skinMask } from "../../js/features/portrait/shared/skin.js";
 import { frame } from "../../js/features/portrait/shared/geometry.js";
 import { buildRasgos } from "../../js/features/portrait/shared/zones-rasgos.js";
-import { mascaraParte } from "../../js/features/portrait/shared/partes.js";
+import { mascaraParte, cajaParte } from "../../js/features/portrait/shared/partes.js";
 import { pegarRecorte } from "../../js/features/ai-kit/crop-compose.js";
 import { toPlanes, fromPlanes } from "../../js/features/portrait/shared/planes.js";
 import { stage as relight } from "../../js/features/portrait/face-relight/engine.js";
@@ -33,7 +33,7 @@ import { stage as forma } from "../../js/features/portrait/face-shape/engine.js"
 const ETAPAS = [relight, even, circles, wrinkles, shine, texture, eyes, lips, teeth, hair, glasses, flyaway, forma];      // la forma va la última: los demás motores miran la cara original
 
 export function prepararCara(src, persona, maxSide){
-  const pts = persona.cara.puntos, crop = cropFor(pts, src.width, src.height, maxSide);
+  const pts = persona.cara.puntos, crop = cropFor(pts, src.width, src.height, maxSide, cajaParte(persona.partes, "pelo"));
   const cv = document.createElement("canvas"); cv.width = crop.W; cv.height = crop.H;
   const x = cv.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high";
   x.drawImage(src, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.W, crop.H);

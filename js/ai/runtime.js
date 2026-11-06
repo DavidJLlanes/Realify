@@ -62,7 +62,7 @@ function cancelAll(){
   hideBusy();
 }
 
-const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA", samEncode: "Analizando la foto con IA", faceRestore: "Restaurando caras con IA", clipseg: "Buscando en la foto con IA" };
+const TITLES = { matte: "Eliminando fondo con IA", inpaint: "Rellenando con IA", restore: "Procesando con IA", llm: "Pensando con IA", whisper: "Entendiendo lo que dices", florence: "Describiendo la foto con IA", upscale: "Ampliando con IA", colorize: "Coloreando con IA", samEncode: "Analizando la foto con IA", faceRestore: "Restaurando caras con IA", clipseg: "Buscando en la foto con IA" };
 
 /* ── Red de seguridad para modelos pesados ──────────────────────
    Un modelo grande (ISNet, LaMa…) puede agotar la memoria de la
@@ -180,6 +180,11 @@ function ensureWorker(){
       const msg = `Procesando la imagen… ${m.done} / ${m.total}`;
       status(msg); busyMsg(msg);
       progress(0.6 + 0.4 * m.done / m.total);
+      return;
+    }
+    if(m.type === "tokens"){
+      const msg = `Pensando… ${m.done} palabras`;
+      status(msg); busyMsg(msg); progress(0.6 + 0.4 * Math.min(1, m.done / m.total));
       return;
     }
     const p = pending.get(m.req);

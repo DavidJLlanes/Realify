@@ -9,6 +9,17 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 325) · Siete modelos de IA nuevos conectados
+- **Voz con Whisper tiny (F14.4)**: botón 🎤 en el Asistente. Graba del micrófono (sólo mientras se pide), calcula el espectrograma log-mel en el equipo (`js/ai/engine/mel.js`, comprobado contra el extractor oficial: error máximo 9·10⁻⁵) y transcribe en el worker (`js/ai/tasks/whisper.js`). El audio no sale del equipo ni se guarda. Codificador incluido en la web (10 MB), decodificador remoto (110 MB, con aviso). **Requiere `microphone=(self)` en la cabecera Permissions-Policy de nginx.**
+- **Qwen2.5 1,5B con WebGPU (F14.1)**: nuevo motor «IA · Qwen» del Asistente (`js/ai/tasks/llm.js`, `js/features/assistant/engine/prompt.js`). Recibe la lista de herramientas con sus rangos y contesta un plan JSON que pasa por `validarPlan()` igual que el de las reglas; si el equipo no tiene WebGPU o memoria, o el modelo no contesta un plan válido, se usan las reglas. 1,2 GB, descarga única con aviso. Pendiente medirlo en un móvil de gama media.
+- **Buscar fotos con CLIP**: cada foto indexada guarda un vector de 512 números (512 B) de CLIP ViT-B/32 (`js/ai/clip.js`); la frase (en español, traducida palabra a palabra) se compara con ellos y se mezcla con la puntuación de palabras anterior. Si se rechaza la descarga (153 MB), se indexa como antes.
+- **Texto alternativo con Florence-2**: motor opcional «Florence-2 · IA (275 MB)» (`js/ai/tasks/florence.js`, tokenizador BPE propio `js/ai/engine/bytebpe.js`, mismos ids que el oficial). Describe la foto en inglés; el texto copiado sigue siendo el español de las plantillas. Decodificación voraz (sin 3 haces).
+- **Profundidad Base**: `js/ai/depth.js` usa Depth Anything V2 Base (195 MB) en escritorio y Small (50 MB, incluido) en móvil o con poca memoria (se puede forzar con `localStorage["realify.depth"] = "small"` o `"base"`).
+- **MI-GAN** (28 MB, incluido en la web): `js/ai/relleno.js` elige el relleno: LaMa en escritorio, MI-GAN en móvil o con poca memoria; lo usan «Borrar con IA» y el relleno del fondo de las deformaciones.
+- **NAFNet** (33 MB, incluido): «Quitar desenfoque» tiene un método más en su selector: «IA · NAFNet» (junto a «Movimiento» y «Fuera de foco», que se miden) (desenfoque de movimiento real; +35 % de energía de bordes en la prueba). La tarea `restore` acepta `multiple` (16) del modelo.
+- **Arreglo · el color del pelo se cortaba en línea recta**: el recorte de la cara tenía un margen fijo y el pelo largo caía fuera. Ahora se amplía hasta donde acaba el pelo según el modelo de partes (`cropFor` con la caja del pelo, tope de 4 anchos de cara a los lados y 6 hacia abajo).
+- Pruebas nuevas: `tests/ia/restaurar/{nafnet,migan}.mjs`, `tests/ia/escena/depth-base.mjs`, `tests/ia/biblioteca/{clip,florence}.mjs`, `tests/ia/asistente/{voz,llm-prompt}.mjs`, `tests/ia/retrato/recorte-pelo.mjs`; los modelos remotos se simulan con un servidor HTTPS local (`tests/ia/lib/remotos.mjs`) y tus archivos.
+
 ### 2.0.0 (compilación 324) · Icono en Firefox y comprobación de actualizaciones
 - **Icono de la app al instalar desde Firefox**: el manifiesto sólo declaraba iconos WebP y Firefox no los usa para el acceso directo. Ahora lleva primero iconos **PNG** (192 y 512, normales y «maskable»: `assets/android-*.png`) y conserva los WebP.
 - **`version.json` estaba vacío desde la compilación 321**, por lo que la app no detectaba actualizaciones y no salía el botón «Actualizar». Restaurado (`version`, `build`, `release`).

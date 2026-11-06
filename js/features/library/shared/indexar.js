@@ -5,6 +5,8 @@
    ═══════════════════════════════════════════════════════════════ */
 import { coloresDominantes } from "../search-photos/engine/color.js";
 
+let clipApagado = false;
+
 export async function indexarFoto(c){
   const { classify } = await import("../../../filters/lens/classify.js"), { CATEGORY_BY_ID, GROUPS } = await import("../../../filters/lens/categories.js");
   const k = Math.min(1, 96 / Math.max(c.width, c.height)), p = document.createElement("canvas"); p.width = Math.max(1, Math.round(c.width * k)); p.height = Math.max(1, Math.round(c.height * k));
@@ -14,6 +16,8 @@ export async function indexarFoto(c){
   const m = r.measures || {};
   const reg = { cat: r.category, catEtiqueta: cat ? cat.label : "", grupo, top: (r.model?.top || []).map(t => ({ label: t.label, p: +t.p.toFixed(3) })), colores: col.colores, brillo: col.brillo, sat: col.sat, bn: m.sat != null ? m.sat < 0.045 && m.maxSat < 0.2 : col.sat < 0.05, piel: +(m.skin || 0).toFixed(3) };
   const t = document.createElement("canvas"), kk = Math.min(1, 160 / Math.max(c.width, c.height)); t.width = Math.max(1, Math.round(c.width * kk)); t.height = Math.max(1, Math.round(c.height * kk)); t.getContext("2d").drawImage(c, 0, 0, t.width, t.height);
+  /* CLIP (si el equipo lo tiene o la persona acepta bajarlo): un vector de 512 números por foto; si se rechaza, se indexa sin él y no se vuelve a pedir. */
+  if(!clipApagado){ try{ reg.clip = await (await import("../../../ai/clip.js")).embedImage(c); }catch(err){ if(err && err.cancelled) throw err; clipApagado = true; } }
   const mini = await new Promise(ok => t.toBlob(ok, "image/jpeg", 0.7));
   return { reg, mini };
 }

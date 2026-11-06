@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-06T12:22:57.914Z",
+ "generated": "2026-11-06T15:44:51.769Z",
  "root": "/home/claude/realify",
- "jsFiles": 1120,
- "jsLines": 109685,
+ "jsFiles": 1148,
+ "jsLines": 110711,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -16,7 +16,7 @@
    "target": "camaras/manifest.js"
   }
  ],
- "nonLiteralDynamicImports": 69,
+ "nonLiteralDynamicImports": 70,
  "staticCycles": [],
  "storage": {
   "localStorage": [
@@ -36,6 +36,7 @@
    "realify.compatSeen",
    "realify.cookieConsent",
    "realify.curves.presets",
+   "realify.depth",
    "realify.dlgpos",
    "realify.drawer.cat",
    "realify.drawer.chip",
@@ -423,6 +424,7 @@
   "merges.txt",
   "mobile.css",
   "model.cpu",
+  "model.multiple",
   "model.size",
   "navigator.vibrate",
   "o.alpha",
@@ -472,6 +474,7 @@
   "realify.colorizer",
   "realify.compatSeen",
   "realify.cookieConsent",
+  "realify.depth",
   "realify.dlgpos",
   "realify.es",
   "realify.exif",
@@ -573,13 +576,20 @@
   "xform.box"
  ],
  "exportsByFile": {
+  "js/ai/clip.js": [
+   "embedImage",
+   "embedText",
+   "recortarCentro",
+   "semejanza"
+  ],
   "js/ai/cliptokenizer.js": [
    "createTokenizer",
    "loadClipTokenizer"
   ],
   "js/ai/depth.js": [
    "depthAt",
-   "depthMap"
+   "depthMap",
+   "depthModelId"
   ],
   "js/ai/depthmath.js": [
    "gainWithShoulder",
@@ -588,6 +598,14 @@
    "presetZone",
    "quantileBounds",
    "zoneAlpha"
+  ],
+  "js/ai/engine/bytebpe.js": [
+   "createByteBPE"
+  ],
+  "js/ai/engine/mel.js": [
+   "SR",
+   "filtrosMel",
+   "logMel"
   ],
   "js/ai/engine/model-store.js": [
    "dbHas",
@@ -621,10 +639,18 @@
   "js/ai/faces.js": [
    "detectFaces"
   ],
+  "js/ai/florence.js": [
+   "ORDENES",
+   "describirFoto"
+  ],
   "js/ai/lab.js": [
    "labToRgb",
    "rgbToLab",
    "rgbfToLab"
+  ],
+  "js/ai/llm.js": [
+   "preguntar",
+   "puedeLLM"
   ],
   "js/ai/matte.js": [
    "matteAlpha",
@@ -635,6 +661,9 @@
    "HF_REV",
    "LOCAL"
   ],
+  "js/ai/models/clip.js": [
+   "CLIP"
+  ],
   "js/ai/models/depth.js": [
    "DEPTH"
   ],
@@ -643,6 +672,9 @@
   ],
   "js/ai/models/faces.js": [
    "FACES"
+  ],
+  "js/ai/models/florence.js": [
+   "FLORENCE"
   ],
   "js/ai/models/inpaint.js": [
    "INPAINT"
@@ -658,6 +690,9 @@
   ],
   "js/ai/models/segmentation.js": [
    "SEGMENTATION"
+  ],
+  "js/ai/models/voz.js": [
+   "VOZ"
   ],
   "js/ai/models.js": [
    "MODELS",
@@ -715,6 +750,10 @@
   "js/ai/people/providers/pose.js": [
    "poseProvider"
   ],
+  "js/ai/relleno.js": [
+   "rellenar",
+   "rellenoLigero"
+  ],
   "js/ai/runtime.js": [
    "aiSession",
    "crashedBefore",
@@ -735,6 +774,9 @@
   "js/ai/tasks/classify.js": [
    "classify"
   ],
+  "js/ai/tasks/clip.js": [
+   "clip"
+  ],
   "js/ai/tasks/clipseg.js": [
    "clipseg"
   ],
@@ -750,6 +792,10 @@
   "js/ai/tasks/faces.js": [
    "faces"
   ],
+  "js/ai/tasks/florence.js": [
+   "florence",
+   "prohibidos"
+  ],
   "js/ai/tasks/hands.js": [
    "handDetect",
    "handLandmarks",
@@ -764,8 +810,15 @@
   "js/ai/tasks/landmarks.js": [
    "landmarks"
   ],
+  "js/ai/tasks/llm.js": [
+   "llm",
+   "plantilla"
+  ],
   "js/ai/tasks/matte.js": [
    "matte"
+  ],
+  "js/ai/tasks/migan.js": [
+   "migan"
   ],
   "js/ai/tasks/parse.js": [
    "parse"
@@ -793,6 +846,10 @@
   "js/ai/tasks/upscale.js": [
    "upscale"
   ],
+  "js/ai/tasks/whisper.js": [
+   "IDIOMAS",
+   "whisper"
+  ],
   "js/ai/textclasses.js": [
    "CLASSES",
    "COLORS",
@@ -813,6 +870,11 @@
    "tilePlan",
    "tileWeights",
    "workSide"
+  ],
+  "js/ai/voz.js": [
+   "grabar",
+   "remuestrear",
+   "transcribir"
   ],
   "js/ai/zerodce.js": [
    "aiLowLight"
@@ -2227,6 +2289,11 @@
   "js/features/assistant/engine/interprete.js": [
    "interpretar"
   ],
+  "js/features/assistant/engine/prompt.js": [
+   "construirMensajes",
+   "leerPlan",
+   "listaHerramientas"
+  ],
   "js/features/assistant/engine/validar.js": [
    "MAX_PASOS",
    "describirPaso",
@@ -2234,6 +2301,9 @@
   ],
   "js/features/assistant/shared/aplicar.js": [
    "aplicarPasos"
+  ],
+  "js/features/assistant/shared/dictado.js": [
+   "anadirDictado"
   ],
   "js/features/autostraighten.js": [
    "autoStraighten",
@@ -2680,6 +2750,10 @@
   "js/features/library/culling/manifest.js": [
    "default"
   ],
+  "js/features/library/search-photos/engine/clip.js": [
+   "UMBRAL",
+   "buscarConClip"
+  ],
   "js/features/library/search-photos/engine/color.js": [
    "NOMBRES",
    "coloresDominantes",
@@ -2957,6 +3031,7 @@
    "IDX"
   ],
   "js/features/portrait/shared/partes.js": [
+   "cajaParte",
    "mascaraParte"
   ],
   "js/features/portrait/shared/planes.js": [
@@ -3184,6 +3259,9 @@
   ],
   "js/features/restore/deblur/engine.js": [
    "quitarDesenfoque"
+  ],
+  "js/features/restore/deblur/ia.js": [
+   "quitarDesenfoqueIA"
   ],
   "js/features/restore/deblur/index.js": [
    "openDeblur"
@@ -5442,13 +5520,13 @@
  },
  "dirEdges": {
   "js/editor -> js/core": 265,
-  "js/features -> js/core": 113,
+  "js/features -> js/core": 114,
   "plugins -> js/core": 111,
   "js/app -> js/editor": 97,
   "plugins -> js/features": 69,
   "js/io -> js/core": 66,
+  "js/features -> js/ai": 61,
   "js/features -> js/editor": 58,
-  "js/features -> js/ai": 55,
   "js/ui -> js/core": 52,
   "js/app -> js/core": 49,
   "js/ui -> js/features": 48,
@@ -5466,17 +5544,17 @@
   "js/main.js -> js/editor": 23,
   "plugins -> js/io": 21,
   "js/app -> js/ui": 20,
+  "js/ai -> js/vendor": 19,
   "js/app -> plugins": 19,
   "js/features -> js/io": 19,
   "js/main.js -> js/app": 19,
   "js/io -> js/editor": 18,
-  "js/ai -> js/vendor": 14,
   "js/main.js -> js/ui": 13,
   "js/filters -> js/ui": 12,
+  "plugins -> js/ai": 12,
   "js/app -> js/io": 11,
   "js/features -> js/cv": 11,
   "js/main.js -> js/core": 11,
-  "plugins -> js/ai": 11,
   "js/editor -> js/features": 9,
   "js/io -> js/ui": 9,
   "js/io -> js/vendor": 9,
@@ -5484,8 +5562,8 @@
   "js/features -> js/filters": 7,
   "js/ai -> js/editor": 6,
   "js/exif -> js/core": 6,
+  "js/ai -> js/core": 5,
   "plugins -> js/cv": 5,
-  "js/ai -> js/core": 4,
   "js/editor -> plugins": 4,
   "js/filters -> js/exif": 4,
   "js/filters -> js/ai": 4,

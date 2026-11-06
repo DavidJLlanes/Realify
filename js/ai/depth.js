@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    IA · PROFUNDIDAD (Premium 👑)
-   Depth Anything V2 Small calcula, a 518×518, lo cerca o lejos que
+   Depth Anything V2 (Base en escritorio, Small en el móvil) calcula, a 518×518, lo cerca o lejos que
    está cada punto de la foto (1 = lo más cercano, 0 = lo más lejano).
 
    Procesado Premium («el bueno y el mejor»):
@@ -21,6 +21,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { runModel, aiSession } from "./runtime.js";
+import { rellenoLigero } from "./relleno.js";
 import { guidedFilterAlpha } from "../editor/selection/refineedge-math.js";
 import { tilePlan, tileWeights, blender, fitAffine, resizeBilinear, smooth, workSide } from "./tiles.js";
 
@@ -35,11 +36,16 @@ function squareRGBA(src, x, y, w, h){
   cx.drawImage(src, x, y, w, h, 0, 0, S, S);
   return cx.getImageData(0, 0, S, S).data;
 }
-const infer = rgba => runModel("depth", "depth", { rgba }, [rgba.buffer], { title: "Calculando la profundidad con IA" });
+/* Depth Anything V2 Base (195 MB, más detalle) en equipos de escritorio; Small (50 MB, incluido en la web) en el móvil o con poca memoria. */
+export const depthModelId = () => {
+  let v = null; try{ v = localStorage.getItem("realify.depth"); }catch{}       // «small» o «base»: la persona (o una prueba) puede forzar uno
+  return v === "small" ? "depth" : v === "base" ? "depth_base" : rellenoLigero() ? "depth" : "depth_base";
+};
+const infer = rgba => runModel("depth", depthModelId(), { rgba }, [rgba.buffer], { title: "Calculando la profundidad con IA" });
 
 /** Mapa de profundidad de `source` (un lienzo): { d: Float32 0-1, w, h }. */
 export async function depthMap(source){
-  if(cache && cache.src === source) return cache.map;
+  if(cache && cache.src === source && cache.id === depthModelId()) return cache.map;
   const W0 = source.width, H0 = source.height, long = Math.max(W0, H0), OV = Math.round(S / 4);
   const map = await aiSession("Calculando la profundidad con IA", async step => {
     step(0, 1);
@@ -80,7 +86,7 @@ export async function depthMap(source){
     for(let j = 0; j < M.length; j++){ const v = M[j] + low[j]; M[j] = v < 0 ? 0 : v > 1 ? 1 : v; }
     return { d: M, w: W, h: H };
   });
-  cache = { src: source, map };
+  cache = { src: source, map, id: depthModelId() };
   return map;
 }
 
