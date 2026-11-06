@@ -78,7 +78,7 @@
 
 | Función | Qué hace | Interfaz | Pestañas del cajón |
 |---|---|---|---|
-| Quitar desenfoque | Quita el desenfoque de movimiento o de enfoque con un núcleo medido en la propia foto (o puesto a mano) y frena los halos. | ventana simple | ia, mejorar, corregir |
+| Quitar desenfoque | Quita el desenfoque de movimiento o de enfoque con un núcleo medido en la propia foto (o puesto a mano) y frena los halos, o con el método «IA · NAFNet» (33 MB) para el desenfoque de movimiento real. | ventana simple | ia, mejorar, corregir |
 | Polvo y motas del sensor | Detecta las motas del sensor (manchas pequeñas y oscuras sobre zonas lisas) y las rellena con el color de su alrededor, sin tocar la textura. | ventana simple | ia, mejorar, corregir |
 | Moiré y bandas | Quita el moiré y las bandas periódicas buscando picos en el espectro de cada bloque y atenuándolos; el color se limpia más fuerte. | ventana simple | ia, mejorar, corregir |
 
@@ -101,15 +101,15 @@
 | Función | Qué hace | Interfaz | Pestañas del cajón |
 |---|---|---|---|
 | Selección rápida | Carga varias fotos y elige las mejores: puntúa nitidez, ojos y composición, agrupa duplicados y te deja comparar y descartar. | ventana simple | ia, analizar |
-| Buscar fotos | Indexa tus fotos en este dispositivo y búscalas con una frase («perro en la playa», «de noche», «retrato en blanco y negro»). Nada sale de tu equipo. | ventana simple | ia, analizar |
+| Buscar fotos | Indexa tus fotos en este dispositivo y búscalas con una frase («perro en la playa», «de noche», «retrato en blanco y negro»). Con CLIP (153 MB, opcional) entiende el contenido de la foto. Nada sale de tu equipo. | ventana simple | ia, analizar |
 | Etiquetas y nombre | La IA describe la foto con etiquetas en español (tipo, objetos, colores) y propone un nombre de archivo con una plantilla: {fecha}, {etiqueta}, {color}, {n}… | ventana simple | ia, analizar |
-| Texto alternativo | Escribe en español una descripción de la foto para lectores de pantalla (corta, de hasta 125 caracteres, o larga). Se copia al portapapeles. | ventana simple | ia, analizar |
+| Texto alternativo | Escribe en español una descripción de la foto para lectores de pantalla (corta, de hasta 125 caracteres, o larga). Se copia al portapapeles. Con el motor «Florence-2» (275 MB) enseña además lo que ve la IA, en inglés. | ventana simple | ia, analizar |
 
 ## Asistente (1)
 
 | Función | Qué hace | Interfaz | Pestañas del cajón |
 |---|---|---|---|
-| Asistente de edición | Escribe lo que quieres («más cálida y con grano», «quita la neblina y mejora el cielo»), mira el plan y aplícalo. Todo va en capas que puedes retocar o deshacer. | ventana simple | ia, mejorar |
+| Asistente de edición | Escribe o dicta con 🎤 (Whisper, en tu equipo) lo que quieres («más cálida y con grano», «quita la neblina y mejora el cielo»), mira el plan y aplícalo. Motor «Reglas» (sin descarga) o «IA · Qwen» (1,2 GB, WebGPU; si no puede, usa las reglas). Todo va en capas que puedes retocar o deshacer. | ventana simple | ia, mejorar |
 
 ## Realismo y autenticidad (3)
 

@@ -97,7 +97,8 @@ escena en coma flotante, tono local sin halos y exportación TIFF de 16 bits.
 ### 🤖 IA local
 Seleccionar sujeto, cielo, objetos y partes de la persona, eliminar fondo, rellenar y
 expandir según el contenido, ampliar ×2/×4, colorear, reducir ruido, retocar
-caras y cuerpo, estimar profundidad… **13 submenús y 48 funciones nuevas Premium 👑**
+caras y cuerpo, estimar profundidad (Depth Anything V2 Base en escritorio), buscar tus fotos con una frase (CLIP),
+describirlas (Florence-2) o quitar el desenfoque de movimiento (NAFNet)… **13 submenús y 48 funciones nuevas Premium 👑**
 ([lista completa](docs/FUNCIONES_IA.md)), sin enviar la imagen a nadie.
 
 </td>
@@ -144,7 +145,8 @@ exportación a MP4 o WebM con presets para redes. En tu dispositivo.
 ### 🧠 Asistente de edición
 Escribes lo que quieres («hazla más cálida y con grano de película»), ves el plan y lo
 aplicas en capas reeditables. Sólo puede usar una lista cerrada de herramientas: nunca
-ejecuta código.
+ejecuta código. Puedes **dictarlo con la voz** (🎤, Whisper tiny en tu equipo) y elegir el motor:
+reglas en español (sin descarga) o **Qwen2.5 1,5B** con WebGPU (1,2 GB, cualquier plan lo valida igual).
 
 </td>
 </tr>
@@ -187,6 +189,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **2.1.0** | **Siete modelos de IA nuevos**: dictado por voz (Whisper) y asistente con Qwen en el Asistente, búsqueda de fotos con CLIP, descripción con Florence-2, profundidad Base, relleno ligero MI-GAN y quitar desenfoque con NAFNet. Además, el color del pelo ya no se corta en línea recta. |
 | **2.0.0** | **Editor completo con IA local**: cierre del plan con fotos y vídeo, 48 funciones de IA nuevas, asistente, biblioteca y editor de vídeo; documentación, guía y registro de modelos al día. |
 | **1.13.0** | **Editor de vídeo 👑**: menú Vídeo, línea de tiempo, efectos (sensor, color, cámaras, fondo con IA, estabilizar), sonido y presets de exportación. |
 | **1.12.0** | **Asistente de edición 👑**: escribe lo que quieres, ve el plan y aplícalo en capas. |
@@ -442,7 +445,7 @@ y abre `http://localhost:8080`.
 | Gráficos | Canvas 2D, **WebGL2** y **WebGPU**, con alternativa en CPU; compositor en coma flotante de 32 y 16 bits |
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
-| IA | [ONNX Runtime Web](https://onnxruntime.ai/) (BodyPix, DeepLab, MobileNet, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++, CLIPSeg, SPAN, Real-ESRGAN, UltraSharp, SpongeColor, Colorizer, DDColor); profundidad y máscaras a resolución completa por bloques (`js/ai/tiles.js`); catálogo en `js/ai/models/` y registro de licencias en `docs/MODELOS.md` |
+| IA | [ONNX Runtime Web](https://onnxruntime.ai/) (BodyPix, DeepLab, MobileNet, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2 (Small y Base), GFPGAN, Zero-DCE++, CLIPSeg, CLIP ViT-B/32, Florence-2, Whisper tiny, Qwen2.5 1,5B, MI-GAN, NAFNet, SPAN, Real-ESRGAN, UltraSharp, SpongeColor, Colorizer, DDColor); profundidad y máscaras a resolución completa por bloques (`js/ai/tiles.js`); catálogo en `js/ai/models/` y registro de licencias en `docs/MODELOS.md` |
 | Vídeo | [Mediabunny](https://mediabunny.dev) (MPL-2.0) sobre **WebCodecs**: MP4 y WebM con el códec que sepa el dispositivo |
 | Visión | [OpenCV.js](https://docs.opencv.org/) (alineación, apilado, escáner de documentos, líneas), base de lentes [Lensfun](https://lensfun.github.io/) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any), [pdf-lib](https://pdf-lib.js.org/) y fontkit, [ExifReader](https://github.com/mattiasw/ExifReader), jSquash (AVIF y JPEG XL) |
@@ -503,6 +506,7 @@ de cada modelo que utilice**:
 | BiSeNet (ResNet-18, `faceparsing`) | Seleccionar por texto (pelo, ojos, labios…) y Retoque de cara | Código y pesos: **MIT**. Los datos de entrenamiento CelebAMask-HQ son de **uso no comercial** | `assets/models/faceparsing/LICENSE.txt` y repositorio de origen |
 | SegFormer de partes del cuerpo y ropa (`humanparse`) | Seleccionar partes, Editor de cuerpo y Ropa | Código y pesos MIT; datos de entrenamiento (ATR / Look into Person) **por revisar** (marcado como no comercial por precaución) | `docs/MODELOS.md` |
 | Zero-DCE++ | Iluminar con IA | **CC BY-NC 4.0** (Atribución-NoComercial 4.0 Internacional) | `assets/models/zerodce/LICENSE.txt` |
+| Depth Anything V2 Base (`depth_base`) | Profundidad en escritorio (luz, neblina, selección por profundidad…) | **CC BY-NC 4.0** (los pesos Small, usados en móvil, son Apache-2.0) | Ficha del modelo en Hugging Face (onnx-community/depth-anything-v2-base) |
 | UltraSharp V2 Lite (×4) | Ampliar con IA, Premium 👑 | **CC BY-NC-SA 4.0** (Atribución-NoComercial-CompartirIgual 4.0 Internacional) | Ficha del modelo en Hugging Face (Kim2091/UltraSharpV2) |
 
 Otros modelos con licencia permisiva:
@@ -511,6 +515,8 @@ Otros modelos con licencia permisiva:
 |---|---|---|---|
 | Real-ESRGAN (×4 v3 y anime ×4) | Ampliar con IA | BSD-3-Clause | Repositorio xinntao/Real-ESRGAN |
 | CLIPSeg (pesos fp16) | Seleccionar por texto | Apache-2.0 (pesos); código MIT | Ficha CIDAS/clipseg-rd64-refined y repositorio timojl/clipseg |
+| Whisper tiny, CLIP ViT-B/32, Florence-2 base, MI-GAN, NAFNet | Dictado, búsqueda de fotos, texto alternativo, relleno ligero, quitar desenfoque | MIT | `docs/MODELOS.md` y `LICENSE.txt` junto a cada modelo |
+| Qwen2.5 1,5B Instruct | Asistente (motor IA) | Apache-2.0 | `docs/MODELOS.md` |
 | Resto de modelos de la tabla de la sección 12 (Depth Anything V2, MobileSAM/SAM, LaMa, ISNet, U²-Net, MODNet, DDColor, SCUNet, FBCNN, GFPGAN, BodyPix, DeepLab, MobileNet, YuNet, etc.) | Varias | Apache-2.0 o MIT según el catálogo `js/ai/models.js` | El catálogo; no lo he comprobado modelo a modelo |
 
 **Sin comprobar:** SPAN ×2, SpongeColor Lite y Colorizer V2 se publican en OpenModelDB con la licencia que indique
