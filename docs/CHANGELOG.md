@@ -10,6 +10,7 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Editor de vídeo (módulo interno, aún no visible)
+- F15.7: sonido. El audio de cada clip suena en la vista previa y se exporta (MP4 con AAC u Opus, WebM con Opus o Vorbis, según lo que sepa el dispositivo), con volumen por clip (0–200 %) y opción «Con sonido». Seis presets de salida (Instagram Reel, Historia, TikTok, YouTube 1080p, WhatsApp, Web ligera WebM) que fijan formato, fotogramas, contenedor y tasas. Prueba `tests/video/audio.mjs`.
 - F15.6: efectos «Fondo con IA» (recorta a la persona con MODNet y desenfoca, oscurece, pasa a gris o pone un color al fondo, con borde estable entre fotogramas) y «Estabilizar» (calma el temblor por traslación y recorta los bordes). Prueba `tests/video/ia-estabilizacion.mjs`.
 - F15.5: primeros efectos del registro: Sensor de Realify (ruido y óptica con semilla por fotograma, WebGL), Color (exposición, contraste, saturación, temperatura, tinte) y Estilo de cámara (catálogo de cámaras). Panel «Efectos» del clip con mandos generados desde los manifiestos. Prueba `tests/video/efectos.mjs`.
 - F15.4: motor de fotogramas con caché, reproductor que salta fotogramas si no llega, exportación a MP4/WebM y editor a pantalla completa (vista previa, línea de tiempo con arrastrar/dividir/zoom, deshacer, formato 9:16·16:9·1:1, velocidad). Límites de duración provisionales (3 min móvil, 10 min escritorio). Prueba en navegador `tests/video/editor.mjs`.

@@ -18,8 +18,8 @@ export function crearProyecto({ nombre = "Mi vídeo", ancho = 1080, alto = 1920,
 /** Huella de un archivo: lo bastante para reconocerlo al reabrir, sin guardar el archivo. */
 export const huella = f => `${f.name}|${f.size}|${f.lastModified || 0}`;
 
-export function crearMedio({ nombre, tipo = "video", duracion = 0, ancho = 0, alto = 0, fps = 0, huella: h = "" }){
-  return { nombre, tipo, duracion, ancho, alto, fps, huella: h };
+export function crearMedio({ nombre, tipo = "video", duracion = 0, ancho = 0, alto = 0, fps = 0, huella: h = "", audio = false }){
+  return { nombre, tipo, duracion, ancho, alto, fps, huella: h, ...(audio ? { audio: true } : {}) };   // `audio`: el archivo trae sonido (opcional: los proyectos viejos no lo tienen)
 }
 
 export function crearPista(tipo = "video", { id = nuevoId("t"), volumen = 1 } = {}){
@@ -31,6 +31,8 @@ export function crearClip({ medio, inicio = 0, dentro = 0, fuera, velocidad = 1,
 }
 
 /** Duración del clip en la línea de tiempo: el tramo del medio dividido por la velocidad. */
+/** Volumen del clip (1 = tal cual; los clips antiguos no lo tienen). */
+export const volumenClip = c => c.volumen ?? 1;
 export const duracionClip = c => (c.fuera - c.dentro) / c.velocidad;
 export const finClip = c => c.inicio + duracionClip(c);
 export const duracionPista = t => t.clips.reduce((m, c) => Math.max(m, finClip(c)), 0);

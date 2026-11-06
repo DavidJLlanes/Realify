@@ -21,7 +21,7 @@ export async function abrirMedio(archivo, { ancho = 0, excluir = [] } = {}){
     if(!proveedor) throw new Error("No puedo abrir este vídeo en este dispositivo. " + motivos.join(" · "));
     try{
       const lector = await proveedor.abrir(archivo, { ancho }), i = lector.info;
-      return { lector, decodificador: proveedor.id, medio: crearMedio({ nombre: archivo.name || "vídeo", tipo: "video", duracion: i.duracion, ancho: i.ancho, alto: i.alto, fps: i.fps, huella: huella(archivo) }) };
+      return { lector, decodificador: proveedor.id, medio: crearMedio({ nombre: archivo.name || "vídeo", tipo: "video", duracion: i.duracion, ancho: i.ancho, alto: i.alto, fps: i.fps, huella: huella(archivo), audio: !!i.audio }) };
     }catch(e){ usados.push(proveedor.id); if(!(await decodificadores.elegir(archivo, { excluir: usados })).proveedor) throw e; }
   }
 }

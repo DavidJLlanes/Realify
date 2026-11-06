@@ -67,6 +67,12 @@ export function cambiarVelocidad(p, idClip, v){
   return cambiarClip(p, idClip, (c, pista) => { const n = { ...c, velocidad: v }; if(duracionClip(n) < min(p) - EPS) throw new Error("Con esa velocidad el clip duraría menos de un fotograma"); sinSolape(pista, [n], [c.id]); return n; });
 }
 
+/** Volumen del clip, 0 (silencio) a 2 (el doble). */
+export function cambiarVolumen(p, idClip, v){
+  if(!(v >= 0 && v <= 2)) throw new Error("El volumen debe estar entre 0 % y 200 %");
+  return cambiarClip(p, idClip, c => ({ ...c, volumen: v }));
+}
+
 export function ponerEfecto(p, idClip, efecto, params = {}, version = 1){
   return cambiarClip(p, idClip, c => ({ ...c, efectos: [...c.efectos, { id: nuevoId("e"), efecto, version, params: { ...params }, activo: true }] }));
 }

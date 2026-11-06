@@ -29,6 +29,14 @@ export async function abrir(archivo, { ancho = 0 } = {}){
   return {
     info,
     async fotograma(t){ const r = await sink.getCanvas(Math.max(0, Math.min(t, Math.max(0, duracion - 1e-3)))); return r ? { lienzo: r.canvas, t: r.timestamp } : null; },
+    /** Sonido del tramo [desde, hasta) en segundos del medio: { canales:[Float32Array…], tasa, t0 } (t0 = instante real de la primera muestra) o null si no hay audio. */
+    async audio(desde, hasta){
+      if(!a) return null; const sink = new M.AudioBufferSink(a), trozos = []; let n = 0, tasa = 0, ch = 0, t0 = null;
+      for await (const w of sink.buffers(Math.max(0, desde), Math.min(duracion, hasta))){ trozos.push(w); n += w.buffer.length; tasa = w.buffer.sampleRate; ch = w.buffer.numberOfChannels; if(t0 === null) t0 = w.timestamp; }
+      if(!n) return null; const canales = Array.from({ length: ch }, () => new Float32Array(n)); let o = 0;
+      for(const w of trozos){ for(let c = 0; c < ch; c++) canales[c].set(w.buffer.getChannelData(c), o); o += w.buffer.length; }
+      return { canales, tasa, t0 };
+    },
     async *fotogramas(desde = 0, hasta = duracion){ for await (const r of sink.canvases(desde, hasta)) yield { lienzo: r.canvas, t: r.timestamp }; },
     cerrar(){ input.dispose?.(); }
   };

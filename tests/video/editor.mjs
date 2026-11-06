@@ -46,6 +46,11 @@ for (const modo of ["escritorio", "movil"]) {
   await page.waitForTimeout(600);
   const despues = await page.evaluate(() => { const c0 = () => document.querySelector(".fsp.vid .fsp-stage canvas"), v = c0().getContext("2d").getImageData(Math.floor(c0().width / 2), Math.floor(c0().height / 2), 20, 20).data; return v[0] + v[1] + v[2]; });
   ok(antes !== despues, `${modo}: el efecto cambia la vista previa (${antes} → ${despues})`);
+  // preset de salida desde el panel (escritorio: lateral · móvil: grupo «Salida» → ajuste «Para…»)
+  if (modo === "movil") { await page.selectOption('.fsp-mobile select[aria-label="Grupo"]', "exportar"); await page.selectOption('.fsp-mobile select[aria-label="Ajuste"]', "preset"); }
+  const sel = await page.$(modo === "movil" ? ".fsp-mobile .fsp-field select" : '.fsp-right select:has(option[value="whatsapp"])');
+  ok(sel, modo + ": existe el selector de presets");
+  if (sel) { await sel.selectOption("whatsapp"); await page.waitForTimeout(300); const sal = await page.evaluate(() => window.__video.p().salida); ok(sal.ancho === 720 && sal.alto === 1280, `${modo}: el preset cambia la salida (${sal.ancho}×${sal.alto})`); }
   // exportar
   const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 60000 }).catch(() => null), page.click('.fsp-actions [data-a="apply"]')]);
   ok(dl, modo + ": la exportación descarga un archivo");

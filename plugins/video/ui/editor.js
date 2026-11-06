@@ -9,6 +9,7 @@ import { crearProyecto, crearPista, duracionProyecto, finClip, buscarClip } from
 import { crearHistorial } from "../timeline/historial.js";
 import * as T from "../timeline/ops.js";
 import { vistaInicial, zoomEn } from "../timeline/vista.js";
+import { crearSonidoPrevia } from "../audio/previa.js";
 import { abrirMedio } from "../media/importar.js";
 import { crearReproductor } from "../render/reproductor.js";
 import { tamanoPrevia, FORMATOS_SALIDA } from "../render/limites.js";
@@ -32,9 +33,13 @@ export function abrirEditor(){
   const q = s => zona.querySelector(s), tEl = q(".vid-t");
   sh.setEmpty(`<button type="button" class="primary" data-a="anadir">＋ Añadir vídeo</button><p>MP4, MOV o WebM. Se queda en tu dispositivo.</p>`).querySelector("button").onclick = anadir;
 
-  const lectorDe = async (id, ancho) => { const l = await lectores.get(id).abrir(ancho); return { fotograma: t => l.fotograma(t), cerrar(){} }; };   // el editor es el dueño de los lectores
+  const lectorDe = async (id, ancho) => { const l = await lectores.get(id).abrir(ancho); return { fotograma: t => l.fotograma(t), cerrar(){} }; };
+  const lectorAudio = id => lectores.get(id)?.abrir(tamanoPrevia(p().salida).ancho);
+  const sonido = crearSonidoPrevia({ proyecto: p, lectorDe: lectorAudio, duracion: () => duracionProyecto(p()) });
+  let arrancando = false;
+  async function alternarReproduccion(){ if(rep.reproduciendo()){ rep.pause(); sonido.parar(); return; } arrancando = true; try{ await sonido.iniciar(rep.tiempo()); }catch(e){ toast("No se pudo reproducir el sonido"); } arrancando = false; rep.play(); }   // el editor es el dueño de los lectores
   function reiniciarMotor(){
-    rep?.cerrar(); motor?.cerrar(); const { ancho, alto } = tamanoPrevia(p().salida); previa.width = ancho; previa.height = alto;
+    rep?.cerrar(); sonido.cerrar(); motor?.cerrar(); const { ancho, alto } = tamanoPrevia(p().salida); previa.width = ancho; previa.height = alto;
     motor = motorDom({ proyecto: p, lectorDe });
     rep = crearReproductor({ motor, duracion: () => duracionProyecto(p()), ancho, alto, ahora: () => performance.now(), programar: f => requestAnimationFrame(f),
       pintar: (l) => { const x = previa.getContext("2d"); x.drawImage(l, 0, 0); sh.setView(previa, true); }, alCambiar: refrescarBarra });
@@ -42,7 +47,7 @@ export function abrirEditor(){
   }
   function refrescarBarra(){
     const d = duracionProyecto(p()); tEl.textContent = `${etiquetaTiempo(rep ? rep.tiempo() : 0)} / ${etiquetaTiempo(d)}`;
-    q('[data-a="play"]').textContent = rep?.reproduciendo() ? "⏸" : "▶"; sh.setUndo(hist.puedeDeshacer(), hist.puedeRehacer()); sh.setApplyEnabled(d > 0 && !exportando);
+    if(rep && !rep.reproduciendo() && !arrancando) sonido.parar(); q('[data-a="play"]').textContent = rep?.reproduciendo() ? "⏸" : "▶"; sh.setUndo(hist.puedeDeshacer(), hist.puedeRehacer()); sh.setApplyEnabled(d > 0 && !exportando);
     sh.setEmpty(d > 0 ? null : undefined); sh.setSubtitle(d > 0 ? `${p().salida.ancho}×${p().salida.alto} · ${p().salida.fps} fps` : ""); linea.dibujar();
   }
   function cambiar(fn, motorNuevo = false){
@@ -54,9 +59,10 @@ export function abrirEditor(){
   const hacer = (fn, etiqueta) => cambiar(() => hist.hacer(fn, etiqueta));
 
   const linea = crearLinea({ contenedor: q(".vid-linea"), obtener: () => ({ p: p(), sel, t: rep ? rep.tiempo() : 0 }), vista: () => vista, alVista: v => { vista = v; linea.dibujar(); },
-    alBuscar: t => rep?.buscar(t), alSeleccionar: id => { sel = id; panel.actualizar(); linea.dibujar(); }, alMover: (id, ini, pista) => hacer(pp => T.mover(pp, id, ini, pista), "Mover") });
-  const panel = construirPanel({ sh, obtener: () => ({ p: p(), sel }), hacer, formatos: FORMATOS_SALIDA, alFormato: f => hacer(pp => ({ ...pp, salida: { ...pp.salida, ...f } }), "Formato"), alContenedor: c => { contenedor = c; } });
-  let contenedor = "mp4";
+    alBuscar: t => { rep?.buscar(t); if(rep?.reproduciendo()) sonido.iniciar(t); }, alSeleccionar: id => { sel = id; panel.actualizar(); linea.dibujar(); }, alMover: (id, ini, pista) => hacer(pp => T.mover(pp, id, ini, pista), "Mover") });
+  const panel = construirPanel({ sh, obtener: () => ({ p: p(), sel }), hacer, formatos: FORMATOS_SALIDA, alFormato: f => hacer(pp => ({ ...pp, salida: { ...pp.salida, ...f } }), "Formato"), alContenedor: c => { contenedor = c; },
+    alPreset: a => { if(!a) ajustes = { ...ajustes, bitrate: null }; else if(a.salida){ contenedor = a.contenedor; ajustes = { ...ajustes, bitrate: a.bitrate, audioBitrate: a.audioBitrate }; hacer(pp => ({ ...pp, salida: { ...pp.salida, ...a.salida } }), "Preset"); } else ajustes = { ...ajustes, ...a }; } });
+  let contenedor = "mp4", ajustes = { bitrate: null, audioBitrate: 128000, sonido: true };
 
   /* ── Acciones ── */
   async function anadir(){
@@ -80,20 +86,20 @@ export function abrirEditor(){
   async function exportar(){
     if(exportando) return; exportando = new AbortController(); sh.setApplyEnabled(false); rep.pause();
     try{
-      const r = await exportarProyecto({ proyecto: p(), movil: isMobile(), contenedor, senal: exportando.signal, alProgreso: (n, tot) => sh.setBusy(`Exportando ${Math.round(n / tot * 100)} %`),
+      const r = await exportarProyecto({ proyecto: p(), movil: isMobile(), contenedor, bitrate: ajustes.bitrate, audioBitrate: ajustes.audioBitrate, sonido: ajustes.sonido, lectorDe: lectorAudio, senal: exportando.signal, alProgreso: (n, tot) => sh.setBusy(`Exportando ${Math.round(n / tot * 100)} %`),
         motorDe: (pr, ancho) => motorDom({ proyecto: () => pr, lectorDe, cacheMax: 4 }) });
-      download(r.blob, r.nombre); toast(`Vídeo exportado (${r.ancho}×${r.alto}, ${r.codec})`);
+      download(r.blob, r.nombre); toast(`Vídeo exportado (${r.ancho}×${r.alto}, ${r.codec}${r.codecAudio ? " + " + r.codecAudio : ""})`);
     }catch(e){ if(!e.cancelado) toast(e.message || String(e), "error"); }
     exportando = null; sh.setBusy(""); refrescarBarra();
   }
-  function cerrar(){ exportando?.abort(); rep?.cerrar(); motor?.cerrar(); for(const l of lectores.values()) l.cerrar(); document.removeEventListener("keydown", teclas, true); sh.close(); }
+  function cerrar(){ exportando?.abort(); rep?.cerrar(); sonido.cerrar(); motor?.cerrar(); for(const l of lectores.values()) l.cerrar(); document.removeEventListener("keydown", teclas, true); sh.close(); }
   function teclas(e){
     if(sh.closed || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return; const f = 1 / p().salida.fps;
-    if(e.key === " "){ e.preventDefault(); rep.alternar(); } else if(e.key === "s" || e.key === "S") dividir(); else if(e.key === "Delete" || e.key === "Backspace") borrar();
+    if(e.key === " "){ e.preventDefault(); alternarReproduccion(); } else if(e.key === "s" || e.key === "S") dividir(); else if(e.key === "Delete" || e.key === "Backspace") borrar();
     else if(e.key === "ArrowLeft") rep.buscar(rep.tiempo() - f); else if(e.key === "ArrowRight") rep.buscar(rep.tiempo() + f);
   }
   document.addEventListener("keydown", teclas, true);
-  zona.addEventListener("click", e => { const a = e.target.closest("[data-a]")?.dataset.a; if(!a) return; ({ inicio: () => rep.buscar(0), play: () => rep.alternar(), anadir, dividir, borrar,
+  zona.addEventListener("click", e => { const a = e.target.closest("[data-a]")?.dataset.a; if(!a) return; ({ inicio: () => rep.buscar(0), play: alternarReproduccion, anadir, dividir, borrar,
     menos: () => { vista = zoomEn(vista, 0.8, zona.clientWidth / 2); linea.dibujar(); }, mas: () => { vista = zoomEn(vista, 1.25, zona.clientWidth / 2); linea.dibujar(); } })[a]?.(); });
   new ResizeObserver(() => linea.dibujar()).observe(q(".vid-linea"));
   reiniciarMotor(); refrescarBarra();
