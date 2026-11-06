@@ -5,6 +5,7 @@
        (plugins/video/index.js), y sólo desde los archivos de la lista `cargadores` (los comandos del módulo).
      · Hacia fuera: el módulo sólo importa código de fuera desde su carpeta bridge/ (la capa anticorrupción); el resto del
        módulo importa del propio módulo o de bridge/.
+   Las pruebas y herramientas del propio módulo (`propios`: tests/video/, tools/video/) pueden importarlo de forma estática.
    Falla (código 1) si se rompe alguna regla. Si la carpeta del módulo aún no existe, pasa sin más.
    Uso:  node tools/verify/aislamiento.mjs [<raíz>]
    ═══════════════════════════════════════════════════════════════ */
@@ -18,7 +19,7 @@ const root = path.resolve(process.argv[2] || path.join(here, "..", ".."));
 
 /* Para añadir otro módulo aislado en el futuro, basta una entrada nueva. */
 const AISLADOS = [
-  { nombre: "editor de vídeo", dir: "plugins/video", puerta: "plugins/video/index.js", puente: "plugins/video/bridge/", cargadores: ["js/app/commands/video.js"] }
+  { nombre: "editor de vídeo", dir: "plugins/video", propios: ["tests/video/", "tools/video/"], puerta: "plugins/video/index.js", puente: "plugins/video/bridge/", cargadores: ["js/app/commands/video.js"] }
 ];
 
 const IMP = /(?:import|export)\s[^'";]*?from\s*['"]([^'"]+)['"]|(?<![\w.])import\(\s*['"]([^'"]+)['"]\s*\)|(?:^|[;\s])import\s*['"]([^'"]+)['"]/g;
@@ -43,7 +44,7 @@ for (const mod of AISLADOS) {
       if (dentro(f, mod.dir)) {
         revisados++;
         if (!dentro(to, mod.dir) && !f.startsWith(mod.puente)) mal(`${f} importa ${to} (fuera de ${mod.dir}) sin pasar por ${mod.puente}`);
-      } else if (dentro(to, mod.dir)) {
+      } else if (dentro(to, mod.dir) && !(mod.propios || []).some(q => f.startsWith(q))) {
         if (!dinamico) mal(`${f} importa de forma estática ${to}: el ${mod.nombre} sólo se carga con import()`);
         else if (to !== mod.puerta) mal(`${f} carga ${to}: sólo se puede cargar la puerta (${mod.puerta})`);
         else if (!mod.cargadores.includes(f)) mal(`${f} carga la puerta del ${mod.nombre}: sólo pueden ${mod.cargadores.join(", ")}`);
