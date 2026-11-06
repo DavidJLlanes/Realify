@@ -96,7 +96,7 @@ Tres roles, mensajes tipados y versionados: `decodificar` (medios → fotogramas
 2. **Color:** exposición, contraste, saturación, balance de blancos, LUT.
 3. **Estilos de cámara** (paquetes de `plugins/cameras`).
 4. **Segmentación por fotograma** (MODNet o equivalente) con suavizado temporal.
-5. **Estabilización ligera** (OpenCV.js, carga diferida).
+5. **Estabilización ligera** (traslación por correlación de perfiles, motor puro propio; sustituye a OpenCV.js por peso, ver F15.6).
 Cada uno es una carpeta con manifiesto; el motor no cambia al añadir otro.
 
 ## 10. Audio y exportación
