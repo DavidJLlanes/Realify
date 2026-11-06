@@ -19,7 +19,8 @@ import { FACES } from "./models/faces.js";
 import { DEPTH } from "./models/depth.js";
 import { SCENE } from "./models/scene.js";
 import { PEOPLE } from "./models/people.js";
+import { LLM } from "./models/llm.js";
 
-export const MODELS = { ...SEGMENTATION, ...INPAINT, ...ENHANCE, ...FACES, ...DEPTH, ...SCENE, ...PEOPLE };
+export const MODELS = { ...SEGMENTATION, ...INPAINT, ...ENHANCE, ...FACES, ...DEPTH, ...SCENE, ...PEOPLE, ...LLM };
 
 export const mb = bytes => Math.round(bytes / 1e6) + " MB";
