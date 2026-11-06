@@ -4,6 +4,7 @@
    el tipo de dispositivo. Si esos módulos cambian de sitio o de nombre, se arregla aquí. Entradas: ninguna. Salidas: reexportaciones.
    ═══════════════════════════════════════════════════════════════ */
 export { createShell, ensureShellStyles, mountControls, pickFiles } from "../../../js/ui/kit/fsshell.js";
+export { confirmDlg } from "../../../js/ui/kit/dialog.js";
 export { toast } from "../../../js/core/toast.js";
 export { download } from "../../../js/io/export/export.js";
 export { isMobile } from "../../../js/core/device.js";

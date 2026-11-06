@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    BANCO DE UNMARK (F11.7) · mide la detección y el relleno con marcas sintéticas
-   20 escenas limpias × 4 tipos de marca (texto, esquina de stock, sello de fecha, mosaico). Por cada caso: recuperación (qué parte de la marca real cubre la detección), PSNR y SSIM DENTRO de la marca frente a la foto limpia, antes y después de quitarla.
+   20 escenas limpias × 4 tipos de marca (texto, esquina de stock, sello de fecha, mosaico). Como en el panel, sólo cuentan las regiones con puntuación ≥ 0,45 (las que Unmark marca solo). Por cada caso: recuperación (qué parte de la marca real cubre la detección), PSNR y SSIM DENTRO de la marca frente a la foto limpia, antes y después de quitarla.
    Uso: CHROME_EXE=… node tests/unmark/banco.mjs [--umbral] [--guardar]   (--guardar escribe las imágenes de muestra en tests/unmark/salida/ para la revisión visual del titular; --umbral falla si empeora el mínimo fijado)
    ═══════════════════════════════════════════════════════════════ */
 import fs from "node:fs"; import path from "node:path";
@@ -13,18 +13,18 @@ const res = await page.evaluate(async guardar => {
   for(let i = 0; i < E.N_ESCENAS; i++){
     const limpio = E.escena(i), ld = limpio.getContext("2d").getImageData(0, 0, E.W, E.H);
     { /* Control: foto sin marca. Cuenta cuántas regiones «inventa» el detector y cuánto de la foto tocaría. */
-      const det = D.detectMarks(limpio, { sens: 60, zones: "all", minsize: 20, maxsize: 40 }), m = D.fullMaskFromDetection(det, new Set(det.regions.map(r => r.id)), E.W, E.H);
+      const det = D.detectMarks(limpio, { sens: 60, zones: "all", minsize: 20, maxsize: 40 }), m = D.fullMaskFromDetection(det, new Set(det.regions.filter(r => r.score >= 0.45).map(r => r.id)), E.W, E.H);
       let t = 0; for(let q = 0; q < m.length; q++) if(m[q]) t++;
-      filas.push({ i, tipo: "limpia", recup: 0, sobra: t / m.length, regiones: det.regions.length, mosaico: det.regions.some(r => r.kind === "mosaico") ? 1 : 0, psnr0: 0, psnr1: 0, ssim0: 0, ssim1: 0 });
+      filas.push({ i, tipo: "limpia", recup: 0, sobra: t / m.length, regiones: det.regions.filter(r => r.score >= 0.45).length, mosaico: det.regions.some(r => r.kind === "mosaico") ? 1 : 0, psnr0: 0, psnr1: 0, ssim0: 0, ssim1: 0 });
     }
     for(const tipo of E.TIPOS){
       const { canvas, verdad } = E.marcar(limpio, tipo, i), md = canvas.getContext("2d").getImageData(0, 0, E.W, E.H);
       const det = D.detectMarks(canvas, { sens: 60, zones: "all", minsize: 20, maxsize: 40 });
-      const ids = new Set(det.regions.map(r => r.id)), mask = D.fullMaskFromDetection(det, ids, E.W, E.H);
+      const ids = new Set(det.regions.filter(r => r.score >= 0.45).map(r => r.id)), mask = D.fullMaskFromDetection(det, ids, E.W, E.H);
       let cubre = 0, tot = 0, fuera = 0, dentro = 0; for(let q = 0; q < verdad.length; q++){ if(verdad[q]){ tot++; if(mask[q]) cubre++; } if(mask[q]){ dentro++; if(!verdad[q]) fuera++; } }
       const out = I.inpaint(md, mask, { method: "hybrid", expand: 5, feather: 4, texture: 0.6, grain: 0.3, seed: 7 }).img;
       const antes = E.medir(md.data, ld.data, verdad), despues = E.medir(out.data, ld.data, verdad);
-      filas.push({ i, tipo, recup: cubre / tot, sobra: dentro ? fuera / dentro : 0, regiones: det.regions.length, psnr0: antes.psnr, psnr1: despues.psnr, ssim0: antes.ssim, ssim1: despues.ssim });
+      filas.push({ i, tipo, recup: cubre / tot, sobra: dentro ? fuera / dentro : 0, regiones: det.regions.filter(r => r.score >= 0.45).length, psnr0: antes.psnr, psnr1: despues.psnr, ssim0: antes.ssim, ssim1: despues.ssim });
       if(guardar && i < 3){ const c = document.createElement("canvas"); c.width = E.W * 3; c.height = E.H; const x = c.getContext("2d"); x.drawImage(limpio, 0, 0); x.drawImage(canvas, E.W, 0); const o = document.createElement("canvas"); o.width = E.W; o.height = E.H; o.getContext("2d").putImageData(out, 0, 0); x.drawImage(o, E.W * 2, 0); muestras.push({ n: `${tipo}-${i}.jpg`, d: c.toDataURL("image/jpeg", 0.85) }); }
     }
   }

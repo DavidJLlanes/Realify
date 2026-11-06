@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.0.0 (compilación 319) · Editor de vídeo: Color en WebGL y proyecto guardado
+- **El proyecto de vídeo se guarda solo** (1,2 s tras cada cambio) en este dispositivo, con copia de los vídeos importados (`plugins/video/project/guardado.js`, IndexedDB). Al volver a abrir el editor sigue donde lo dejaste; el botón **Nuevo** lo borra todo (con confirmación). Prueba: `tests/video/guardado.mjs`.
+- **Color en WebGL** (`effects/color/gl.js`): misma matemática que la de CPU y diferencia máxima de 2 niveles (`tests/video/color-gl.mjs`); sin WebGL vuelve a la CPU. En el navegador de pruebas (sin tarjeta gráfica) la CPU es más rápida; la ventaja es para el móvil con GPU, aún por medir en dispositivo real.
+- **Arreglo:** Temperatura y Tinte del efecto Color daban negro en la versión de CPU (índice decimal en la tabla de tono).
+- Unmark: se probó penalizar las zonas con mucha textura alrededor y no mejoró las regiones falsas de las escenas sintéticas muy cargadas (≈2,9 por foto con puntuación ≥ 0,45), así que no se incluyó; el panel permite descartarlas una a una.
+
 ### 2.0.0 (compilación 318) · Unmark mejorado y vídeo desde Archivo
 - **Unmark detecta más marcas** (F11.7): logotipos sólidos de esquina, sellos de fecha naranjas (también sobre fondos del mismo tono) y marcas repetidas en mosaico por toda la foto (`js/filters/unmark/mosaic.js`: correlación del mapa de trazos; sólo se rellenan los píxeles que se repiten). En «Editar en lote» la misma marca se aplica a fotos de otro tamaño en proporción, y las zonas de mosaico se guardan en la capa.
 - **Banco de medida** (`npm run test:unmark`, `tests/unmark/`): 20 escenas sintéticas × 4 tipos de marca, con PSNR y SSIM dentro de la marca frente a la foto limpia. Antes → después: texto 80 → 100 % recuperado, PSNR 28,3 → 31,0 dB; esquina 56 → 94 %, 17,0 → 27,9 dB; sello de fecha 66 → 76 %, 25,7 → 28,7 dB; mosaico 66 → 99 %, 22,4 → 27,7 dB. En fotos sin marca no inventa ningún mosaico (0/20).

@@ -23,7 +23,7 @@ export function aplicarColor(d, params){
   for(let i = 0; i < d.length; i += 4){
     let r = d[i], g = d[i + 1], b = d[i + 2];
     if(bal){ r *= kr; g *= kg; b *= kb; }
-    r = t[r > 255 ? 255 : r]; g = t[g > 255 ? 255 : g]; b = t[b > 255 ? 255 : b];
+    r = t[r > 255 ? 255 : (r + 0.5) | 0]; g = t[g > 255 ? 255 : (g + 0.5) | 0]; b = t[b > 255 ? 255 : (b + 0.5) | 0];   /* índice entero: tras el balance r,g,b son decimales */
     if(sat){ const l = 0.2126 * r + 0.7152 * g + 0.0722 * b; r = l + (r - l) * s; g = l + (g - l) * s; b = l + (b - l) * s; }
     d[i] = r; d[i + 1] = g; d[i + 2] = b;
   }

@@ -51,7 +51,7 @@ Un proyecto es JSON puro, sin DOM, con versión:
   ]
 }
 ```
-- Los **medios no se guardan en el proyecto** (sólo su huella y metadatos): al reabrir se vuelven a elegir los archivos; el proyecto se guarda en IndexedDB y se exporta/importa como `.realify-video.json`.
+- El JSON del proyecto lleva sólo la huella y los metadatos de cada medio. Desde la v319 el editor además autoguarda en IndexedDB (`project/guardado.js`) el proyecto y una copia de cada vídeo importado, y lo recupera al abrirse; «Nuevo» lo borra. Exportar/importar como `.realify-video.json` sigue sin hacerse (los medios se volverían a elegir).
 - **Migraciones:** `project/migrar.js` aplica `migraciones[n → n+1]` en cadena. Un proyecto con versión mayor que la conocida se abre en sólo lectura con aviso. Toda migración tiene prueba con un archivo de ejemplo de la versión anterior (`tests/video/fixtures/`).
 - **Tiempo** en segundos (número), con fotograma = `round(t * fps)` al renderizar; nunca se acumulan errores de coma flotante en el proyecto.
 

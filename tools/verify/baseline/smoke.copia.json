@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-06T09:27:39.303Z",
+ "generated": "2026-11-06T09:55:24.018Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1383,
+     "readyMs": 1411,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137419,
+     "jsBytes": 2137536,
      "cssBytes": 177122,
-     "transferBytes": 887133,
-     "domContentLoaded": 1296,
-     "fcp": 1116
+     "transferBytes": 886639,
+     "domContentLoaded": 1340,
+     "fcp": 1192
     },
     {
-     "readyMs": 1127,
+     "readyMs": 1236,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137449,
+     "jsBytes": 2137491,
      "cssBytes": 177122,
-     "transferBytes": 886600,
-     "domContentLoaded": 1049,
-     "fcp": 448
+     "transferBytes": 887170,
+     "domContentLoaded": 1101,
+     "fcp": 452
     },
     {
-     "readyMs": 1164,
+     "readyMs": 1022,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137308,
+     "jsBytes": 2137440,
      "cssBytes": 177122,
-     "transferBytes": 887598,
-     "domContentLoaded": 1032,
-     "fcp": 344
+     "transferBytes": 887106,
+     "domContentLoaded": 966,
+     "fcp": 264
     }
    ],
-   "medianReadyMs": 1164,
-   "medianTransferBytes": 887133
+   "medianReadyMs": 1236,
+   "medianTransferBytes": 887106
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -4897,20 +4897,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1002,
+   "readyMs": 951,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2137419,
+   "jsBytes": 2137506,
    "cssBytes": 177122,
-   "transferBytes": 887133,
-   "domContentLoaded": 920,
-   "fcp": 504
+   "transferBytes": 887172,
+   "domContentLoaded": 866,
+   "fcp": 768
   },
   "screens": {
    "welcome": "fe7b93e343389925",
    "withImage": "91216a462b558bfe",
-   "drawer": "53b3b078245a5530"
+   "drawer": "2898ca98f29c0ccb"
   },
   "opened": true,
   "drawer": true,
