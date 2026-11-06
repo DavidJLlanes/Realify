@@ -16,7 +16,7 @@ en [`assets/models/`](../assets/models/). Las atribuciones completas están en [
 - **Al añadir un modelo**: una línea en esta tabla (con la huella: `node tools/models/sha256.mjs <archivo>`), su entrada en el archivo de su
   familia en `js/ai/models/`, su atribución en `ATTRIBUTIONS.md` y, si no es comercial, `noncommercial: true`.
 
-## Modelos en uso (39 del catálogo + Zero-DCE++)
+## Modelos en uso (40 del catálogo + Zero-DCE++)
 
 «Datos» = licencia de los datos de entrenamiento. **«no revisada»** significa que todavía no se ha comprobado y hay que hacerlo antes de
 cobrar Premium; los únicos con restricción conocida están marcados. «Móvil» indica cómo se usa hoy; la medición en móviles reales de gama
@@ -64,6 +64,7 @@ media se hace en F15.1 (vídeo) y F14.1 (LLM) y al incorporar cada modelo nuevo.
 | `florence_enc` | Describir fotos: codificador de Florence-2 base | 44 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/encoder_model_quantized.onnx` | `a0459867dc116e8e49f53073e368e45c21169d0b0dd7dc350abed06926e0d835` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
 | `florence_dec` | Describir fotos: decodificador «merged» de Florence-2 base | 98 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/decoder_model_merged_quantized.onnx` | `7ffecf4dd98784308878fd52a7f95ed64f5ed025b4785f6f105450be8fe2be04` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
 | `depth_base` | Profundidad de más calidad (Depth Anything V2 Base, fp16) | 195 MB | CC-BY-NC-4.0 (**no comercial**) | no revisada | `onnx-community/depth-anything-v2-base` en Hugging Face (commit fijado `dd4557d492cd7b563738ac8d9ccff9094620983c`), `onnx/model_fp16.onnx` | `822e6c12f36cd46753dcf229ce87199310533de2d533a527756b8ef30a76d158` | **no** | remoto, con aviso de tamaño; sustituto previsto: el Small (Apache-2.0); pendiente de integrar |
+| `migan` | Relleno ligero de huecos (borrar objetos): MI-GAN 512 Places2, pipeline completo | 28 MB | MIT (pesos y código) | no revisada (Places2) | `andraniksargsyan/migan` en Hugging Face (`migan_pipeline_v2.onnx`, enlazado desde el README oficial de Picsart AI Research); en `assets/models/migan/` | `6f1f3530a1a2324b19752018ce756088b07973cda8d7d890034ace5c8a48c40b` | sí | incluido en la web; probado en CPU (300×400 con hueco de 80×60: 1,6 s); pendiente de integrar y medir en móvil |
 
 ### Modelos de personas (Fase 2, v302)
 
