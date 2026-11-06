@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.0.0 (compilación 322) · EXIF coherente con la simulación
+- **El EXIF sigue a lo que simulas** (F11.8; `js/filters/camera/exifshot.js`): al aceptar el filtro Realify, además de elegir cuerpo y objetivo, el sorteo de disparo usa pistas de la cadena: el **ISO** sigue al ruido de sensor (hasta el tope del cuerpo), la **focal** a la distorsión y el viñeteo (angular si hay mucha), la **apertura** al desenfoque de fondo (abierta) o a la pérdida de nitidez (cerrada) y la **velocidad** al arrastre de movimiento (más lenta, con el ISO bajando lo mismo para que el triángulo de exposición cierre).
+- **Tamaño:** el panel EXIF avisa si la imagen no tiene un tamaño que escribiría ese cuerpo (completo, M o S, siempre 3:2) o no es 3:2.
+- **Base de datos ampliada:** de 20 a 34 cuerpos Canon (1100D a 2000D, 60D a 80D, 77D, 5D Mark II, 5DS, R7, R8, M6 y M6 Mark II) y 6 objetivos más. Sigue siendo sólo Canon porque el escritor de EXIF (`js/exif/writer.js`) escribe el formato de Canon; otras marcas y móviles requerirían ampliarlo.
+- **Sin fecha ni lugar inventados:** no se ha ampliado la fecha, la hora ni el GPS (decisión de diseño: no fabricar cuándo y dónde se tomó una foto); el sorteo de fecha y el GPS manual que ya existían no cambian.
+- Prueba: `npm run test:exif`.
+
 ### 2.0.0 (compilación 321) · Presentación nueva aprobada
 - Nuevos textos públicos (aprobados por el titular): título, descripción, Open Graph, Twitter, JSON-LD, manifiesto y «Acerca de» presentan Realify como editor completo de fotos y vídeo con IA local, con la simulación de cámara como sello.
 

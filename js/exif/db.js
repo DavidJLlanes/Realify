@@ -26,7 +26,21 @@ export const BODIES = [
   {id:"canon_r5",   model:"Canon EOS R5",           mount:"RF",   sw:36.0, sh:24.0, px:[8192,5464], iso:51200,  y:2020},
   {id:"canon_r10",  model:"Canon EOS R10",          mount:"RF-S", sw:22.3, sh:14.9, px:[6000,4000], iso:32000,  y:2022},
   {id:"canon_r50",  model:"Canon EOS R50",          mount:"RF-S", sw:22.3, sh:14.9, px:[6000,4000], iso:32000,  y:2023},
-  {id:"canon_m50",  model:"Canon EOS M50",          mount:"EF-M", sw:22.3, sh:14.9, px:[6000,4000], iso:25600,  y:2018}
+  {id:"canon_m50",  model:"Canon EOS M50",          mount:"EF-M", sw:22.3, sh:14.9, px:[6000,4000], iso:25600,  y:2018},
+  {id:"canon_1100d", model:"Canon EOS 1100D",         mount:"EF-S", sw:22.2, sh:14.7, px:[4272,2848], iso:6400,   y:2011},
+  {id:"canon_1200d", model:"Canon EOS 1200D",         mount:"EF-S", sw:22.3, sh:14.9, px:[5184,3456], iso:6400,   y:2014},
+  {id:"canon_1300d", model:"Canon EOS 1300D",         mount:"EF-S", sw:22.3, sh:14.9, px:[5184,3456], iso:12800,  y:2016},
+  {id:"canon_2000d", model:"Canon EOS 2000D",         mount:"EF-S", sw:22.3, sh:14.9, px:[6000,4000], iso:12800,  y:2018},
+  {id:"canon_60d",   model:"Canon EOS 60D",           mount:"EF-S", sw:22.3, sh:14.9, px:[5184,3456], iso:12800,  y:2010},
+  {id:"canon_70d",   model:"Canon EOS 70D",           mount:"EF-S", sw:22.5, sh:15.0, px:[5472,3648], iso:12800,  y:2013},
+  {id:"canon_80d",   model:"Canon EOS 80D",           mount:"EF-S", sw:22.5, sh:15.0, px:[6000,4000], iso:25600,  y:2016},
+  {id:"canon_77d",   model:"Canon EOS 77D",           mount:"EF-S", sw:22.3, sh:14.9, px:[6000,4000], iso:25600,  y:2017},
+  {id:"canon_5d2",   model:"Canon EOS 5D Mark II",    mount:"EF",   sw:36.0, sh:24.0, px:[5616,3744], iso:25600,  y:2008},
+  {id:"canon_5ds",   model:"Canon EOS 5DS",           mount:"EF",   sw:36.0, sh:24.0, px:[8688,5792], iso:12800,  y:2015},
+  {id:"canon_r7",    model:"Canon EOS R7",            mount:"RF-S", sw:22.3, sh:14.8, px:[6960,4640], iso:51200,  y:2022},
+  {id:"canon_r8",    model:"Canon EOS R8",            mount:"RF",   sw:36.0, sh:24.0, px:[6000,4000], iso:102400, y:2023},
+  {id:"canon_m6",    model:"Canon EOS M6",            mount:"EF-M", sw:22.3, sh:14.9, px:[6000,4000], iso:25600,  y:2017},
+  {id:"canon_m6_2",  model:"Canon EOS M6 Mark II",    mount:"EF-M", sw:22.3, sh:14.9, px:[6960,4640], iso:25600,  y:2019}
 ];
 
 /* fmin/fmax: focales. amin: apertura máxima en fmin. amax: en fmax. */
@@ -53,6 +67,12 @@ export const LENSES = [
   {id:"canon_rf_24_70",      make:"Canon",  model:"RF24-70mm F2.8 L IS USM",           mount:"RF",   fmin:24,  fmax:70,  amin:2.8, amax:2.8},
   {id:"canon_rfs_18_45",     make:"Canon",  model:"RF-S18-45mm F4.5-6.3 IS STM",       mount:"RF-S", fmin:18,  fmax:45,  amin:4.5, amax:6.3},
   {id:"tamron_18300_diiia",  make:"Tamron", model:"18-300mm F/3.5-6.3 Di III-A VC VXD",mount:"RF-S", fmin:18,  fmax:300, amin:3.5, amax:6.3},
+  {id:"canon_efs_10_18",     make:"Canon",  model:"EF-S10-18mm f/4.5-5.6 IS STM",      mount:"EF-S", fmin:10,  fmax:18,  amin:4.5, amax:5.6},
+  {id:"canon_efs_24_28",      make:"Canon",  model:"EF-S24mm f/2.8 STM",                mount:"EF-S", fmin:24,  fmax:24,  amin:2.8, amax:2.8},
+  {id:"canon_ef_35_2",        make:"Canon",  model:"EF35mm f/2 IS USM",                 mount:"EF",   fmin:35,  fmax:35,  amin:2.0, amax:2.0},
+  {id:"canon_ef_16_35",       make:"Canon",  model:"EF16-35mm f/4L IS USM",             mount:"EF",   fmin:16,  fmax:35,  amin:4.0, amax:4.0},
+  {id:"canon_ef_28_135",      make:"Canon",  model:"EF28-135mm f/3.5-5.6 IS USM",       mount:"EF",   fmin:28,  fmax:135, amin:3.5, amax:5.6},
+  {id:"canon_ef_70_300",      make:"Canon",  model:"EF70-300mm f/4-5.6 IS II USM",      mount:"EF",   fmin:70,  fmax:300, amin:4.0, amax:5.6},
   {id:"canon_efm_22",        make:"Canon",  model:"EF-M22mm f/2 STM",                  mount:"EF-M", fmin:22,  fmax:22,  amin:2.0, amax:2.0},
   {id:"canon_efm_18_150",    make:"Canon",  model:"EF-M18-150mm f/3.5-6.3 IS STM",     mount:"EF-M", fmin:18,  fmax:150, amin:3.5, amax:6.3}
 ];
@@ -202,7 +222,7 @@ export const CITIES = [
    la regla de la focal inversa —a pulso, por debajo de 1/focal
    equivalente sale trepidada— y si no llega, se sube el ISO como
    haría cualquiera. */
-export function rollExif(bodyId, lensId, sceneKey){
+export function rollExif(bodyId, lensId, sceneKey, hints = null){
   const body = BODY_BY_ID[bodyId] || BODIES[0];
   const lens = LENS_BY_ID[lensId] || LENSES[0];
   const sc   = SCENES[sceneKey] || SCENES.portrait_day;
@@ -213,22 +233,37 @@ export function rollExif(bodyId, lensId, sceneKey){
   let f1 = Math.max(lens.fmin, Math.min(lens.fmax, sc.focal[1]));
   if(f1 < f0) f1 = f0;
   let focal = lens.fmin === lens.fmax ? lens.fmin : Math.round(rnd(f0, f1));
+  /* Pistas de la simulación (js/filters/camera/exifshot.js): la focal sigue a la distorsión y el viñeteo de la cadena. */
+  if(hints?.focalPos != null && lens.fmin !== lens.fmax){
+    const k = Math.max(0, Math.min(1, hints.focalPos + rnd(-0.08, 0.08)));
+    focal = Math.round(lens.fmin * Math.pow(lens.fmax / lens.fmin, k));
+  }
 
   // Apertura: nunca más luminosa de lo que el objetivo permite ahí.
   const wide = maxAperture(lens, focal);
   let ap = snapUp(APERTURES, Math.max(wide, rnd(sc.ap[0], sc.ap[1])));
+  if(hints?.abierto) ap = snapUp(APERTURES, wide);
+  else if(hints?.cerrado) ap = snapUp(APERTURES, Math.max(ap, rnd(8, 11)));
 
   let iso  = snapUp(ISOS, rnd(sc.iso[0], sc.iso[1]));
   const isoCap = ISOS.filter(v=>v <= body.iso).pop() || 6400;
+  /* ISO: el ruido que pide la cadena manda (0 → ISO 100, 1 → el tope del cuerpo, repartido en escala logarítmica). */
+  if(hints?.ruido != null) iso = snapUp(ISOS, 100 * Math.pow(isoCap / 100, hints.ruido));
   iso = Math.min(iso, isoCap);
 
   const ev100 = rnd(sc.ev[0], sc.ev[1]);
   const shutterFor = (N, I)=> (N*N) / (Math.pow(2, ev100) * (I/100));
 
   let si = nearestShutter(shutterFor(ap, iso));
+  /* Arrastre de movimiento: velocidad más lenta y, para que el triángulo siga cerrando, el ISO baja lo mismo (nunca por debajo de 50). */
+  if(hints?.lento > 0.3){
+    const paradas = Math.round(hints.lento * 3);
+    iso = Math.max(50, ISOS.filter(v => v <= iso / Math.pow(2, paradas)).pop() || 50);
+    si = nearestShutter(shutterFor(ap, iso));
+  }
 
   // Regla de la focal inversa, sólo si no hay flash de estudio.
-  if(sc.flash === 16){
+  if(sc.flash === 16 && !(hints?.lento > 0.3)){
     const need = 1/(focal*crop);
     let guard = 0;
     const capIdx = ISOS.indexOf(isoCap);

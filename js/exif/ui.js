@@ -24,6 +24,7 @@ export const exifState = {
   scene: "portrait_day", vary: true, naming: true, jitter: true,
   last: null,
   manual: null,
+  hints: null, sizeNote: null,   // los pone el filtro Realify al aceptar (exifshot.js); no se guardan
   id: { artist:"", copyright:"", serial:"", software:"" },
   gps: { on:false, city:-1, lat:40.4168, lon:-3.7038, alt:667 }
 };
@@ -38,7 +39,7 @@ try{
 
 export function saveExif(){
   try{
-    const { last, manual, ...rest } = exifState;
+    const { last, manual, hints, sizeNote, ...rest } = exifState;
     localStorage.setItem(LS, JSON.stringify({ ...rest, manual }));
   }catch{}
 }
@@ -68,12 +69,12 @@ export function exifValues(reroll){
     if(reroll || !exifState.last ||
        exifState.last.bodyId !== exifState.body ||
        exifState.last.lensId !== exifState.lens){
-      exifState.last = rollExif(exifState.body, exifState.lens, exifState.scene);
+      exifState.last = rollExif(exifState.body, exifState.lens, exifState.scene, exifState.hints);
     }
     return syncYear(Object.assign({}, exifState.last, identity()));
   }
   const m = exifState.manual || (exifState.manual = rollExif(
-    exifState.body, exifState.lens, exifState.scene));
+    exifState.body, exifState.lens, exifState.scene, exifState.hints));
   return syncYear(Object.assign({}, m, {
     bodyId: exifState.body, lensId: exifState.lens
   }, identity()));
@@ -323,7 +324,7 @@ function wire(w){
     if(v.software)  lines.push("Software: " + v.software);
     if(v.gps)       lines.push(`GPS ${v.gps.lat.toFixed(4)}, ${v.gps.lon.toFixed(4)} · ${v.gps.alt} m`);
     q("#exSummary").textContent = exifState.on ? lines.join("\n") : "Desactivado.";
-    q("#exWarn").textContent = warnings(v).join(" ");
+    q("#exWarn").textContent = [...warnings(v), ...(exifState.sizeNote ? [exifState.sizeNote] : [])].join(" ");
   };
 
   q("#exOn").addEventListener("change", e => { exifState.on = e.target.checked; render(); });

@@ -673,7 +673,7 @@ Objetivo: reforzar lo que hace único a Realify.
 - [x] F11.6 (v312) Menús, cajón, ☰, guía, pruebas.
 - [x] F11.7 (v318) **Mejoras de Unmark** (hecho: mosaico, logotipos de esquina, sellos de fecha, lote proporcional; medida en `tests/unmark/`; falta tu revisión visual de `tests/unmark/salida/`) (el titular levantó el límite el 5 nov 2026). Antes de empezar se define con él el alcance:
       qué marcas, qué mejoras y cómo se mide el resultado; después se redactan aquí sus tareas.
-- [ ] F11.8 Ampliar la coincidencia de EXIF de Realify (`js/filters/camera/exifmatch.js`); alcance a definir con el titular.
+- [x] F11.8 (v322; puntos 1, 2 y 4 del titular: datos de disparo, base de datos ampliada a 34 cuerpos Canon, sin otras marcas ni móviles por el escritor de EXIF, y tamaños; el punto 3, fecha/hora/GPS inventados, no se hizo a propósito) Ampliar la coincidencia de EXIF de Realify (`js/filters/camera/exifmatch.js`); alcance a definir con el titular.
 
 ### Fase 12 · Estilos de cámara, color por referencia y presets 👑
 Depende de: F1. Interfaz: editor a pantalla completa con el armazón común (4.7).

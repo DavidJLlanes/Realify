@@ -19,6 +19,8 @@ import { commitFilter, filterBase } from "../../editor/layers/filterlayer.js";
 import { attachFloatResult } from "../../editor/render/floatfilter.js";
 import { hiCoversCanvas } from "../../core/hisrc.js";
 import { matchCamera } from "./exifmatch.js";
+import { shotHints, sizeNote } from "./exifshot.js";
+import { BODY_BY_ID } from "../../exif/db.js";
 import { exifState, saveExif } from "../../exif/ui.js";
 import { spectralStats } from "./spectralclean.js";
 import { applyCpuStages } from "./cpustages.js";
@@ -447,7 +449,8 @@ export async function openCamera(opts = {}){
         const match = matchCamera(filterState.stages, result.width, result.height);
         if(match){
           exifState.body = match.bodyId; exifState.lens = match.lensId;
-          exifState.last = null; exifState.on = true;
+          exifState.hints = shotHints(filterState.stages); exifState.sizeNote = sizeNote(BODY_BY_ID[match.bodyId], result.width, result.height);
+          exifState.manual = null; exifState.last = null; exifState.on = true;
           saveExif();
         }
       }

@@ -5,7 +5,6 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 
 ## Decisiones
 - F11.7 · **Mejoras de Unmark**: decidido (5 nov 2026): todas las marcas (logos en mosaico, textos, esquinas de stock, sellos de fecha) y todas las mejoras (detección automática, mejor relleno, lote con la misma marca). Falta fijar la medición (ver propuesta en la conversación) y hacerlo tras la fase 16.
-- F11.8 · **EXIF de Realify** (`js/filters/camera/exifmatch.js`): alcance de la ampliación. El titular lo decidirá al final de todas las fases.
 - Si algún día se cobra Premium: sustituir los modelos marcados `noncommercial: true` (BiSeNet, Zero-DCE++, UltraSharp V2 Lite…).
 
 ## Decisiones tuyas
