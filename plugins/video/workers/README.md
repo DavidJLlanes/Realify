@@ -1,2 +1,2 @@
 # workers
-Pendiente de aprobación de `docs/VIDEO.md` (F15.0). Ver el apartado correspondiente de ese documento.
+Worker de medios (`medios.worker.js`), su protocolo con versión (`protocolo.js`) y el cliente con promesas (`cliente.js`). Ver `docs/VIDEO.md`, sección 8.

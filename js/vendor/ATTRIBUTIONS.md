@@ -35,3 +35,7 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 - `opencv/`: OpenCV.js 4.12.0 (WebAssembly de OpenCV, © los colaboradores de OpenCV, licencia Apache-2.0) empaquetado por `@techstark/opencv-js` 4.12.0-release.1. Se descarga sólo al usar el apilado de fotos. Incluye `LICENSE-Apache-2.0.txt`.
 - `assets/lensdb/lensfun.json` (no está en js/vendor): adaptación a JSON de la base de datos de objetivos de Lensfun (https://lensfun.github.io/), © los colaboradores de Lensfun, licencia CC BY-SA 3.0; la adaptación se comparte con la misma licencia (ver `assets/lensdb/LICENSE.md`). Las fórmulas se han reimplementado; no se incluye código de la biblioteca (LGPL-3.0).
 - `assets/models/people/`: MediaPipe Face Landmarker y Hand Landmarker (© Google, Apache-2.0, convertidos de TFLite a ONNX); RTMPose-m Body7 (© OpenMMLab, Apache-2.0, https://github.com/open-mmlab/mmpose); SegFormer-B2 «clothes» de `mattmdjaga/segformer_b2_clothes` (MIT; arquitectura SegFormer de NVIDIA, entrenado con el dataset ATR). Pesos en fp16.
+
+# Vídeo
+
+- `mediabunny/`: Mediabunny 1.65.2 (© Vanilagy, licencia MPL-2.0, https://mediabunny.dev; archivo `mediabunny.min.mjs` sin modificar y su `LICENSE`). Lee y escribe MP4 y WebM sobre WebCodecs. Lo carga el editor de vídeo (`plugins/video/bridge/mediabunny.js`) sólo al abrir o exportar un vídeo.

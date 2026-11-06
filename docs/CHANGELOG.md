@@ -10,6 +10,7 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Editor de vídeo (módulo interno, aún no visible)
+- F15.3: importar, decodificar y codificar vídeo (MP4 y WebM) con registro de códecs y respaldo, todo en un worker; usa Mediabunny (MPL-2.0, carga bajo demanda, `js/vendor/mediabunny/`). Pruebas en navegador con vídeo generado (`tests/video/medios.mjs`).
 - F15.2: modelo del proyecto con versión y migraciones, operaciones de la línea de tiempo (dividir, recortar, mover, duplicar, velocidad, efectos), deshacer/rehacer y zoom, con pruebas en Node (`npm run test:video`).
 
 ### 1.12.0 (compilación 315) · Asistente de edición 👑
