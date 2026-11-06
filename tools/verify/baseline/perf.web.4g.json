@@ -1,0 +1,47 @@
+{
+ "label": "web",
+ "profile": "4g",
+ "protocol": "http/1.1",
+ "latencyMs": 80,
+ "mbps": 9,
+ "runs": [
+  {
+   "ready": 4987,
+   "fcp": 920,
+   "requests": 250,
+   "jsRequests": 237,
+   "cssRequests": 12,
+   "transferKB": 867,
+   "jsDecodedKB": 2086
+  },
+  {
+   "ready": 4976,
+   "fcp": 460,
+   "requests": 250,
+   "jsRequests": 237,
+   "cssRequests": 12,
+   "transferKB": 867,
+   "jsDecodedKB": 2086
+  },
+  {
+   "ready": 4990,
+   "fcp": 416,
+   "requests": 250,
+   "jsRequests": 237,
+   "cssRequests": 12,
+   "transferKB": 867,
+   "jsDecodedKB": 2086
+  }
+ ],
+ "medianReadyMs": 4987,
+ "medianFcpMs": 460,
+ "last": {
+  "ready": 4990,
+  "fcp": 416,
+  "requests": 250,
+  "jsRequests": 237,
+  "cssRequests": 12,
+  "transferKB": 867,
+  "jsDecodedKB": 2086
+ }
+}

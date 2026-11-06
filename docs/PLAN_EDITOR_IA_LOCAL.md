@@ -723,13 +723,13 @@ Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el 
 Hecho cuando: el editor se abre y se usa sin que el resto de la web cargue una línea suya, `aislamiento.mjs` y `layers.mjs` pasan, y añadir un efecto nuevo es crear una carpeta.
 
 ### Fase 16 · Cierre, posicionamiento y publicación
-- [ ] F16.1 Nuevo texto de presentación («editor completo con IA local», D6; borradores para aprobar) en `index.html`, `manifest.webmanifest`, README y «Acerca de».
-- [ ] F16.2 `docs/FUNCIONALIDADES.md` (recuentos), README sección 12, `js/vendor/ATTRIBUTIONS.md` con cada modelo nuevo, `docs/MODELOS.md` completo.
-- [ ] F16.3 Guía completa de IA por familias (`ia-*.js`) y tema de novedades.
-- [ ] F16.4 Comprobar que los modelos descargados funcionan sin conexión (PWA) y que Diagnóstico muestra y borra los nuevos.
-- [ ] F16.5 Medición con `tools/verify/perf.mjs`; el arranque no debe empeorar (los manifiestos son solo datos).
-- [ ] F16.6 Release 2.0.0.
-- [ ] F16.7 Lista de modelos no comerciales (de `docs/MODELOS.md`) con su sustituto previsto, por si algún día se cobra Premium.
+- [x] F16.1 (v317) Borradores en `docs/PRESENTACION_PROPUESTA.md` (sin aplicar a index/manifest hasta aprobar). Nuevo texto de presentación («editor completo con IA local», D6; borradores para aprobar) en `index.html`, `manifest.webmanifest`, README y «Acerca de».
+- [x] F16.2 (v317) `docs/FUNCIONALIDADES.md` (recuentos), README sección 12, `js/vendor/ATTRIBUTIONS.md` con cada modelo nuevo, `docs/MODELOS.md` completo.
+- [x] F16.3 (v317) Guía completa de IA por familias (desviación: anclas `ia-*` dentro de `topics/ia.js`, no archivos aparte) y tema de novedades.
+- [x] F16.4 (v317) Comprobar que los modelos descargados funcionan sin conexión (PWA) y que Diagnóstico muestra y borra los nuevos.
+- [x] F16.5 (v317) Medición con `tools/verify/perf.mjs`; el arranque no debe empeorar (los manifiestos son solo datos).
+- [x] F16.6 (v317) Release 2.0.0.
+- [x] F16.7 (v317) Lista de modelos no comerciales (de `docs/MODELOS.md`) con su sustituto previsto, por si algún día se cobra Premium.
 
 ---
 
@@ -827,4 +827,4 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 13 · Lotes | v314 (1.11.0) | 5 nov 2026 | Hecha. Búsqueda, etiquetas y texto alternativo sin CLIP ni captioning (no hay modelo accesible): usan la lente, MobileNet y los colores. Plantilla de nombre y formatos para redes en el ZIP del lote. |
 | 14 · Asistente | v315 (1.12.0) | 5 nov 2026 | Parcial. Esquema desde manifiestos, validación, confirmación y aplicación en capas; intérprete de reglas en español. Faltan Qwen (F14.1) y voz (F14.4) por no poder descargar los modelos. |
 | 15 · Editor de vídeo (aislado, menú propio) | v316 (1.13.0) | 6 nov 2026 | Hecha. Editor, efectos, sonido, presets y menú «Vídeo» visibles. Rendimiento medido sin GPU; los límites definitivos esperan las mediciones en móviles reales (F15.1) y Color en WebGL queda como mejora candidata. |
-| 16 · Cierre | | | |
+| 16 · Cierre | v317 (2.0.0) | 6 nov 2026 | Hecha. Textos propuestos (a aprobar), docs y guía, prueba sin conexión, arranque sin empeorar (250 peticiones, 2086 KB JS), lista de modelos no comerciales. |

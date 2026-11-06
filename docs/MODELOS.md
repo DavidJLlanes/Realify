@@ -62,9 +62,24 @@ Medidos en CPU (WASM) con una foto real de 512×512: SegFormer 2,4 s, RTMPose 0,
 de la cara y se afina con la propia pose. Los originales (`face_landmarker.task`, `hand_landmarker.task`, los zip de OpenMMLab y el ONNX de
 SegFormer en fp32) no se guardan en el repositorio; se reproducen con `tools/models/convertir-personas.py`.
 
+## Modelos de uso no comercial y su sustituto previsto (F16.7)
+
+Si algún día Premium pasa a ser de pago, estos modelos hay que **quitarlos o sustituirlos** antes de cobrar (en el catálogo llevan `noncommercial: true`,
+salvo Zero-DCE++, que se carga aparte). Los sustitutos son una **propuesta** sin medir ni auditar:
+
+| Modelo | Función | Restricción | Sustituto previsto |
+|---|---|---|---|
+| `sharp_x4` (UltraSharp V2 Lite) | Ampliar con IA, máximo detalle | Pesos CC BY-NC-SA 4.0 | `esrgan_x4` (Real-ESRGAN, BSD-3-Clause), que ya está en el catálogo y es la opción básica de Ampliar |
+| `faceparse` (BiSeNet) | Seleccionar por texto (pelo, ojos, labios…), Retoque de cara | Datos CelebAMask-HQ de investigación no comercial | Zonas de ojos, labios y cejas por los 478 puntos de `facelm` (Apache-2.0); pelo, cuello y gafas por `humanparse` una vez revisada su licencia, o un modelo de partes de la cara entrenado con datos permisivos (por buscar) |
+| `humanparse` (SegFormer ATR) | Seleccionar partes, Editor de cuerpo, Ropa | Datos de entrenamiento por revisar (por precaución) | Si la revisión de ATR no lo permite: un modelo de segmentación de personas con datos de licencia comercial (por buscar) y la pose `pose` (Apache-2.0) para las extremidades |
+| Zero-DCE++ | Iluminar con IA | Pesos CC BY-NC 4.0 | El algoritmo clásico «Iluminar foto oscura» (`adj.lowLight`, sin modelo), que ya existe |
+| `span_x2`, `sponge`, `colorizer` | Ampliar ×2 y colorear | Licencia **por revisar** en OpenModelDB | `esrgan_x4` para ampliar y `ddcolor` (Apache-2.0) para colorear |
+
+Además, **antes de cobrar** hay que revisar la columna «Datos» de todos los modelos (hoy «no revisada») y calcular el `sha256` de los remotos.
+
 ## Pendiente de este registro
 
 - Calcular el `sha256` de los modelos remotos y fijar `HF_REV` (F0.7); hasta entonces `HF_REV = "main"` y el modelo se acepta sin huella.
 - Revisar la licencia de los **datos de entrenamiento** de cada modelo (columna «Datos») antes de cobrar Premium.
-- Los modelos candidatos de las fases siguientes (pose, landmarks, MI-GAN, NAFNet, CLIP, Qwen2.5…) se añaden aquí **cuando se incorporan**,
+- Los modelos candidatos que **no se han podido incorporar** (Qwen2.5 para el asistente, Whisper tiny para la voz, CLIP, captioning, MI-GAN, NAFNet, Depth Anything Base: Hugging Face no es accesible desde el entorno de desarrollo) se añadirán aquí **cuando se incorporen**,
   con su medición en móvil. La lista de candidatos está en la sección 8 del plan.

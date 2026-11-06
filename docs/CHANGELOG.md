@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.0.0 (compilación 317) · Realify, editor completo con IA local
+- Cierre del plan «editor completo con IA local»: fotos (más de 70 funciones de IA en 13 submenús), asistente, biblioteca y lotes, y editor de vídeo.
+- README, `docs/FUNCIONALIDADES.md`, nuevo `docs/FUNCIONES_IA.md` (generado desde los manifiestos con `tools/docs/funciones-ia.mjs`), atribuciones y `docs/MODELOS.md` al día; lista de modelos no comerciales con su sustituto previsto.
+- Guía: temas de IA por familias y novedades.
+- Sin conexión: prueba `tests/ia/sin-conexion.mjs` (PWA arranca offline; Diagnóstico muestra y borra los modelos nuevos). Los modelos grandes de personas (pose, partes del cuerpo) viven sólo en IndexedDB y no se duplican en la caché del service worker.
+- Arranque medido con `tools/verify/perf.mjs`: sin cambios (250 peticiones, 2086 KB de JS).
+- Textos públicos nuevos (index, manifiesto, «Acerca de») propuestos en `docs/PRESENTACION_PROPUESTA.md`, pendientes de aprobación.
+
 ### 1.13.0 (compilación 316) · Editor de vídeo 👑
 - **Menú «Vídeo»** (barra de escritorio, ☰ y última pestaña del cajón, mismo contenido y orden): **Editor de vídeo…** e **Importar vídeo…**. No necesita foto abierta. Comandos `video.*` en `js/app/commands/video.js`.
 - **Editor a pantalla completa** (móvil y escritorio): vista previa, línea de tiempo (mover con imán, dividir, borrar, zoom), deshacer y rehacer, velocidad y volumen por clip, formato 9:16·16:9·1:1 y exportación a MP4 o WebM. Todo en el dispositivo; el proyecto guarda sólo la huella de cada vídeo, nunca el vídeo.

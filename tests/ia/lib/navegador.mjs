@@ -34,13 +34,13 @@ function servir() {
   return new Promise(res => srv.listen(0, "127.0.0.1", () => res(srv)));
 }
 
-export async function abrir(tipo = "escritorio") {
+export async function abrir(tipo = "escritorio", { sw = false } = {}) {   // sw: deja actuar al service worker (pruebas sin conexión)
   const chromium = await cargarPlaywright();
   const srv = await servir();
   const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_EXE ? { executablePath: process.env.CHROME_EXE } : {}) });
   const ctx = await browser.newContext(tipo === "movil"
-    ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: "block" }
-    : { viewport: { width: 1366, height: 768 }, serviceWorkers: "block" });
+    ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: sw ? "allow" : "block" }
+    : { viewport: { width: 1366, height: 768 }, serviceWorkers: sw ? "allow" : "block" });
   const page = await ctx.newPage();
   const errs = [];
   page.on("pageerror", e => errs.push(e.message));

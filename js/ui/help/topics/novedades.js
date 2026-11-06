@@ -8,6 +8,16 @@ export const novedadesTopic = { id:"novedades", title:"Novedades",
     html:`
       <h3>Novedades</h3>
       <ul class="guide-news">
+        <li><a data-go="video#video-editor">Editor de vídeo 👑</a> (menú Vídeo): línea de tiempo, recortar y dividir, velocidad y
+          volumen, <a data-go="video#video-efectos">efectos</a> (sensor de Realify, color, cámaras, fondo con IA, estabilizar) y
+          <a data-go="video#video-salida">exportar a MP4 o WebM</a> con presets para redes. Todo en tu dispositivo.</li>
+        <li><a data-go="ia#ia-assistant">Asistente de edición 👑</a>: escribe lo que quieres, mira el plan y aplícalo en capas.</li>
+        <li><a data-go="ia#ia-library">Lote y biblioteca 👑</a>: selección rápida de tandas, búsqueda de fotos, etiquetas y texto alternativo.</li>
+        <li><a data-go="ia#ia-estilos-ia">Estilos y color por referencia 👑</a>: copia el estilo de otra foto, packs de cámara y Mis estilos.</li>
+        <li><a data-go="ia#ia-realismo-ia">Realismo y autenticidad 👑</a>: zonas demasiado lisas, manos y dientes sospechosos e informe de realismo.</li>
+        <li><a data-go="ia#ia-cuerpo">Editor de cuerpo 👑</a>, <a data-go="ia#ia-ropa">ropa y tejidos 👑</a>, <a data-go="ia#ia-retrato2">retrato</a> y
+          <a data-go="ia#ia-escena">escena y cielo 👑</a>, <a data-go="ia#ia-restaurar">restaurar y limpiar 👑</a> y
+          <a data-go="ia#ia-composicion">objetos y composición 👑</a>: 48 funciones de IA nuevas, todas en el menú Inteligencia Artificial.</li>
         <li><a data-go="especiales#sp-luts">Efectos LUT</a>: galería a pantalla completa de 226 efectos de color (negativo en color,
           diapositiva, instantánea, blanco y negro, copia de cine…), con miniatura en vivo de tu foto.</li>
         <li><a data-go="especiales#sp-camaras">Cámaras</a>: galería a pantalla completa de cámaras de todas las épocas (del

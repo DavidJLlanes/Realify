@@ -6,7 +6,9 @@
 
 # Realify
 
-**Editor de imágenes profesional que funciona en el navegador. Sin instalación, sin cuenta y sin subir tus fotos a ningún servidor.**
+**Editor completo de fotos y vídeo con IA local, en el navegador. Sin instalación, sin cuenta y sin subir nada a ningún servidor.**
+
+*Con la simulación de cámara de Realify como sello propio: ruido de sensor, óptica y compresión para que una imagen se vea hecha con una cámara de verdad.*
 
 [![Web](https://img.shields.io/badge/web-realify.es-f5b82e?style=for-the-badge&logo=googlechrome&logoColor=white)](https://realify.es)
 [![Licencia no comercial](https://img.shields.io/badge/licencia-PolyForm%20Noncommercial-3b82f6?style=for-the-badge)](LICENSE)
@@ -24,6 +26,8 @@
 [Novedades](#novedades-recientes) ·
 [Funcionalidades](#índice) ·
 [IA local](docs/FUNCIONALIDADES.md#12-inteligencia-artificial-local) ·
+[Funciones de IA](docs/FUNCIONES_IA.md) ·
+[Editor de vídeo](docs/FUNCIONALIDADES.md#editor-de-vídeo-menú-vídeo) ·
 [Desarrollo local](#19-despliegue) ·
 [Contribuir](./docs/CONTRIBUTING.md) ·
 [Registro de cambios](./docs/CHANGELOG.md)
@@ -56,13 +60,16 @@
 
 ## Qué es Realify
 
-Realify es un editor de imágenes completo que funciona en el navegador. Todo el
-procesado —capas, filtros, revelado RAW, modelos de IA— ocurre en el equipo del
-usuario: **las imágenes no se suben a ningún servidor**.
-Se instala como app (PWA) y funciona sin conexión.
+Realify es un **editor completo de fotos y vídeo con IA local** que funciona en el navegador. Todo el procesado —capas,
+filtros, revelado RAW, más de 70 funciones de IA, edición de vídeo— ocurre en el equipo del usuario: **las imágenes y los
+vídeos no se suben a ningún servidor**. Se instala como app (PWA) y funciona sin conexión; los modelos de IA se descargan la
+primera vez que se usan, avisando antes de su tamaño, y se guardan en el dispositivo.
 
-La versión pública está en **[realify.es](https://realify.es)**. Este documento
-describe la versión **1.0.0** (ver la [lista de cambios](./docs/CHANGELOG.md)).
+Su sello propio es la **simulación de cámara**: la cadena de sensor de Realify (ruido, óptica, croma, compresión) y 150
+cámaras de todas las épocas, para que una imagen —también una generada con IA— se vea como hecha con una cámara real.
+
+La versión pública está en **[realify.es](https://realify.es)**. Este documento describe la versión **2.0.0** (ver la
+[lista de cambios](./docs/CHANGELOG.md)).
 
 ## Características destacadas
 
@@ -88,9 +95,10 @@ escena en coma flotante, tono local sin halos y exportación TIFF de 16 bits.
 <td valign="top">
 
 ### 🤖 IA local
-Seleccionar sujeto, cielo y objetos por texto, eliminar fondo, rellenar y
+Seleccionar sujeto, cielo, objetos y partes de la persona, eliminar fondo, rellenar y
 expandir según el contenido, ampliar ×2/×4, colorear, reducir ruido, retocar
-caras y estimar profundidad, sin enviar la imagen a nadie.
+caras y cuerpo, estimar profundidad… **13 submenús y 48 funciones nuevas Premium 👑**
+([lista completa](docs/FUNCIONES_IA.md)), sin enviar la imagen a nadie.
 
 </td>
 <td valign="top">
@@ -121,6 +129,45 @@ el pulgar. Instalable y disponible sin conexión.
 </tr>
 </table>
 
+<table>
+<tr>
+<td valign="top">
+
+### 🎬 Editor de vídeo
+Menú **Vídeo**: línea de tiempo táctil, recortar, dividir, mover, velocidad y
+volumen, efectos (sensor de Realify, color, cámaras, fondo con IA, estabilizar) y
+exportación a MP4 o WebM con presets para redes. En tu dispositivo.
+
+</td>
+<td valign="top">
+
+### 🧠 Asistente de edición
+Escribes lo que quieres («hazla más cálida y con grano de película»), ves el plan y lo
+aplicas en capas reeditables. Sólo puede usar una lista cerrada de herramientas: nunca
+ejecuta código.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 👤 Retrato, cuerpo y ropa
+Editor de cara con zoom (piel, ojos, labios, dientes, pelo, forma), editor de cuerpo
+(sólo deforma y ajusta luz y color; perfiles adulto e infantil) y tejidos: arrugas, color
+de prendas y textura.
+
+</td>
+<td valign="top">
+
+### 📸 Realismo y lotes
+Avisos de manos, dientes y zonas demasiado lisas, informe de realismo, estilos desde una
+foto de referencia, selección rápida de tandas, búsqueda y etiquetas de tu biblioteca y
+formatos para redes.
+
+</td>
+</tr>
+</table>
+
 ### Principios
 
 - **Sin instalación ni cuenta**: basta con abrir [realify.es](https://realify.es).
@@ -140,6 +187,20 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **2.0.0** | **Editor completo con IA local**: cierre del plan con fotos y vídeo, 48 funciones de IA nuevas, asistente, biblioteca y editor de vídeo; documentación, guía y registro de modelos al día. |
+| **1.13.0** | **Editor de vídeo 👑**: menú Vídeo, línea de tiempo, efectos (sensor, color, cámaras, fondo con IA, estabilizar), sonido y presets de exportación. |
+| **1.12.0** | **Asistente de edición 👑**: escribe lo que quieres, ve el plan y aplícalo en capas. |
+| **1.11.0** | **Lote y biblioteca 👑**: selección rápida, búsqueda de fotos, etiquetas y texto alternativo, formatos para redes. |
+| **1.10.0** | **Estilos y color por referencia 👑**: estilo desde una foto, packs de cámara y Mis estilos. |
+| **1.9.0** | **Realismo y autenticidad 👑**: zonas demasiado lisas, manos y dientes sospechosos, informe de realismo. |
+| **1.8.0** | **Objetos y composición 👑**: texto en zona libre, borrado ligero, pincel inteligente. |
+| **1.7.0** | **Restaurar y limpiar 👑**: quitar desenfoque, polvo del sensor, moiré y bandas. |
+| **1.6.0** | **Escena, cielo y color 👑**: mejorar cielo, quitar neblina, balance de blancos por zonas, unificar iluminación. |
+| **1.5.0** | **Ropa y tejidos 👑**: planchar arrugas, cambiar color de prendas, textura de tejido. |
+| **1.4.0** | **Cuerpo y forma de la cara 👑**: editor de cuerpo, silueta, postura, definición y piel. |
+| **1.3.0** | **Retrato II 👑**: luz, ojos, labios, dientes, pelo y gafas, con motor de deformación. |
+| **1.2.0** | **Retrato I 👑**: piel, arrugas, ojeras, brillos y textura. |
+| **1.1.0** | **Seleccionar partes 👑** y análisis de personas (pose, manos, malla de cara, partes del cuerpo). |
 | **1.0.0** | **Numeración normal**: versión pública 1.0.0 (antes, contador v297). |
 | **v297** | **Menú Filtro**: los submenús se llaman «Filtros» y «Creativo». |
 | **v296** | **Panorámica sin servidor**: se elimina el respaldo en Python; todo se une en el dispositivo. |
@@ -190,8 +251,8 @@ documento describe el proyecto: estructura, pruebas, despliegue, tecnología y l
 9. [Filtros](docs/FUNCIONALIDADES.md#9-filtros)
 10. [Calidad de color y precisión](docs/FUNCIONALIDADES.md#10-calidad-de-color-y-precisión)
 11. [Modo Premium](docs/FUNCIONALIDADES.md#11-modo-premium)
-12. [Inteligencia artificial local](docs/FUNCIONALIDADES.md#12-inteligencia-artificial-local)
-13. [Módulos especiales](docs/FUNCIONALIDADES.md#13-módulos-especiales)
+12. [Inteligencia artificial local](docs/FUNCIONALIDADES.md#12-inteligencia-artificial-local) · [funciones nuevas por familia](docs/FUNCIONES_IA.md) · [registro de modelos](docs/MODELOS.md)
+13. [Módulos especiales](docs/FUNCIONALIDADES.md#13-módulos-especiales) · [Editor de vídeo](docs/FUNCIONALIDADES.md#editor-de-vídeo-menú-vídeo)
 14. [Análisis y metadatos](docs/FUNCIONALIDADES.md#14-análisis-y-metadatos)
 15. [Vista](docs/FUNCIONALIDADES.md#15-vista)
 16. [App, privacidad y ayuda](docs/FUNCIONALIDADES.md#16-app-privacidad-y-ayuda)
@@ -240,8 +301,12 @@ js/
     library/            Desenfoques, enfoque, distorsiones, efectos clásicos
     looks/              Estilos y looks
   features/             Sujeto, cielo, IA (texto, caras, profundidad, escáner, apilado), herramientas
-                        fotográficas, paleta y acciones
-  ai/                   Catálogo de modelos, carga y ejecución (ONNX), teselas, SAM, CLIPSeg, Zero-DCE++
+                        fotográficas, paleta y acciones. Las funciones de IA nuevas tienen una carpeta cada una
+                        (`<familia>/<función>/`: manifiesto, motor puro, controlador, parámetros y panel):
+                        portrait, body, clothing, scene, relight, restore, compose, realism, style, library,
+                        assistant, people, ai-kit (kit común)
+  ai/                   Catálogo de modelos por familia (models/), tareas del worker (tasks/), motor (engine/),
+                        carga y ejecución (ONNX), teselas, SAM, CLIPSeg, Zero-DCE++
   analysis/             Métricas, forense y FFT
   cv/                   OpenCV bajo demanda: alineación subpíxel, apilado, escáner de documentos, líneas
   exif/                 Lectura y escritura de EXIF, inspector, C2PA
@@ -270,6 +335,10 @@ plugins/                Herramientas a pantalla completa, cada una con su códig
   contact-sheet/        Hoja de contactos
   batch/                Aplicar una edición a varias fotos
   frames/               Marcos
+  face-editor/ body-editor/ clothing-editor/   Editores a pantalla completa de cara, cuerpo y ropa
+  culling/ photo-search/ Selección rápida de tandas y búsqueda en la biblioteca
+  video/                Editor de vídeo (módulo AISLADO: puerta única index.js, salida única bridge/;
+                        project, timeline, media, render, effects, audio, export, workers, ui)
 assets/                 Modelos de IA (models/), estilos (estilos/), cielos (skies/), perfiles de lente (lensdb/) e iconos
 fonts/                  Tipografías libres (catálogo de Google Fonts), servidas desde el sitio
 server/                 Servicios y configuración del VPS (no se sirve):
@@ -278,10 +347,13 @@ server/                 Servicios y configuración del VPS (no se sirve):
   panorama/               servicio de panorámicas (FastAPI + OpenCV)
 tests/                  Pruebas automáticas (ver la sección 18); tests/plugins/ las de cada plugin
 tools/                  Herramientas de desarrollo: conversor de acciones .atn, base de datos de lentes, verificación
-docs/                   Referencia de funciones (FUNCIONALIDADES.md), registro de cambios, despliegue, seguridad, contribución y pendientes
+                        (verify/), modelos (models/), vídeo (video/: medidor de WebCodecs y de rendimiento) y docs (docs/)
+docs/                   Referencia de funciones (FUNCIONALIDADES.md y FUNCIONES_IA.md), registro de modelos (MODELOS.md),
+                        plan del editor (PLAN_EDITOR_IA_LOCAL.md), vídeo (VIDEO.md), registro de cambios, despliegue,
+                        seguridad, contribución y pendientes
 design/                 Imágenes de diseño originales (no se usan en la web)
 log/                    Registros del servidor (vacía en el repositorio)
-.github/workflows/      Despliegue automático en realify.es
+.github/workflows/      Flujos de GitHub Actions (el despliegue automático está desactivado: se publica a mano)
 ```
 
 ### Capas del código
@@ -331,6 +403,10 @@ node tests/plugins/frames/test-marcos.mjs                    # regresión de los
   modificada sobre una imagen de detalle fino de 3000 × 2000 px, en móvil y en escritorio, y comprueba que el resultado
   tiene el tamaño del documento, coincide con el cálculo a resolución completa y no lanza errores. Termina con
   `APTO`, `APTO*` o `FALLO`. Una herramienta con `FALLO` no se publica.
+- **Pruebas por familia**: `tests/ia/<familia>/` (funciones de IA: motor puro en Node y comportamiento en navegador, móvil y
+  escritorio), `tests/ia/menu-ia.mjs` y `tests/ia/cajon-basicos-auto.mjs` (los menús salen de los manifiestos; Básicos y
+  Automáticos no se tocan) y `tests/video/` (`npm run test:video`: proyecto, línea de tiempo, medios, render, editor, efectos,
+  audio y menú del editor de vídeo).
 - Algunos scripts `*_check.py` validan los archivos generados con bibliotecas de referencia (por ejemplo,
   c2pa-python o pillow-heif).
 
@@ -338,8 +414,9 @@ node tests/plugins/frames/test-marcos.mjs                    # regresión de los
 
 Es un sitio estático: basta con servir los archivos con cualquier servidor web.
 
-- **Producción ([realify.es](https://realify.es))**: nginx. Cada push a `main`
-  se publica automáticamente con GitHub Actions; ver [docs/DEPLOY.md](./docs/DEPLOY.md).
+- **Producción ([realify.es](https://realify.es))**: nginx. El despliegue lo hace el titular a mano con `git` en el
+  VPS (el flujo de GitHub Actions está desactivado, así que subir a `main` no publica nada por sí solo); ver
+  [docs/DEPLOY.md](./docs/DEPLOY.md).
 - **nginx**: la configuración de cabeceras de seguridad, compresión, caché y
   bloqueo de archivos internos está en
   [`server/nginx/nginx-realify.conf.example`](./server/nginx/nginx-realify.conf.example).
@@ -366,6 +443,7 @@ y abre `http://localhost:8080`.
 | Concurrencia | Web Workers y OffscreenCanvas |
 | RAW | [LibRaw](https://www.libraw.org/) vía [LibRaw-Wasm](https://github.com/ybouane/LibRaw-Wasm) |
 | IA | [ONNX Runtime Web](https://onnxruntime.ai/) (BodyPix, DeepLab, MobileNet, U²-Net, MODNet, ISNet, LaMa, SCUNet, FBCNN, MobileSAM + SAM, YuNet, BiSeNet, Depth Anything V2, GFPGAN, Zero-DCE++, CLIPSeg, SPAN, Real-ESRGAN, UltraSharp, SpongeColor, Colorizer, DDColor); profundidad y máscaras a resolución completa por bloques (`js/ai/tiles.js`); catálogo en `js/ai/models/` y registro de licencias en `docs/MODELOS.md` |
+| Vídeo | [Mediabunny](https://mediabunny.dev) (MPL-2.0) sobre **WebCodecs**: MP4 y WebM con el códec que sepa el dispositivo |
 | Visión | [OpenCV.js](https://docs.opencv.org/) (alineación, apilado, escáner de documentos, líneas), base de lentes [Lensfun](https://lensfun.github.io/) |
 | Formatos | [ag-psd](https://github.com/Agamnentzar/ag-psd), [UTIF.js](https://github.com/photopea/UTIF.js), [heic2any](https://github.com/alexcorvi/heic2any), [pdf-lib](https://pdf-lib.js.org/) y fontkit, [ExifReader](https://github.com/mattiasw/ExifReader), jSquash (AVIF y JPEG XL) |
 | App | Service worker, Web App Manifest, IndexedDB |
@@ -383,6 +461,7 @@ en escritorio y en móvil.
 | **Módulos ES y Web Workers** | Imprescindibles: carga de la app y procesado en segundo plano |
 | **WebGPU** | Opcional: acelera algunos modelos de IA; sin él se usa WebAssembly |
 | **HTTPS** | Necesario para el service worker y la instalación como app |
+| **WebCodecs** | Necesario para el editor de vídeo (decodificar y exportar MP4/WebM); sin él el editor lo dice y no exporta |
 | **HEVC (WebCodecs)** | Opcional: exportar HEIC y HEIC de 10 bits sólo donde el dispositivo tiene codificador |
 
 ## 22. Contribuir
@@ -422,6 +501,7 @@ de cada modelo que utilice**:
 | Modelo | Función | Licencia real | Fuente de la comprobación |
 |---|---|---|---|
 | BiSeNet (ResNet-18, `faceparsing`) | Seleccionar por texto (pelo, ojos, labios…) y Retoque de cara | Código y pesos: **MIT**. Los datos de entrenamiento CelebAMask-HQ son de **uso no comercial** | `assets/models/faceparsing/LICENSE.txt` y repositorio de origen |
+| SegFormer de partes del cuerpo y ropa (`humanparse`) | Seleccionar partes, Editor de cuerpo y Ropa | Código y pesos MIT; datos de entrenamiento (ATR / Look into Person) **por revisar** (marcado como no comercial por precaución) | `docs/MODELOS.md` |
 | Zero-DCE++ | Iluminar con IA | **CC BY-NC 4.0** (Atribución-NoComercial 4.0 Internacional) | `assets/models/zerodce/LICENSE.txt` |
 | UltraSharp V2 Lite (×4) | Ampliar con IA, Premium 👑 | **CC BY-NC-SA 4.0** (Atribución-NoComercial-CompartirIgual 4.0 Internacional) | Ficha del modelo en Hugging Face (Kim2091/UltraSharpV2) |
 
@@ -443,6 +523,8 @@ Los componentes de terceros conservan sus propias licencias y no quedan relicenc
 - Fluent Emoji (MIT): ver `plugins/stickers/emoji/LICENSE`.
 - Lensfun (CC BY-SA 3.0) para la base de lentes: ver `assets/lensdb/`.
 - Poly Haven (CC0 1.0) para los cielos de `assets/skies/`.
+- Mediabunny (MPL-2.0), editor de vídeo: ver `js/vendor/mediabunny/LICENSE`.
+- Todos los modelos de IA, con su licencia, tamaño y huella: [`docs/MODELOS.md`](docs/MODELOS.md) (incluye la lista de los no comerciales y su sustituto previsto por si algún día se cobra Premium).
 - Resto de librerías: ver `js/vendor/ATTRIBUTIONS.md`.
 
 Para solicitar autorización para un uso comercial de Realify, es necesario obtener una licencia o permiso independiente del titular de los derechos.

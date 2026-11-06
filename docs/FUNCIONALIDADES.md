@@ -397,6 +397,32 @@ Los modelos son de dos tipos:
 Las licencias de cada modelo están en `js/ai/models/` (catálogo por familia) y en [`docs/MODELOS.md`](MODELOS.md); las restricciones de uso no comercial se resumen en la
 [sección 23](../README.md#23-licencias).
 
+### Funciones de IA nuevas por familia (v300 a v315)
+
+El menú «Inteligencia Artificial» tiene **13 submenús** y **48 funciones nuevas**, todas Premium 👑 (siempre el procesado de más calidad, sin versión
+básica; de momento sin pago). La lista completa, con qué hace cada una, su interfaz y sus pestañas del cajón, se genera desde los manifiestos
+en **[FUNCIONES_IA.md](FUNCIONES_IA.md)**. Resumen por familia:
+
+| Submenú | Funciones nuevas | Ejemplos |
+|---|---|---|
+| Seleccionar | 2 | Seleccionar partes (pelo, ropa, brazos…), Pincel inteligente |
+| Borrar y rellenar | 1 | Borrado ligero con IA |
+| Retrato | 13 | Arrugas, ojeras, brillos, textura de piel, ojos, labios y cejas, dientes, cabello, forma de la cara (editor de cara con zoom) |
+| Cuerpo | 5 | Editor de cuerpo, silueta, postura, definición, piel (perfiles adulto e infantil; sólo deforma y ajusta luz y color) |
+| Ropa y tejidos | 4 | Planchar arrugas, telas y fondos, cambiar color de prendas, textura de tejido |
+| Escena y cielo | 6 | Mejorar cielo, quitar neblina, realzar por tipo, balance de blancos por zonas, recuperar luces, unificar iluminación |
+| Profundidad | 2 | Aberración por distancia, luz direccional con relieve |
+| Mejorar y restaurar | 3 | Quitar desenfoque, polvo y motas del sensor, moiré y bandas |
+| Encuadre y composición | 1 | Texto en zona libre |
+| Color y estilos | 3 | Estilo desde una foto de referencia, packs de cámara, Mis estilos |
+| Lote y biblioteca | 4 | Selección rápida, Buscar fotos, Etiquetas y nombre, Texto alternativo |
+| Asistente | 1 | Asistente de edición: escribes lo que quieres, ves el plan y lo aplicas (lista cerrada de 21 herramientas, nunca ejecuta código) |
+| Realismo y autenticidad | 3 | Zonas demasiado lisas, manos y dientes sospechosos, informe de realismo |
+
+Estas funciones comparten motor y estructura (`js/features/<familia>/<función>/`: manifiesto, motor puro de píxeles, controlador y panel generado desde los
+parámetros) y se montan sobre el kit común `js/features/ai-kit/`. Las listas del menú de escritorio, del cajón del móvil y de ☰ se generan de los
+mismos manifiestos, con el mismo contenido y orden.
+
 **Eliminar fondo y segmentación**: el resultado va a una capa nueva y la original se oculta. Se puede usar
 también por color de los bordes, sin IA.
 
@@ -561,6 +587,27 @@ Detalles en
 - **Cortar en partes** (`plugins/slice/`), **Recortar en forma** (`plugins/shape-crop/`), **Antes y después** (`plugins/compare/`),
   **Hoja de contactos** (`plugins/contact-sheet/`), **Editar en lote** (`plugins/batch/`) y **Unir imágenes** (`plugins/merge/`):
   ver sus README y las [secciones 1 y 4](#4-imagen).
+
+### Editor de vídeo (menú «Vídeo»)
+
+Editor sencillo pero escalable, **en el dispositivo**: los vídeos no se suben a ningún sitio y el proyecto guarda sólo la huella de cada archivo, no el vídeo.
+Menú **Vídeo** exclusivo (barra de escritorio, ☰ y última pestaña del cajón): *Editor de vídeo…* e *Importar vídeo…*.
+Editor a pantalla completa con vista previa (480 px de lado largo), línea de tiempo táctil (mover con imán, dividir, borrar, zoom), deshacer y rehacer,
+velocidad (0,25× a 4×) y volumen (0–200 %) por clip, formato 9:16 · 16:9 · 1:1 y exportación a **MP4 o WebM** con el códec que sepa el dispositivo
+(WebCodecs vía Mediabunny, MPL-2.0).
+
+| Efecto 👑 | Qué hace | Motor |
+|---|---|---|
+| Sensor de Realify | La cadena de sensor de las fotos (ruido, óptica, croma) en cada fotograma, con semilla por fotograma | WebGL |
+| Color | Exposición, contraste, saturación, temperatura y tinte | CPU, motor puro |
+| Estilo de cámara | El catálogo de cámaras de `plugins/cameras` (VHS, película, CCD…) | WebGL2 |
+| Fondo con IA | Recorta a la persona (MODNet) con borde estable entre fotogramas y desenfoca, oscurece, pasa a gris o pone un color al fondo | ONNX |
+| Estabilizar | Calma el temblor por traslación y recorta los bordes (sin rotación) | CPU, motor puro |
+
+Sonido: suena en la vista previa y se exporta (MP4 con AAC u Opus; WebM con Opus o Vorbis). Presets de salida: Instagram Reel, Historia, TikTok,
+YouTube 1080p, WhatsApp y Web ligera (WebM). Límites provisionales: 3 min en móvil y 10 en escritorio, salida ≤ 1920 px; se confirman con mediciones en
+móviles reales ([VIDEO_ESTUDIO.md](VIDEO_ESTUDIO.md)). Arquitectura, contratos y estructura en [VIDEO.md](VIDEO.md); el código está aislado en
+`plugins/video/` (puerta única `index.js`, salida única `bridge/`, comprobado con `tools/verify/aislamiento.mjs`).
 
 ## 14. Análisis y metadatos
 

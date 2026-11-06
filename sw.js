@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v316";
+const VERSION = "realify-v317";
 const SHELL = [
   "./",
   "./index.html",
@@ -66,6 +66,9 @@ self.addEventListener("fetch", e => {
   // de IA los guarda en IndexedDB; copiarlos también aquí duplicaría
   // decenas de MB en cada versión.
   if(/\/assets\/models\/(mobilesam|faceparsing|depthanything|gfpgan)\//.test(url.pathname)) return;
+  // Lo mismo con los dos modelos grandes de personas (pose 27 MB y partes del cuerpo 55 MB); los pequeños de esa carpeta
+  // (malla de la cara, manos) sí se guardan aquí para que funcionen sin conexión.
+  if(/\/assets\/models\/people\/(rtmpose|segformer)/.test(url.pathname)) return;
 
   /* `no-cache`: el navegador puede reutilizar su caché HTTP, pero
      siempre pregunta antes al servidor (un 304 si no ha cambiado). Sin

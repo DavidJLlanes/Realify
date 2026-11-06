@@ -36,3 +36,5 @@ Basta con una carpeta y `REALIFY_FOTOS=carpeta node tests/ia/reales/<prueba>.mjs
 ## Revisión que no puede hacer Claude
 - Licencia de los **datos de entrenamiento** de cada modelo (`docs/MODELOS.md`) y confirmar el uso no comercial.
 - Juicio visual: si el recoloreado, el grano, la colocación del texto y los estilos «se ven bien».
+- **F16.1 · textos públicos:** revisar `docs/PRESENTACION_PROPUESTA.md` y decirme si los aplico a `index.html`, `manifest.webmanifest` y «Acerca de».
+- **Despliegue 2.0.0 (v317):** hacer `git pull` en el VPS y probar en móvil y escritorio, incluida la web sin conexión tras la primera visita.

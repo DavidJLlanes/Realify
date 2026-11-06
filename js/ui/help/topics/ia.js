@@ -26,8 +26,11 @@ export const iaTopic = { id:"ia", title:"Inteligencia Artificial (menú)",
         <li><b>Realismo y autenticidad</b> (trabajan con imágenes generadas por IA): Realify, Realify Premium 👑,
           PurePixel, Unmark, Plausibilidad, Segunda opinión y Limpiar metadatos.</li>
       </ul>
-      <p>Irán llegando más submenús (Ropa y tejidos, Color y estilos, Lote y biblioteca, Asistente) a medida que
-        tengan herramientas.</p>
+      <p>Los submenús que faltaban ya están completos: <b>Ropa y tejidos</b> (<a data-go="ia#ia-ropa">Ropa y tejidos 👑</a>),
+        <b>Color y estilos</b> (<a data-go="ia#ia-estilos-ia">estilo desde una foto de referencia, packs de cámara y Mis estilos</a>),
+        <b>Lote y biblioteca</b> (<a data-go="ia#ia-library">selección rápida, búsqueda, etiquetas y texto alternativo</a>) y
+        <b>Asistente</b> (<a data-go="ia#ia-assistant">asistente de edición</a>). Todos los submenús tienen su explicación abajo, familia por
+        familia, y la lista completa y siempre al día está en el repositorio (<code>docs/FUNCIONES_IA.md</code>).</p>
       <p><b>Resolución completa.</b> Los modelos trabajan a un tamaño fijo (unos 512 px). En
         fotos grandes, la profundidad y las máscaras de cielo y de persona se calculan además
         <b>por bloques</b>: una pasada de la foto entera da la escena y los bloques, a más
