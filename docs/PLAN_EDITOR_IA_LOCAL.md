@@ -709,7 +709,7 @@ Diseño: el modelo **no ejecuta código**; devuelve un plan en JSON que se valid
 ### Fase 15 · Editor de vídeo 👑 ⚠ módulo aislado y escalable
 Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el código vive aislado en `plugins/video/` (4.8) con menú propio.**
 
-- [ ] F15.0 **Arquitectura primero.** Redactar `docs/VIDEO.md` (carpetas, contratos de efecto y de códec, formato de proyecto con `schemaVersion`), crear el esqueleto vacío de `plugins/video/` con `bridge/`, `README.md` y `manifest.js`, y comprobar `tools/verify/aislamiento.mjs`. El titular aprueba el documento antes de seguir.
+- [ ] F15.0 **(borrador y esqueleto hechos el 6 nov 2026; FALTA LA APROBACIÓN del titular)** **Arquitectura primero.** Redactar `docs/VIDEO.md` (carpetas, contratos de efecto y de códec, formato de proyecto con `schemaVersion`), crear el esqueleto vacío de `plugins/video/` con `bridge/`, `README.md` y `manifest.js`, y comprobar `tools/verify/aislamiento.mjs`. El titular aprueba el documento antes de seguir.
 - [ ] F15.1 Estudio de viabilidad: decodificación y codificación con WebCodecs, memoria y tiempo por fotograma en móviles reales y en escritorio; **fijar aquí los límites** de duración y resolución (D5: se miden primero) y anotarlos en este plan.
 - [ ] F15.2 `project/` y `timeline/`: modelo del proyecto con versión y migraciones, operaciones de línea de tiempo con deshacer; pruebas en Node.
 - [ ] F15.3 `media/` y `workers/`: importar, decodificar y codificar con registro de códecs y respaldo; todo fuera del hilo principal.

@@ -8,6 +8,10 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - F11.8 · **EXIF de Realify** (`js/filters/camera/exifmatch.js`): alcance de la ampliación. El titular lo decidirá al final de todas las fases.
 - Si algún día se cobra Premium: sustituir los modelos marcados `noncommercial: true` (BiSeNet, Zero-DCE++, UltraSharp V2 Lite…).
 
+## Decisiones tuyas
+- **Aprobar `docs/VIDEO.md`** (F15.0): estructura de carpetas, contratos de efecto y códec, proyecto sin los medios dentro y alcance. Hasta entonces no se escribe el editor de vídeo.
+- **F15.1:** medir WebCodecs (memoria y tiempo por fotograma, 720p/1080p/4K) en tus móviles reales y fijar con esos datos los límites de duración y resolución.
+
 ## Modelos que Claude no puede descargar
 *(Reintentado el 5 nov 2026: `huggingface.co`, `hf-mirror.com`, `modelscope.cn` y las descargas de GitHub Releases devuelven 403 desde el entorno de desarrollo.)*
 - **Cuando terminen las fases, hacer F14.1 y F14.4** (pendientes en el plan): F14.1 = cargar Qwen2.5 1,5B (0,5B de respaldo) con `ensureVendor` + WebGPU y que devuelva el plan JSON que ya valida `assistant/engine/validar.js`; F14.4 = voz con Whisper tiny local para dictar la orden. Necesitan los pesos ONNX descargados desde un equipo con acceso.
