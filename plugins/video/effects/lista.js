@@ -1,6 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    EDITOR DE VÍDEO · LISTA DE EFECTOS
-   Una línea por efecto: importa su manifiesto y lo registra. Vacía hasta F15.5 (cadena de sensor, color, estilos de cámara). Entradas: un registro. Salida: nada.
+   Una línea por efecto: importa su manifiesto y lo registra. Añadir un efecto = una carpeta en effects/ y una línea aquí; el motor no cambia. Entradas: un registro. Salida: nada.
    ═══════════════════════════════════════════════════════════════ */
-export const MANIFIESTOS = [];
+import color from "./color/manifest.js";
+import sensor from "./sensor/manifest.js";
+import camaras from "./camaras/manifest.js";
+
+export const MANIFIESTOS = [color, sensor, camaras];
 export function registrarTodos(registro){ MANIFIESTOS.forEach(m => registro.registrar(m)); }

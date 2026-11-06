@@ -40,7 +40,12 @@ for (const modo of ["escritorio", "movil"]) {
   await page.click('.vid-barra [data-a="inicio"]'); await page.click('.vid-barra [data-a="play"]'); await page.waitForTimeout(900);
   const t = await page.evaluate(() => window.__video.rep().tiempo()); ok(t > 0.3, `${modo}: reproduce (t=${t.toFixed(2)})`);
   await page.click('.vid-barra [data-a="play"]');
-  // formato horizontal por API del panel
+  // efecto de color por el historial y panel de efectos al elegir el clip
+  const antes = await page.evaluate(() => { const c0 = () => document.querySelector(".fsp.vid .fsp-stage canvas"), v = c0().getContext("2d").getImageData(Math.floor(c0().width / 2), Math.floor(c0().height / 2), 20, 20).data; return v[0] + v[1] + v[2]; });
+  await page.evaluate(async () => { const T = await import("/plugins/video/timeline/ops.js"), V = window.__video, c = V.p().pistas[0].clips[0]; V.hist.hacer(p => T.ponerEfecto(p, c.id, "color", { exposicion: 1.5, saturacion: -100 }), "Efecto"); await V.rep().buscar(1); });
+  await page.waitForTimeout(600);
+  const despues = await page.evaluate(() => { const c0 = () => document.querySelector(".fsp.vid .fsp-stage canvas"), v = c0().getContext("2d").getImageData(Math.floor(c0().width / 2), Math.floor(c0().height / 2), 20, 20).data; return v[0] + v[1] + v[2]; });
+  ok(antes !== despues, `${modo}: el efecto cambia la vista previa (${antes} → ${despues})`);
   // exportar
   const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 60000 }).catch(() => null), page.click('.fsp-actions [data-a="apply"]')]);
   ok(dl, modo + ": la exportación descarga un archivo");

@@ -10,6 +10,7 @@ que las entradas se agrupan por fecha.
 ## [Sin publicar]
 
 ### Editor de vídeo (módulo interno, aún no visible)
+- F15.5: primeros efectos del registro: Sensor de Realify (ruido y óptica con semilla por fotograma, WebGL), Color (exposición, contraste, saturación, temperatura, tinte) y Estilo de cámara (catálogo de cámaras). Panel «Efectos» del clip con mandos generados desde los manifiestos. Prueba `tests/video/efectos.mjs`.
 - F15.4: motor de fotogramas con caché, reproductor que salta fotogramas si no llega, exportación a MP4/WebM y editor a pantalla completa (vista previa, línea de tiempo con arrastrar/dividir/zoom, deshacer, formato 9:16·16:9·1:1, velocidad). Límites de duración provisionales (3 min móvil, 10 min escritorio). Prueba en navegador `tests/video/editor.mjs`.
 - F15.3: importar, decodificar y codificar vídeo (MP4 y WebM) con registro de códecs y respaldo, todo en un worker; usa Mediabunny (MPL-2.0, carga bajo demanda, `js/vendor/mediabunny/`). Pruebas en navegador con vídeo generado (`tests/video/medios.mjs`).
 - F15.2: modelo del proyecto con versión y migraciones, operaciones de la línea de tiempo (dividir, recortar, mover, duplicar, velocidad, efectos), deshacer/rehacer y zoom, con pruebas en Node (`npm run test:video`).

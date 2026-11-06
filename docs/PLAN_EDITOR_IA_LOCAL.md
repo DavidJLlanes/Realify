@@ -714,7 +714,7 @@ Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el 
 - [x] F15.2 (6 nov 2026, módulo interno, sin versión pública hasta F15.8) `project/` y `timeline/`: modelo del proyecto con versión y migraciones, operaciones de línea de tiempo con deshacer; pruebas en Node.
 - [x] F15.3 (6 nov 2026, módulo interno) `media/` y `workers/`: importar, decodificar y codificar con registro de códecs y respaldo; todo fuera del hilo principal.
 - [x] F15.4 (módulo interno, sin versión pública hasta F15.8) `render/` y `ui/`: motor de fotogramas, previsualización a baja resolución (480 px), exportación del proyecto completo; editor a pantalla completa (armazón común, vía `bridge/`) en móvil y escritorio. Pruebas: `tests/video/render.mjs` y `tests/video/editor.mjs`.
-- [ ] F15.5 `effects/`: registro de efectos y los primeros: cadena de sensor de Realify, color, estilos de cámara.
+- [x] F15.5 (módulo interno, sin versión pública hasta F15.8) `effects/`: registro de efectos y los primeros: cadena de sensor de Realify (WebGL, Premium, sin etapas de CPU), color (motor puro) y estilos de cámara (catálogo de `plugins/cameras`); panel «Efectos» del clip generado desde los manifiestos. Prueba: `tests/video/efectos.mjs`.
 - [ ] F15.6 Segmentación por fotograma (MODNet) con suavizado temporal y estabilización ligera (OpenCV.js), como efectos del registro.
 - [ ] F15.7 `audio/` y `export/`: pista de audio y exportar MP4 o WebM con el códec del dispositivo; presets por red.
 - [ ] F15.8 Menú «Vídeo» exclusivo (escritorio, sección de ☰ y pestaña del cajón; mismo contenido y orden) y comandos `video.*` en `js/app/commands/video.js`; se hace visible al estar listo.
