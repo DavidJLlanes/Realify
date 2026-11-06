@@ -22,7 +22,8 @@ import { PEOPLE } from "./models/people.js";
 import { LLM } from "./models/llm.js";
 import { VOZ } from "./models/voz.js";
 import { CLIP } from "./models/clip.js";
+import { FLORENCE } from "./models/florence.js";
 
-export const MODELS = { ...SEGMENTATION, ...INPAINT, ...ENHANCE, ...FACES, ...DEPTH, ...SCENE, ...PEOPLE, ...LLM, ...VOZ, ...CLIP };
+export const MODELS = { ...SEGMENTATION, ...INPAINT, ...ENHANCE, ...FACES, ...DEPTH, ...SCENE, ...PEOPLE, ...LLM, ...VOZ, ...CLIP, ...FLORENCE };
 
 export const mb = bytes => Math.round(bytes / 1e6) + " MB";

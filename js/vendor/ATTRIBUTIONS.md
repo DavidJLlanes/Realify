@@ -44,3 +44,4 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 - `assets/models/whisper-tiny/` (incluido) y `onnx-community/whisper-tiny-ONNX` (remoto): Whisper tiny, OpenAI, licencia MIT; ONNX cuantizado por la comunidad de Hugging Face.
 - `assets/models/qwen2.5-1.5b/` (tokenizador y configuración) y `onnx-community/Qwen2.5-1.5B-Instruct` (remoto): Qwen2.5 1,5B Instruct, Alibaba Cloud (Qwen Team), licencia Apache-2.0.
 - `Xenova/clip-vit-base-patch32` (remoto): CLIP ViT-B/32, OpenAI, licencia MIT; ONNX cuantizado por Xenova (Hugging Face).
+- `onnx-community/Florence-2-base` (remoto): Florence-2 base, Microsoft, licencia MIT; ONNX cuantizado por la comunidad de Hugging Face.

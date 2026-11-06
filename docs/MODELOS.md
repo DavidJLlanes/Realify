@@ -16,7 +16,7 @@ en [`assets/models/`](../assets/models/). Las atribuciones completas están en [
 - **Al añadir un modelo**: una línea en esta tabla (con la huella: `node tools/models/sha256.mjs <archivo>`), su entrada en el archivo de su
   familia en `js/ai/models/`, su atribución en `ATTRIBUTIONS.md` y, si no es comercial, `noncommercial: true`.
 
-## Modelos en uso (34 del catálogo + Zero-DCE++)
+## Modelos en uso (38 del catálogo + Zero-DCE++)
 
 «Datos» = licencia de los datos de entrenamiento. **«no revisada»** significa que todavía no se ha comprobado y hay que hacerlo antes de
 cobrar Premium; los únicos con restricción conocida están marcados. «Móvil» indica cómo se usa hoy; la medición en móviles reales de gama
@@ -59,6 +59,10 @@ media se hace en F15.1 (vídeo) y F14.1 (LLM) y al incorporar cada modelo nuevo.
 | `whisper_dec` | Voz: decodificador de Whisper tiny (merged, con memoria) | 110 MB | MIT | no revisada | `onnx-community/whisper-tiny-ONNX` (commit fijado `ea7c447ab3780e36818661384dea74a8e6b82fc6`), `decoder_model_merged_quantized.onnx` | `49f1546333cf31f05ffd57f7d46597fef0fdfe527991432b725461f13141a435` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir |
 | `clip_vision` | Buscar fotos por texto: codificador de imagen CLIP ViT-B/32 | 89 MB | MIT | no revisada | `Xenova/clip-vit-base-patch32` en Hugging Face (commit fijado `6b7c523703ae26e39be4b03774966f8571c7f523`), `onnx/vision_model_quantized.onnx` | `583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir |
 | `clip_text` | Buscar fotos por texto: codificador de texto CLIP ViT-B/32 | 65 MB | MIT | no revisada | `Xenova/clip-vit-base-patch32` en Hugging Face (commit fijado `6b7c523703ae26e39be4b03774966f8571c7f523`), `onnx/text_model_quantized.onnx` | `73baab855d406190da9faa498cfedf65f15cf309f4cc7385b7b032e6d08e5c3a` | sí | remoto, con aviso de tamaño; usa el tokenizador CLIP que ya lleva la web |
+| `florence_vision` | Describir fotos: codificador de visión de Florence-2 base | 94 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/vision_encoder_quantized.onnx` | `56351a93ecfb61a0384dc63c130cc5bdeea8de1a85f172e109821c7cc956be5a` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
+| `florence_embed` | Describir fotos: incrustaciones de texto de Florence-2 base | 39 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/embed_tokens_quantized.onnx` | `8818c58a214e53bf7e22c48bb4674c2fa3112b9539c3ce4075a2eac797b1ef74` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
+| `florence_enc` | Describir fotos: codificador de Florence-2 base | 44 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/encoder_model_quantized.onnx` | `a0459867dc116e8e49f53073e368e45c21169d0b0dd7dc350abed06926e0d835` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
+| `florence_dec` | Describir fotos: decodificador «merged» de Florence-2 base | 98 MB | MIT | no revisada | `onnx-community/Florence-2-base` en Hugging Face (commit fijado `d59e079711c57174f29265539fb4cc9f0f335916`), `onnx/decoder_model_merged_quantized.onnx` | `7ffecf4dd98784308878fd52a7f95ed64f5ed025b4785f6f105450be8fe2be04` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
 
 ### Modelos de personas (Fase 2, v302)
 
