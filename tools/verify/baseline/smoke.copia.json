@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-06T10:28:00.075Z",
+ "generated": "2026-11-06T10:38:03.141Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1513,
+     "readyMs": 1543,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137470,
+     "jsBytes": 2016309,
      "cssBytes": 177122,
-     "transferBytes": 887136,
-     "domContentLoaded": 1417,
-     "fcp": 1256
+     "transferBytes": 846030,
+     "domContentLoaded": 1437,
+     "fcp": 976
     },
     {
-     "readyMs": 965,
+     "readyMs": 1253,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137395,
+     "jsBytes": 2137444,
      "cssBytes": 177122,
-     "transferBytes": 887637,
-     "domContentLoaded": 877,
-     "fcp": 556
+     "transferBytes": 887110,
+     "domContentLoaded": 1118,
+     "fcp": 384
     },
     {
-     "readyMs": 966,
+     "readyMs": 1194,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137395,
+     "jsBytes": 2137506,
      "cssBytes": 177122,
-     "transferBytes": 887637,
-     "domContentLoaded": 917,
-     "fcp": 284
+     "transferBytes": 887172,
+     "domContentLoaded": 1027,
+     "fcp": 400
     }
    ],
-   "medianReadyMs": 966,
-   "medianTransferBytes": 887637
+   "medianReadyMs": 1253,
+   "medianTransferBytes": 887110
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -4897,15 +4897,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1032,
+   "readyMs": 1162,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2137506,
+   "jsBytes": 2137530,
    "cssBytes": 177122,
-   "transferBytes": 887172,
-   "domContentLoaded": 959,
-   "fcp": 792
+   "transferBytes": 887192,
+   "domContentLoaded": 1067,
+   "fcp": 548
   },
   "screens": {
    "welcome": "fe7b93e343389925",

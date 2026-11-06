@@ -6,7 +6,9 @@
    el ISO, de modo que el triángulo sea físicamente posible.
    ══════════════════════════════════════════════════════════════ */
 
-export const BODIES = [
+import { BODIES_MARCAS, LENSES_MARCAS } from "./db-marcas.js";
+
+const BODIES_CANON = [
   {id:"canon_400d", model:"Canon EOS 400D DIGITAL", mount:"EF-S", sw:22.2, sh:14.8, px:[3888,2592], iso:1600,   y:2006},
   {id:"canon_450d", model:"Canon EOS 450D",         mount:"EF-S", sw:22.2, sh:14.8, px:[4272,2848], iso:1600,   y:2008},
   {id:"canon_600d", model:"Canon EOS 600D",         mount:"EF-S", sw:22.3, sh:14.9, px:[5184,3456], iso:6400,   y:2011},
@@ -42,9 +44,10 @@ export const BODIES = [
   {id:"canon_m6",    model:"Canon EOS M6",            mount:"EF-M", sw:22.3, sh:14.9, px:[6000,4000], iso:25600,  y:2017},
   {id:"canon_m6_2",  model:"Canon EOS M6 Mark II",    mount:"EF-M", sw:22.3, sh:14.9, px:[6960,4640], iso:25600,  y:2019}
 ];
+export const BODIES = [...BODIES_CANON, ...BODIES_MARCAS];
 
 /* fmin/fmax: focales. amin: apertura máxima en fmin. amax: en fmax. */
-export const LENSES = [
+const LENSES_CANON = [
   {id:"canon_efs_18_55_is2", make:"Canon",  model:"EF-S18-55mm f/3.5-5.6 IS II",       mount:"EF-S", fmin:18,  fmax:55,  amin:3.5, amax:5.6},
   {id:"canon_efs_18_135",    make:"Canon",  model:"EF-S18-135mm f/3.5-5.6 IS STM",     mount:"EF-S", fmin:18,  fmax:135, amin:3.5, amax:5.6},
   {id:"canon_efs_55_250",    make:"Canon",  model:"EF-S55-250mm f/4-5.6 IS STM",       mount:"EF-S", fmin:55,  fmax:250, amin:4.0, amax:5.6},
@@ -76,6 +79,7 @@ export const LENSES = [
   {id:"canon_efm_22",        make:"Canon",  model:"EF-M22mm f/2 STM",                  mount:"EF-M", fmin:22,  fmax:22,  amin:2.0, amax:2.0},
   {id:"canon_efm_18_150",    make:"Canon",  model:"EF-M18-150mm f/3.5-6.3 IS STM",     mount:"EF-M", fmin:18,  fmax:150, amin:3.5, amax:6.3}
 ];
+export const LENSES = [...LENSES_CANON, ...LENSES_MARCAS];
 
 export const BODY_BY_ID = Object.fromEntries(BODIES.map(b=>[b.id,b]));
 export const LENS_BY_ID = Object.fromEntries(LENSES.map(l=>[l.id,l]));
@@ -85,7 +89,7 @@ export const LENS_BY_ID = Object.fromEntries(LENSES.map(l=>[l.id,l]));
    FocalLengthIn35mmFilm con 1.6 redondo: un 50 mm en una 600D
    declara 80 mm, no 81. Copiamos lo que hace la cámara, que es de
    lo que se trata. */
-export const cropOf = b => (b.mount === "EF" || b.mount === "RF") ? 1.0 : 1.6;
+export const cropOf = b => b.crop ?? (["EF", "RF", "F", "Z", "FE"].includes(b.mount) ? 1.0 : b.mount.startsWith("EF") || b.mount.startsWith("RF") ? 1.6 : 1.5);
 
 /* Qué monta en qué. Un 600D con un objetivo de montura RF-S es una
    contradicción física, y es lo primero que se ve al abrir el
@@ -101,7 +105,15 @@ export function mountCheck(body, lens){
                          : (l==="EF"||l==="EF-S") ? "adapter" : "bad";
   if(b === "EF-M")  return l==="EF-M" ? "ok"
                          : (l==="EF"||l==="EF-S") ? "adapter" : "bad";
-  return "bad";
+  /* Otras marcas. F/F-DX: Nikon réflex (FX / DX); Z/Z-DX: Nikon sin espejo; FE/E: Sony (fotograma completo / APS-C); X: Fujifilm; los móviles sólo montan su propio objetivo. */
+  if(b === "F")     return l==="F" ? "ok" : "bad";
+  if(b === "F-DX")  return (l==="F"||l==="F-DX") ? "ok" : "bad";
+  if(b === "Z")     return l==="Z" ? "ok" : l==="Z-DX" ? "crop" : (l==="F") ? "adapter" : "bad";
+  if(b === "Z-DX")  return (l==="Z"||l==="Z-DX") ? "ok" : (l==="F"||l==="F-DX") ? "adapter" : "bad";
+  if(b === "FE")    return l==="FE" ? "ok" : l==="E" ? "crop" : "bad";
+  if(b === "E")     return (l==="E"||l==="FE") ? "ok" : "bad";
+  if(b === "X")     return l==="X" ? "ok" : "bad";
+  return l===b ? "ok" : "bad";   // móviles: objetivo fijo con la misma clave que el cuerpo
 }
 
 /* Series estándar en tercios de paso. Escribir un 1/237 delata el
@@ -244,6 +256,7 @@ export function rollExif(bodyId, lensId, sceneKey, hints = null){
   let ap = snapUp(APERTURES, Math.max(wide, rnd(sc.ap[0], sc.ap[1])));
   if(hints?.abierto) ap = snapUp(APERTURES, wide);
   else if(hints?.cerrado) ap = snapUp(APERTURES, Math.max(ap, rnd(8, 11)));
+  if(body.crop) ap = lens.amin;   // móvil: diafragma fijo
 
   let iso  = snapUp(ISOS, rnd(sc.iso[0], sc.iso[1]));
   const isoCap = ISOS.filter(v=>v <= body.iso).pop() || 6400;

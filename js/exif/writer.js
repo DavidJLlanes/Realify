@@ -144,7 +144,7 @@ export function buildExifBlock(v, w, h){
   const wide = maxAperture(lens, v.focal);
 
   const ifd0 = [
-    eAscii(0x010F, "Canon"),
+    eAscii(0x010F, body.make || "Canon"),
     eAscii(0x0110, body.model),
     eShort(0x0112, 1),
     eRat  (0x011A, [[72,1]]),
@@ -192,9 +192,8 @@ export function buildExifBlock(v, w, h){
     eShort(0xA406, v.sceneType),
     eRat  (0xA432, [[lens.fmin,1],[lens.fmax,1],
                     [Math.round(lens.amin*10),10],[Math.round(lens.amax*10),10]]),
-    eAscii(0xA433, lens.make),
-    eAscii(0xA434, lens.model)
   ];
+  if(!lens.omit) exif.push(eAscii(0xA433, lens.make), eAscii(0xA434, lens.model));   // Samsung y Google no escriben objetivo
   if(v.artist) exif.push(eAscii(0xA430, v.artist));
   if(v.serial) exif.push(eAscii(0xA431, v.serial));
   if(v.lensSerial) exif.push(eAscii(0xA435, v.lensSerial));

@@ -1,0 +1,83 @@
+/* ═══════════════════════════════════════════════════════════════
+   BASE DE DATOS FOTOGRÁFICA · OTRAS MARCAS Y MÓVILES (F11.8)
+   Cuerpos y objetivos de Nikon, Sony, Fujifilm, Apple, Samsung y Google que se suman a los de Canon de db.js. Valores de referencia (resolución del JPEG, ISO máximo habitual, año de salida, tamaño de sensor);
+   en los móviles el sensor se deduce del factor de recorte y el objetivo es fijo, con la focal REAL en mm (el EXIF escribe además la equivalente a 35 mm = focal × crop).
+   Campos: id, make (marca tal como la escribe la cámara en el EXIF), model (cadena EXIF), name (texto para la lista), mount, sw/sh (mm), px, iso, y (año), crop (sólo móviles: el resto lo da cropOf).
+   Los objetivos de móvil de Samsung y Google llevan omit:true: esas marcas no escriben modelo de objetivo en el EXIF.
+   Entradas: ninguna. Salidas: BODIES_MARCAS, LENSES_MARCAS.
+   ═══════════════════════════════════════════════════════════════ */
+export const BODIES_MARCAS = [
+  {id:"nikon_d3200", make:"NIKON CORPORATION", model:"NIKON D3200", name:"Nikon D3200", mount:"F-DX", sw:23.2, sh:15.4, px:[6016,4000], iso:6400, y:2012},
+  {id:"nikon_d3300", make:"NIKON CORPORATION", model:"NIKON D3300", name:"Nikon D3300", mount:"F-DX", sw:23.5, sh:15.6, px:[6000,4000], iso:12800, y:2014},
+  {id:"nikon_d5300", make:"NIKON CORPORATION", model:"NIKON D5300", name:"Nikon D5300", mount:"F-DX", sw:23.5, sh:15.6, px:[6000,4000], iso:12800, y:2013},
+  {id:"nikon_d7000", make:"NIKON CORPORATION", model:"NIKON D7000", name:"Nikon D7000", mount:"F-DX", sw:23.6, sh:15.6, px:[4928,3264], iso:6400, y:2010},
+  {id:"nikon_d7200", make:"NIKON CORPORATION", model:"NIKON D7200", name:"Nikon D7200", mount:"F-DX", sw:23.5, sh:15.6, px:[6000,4000], iso:25600, y:2015},
+  {id:"nikon_d750", make:"NIKON CORPORATION", model:"NIKON D750", name:"Nikon D750", mount:"F", sw:35.9, sh:24.0, px:[6016,4016], iso:12800, y:2014},
+  {id:"nikon_d810", make:"NIKON CORPORATION", model:"NIKON D810", name:"Nikon D810", mount:"F", sw:35.9, sh:24.0, px:[7360,4912], iso:12800, y:2014},
+  {id:"nikon_d850", make:"NIKON CORPORATION", model:"NIKON D850", name:"Nikon D850", mount:"F", sw:35.9, sh:23.9, px:[8256,5504], iso:25600, y:2017},
+  {id:"nikon_z50", make:"NIKON CORPORATION", model:"NIKON Z 50", name:"Nikon Z50", mount:"Z-DX", sw:23.5, sh:15.7, px:[5568,3712], iso:51200, y:2019},
+  {id:"nikon_z5", make:"NIKON CORPORATION", model:"NIKON Z 5", name:"Nikon Z5", mount:"Z", sw:35.9, sh:23.9, px:[6016,4016], iso:51200, y:2020},
+  {id:"nikon_z62", make:"NIKON CORPORATION", model:"NIKON Z 6_2", name:"Nikon Z6 II", mount:"Z", sw:35.9, sh:23.9, px:[6048,4024], iso:51200, y:2020},
+  {id:"sony_a6000", make:"SONY", model:"ILCE-6000", name:"Sony A6000", mount:"E", sw:23.5, sh:15.6, px:[6000,4000], iso:25600, y:2014},
+  {id:"sony_a6400", make:"SONY", model:"ILCE-6400", name:"Sony A6400", mount:"E", sw:23.5, sh:15.6, px:[6000,4000], iso:32000, y:2019},
+  {id:"sony_a6600", make:"SONY", model:"ILCE-6600", name:"Sony A6600", mount:"E", sw:23.5, sh:15.6, px:[6000,4000], iso:32000, y:2019},
+  {id:"sony_a7m2", make:"SONY", model:"ILCE-7M2", name:"Sony A7 II", mount:"FE", sw:35.8, sh:23.8, px:[6000,4000], iso:25600, y:2014},
+  {id:"sony_a7m3", make:"SONY", model:"ILCE-7M3", name:"Sony A7 III", mount:"FE", sw:35.6, sh:23.8, px:[6000,4000], iso:51200, y:2018},
+  {id:"sony_a7rm3", make:"SONY", model:"ILCE-7RM3", name:"Sony A7R III", mount:"FE", sw:35.9, sh:24.0, px:[7952,5304], iso:32000, y:2017},
+  {id:"sony_a7m4", make:"SONY", model:"ILCE-7M4", name:"Sony A7 IV", mount:"FE", sw:35.9, sh:23.9, px:[7008,4672], iso:51200, y:2021},
+  {id:"fuji_xt20", make:"FUJIFILM", model:"X-T20", name:"Fujifilm X-T20", mount:"X", sw:23.5, sh:15.6, px:[6000,4000], iso:51200, y:2017},
+  {id:"fuji_xt3", make:"FUJIFILM", model:"X-T3", name:"Fujifilm X-T3", mount:"X", sw:23.5, sh:15.6, px:[6240,4160], iso:51200, y:2018},
+  {id:"fuji_xt30", make:"FUJIFILM", model:"X-T30", name:"Fujifilm X-T30", mount:"X", sw:23.5, sh:15.6, px:[6240,4160], iso:51200, y:2019},
+  {id:"fuji_xs10", make:"FUJIFILM", model:"X-S10", name:"Fujifilm X-S10", mount:"X", sw:23.5, sh:15.6, px:[6240,4160], iso:51200, y:2020},
+  {id:"iphone12", make:"Apple", model:"iPhone 12", name:"Apple iPhone 12", mount:"iphone12", sw:5.59, sh:4.19, px:[4032,3024], iso:3200, y:2020, crop:6.19},
+  {id:"iphone13", make:"Apple", model:"iPhone 13", name:"Apple iPhone 13", mount:"iphone13", sw:6.79, sh:5.09, px:[4032,3024], iso:3200, y:2021, crop:5.1},
+  {id:"iphone14pro", make:"Apple", model:"iPhone 14 Pro", name:"Apple iPhone 14 Pro", mount:"iphone14pro", sw:9.89, sh:7.42, px:[4032,3024], iso:3200, y:2022, crop:3.5},
+  {id:"iphone15pro", make:"Apple", model:"iPhone 15 Pro", name:"Apple iPhone 15 Pro", mount:"iphone15pro", sw:9.75, sh:7.31, px:[4032,3024], iso:3200, y:2023, crop:3.55},
+  {id:"galaxy_s21", make:"samsung", model:"SM-G991B", name:"Samsung Galaxy S21", mount:"galaxy_s21", sw:7.21, sh:5.41, px:[4000,3000], iso:3200, y:2021, crop:4.8},
+  {id:"galaxy_s23", make:"samsung", model:"SM-S911B", name:"Samsung Galaxy S23", mount:"galaxy_s23", sw:7.8, sh:5.85, px:[4000,3000], iso:3200, y:2023, crop:4.44},
+  {id:"pixel7", make:"Google", model:"Pixel 7", name:"Google Pixel 7", mount:"pixel7", sw:9.43, sh:7.07, px:[4080,3072], iso:3200, y:2022, crop:3.67}
+];
+
+export const LENSES_MARCAS = [
+  {id:"nikon_dx_18_55", make:"Nikon", model:"AF-S DX Nikkor 18-55mm f/3.5-5.6G VR II", mount:"F-DX", fmin:18, fmax:55, amin:3.5, amax:5.6},
+  {id:"nikon_dx_18_140", make:"Nikon", model:"AF-S DX Nikkor 18-140mm f/3.5-5.6G ED VR", mount:"F-DX", fmin:18, fmax:140, amin:3.5, amax:5.6},
+  {id:"nikon_dx_55_200", make:"Nikon", model:"AF-S DX Nikkor 55-200mm f/4-5.6G ED VR II", mount:"F-DX", fmin:55, fmax:200, amin:4.0, amax:5.6},
+  {id:"nikon_dx_35_18", make:"Nikon", model:"AF-S DX Nikkor 35mm f/1.8G", mount:"F-DX", fmin:35, fmax:35, amin:1.8, amax:1.8},
+  {id:"nikon_50_18g", make:"Nikon", model:"AF-S Nikkor 50mm f/1.8G", mount:"F", fmin:50, fmax:50, amin:1.8, amax:1.8},
+  {id:"nikon_85_18g", make:"Nikon", model:"AF-S Nikkor 85mm f/1.8G", mount:"F", fmin:85, fmax:85, amin:1.8, amax:1.8},
+  {id:"nikon_24_70_28", make:"Nikon", model:"AF-S Nikkor 24-70mm f/2.8G ED", mount:"F", fmin:24, fmax:70, amin:2.8, amax:2.8},
+  {id:"nikon_24_120_4", make:"Nikon", model:"AF-S Nikkor 24-120mm f/4G ED VR", mount:"F", fmin:24, fmax:120, amin:4.0, amax:4.0},
+  {id:"nikon_70_200_28", make:"Nikon", model:"AF-S Nikkor 70-200mm f/2.8G ED VR II", mount:"F", fmin:70, fmax:200, amin:2.8, amax:2.8},
+  {id:"nikon_z_50_18", make:"Nikon", model:"NIKKOR Z 50mm f/1.8 S", mount:"Z", fmin:50, fmax:50, amin:1.8, amax:1.8},
+  {id:"nikon_z_35_18", make:"Nikon", model:"NIKKOR Z 35mm f/1.8 S", mount:"Z", fmin:35, fmax:35, amin:1.8, amax:1.8},
+  {id:"nikon_z_24_70_4", make:"Nikon", model:"NIKKOR Z 24-70mm f/4 S", mount:"Z", fmin:24, fmax:70, amin:4.0, amax:4.0},
+  {id:"nikon_z_24_200", make:"Nikon", model:"NIKKOR Z 24-200mm f/4-6.3 VR", mount:"Z", fmin:24, fmax:200, amin:4.0, amax:6.3},
+  {id:"nikon_z_70_200_28", make:"Nikon", model:"NIKKOR Z 70-200mm f/2.8 VR S", mount:"Z", fmin:70, fmax:200, amin:2.8, amax:2.8},
+  {id:"nikon_zdx_16_50", make:"Nikon", model:"NIKKOR Z DX 16-50mm f/3.5-6.3 VR", mount:"Z-DX", fmin:16, fmax:50, amin:3.5, amax:6.3},
+  {id:"sony_e_16_50", make:"Sony", model:"E PZ 16-50mm F3.5-5.6 OSS", mount:"E", fmin:16, fmax:50, amin:3.5, amax:5.6},
+  {id:"sony_e_18_135", make:"Sony", model:"E 18-135mm F3.5-5.6 OSS", mount:"E", fmin:18, fmax:135, amin:3.5, amax:5.6},
+  {id:"sony_e_55_210", make:"Sony", model:"E 55-210mm F4.5-6.3 OSS", mount:"E", fmin:55, fmax:210, amin:4.5, amax:6.3},
+  {id:"sony_e_35_18", make:"Sony", model:"E 35mm F1.8 OSS", mount:"E", fmin:35, fmax:35, amin:1.8, amax:1.8},
+  {id:"sigma_e_18_50", make:"Sigma", model:"18-50mm F2.8 DC DN | Contemporary 021", mount:"E", fmin:18, fmax:50, amin:2.8, amax:2.8},
+  {id:"sony_fe_28_70", make:"Sony", model:"FE 28-70mm F3.5-5.6 OSS", mount:"FE", fmin:28, fmax:70, amin:3.5, amax:5.6},
+  {id:"sony_fe_24_70_gm", make:"Sony", model:"FE 24-70mm F2.8 GM", mount:"FE", fmin:24, fmax:70, amin:2.8, amax:2.8},
+  {id:"sony_fe_24_105_g", make:"Sony", model:"FE 24-105mm F4 G OSS", mount:"FE", fmin:24, fmax:105, amin:4.0, amax:4.0},
+  {id:"sony_fe_50_18", make:"Sony", model:"FE 50mm F1.8", mount:"FE", fmin:50, fmax:50, amin:1.8, amax:1.8},
+  {id:"sony_fe_85_18", make:"Sony", model:"FE 85mm F1.8", mount:"FE", fmin:85, fmax:85, amin:1.8, amax:1.8},
+  {id:"sony_fe_70_200_gm", make:"Sony", model:"FE 70-200mm F2.8 GM OSS", mount:"FE", fmin:70, fmax:200, amin:2.8, amax:2.8},
+  {id:"tamron_fe_28_75", make:"Tamron", model:"28-75mm F/2.8 Di III RXD", mount:"FE", fmin:28, fmax:75, amin:2.8, amax:2.8},
+  {id:"fuji_xc_15_45", make:"Fujifilm", model:"XC15-45mmF3.5-5.6 OIS PZ", mount:"X", fmin:15, fmax:45, amin:3.5, amax:5.6},
+  {id:"fuji_xf_18_55", make:"Fujifilm", model:"XF18-55mmF2.8-4 R LM OIS", mount:"X", fmin:18, fmax:55, amin:2.8, amax:4.0},
+  {id:"fuji_xf_16_80", make:"Fujifilm", model:"XF16-80mmF4 R OIS WR", mount:"X", fmin:16, fmax:80, amin:4.0, amax:4.0},
+  {id:"fuji_xf_50_230", make:"Fujifilm", model:"XF50-230mmF4.5-6.7 OIS II", mount:"X", fmin:50, fmax:230, amin:4.5, amax:6.7},
+  {id:"fuji_xf_23_2", make:"Fujifilm", model:"XF23mmF2 R WR", mount:"X", fmin:23, fmax:23, amin:2.0, amax:2.0},
+  {id:"fuji_xf_35_14", make:"Fujifilm", model:"XF35mmF1.4 R", mount:"X", fmin:35, fmax:35, amin:1.4, amax:1.4},
+  {id:"fuji_xf_56_12", make:"Fujifilm", model:"XF56mmF1.2 R", mount:"X", fmin:56, fmax:56, amin:1.2, amax:1.2},
+  {id:"iphone12_wide", make:"Apple", model:"iPhone 12 back dual wide camera 4.2mm f/1.6", mount:"iphone12", fmin:4.2, fmax:4.2, amin:1.6, amax:1.6},
+  {id:"iphone13_wide", make:"Apple", model:"iPhone 13 back dual wide camera 5.1mm f/1.6", mount:"iphone13", fmin:5.1, fmax:5.1, amin:1.6, amax:1.6},
+  {id:"iphone14pro_wide", make:"Apple", model:"iPhone 14 Pro back camera 6.86mm f/1.78", mount:"iphone14pro", fmin:6.86, fmax:6.86, amin:1.8, amax:1.8},
+  {id:"iphone15pro_wide", make:"Apple", model:"iPhone 15 Pro back camera 6.765mm f/1.78", mount:"iphone15pro", fmin:6.8, fmax:6.8, amin:1.8, amax:1.8},
+  {id:"galaxy_s21_main", make:"Samsung", model:"cámara principal 5.4mm f/1.8", mount:"galaxy_s21", fmin:5.4, fmax:5.4, amin:1.8, amax:1.8, omit:true},
+  {id:"galaxy_s23_main", make:"Samsung", model:"cámara principal 5.4mm f/1.8", mount:"galaxy_s23", fmin:5.4, fmax:5.4, amin:1.8, amax:1.8, omit:true},
+  {id:"pixel7_main", make:"Google", model:"cámara principal 6.81mm f/1.85", mount:"pixel7", fmin:6.8, fmax:6.8, amin:1.9, amax:1.9, omit:true}
+];

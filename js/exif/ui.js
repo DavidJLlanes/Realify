@@ -113,7 +113,15 @@ export async function withExif(blob, w, h, reroll, dateOverride){
 let counter = Math.floor(Math.random() * 8500) + 500;
 export function cameraName(){
   counter = counter >= 9999 ? 1 : counter + 1;
-  return "IMG_" + String(counter).padStart(4, "0") + ".JPG";
+  const n = String(counter).padStart(4, "0"), mk = (BODY_BY_ID[exifState.body]?.make || "Canon").toUpperCase();
+  const p2 = x => String(x).padStart(2, "0"), d = new Date();
+  /* Cada marca nombra distinto: Nikon DSC_0001, Sony DSC00001, Fujifilm DSCF0001, Apple IMG_0001, Samsung con fecha y hora, Google PXL_fecha_hora. */
+  if(mk.startsWith("NIKON")) return `DSC_${n}.JPG`;
+  if(mk === "SONY") return `DSC0${n}.JPG`;
+  if(mk === "FUJIFILM") return `DSCF${n}.JPG`;
+  if(mk === "SAMSUNG") return `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}.jpg`;
+  if(mk === "GOOGLE") return `PXL_${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}${String(d.getMilliseconds()).padStart(3, "0")}.jpg`;
+  return `IMG_${n}.JPG`;
 }
 export const useCameraNaming = () => exifState.on && exifState.naming;
 
@@ -146,6 +154,8 @@ export async function openExif(){
   saveExif();
 }
 
+/* Lista con grupos por marca (hay decenas de cuerpos y objetivos). */
+const grupos = (lista, marca, fila) => { const g = new Map(); for(const x of lista){ const m = marca(x); (g.get(m) || g.set(m, []).get(m)).push(x); } return [...g].map(([m, xs]) => `<optgroup label="${m}">${xs.map(fila).join("")}</optgroup>`).join(""); };
 const opt = (v, l, sel) => `<option value="${v}"${sel ? " selected" : ""}>${l}</option>`;
 
 function html(){
@@ -165,15 +175,15 @@ function html(){
   <div class="section-label">Equipo</div>
   <div class="field"><label>Cuerpo</label>
     <select id="exBody" class="grow">
-      ${BODIES.map(b => opt(b.id, b.model, b.id === e.body)).join("")}
+      ${grupos(BODIES, b => b.make || "Canon", b => opt(b.id, b.name || b.model, b.id === e.body))}
     </select></div>
   <div class="field"><label>Objetivo</label>
     <select id="exLens" class="grow">
-      ${LENSES.map(l => opt(l.id, l.make + " " + l.model, l.id === e.lens)).join("")}
+      ${grupos(LENSES, l => l.make, l => opt(l.id, l.make + " " + l.model, l.id === e.lens))}
     </select></div>
   <p class="warn" id="exWarn"></p>
   <label class="chk"><input type="checkbox" id="exName" ${e.naming ? "checked" : ""}>
-    Nombrar los archivos como la cámara (IMG_0001.JPG)</label>
+    Nombrar los archivos como la cámara (IMG_0001.JPG, DSC_0001.JPG…)</label>
 
   <div id="exAutoBox" ${e.mode === "auto" ? "" : "hidden"}>
     <div class="section-label">Escena</div>

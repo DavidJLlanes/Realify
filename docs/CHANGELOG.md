@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.0.0 (compilación 323) · EXIF de más marcas y móviles
+- **EXIF con 63 cuerpos y 83 objetivos de 7 marcas** (`js/exif/db-marcas.js`): además de Canon, Nikon (réflex F/DX y sin espejo Z), Sony (E y FE), Fujifilm (X) y móviles Apple (iPhone 12, 13, 14 Pro, 15 Pro), Samsung (S21, S23) y Google (Pixel 7). El escritor usa la marca de cada cuerpo; en los móviles el objetivo es fijo (diafragma y focal reales, y la equivalente a 35 mm sale de la focal × el recorte) y Samsung y Google no escriben modelo de objetivo, como en la realidad. Monturas comprobadas por marca (p. ej. un objetivo Sony E en una A7 recorta, uno Z no monta en una réflex Nikon).
+- Las listas de cuerpo y objetivo del panel EXIF se agrupan por marca, y los archivos se nombran como cada marca (DSC_0001, DSC00001, DSCF0001, IMG_0001, fecha y hora en Samsung, PXL_… en Google).
+- Los tamaños que da cada cámara siguen su sensor (3:2 en cámaras, 4:3 en móviles) y el aviso de tamaño lo tiene en cuenta.
+- Valores de referencia aproximados (resolución del JPEG, ISO máximo, año). Limitación conocida: el EXIF se escribe en little endian para todas las marcas (Nikon usa big endian) y sin nota del fabricante salvo la copia de Canon que ya había.
+
 ### 2.0.0 (compilación 322) · EXIF coherente con la simulación
 - **El EXIF sigue a lo que simulas** (F11.8; `js/filters/camera/exifshot.js`): al aceptar el filtro Realify, además de elegir cuerpo y objetivo, el sorteo de disparo usa pistas de la cadena: el **ISO** sigue al ruido de sensor (hasta el tope del cuerpo), la **focal** a la distorsión y el viñeteo (angular si hay mucha), la **apertura** al desenfoque de fondo (abierta) o a la pérdida de nitidez (cerrada) y la **velocidad** al arrastre de movimiento (más lenta, con el ISO bajando lo mismo para que el triángulo de exposición cierre).
 - **Tamaño:** el panel EXIF avisa si la imagen no tiene un tamaño que escribiría ese cuerpo (completo, M o S, siempre 3:2) o no es 3:2.
