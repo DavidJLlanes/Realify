@@ -1,0 +1,2 @@
+{ "nombre": "Prototipo", "fps": 30, "ancho": 1080, "alto": 1920,
+  "clips": [ { "archivo": "a.mp4", "desde": 1, "hasta": 5, "en": 0 }, { "archivo": "b.mp4", "desde": 0, "hasta": 3, "en": 4 }, { "archivo": "a.mp4", "desde": 6, "hasta": 8, "en": 7 } ] }

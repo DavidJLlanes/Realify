@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Editor de vídeo (módulo interno, aún no visible)
+- F15.2: modelo del proyecto con versión y migraciones, operaciones de la línea de tiempo (dividir, recortar, mover, duplicar, velocidad, efectos), deshacer/rehacer y zoom, con pruebas en Node (`npm run test:video`).
+
 ### 1.12.0 (compilación 315) · Asistente de edición 👑
 - **Asistente de edición** (Inteligencia Artificial › Asistente): escribes lo que quieres («hazla más cálida y con grano de película», «quita la neblina y mejora el cielo», «en blanco y negro»), ves el plan y lo aplicas. Los ajustes van en capas de ajuste reeditables, el grano en una capa nueva y las funciones de IA se ejecutan con sus mandos ya rellenos.
 - Seguro por diseño: el asistente nunca ejecuta código; sólo puede usar una lista cerrada de herramientas (21, generadas desde los manifiestos), cada valor se recorta a su rango y lo que no existe se rechaza con el motivo.

@@ -1,2 +1,2 @@
 # project
-Pendiente de aprobación de `docs/VIDEO.md` (F15.0). Ver el apartado correspondiente de ese documento.
+Modelo del proyecto (`modelo.js`), migraciones y apertura (`migrar.js`). Puro, sin DOM. Ver `docs/VIDEO.md`, sección 4. Pruebas: `tests/video/proyecto.mjs`.

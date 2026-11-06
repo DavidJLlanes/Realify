@@ -1,2 +1,2 @@
 # timeline
-Pendiente de aprobación de `docs/VIDEO.md` (F15.0). Ver el apartado correspondiente de ese documento.
+Operaciones puras (`ops.js`), deshacer (`historial.js`) y zoom (`vista.js`). Ver `docs/VIDEO.md`, sección 5. Pruebas: `tests/video/timeline.mjs`.
