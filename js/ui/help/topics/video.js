@@ -27,7 +27,7 @@ export const videoTopic = { id:"video", title:"Vídeo (editor)",
         <li id="video-salida"><b>Salida:</b> el formato (9:16, 16:9, 1:1), un <b>preset</b> para redes (Instagram Reel, Historia, TikTok,
           YouTube 1080p, WhatsApp, Web ligera WebM), MP4 o WebM y «Con sonido». <b>Exportar</b> genera el archivo y lo descarga.</li>
       </ul>
-      <p>Límites: para que el móvil no se cuelgue, el proyecto tiene una duración máxima (hoy 3 minutos en móvil y 10 en escritorio)
+      <p>Límites: para que el móvil no se cuelgue, el proyecto tiene una duración máxima (hoy 5 minutos en móvil y 10 en escritorio)
         y la salida no pasa de 1920 px de lado; si algo no cabe, el editor lo dice con un mensaje claro. El códec de sonido y de vídeo
         lo elige el dispositivo (MP4 con AAC u Opus; WebM con Opus o Vorbis). El proyecto se guarda solo en este dispositivo (con copia de tus vídeos) y se recupera al volver a abrir el editor; «Nuevo» lo borra.</p>
       <p>La vista previa trabaja a baja resolución y puede saltar fotogramas en móviles modestos; la exportación siempre es completa.</p>`

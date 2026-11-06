@@ -9,10 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
-### 2.0.0 (compilación 319) · Editor de vídeo: Color en WebGL y proyecto guardado
+### 2.0.0 (compilación 320) · Editor de vídeo: Color en WebGL y proyecto guardado
 - **El proyecto de vídeo se guarda solo** (1,2 s tras cada cambio) en este dispositivo, con copia de los vídeos importados (`plugins/video/project/guardado.js`, IndexedDB). Al volver a abrir el editor sigue donde lo dejaste; el botón **Nuevo** lo borra todo (con confirmación). Prueba: `tests/video/guardado.mjs`.
 - **Color en WebGL** (`effects/color/gl.js`): misma matemática que la de CPU y diferencia máxima de 2 niveles (`tests/video/color-gl.mjs`); sin WebGL vuelve a la CPU. En el navegador de pruebas (sin tarjeta gráfica) la CPU es más rápida; la ventaja es para el móvil con GPU, aún por medir en dispositivo real.
 - **Arreglo:** Temperatura y Tinte del efecto Color daban negro en la versión de CPU (índice decimal en la tabla de tono).
+- **Límites del vídeo según la medida de un iPhone:** la duración máxima en móvil sube de 3 a 5 minutos (codifica 1080p a 6-13 ms por fotograma y decodifica 4K en 6 ms); la salida sigue en 1080p como máximo. Detalle en `docs/VIDEO_ESTUDIO.md`.
 - Unmark: se probó penalizar las zonas con mucha textura alrededor y no mejoró las regiones falsas de las escenas sintéticas muy cargadas (≈2,9 por foto con puntuación ≥ 0,45), así que no se incluyó; el panel permite descartarlas una a una.
 
 ### 2.0.0 (compilación 318) · Unmark mejorado y vídeo desde Archivo

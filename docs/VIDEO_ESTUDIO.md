@@ -24,13 +24,21 @@ Lecturas:
 - **4K** sólo es razonable para decodificar; codificar 4K en software (100-150 ms/fotograma, 7-10 fps) es lento. Propuesta: aceptar entrada 4K, **exportar como máximo a 1080p** hasta medir lo contrario.
 - El montón de JavaScript se mantuvo en ~8 MB: los fotogramas viven fuera del montón (memoria nativa), así que **hay que medir memoria real del proceso en móvil** y cerrar siempre cada `VideoFrame`.
 
-## Límites propuestos (PROVISIONALES: se confirman con móviles reales)
+## Medida en un iPhone (6 nov 2026, `docs/video-medidas/iphone-safari.json`)
+iPhone con iOS 18, Safari, 4 núcleos, WebGPU disponible. Los tres códecs (H.264, VP9, AV1) codifican y decodifican, con aceleración por hardware y por software.
+- **Codificar 720p:** 4-6 ms/fotograma. **1080p:** 6-13 ms (H.264 6-7, VP9 9, AV1 13) → de 75 a 150 fotogramas por segundo, es decir, **mucho más rápido que el equipo de desarrollo** (26-42 ms).
+- **Codificar 4K:** 36-53 ms (19-27 fps): posible, pero la medida no incluye los efectos ni la memoria.
+- **Decodificar:** 1 ms (720p), 1,5-1,7 ms (1080p), 5,5-6,3 ms (4K): siempre en tiempo real.
+- **Memoria:** el navegador no la da (`heap_mb_pico` nulo): sigue sin medirse.
+- **Decisión:** la duración máxima en móvil sube de 3 a **5 min**; la salida sigue en 1080p como máximo (4K queda para cuando se mida la memoria y un Android). Los efectos de Realify seguirán siendo el coste dominante.
+
+## Límites propuestos (ajustados con el iPhone; un Android los puede cambiar)
 | Qué | Propuesta | Por qué |
 |---|---|---|
 | Entrada | hasta 4K, hasta 10 min por clip | decodificar es barato; la duración la limita la memoria al importar |
 | Salida | hasta 1080p, 30 fps (60 fps sólo si el móvil lo da) | codificar es el cuello de botella |
 | Previsualización | 480 px de lado largo | efectos en tiempo casi real |
-| Duración del proyecto | 10 min en escritorio, 3 min en móvil, hasta medir | a ajustar con datos |
+| Duración del proyecto | 10 min en escritorio, 5 min en móvil (iPhone medido) | a ajustar con un Android |
 | Sin códec | aviso claro y alternativa | nunca falla en silencio |
 
 ## Rendimiento del editor (F15.9, 6 nov 2026)
@@ -49,4 +57,4 @@ Medido con `tools/video/rendimiento.mjs` en el equipo de desarrollo (Chromium si
 - **Consecuencias:** en la vista previa los efectos pesados (Sensor, Estilo de cámara, Fondo con IA) pueden no llegar a tiempo real; el reproductor salta fotogramas en vez de retrasarse (por diseño). En la exportación, Color a 1080×1920 en CPU es lo más lento de lo medido sin GPU: queda como **mejora candidata** pasarlo a WebGL. Falta medir todo en móviles reales (tarea del titular).
 
 ## Qué falta (lo hace el titular)
-Abrir en cada móvil (tras desplegar) `https://realify.es/plugins/video/estudio/medir.html`, pulsar **Medir**, esperar unos minutos y pegarme el texto que sale. Con eso fijo los límites definitivos de D5 en el plan. Ver `docs/PENDIENTE_TITULAR.md`.
+El iPhone ya está medido. Falta un Android: abrir en él (tras desplegar) `https://realify.es/plugins/video/estudio/medir.html`, pulsar **Medir**, esperar unos minutos y pegarme el texto que sale. Con eso fijo los límites definitivos de D5 en el plan. Ver `docs/PENDIENTE_TITULAR.md`.

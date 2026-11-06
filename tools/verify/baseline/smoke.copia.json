@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-06T09:55:24.018Z",
+ "generated": "2026-11-06T10:02:21.005Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1411,
+     "readyMs": 1487,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
      "jsBytes": 2137536,
      "cssBytes": 177122,
      "transferBytes": 886639,
-     "domContentLoaded": 1340,
-     "fcp": 1192
+     "domContentLoaded": 1415,
+     "fcp": 976
     },
     {
-     "readyMs": 1236,
+     "readyMs": 1145,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137491,
+     "jsBytes": 2137506,
      "cssBytes": 177122,
-     "transferBytes": 887170,
-     "domContentLoaded": 1101,
-     "fcp": 452
+     "transferBytes": 887172,
+     "domContentLoaded": 1002,
+     "fcp": 320
     },
     {
-     "readyMs": 1022,
+     "readyMs": 1155,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137440,
+     "jsBytes": 2137395,
      "cssBytes": 177122,
-     "transferBytes": 887106,
-     "domContentLoaded": 966,
-     "fcp": 264
+     "transferBytes": 887637,
+     "domContentLoaded": 1028,
+     "fcp": 308
     }
    ],
-   "medianReadyMs": 1236,
-   "medianTransferBytes": 887106
+   "medianReadyMs": 1155,
+   "medianTransferBytes": 887172
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -4897,20 +4897,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 951,
+   "readyMs": 1058,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2137506,
+   "jsBytes": 2137536,
    "cssBytes": 177122,
-   "transferBytes": 887172,
-   "domContentLoaded": 866,
-   "fcp": 768
+   "transferBytes": 886639,
+   "domContentLoaded": 929,
+   "fcp": 604
   },
   "screens": {
    "welcome": "fe7b93e343389925",
    "withImage": "91216a462b558bfe",
-   "drawer": "2898ca98f29c0ccb"
+   "drawer": "53b3b078245a5530"
   },
   "opened": true,
   "drawer": true,

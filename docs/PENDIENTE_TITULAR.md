@@ -9,7 +9,7 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - Si algún día se cobra Premium: sustituir los modelos marcados `noncommercial: true` (BiSeNet, Zero-DCE++, UltraSharp V2 Lite…).
 
 ## Decisiones tuyas
-- **F15.1:** tras desplegar, abrir en cada móvil `https://realify.es/plugins/video/estudio/medir.html`, pulsar «Medir» y pegarme el texto resultante. Con eso fijo los límites definitivos (hoy provisionales en `docs/VIDEO_ESTUDIO.md`).
+- **F15.1:** iPhone medido (6 nov 2026). Falta un Android: abrir `https://realify.es/plugins/video/estudio/medir.html`, pulsar «Medir» y pasarme el texto.
 
 ## Modelos que Claude no puede descargar
 - **F15.9 · rendimiento en móvil:** ejecutar el editor en un móvil de gama media y anotar si la vista previa con Sensor / Estilo de cámara / Fondo con IA es fluida y cuánto tarda exportar 1 min a 1080p. Los números de desarrollo (sin GPU) están en `docs/VIDEO_ESTUDIO.md`.

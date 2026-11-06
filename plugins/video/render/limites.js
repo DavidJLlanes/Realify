@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
    EDITOR DE VÍDEO · LÍMITES (puro, sin DOM)
-   PROVISIONALES hasta medir en móviles reales (F15.1, docs/VIDEO_ESTUDIO.md). Mejor negarse con un mensaje claro que colgar el dispositivo.
+   Fijados con la medida de un iPhone (docs/video-medidas/iphone-safari.json); sólo hay un móvil medido: se revisan al medir un Android. Mejor negarse con un mensaje claro que colgar el dispositivo.
    Entradas: proyecto, tipo de dispositivo y salida deseada. Salidas: { ok, motivo } y la salida ajustada al máximo.
    ═══════════════════════════════════════════════════════════════ */
 import { duracionProyecto } from "../project/modelo.js";
 
-export const LIMITES = { movil: { duracion: 180 }, escritorio: { duracion: 600 }, ladoMaximo: 1920, previa: 480 };
+export const LIMITES = { movil: { duracion: 300 }, escritorio: { duracion: 600 }, ladoMaximo: 1920, previa: 480 };
 
 export function comprobarExportacion(p, movil){
   const d = duracionProyecto(p), max = movil ? LIMITES.movil.duracion : LIMITES.escritorio.duracion;
