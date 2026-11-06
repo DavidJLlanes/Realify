@@ -1,0 +1,40 @@
+{
+ "efectos": {
+  "color": {
+   "vista previa 270×480": 27.3,
+   "salida 1080×1920": 342.9
+  },
+  "sensor": {
+   "vista previa 270×480": 266.2,
+   "salida 1080×1920": 4161.2
+  },
+  "camaras": {
+   "vista previa 270×480": 876.4,
+   "salida 1080×1920": 3451.3
+  },
+  "estabilizar": {
+   "vista previa 270×480": 2.2,
+   "salida 1080×1920": 6.3
+  },
+  "fondo(sin modelo)": {
+   "vista previa 270×480": 9.9,
+   "salida 1080×1920": 147.4
+  }
+ },
+ "exportar 3 s 720×1280 sin efectos": {
+  "segundos": 1.5,
+  "ms_por_fotograma": 16.7,
+  "codec": "avc",
+  "bytes": 50389
+ },
+ "exportar 3 s 720×1280 con color": {
+  "segundos": 1.83,
+  "ms_por_fotograma": 20.3,
+  "codec": "avc",
+  "bytes": 48204
+ },
+ "memoriaJS_MB": 10,
+ "arranqueCargaVideo": [],
+ "nota": "Chromium sin ventana, GPU por software. Orientativo: un móvil con GPU será más rápido en WebGL y más lento en CPU.",
+ "fecha": "2026-11-06"
+}

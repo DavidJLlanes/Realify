@@ -33,5 +33,20 @@ Lecturas:
 | Duración del proyecto | 10 min en escritorio, 3 min en móvil, hasta medir | a ajustar con datos |
 | Sin códec | aviso claro y alternativa | nunca falla en silencio |
 
+## Rendimiento del editor (F15.9, 6 nov 2026)
+Medido con `tools/video/rendimiento.mjs` en el equipo de desarrollo (Chromium sin ventana, **sin GPU: WebGL por software**), datos en `docs/video-medidas/rendimiento-desarrollo.json`. Es orientativo: un móvil con GPU irá más rápido en los efectos de WebGL y más lento en los de CPU.
+
+| Efecto (ms por fotograma) | Vista previa 270×480 | Salida 1080×1920 | Motor |
+|---|---|---|---|
+| Color | 27 | 343 | CPU |
+| Sensor de Realify | 266 | 4161 | WebGL (software aquí) |
+| Estilo de cámara | 876 | 3451 | WebGL (software aquí) |
+| Estabilizar | 2 | 6 | CPU (miniatura) |
+| Fondo con IA (sin modelo) | 10 | 147 | CPU (el modelo se suma) |
+
+- **Exportar** 3 s a 720×1280 con H.264 sin efectos: 1,5 s (17 ms/fotograma); con Color: 1,8 s. Memoria de JavaScript estable (~10 MB).
+- **Arranque:** la web no pide nada de `plugins/video` ni de mediabunny al cargar (el módulo sólo se carga al abrir el editor).
+- **Consecuencias:** en la vista previa los efectos pesados (Sensor, Estilo de cámara, Fondo con IA) pueden no llegar a tiempo real; el reproductor salta fotogramas en vez de retrasarse (por diseño). En la exportación, Color a 1080×1920 en CPU es lo más lento de lo medido sin GPU: queda como **mejora candidata** pasarlo a WebGL. Falta medir todo en móviles reales (tarea del titular).
+
 ## Qué falta (lo hace el titular)
 Abrir en cada móvil (tras desplegar) `https://realify.es/plugins/video/estudio/medir.html`, pulsar **Medir**, esperar unos minutos y pegarme el texto que sale. Con eso fijo los límites definitivos de D5 en el plan. Ver `docs/PENDIENTE_TITULAR.md`.

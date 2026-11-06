@@ -12,6 +12,7 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - **F15.1:** tras desplegar, abrir en cada móvil `https://realify.es/plugins/video/estudio/medir.html`, pulsar «Medir» y pegarme el texto resultante. Con eso fijo los límites definitivos (hoy provisionales en `docs/VIDEO_ESTUDIO.md`).
 
 ## Modelos que Claude no puede descargar
+- **F15.9 · rendimiento en móvil:** ejecutar el editor en un móvil de gama media y anotar si la vista previa con Sensor / Estilo de cámara / Fondo con IA es fluida y cuánto tarda exportar 1 min a 1080p. Los números de desarrollo (sin GPU) están en `docs/VIDEO_ESTUDIO.md`.
 - **F15.7 · sonido en móviles:** comprobar en tus móviles que el vídeo exportado con sonido se oye en WhatsApp, Instagram y TikTok. Si el dispositivo no codifica AAC, el MP4 lleva Opus, que algún reproductor antiguo (iOS viejo) puede no reproducir; en ese caso habría que exportar WebM o decidir si añadir un codificador AAC propio.
 - **F15.6 · MODNet en vídeo:** probar «Fondo con IA» con un vídeo real de una persona en un móvil de gama media (velocidad por fotograma y calidad del borde); aquí sólo se probó con un alfa simulado.
 *(Reintentado el 5 nov 2026: `huggingface.co`, `hf-mirror.com`, `modelscope.cn` y las descargas de GitHub Releases devuelven 403 desde el entorno de desarrollo.)*
