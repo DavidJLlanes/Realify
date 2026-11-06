@@ -43,3 +43,4 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 - `mediabunny/`: Mediabunny 1.65.2 (© Vanilagy, licencia MPL-2.0, https://mediabunny.dev; archivo `mediabunny.min.mjs` sin modificar y su `LICENSE`). Lee y escribe MP4 y WebM sobre WebCodecs. Lo carga el editor de vídeo (`plugins/video/bridge/mediabunny.js`) sólo al abrir o exportar un vídeo.
 - `assets/models/whisper-tiny/` (incluido) y `onnx-community/whisper-tiny-ONNX` (remoto): Whisper tiny, OpenAI, licencia MIT; ONNX cuantizado por la comunidad de Hugging Face.
 - `assets/models/qwen2.5-1.5b/` (tokenizador y configuración) y `onnx-community/Qwen2.5-1.5B-Instruct` (remoto): Qwen2.5 1,5B Instruct, Alibaba Cloud (Qwen Team), licencia Apache-2.0.
+- `Xenova/clip-vit-base-patch32` (remoto): CLIP ViT-B/32, OpenAI, licencia MIT; ONNX cuantizado por Xenova (Hugging Face).

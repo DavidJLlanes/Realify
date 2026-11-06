@@ -16,7 +16,7 @@ en [`assets/models/`](../assets/models/). Las atribuciones completas están en [
 - **Al añadir un modelo**: una línea en esta tabla (con la huella: `node tools/models/sha256.mjs <archivo>`), su entrada en el archivo de su
   familia en `js/ai/models/`, su atribución en `ATTRIBUTIONS.md` y, si no es comercial, `noncommercial: true`.
 
-## Modelos en uso (32 del catálogo + Zero-DCE++)
+## Modelos en uso (34 del catálogo + Zero-DCE++)
 
 «Datos» = licencia de los datos de entrenamiento. **«no revisada»** significa que todavía no se ha comprobado y hay que hacerlo antes de
 cobrar Premium; los únicos con restricción conocida están marcados. «Móvil» indica cómo se usa hoy; la medición en móviles reales de gama
@@ -57,6 +57,8 @@ media se hace en F15.1 (vídeo) y F14.1 (LLM) y al incorporar cada modelo nuevo.
 | `qwen15` | Asistente: interpreta la orden y devuelve el plan JSON (F14.1) | 1,22 GB (q4f16) | Apache-2.0 | no revisada | `onnx-community/Qwen2.5-1.5B-Instruct` en Hugging Face (commit fijado `9f9c976052bfb08a20793f0c3013563dc095c966`); tokenizador y config en `assets/models/qwen2.5-1.5b/` | `19dec9f63488016185ba997d5e4492b5ac5b4f7ef1abb45243a91de958838dcd` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
 | `whisper_enc` | Voz: codificador de Whisper tiny (dictado al asistente, subtítulos; F14.4) | 10 MB | MIT | no revisada | `onnx-community/whisper-tiny-ONNX` (commit `ea7c447ab3780e36818661384dea74a8e6b82fc6`), `encoder_model_quantized.onnx`; en `assets/models/whisper-tiny/` | `959c5e7f2a915cf52c274343ffe2b5a54ccbc68af34166e9bfa2a43fcea87425` | sí | incluido en la web; pendiente de integrar |
 | `whisper_dec` | Voz: decodificador de Whisper tiny (merged, con memoria) | 110 MB | MIT | no revisada | `onnx-community/whisper-tiny-ONNX` (commit fijado `ea7c447ab3780e36818661384dea74a8e6b82fc6`), `decoder_model_merged_quantized.onnx` | `49f1546333cf31f05ffd57f7d46597fef0fdfe527991432b725461f13141a435` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir |
+| `clip_vision` | Buscar fotos por texto: codificador de imagen CLIP ViT-B/32 | 89 MB | MIT | no revisada | `Xenova/clip-vit-base-patch32` en Hugging Face (commit fijado `6b7c523703ae26e39be4b03774966f8571c7f523`), `onnx/vision_model_quantized.onnx` | `583fd1110a514667812fee7d684952aaf82a99b959760c8d7dca7e0ab9839299` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir |
+| `clip_text` | Buscar fotos por texto: codificador de texto CLIP ViT-B/32 | 65 MB | MIT | no revisada | `Xenova/clip-vit-base-patch32` en Hugging Face (commit fijado `6b7c523703ae26e39be4b03774966f8571c7f523`), `onnx/text_model_quantized.onnx` | `73baab855d406190da9faa498cfedf65f15cf309f4cc7385b7b032e6d08e5c3a` | sí | remoto, con aviso de tamaño; usa el tokenizador CLIP que ya lleva la web |
 
 ### Modelos de personas (Fase 2, v302)
 
