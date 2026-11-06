@@ -1,0 +1,17 @@
+/* Editor de vídeo · estilos propios (el armazón es el común .fsp) */
+.fsp.vid{grid-template-rows:52px minmax(0,1fr) auto}
+.fsp.vid .vid-zona{grid-row:3}
+.fsp.vid .vid-zona{background:#0d0f12;border-top:1px solid #2b3038;padding:6px 8px 8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.vid-barra{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.vid-barra button{min-width:40px;height:36px;border-radius:8px;border:1px solid #2b3038;background:#181c22;color:#e8ecf2;font-size:15px}
+.vid-barra button:active{background:#262c35}
+.vid-t{font:12px ui-monospace,monospace;color:#9ca5b3;padding:0 6px}
+.vid-sp{flex:1}
+.vid-linea{position:relative;max-height:40vh;overflow:hidden;border-radius:8px;border:1px solid #2b3038;touch-action:none}
+.vid-linea-cv{display:block;width:100%}
+@media (max-width:900px){
+  .fsp.vid{grid-template-rows:minmax(0,1fr) auto auto}
+  .fsp.vid .vid-zona{grid-row:auto}
+  .vid-barra button{min-width:44px;height:44px}
+  .fsp.vid .vid-zona{padding-bottom:4px}
+}

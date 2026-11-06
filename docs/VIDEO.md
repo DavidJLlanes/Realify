@@ -68,7 +68,7 @@ export default { id: "sensor", version: 1, nombre: "Sensor de Realify", premium:
 // efecto.js
 export function crear(){ return {
   prepare(ctx){},                       // una vez por clip: recursos, modelos, tablas (ctx = { ancho, alto, fps, gpu })
-  process(frame, params, t){ return frame; }, // por fotograma; frame = { ancho, alto, datos:Float32|Uint8, t }
+  process(frame, params, t){ return frame; }, // por fotograma; frame = lienzo (canvas/OffscreenCanvas); devuelve un lienzo; los efectos de píxeles leen y escriben con su propio motor puro
   dispose(){} }; }
 ```
 El motor no conoce ningún efecto concreto: los descubre por sus manifiestos. `tipo: "temporal"` permite efectos que ven fotogramas vecinos (suavizado temporal, estabilización) declarando `ventana: n`.

@@ -713,7 +713,7 @@ Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el 
 - [ ] F15.1 **(medición de escritorio hecha el 6 nov 2026, límites PROVISIONALES en `docs/VIDEO_ESTUDIO.md`; faltan los móviles reales)** Estudio de viabilidad: decodificación y codificación con WebCodecs, memoria y tiempo por fotograma en móviles reales y en escritorio; **fijar aquí los límites** de duración y resolución (D5: se miden primero) y anotarlos en este plan.
 - [x] F15.2 (6 nov 2026, módulo interno, sin versión pública hasta F15.8) `project/` y `timeline/`: modelo del proyecto con versión y migraciones, operaciones de línea de tiempo con deshacer; pruebas en Node.
 - [x] F15.3 (6 nov 2026, módulo interno) `media/` y `workers/`: importar, decodificar y codificar con registro de códecs y respaldo; todo fuera del hilo principal.
-- [ ] F15.4 `render/` y `ui/`: motor de fotogramas, previsualización a baja resolución, aplicar al clip completo; editor a pantalla completa (armazón común, vía `bridge/`) en móvil y escritorio.
+- [x] F15.4 (módulo interno, sin versión pública hasta F15.8) `render/` y `ui/`: motor de fotogramas, previsualización a baja resolución (480 px), exportación del proyecto completo; editor a pantalla completa (armazón común, vía `bridge/`) en móvil y escritorio. Pruebas: `tests/video/render.mjs` y `tests/video/editor.mjs`.
 - [ ] F15.5 `effects/`: registro de efectos y los primeros: cadena de sensor de Realify, color, estilos de cámara.
 - [ ] F15.6 Segmentación por fotograma (MODNet) con suavizado temporal y estabilización ligera (OpenCV.js), como efectos del registro.
 - [ ] F15.7 `audio/` y `export/`: pista de audio y exportar MP4 o WebM con el códec del dispositivo; presets por red.
