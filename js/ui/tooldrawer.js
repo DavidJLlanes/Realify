@@ -22,6 +22,7 @@ import { haptic } from "../core/device.js";
 import { keyboardHeight } from "./kit/keyboard.js";
 import { MENUS } from "./menu.js";
 import { IA_SUBMENUS } from "./menu/ia/index.js";
+import { VIDEO_ITEMS } from "./menu/video.js";
 import { ICONS } from "./tooldrawer-icons.js";
 import { crownIcon } from "./kit/premium.js";
 import { matchScore, searchable } from "../core/search.js";
@@ -345,7 +346,10 @@ const ITEMS = [
   { cmd:"an.meta",       label:"Inspector de metadatos", ic:"file-search", cat:"analizar" },
   { cmd:"an.metaEdit",   label:"Editar metadatos al exportar", ic:"file-pen", cat:"analizar" },
   { cmd:"an.strip",      label:"Limpiar metadatos", ic:"shield-check", cat:"ia" },
-  { cmd:"help.report",   label:"Informar de un error", ic:"bug",       cat:"analizar" }
+  { cmd:"help.report",   label:"Informar de un error", ic:"bug",       cat:"analizar" },
+
+  /* ── Vídeo ── */
+  ...VIDEO_ITEMS.map(({ cmd, corto, ic }) => ({ cmd, label: corto, ic, cat: "video" })),   // pestaña «Vídeo»: mismo contenido y orden que el menú
 ];
 
 /* Funciones nuevas de IA: salen de sus manifiestos (nunca a mano). Van en «Inteligencia Artificial», en «Todos» y en las

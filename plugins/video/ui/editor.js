@@ -104,5 +104,5 @@ export function abrirEditor(){
   new ResizeObserver(() => linea.dibujar()).observe(q(".vid-linea"));
   reiniciarMotor(); refrescarBarra();
   window.__video = { p, sel: () => sel, rep: () => rep, hist };   // para pruebas
-  return { cerrar };
+  return { cerrar, anadir };
 }

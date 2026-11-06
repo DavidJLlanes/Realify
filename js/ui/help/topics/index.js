@@ -11,6 +11,7 @@ import { imagenTopic } from "./imagen.js";
 import { otrasTopic } from "./otras.js";
 import { ajustesTopic } from "./ajustes.js";
 import { iaTopic } from "./ia.js";
+import { videoTopic } from "./video.js";
 import { filtrosTopic } from "./filtros.js";
 import { propiedadesTopic } from "./propiedades.js";
 import { capasTopic } from "./capas.js";
@@ -23,4 +24,4 @@ import { movilTopic } from "./movil.js";
 import { diagnosticoTopic } from "./diagnostico.js";
 import { atajosTopic } from "./atajos.js";
 
-export const TOPICS = [novedadesTopic, pinturaTopic, instantaneasTopic, seleccionTopic, moverTopic, imagenTopic, otrasTopic, ajustesTopic, iaTopic, filtrosTopic, propiedadesTopic, capasTopic, archivoTopic, realifyTopic, especialesTopic, collageTopic, vistasTopic, movilTopic, diagnosticoTopic, atajosTopic];
+export const TOPICS = [novedadesTopic, pinturaTopic, instantaneasTopic, seleccionTopic, moverTopic, imagenTopic, otrasTopic, ajustesTopic, iaTopic, videoTopic, filtrosTopic, propiedadesTopic, capasTopic, archivoTopic, realifyTopic, especialesTopic, collageTopic, vistasTopic, movilTopic, diagnosticoTopic, atajosTopic];

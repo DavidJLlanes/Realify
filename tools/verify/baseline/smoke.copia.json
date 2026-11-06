@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-05T22:27:49.686Z",
+ "generated": "2026-11-06T07:54:03.414Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1185,
+     "readyMs": 2783,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2130698,
+     "jsBytes": 2133750,
      "cssBytes": 177122,
-     "transferBytes": 885340,
-     "domContentLoaded": 1084,
-     "fcp": 1076
+     "transferBytes": 886673,
+     "domContentLoaded": 2656,
+     "fcp": 1016
     },
     {
-     "readyMs": 1190,
+     "readyMs": 1241,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2130680,
+     "jsBytes": 2133846,
      "cssBytes": 177122,
-     "transferBytes": 885322,
-     "domContentLoaded": 1001,
-     "fcp": 336
+     "transferBytes": 886206,
+     "domContentLoaded": 1177,
+     "fcp": 308
     },
     {
-     "readyMs": 1211,
+     "readyMs": 1328,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2130716,
+     "jsBytes": 2133861,
      "cssBytes": 177122,
-     "transferBytes": 885358,
-     "domContentLoaded": 1118,
-     "fcp": 248
+     "transferBytes": 886208,
+     "domContentLoaded": 1205,
+     "fcp": 612
     }
    ],
-   "medianReadyMs": 1190,
-   "medianTransferBytes": 885340
+   "medianReadyMs": 1328,
+   "medianTransferBytes": 886208
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -389,6 +389,8 @@
     "transform.rotL",
     "transform.rotR",
     "transform.start",
+    "video.edit",
+    "video.import",
     "view.compare",
     "view.compare100",
     "view.fit",
@@ -2738,7 +2740,20 @@
     {
      "label": "Vídeo",
      "id": "video",
-     "items": []
+     "items": [
+      {
+       "cmd": "video.edit",
+       "label": "Editor de vídeo…",
+       "ic": "clapperboard",
+       "help": "Monta vídeos con línea de tiempo: recortar, dividir, mover, velocidad y volumen, efectos (sensor de Realify, color, estilos de cámara, fondo con IA, estabilizar) y exportar a MP4 o WebM con presets para redes. Todo en tu dispositivo."
+      },
+      {
+       "cmd": "video.import",
+       "label": "Importar vídeo…",
+       "ic": "film",
+       "help": "Abre el editor de vídeo y te deja elegir uno o varios vídeos de tu dispositivo para empezar."
+      }
+     ]
     },
     {
      "label": "Análisis",
@@ -2934,11 +2949,11 @@
      ]
     }
    ],
-   "menuHash": "59a85c94dc6b2fac"
+   "menuHash": "6b3f484cf9b1e59b"
   },
   "screens": {
-   "welcome": "e8aab073050dda2e",
-   "withImage": "9248b096530b73fb"
+   "welcome": "20777a41151c523d",
+   "withImage": "04727d44490c2509"
   },
   "opened": true,
   "afterOpen": {
@@ -4877,15 +4892,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 942,
+   "readyMs": 1152,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2130716,
+   "jsBytes": 2133765,
    "cssBytes": 177122,
-   "transferBytes": 885358,
-   "domContentLoaded": 880,
-   "fcp": 460
+   "transferBytes": 886668,
+   "domContentLoaded": 1078,
+   "fcp": 572
   },
   "screens": {
    "welcome": "8c8003c5c6eef62a",

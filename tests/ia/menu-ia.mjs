@@ -98,7 +98,7 @@ async function arbol(page) {
   ok(i0 >= 0, "☰ no tiene la sección «Inteligencia Artificial» (¿cambió el botón del menú?)");
   if (i0 >= 0) {
     const resto = lista.slice(i0 + 1);
-    const fin = resto.findIndex(x => x === "§Análisis");
+    const fin = resto.findIndex(x => x === "§Vídeo" || x === "§Análisis");   // la sección de IA acaba donde empieza la siguiente (Vídeo, desde F15.8)
     const ia = resto.slice(0, fin < 0 ? undefined : fin);
     ok(igual(ia.filter(x => x[0] === "§"), t.subs.map(s => "§" + s.label)), "☰: los títulos de submenú no coinciden: " + ia.filter(x => x[0] === "§"));
     ok(ia.filter(x => x[0] !== "§").length === esperado.length, "☰: número de entradas IA distinto del menú");

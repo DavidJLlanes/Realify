@@ -717,8 +717,8 @@ Depende de: F9, F12. Es la fase más grande y se divide en sub-fases. **Todo el 
 - [x] F15.5 (módulo interno, sin versión pública hasta F15.8) `effects/`: registro de efectos y los primeros: cadena de sensor de Realify (WebGL, Premium, sin etapas de CPU), color (motor puro) y estilos de cámara (catálogo de `plugins/cameras`); panel «Efectos» del clip generado desde los manifiestos. Prueba: `tests/video/efectos.mjs`.
 - [x] F15.6 (módulo interno, sin versión pública hasta F15.8) Segmentación por fotograma (MODNet, el mismo modelo de «Eliminar fondo», descarga la primera vez) con suavizado temporal del alfa, y estabilización ligera, como efectos del registro («Fondo con IA» y «Estabilizar»). Decisión: la estabilización es un motor puro de traslación (correlación de perfiles) en vez de OpenCV.js (9 MB): para traslaciones basta y no pesa; sin rotación ni «rolling shutter». Prueba: `tests/video/ia-estabilizacion.mjs` (el modelo real no se ha podido probar aquí: Hugging Face bloqueado; va en pendientes).
 - [x] F15.7 (módulo interno, sin versión pública hasta F15.8) `audio/` y `export/`: el sonido de los clips (volumen por clip y pista, velocidad, fundido de 5 ms, mezcla pura) suena en la vista previa y se exporta con MP4 (AAC u Opus) o WebM (Opus o Vorbis) según el dispositivo; 6 presets por red (Reel, Historia, TikTok, YouTube 1080p, WhatsApp, Web ligera). Límite: cambiar la velocidad cambia el tono. Prueba: `tests/video/audio.mjs`.
-- [ ] F15.8 Menú «Vídeo» exclusivo (escritorio, sección de ☰ y pestaña del cajón; mismo contenido y orden) y comandos `video.*` en `js/app/commands/video.js`; se hace visible al estar listo.
-- [ ] F15.9 Guía `js/ui/help/topics/video.js`, `CHANGELOG.md`, pruebas en `tests/video/` y medición de rendimiento.
+- [x] F15.8 Menú «Vídeo» exclusivo (escritorio, sección de ☰ y pestaña del cajón; mismo contenido y orden) y comandos `video.*` en `js/app/commands/video.js`; se hace visible al estar listo. **(v316)**
+- [ ] F15.9 Guía `js/ui/help/topics/video.js` (hecha en v316), `CHANGELOG.md` (hecho), pruebas en `tests/video/` (hechas) y medición de rendimiento (pendiente: `tools/verify/perf.mjs` y móviles reales).
 
 Hecho cuando: el editor se abre y se usa sin que el resto de la web cargue una línea suya, `aislamiento.mjs` y `layers.mjs` pasan, y añadir un efecto nuevo es crear una carpeta.
 
@@ -826,5 +826,5 @@ Siguen descartados por licencia de copyleft fuerte los de Ultralytics (AGPL-3.0)
 | 12 · Estilos | v313 (1.10.0) | 5 nov 2026 | Hecha. Estilo desde referencia (con sugerencias), packs de cámara y Mis estilos. Solo estilos de color y tono se guardan en archivo; «aplicar a todas las abiertas» sin probar con varias pestañas. |
 | 13 · Lotes | v314 (1.11.0) | 5 nov 2026 | Hecha. Búsqueda, etiquetas y texto alternativo sin CLIP ni captioning (no hay modelo accesible): usan la lente, MobileNet y los colores. Plantilla de nombre y formatos para redes en el ZIP del lote. |
 | 14 · Asistente | v315 (1.12.0) | 5 nov 2026 | Parcial. Esquema desde manifiestos, validación, confirmación y aplicación en capas; intérprete de reglas en español. Faltan Qwen (F14.1) y voz (F14.4) por no poder descargar los modelos. |
-| 15 · Editor de vídeo (aislado, menú propio) | | | |
+| 15 · Editor de vídeo (aislado, menú propio) | v316 (1.13.0) | 6 nov 2026 | Casi hecha: editor, efectos, sonido, presets y menú «Vídeo» visibles. Falta la medición de rendimiento (F15.9) y los límites definitivos con móviles reales (F15.1). |
 | 16 · Cierre | | | |

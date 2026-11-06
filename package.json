@@ -1,6 +1,6 @@
 {
   "name": "realify",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "private": true,
   "description": "Realify: editor de imágenes en el navegador. La web NO se compila ni empaqueta: este package.json solo declara las herramientas de desarrollo (comprobaciones y pruebas). No hay dependencias de ejecución.",
   "license": "SEE LICENSE IN LICENSE",
@@ -18,7 +18,7 @@
     "check:docs": "node tools/verify/docs-links.mjs",
     "check:aislamiento": "node tools/verify/aislamiento.mjs",
     "check:size": "node tools/verify/file-size.mjs",
-    "test:video": "node tests/video/proyecto.mjs && node tests/video/timeline.mjs && node tests/video/registro.mjs && node tests/video/medios.mjs && node tests/video/render.mjs && node tests/video/editor.mjs && node tests/video/efectos.mjs && node tests/video/ia-estabilizacion.mjs && node tests/video/audio.mjs",
+    "test:video": "node tests/video/proyecto.mjs && node tests/video/timeline.mjs && node tests/video/registro.mjs && node tests/video/medios.mjs && node tests/video/render.mjs && node tests/video/editor.mjs && node tests/video/efectos.mjs && node tests/video/ia-estabilizacion.mjs && node tests/video/audio.mjs && node tests/video/menu.mjs",
     "test:ia": "node tests/ia/params-panel.mjs && node tests/ia/interfaces.mjs && node tests/ia/ai-kit.mjs && node tests/ia/ai-editor.mjs && node tests/ia/cajon-basicos-auto.mjs && node tests/ia/menu-ia.mjs && node tests/ia/personas.mjs && node tests/ia/personas-parts.mjs && node tests/ia/personas-modelos.mjs && node tests/ia/retrato/piel-motor.mjs && node tests/ia/retrato/rasgos-motor.mjs && node tests/ia/warp/campo.mjs && node tests/ia/warp/render.mjs && node tests/ia/cuerpo/motor.mjs && node tests/ia/cuerpo/editor.mjs && node tests/ia/ropa/motor.mjs && node tests/ia/ropa/editor.mjs && node tests/ia/escena/motor.mjs && node tests/ia/escena/editor.mjs && node tests/ia/restaurar/motor.mjs && node tests/ia/restaurar/editor.mjs && node tests/ia/retrato/forma-motor.mjs && node tests/ia/retrato/piel-editor.mjs"
   },
   "devDependencies": {

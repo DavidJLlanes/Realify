@@ -66,6 +66,7 @@ import "./app/commands/view.js";
 import "./app/commands/selection.js";
 import "./app/commands/tools.js";
 import "./app/commands/help.js";
+import "./app/commands/video.js";
 import "./app/commands/adjust.js";
 import "./app/shortcuts.js";
 import { buildTools } from "./app/toolbar.js";

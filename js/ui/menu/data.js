@@ -5,6 +5,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { IA_MENU } from "./ia/index.js";
+import { VIDEO_ITEMS } from "./video.js";
 
 export const MENUS = [
   { label:"Archivo", items:[
@@ -415,9 +416,9 @@ export const MENUS = [
     ]}
   ]},
   IA_MENU,
-  /* Menú exclusivo del editor de vídeo (4.8 del plan): hueco listo en la barra, en ☰ y en el cajón. Oculto mientras no tenga
-     entradas: las pone el módulo plugins/video cuando está listo (F15), sin tocar el resto de menús. */
-  { label:"Vídeo", id:"video", items:[] },
+  /* Menú exclusivo del editor de vídeo (4.8 del plan): hueco listo en la barra, en ☰ y en el cajón. Sus entradas salen de
+     js/ui/menu/video.js (F15.8); sin entradas quedaría oculto. */
+  { label:"Vídeo", id:"video", items: VIDEO_ITEMS.map(({ cmd, label, ic, help }) => ({ cmd, label, ic, help })) },
   { label:"Análisis", items:[
     { cmd:"an.palette", ic:"palette", label:"Paleta de colores…",
       help:"Los colores dominantes de la imagen: tocar uno lo copia y lo pone como color frontal; se puede crear como capa, descargar o copiar." },
