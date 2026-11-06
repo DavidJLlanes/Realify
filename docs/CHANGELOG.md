@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 326) · Aviso de «sólo en ordenador»
+- Lo que un móvil no puede ejecutar ya no falla en silencio con un aviso rojo que desaparece: el Asistente con el motor «IA · Qwen» y el Texto alternativo con «Florence-2» enseñan un diálogo («sólo funciona en un ordenador…», `js/features/ai-kit/aviso-host.js`) y siguen con las reglas o las plantillas. Las opciones llevan «sólo ordenador» en su nombre. Prueba: `tests/ia/asistente/aviso-ordenador.mjs`.
+
 ### 2.1.0 (compilación 325) · Siete modelos de IA nuevos conectados
 - **Voz con Whisper tiny (F14.4)**: botón 🎤 en el Asistente. Graba del micrófono (sólo mientras se pide), calcula el espectrograma log-mel en el equipo (`js/ai/engine/mel.js`, comprobado contra el extractor oficial: error máximo 9·10⁻⁵) y transcribe en el worker (`js/ai/tasks/whisper.js`). El audio no sale del equipo ni se guarda. Codificador incluido en la web (10 MB), decodificador remoto (110 MB, con aviso). **Requiere `microphone=(self)` en la cabecera Permissions-Policy de nginx.**
 - **Qwen2.5 1,5B con WebGPU (F14.1)**: nuevo motor «IA · Qwen» del Asistente (`js/ai/tasks/llm.js`, `js/features/assistant/engine/prompt.js`). Recibe la lista de herramientas con sus rangos y contesta un plan JSON que pasa por `validarPlan()` igual que el de las reglas; si el equipo no tiene WebGPU o memoria, o el modelo no contesta un plan válido, se usan las reglas. 1,2 GB, descarga única con aviso. Pendiente medirlo en un móvil de gama media.

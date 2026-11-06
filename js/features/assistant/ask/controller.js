@@ -21,8 +21,10 @@ export async function ejecutar(){
   const { MANIFESTS } = await import("../../../ui/menu/ia/manifests.js"), esquema = construirEsquema(MANIFESTS), pedido = String(r.values.pedido || "").trim();
   let plan = null;
   if(r.values.motor === "qwen"){
-    try{
-      const { construirMensajes, leerPlan } = await import("../engine/prompt.js"), { preguntar } = await import("../../../ai/llm.js");
+    const { puedeLLM, preguntar } = await import("../../../ai/llm.js"), puede = puedeLLM();
+    if(!puede.ok) await (await import("../../ai-kit/aviso-host.js")).avisoSoloOrdenador({ texto: `La IA «Qwen» sólo funciona en un ordenador con WebGPU y memoria suficiente: ${puede.motivo}. Se usarán las reglas del asistente, que funcionan en cualquier dispositivo.` });
+    else try{
+      const { construirMensajes, leerPlan } = await import("../engine/prompt.js");
       plan = leerPlan(await preguntar(construirMensajes(esquema, pedido)));
       if(!plan) toast("La IA no devolvió un plan válido; uso las reglas.", "err");
       else plan.sinEntender = [];
