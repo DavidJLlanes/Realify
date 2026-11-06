@@ -4,7 +4,7 @@
    Los modelos de uso no comercial llevan `noncommercial: true` (ver docs/MODELOS.md).
    ═══════════════════════════════════════════════════════════════ */
 
-import { HF } from "./base.js";
+import { HF, LOCAL } from "./base.js";
 
 export const ENHANCE = {
   /* ── Ampliar (superresolución) por teselas: entrada RGB 0-1 de tamaño
@@ -36,5 +36,12 @@ export const ENHANCE = {
   scunet:   { url: HF + "onnx/enhance/scunet/scunet_color-PSNR.onnx", size: 91264256,
               tile: 256, tileGpu: 512, minSide: 256, label: "SCUNet", license: "Apache-2.0" },
   fbcnn:    { url: HF + "onnx/enhance/fbcnn/fbcnn_color_fp16.onnx",   size: 143910675,
-              tile: 512, minSide: 0, label: "FBCNN", license: "Apache-2.0" }
+              tile: 512, minSide: 0, label: "FBCNN", license: "Apache-2.0" },
+
+  /* ── Quitar desenfoque: NAFNet GoPro width32 (megvii-research, MIT), exportado a ONNX con tools/models/exportar-nafnet.py y con
+        los pesos grandes en fp16 (tools/models/pesos-fp16.py; 98 dB de diferencia con el original). Entrada RGB 0-1
+        [1,3,alto,ancho] con alto y ancho MÚLTIPLOS DE 16 (la app rellena el borde de cada tesela); salida igual. Incluido en la web. ── */
+  nafnet:   { url: LOCAL + "nafnet/nafnet_gopro_w32_fp16.onnx", size: 34961419,
+              sha256: "2650545a4831f6468399fcb400e8ab7d7e560c1742c11111dc3691c48c8108fb",
+              tile: 256, multiple: 16, label: "NAFNet (quitar desenfoque)", license: "MIT" }
 };

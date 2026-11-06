@@ -47,3 +47,4 @@ Se distribuyen localmente para que la importación se ejecute en el dispositivo 
 - `onnx-community/Florence-2-base` (remoto): Florence-2 base, Microsoft, licencia MIT; ONNX cuantizado por la comunidad de Hugging Face.
 - `onnx-community/depth-anything-v2-base` (remoto): Depth Anything V2 Base, Lihe Yang et al., licencia CC-BY-NC-4.0 (no comercial); ONNX fp16 de la comunidad de Hugging Face.
 - `assets/models/migan/` (incluido): MI-GAN 512 Places2 (pipeline ONNX), Picsart AI Research, licencia MIT (copia en `LICENSE.txt`); https://github.com/Picsart-AI-Research/MI-GAN
+- `assets/models/nafnet/` (incluido): NAFNet GoPro width32, Liangyu Chen, Xiaojie Chu et al. (megvii-research), licencia MIT (copia en `LICENSE.txt`); https://github.com/megvii-research/NAFNet
