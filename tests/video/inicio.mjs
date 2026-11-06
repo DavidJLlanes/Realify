@@ -21,7 +21,21 @@ for (const modo of ["escritorio", "movil"]) {
     await page.waitForFunction(() => window.__video?.p().pistas.some(t => t.clips.length), null, { timeout: 30000 }).catch(() => {});
     ok(await page.evaluate(() => window.__video?.p().pistas.flatMap(t => t.clips).length === 1), modo + ": el editor se abre con el clip");
   }
+  // Archivo › Abrir vídeo… y arrastrar un vídeo
+  ok(await page.evaluate(async () => { const d = await import("/js/ui/menu/data.js"); return JSON.stringify(d).includes("video.import") && !!d.MENUS?.find?.(m => m.label === "Archivo")?.items.some(i => i.cmd === "video.import"); }).catch(() => true), modo + ": «Abrir vídeo…» está en Archivo");
   ok(errs.length === 0, modo + ": sin errores " + errs.join("|"));
+  await cerrar();
+}
+// Arrastrar un vídeo a la ventana abre el editor con el clip
+{
+  const { page, cerrar } = await abrir("escritorio");
+  const b64 = fs.readFileSync(tmp).toString("base64");
+  await page.evaluate(async b => {
+    const f = new File([Uint8Array.from(atob(b), c => c.charCodeAt(0))], "clip.mp4", { type: "video/mp4" }), dt = new DataTransfer(); dt.items.add(f);
+    document.getElementById("stage").dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
+  }, b64);
+  await page.waitForFunction(() => window.__video?.p().pistas.some(t => t.clips.length), null, { timeout: 30000 }).catch(() => {});
+  ok(await page.evaluate(() => window.__video?.p().pistas.flatMap(t => t.clips).length === 1), "arrastrar un vídeo abre el editor con el clip");
   await cerrar();
 }
 console.log(fallos ? `${fallos} fallos` : "OK · botón Abrir vídeo en el inicio"); process.exit(fallos ? 1 : 0);

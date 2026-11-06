@@ -13,6 +13,7 @@ export const MENUS = [
     { cmd:"file.openFiles", label:"Abrir RAW, PSD, TIFF o SVG…", help:"Abre estos formatos desde el explorador de archivos. En Android, «Abrir imagen» va directo a la galería, donde no suelen aparecer." },
     { cmd:"file.openStack",label:"Cargar archivos en pila…" },
     { cmd:"file.openProject", label:"Abrir proyecto…" },
+    { cmd:"video.import",  label:"Abrir vídeo…", help:"Abre el editor de vídeo y te deja elegir uno o varios vídeos. También puedes arrastrar un vídeo a la ventana." },
     { cmd:"file.saveProject", label:"Guardar proyecto…" },
     { cmd:"file.new",      label:"Documento nuevo…" },
     { cmd:"file.socialPost", label:"Collage / History / Post…",

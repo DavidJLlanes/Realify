@@ -22,3 +22,6 @@ registerAll({
   "video.edit":   { run: () => abrir(), enabled: () => true },
   "video.import": { run: elegirVideos, enabled: () => true }
 });
+
+/* Vídeos soltados en la ventana (js/io/open.js avisa con este evento para no tocar la puerta del editor). */
+document.addEventListener("realify:abrir-video", e => { if(e.detail?.length) abrir({ archivos: e.detail }); });

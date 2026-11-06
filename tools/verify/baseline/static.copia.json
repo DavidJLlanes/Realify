@@ -1,17 +1,22 @@
 {
- "generated": "2026-11-05T12:51:38.704Z",
+ "generated": "2026-11-06T09:04:21.753Z",
  "root": "/home/claude/realify",
- "jsFiles": 579,
- "jsLines": 95453,
+ "jsFiles": 1109,
+ "jsLines": 109014,
  "brokenRefs": [],
  "softMissing": [
   {
    "file": "js/ui/menu/ia/manifests.js",
    "spec": "js/features/<familia>/<función>/manifest.js",
    "target": "js/features/<familia>/<función>/manifest.js"
+  },
+  {
+   "file": "plugins/video/effects/lista.js",
+   "spec": "./camaras/manifest.js",
+   "target": "camaras/manifest.js"
   }
  ],
- "nonLiteralDynamicImports": 68,
+ "nonLiteralDynamicImports": 69,
  "staticCycles": [],
  "storage": {
   "localStorage": [
@@ -49,6 +54,7 @@
    "realify.lens",
    "realify.lens.model",
    "realify.lensProfiles",
+   "realify.misEstilos.v1",
    "realify.onboarded.v1",
    "realify.opencvAsked",
    "realify.panorama.options",
@@ -118,25 +124,73 @@
   "adj.toneBand",
   "adj.vibrance",
   "adj.whiteBalance",
+  "ai.aiArtifacts",
+  "ai.altText",
+  "ai.assistant",
+  "ai.autoTags",
+  "ai.bodyEditor",
+  "ai.bodyPosture",
+  "ai.bodyShape",
+  "ai.bodySkin",
+  "ai.bodyTone",
+  "ai.cameraPacks",
+  "ai.categoryBoost",
+  "ai.clothesWrinkles",
   "ai.colorize",
+  "ai.culling",
+  "ai.darkCircles",
+  "ai.deblur",
+  "ai.dehaze",
   "ai.depthBlur",
+  "ai.depthChroma",
   "ai.depthFog",
   "ai.depthLight",
   "ai.depthPlanes",
+  "ai.depthRelight",
   "ai.depthSelect",
+  "ai.dustSpots",
   "ai.expand",
+  "ai.eyes",
+  "ai.fabricTexture",
+  "ai.fabricWrinkles",
   "ai.faceBlur",
   "ai.faceCrop",
+  "ai.faceRelight",
   "ai.faceRestore",
   "ai.faceRetouch",
+  "ai.faceShape",
+  "ai.flyawayHair",
+  "ai.glassesGlare",
+  "ai.hair",
+  "ai.harmonize",
+  "ai.highlightRecovery",
+  "ai.lipsBrows",
   "ai.lowLight",
   "ai.magicErase",
+  "ai.moire",
+  "ai.myStyles",
+  "ai.partsSelect",
   "ai.photo3d",
+  "ai.photoReport",
+  "ai.quickErase",
+  "ai.recolorClothes",
   "ai.redEye",
+  "ai.searchPhotos",
+  "ai.skinEven",
+  "ai.skinShine",
+  "ai.skinTexture",
+  "ai.skinWrinkles",
+  "ai.skyEnhance",
+  "ai.smartBrush",
   "ai.smartCrop",
+  "ai.smoothZones",
+  "ai.styleFromReference",
   "ai.tapSelect",
+  "ai.teeth",
+  "ai.textPlacement",
   "ai.textSelect",
   "ai.upscale",
+  "ai.zonedWhiteBalance",
   "an.exif",
   "an.eyedropper",
   "an.forensics",
@@ -364,6 +418,7 @@
   "liquify.reset",
   "main.js",
   "manifest.webmanifest",
+  "medir.js",
   "merges.txt",
   "mobile.css",
   "model.cpu",
@@ -391,6 +446,7 @@
   "pen.toMask",
   "pen.toSelection",
   "pen.undoPoint",
+  "personasRef.n",
   "perspective.apply",
   "perspective.auto",
   "perspective.cancel",
@@ -492,6 +548,8 @@
   "transform.start",
   "ui.js",
   "utif.js",
+  "video.edit",
+  "video.import",
   "view.compare",
   "view.compare100",
   "view.fit",
@@ -556,7 +614,8 @@
    "starts"
   ],
   "js/ai/es2en.js": [
-   "toEnglish"
+   "toEnglish",
+   "toSpanish"
   ],
   "js/ai/faces.js": [
    "detectFaces"
@@ -587,6 +646,9 @@
   "js/ai/models/inpaint.js": [
    "INPAINT"
   ],
+  "js/ai/models/people.js": [
+   "PEOPLE"
+  ],
   "js/ai/models/scene.js": [
    "SCENE"
   ],
@@ -596,6 +658,58 @@
   "js/ai/models.js": [
    "MODELS",
    "mb"
+  ],
+  "js/ai/people/analyze.js": [
+   "KINDS",
+   "analyze",
+   "hasProvider",
+   "registerProvider"
+  ],
+  "js/ai/people/assemble.js": [
+   "boxFromFace",
+   "buildPersons"
+  ],
+  "js/ai/people/cache.js": [
+   "createPeopleCache",
+   "linkToDocument",
+   "peopleCache"
+  ],
+  "js/ai/people/groups.js": [
+   "GRUPOS"
+  ],
+  "js/ai/people/profiles.js": [
+   "BODY_PARAMS",
+   "CHILD_HEAD_RATIO",
+   "PRESETS",
+   "PROFILES",
+   "PROFILE_IDS",
+   "clampTo",
+   "controlsFor",
+   "presetsFor",
+   "sanitize",
+   "suggestProfile"
+  ],
+  "js/ai/people/proportions.js": [
+   "COCO",
+   "proportionsFromPose"
+  ],
+  "js/ai/people/providers/crop.js": [
+   "bodyBoxFromFace",
+   "boxFromKeypoints",
+   "cropRgba",
+   "letterbox"
+  ],
+  "js/ai/people/providers/hands.js": [
+   "handsProvider"
+  ],
+  "js/ai/people/providers/landmarks.js": [
+   "landmarksProvider"
+  ],
+  "js/ai/people/providers/parts.js": [
+   "partsProvider"
+  ],
+  "js/ai/people/providers/pose.js": [
+   "poseProvider"
   ],
   "js/ai/runtime.js": [
    "aiSession",
@@ -632,8 +746,19 @@
   "js/ai/tasks/faces.js": [
    "faces"
   ],
+  "js/ai/tasks/hands.js": [
+   "handDetect",
+   "handLandmarks",
+   "palmAnchors"
+  ],
+  "js/ai/tasks/humanparse.js": [
+   "humanParse"
+  ],
   "js/ai/tasks/inpaint.js": [
    "inpaint"
+  ],
+  "js/ai/tasks/landmarks.js": [
+   "landmarks"
   ],
   "js/ai/tasks/matte.js": [
    "matte"
@@ -643,6 +768,9 @@
   ],
   "js/ai/tasks/person.js": [
    "segPerson"
+  ],
+  "js/ai/tasks/pose.js": [
+   "pose"
   ],
   "js/ai/tasks/probe.js": [
    "probe"
@@ -2019,6 +2147,9 @@
    "startRecording",
    "stopRecording"
   ],
+  "js/features/ai-kit/crop-compose.js": [
+   "pegarRecorte"
+  ],
   "js/features/ai-kit/float.js": [
    "DEC",
    "enc",
@@ -2032,15 +2163,31 @@
   "js/features/ai-kit/new-layer.js": [
    "toNewLayer"
   ],
+  "js/features/ai-kit/oklab.js": [
+   "linear",
+   "oklab"
+  ],
+  "js/features/ai-kit/plan-host.js": [
+   "confirmarPlan",
+   "correrIA"
+  ],
   "js/features/ai-kit/preview.js": [
    "PREVIEW",
    "WORK",
    "scaled"
   ],
+  "js/features/ai-kit/report-host.js": [
+   "exportarInforme",
+   "htmlInforme",
+   "openReport"
+  ],
   "js/features/ai-kit/session.js": [
    "aiSession",
    "runModel",
    "withHeavyGuard"
+  ],
+  "js/features/ai-kit/simple-host.js": [
+   "openSimple"
   ],
   "js/features/ai-kit/simple-panel.js": [
    "buildSimpleBody"
@@ -2053,9 +2200,380 @@
    "aiExpand",
    "aiUpscale"
   ],
+  "js/features/assistant/ask/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/assistant/ask/index.js": [
+   "openAssistant"
+  ],
+  "js/features/assistant/ask/manifest.js": [
+   "default"
+  ],
+  "js/features/assistant/ask/params.js": [
+   "PARAMS"
+  ],
+  "js/features/assistant/engine/esquema.js": [
+   "CLASICAS",
+   "construirEsquema"
+  ],
+  "js/features/assistant/engine/interprete.js": [
+   "interpretar"
+  ],
+  "js/features/assistant/engine/validar.js": [
+   "MAX_PASOS",
+   "describirPaso",
+   "validarPlan"
+  ],
+  "js/features/assistant/shared/aplicar.js": [
+   "aplicarPasos"
+  ],
   "js/features/autostraighten.js": [
    "autoStraighten",
    "detectTilt"
+  ],
+  "js/features/body/definition/engine.js": [
+   "stage"
+  ],
+  "js/features/body/editor/analysis.js": [
+   "analizar"
+  ],
+  "js/features/body/editor/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/body/editor/engine.js": [
+   "campoCuerpo",
+   "hayCambio",
+   "stage"
+  ],
+  "js/features/body/editor/index.js": [
+   "openBodyEditor"
+  ],
+  "js/features/body/editor/manifest.js": [
+   "default"
+  ],
+  "js/features/body/editor/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/body/editor/ui.js": [
+   "panel"
+  ],
+  "js/features/body/engine/campana.js": [
+   "campana"
+  ],
+  "js/features/body/engine/campo.js": [
+   "campoCuerpo",
+   "hayCambio"
+  ],
+  "js/features/body/engine/esqueleto.js": [
+   "dist",
+   "distSeg",
+   "esqueleto",
+   "lerp",
+   "unit"
+  ],
+  "js/features/body/engine/index.js": [
+   "campoCuerpo",
+   "esqueleto",
+   "hayCambio"
+  ],
+  "js/features/body/engine/ops-ancho.js": [
+   "opsAncho"
+  ],
+  "js/features/body/engine/ops-largo.js": [
+   "opsLargo"
+  ],
+  "js/features/body/engine/secciones.js": [
+   "manosGrosor",
+   "seccion"
+  ],
+  "js/features/body/params.js": [
+   "GRUPOS",
+   "PARAMS",
+   "PERFILES",
+   "aplicarAjuste"
+  ],
+  "js/features/body/posture/analysis.js": [
+   "analizar"
+  ],
+  "js/features/body/posture/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/body/posture/engine.js": [
+   "campoCuerpo",
+   "hayCambio",
+   "stage"
+  ],
+  "js/features/body/posture/index.js": [
+   "openBodyPosture"
+  ],
+  "js/features/body/posture/manifest.js": [
+   "default"
+  ],
+  "js/features/body/posture/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/body/posture/ui.js": [
+   "panel"
+  ],
+  "js/features/body/shape/analysis.js": [
+   "analizar"
+  ],
+  "js/features/body/shape/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/body/shape/engine.js": [
+   "campoCuerpo",
+   "hayCambio",
+   "stage"
+  ],
+  "js/features/body/shape/index.js": [
+   "openBodyShape"
+  ],
+  "js/features/body/shape/manifest.js": [
+   "default"
+  ],
+  "js/features/body/shape/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/body/shape/ui.js": [
+   "panel"
+  ],
+  "js/features/body/skin/analysis.js": [
+   "analizar"
+  ],
+  "js/features/body/skin/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/body/skin/engine.js": [
+   "campoCuerpo",
+   "hayCambio",
+   "stage"
+  ],
+  "js/features/body/skin/index.js": [
+   "openBodySkin"
+  ],
+  "js/features/body/skin/manifest.js": [
+   "default"
+  ],
+  "js/features/body/skin/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/body/skin/ui.js": [
+   "panel"
+  ],
+  "js/features/body/tone/analysis.js": [
+   "analizar"
+  ],
+  "js/features/body/tone/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/body/tone/engine.js": [
+   "campoCuerpo",
+   "hayCambio",
+   "stage"
+  ],
+  "js/features/body/tone/index.js": [
+   "openBodyTone"
+  ],
+  "js/features/body/tone/manifest.js": [
+   "default"
+  ],
+  "js/features/body/tone/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/body/tone/ui.js": [
+   "panel"
+  ],
+  "js/features/clothing/engine/clases.js": [
+   "clasesColor"
+  ],
+  "js/features/clothing/engine/index.js": [
+   "etapas",
+   "hayCambioRopa",
+   "planchar",
+   "recolorear",
+   "texturar"
+  ],
+  "js/features/clothing/engine/planchar.js": [
+   "bordesColor",
+   "hayPlanchado",
+   "planchar"
+  ],
+  "js/features/clothing/engine/recolor.js": [
+   "hayRecolor",
+   "recolorear"
+  ],
+  "js/features/clothing/engine/textura.js": [
+   "hayTextura",
+   "texturar"
+  ],
+  "js/features/clothing/fabric/analysis.js": [
+   "analizar"
+  ],
+  "js/features/clothing/fabric/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/clothing/fabric/engine.js": [
+   "crecerRegion",
+   "etapas",
+   "hayCambioRopa",
+   "mascaraPrenda",
+   "planchar",
+   "recolorear",
+   "texturar"
+  ],
+  "js/features/clothing/fabric/index.js": [
+   "openFabricWrinkles"
+  ],
+  "js/features/clothing/fabric/manifest.js": [
+   "default"
+  ],
+  "js/features/clothing/fabric/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/clothing/fabric/ui.js": [
+   "panel"
+  ],
+  "js/features/clothing/iron/analysis.js": [
+   "analizar"
+  ],
+  "js/features/clothing/iron/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/clothing/iron/engine.js": [
+   "crecerRegion",
+   "etapas",
+   "hayCambioRopa",
+   "mascaraPrenda",
+   "planchar",
+   "recolorear",
+   "texturar"
+  ],
+  "js/features/clothing/iron/index.js": [
+   "openClothesWrinkles"
+  ],
+  "js/features/clothing/iron/manifest.js": [
+   "default"
+  ],
+  "js/features/clothing/iron/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/clothing/iron/ui.js": [
+   "panel"
+  ],
+  "js/features/clothing/params.js": [
+   "GRUPOS",
+   "PARAMS",
+   "hayEfecto",
+   "inicio"
+  ],
+  "js/features/clothing/recolor/analysis.js": [
+   "analizar"
+  ],
+  "js/features/clothing/recolor/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/clothing/recolor/engine.js": [
+   "crecerRegion",
+   "etapas",
+   "hayCambioRopa",
+   "mascaraPrenda",
+   "planchar",
+   "recolorear",
+   "texturar"
+  ],
+  "js/features/clothing/recolor/index.js": [
+   "openRecolorClothes"
+  ],
+  "js/features/clothing/recolor/manifest.js": [
+   "default"
+  ],
+  "js/features/clothing/recolor/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/clothing/recolor/ui.js": [
+   "panel"
+  ],
+  "js/features/clothing/shared/mascara.js": [
+   "PRENDAS",
+   "mascaraPrenda",
+   "tamano"
+  ],
+  "js/features/clothing/shared/region.js": [
+   "crecerRegion"
+  ],
+  "js/features/clothing/texture/analysis.js": [
+   "analizar"
+  ],
+  "js/features/clothing/texture/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/clothing/texture/engine.js": [
+   "crecerRegion",
+   "etapas",
+   "hayCambioRopa",
+   "mascaraPrenda",
+   "planchar",
+   "recolorear",
+   "texturar"
+  ],
+  "js/features/clothing/texture/index.js": [
+   "openFabricTexture"
+  ],
+  "js/features/clothing/texture/manifest.js": [
+   "default"
+  ],
+  "js/features/clothing/texture/params.js": [
+   "GRUPOS",
+   "PARAMS"
+  ],
+  "js/features/clothing/texture/ui.js": [
+   "panel"
+  ],
+  "js/features/compose/engine/zona-texto.js": [
+   "texturaDe",
+   "zonaTexto"
+  ],
+  "js/features/compose/quick-erase/index.js": [
+   "openQuickErase"
+  ],
+  "js/features/compose/quick-erase/manifest.js": [
+   "default"
+  ],
+  "js/features/compose/smart-brush/index.js": [
+   "openSmartBrush"
+  ],
+  "js/features/compose/smart-brush/manifest.js": [
+   "default"
+  ],
+  "js/features/compose/text-placement/analysis.js": [
+   "analizar"
+  ],
+  "js/features/compose/text-placement/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/compose/text-placement/engine.js": [
+   "colocarTexto"
+  ],
+  "js/features/compose/text-placement/index.js": [
+   "openTextPlacement"
+  ],
+  "js/features/compose/text-placement/manifest.js": [
+   "default"
+  ],
+  "js/features/compose/text-placement/params.js": [
+   "PARAMS"
+  ],
+  "js/features/compose/text-placement/ui.js": [
+   "panel"
   ],
   "js/features/depthlight.js": [
    "openDepthLight",
@@ -2113,10 +2631,107 @@
    "applyLensAuto",
    "openLensProfile"
   ],
+  "js/features/library/alt-text/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/library/alt-text/engine/descripcion.js": [
+   "textoAlternativo"
+  ],
+  "js/features/library/alt-text/index.js": [
+   "openAltText"
+  ],
+  "js/features/library/alt-text/manifest.js": [
+   "default"
+  ],
+  "js/features/library/alt-text/params.js": [
+   "PARAMS"
+  ],
+  "js/features/library/auto-tags/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/library/auto-tags/engine/etiquetas.js": [
+   "etiquetasDe"
+  ],
+  "js/features/library/auto-tags/engine/plantilla.js": [
+   "FICHAS",
+   "aplicarPlantilla",
+   "seguro"
+  ],
+  "js/features/library/auto-tags/index.js": [
+   "openAutoTags"
+  ],
+  "js/features/library/auto-tags/manifest.js": [
+   "default"
+  ],
+  "js/features/library/auto-tags/params.js": [
+   "PARAMS"
+  ],
+  "js/features/library/culling/index.js": [
+   "openCulling"
+  ],
+  "js/features/library/culling/manifest.js": [
+   "default"
+  ],
+  "js/features/library/search-photos/engine/color.js": [
+   "NOMBRES",
+   "coloresDominantes",
+   "nombreDeColor"
+  ],
+  "js/features/library/search-photos/engine/consulta.js": [
+   "NOMBRES",
+   "buscar",
+   "interpretar",
+   "norm",
+   "puntosTermino"
+  ],
+  "js/features/library/search-photos/index.js": [
+   "openSearchPhotos"
+  ],
+  "js/features/library/search-photos/indice.js": [
+   "borrar",
+   "claveDe",
+   "conocida",
+   "guardar",
+   "todos",
+   "vaciar"
+  ],
+  "js/features/library/search-photos/manifest.js": [
+   "default"
+  ],
+  "js/features/library/shared/formatos-redes.js": [
+   "FORMATOS",
+   "planFormato"
+  ],
+  "js/features/library/shared/indexar.js": [
+   "indexarFoto"
+  ],
   "js/features/palette.js": [
    "colorPalette",
    "dominantColors",
    "screenEyedropper"
+  ],
+  "js/features/people/parts-select/analysis.js": [
+   "analizarPersonas"
+  ],
+  "js/features/people/parts-select/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/people/parts-select/engine.js": [
+   "composeParts"
+  ],
+  "js/features/people/parts-select/index.js": [
+   "openPartsSelect"
+  ],
+  "js/features/people/parts-select/manifest.js": [
+   "default"
+  ],
+  "js/features/people/parts-select/params.js": [
+   "PARAMS",
+   "PARTES",
+   "personasRef"
+  ],
+  "js/features/people/parts-select/ui.js": [
+   "panel"
   ],
   "js/features/photo-sources.js": [
    "chooseUpTo",
@@ -2166,9 +2781,736 @@
    "transformLayer",
    "watermark"
   ],
+  "js/features/portrait/eyes/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/eyes/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/eyes/engine.js": [
+   "COLORES",
+   "stage"
+  ],
+  "js/features/portrait/eyes/index.js": [
+   "openEyes"
+  ],
+  "js/features/portrait/eyes/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/eyes/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/eyes/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/face-relight/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/face-relight/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/face-relight/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/face-relight/index.js": [
+   "openFaceRelight"
+  ],
+  "js/features/portrait/face-relight/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/face-relight/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/face-relight/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/face-shape/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/face-shape/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/face-shape/engine.js": [
+   "hayForma",
+   "manosForma",
+   "stage"
+  ],
+  "js/features/portrait/face-shape/index.js": [
+   "openFaceShape"
+  ],
+  "js/features/portrait/face-shape/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/face-shape/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/face-shape/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/flyaway-hair/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/flyaway-hair/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/flyaway-hair/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/flyaway-hair/index.js": [
+   "openFlyawayHair"
+  ],
+  "js/features/portrait/flyaway-hair/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/flyaway-hair/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/flyaway-hair/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/glasses-glare/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/glasses-glare/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/glasses-glare/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/glasses-glare/index.js": [
+   "openGlassesGlare"
+  ],
+  "js/features/portrait/glasses-glare/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/glasses-glare/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/glasses-glare/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/hair/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/hair/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/hair/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/hair/index.js": [
+   "openHair"
+  ],
+  "js/features/portrait/hair/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/hair/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/hair/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/lips-brows/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/lips-brows/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/lips-brows/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/lips-brows/index.js": [
+   "openLipsBrows"
+  ],
+  "js/features/portrait/lips-brows/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/lips-brows/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/lips-brows/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/shared/analysis.js": [
+   "analizarCaras"
+  ],
+  "js/features/portrait/shared/blur.js": [
+   "edgeLow",
+   "gauss",
+   "gaussMasked",
+   "smoothstep"
+  ],
+  "js/features/portrait/shared/geometry.js": [
+   "cropFor",
+   "frame",
+   "toCrop"
+  ],
+  "js/features/portrait/shared/landmarks.js": [
+   "IDX"
+  ],
+  "js/features/portrait/shared/partes.js": [
+   "mascaraParte"
+  ],
+  "js/features/portrait/shared/planes.js": [
+   "channels",
+   "fromPlanes",
+   "luma",
+   "sqrtPlane",
+   "toPlanes"
+  ],
+  "js/features/portrait/shared/raster.js": [
+   "fillPolygon",
+   "multiply",
+   "strokePath",
+   "subtract",
+   "union"
+  ],
+  "js/features/portrait/shared/ridges.js": [
+   "ridgeStrength"
+  ],
+  "js/features/portrait/shared/ruido.js": [
+   "ruido"
+  ],
+  "js/features/portrait/shared/skin.js": [
+   "skinMask"
+  ],
+  "js/features/portrait/shared/zones-rasgos.js": [
+   "BOCA_INTERIOR",
+   "buildRasgos"
+  ],
+  "js/features/portrait/shared/zones.js": [
+   "buildZones"
+  ],
+  "js/features/portrait/skin-dark-circles/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/skin-dark-circles/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/skin-dark-circles/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/skin-dark-circles/index.js": [
+   "openDarkCircles"
+  ],
+  "js/features/portrait/skin-dark-circles/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/skin-dark-circles/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/skin-dark-circles/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/skin-even/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/skin-even/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/skin-even/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/skin-even/index.js": [
+   "openSkinEven"
+  ],
+  "js/features/portrait/skin-even/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/skin-even/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/skin-even/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/skin-shine/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/skin-shine/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/skin-shine/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/skin-shine/index.js": [
+   "openSkinShine"
+  ],
+  "js/features/portrait/skin-shine/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/skin-shine/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/skin-shine/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/skin-texture/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/skin-texture/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/skin-texture/engine.js": [
+   "detalleFino",
+   "stage"
+  ],
+  "js/features/portrait/skin-texture/index.js": [
+   "openSkinTexture"
+  ],
+  "js/features/portrait/skin-texture/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/skin-texture/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/skin-texture/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/skin-wrinkles/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/skin-wrinkles/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/skin-wrinkles/engine.js": [
+   "mapaSurcos",
+   "stage"
+  ],
+  "js/features/portrait/skin-wrinkles/index.js": [
+   "openSkinWrinkles"
+  ],
+  "js/features/portrait/skin-wrinkles/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/skin-wrinkles/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/skin-wrinkles/ui.js": [
+   "panel"
+  ],
+  "js/features/portrait/teeth/analysis.js": [
+   "analizar"
+  ],
+  "js/features/portrait/teeth/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/portrait/teeth/engine.js": [
+   "stage"
+  ],
+  "js/features/portrait/teeth/index.js": [
+   "openTeeth"
+  ],
+  "js/features/portrait/teeth/manifest.js": [
+   "default"
+  ],
+  "js/features/portrait/teeth/params.js": [
+   "PARAMS"
+  ],
+  "js/features/portrait/teeth/ui.js": [
+   "panel"
+  ],
+  "js/features/realism/ai-artifacts/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/realism/ai-artifacts/index.js": [
+   "openAiArtifacts"
+  ],
+  "js/features/realism/ai-artifacts/manifest.js": [
+   "default"
+  ],
+  "js/features/realism/engine/avisos.js": [
+   "contarDientes",
+   "revisarDientes",
+   "revisarMano"
+  ],
+  "js/features/realism/engine/grano.js": [
+   "anadirGrano"
+  ],
+  "js/features/realism/engine/informe.js": [
+   "juicio",
+   "medir"
+  ],
+  "js/features/realism/engine/zonas.js": [
+   "UMBRAL",
+   "mapaLiso"
+  ],
+  "js/features/realism/photo-report/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/realism/photo-report/index.js": [
+   "openPhotoReport"
+  ],
+  "js/features/realism/photo-report/manifest.js": [
+   "default"
+  ],
+  "js/features/realism/smooth-zones/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/realism/smooth-zones/engine.js": [
+   "anadirGrano",
+   "mapaLiso"
+  ],
+  "js/features/realism/smooth-zones/index.js": [
+   "openSmoothZones"
+  ],
+  "js/features/realism/smooth-zones/manifest.js": [
+   "default"
+  ],
+  "js/features/realism/smooth-zones/params.js": [
+   "PARAMS"
+  ],
+  "js/features/realism/smooth-zones/ui.js": [
+   "panel"
+  ],
+  "js/features/relight/depth-crop.js": [
+   "profundidadRecorte"
+  ],
+  "js/features/relight/light.js": [
+   "lambert"
+  ],
+  "js/features/relight/normals.js": [
+   "normalesCara"
+  ],
+  "js/features/restore/deblur/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/restore/deblur/engine.js": [
+   "quitarDesenfoque"
+  ],
+  "js/features/restore/deblur/index.js": [
+   "openDeblur"
+  ],
+  "js/features/restore/deblur/manifest.js": [
+   "default"
+  ],
+  "js/features/restore/deblur/params.js": [
+   "PARAMS"
+  ],
+  "js/features/restore/deblur/ui.js": [
+   "panel"
+  ],
+  "js/features/restore/dust-spots/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/restore/dust-spots/engine.js": [
+   "quitarMotas"
+  ],
+  "js/features/restore/dust-spots/index.js": [
+   "openDustSpots"
+  ],
+  "js/features/restore/dust-spots/manifest.js": [
+   "default"
+  ],
+  "js/features/restore/dust-spots/params.js": [
+   "PARAMS"
+  ],
+  "js/features/restore/dust-spots/ui.js": [
+   "panel"
+  ],
+  "js/features/restore/engine/deblur.js": [
+   "estimar",
+   "hayDeblur",
+   "nucleo",
+   "quitarDesenfoque"
+  ],
+  "js/features/restore/engine/fft2.js": [
+   "fft2",
+   "ifft2",
+   "porBloques"
+  ],
+  "js/features/restore/engine/index.js": [
+   "detectarMotas",
+   "estimar",
+   "hayDeblur",
+   "hayLimpieza",
+   "hayMoire",
+   "hayPolvo",
+   "limpiarRuido",
+   "nivelRuido",
+   "nucleo",
+   "quitarDesenfoque",
+   "quitarMoire",
+   "quitarMotas"
+  ],
+  "js/features/restore/engine/limpiar.js": [
+   "hayLimpieza",
+   "limpiarRuido",
+   "nivelRuido"
+  ],
+  "js/features/restore/engine/moire.js": [
+   "hayMoire",
+   "quitarMoire"
+  ],
+  "js/features/restore/engine/polvo.js": [
+   "detectarMotas",
+   "hayPolvo",
+   "quitarMotas"
+  ],
+  "js/features/restore/moire/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/restore/moire/engine.js": [
+   "quitarMoire"
+  ],
+  "js/features/restore/moire/index.js": [
+   "openMoire"
+  ],
+  "js/features/restore/moire/manifest.js": [
+   "default"
+  ],
+  "js/features/restore/moire/params.js": [
+   "PARAMS"
+  ],
+  "js/features/restore/moire/ui.js": [
+   "panel"
+  ],
+  "js/features/restore/shared/rgba.js": [
+   "limpiarParaRealify"
+  ],
   "js/features/samtools.js": [
    "eraseToLayer",
-   "openSamTool"
+   "openSamTool",
+   "puntosDeTrazo"
+  ],
+  "js/features/scene/category-boost/analysis.js": [
+   "CATEGORIAS",
+   "mascaraClases",
+   "mascaraPiel",
+   "mascaraSujeto"
+  ],
+  "js/features/scene/category-boost/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/category-boost/engine.js": [
+   "realzarTipo"
+  ],
+  "js/features/scene/category-boost/index.js": [
+   "openCategoryBoost"
+  ],
+  "js/features/scene/category-boost/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/category-boost/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/category-boost/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/dehaze/analysis.js": [
+   "profundidadTrabajo"
+  ],
+  "js/features/scene/dehaze/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/dehaze/engine.js": [
+   "quitarNeblina"
+  ],
+  "js/features/scene/dehaze/index.js": [
+   "openDehaze"
+  ],
+  "js/features/scene/dehaze/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/dehaze/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/dehaze/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/depth-chroma/analysis.js": [
+   "profundidadTrabajo"
+  ],
+  "js/features/scene/depth-chroma/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/depth-chroma/engine.js": [
+   "cromaProfundidad"
+  ],
+  "js/features/scene/depth-chroma/index.js": [
+   "openDepthChroma"
+  ],
+  "js/features/scene/depth-chroma/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/depth-chroma/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/depth-chroma/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/depth-relight/analysis.js": [
+   "profundidadTrabajo"
+  ],
+  "js/features/scene/depth-relight/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/depth-relight/engine.js": [
+   "luzRelieve"
+  ],
+  "js/features/scene/depth-relight/index.js": [
+   "openDepthRelight"
+  ],
+  "js/features/scene/depth-relight/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/depth-relight/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/depth-relight/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/engine/armonizar.js": [
+   "armonizar",
+   "hayArmonia"
+  ],
+  "js/features/scene/engine/balance.js": [
+   "balanceZonas",
+   "hayBalance"
+  ],
+  "js/features/scene/engine/categorias.js": [
+   "TIPOS",
+   "hayTipo",
+   "realzarTipo"
+  ],
+  "js/features/scene/engine/cielo.js": [
+   "haySky",
+   "mejorarCielo"
+  ],
+  "js/features/scene/engine/index.js": [
+   "TIPOS",
+   "armonizar",
+   "balanceZonas",
+   "cromaProfundidad",
+   "hayArmonia",
+   "hayBalance",
+   "hayCroma",
+   "hayLuces",
+   "hayNeblina",
+   "hayRelieve",
+   "haySky",
+   "hayTipo",
+   "luzAtmosferica",
+   "luzRelieve",
+   "mejorarCielo",
+   "normalesProfundidad",
+   "quitarNeblina",
+   "realzarTipo",
+   "recuperarLuces"
+  ],
+  "js/features/scene/engine/luces.js": [
+   "hayLuces",
+   "recuperarLuces"
+  ],
+  "js/features/scene/engine/neblina.js": [
+   "hayNeblina",
+   "luzAtmosferica",
+   "quitarNeblina"
+  ],
+  "js/features/scene/engine/profundidad.js": [
+   "cromaProfundidad",
+   "hayCroma",
+   "hayRelieve",
+   "luzRelieve",
+   "normalesProfundidad"
+  ],
+  "js/features/scene/harmonize/analysis.js": [
+   "CATEGORIAS",
+   "mascaraClases",
+   "mascaraPiel",
+   "mascaraSujeto"
+  ],
+  "js/features/scene/harmonize/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/harmonize/engine.js": [
+   "armonizar"
+  ],
+  "js/features/scene/harmonize/index.js": [
+   "openHarmonize"
+  ],
+  "js/features/scene/harmonize/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/harmonize/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/harmonize/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/highlights/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/highlights/engine.js": [
+   "recuperarLuces"
+  ],
+  "js/features/scene/highlights/index.js": [
+   "openHighlightRecovery"
+  ],
+  "js/features/scene/highlights/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/highlights/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/highlights/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/shared/ejecutar.js": [
+   "ejecutarEscena",
+   "profundidadTrabajo"
+  ],
+  "js/features/scene/shared/mascaras.js": [
+   "CATEGORIAS",
+   "canales",
+   "mascaraClases",
+   "mascaraPiel",
+   "mascaraSujeto"
+  ],
+  "js/features/scene/shared/trabajo.js": [
+   "aLienzo",
+   "trabajar"
+  ],
+  "js/features/scene/sky/analysis.js": [
+   "CATEGORIAS",
+   "mascaraClases",
+   "mascaraPiel",
+   "mascaraSujeto"
+  ],
+  "js/features/scene/sky/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/sky/engine.js": [
+   "mejorarCielo"
+  ],
+  "js/features/scene/sky/index.js": [
+   "openSkyEnhance"
+  ],
+  "js/features/scene/sky/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/sky/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/sky/ui.js": [
+   "panel"
+  ],
+  "js/features/scene/zoned-wb/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/scene/zoned-wb/engine.js": [
+   "balanceZonas"
+  ],
+  "js/features/scene/zoned-wb/index.js": [
+   "openZonedWhiteBalance"
+  ],
+  "js/features/scene/zoned-wb/manifest.js": [
+   "default"
+  ],
+  "js/features/scene/zoned-wb/params.js": [
+   "PARAMS"
+  ],
+  "js/features/scene/zoned-wb/ui.js": [
+   "panel"
   ],
   "js/features/segmentselect.js": [
    "selectSkyCommand",
@@ -2183,17 +3525,150 @@
   "js/features/smartcrop.js": [
    "FORMATS",
    "bestCrop",
+   "cropProposals",
    "importanceMap",
    "openSmartCrop"
   ],
   "js/features/stack.js": [
    "openStack"
   ],
+  "js/features/style/camera-packs/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/style/camera-packs/index.js": [
+   "openCameraPacks"
+  ],
+  "js/features/style/camera-packs/manifest.js": [
+   "default"
+  ],
+  "js/features/style/camera-packs/packs.js": [
+   "PACKS",
+   "opciones"
+  ],
+  "js/features/style/camera-packs/params.js": [
+   "PARAMS"
+  ],
+  "js/features/style/camera-packs/ui.js": [
+   "panel"
+  ],
+  "js/features/style/engine/transferir.js": [
+   "ZONAS",
+   "estadisticas",
+   "sugerir",
+   "transferir"
+  ],
+  "js/features/style/my-styles/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/style/my-styles/index.js": [
+   "openMyStyles"
+  ],
+  "js/features/style/my-styles/manifest.js": [
+   "default"
+  ],
+  "js/features/style/my-styles/params.js": [
+   "PARAMS"
+  ],
+  "js/features/style/my-styles/ui.js": [
+   "panel"
+  ],
+  "js/features/style/reference-style/controller.js": [
+   "ejecutar"
+  ],
+  "js/features/style/reference-style/index.js": [
+   "openStyleFromReference"
+  ],
+  "js/features/style/reference-style/manifest.js": [
+   "default"
+  ],
+  "js/features/style/reference-style/params.js": [
+   "PARAMS"
+  ],
+  "js/features/style/reference-style/ui.js": [
+   "panel"
+  ],
+  "js/features/style/shared/aplicar.js": [
+   "colorearCon"
+  ],
+  "js/features/style/shared/estilos.js": [
+   "aArchivo",
+   "borrar",
+   "buscar",
+   "deArchivo",
+   "guardar",
+   "lista",
+   "validos"
+  ],
+  "js/features/style/shared/referencia.js": [
+   "elegirArchivo",
+   "imagenDe",
+   "medirReferencia",
+   "zonasDe"
+  ],
   "js/features/textselect.js": [
    "facePartsMask",
    "maskByTextCommand",
    "openTextSelect",
    "openVocabMask"
+  ],
+  "js/features/warp/acum.js": [
+   "Acum"
+  ],
+  "js/features/warp/field.js": [
+   "adelante",
+   "copiarCampo",
+   "crearCampo",
+   "escalarCampo",
+   "maximo",
+   "muestrear",
+   "reescalar"
+  ],
+  "js/features/warp/fondo.js": [
+   "descubierto",
+   "rellenar"
+  ],
+  "js/features/warp/index.js": [
+   "Acum",
+   "adelante",
+   "campoMLS",
+   "crearCampo",
+   "deformar",
+   "deformarCPU",
+   "deformarPlanos",
+   "descubierto",
+   "enderezar",
+   "escalarCampo",
+   "lamaInpaint",
+   "limitar",
+   "maximo",
+   "minDet",
+   "muestrear",
+   "reescalar",
+   "rellenar"
+  ],
+  "js/features/warp/jacobian.js": [
+   "limitar",
+   "minDet"
+  ],
+  "js/features/warp/lama.js": [
+   "lamaInpaint"
+  ],
+  "js/features/warp/lineas.js": [
+   "lineas",
+   "pintarLineas"
+  ],
+  "js/features/warp/mls.js": [
+   "campoMLS",
+   "enderezar"
+  ],
+  "js/features/warp/render-cpu.js": [
+   "deformarCPU"
+  ],
+  "js/features/warp/render-gpu.js": [
+   "deformarGPU"
+  ],
+  "js/features/warp/render-planos.js": [
+   "deformarPlanos"
   ],
   "js/filters/camera/chain.js": [
    "CHAIN",
@@ -2900,6 +4375,9 @@
   "js/ui/help/topics/seleccion.js": [
    "seleccionTopic"
   ],
+  "js/ui/help/topics/video.js": [
+   "videoTopic"
+  ],
   "js/ui/help/topics/vistas.js": [
    "vistasTopic"
   ],
@@ -3015,6 +4493,9 @@
   "js/ui/menu/ia/seleccionar.js": [
    "SUBMENU"
   ],
+  "js/ui/menu/video.js": [
+   "VIDEO_ITEMS"
+  ],
   "js/ui/menu.js": [
    "MENUS",
    "initMenu",
@@ -3062,8 +4543,40 @@
    "openBatchEdit",
    "startBatch"
   ],
+  "plugins/batch/salida.js": [
+   "adaptarAFormato",
+   "necesitaRecodificar",
+   "nombreUnico"
+  ],
   "plugins/batch/ui.js": [
    "openBatchEditor"
+  ],
+  "plugins/body-editor/editor.js": [
+   "abrirEditorCuerpo"
+  ],
+  "plugins/body-editor/index.js": [
+   "openBodyEditor"
+  ],
+  "plugins/body-editor/params.js": [
+   "GRUPOS",
+   "PARAMS",
+   "PERFILES",
+   "aplicarAjuste"
+  ],
+  "plugins/body-editor/puntos.js": [
+   "ARTICULACIONES",
+   "buscar",
+   "mover",
+   "pintar",
+   "visibles"
+  ],
+  "plugins/body-editor/render.js": [
+   "actualizarPose",
+   "aplicarPersona",
+   "hayAlgo",
+   "hayDefinicion",
+   "pintarVista",
+   "prepararPersona"
   ],
   "plugins/cameras/engine.js": [
    "CamarasGL",
@@ -3094,6 +4607,25 @@
   "plugins/cameras/ui.js": [
    "openCamarasEditor"
   ],
+  "plugins/clothing-editor/editor.js": [
+   "abrirEditorRopa"
+  ],
+  "plugins/clothing-editor/index.js": [
+   "openClothingEditor"
+  ],
+  "plugins/clothing-editor/params.js": [
+   "GRUPOS",
+   "PARAMS",
+   "hayEfecto",
+   "inicio"
+  ],
+  "plugins/clothing-editor/render.js": [
+   "capa",
+   "hayCambioRopa",
+   "mascaraPersona",
+   "mascaraTelas",
+   "prepararVista"
+  ],
   "plugins/compare/index.js": [
    "openCompare"
   ],
@@ -3108,6 +4640,44 @@
   "plugins/contact-sheet/ui.js": [
    "openContactSheet",
    "renderPages"
+  ],
+  "plugins/culling/analisis.js": [
+   "analizarFoto"
+  ],
+  "plugins/culling/engine.js": [
+   "apertura",
+   "composicion",
+   "dHash",
+   "grupos",
+   "hamming",
+   "mejores",
+   "ojosCerrados",
+   "puntuar"
+  ],
+  "plugins/culling/index.js": [
+   "openCulling"
+  ],
+  "plugins/culling/ui.js": [
+   "openCullingEditor"
+  ],
+  "plugins/face-editor/editor.js": [
+   "abrirEditorCara"
+  ],
+  "plugins/face-editor/index.js": [
+   "openFaceEditor"
+  ],
+  "plugins/face-editor/params.js": [
+   "GRUPOS",
+   "PARAMS",
+   "PERFILES",
+   "hayEfecto",
+   "inicio",
+   "pideProfundidad"
+  ],
+  "plugins/face-editor/render.js": [
+   "componer",
+   "prepararCara",
+   "renderCara"
   ],
   "plugins/frames/artistic.js": [
    "drawArtisticFrame"
@@ -3333,6 +4903,12 @@
   "plugins/panorama/ui.js": [
    "openPanoramaEditor"
   ],
+  "plugins/photo-search/index.js": [
+   "openPhotoSearch"
+  ],
+  "plugins/photo-search/ui.js": [
+   "openPhotoSearchEditor"
+  ],
   "plugins/raw/decoder.js": [
    "RAW_EXTENSIONS",
    "RawDecoder",
@@ -3549,6 +5125,248 @@
   "plugins/stickers/ui.js": [
    "openStickerEditor"
   ],
+  "plugins/video/audio/mezcla.js": [
+   "hayAudio",
+   "mezclar",
+   "segmentos"
+  ],
+  "plugins/video/audio/mezclador.js": [
+   "mezclarVentana"
+  ],
+  "plugins/video/audio/previa.js": [
+   "crearSonidoPrevia"
+  ],
+  "plugins/video/bridge/efectos.js": [
+   "cargarCamaras",
+   "cargarSensor"
+  ],
+  "plugins/video/bridge/ia.js": [
+   "alfaDelFotograma",
+   "modeloDisponible"
+  ],
+  "plugins/video/bridge/mediabunny.js": [
+   "cargarMediabunny"
+  ],
+  "plugins/video/bridge/ui.js": [
+   "createShell",
+   "download",
+   "ensureShellStyles",
+   "isMobile",
+   "mountControls",
+   "pickFiles",
+   "toast"
+  ],
+  "plugins/video/effects/camaras/efecto.js": [
+   "crear"
+  ],
+  "plugins/video/effects/camaras/manifest.js": [
+   "default"
+  ],
+  "plugins/video/effects/color/efecto.js": [
+   "crear"
+  ],
+  "plugins/video/effects/color/manifest.js": [
+   "default"
+  ],
+  "plugins/video/effects/color/motor.js": [
+   "POR_DEFECTO",
+   "aplicarColor",
+   "tablaTono"
+  ],
+  "plugins/video/effects/estabilizar/efecto.js": [
+   "crear"
+  ],
+  "plugins/video/effects/estabilizar/engine.js": [
+   "crearEstabilizador",
+   "desplazamiento1D",
+   "estimar",
+   "perfiles"
+  ],
+  "plugins/video/effects/estabilizar/manifest.js": [
+   "default"
+  ],
+  "plugins/video/effects/fondo/efecto.js": [
+   "crear"
+  ],
+  "plugins/video/effects/fondo/engine.js": [
+   "componer",
+   "endurecer",
+   "escalarAlfa",
+   "suavizarTemporal"
+  ],
+  "plugins/video/effects/fondo/manifest.js": [
+   "default"
+  ],
+  "plugins/video/effects/lista.js": [
+   "MANIFIESTOS",
+   "registrarTodos"
+  ],
+  "plugins/video/effects/registro.js": [
+   "crearRegistroEfectos"
+  ],
+  "plugins/video/effects/sensor/efecto.js": [
+   "crear"
+  ],
+  "plugins/video/effects/sensor/manifest.js": [
+   "PRESETS_VIDEO",
+   "default"
+  ],
+  "plugins/video/estudio/medir.js": [
+   "medir"
+  ],
+  "plugins/video/export/lista.js": [
+   "PRESETS",
+   "aplicarPreset",
+   "preset"
+  ],
+  "plugins/video/export/presets/historia.js": [
+   "default"
+  ],
+  "plugins/video/export/presets/reel.js": [
+   "default"
+  ],
+  "plugins/video/export/presets/tiktok.js": [
+   "default"
+  ],
+  "plugins/video/export/presets/web.js": [
+   "default"
+  ],
+  "plugins/video/export/presets/whatsapp.js": [
+   "default"
+  ],
+  "plugins/video/export/presets/youtube.js": [
+   "default"
+  ],
+  "plugins/video/index.js": [
+   "openVideo"
+  ],
+  "plugins/video/manifest.js": [
+   "COMANDOS",
+   "SCHEMA_VERSION"
+  ],
+  "plugins/video/media/decoders/elemento-video.js": [
+   "abrir",
+   "id",
+   "soporta"
+  ],
+  "plugins/video/media/decoders/mediabunny.js": [
+   "abrir",
+   "id",
+   "soporta"
+  ],
+  "plugins/video/media/encoders/mediabunny.js": [
+   "codecPara",
+   "crear",
+   "id",
+   "soporta"
+  ],
+  "plugins/video/media/importar.js": [
+   "abrirMedio",
+   "crearCodificador",
+   "decodificadores"
+  ],
+  "plugins/video/media/registro.js": [
+   "crearRegistro"
+  ],
+  "plugins/video/project/migrar.js": [
+   "MIGRACIONES",
+   "aTexto",
+   "abrirProyecto"
+  ],
+  "plugins/video/project/modelo.js": [
+   "FPS_VALIDOS",
+   "aFotograma",
+   "buscarClip",
+   "clipEn",
+   "crearClip",
+   "crearMedio",
+   "crearPista",
+   "crearProyecto",
+   "deFotograma",
+   "duracionClip",
+   "duracionPista",
+   "duracionProyecto",
+   "finClip",
+   "huella",
+   "nuevoId",
+   "problemas",
+   "reiniciarIds",
+   "tiempoEnMedio",
+   "volumenClip"
+  ],
+  "plugins/video/render/aplicar.js": [
+   "renderizar"
+  ],
+  "plugins/video/render/cache.js": [
+   "crearCache"
+  ],
+  "plugins/video/render/limites.js": [
+   "FORMATOS_SALIDA",
+   "LIMITES",
+   "comprobarExportacion",
+   "salidaAjustada",
+   "tamanoPrevia"
+  ],
+  "plugins/video/render/motor.js": [
+   "crearMotor"
+  ],
+  "plugins/video/render/reproductor.js": [
+   "crearReproductor"
+  ],
+  "plugins/video/timeline/historial.js": [
+   "crearHistorial"
+  ],
+  "plugins/video/timeline/ops.js": [
+   "ajustarEfecto",
+   "anadirClip",
+   "cambiarVelocidad",
+   "cambiarVolumen",
+   "dividir",
+   "duplicar",
+   "eliminar",
+   "mover",
+   "ponerEfecto",
+   "quitarEfecto",
+   "recortar"
+  ],
+  "plugins/video/timeline/vista.js": [
+   "PPS_MIN",
+   "desplazar",
+   "imantar",
+   "pxAT",
+   "tAPx",
+   "vistaInicial",
+   "zoomEn"
+  ],
+  "plugins/video/ui/editor.js": [
+   "abrirEditor"
+  ],
+  "plugins/video/ui/exportar.js": [
+   "exportarProyecto"
+  ],
+  "plugins/video/ui/linea.js": [
+   "crearLinea",
+   "etiquetaTiempo"
+  ],
+  "plugins/video/ui/motor-dom.js": [
+   "efectosDeLaApp",
+   "fabricaDom",
+   "motorDom"
+  ],
+  "plugins/video/ui/panel.js": [
+   "construirPanel"
+  ],
+  "plugins/video/workers/cliente.js": [
+   "crearTrabajador"
+  ],
+  "plugins/video/workers/protocolo.js": [
+   "PETICIONES",
+   "RESPUESTAS",
+   "VERSION",
+   "peticion",
+   "respuesta",
+   "validarPeticion"
+  ],
   "plugins/vintage/engine.js": [
    "VintageGL"
   ],
@@ -3597,55 +5415,61 @@
  },
  "dirEdges": {
   "js/editor -> js/core": 265,
-  "plugins -> js/core": 104,
+  "js/features -> js/core": 113,
+  "plugins -> js/core": 111,
   "js/app -> js/editor": 97,
-  "js/features -> js/core": 91,
+  "plugins -> js/features": 69,
   "js/io -> js/core": 66,
+  "js/features -> js/editor": 58,
+  "js/features -> js/ai": 55,
   "js/ui -> js/core": 52,
-  "js/app -> js/core": 48,
-  "js/features -> js/editor": 48,
+  "js/app -> js/core": 49,
+  "js/ui -> js/features": 48,
   "js/filters -> js/core": 46,
+  "js/features -> js/ui": 41,
   "js/editor -> js/filters": 39,
+  "js/features -> plugins": 39,
   "js/filters -> js/editor": 39,
+  "plugins -> js/ui": 38,
   "js/app -> js/filters": 37,
-  "js/features -> js/ui": 37,
-  "js/features -> js/ai": 36,
   "js/app -> js/features": 34,
   "js/ui -> js/editor": 33,
-  "plugins -> js/ui": 32,
   "js/editor -> js/ui": 31,
-  "plugins -> js/editor": 27,
+  "plugins -> js/editor": 29,
   "js/main.js -> js/editor": 23,
+  "plugins -> js/io": 21,
   "js/app -> js/ui": 20,
-  "js/app -> plugins": 18,
+  "js/app -> plugins": 19,
+  "js/features -> js/io": 19,
+  "js/main.js -> js/app": 19,
   "js/io -> js/editor": 18,
-  "js/main.js -> js/app": 18,
-  "plugins -> js/io": 18,
-  "js/features -> js/io": 16,
+  "js/ai -> js/vendor": 14,
   "js/main.js -> js/ui": 13,
-  "js/features -> plugins": 12,
   "js/filters -> js/ui": 12,
   "js/app -> js/io": 11,
   "js/features -> js/cv": 11,
   "js/main.js -> js/core": 11,
-  "js/ai -> js/vendor": 10,
+  "plugins -> js/ai": 11,
   "js/editor -> js/features": 9,
   "js/io -> js/ui": 9,
   "js/io -> js/vendor": 9,
   "js/io -> js/exif": 8,
+  "js/features -> js/filters": 7,
   "js/ai -> js/editor": 6,
   "js/exif -> js/core": 6,
   "plugins -> js/cv": 5,
+  "js/ai -> js/core": 4,
   "js/editor -> plugins": 4,
   "js/filters -> js/ai": 4,
   "js/main.js -> js/io": 4,
   "js/pwa.js -> js/core": 4,
-  "js/ai -> js/core": 3,
+  "plugins -> js/filters": 4,
   "js/ai -> js/io": 3,
   "js/app -> js/ai": 3,
   "js/app -> js/analysis": 3,
   "js/editor -> js/ai": 3,
   "js/features -> js/lens": 3,
+  "js/features -> js/analysis": 3,
   "js/filters -> js/analysis": 3,
   "js/filters -> js/exif": 3,
   "js/pwa.js -> js/ui": 3,
@@ -3658,11 +5482,12 @@
   "js/editor -> js/cv": 2,
   "js/exif -> js/ui": 2,
   "js/exif -> js/io": 2,
-  "js/features -> js/filters": 2,
   "js/filters -> js/io": 2,
   "js/io -> plugins": 2,
   "js/pwa.js -> js/io": 2,
   "js/ui -> js/io": 2,
+  "tools -> js/ui": 2,
+  "tools -> tests": 2,
   "js/ai -> js/ui": 1,
   "js/analysis -> js/exif": 1,
   "js/analysis -> js/editor": 1,
@@ -3678,8 +5503,7 @@
   "js/main.js -> plugins": 1,
   "js/pwa.js -> sw.js": 1,
   "plugins -> js/exif": 1,
-  "plugins -> js/features": 1,
-  "plugins -> js/filters": 1,
+  "plugins -> js/vendor": 1,
   "sw.js -> js/main.js": 1,
   "sw.js -> js/core": 1
  }

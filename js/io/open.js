@@ -254,6 +254,8 @@ export function initOpen(){
     stage.classList.remove("dragover");
     const project = [...e.dataTransfer.files].find(x => x.name.toLowerCase().endsWith(".realify"));
     if(project){ import("./project.js").then(m => m.openProjectFile(project)); return; }
+    const videos = [...e.dataTransfer.files].filter(esVideo);
+    if(videos.length){ document.dispatchEvent(new CustomEvent("realify:abrir-video", { detail: videos })); return; }
     const files = [...e.dataTransfer.files].filter(compatibleFile);
     if(!files.length) return;
     // Con documento abierto y la tecla Mayús, TODO lo soltado entra
@@ -279,6 +281,9 @@ export function initOpen(){
     if(f){ e.preventDefault(); doc.open ? placeAsLayer(f) : openFileInNewTab(f); }
   });
 }
+
+/** Vídeo soltado en la ventana: va al editor de vídeo (lo recoge js/app/commands/video.js con el evento «realify:abrir-video»). */
+const esVideo = f => /^video\//.test(f.type) || /\.(mp4|mov|webm|mkv|m4v)$/i.test(f.name);
 
 export function promptOpen(){ picker.click(); }
 /** RAW, PSD, TIFF y SVG: desde el explorador de archivos (en Android no
