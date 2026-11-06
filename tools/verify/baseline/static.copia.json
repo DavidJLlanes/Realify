@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-06T09:04:21.753Z",
+ "generated": "2026-11-06T12:22:57.914Z",
  "root": "/home/claude/realify",
- "jsFiles": 1109,
- "jsLines": 109014,
+ "jsFiles": 1120,
+ "jsLines": 109685,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -218,6 +218,7 @@
   "clone.pickSource",
   "clone.reset",
   "compare.center",
+  "config.json",
   "crop.apply",
   "crop.cancel",
   "crop.swap",
@@ -645,6 +646,9 @@
   ],
   "js/ai/models/inpaint.js": [
    "INPAINT"
+  ],
+  "js/ai/models/llm.js": [
+   "LLM"
   ],
   "js/ai/models/people.js": [
    "PEOPLE"
@@ -2085,6 +2089,10 @@
    "cborEncode",
    "loadCredentials",
    "signC2pa"
+  ],
+  "js/exif/db-marcas.js": [
+   "BODIES_MARCAS",
+   "LENSES_MARCAS"
   ],
   "js/exif/db.js": [
    "APERTURES",
@@ -3709,6 +3717,11 @@
   "js/filters/camera/exifmatch.js": [
    "matchCamera"
   ],
+  "js/filters/camera/exifshot.js": [
+   "cameraSizes",
+   "shotHints",
+   "sizeNote"
+  ],
   "js/filters/camera/presets.js": [
    "PRESETS"
   ],
@@ -3931,6 +3944,11 @@
    "dilateMask",
    "inpaint",
    "maskToCanvas"
+  ],
+  "js/filters/unmark/mosaic.js": [
+   "buscarMosaico",
+   "codificar",
+   "decodificar"
   ],
   "js/filters/unmark/state.js": [
    "PRESETS",
@@ -5148,6 +5166,7 @@
    "cargarMediabunny"
   ],
   "plugins/video/bridge/ui.js": [
+   "confirmDlg",
    "createShell",
    "download",
    "ensureShellStyles",
@@ -5164,6 +5183,9 @@
   ],
   "plugins/video/effects/color/efecto.js": [
    "crear"
+  ],
+  "plugins/video/effects/color/gl.js": [
+   "crearGL"
   ],
   "plugins/video/effects/color/manifest.js": [
    "default"
@@ -5267,6 +5289,11 @@
   ],
   "plugins/video/media/registro.js": [
    "crearRegistro"
+  ],
+  "plugins/video/project/guardado.js": [
+   "borrar",
+   "guardar",
+   "leer"
   ],
   "plugins/video/project/migrar.js": [
    "MIGRACIONES",
@@ -5430,7 +5457,7 @@
   "js/editor -> js/filters": 39,
   "js/features -> plugins": 39,
   "js/filters -> js/editor": 39,
-  "plugins -> js/ui": 38,
+  "plugins -> js/ui": 39,
   "js/app -> js/filters": 37,
   "js/app -> js/features": 34,
   "js/ui -> js/editor": 33,
@@ -5460,6 +5487,7 @@
   "plugins -> js/cv": 5,
   "js/ai -> js/core": 4,
   "js/editor -> plugins": 4,
+  "js/filters -> js/exif": 4,
   "js/filters -> js/ai": 4,
   "js/main.js -> js/io": 4,
   "js/pwa.js -> js/core": 4,
@@ -5471,7 +5499,6 @@
   "js/features -> js/lens": 3,
   "js/features -> js/analysis": 3,
   "js/filters -> js/analysis": 3,
-  "js/filters -> js/exif": 3,
   "js/pwa.js -> js/ui": 3,
   "plugins -> js/lens": 3,
   "js/analysis -> js/core": 2,

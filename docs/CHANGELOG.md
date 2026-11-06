@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.0.0 (compilación 324) · Icono en Firefox y comprobación de actualizaciones
+- **Icono de la app al instalar desde Firefox**: el manifiesto sólo declaraba iconos WebP y Firefox no los usa para el acceso directo. Ahora lleva primero iconos **PNG** (192 y 512, normales y «maskable»: `assets/android-*.png`) y conserva los WebP.
+- **`version.json` estaba vacío desde la compilación 321**, por lo que la app no detectaba actualizaciones y no salía el botón «Actualizar». Restaurado (`version`, `build`, `release`).
+
 ### 2.0.0 (compilación 323) · EXIF de más marcas y móviles
 - **EXIF con 63 cuerpos y 83 objetivos de 7 marcas** (`js/exif/db-marcas.js`): además de Canon, Nikon (réflex F/DX y sin espejo Z), Sony (E y FE), Fujifilm (X) y móviles Apple (iPhone 12, 13, 14 Pro, 15 Pro), Samsung (S21, S23) y Google (Pixel 7). El escritor usa la marca de cada cuerpo; en los móviles el objetivo es fijo (diafragma y focal reales, y la equivalente a 35 mm sale de la focal × el recorte) y Samsung y Google no escriben modelo de objetivo, como en la realidad. Monturas comprobadas por marca (p. ej. un objetivo Sony E en una A7 recorta, uno Z no monta en una réflex Nikon).
 - Las listas de cuerpo y objetivo del panel EXIF se agrupan por marca, y los archivos se nombran como cada marca (DSC_0001, DSC00001, DSCF0001, IMG_0001, fecha y hora en Samsung, PXL_… en Google).
