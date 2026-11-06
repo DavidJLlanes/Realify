@@ -1,0 +1,178 @@
+{
+ "dispositivo": {
+  "agente": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "nucleos": 2,
+  "memoria_gb": 8,
+  "pantalla": "1366x768@1",
+  "webgpu": true,
+  "fecha": "2026-11-06T06:25:30.772Z"
+ },
+ "filas": [
+  {
+   "codec": "h264",
+   "tamano": "720p",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "h264",
+   "tamano": "720p",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 11,
+   "kb_por_fotograma": 10.6,
+   "decodificar_ms_fotograma": 1.6,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 8
+  },
+  {
+   "codec": "vp9",
+   "tamano": "720p",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "vp9",
+   "tamano": "720p",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 15.4,
+   "kb_por_fotograma": 5.4,
+   "decodificar_ms_fotograma": 2.8,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 8
+  },
+  {
+   "codec": "av1",
+   "tamano": "720p",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "av1",
+   "tamano": "720p",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 17.1,
+   "kb_por_fotograma": 4.2,
+   "decodificar_ms_fotograma": 2.8,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 8
+  },
+  {
+   "codec": "h264",
+   "tamano": "1080p",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "h264",
+   "tamano": "1080p",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 25.7,
+   "kb_por_fotograma": 22.2,
+   "decodificar_ms_fotograma": 2.9,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 8
+  },
+  {
+   "codec": "vp9",
+   "tamano": "1080p",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "vp9",
+   "tamano": "1080p",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 28.1,
+   "kb_por_fotograma": 10.7,
+   "decodificar_ms_fotograma": 4.7,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 9
+  },
+  {
+   "codec": "av1",
+   "tamano": "1080p",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "av1",
+   "tamano": "1080p",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 42.4,
+   "kb_por_fotograma": 6.5,
+   "decodificar_ms_fotograma": 5,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 9
+  },
+  {
+   "codec": "h264",
+   "tamano": "4K",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "h264",
+   "tamano": "4K",
+   "aceleracion": "software",
+   "codifica": false,
+   "decodifica": true
+  },
+  {
+   "codec": "vp9",
+   "tamano": "4K",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "vp9",
+   "tamano": "4K",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 104,
+   "kb_por_fotograma": 40.9,
+   "decodificar_ms_fotograma": 17.8,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 9
+  },
+  {
+   "codec": "av1",
+   "tamano": "4K",
+   "aceleracion": "hardware",
+   "codifica": false,
+   "decodifica": false
+  },
+  {
+   "codec": "av1",
+   "tamano": "4K",
+   "aceleracion": "software",
+   "codifica": true,
+   "decodifica": true,
+   "codificar_ms_fotograma": 148.1,
+   "kb_por_fotograma": 13.8,
+   "decodificar_ms_fotograma": 19.9,
+   "fotogramas_decodificados": 30,
+   "heap_mb_pico": 6
+  }
+ ]
+}

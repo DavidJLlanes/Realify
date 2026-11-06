@@ -9,8 +9,8 @@ Lo que **solo puede hacer David** (o decidir él). Se va completando fase a fase
 - Si algún día se cobra Premium: sustituir los modelos marcados `noncommercial: true` (BiSeNet, Zero-DCE++, UltraSharp V2 Lite…).
 
 ## Decisiones tuyas
-- **Aprobar `docs/VIDEO.md`** (F15.0): estructura de carpetas, contratos de efecto y códec, proyecto sin los medios dentro y alcance. Hasta entonces no se escribe el editor de vídeo.
-- **F15.1:** medir WebCodecs (memoria y tiempo por fotograma, 720p/1080p/4K) en tus móviles reales y fijar con esos datos los límites de duración y resolución.
+- **F15.1:** tras desplegar, abrir en cada móvil `https://realify.es/plugins/video/estudio/medir.html`, pulsar «Medir» y pegarme el texto resultante. Con eso fijo los límites definitivos (hoy provisionales en `docs/VIDEO_ESTUDIO.md`).
+- Confirmar que el proyecto de vídeo guarda sólo la huella de los archivos (no copia los vídeos).
 
 ## Modelos que Claude no puede descargar
 *(Reintentado el 5 nov 2026: `huggingface.co`, `hf-mirror.com`, `modelscope.cn` y las descargas de GitHub Releases devuelven 403 desde el entorno de desarrollo.)*
