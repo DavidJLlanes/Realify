@@ -1,6 +1,6 @@
 # Editor de vídeo de Realify · arquitectura (F15.0)
 
-> **Estado: BORRADOR PARA APROBAR por el titular.** Hasta que lo apruebe no se escribe código del editor (sólo existe el esqueleto vacío de `plugins/video/`).
+> **Estado: APROBADO por el titular el 6 nov 2026** (carpetas y contratos; el proyecto guarda sólo la huella de los vídeos; alcance «editor sencillo pero escalable»; límites a medir en F15.1).
 > Norma de origen: sección 4.8 y Fase 15 de `docs/PLAN_EDITOR_IA_LOCAL.md`.
 
 ## 1. Qué es y qué no es
