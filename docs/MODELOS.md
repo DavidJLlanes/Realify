@@ -16,7 +16,7 @@ en [`assets/models/`](../assets/models/). Las atribuciones completas están en [
 - **Al añadir un modelo**: una línea en esta tabla (con la huella: `node tools/models/sha256.mjs <archivo>`), su entrada en el archivo de su
   familia en `js/ai/models/`, su atribución en `ATTRIBUTIONS.md` y, si no es comercial, `noncommercial: true`.
 
-## Modelos en uso (30 del catálogo + Zero-DCE++)
+## Modelos en uso (32 del catálogo + Zero-DCE++)
 
 «Datos» = licencia de los datos de entrenamiento. **«no revisada»** significa que todavía no se ha comprobado y hay que hacerlo antes de
 cobrar Premium; los únicos con restricción conocida están marcados. «Móvil» indica cómo se usa hoy; la medición en móviles reales de gama
@@ -55,6 +55,8 @@ media se hace en F15.1 (vídeo) y F14.1 (LLM) y al incorporar cada modelo nuevo.
 | `pose` | Pose del cuerpo, 17 puntos COCO (RTMPose-m, Body7) | 27 MB | Apache-2.0 | Body7 (COCO, AIC, CrowdPose, MPII, sub-JHMDB, Halpe, PoseTrack18): por revisar | OpenMMLab (`rtmpose-m_simcc-body7_pt-body7_420e-256x192`, ONNX del SDK); pesos pasados a fp16 con cálculo fp32 (`tools/models/pesos-fp16.py`); en `assets/models/people/` | `fa1e31010ae80ac7fdffbdff1654d02d1b9edee98fe58ee1a0d664596552087c` | por revisar | fp16 vs fp32: < 0,5 px de diferencia; 0,04 s en CPU |
 | `humanparse` | Partes del cuerpo y ropa (18 clases) | 55 MB | MIT | ATR (Look into Person): por revisar | `mattmdjaga/segformer_b2_clothes` (Hugging Face), ONNX exportado a 512×512; pesos a fp16 con cálculo fp32; en `assets/models/people/` | `9d5f033f70ac6cff33113ed05699bc2e26eaed8d01cdcd1841d19bdab73195e4` | **no** (por precaución) | `noncommercial: true` hasta revisar hasta revisar los datos; fp16 vs fp32: 99,98 % de píxeles iguales |
 | `qwen15` | Asistente: interpreta la orden y devuelve el plan JSON (F14.1) | 1,22 GB (q4f16) | Apache-2.0 | no revisada | `onnx-community/Qwen2.5-1.5B-Instruct` en Hugging Face (commit fijado `9f9c976052bfb08a20793f0c3013563dc095c966`); tokenizador y config en `assets/models/qwen2.5-1.5b/` | `19dec9f63488016185ba997d5e4492b5ac5b4f7ef1abb45243a91de958838dcd` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir en móvil |
+| `whisper_enc` | Voz: codificador de Whisper tiny (dictado al asistente, subtítulos; F14.4) | 10 MB | MIT | no revisada | `onnx-community/whisper-tiny-ONNX` (commit `ea7c447ab3780e36818661384dea74a8e6b82fc6`), `encoder_model_quantized.onnx`; en `assets/models/whisper-tiny/` | `959c5e7f2a915cf52c274343ffe2b5a54ccbc68af34166e9bfa2a43fcea87425` | sí | incluido en la web; pendiente de integrar |
+| `whisper_dec` | Voz: decodificador de Whisper tiny (merged, con memoria) | 110 MB | MIT | no revisada | `onnx-community/whisper-tiny-ONNX` (commit fijado `ea7c447ab3780e36818661384dea74a8e6b82fc6`), `decoder_model_merged_quantized.onnx` | `49f1546333cf31f05ffd57f7d46597fef0fdfe527991432b725461f13141a435` | sí | remoto, con aviso de tamaño; pendiente de integrar y medir |
 
 ### Modelos de personas (Fase 2, v302)
 
