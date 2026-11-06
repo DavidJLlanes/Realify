@@ -28,6 +28,8 @@
    eso las regiones se listan y se pueden descartar una a una.
    ══════════════════════════════════════════════════════════════ */
 
+import { buscarMosaico, codificar, decodificar } from "./mosaic.js";
+
 const WORK = 1024;
 
 /* Mín/máx separable con ventana 2r+1: erosión y dilatación en gris. */
@@ -191,12 +193,30 @@ export function detectMarks(canvas, p){
 
   const t = 0.22 - (p.sens / 100) * 0.15;
   const zone = zoneMask(p.zones, w, h);
-  const cand = new Uint8Array(n), strength = new Float32Array(n);
+  /* Sello de fecha: letras naranjas/rojas MUY saturadas (el filtro de croma baja las descartaba) en las esquinas. Logotipo sólido de esquina: el mismo
+     top-hat pero con un elemento 3 veces mayor, sólo en las esquinas (fuera de ellas un objeto claro y grande es casi siempre parte de la escena). */
+  const corn = zoneMask("corners", w, h), sello = new Uint8Array(n), roj = new Float32Array(n), solid = new Float32Array(n);
+  for(let q = 0; q < n; q++){
+    if(!corn[q] || C[q] < 0.55) continue;
+    const r = d[q*4] / 255, g = d[q*4+1] / 255; sello[q] = r > 0.6 && r > g + 0.25 ? 1 : 0; roj[q] = r - d[q*4+2] / 255;
+  }
+  /* El naranja de un sello sobre un fondo dorado apenas cambia la luminancia: el top-hat se repite sobre «rojez» (R − B). */
+  const ra = new Float32Array(n), rb = new Float32Array(n);
+  rankFilter(roj, w, h, se, false, tmp, ra); rankFilter(ra, w, h, se, true, tmp, rb);
+  const se2 = Math.max(se + 2, Math.round(0.028 * s)), o1 = new Float32Array(n), o2 = new Float32Array(n);
+  rankFilter(L, w, h, se2, false, tmp, o1); rankFilter(o1, w, h, se2, true, tmp, o2);
+  const c1 = new Float32Array(n), c2 = new Float32Array(n);
+  rankFilter(L, w, h, se2, true, tmp, c1); rankFilter(c1, w, h, se2, false, tmp, c2);
+  for(let q = 0; q < n; q++) if(corn[q]) solid[q] = Math.max(L[q] - o2[q], c2[q] - L[q]);
+  const cand = new Uint8Array(n), strength = new Float32Array(n), vAll = new Float32Array(n);
+  for(let q = 0; q < n; q++) vAll[q] = Math.max(L[q] - open[q], close[q] - L[q]);
   for(let q = 0; q < n; q++){
     if(!zone[q]) continue;
     const wt = L[q] - open[q], bt = close[q] - L[q];
     const v = Math.max(wt, bt);
-    if(v > t && C[q] < 0.42){ cand[q] = 1; strength[q] = v; }
+    const vs = sello[q] ? Math.max(v, roj[q] - rb[q]) : v;
+    if(vs > t && (C[q] < 0.42 || sello[q])){ cand[q] = 1; strength[q] = vs; }
+    else if(corn[q] && solid[q] > t * 1.15 && C[q] < 0.42){ cand[q] = 1; strength[q] = solid[q]; }
   }
 
   const dx = Math.max(2, Math.round(0.010 * s)), dy = Math.max(1, Math.round(0.004 * s));
@@ -251,6 +271,14 @@ export function detectMarks(canvas, p){
     label: placeLabel(r, w, h)
   }));
 
+  /* Mosaico: marca repetida por toda la foto (mosaic.js). Va la primera de la lista. */
+  const mo = buscarMosaico(vAll, C, w, h, 0.05);
+  if(mo){
+    const b = mo.box;
+    out.forEach(o => o.id++);
+    out.unshift({ id: 0, kind: "mosaico", x: Math.round(b.x / k), y: Math.round(b.y / k), w: Math.round(b.w / k), h: Math.round(b.h / k), score: Math.max(0.6, mo.score),
+      mw: w, mh: h, rle: codificar(mo.mask), label: "marca repetida (mosaico)" });
+  }
   return { regions: out, workW: w, workH: h, scale: k, fullW: W, fullH: H };
 }
 
@@ -263,11 +291,14 @@ export function detectMarks(canvas, p){
    el coste de rellenar unos píxeles de fondo de más alrededor del
    texto es insignificante frente a dejar la marca a medias. */
 export function fullMaskFromDetection(det, chosenIds, W, H){
-  const rects = det.regions.filter(r => chosenIds.has(r.id)).map(r => {
+  const elegidas = det.regions.filter(r => chosenIds.has(r.id)), mosaicos = elegidas.filter(r => r.rle);
+  const rects = elegidas.filter(r => !r.rle).map(r => {
     const pad = Math.max(3, Math.round(Math.min(r.w, r.h) * 0.18));
     return { x: r.x - pad, y: r.y - pad, w: r.w + pad * 2, h: r.h + pad * 2 };
   });
-  return rectMask(rects, W, H);
+  const m = rectMask(rects, W, H);
+  for(const r of mosaicos){ const up = upscaleMask(decodificar(r.rle, r.mw * r.mh), r.mw, r.mh, W, H); for(let i = 0; i < m.length; i++) if(up[i]) m[i] = 255; }
+  return m;
 }
 
 export function upscaleMask(bin, w, h, W, H){

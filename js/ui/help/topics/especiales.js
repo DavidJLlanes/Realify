@@ -107,7 +107,9 @@ export const especialesTopic = { id:"especiales", title:"Filtros especiales",
         <li><b>Unmark…</b> Tres secciones en un panel: <i>marcas visibles</i> (detecta el
           logotipo o rótulo del generador —o usa la zona conocida de cada servicio, una
           región manual o la selección— y lo rellena con estructura + textura de
-          alrededor), <i>marcas invisibles</i> (rompe los soportes donde se esconden:
+          alrededor; reconoce también logotipos sólidos de esquina, sellos de fecha naranjas y
+          marcas repetidas en mosaico por toda la foto, y en «Editar en lote» la misma marca
+          se aplica a fotos de otro tamaño en proporción), <i>marcas invisibles</i> (rompe los soportes donde se esconden:
           transformación geométrica subpíxel, remuestreo, ondículas DWT-DCT, coeficientes
           DCT, suavizado y reenfoque, ruido, bits bajos, limpieza espectral y
           recompresión JPEG) y <i>procedencia</i> (lee lo que declara el archivo —C2PA, XMP con

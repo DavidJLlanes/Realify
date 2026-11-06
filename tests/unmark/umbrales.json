@@ -1,0 +1,22 @@
+{
+ "texto": {
+  "recup": 0.99,
+  "psnr": 30.678,
+  "ssim": 0.818
+ },
+ "esquina": {
+  "recup": 0.932,
+  "psnr": 27.61,
+  "ssim": 0.799
+ },
+ "fecha": {
+  "recup": 0.754,
+  "psnr": 28.414,
+  "ssim": 0.757
+ },
+ "mosaico": {
+  "recup": 0.983,
+  "psnr": 27.368,
+  "ssim": 0.807
+ }
+}

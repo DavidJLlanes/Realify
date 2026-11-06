@@ -9,7 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
-### Sin versión nueva · Abrir vídeo desde el inicio
+### 2.0.0 (compilación 318) · Unmark mejorado y vídeo desde Archivo
+- **Unmark detecta más marcas** (F11.7): logotipos sólidos de esquina, sellos de fecha naranjas (también sobre fondos del mismo tono) y marcas repetidas en mosaico por toda la foto (`js/filters/unmark/mosaic.js`: correlación del mapa de trazos; sólo se rellenan los píxeles que se repiten). En «Editar en lote» la misma marca se aplica a fotos de otro tamaño en proporción, y las zonas de mosaico se guardan en la capa.
+- **Banco de medida** (`npm run test:unmark`, `tests/unmark/`): 20 escenas sintéticas × 4 tipos de marca, con PSNR y SSIM dentro de la marca frente a la foto limpia. Antes → después: texto 80 → 100 % recuperado, PSNR 28,3 → 31,0 dB; esquina 56 → 94 %, 17,0 → 27,9 dB; sello de fecha 66 → 76 %, 25,7 → 28,7 dB; mosaico 66 → 99 %, 22,4 → 27,7 dB. En fotos sin marca no inventa ningún mosaico (0/20).
+- **Archivo › Abrir vídeo…** y arrastrar un vídeo a la ventana abren el editor de vídeo.
+- Esta compilación sube el contador para que los usuarios vean el botón «Actualizar» (la detección compara la compilación de `version.json`).
+
+### Abrir vídeo desde el inicio (compilación 317)
 - La pantalla de inicio (sin documento) tiene el botón **Abrir vídeo**, junto a Abrir imagen, Hacer foto, etc., en móvil y escritorio. «Importar vídeo…» del menú Vídeo abre ahora el selector en el mismo toque (en iPhone el navegador lo bloqueaba al cargar antes el editor). Prueba: `tests/video/inicio.mjs`.
 
 ### 2.0.0 (compilación 317) · Realify, editor completo con IA local

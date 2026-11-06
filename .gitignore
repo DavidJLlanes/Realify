@@ -32,3 +32,4 @@ tools/verify/baseline/screens/actual-*.png
 
 # Modelos de entrada sin procesar (se convierten con tools/models/convertir-personas.py; no se suben)
 assets/models/_entrada/
+tests/unmark/salida/

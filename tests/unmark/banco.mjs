@@ -12,6 +12,11 @@ const res = await page.evaluate(async guardar => {
   const filas = [], muestras = [];
   for(let i = 0; i < E.N_ESCENAS; i++){
     const limpio = E.escena(i), ld = limpio.getContext("2d").getImageData(0, 0, E.W, E.H);
+    { /* Control: foto sin marca. Cuenta cuántas regiones «inventa» el detector y cuánto de la foto tocaría. */
+      const det = D.detectMarks(limpio, { sens: 60, zones: "all", minsize: 20, maxsize: 40 }), m = D.fullMaskFromDetection(det, new Set(det.regions.map(r => r.id)), E.W, E.H);
+      let t = 0; for(let q = 0; q < m.length; q++) if(m[q]) t++;
+      filas.push({ i, tipo: "limpia", recup: 0, sobra: t / m.length, regiones: det.regions.length, mosaico: det.regions.some(r => r.kind === "mosaico") ? 1 : 0, psnr0: 0, psnr1: 0, ssim0: 0, ssim1: 0 });
+    }
     for(const tipo of E.TIPOS){
       const { canvas, verdad } = E.marcar(limpio, tipo, i), md = canvas.getContext("2d").getImageData(0, 0, E.W, E.H);
       const det = D.detectMarks(canvas, { sens: 60, zones: "all", minsize: 20, maxsize: 40 });
@@ -29,6 +34,7 @@ await cerrar();
 const med = (a, f) => a.length ? a.reduce((s, x) => s + f(x), 0) / a.length : 0;
 console.log("tipo       recup  sobra  PSNR antes→después   SSIM antes→después");
 const por = {};
+{ const f = res.filas.filter(x => x.tipo === "limpia"); console.log(`limpia (control): regiones falsas ${med(f, x => x.regiones).toFixed(1)} de media · foto tocada ${(100 * med(f, x => x.sobra)).toFixed(1)} % · mosaicos falsos ${f.reduce((s, x) => s + x.mosaico, 0)}/${f.length}`); }
 for (const t of ["texto", "esquina", "fecha", "mosaico"]) {
   const f = res.filas.filter(x => x.tipo === t); por[t] = { recup: med(f, x => x.recup), psnr: med(f, x => x.psnr1), ssim: med(f, x => x.ssim1) };
   console.log(t.padEnd(10), (100 * por[t].recup).toFixed(0).padStart(4) + "%", (100 * med(f, x => x.sobra)).toFixed(0).padStart(5) + "%", med(f, x => x.psnr0).toFixed(1).padStart(8), "→", por[t].psnr.toFixed(1).padEnd(8), med(f, x => x.ssim0).toFixed(3), "→", por[t].ssim.toFixed(3));

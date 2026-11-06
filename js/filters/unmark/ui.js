@@ -291,7 +291,11 @@ async function renderHeadless(src, params){
   const st = normalizeState(params?.state);
   st.solo = null;
   const eff = effectiveStages(st);
-  const regions = (params?.regions || []).map((r, i) => ({ ...r, id: i, label: "" }));
+  /* Las zonas se guardan en píxeles de la foto de referencia (refW×refH); en otra foto (Editar en lote: «la misma marca») se escalan en proporción. */
+  const regions = (params?.regions || []).map((r, i) => {
+    const kx = r.refW ? src.width / r.refW : 1, ky = r.refH ? src.height / r.refH : 1;
+    return { ...r, id: i, label: "", x: Math.round(r.x * kx), y: Math.round(r.y * ky), w: Math.max(1, Math.round(r.w * kx)), h: Math.max(1, Math.round(r.h * ky)) };
+  });
   const ctx = regions.length
     ? { detection: { regions, fullW: src.width, fullH: src.height }, chosenIds: new Set(regions.map(r => r.id)) }
     : {};
@@ -381,7 +385,7 @@ export async function openUnmark(opts = {}){
 
   const params = { state: { stages: filterState.stages, seed: filterState.seed, dose: filterState.dose },
                    regions: S.detection ? S.detection.regions.filter(r => S.chosen.has(r.id))
-                     .map(r => ({ x: r.x, y: r.y, w: r.w, h: r.h, score: r.score })) : [] };
+                     .map(r => ({ x: r.x, y: r.y, w: r.w, h: r.h, score: r.score, refW: S.detection.fullW, refH: S.detection.fullH, ...(r.rle ? { kind: r.kind, rle: r.rle, mw: r.mw, mh: r.mh } : {}) })) : [] };
   const after = result.canvas;
   commitFilter({ base: sourceLayer, edit: editing ? layer : null, result: after,
                  title: "Unmark", filter: FILTER_ID, params });

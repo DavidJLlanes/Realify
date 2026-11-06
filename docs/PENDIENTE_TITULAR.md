@@ -38,3 +38,4 @@ Basta con una carpeta y `REALIFY_FOTOS=carpeta node tests/ia/reales/<prueba>.mjs
 - Juicio visual: si el recoloreado, el grano, la colocación del texto y los estilos «se ven bien».
 - **F16.1 · textos públicos:** revisar `docs/PRESENTACION_PROPUESTA.md` y decirme si los aplico a `index.html`, `manifest.webmanifest` y «Acerca de».
 - **Despliegue 2.0.0 (v317):** hacer `git pull` en el VPS y probar en móvil y escritorio, incluida la web sin conexión tras la primera visita.
+- **F11.7 · revisión visual de Unmark:** ejecuta `npm run test:unmark -- --guardar` o mira `tests/unmark/salida/` (original · con marca · resultado) y dime si el resultado te convence.
