@@ -65,8 +65,8 @@ export function abrirEditor(){
   let contenedor = "mp4", ajustes = { bitrate: null, audioBitrate: 128000, sonido: true };
 
   /* ── Acciones ── */
-  async function anadir(){
-    const archivos = await pickFiles({ accept: "video/*,.mp4,.mov,.webm,.mkv,.m4v", gallery: false, multiple: true }); if(!archivos.length) return;
+  async function anadir(elegidos){
+    const archivos = Array.isArray(elegidos) ? elegidos : await pickFiles({ accept: "video/*,.mp4,.mov,.webm,.mkv,.m4v", gallery: false, multiple: true }); if(!archivos.length) return;
     for(const f of archivos){
       sh.setBusy(`Abriendo ${f.name}…`);
       try{

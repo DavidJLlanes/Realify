@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### Sin versión nueva · Abrir vídeo desde el inicio
+- La pantalla de inicio (sin documento) tiene el botón **Abrir vídeo**, junto a Abrir imagen, Hacer foto, etc., en móvil y escritorio. «Importar vídeo…» del menú Vídeo abre ahora el selector en el mismo toque (en iPhone el navegador lo bloqueaba al cargar antes el editor). Prueba: `tests/video/inicio.mjs`.
+
 ### 2.0.0 (compilación 317) · Realify, editor completo con IA local
 - Cierre del plan «editor completo con IA local»: fotos (más de 70 funciones de IA en 13 submenús), asistente, biblioteca y lotes, y editor de vídeo.
 - README, `docs/FUNCIONALIDADES.md`, nuevo `docs/FUNCIONES_IA.md` (generado desde los manifiestos con `tools/docs/funciones-ia.mjs`), atribuciones y `docs/MODELOS.md` al día; lista de modelos no comerciales con su sustituto previsto.
