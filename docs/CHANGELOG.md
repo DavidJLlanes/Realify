@@ -9,6 +9,23 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 327) · Arreglos de la lista de errores del 8 nov
+- **Capas**: se pueden reordenar. Botones ↑ / ↓ en el panel Capas (también en la barra del móvil a pantalla completa) y un asa «⠿» en cada fila para arrastrar con ratón o dedo; un arrastre es un solo paso de historial (`js/ui/layers-reorder.js`, `moveLayerOrGroup(id, pasos)`).
+- **Motor de IA**: un fallo fatal de WebAssembly («unreachable») ya no deja inservibles todos los modelos hasta recargar (Ojeras, Restaurar caras, Ropa…): se reinicia el motor y el modelo pasa a CPU. Un vigilante reinicia el motor si lleva 6 minutos sin decir nada (Borrado ligero «trabajando» durante horas) y la barra de progreso superior ya no se queda a medias.
+- **Esponja** (nueva herramienta en la barra lateral, junto a Exponer): desaturar o saturar pintando, sin tocar la luz; sustituye a los modos «S+/S−» escondidos y flojos de Exponer.
+- **Buscador global «Buscar herramienta»**: campo en la barra de menús de escritorio, tras Ayuda (también Ctrl+K), que busca en todos los menús y herramientas con su ruta. En el cajón del móvil el buscador ya no se limita a la pestaña activa: busca en todas y en todos los menús (`js/ui/search-all.js`).
+- **Packs de cámara**: editor a pantalla completa (móvil y escritorio) con vista previa en vivo (`plugins/camera-packs/`).
+- **Quitar artefactos JPEG / Reducción de ruido con IA**: vista previa en el centro de la foto mientras el diálogo está abierto.
+- **Separar planos**: cada capa es ahora el recorte de su plano (máscara por plano sobre lo no cubierto por las de encima); sin tocarlas, la foto recompuesta es idéntica.
+- **Zonas lisas**: el grano se mide en valores de pantalla y se pasa a luz lineal (antes reventaba las sombras) y se aplica a la resolución real, no a la reducida.
+- **Moiré y bandas**: se procesa a la resolución real (hasta 6000 px en escritorio, 3200 en móvil) en vez de a la reducida.
+- **Piel del cuerpo**: suavizado, uniformado y bronceado entre 2 y 3 veces más fuertes.
+- **Iluminar con IA**: las curvas de los tres canales se mezclan con su media para no teñir la foto (cielos nocturnos morados).
+- **Colorear con IA**: si el modelo elegido falla (los «fp16» necesitan WebGPU con f16) prueba los demás en vez de no aplicar nada.
+- **Viñeteado del revelado**: hasta 2,8 EV en la esquina (antes 0,8 EV); **Motor RAW** se oculta cuando se revela una foto que no es RAW, donde no tenía nada que decodificar.
+- **Unmark**: el preset «Equilibrado» comprime y remuestrea mucho menos (la foto no sale borrosa); nuevo método de relleno «IA» (LaMa en ordenador, MI-GAN en móvil) y, si falla, vuelve al híbrido.
+- Pruebas nuevas: `tests/ia/capas/reordenar.mjs`, `tests/ia/buscador.mjs`; actualizadas `tests/ia/estilo/editor.mjs`.
+
 ### 2.1.0 (compilación 326) · Aviso de «sólo en ordenador»
 - Lo que un móvil no puede ejecutar ya no falla en silencio con un aviso rojo que desaparece: el Asistente con el motor «IA · Qwen» y el Texto alternativo con «Florence-2» enseñan un diálogo («sólo funciona en un ordenador…», `js/features/ai-kit/aviso-host.js`) y siguen con las reglas o las plantillas. Las opciones llevan «sólo ordenador» en su nombre. Prueba: `tests/ia/asistente/aviso-ordenador.mjs`.
 

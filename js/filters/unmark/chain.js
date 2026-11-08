@@ -82,10 +82,11 @@ export const CHAIN = [
   },
   {
     id:"inpaint", sec:"visible", name:"Relleno de la zona", on:true,
-    note:"Cómo se rellena lo marcado. «Híbrido» resuelve primero la estructura suave del fondo por difusión y le devuelve encima la textura fina copiada de un parche vecino: es el que mejor queda casi siempre. «Difusión» sólo suaviza (cielos, degradados, fondos lisos). «Parche» copia un trozo vecino entero (texturas repetitivas).",
+    note:"Cómo se rellena lo marcado. «IA» usa un modelo de relleno (LaMa en ordenador, MI-GAN en móvil; descarga el modelo al aplicar) y sirve para fondos con objetos o estructura; en la vista previa se usa el híbrido. «Híbrido» resuelve primero la estructura suave del fondo por difusión y le devuelve encima la textura fina copiada de un parche vecino: es el que mejor queda casi siempre. «Difusión» sólo suaviza (cielos, degradados, fondos lisos). «Parche» copia un trozo vecino entero (texturas repetitivas).",
     params:[
       {k:"method",  label:"Método", type:"choice", mode:"keep", v:"hybrid",
        options:[
+         {v:"hybrid",        label:"IA (fondos con estructura)"},
          {v:"hybrid",    label:"Híbrido (estructura + textura)"},
          {v:"diffusion", label:"Difusión (fondos lisos)"},
          {v:"patch",     label:"Parche vecino (texturas)"}

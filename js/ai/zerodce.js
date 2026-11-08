@@ -143,15 +143,18 @@ function enhance(W, d, w, h, p){
   const R = new Float32Array(n), G = new Float32Array(n), B = new Float32Array(n), gain = new Float32Array(n), out = [R, G, B];
   for(let i = 0, j = 0; i < n; i++, j += 4){
     let yin = 0, yout = 0;
+    /* Las curvas salen distintas por canal y, sin domarlas, tiñen la foto (azul/morado en los cielos nocturnos): se mezclan con su media
+       para que el tono se conserve y sólo cambie la luz. */
+    const am = (ch[0][i] + ch[1][i] + ch[2][i]) / 3;
     for(let c = 0; c < 3; c++){
-      let v = d[j + c] / 255; const a = Math.max(-1, Math.min(1, ch[c][i] * k));
+      let v = d[j + c] / 255; const a = Math.max(-1, Math.min(1, (am * 0.8 + ch[c][i] * 0.2) * k));
       for(let t = 0; t < 8; t++) v = v + a * (v * v - v);
       const li = toLin(d[j + c] / 255), lo = toLin(Math.min(1, Math.max(0, v)));
       out[c][i] = lo; const wgt = c === 0 ? 0.2126 : c === 1 ? 0.7152 : 0.0722; yin += wgt * li; yout += wgt * lo;
     }
     gain[i] = Math.min(30, Math.max(1, yout / Math.max(1e-4, yin)));
   }
-  finishLifted(d, w, h, R, G, B, gain, { lumaDenoise: 0.7 });
+  finishLifted(d, w, h, R, G, B, gain, { lumaDenoise: 0.9 });
 }
 
 export async function aiLowLight(opts = {}){

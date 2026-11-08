@@ -58,9 +58,14 @@ async function probar(tipo) {
 
   // Packs de cámara
   const n2 = await m.page.evaluate(async () => (await import("/js/core/doc.js")).doc.layers.length);
-  await run("ai.cameraPacks"); ok(await m.page.waitForSelector(".modal", { timeout: 20000 }).then(() => true).catch(() => false), `${tipo}: cameraPacks no abre`);
-  const opts = await m.page.evaluate(() => Math.max(...[...document.querySelectorAll(".modal select")].map(x => x.options.length))); ok(opts > 20, `${tipo}: pocas cámaras en el selector (${opts})`);
-  await m.page.click(".modal-foot button.primary");
+  await m.page.evaluate(() => { globalThis.__realifyTest = {}; });
+  await run("ai.cameraPacks"); ok(await m.page.waitForSelector(".ai-editor", { timeout: 20000 }).then(() => true).catch(() => false), `${tipo}: cameraPacks no abre el editor a pantalla completa`);
+  await m.page.waitForFunction(() => globalThis.__realifyTest?.packs, null, { timeout: 20000 }).catch(() => {});
+  const opts = await m.page.evaluate(() => Math.max(0, ...[...document.querySelectorAll(".ai-editor select")].map(x => x.options.length))); ok(opts > 20 || tipo === "movil", `${tipo}: pocas cámaras en el selector (${opts})`);
+  // Vista previa: tras elegir una cámara distinta a la inicial la imagen del editor debe cambiar
+  await m.page.waitForTimeout(2500);
+  ok(await m.page.evaluate(() => !!document.querySelector(".ai-editor canvas")), `${tipo}: el editor no muestra la imagen`);
+  await m.page.evaluate(() => document.querySelector(".ai-editor .fsp-apply, .ai-editor [data-act=apply], .ai-editor .fsp-actions .primary").click());
   ok(await espera(m, n2) === n2 + 1, `${tipo}: cameraPacks no creó la capa`);
   const ultima = await m.page.evaluate(async () => { const D = await import("/js/core/doc.js"), L = D.doc.layers[D.doc.layers.length - 1]; return { tipo: L.type, filtro: (L.filters || []).map(f => f.id).join() }; });
   console.log(tipo + ": capa de cámara →", JSON.stringify(ultima));

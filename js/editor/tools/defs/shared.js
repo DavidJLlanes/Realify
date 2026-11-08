@@ -129,6 +129,7 @@ export const state = {
   cloneSrc: null,
   cloneOffset: null,
   exposeMode: "dodge",
+  spongeMode: "desat",
   exposeRange: "mid",
   strength: 50,
   /* Dodge & Burn no destructivo: pinta blanco o negro puro sobre una

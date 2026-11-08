@@ -94,7 +94,7 @@ export function renderPhoto(source, settings, { preview = false, region = null }
     const gamut=Math.min(1,hi>0?(1-l)/hi:1,lo<0?-l/lo:1);
     r=l+(r-l)*gamut;g=l+(g-l)*gamut;b=l+(b-l)*gamut;
     const dx=(gx-sw/2)/(max/2), dy=(gy-sh/2)/(max/2), edge=Math.min(1, dx*dx+dy*dy);
-    const vig=2**(-(settings.vignette-settings.lensVignette)/100*edge*edge*.8);
+    const vig=2**(-(settings.vignette-settings.lensVignette)/100*Math.pow(edge,1.3)*2.8);   // paso a paso (EV) en la esquina: −100 = 2,8 EV; igual que el sombreador de gpu-preview.js
     const n=grainAt(gx,gy)*settings.grain/100*.035*(1-l*l)*255;
     data[i]=clamp(linearToSrgb(Math.max(0,r*vig))+n);data[i+1]=clamp(linearToSrgb(Math.max(0,g*vig))+n);data[i+2]=clamp(linearToSrgb(Math.max(0,b*vig))+n);data[i+3]=linear?255:input[i+3];
   }

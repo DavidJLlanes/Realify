@@ -232,7 +232,7 @@ export function duplicateGroup(groupId){
    de la que depende el panel—. Sustituye a doc.js#moveLayer para
    cualquier documento que tenga grupos; para uno sin ninguno, el
    resultado es idéntico a un intercambio simple. */
-export function moveLayerOrGroup(id, delta){
+function intercambiar(id, delta){
   const target = doc.layers.find(l => l.id === id);
   if(!target) return false;
   const siblings = doc.layers.filter(l => l.groupId === target.groupId);
@@ -250,10 +250,18 @@ export function moveLayerOrGroup(id, delta){
   // De abajo a arriba: moverse "hacia arriba" (delta>0) pone el
   // vecino que estaba encima a quedar debajo del bloque que se mueve.
   const newOrder = delta > 0 ? [...blockB, ...blockA] : [...blockA, ...blockB];
-
-  const before = doc.layers.slice();
   doc.layers.splice(lo, hi - lo + 1, ...newOrder);
+  return true;
+}
 
+/* Mueve `pasos` puestos (positivo = hacia arriba) con UNA sola entrada
+   de historial. Lo usan los botones ↑/↓ (1 paso) y el arrastre del panel. */
+export function moveLayerOrGroup(id, pasos){
+  const before = doc.layers.slice();
+  const dir = Math.sign(pasos);
+  let hechos = 0;
+  for(let n = Math.abs(pasos); n > 0 && intercambiar(id, dir); n--) hechos++;
+  if(!hechos) return false;
   const after = doc.layers.slice();
   record("Reordenar capas",
     () => { doc.layers = before; emit("doc:structure"); emit("doc:change"); },

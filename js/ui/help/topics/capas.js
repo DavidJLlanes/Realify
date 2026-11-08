@@ -9,7 +9,9 @@ export const capasTopic = { id:"capas", title:"Capas (menú Capa)",
       <h3>Capas (menú Capa)</h3>
       <ul>
         <li><b>Nueva capa, Duplicar, Eliminar, Subir, Bajar.</b> La gestión básica de la
-          pila; el orden en el panel de Capas es el orden en el que se dibujan.</li>
+          pila; el orden en el panel de Capas es el orden en el que se dibujan. Para cambiar el orden
+          también están los botones ↑ / ↓ del panel y el asa «⠿» de cada fila: arrástrala con
+          el ratón o el dedo y suéltala donde quieras (un solo paso de deshacer).</li>
         <li><b>Capa de ajuste…</b> Un Brillo/contraste, Niveles, Curvas… que vive en su
           propia capa y se puede reeditar o apagar después, en vez de aplicarse
           directamente y quedar fijo. Casi todos los ajustes de este menú ya crean su

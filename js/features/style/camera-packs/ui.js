@@ -1,8 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
    PACKS DE CÁMARA · INTERFAZ
-   Sólo declara el panel (ai-kit/simple-host.js lo monta). Entradas: los mandos con sus opciones. Salida: la configuración del panel.
+   Declara los grupos del editor a pantalla completa (plugins/camera-packs/, montado sobre js/ui/kit/ai-editor/). Entradas: ninguna. Salida: GRUPOS.
    ═══════════════════════════════════════════════════════════════ */
-import { PARAMS } from "./params.js";
-
-/** `opciones` sustituye las opciones de los mandos de tipo lista que se conocen al abrir (clave → [[valor, texto]…]). */
-export const panel = (opciones = {}) => ({ title: "Packs de cámara", subtitle: "Premium 👑", applyLabel: "Aplicar", params: PARAMS.map(p => opciones[p.key] ? { ...p, options: opciones[p.key], def: opciones[p.key][0][0] } : p) });
+export const GRUPOS = [{ id: "camara", label: "Cámara" }];

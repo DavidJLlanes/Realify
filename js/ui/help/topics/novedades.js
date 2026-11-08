@@ -8,6 +8,7 @@ export const novedadesTopic = { id:"novedades", title:"Novedades",
     html:`
       <h3>Novedades</h3>
       <ul class="guide-news">
+        <li><a data-go="pintura#tool-sponge">Esponja</a> (barra lateral): desatura o satura pintando. <a data-go="capas">Reordenar capas</a> con ↑ ↓ o arrastrando el asa «⠿». Campo «Buscar herramienta» en la barra de menús (Ctrl+K) que busca en toda la web.</li>
         <li><a data-go="video#video-editor">Editor de vídeo 👑</a> (menú Vídeo): línea de tiempo, recortar y dividir, velocidad y
           volumen, <a data-go="video#video-efectos">efectos</a> (sensor de Realify, color, cámaras, fondo con IA, estabilizar) y
           <a data-go="video#video-salida">exportar a MP4 o WebM</a> con presets para redes. Todo en tu dispositivo.</li>

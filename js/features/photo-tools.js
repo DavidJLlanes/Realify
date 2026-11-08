@@ -79,14 +79,38 @@ async function aiRestore(id){
   }
   const { sizeNote, runModel } = await import("../ai/runtime.js");
   const note = await sizeNote(id);
-  const body = await settingsDialog(cfg.title, `
-    <p class="hint">${cfg.hint}</p>
-    ${id === "fbcnn" ? sliderRow("aiStrength", "Intensidad", 0, 100, 50, "%") : ""}
-    <p class="hint">Modelo: ${id === "scunet" ? "SCUNet" : "FBCNN"} (${note}). Se procesa en este equipo.</p>`);
-  if(!body) return;
-  const strength = id === "fbcnn" ? +body.querySelector("#aiStrength").value : 0;
   const before = canvasCopy(layer.canvas);
   const w = layer.canvas.width, h = layer.canvas.height;
+  /* Vista previa: el modelo es lento para hacerlo en vivo sobre toda la foto, así que se procesa un recorte (512 px) del centro de la capa y se
+     pinta sobre ella mientras el diálogo está abierto; al cancelar se devuelve la capa a su estado y al aplicar se procesa la foto entera. */
+  const cw = Math.min(w, 512), ch = Math.min(h, 512), cx = (w - cw) >> 1, cy = (h - ch) >> 1;
+  let ver = 0;
+  const previsualizar = async fuerza => {
+    const mi = ++ver, rg = before.getContext("2d").getImageData(cx, cy, cw, ch).data;
+    try{
+      const r = await runModel("restore", id, { rgba: rg, w: cw, h: ch, strength: fuerza }, [rg.buffer], { quiet: true });
+      if(mi !== ver) return;
+      layer.ctx.putImageData(new ImageData(r.rgba, cw, ch), cx, cy); layer.thumbDirty = true; emit("doc:change");
+    }catch(err){ if(mi === ver) toast("Vista previa: " + (err.message || err), "err"); }
+  };
+  const body = document.createElement("div");
+  body.innerHTML = `
+    <p class="hint">${cfg.hint}</p>
+    ${id === "fbcnn" ? sliderRow("aiStrength", "Intensidad", 0, 100, 50, "%") : ""}
+    <p class="hint">Modelo: ${id === "scunet" ? "SCUNet" : "FBCNN"} (${note}). Vista previa en el centro de la foto; se procesa en este equipo.</p>`;
+  let timer = 0;
+  const fuerzaAhora = () => id === "fbcnn" ? +body.querySelector("#aiStrength").value : 0;
+  const r = await dialog({ title: cfg.title, body, cls: isMobile() ? "dlg-compact" : "",
+    buttons: [{ label: "Cancelar", value: null }, { label: "Aplicar", primary: true, value: "go" }],
+    onOpen: () => {
+      wireCommon(body);
+      body.querySelector("#aiStrength")?.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => previsualizar(fuerzaAhora()), 500); });
+      previsualizar(fuerzaAhora());
+    } });
+  clearTimeout(timer); ver++;
+  restore(layer, before);
+  if(r !== "go") return;
+  const strength = fuerzaAhora();
   const rgba = layer.ctx.getImageData(0, 0, w, h).data;
   let res;
   try{ res = await runModel("restore", id, { rgba, w, h, strength }, [rgba.buffer]); }

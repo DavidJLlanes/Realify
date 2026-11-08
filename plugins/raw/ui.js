@@ -1,4 +1,4 @@
-import { GROUPS, CONTROLS, control, controlsFor as allControlsFor, normalize, valueText } from "./state.js";
+import { GROUPS as TODOS_LOS_GRUPOS, CONTROLS, control, controlsFor as allControlsFor, normalize, valueText } from "./state.js";
 import { p3Supported } from "../../js/core/colorspace.js";
 // «Espacio de color» (sólo Premium, sólo al revelar un RAW) sólo se ofrece si el navegador trabaja con lienzos Display P3
 let offerSpace = false;
@@ -29,6 +29,8 @@ const metaLine = metadata => {
 };
 
 export function openDeveloper({ title="Revelado fotográfico", source, metadata=null, initial=null, onAccept, onClose=null, onSettingChange=null, outputSize=null, acceptLabel="Abrir en Realify", fileName="revelado", hiSrc=null }) {
+  // «Motor RAW» (LibRaw) sólo existe al revelar un archivo RAW: sobre una foto ya revelada no hay nada que decodificar de nuevo.
+  const GROUPS = onSettingChange ? TODOS_LOS_GRUPOS : TODOS_LOS_GRUPOS.filter(([key]) => key !== "motor");
   offerSpace = p3Supported() && isLinearSource(source);
   const state=normalize(initial), initialState=structuredClone(state), history=[], future=[];
   let workingSource=source, engineTimer=0, engineVersion=0, engineBusy=false, enginePending=null;

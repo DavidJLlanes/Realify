@@ -81,11 +81,11 @@ export const PRESETS = {
     ...OFF,
     detect:{on:true}, inpaint:{on:true, method:"hybrid"},
     geometry:{on:true, rot:30, crop:15, shift:50, aniso:20},
-    resample:{on:true, amt:30, mix:70},
+    resample:{on:true, amt:15, mix:85},
     dwt:{on:true, ll:40, hf:35}, dct:{on:true, amt:40},
-    blursharp:{on:true, blur:30, sharp:40},
+    blursharp:{on:true, blur:20, sharp:45},
     noise:{on:true, lum:30, chr:15}, lsb:{on:true},
-    jpeg:{on:true, q:78, gens:15, jitter:30},
+    jpeg:{on:true, q:90, gens:4, jitter:20},
     policy:{on:true, mode:"clean"}
   },
   "Suave (casi sin cambio visible)": {

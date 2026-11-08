@@ -247,6 +247,8 @@ export function initMenu(){
     roots.appendChild(b);
   });
 
+  import("./search-all.js").then(m => m.initBuscador());   // campo «Buscar herramienta», tras Ayuda
+
   // Menú único para móvil
   const mBtn = document.getElementById("mMenu");
   mBtn.addEventListener("click", e => { e.stopPropagation(); openMobileMenu(mBtn); });

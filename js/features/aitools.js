@@ -98,17 +98,27 @@ export async function aiColorize(){
     <p class="hint" style="margin:4px 0 0">Para fotos en blanco y negro o viradas. El color va a una capa nueva; la nitidez es la de tu foto.</p>`,
     b => b.querySelector("#coS").addEventListener("input", e => { b.querySelector("#coSV").textContent = e.target.value + " %"; }));
   if(!body) return;
-  const id = body.querySelector("#coM").value, strength = +body.querySelector("#coS").value / 100;
-  try{ localStorage.setItem("realify.colorizer", id); }catch{}
+  const elegido = body.querySelector("#coM").value, strength = +body.querySelector("#coS").value / 100;
+  try{ localStorage.setItem("realify.colorizer", elegido); }catch{}
   const { MODELS } = await import("../ai/models.js");
+  /* Los modelos «fp16» (sponge, colorizer) sólo corren con WebGPU y la extensión shader-f16: en un PC sin ella fallaban sin más y no se
+     aplicaba nada. Se prueba primero el elegido y, si no sirve, los demás por orden (DDColor va en CPU). */
+  const { capacidadesGPU } = await import("../ai/gpu.js"), cap = await capacidadesGPU();
+  const orden = [elegido, ...COLORIZERS.map(c => c[0]).filter(v => v !== elegido)].filter(v => cap.f16 || !/fp16/.test(MODELS[v].url));
+  if(!orden.length){ failed("Colorear con IA", new Error("este navegador no admite WebGPU con f16 y el modelo sin ella no está disponible")); return; }
+  let id = orden[0];
   const full = flatten(), W = full.width, H = full.height;
   const { activeTab, switchTo } = await import("../editor/documents.js"), tabId = activeTab()?.tabId;
-  const side = MODELS[id].work || 1024, k = Math.min(1, side / Math.max(W, H));
-  const work = scaled(full, Math.max(8, Math.round(W * k)), Math.max(8, Math.round(H * k)));
-  const rgba = dataOf(work);
   try{
     const [{ runModel }, { rgbToLab, labToRgb }] = await Promise.all([import("../ai/runtime.js"), import("../ai/lab.js")]);
-    const r = await runModel("colorize", id, { rgba, w: work.width, h: work.height }, [rgba.buffer]);
+    let r = null, ultimo = null;
+    for(const cand of orden){
+      id = cand;
+      const k2 = Math.min(1, (MODELS[id].work || 1024) / Math.max(W, H)), wk = scaled(full, Math.max(8, Math.round(W * k2)), Math.max(8, Math.round(H * k2))), px = dataOf(wk);
+      try{ r = await runModel("colorize", id, { rgba: px, w: wk.width, h: wk.height }, [px.buffer]); break; }
+      catch(err){ if(err.cancelled) throw err; ultimo = err; toast(`${MODELS[id].label}: no se pudo (${err.message}). Pruebo con otro modelo…`); }
+    }
+    if(!r) throw ultimo || new Error("ningún modelo de color funcionó");
     // Color (a, b) ampliado bilinealmente sobre la luminancia original.
     const src = dataOf(full), out = new ImageData(W, H), d = out.data, ab = r.ab, w = r.w, h = r.h;
     for(let y = 0; y < H; y++){

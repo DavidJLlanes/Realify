@@ -52,7 +52,7 @@ const TOOL_LINKS = {
   transform: ["mover", "tool-transform"], perspective: ["mover", "tool-perspective"],
   brush: ["pintura", "tool-brush"], eraser: ["pintura", "tool-eraser"],
   clone: ["pintura", "tool-clone"], heal: ["pintura", "tool-heal"],
-  expose: ["pintura", "tool-expose"], dodgeburn: ["pintura", "tool-dodgeburn"],
+  expose: ["pintura", "tool-expose"], sponge: ["pintura", "tool-sponge"], dodgeburn: ["pintura", "tool-dodgeburn"],
   smudge: ["pintura", "tool-smudge"], liquify: ["pintura", "tool-liquify"],
   historyBrush: ["pintura", "tool-historyBrush"],
   "select-rect": ["seleccion", "tool-select-rect"], "select-ellipse": ["seleccion", "tool-select-rect"],

@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-06T15:44:51.769Z",
+ "generated": "2026-11-08T20:23:28.554Z",
  "root": "/home/claude/realify",
- "jsFiles": 1148,
- "jsLines": 110711,
+ "jsFiles": 1158,
+ "jsLines": 111294,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -45,6 +45,7 @@
    "realify.fillEngine",
    "realify.fonts",
    "realify.googleFonts.custom",
+   "realify.gpuOff",
    "realify.grid",
    "realify.gridConfig",
    "realify.gridSnap",
@@ -480,6 +481,7 @@
   "realify.exif",
   "realify.fillEngine",
   "realify.fonts",
+  "realify.gpuOff",
   "realify.grid",
   "realify.gridConfig",
   "realify.gridSnap",
@@ -642,6 +644,9 @@
   "js/ai/florence.js": [
    "ORDENES",
    "describirFoto"
+  ],
+  "js/ai/gpu.js": [
+   "capacidadesGPU"
   ],
   "js/ai/lab.js": [
    "labToRgb",
@@ -1875,6 +1880,7 @@
    "historyBrushTool",
    "smudgeTool",
    "spacedSteps",
+   "spongeTool",
    "stampGradient"
   ],
   "js/editor/tools/defs/retouch.js": [
@@ -1952,7 +1958,8 @@
    "floodFill",
    "healSpot",
    "hexToRgb",
-   "makeSmudge"
+   "makeSmudge",
+   "sponge"
   ],
   "js/editor/tools/patchmatch.js": [
    "computeNNF",
@@ -2216,6 +2223,9 @@
    "playAction",
    "startRecording",
    "stopRecording"
+  ],
+  "js/features/ai-kit/aviso-host.js": [
+   "avisoSoloOrdenador"
   ],
   "js/features/ai-kit/crop-compose.js": [
    "pegarRecorte"
@@ -3635,7 +3645,7 @@
    "PARAMS"
   ],
   "js/features/style/camera-packs/ui.js": [
-   "panel"
+   "GRUPOS"
   ],
   "js/features/style/engine/transferir.js": [
    "ZONAS",
@@ -4018,8 +4028,13 @@
    "previewRects",
    "process"
   ],
+  "js/filters/unmark/inpaint-ia.js": [
+   "inpaintIA"
+  ],
   "js/filters/unmark/inpaint.js": [
+   "boundsOf",
    "dilateMask",
+   "featherBlend",
    "inpaint",
    "maskToCanvas"
   ],
@@ -4539,6 +4554,9 @@
   "js/ui/landscape.js": [
    "initLandscapeNotice"
   ],
+  "js/ui/layers-reorder.js": [
+   "initReorder"
+  ],
   "js/ui/menu/data.js": [
    "MENUS"
   ],
@@ -4619,6 +4637,11 @@
    "initProperties",
    "renderProperties"
   ],
+  "js/ui/search-all.js": [
+   "buscarTodo",
+   "initBuscador",
+   "lanzar"
+  ],
   "js/ui/tooldrawer-icons.js": [
    "ICONS"
   ],
@@ -4673,6 +4696,12 @@
    "hayDefinicion",
    "pintarVista",
    "prepararPersona"
+  ],
+  "plugins/camera-packs/editor.js": [
+   "abrirEditorPacks"
+  ],
+  "plugins/camera-packs/index.js": [
+   "openCameraPacks"
   ],
   "plugins/cameras/engine.js": [
    "CamarasGL",
@@ -5520,27 +5549,27 @@
  },
  "dirEdges": {
   "js/editor -> js/core": 265,
-  "js/features -> js/core": 114,
-  "plugins -> js/core": 111,
+  "plugins -> js/core": 113,
+  "js/features -> js/core": 112,
   "js/app -> js/editor": 97,
-  "plugins -> js/features": 69,
+  "plugins -> js/features": 72,
   "js/io -> js/core": 66,
-  "js/features -> js/ai": 61,
-  "js/features -> js/editor": 58,
-  "js/ui -> js/core": 52,
+  "js/features -> js/ai": 63,
+  "js/features -> js/editor": 57,
+  "js/ui -> js/core": 55,
   "js/app -> js/core": 49,
   "js/ui -> js/features": 48,
   "js/filters -> js/core": 46,
-  "js/features -> js/ui": 41,
+  "js/features -> js/ui": 42,
+  "plugins -> js/ui": 40,
   "js/editor -> js/filters": 39,
-  "js/features -> plugins": 39,
   "js/filters -> js/editor": 39,
-  "plugins -> js/ui": 39,
   "js/app -> js/filters": 37,
+  "js/features -> plugins": 37,
+  "js/ui -> js/editor": 35,
   "js/app -> js/features": 34,
-  "js/ui -> js/editor": 33,
   "js/editor -> js/ui": 31,
-  "plugins -> js/editor": 29,
+  "plugins -> js/editor": 30,
   "js/main.js -> js/editor": 23,
   "plugins -> js/io": 21,
   "js/app -> js/ui": 20,
@@ -5563,10 +5592,10 @@
   "js/ai -> js/editor": 6,
   "js/exif -> js/core": 6,
   "js/ai -> js/core": 5,
+  "js/filters -> js/ai": 5,
   "plugins -> js/cv": 5,
   "js/editor -> plugins": 4,
   "js/filters -> js/exif": 4,
-  "js/filters -> js/ai": 4,
   "js/main.js -> js/io": 4,
   "js/pwa.js -> js/core": 4,
   "plugins -> js/filters": 4,

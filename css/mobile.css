@@ -105,7 +105,7 @@
   }
   #brand{padding:0 10px;border-right:0;margin-right:0}
   #brand small{display:none}
-  .menu-root{display:none}          /* los menús se pliegan en ☰ */
+  .menu-root,.gsearch{display:none}          /* los menús se pliegan en ☰ (el buscador vive en el cajón) */
   #mMenu{
     display:inline-flex;flex:none;
     background:transparent;border:0;border-radius:0;

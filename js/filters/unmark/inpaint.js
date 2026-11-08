@@ -24,7 +24,7 @@
 import { maskBoundary, subsample, findSource, fillContentAware } from "../../editor/tools/fillcontent.js";
 import { blurPlane, rng, gauss } from "./disrupt.js";
 
-function dilateMask(mask, w, h, r){
+export function dilateMask(mask, w, h, r){
   if(r <= 0) return mask;
   const tmp = new Uint8Array(w * h), out = new Uint8Array(w * h);
   for(let y = 0; y < h; y++){
@@ -44,7 +44,7 @@ function dilateMask(mask, w, h, r){
   return out;
 }
 
-function boundsOf(mask, w, h){
+export function boundsOf(mask, w, h){
   let x0 = w, y0 = h, x1 = -1, y1 = -1;
   for(let y = 0; y < h; y++){
     const row = y * w;
@@ -268,7 +268,7 @@ export function inpaint(img, mask, o){
 /* Fundido del borde: dentro de la máscara la mezcla sube de ~0,5 en
    el límite a 1 hacia dentro, sobre la franja que `expand` añadió; fuera
    no se toca nada. Así no vuelve a asomar la marca por el contorno. */
-function featherBlend(src, out, mask, w, h, bb, feather){
+export function featherBlend(src, out, mask, w, h, bb, feather){
   const r = Math.round(feather);
   if(r <= 0) return;
   const x0 = Math.max(0, bb.x - r - 1), y0 = Math.max(0, bb.y - r - 1);
@@ -306,4 +306,3 @@ export function maskToCanvas(mask, w, h){
   return c;
 }
 
-export { dilateMask };

@@ -26,6 +26,7 @@ import { VIDEO_ITEMS } from "./menu/video.js";
 import { ICONS } from "./tooldrawer-icons.js";
 import { crownIcon } from "./kit/premium.js";
 import { matchScore, searchable } from "../core/search.js";
+import { buscarTodo } from "./search-all.js";
 
 const CATS = [
   ["basicos",   "Básicos"],
@@ -233,6 +234,7 @@ const ITEMS = [
   { tool:"clone",       label:"Clonar",        cat:"retoque" },
   { tool:"camove",      label:"Mover por contenido", cat:"retoque" },
   { tool:"expose",      label:"Exponer",       cat:"retoque" },
+  { tool:"sponge",      label:"Esponja",       cat:"retoque pintar" },
   { tool:"smudge",      label:"Emborronar",    cat:"retoque pintar" },
   { cmd:"sel.fillContent", label:"Rellenar por contenido", ic:"sparkles", cat:"retoque" },
 
@@ -447,7 +449,8 @@ function itemsFor(c){
      busca en todo, porque quien busca algo concreto no tiene por qué
      saber que no es «básico». */
   if(c === "basicos" && !query.trim()) return BASICS.map(k => ITEMS.find(i => keyOf(i) === k)).filter(Boolean);
-  if(c === "basicos") c = "todos";
+  // Con algo escrito el buscador mira en TODAS las pestañas y, además, en todos los menús de la web.
+  if(query.trim()) c = "todos";
   const list = c === "todos" ? ITEMS.slice() : ITEMS.filter(i => i.cat.split(" ").includes(c));
   let auto = list.filter(i => i.auto), rest = list.filter(i => !i.auto);
   // Chip de submenú de IA (con algo escrito se busca en todos)
@@ -459,7 +462,14 @@ function itemsFor(c){
   if(c === "ia") rest.sort((a, b) => (iaOrder.get(a.cmd)?.i ?? 999) - (iaOrder.get(b.cmd)?.i ?? 999));
   if(!query.trim()) return [...auto, ...rest];
   const scored = [...auto, ...rest].map(it => [it, matchScore(query, searchTextOf(it))]).filter(([, s]) => s > 0);
-  return [...scored.filter(([, s]) => s === 2), ...scored.filter(([, s]) => s === 1)].map(([it]) => it);
+  const hallados = [...scored.filter(([, s]) => s === 2), ...scored.filter(([, s]) => s === 1)].map(([it]) => it);
+  // Lo que está en los menús pero no tiene botón propio en el cajón también se encuentra
+  const tengo = new Set(ITEMS.map(keyOf));
+  for(const e of buscarTodo(query)){
+    const k = e.cmd || e.tool; if(tengo.has(k)) continue;
+    hallados.push(e.tool ? { tool: e.tool, label: e.label, cat: "todos" } : { cmd: e.cmd, label: e.label, cat: "todos" });
+  }
+  return hallados;
 }
 
 /* Segunda fila de la pestaña IA: un chip por submenú del menú «Inteligencia Artificial» (mismo orden) y «Todo». */

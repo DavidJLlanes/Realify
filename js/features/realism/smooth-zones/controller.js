@@ -9,6 +9,7 @@ import { panel } from "./ui.js";
 export function ejecutar(){
   return ejecutarEscena({
     panel: panel(), nombre: "Zonas lisas",
+    lado: () => (matchMedia("(max-width:900px)").matches ? 3200 : 6000),   // el grano se añade a la resolución real: a escala reducida saldría borroso y grande
     datos: (src, prep) => { const z = mapaLiso(prep.planes); return z.cobertura < 0.003 ? { aviso: "No hay zonas demasiado lisas: la foto ya tiene textura." } : z; },
     motor: (p, z, v) => {
       if(!v.ver) return anadirGrano(p, z.liso, { fuerza: v.fuerza, tam: v.tam });

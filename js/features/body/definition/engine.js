@@ -27,18 +27,18 @@ export function stage(ctx, v){
   if(v.tono > 0)    gananciaPorLuz(ctx, 0.9 * v.tono / 20, Math.max(2, F * 0.05), 1, 1);
   if(v.musculo > 0) gananciaPorLuz(ctx, 0.9 * v.musculo / 20, Math.max(1.5, F * 0.018), 1.4, 0.5);
   if(v.pielSuavizar > 0){
-    const t = v.pielSuavizar / 100 * 0.7, r = gauss(R, W, H, Math.max(1.2, F * 0.012)), g = gauss(G, W, H, Math.max(1.2, F * 0.012)), b = gauss(B, W, H, Math.max(1.2, F * 0.012));
+    const sg = Math.max(1.6, F * 0.022), t = Math.min(1, v.pielSuavizar / 100 * 1.1), r = gauss(R, W, H, sg), g = gauss(G, W, H, sg), b = gauss(B, W, H, sg);   // a 100 % la piel queda casi lisa; la luz grande (volumen) se conserva
     for(let i = 0; i < n; i++){ const w = piel[i] * t; R[i] += (r[i] - R[i]) * w; G[i] += (g[i] - G[i]) * w; B[i] += (b[i] - B[i]) * w; }
   }
   if(v.pielUniformar > 0 || v.bronceado > 0){
     const lab = new Float32Array(3), a = new Float32Array(n), bb = new Float32Array(n), L = new Float32Array(n);
     for(let i = 0; i < n; i++){ oklab(R[i], G[i], B[i], lab); L[i] = lab[0]; a[i] = lab[1]; bb[i] = lab[2]; }
     const sa = v.pielUniformar > 0 ? gauss(a, W, H, Math.max(4, F * 0.15)) : a, sb = v.pielUniformar > 0 ? gauss(bb, W, H, Math.max(4, F * 0.15)) : bb;
-    const u = (v.pielUniformar || 0) / 100 * 0.8, br = (v.bronceado || 0) / 100, out = new Float32Array(3);
+    const u = Math.min(1, (v.pielUniformar || 0) / 100 * 1.0), br = (v.bronceado || 0) / 100, out = new Float32Array(3);
     for(let i = 0; i < n; i++){
       const w = piel[i]; if(w < 0.01) continue;
-      const A = a[i] + (sa[i] - a[i]) * u * w + 0.012 * br * w, Bv = bb[i] + (sb[i] - bb[i]) * u * w + 0.02 * br * w;
-      linear(L[i] * (1 - 0.1 * br * w), A, Bv, out);
+      const A = a[i] + (sa[i] - a[i]) * u * w + 0.03 * br * w, Bv = bb[i] + (sb[i] - bb[i]) * u * w + 0.05 * br * w;
+      linear(L[i] * (1 - 0.22 * br * w), A, Bv, out);
       R[i] = Math.max(0, out[0]); G[i] = Math.max(0, out[1]); B[i] = Math.max(0, out[2]);
     }
   }

@@ -189,28 +189,27 @@ export async function openDepthPlanes(){
     sections: [{ id: "p", label: "Planos", props: [
       { key: "n", label: "Número de planos", type: "seg", options: [[2, "2"], [3, "3"], [4, "4"]] },
       { key: "soft", label: "Transición", type: "range", min: 0, max: 40, unit: " %", def: 8 }
-    ], note: "Rojo = lo más cercano, azul y amarillo = lo más lejano. Cada capa lleva su máscara; con todas sin tocar, la foto queda igual." }],
+    ], note: "Rojo = lo más cercano, azul y amarillo = lo más lejano. Cada capa es el recorte de su plano; con todas sin tocar, la foto queda igual." }],
     get: k => S[k], set: (k, v) => { S[k] = k === "n" ? +v : v; render(); }
   });
   render();
 }
 
-/** Una capa por plano, de atrás adelante. Las máscaras son acumulativas
-    (cada capa se ve en su plano y en todos los más cercanos) y la de más
-    atrás no lleva máscara: la foto recompuesta es idéntica a la original. */
+/** Una capa por plano, de atrás adelante, y cada una SÓLO con lo suyo: la máscara de cada capa deja ver su plano y, en las transiciones,
+    la parte que no cubren ya las capas de encima (peso del plano ÷ lo que queda por cubrir desde ese plano hacia el fondo). Así cada
+    capa es un recorte de su plano —se puede mover o retocar sola— y, sin tocarlas, la foto recompuesta es idéntica a la original. */
 async function createPlanes(src, map, n, soft, previewDepth){
   const bounds = quantileBounds(previewDepth, n), names = PLANE_NAMES[n];
   const field = depthField(src, map), W = field.W, H = field.H;
   const masks = [];
-  for(let i = 0; i < n - 1; i++){
-    // Cuánto de este punto está en el plano i o en alguno más cercano
-    masks[i] = await fieldToArray(field, u => { const w = planeWeights(u, bounds, soft); let s = 0; for(let k = 0; k <= i; k++) s += w[k]; return s; });
+  for(let i = 0; i < n; i++){
+    masks[i] = await fieldToArray(field, u => { const w = planeWeights(u, bounds, soft); let resto = 0; for(let k = i; k < n; k++) resto += w[k]; return resto > 1e-3 ? w[i] / resto : 0; });
   }
   recordLayers("Separar planos", () => {
     for(let i = n - 1; i >= 0; i--){
       const l = addLayer({ name: names[i] });
       l.ctx.drawImage(src, 0, 0, l.canvas.width, l.canvas.height);
-      if(i < n - 1){ l.mask = makeMaskFromArray(masks[i], W, H); l.maskEnabled = true; }
+      l.mask = makeMaskFromArray(masks[i], W, H); l.maskEnabled = true;
       l.thumbDirty = true;
     }
   });

@@ -32,6 +32,7 @@ import { toast } from "../core/toast.js";
 import { toggleClip, toggleCollapsed } from "../editor/layers/groups.js";
 import { hasEnabledStyle, openLayerStyles } from "../editor/layers/layerstyles.js";
 import { initProperties } from "./properties.js";
+import { initReorder } from "./layers-reorder.js";
 import { fitAbove, fitInRect, view } from "../core/view.js";
 
 /* ── selección múltiple de capas ─────────────────────────────────
@@ -242,6 +243,8 @@ const fsTop = document.createElement("header");
 fsTop.id = "layersTop";
 fsTop.innerHTML = `<button type="button" data-lt="back" aria-label="Cerrar">✕</button>
   <b id="layersTopTitle">Capas</b>
+  <button type="button" data-lt-layer data-cmd="layer.up" aria-label="Subir capa">↑</button>
+  <button type="button" data-lt-layer data-cmd="layer.down" aria-label="Bajar capa">↓</button>
   <button type="button" data-lt-layer data-cmd="layer.add" aria-label="Nueva capa">＋</button>
   <button type="button" data-lt-layer data-cmd="layer.duplicate" aria-label="Duplicar capa">⧉</button>
   <button type="button" data-lt-layer data-cmd="layer.remove" aria-label="Eliminar capa">🗑</button>
@@ -320,6 +323,7 @@ function setFullscreen(open){
 
 /* ── panel de capas ── */
 const layerList = document.getElementById("layerList");
+initReorder(layerList);
 
 /* Profundidad de anidamiento de cada capa (0 = nivel superior) y qué
    ids quedan ocultos en el panel porque alguno de sus grupos
@@ -458,6 +462,7 @@ export function renderLayers(){
           ? `<div class="thumb adjust-thumb${imgOn ? " on" : ""}" data-img="1" title="Capa de ajuste">◐</div>`
           : `<div class="thumb${imgOn ? " on" : ""}" data-img="1" style="background-image:url(${layerThumb(l)})"></div>`}
        ${maskHtml}
+       <span class="grip" data-grip="1" title="Arrastrar para cambiar el orden" aria-label="Arrastrar para reordenar">⠿</span>
        <div class="meta">
          <div class="name">${escapeHtml(l.name)}</div>
          <div class="sub">${Math.round(l.opacity * 100)}%${l.filters.length ? " · " + l.filters.length + " filtro" + (l.filters.length > 1 ? "s" : "") : ""}</div>

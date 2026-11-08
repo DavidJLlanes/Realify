@@ -47,6 +47,9 @@ export const pinturaTopic = { id:"pintura", title:"Pintura y retoque",
           zona —sombras, medios o luces—, como tapar y reservar en el laboratorio.
           Toca los píxeles directamente; para lo mismo pero SIN tocarlos, ver
           «Dodge & Burn» más abajo.</li>
+        <li id="tool-sponge"><b>Esponja.</b> Está en la barra lateral, junto a Exponer. Quita color (desaturar) o lo
+          da (saturar) sólo donde pasas el pincel, sin cambiar la luz: con fuerza 100 % un
+          toque deja la zona en gris. Tamaño, dureza y fuerza como en el resto de pinceles.</li>
         <li id="tool-dodgeburn"><b>Dodge & Burn, gris 50 %</b> (Ctrl+Mayús+D, o menú Filtro). El aclarado y
           oscurecido no destructivo de cualquier retoque serio: la primera pincelada crea
           una capa gris al 50 % en modo Superponer —un gris exacto no cambia nada de lo

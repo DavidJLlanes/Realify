@@ -1343,3 +1343,21 @@ body.wb-picking .modal,body.wb-picking #stage,body.wb-picking #stage canvas{curs
 .about-links button{flex:1 1 auto}
 .about-foot{font-size:var(--fs-xs);color:var(--tx-dim);text-align:center;padding-top:2px}
 .about-foot a{color:var(--ac)}
+
+/* Asa para reordenar capas arrastrando */
+.layer .grip{flex:none;width:18px;text-align:center;color:var(--tx-dim);cursor:grab;touch-action:none;user-select:none;font-size:16px;line-height:24px}
+.layer .grip:hover{color:var(--tx)}
+.layer.dragging{opacity:.55}
+.layer.drop-before{box-shadow:0 -2px 0 0 var(--ac)}
+.layer.drop-after{box-shadow:0 2px 0 0 var(--ac)}
+
+/* Buscador global de la barra de menús (escritorio) */
+.gsearch{position:relative;margin-left:10px;align-self:center}
+.gsearch input{width:190px;height:26px;padding:0 10px;border-radius:var(--r);border:1px solid var(--line);background:var(--s-700);color:var(--tx);font-size:12.5px}
+.gsearch input:focus{outline:none;border-color:var(--ac);width:260px}
+.gsearch-list{position:absolute;top:30px;left:0;width:380px;max-height:60vh;overflow-y:auto;z-index:400;background:var(--s-800);border:1px solid var(--line-strong);border-radius:var(--r);box-shadow:0 10px 30px rgba(0,0,0,.45);padding:4px}
+.gsearch-item{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:6px 8px;background:transparent;border:0;color:var(--tx);border-radius:4px;font-size:12.5px}
+.gsearch-item small{color:var(--tx-dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.gsearch-item:hover,.gsearch-item.on{background:var(--ac-ghost)}
+.gsearch-item.off{opacity:.45}
+.gsearch-empty{padding:10px;color:var(--tx-dim);font-size:12.5px}

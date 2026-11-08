@@ -37,7 +37,7 @@ import { state, cursorPos } from "./defs/shared.js";
 import { moveTool, camoveTool, liquifyTool } from "./defs/move-liquify.js";
 import { panTool, zoomTool, pickerTool, compareTool, cmpOriginal, cmpActive } from "./defs/navigation.js";
 import { cropTool, transformTool, perspectiveTool, ratioValue, finishAppliedTool, syncXformFields, syncPersp } from "./defs/crop-transform.js";
-import { brushTool, eraserTool, exposeTool, dodgeburnTool, historyBrushTool, smudgeTool, stampGradient } from "./defs/paint.js";
+import { brushTool, eraserTool, exposeTool, spongeTool, dodgeburnTool, historyBrushTool, smudgeTool, stampGradient } from "./defs/paint.js";
 import { textTool, noteStyleChange, flushStyleBurst, pushTextStyle, pullTextStyle } from "./defs/text.js";
 import { fillTool, gradientTool } from "./defs/fill-gradient.js";
 import { shapeTool } from "./defs/shape.js";
@@ -93,7 +93,7 @@ Object.defineProperty(state, "color", {
   set(v){ state[activeColorSlot] = v; emit("color:change"); }
 });
 
-export const TOOLS = [moveTool, panTool, zoomTool, cropTool, brushTool, eraserTool, textTool, fillTool, gradientTool, shapeTool, cloneTool, exposeTool, dodgeburnTool, historyBrushTool, smudgeTool, transformTool, perspectiveTool, healTool, camoveTool, selectRectTool, selectEllipseTool, selectLassoTool, selectWandTool, penTool, pickerTool, liquifyTool, compareTool];
+export const TOOLS = [moveTool, panTool, zoomTool, cropTool, brushTool, eraserTool, textTool, fillTool, gradientTool, shapeTool, cloneTool, exposeTool, dodgeburnTool, spongeTool, historyBrushTool, smudgeTool, transformTool, perspectiveTool, healTool, camoveTool, selectRectTool, selectEllipseTool, selectLassoTool, selectWandTool, penTool, pickerTool, liquifyTool, compareTool];
 
 function strokeDab(ctx, a, b, scale){
   const r = state.size / 2 * (scale || 1);

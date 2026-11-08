@@ -22,7 +22,7 @@ const r = await m.page.evaluate(async () => {
   const res = await runModel("depth", "depth_base", { rgba }, [rgba.buffer]);
   const d = res.depth, med = (y0, y1) => { let s = 0, n = 0; for (let y = y0; y < y1; y++) for (let i = 20; i < 160; i++) { s += d[y * S + i]; n++; } return s / n; };
   let fin = true; for (const v of d) if (!Number.isFinite(v) || v < 0 || v > 1) { fin = false; break; }
-  return { n: d.length, fin, arriba: med(20, 120), abajo: med(400, 500), id: depthModelId() };
+  return { n: d.length, fin, arriba: med(20, 120), abajo: med(400, 500), id: await depthModelId() };
 }).catch(e => ({ err: String(e) }));
 console.log(JSON.stringify(r), (Date.now() - t0) / 1000 + " s");
 ok(!r.err, r.err); if (!r.err) { ok(r.n === 518 * 518 && r.fin, "mapa no válido"); ok(r.abajo > r.arriba, `suelo no más cercano que cielo (${r.abajo} vs ${r.arriba})`); ok(r.id === "depth_base", "escritorio no elige Base: " + r.id); }

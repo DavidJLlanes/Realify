@@ -44,7 +44,7 @@ void main(){
  float gamut=min(1.,min(hi>0.?(1.-l)/hi:1.,low<0.?-l/low:1.));c=l+(c-l)*gamut;
  vec2 pos=vec2(floor(uv.x*size.x),size.y-1.-floor(uv.y*size.y));
  vec2 d=(pos-size*.5)/(max(size.x,size.y)*.5);
- float edge=min(1.,dot(d,d));c*=exp2(-optics.x*edge*edge*.8);
+ float edge=min(1.,dot(d,d));c*=exp2(-optics.x*pow(edge,1.3)*2.8);
  uint seed=uint(pos.x)*374761393u+uint(pos.y)*668265263u;
  seed=(seed^(seed>>13u))*1274126177u;
  float grain=(float((seed^(seed>>16u))&255u)/255.-.5)*color.w*.035*(1.-l*l);

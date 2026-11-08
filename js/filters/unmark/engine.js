@@ -23,6 +23,7 @@ import { effParams } from "./state.js";
 import { vendorRects } from "./vendors.js";
 import { fullMaskFromDetection, rectMask } from "./detect.js";
 import { inpaint, maskToCanvas } from "./inpaint.js";
+import { inpaintIA } from "./inpaint-ia.js";
 import { rng } from "./disrupt.js";
 import { removePeriodicPatterns } from "../camera/spectralclean.js";
 
@@ -199,11 +200,15 @@ export async function process(source, eff, o){
     const expandPx = Math.max(1, Math.round(p.expand / 100 * 0.03 * s));
     const featherPx = Math.round(p.feather / 100 * 0.02 * s);
     onStatus("Rellenando la marca…");
-    const r = inpaint(img, mask, {
-      method: p.method,
+    const usarIA = p.method === "ia" && !o.preview;   // la vista previa (en directo) usa el híbrido: la IA es lenta
+    const op = {
+      method: p.method === "ia" ? "hybrid" : p.method,
       expand: expandPx, feather: featherPx,
       texture: p.texture / 100, grain: p.grain / 100, seed: o.seed
-    });
+    };
+    let r;
+    try{ r = usarIA ? await inpaintIA(img, mask, op) : inpaint(img, mask, op); }
+    catch(err){ if(err && err.cancelled) throw err; onStatus("La IA no está disponible: relleno híbrido…"); r = inpaint(img, mask, op); }
     img = r.img;
   }
 

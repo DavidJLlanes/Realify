@@ -9,7 +9,7 @@ import { getMaskTarget, beginMaskStroke, applyMaskStroke, paintMaskDab } from ".
 import { doc, activeLayer, addLayer } from "../../../core/doc.js";
 import { beginPixels, expandPendingPixels, commitPixels, abortPixels, recordLayers } from "../../../core/history.js";
 import { emit } from "../../../core/bus.js";
-import { dodgeBurn, makeSmudge } from "../paint.js";
+import { dodgeBurn, sponge, makeSmudge } from "../paint.js";
 import { toast } from "../../../core/toast.js";
 import { brushSourceLayerFor } from "../../../core/snapshots.js";
 import { svg, state, drawBrushCursor, requirePaintable, grayLevel, pressureScale } from "./shared.js";
@@ -175,9 +175,7 @@ export const exposeTool = {
     options:[
       {type:"segment", key:"exposeMode", items:[
         ["dodge","\u2600","Sobreexponer: aclarar"],
-        ["burn","\u25D0","Subexponer: oscurecer"],
-        ["spongeSat","S+","Esponja: saturar"],
-        ["spongeDesat","S−","Esponja: desaturar"]
+        ["burn","\u25D0","Subexponer: oscurecer"]
       ]},
       {type:"select", key:"exposeRange", label:"Zona", items:[
         ["shadows","Sombras"],["mid","Medios"],["highlights","Luces"]
@@ -225,6 +223,41 @@ export const exposeTool = {
       this._last = null;
       abortPixels();
     }
+  };
+
+export const spongeTool = {
+    // Sin tecla propia (todas las letras están repartidas): se elige en la barra lateral.
+    id:"sponge", name:"Esponja (desaturar / saturar)",
+    icon: svg('<path d="M5 14c0-3 2-5 5-5h4c3 0 5 2 5 5v1a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z"/><circle cx="9" cy="14" r=".8" fill="currentColor"/><circle cx="13" cy="15" r=".8" fill="currentColor"/><circle cx="16" cy="13" r=".8" fill="currentColor"/><path d="M12 3v3"/>'),
+    cursor:"none",
+    options:[
+      {type:"segment", key:"spongeMode", items:[
+        ["desat","−","Desaturar: quita color donde pintes"],
+        ["sat","+","Saturar: da color donde pintes"]
+      ]},
+      {type:"range", key:"size", label:"Tamaño", min:1, max:400, unit:"px"},
+      {type:"range", key:"hardness", label:"Dureza", min:0, max:100, unit:"%"},
+      {type:"range", key:"strength", label:"Fuerza", min:1, max:100, unit:"%"}
+    ],
+    activate(){ setOverlay(drawBrushCursor); },
+    deactivate(){ setOverlay(null); },
+    down(p, e){
+      const l = requirePaintable();
+      if(!l) return;
+      beginPixels(state.spongeMode === "sat" ? "Esponja: saturar" : "Esponja: desaturar", l);
+      this._last = p; this._carry = 0;
+      sponge(l.ctx, p.x, p.y, state.size / 2 * pressureScale(e), state.hardness, state.strength * 0.5, state.spongeMode);
+      scheduleCompose();
+    },
+    move(p, e){
+      if(!this._last) return;
+      const l = activeLayer(), scale = pressureScale(e), step = Math.max(1, state.size * 0.2);
+      const { points, carry } = spacedSteps(this._last.x, this._last.y, p.x, p.y, step, this._carry);
+      for(const pt of points) sponge(l.ctx, pt.x, pt.y, state.size / 2 * scale, state.hardness, state.strength * 0.5, state.spongeMode);
+      this._carry = carry; this._last = p; l.thumbDirty = true; scheduleCompose();
+    },
+    up(){ if(!this._last) return; this._last = null; commitPixels(); emit("doc:structure"); },
+    cancel(){ if(!this._last) return; this._last = null; abortPixels(); }
   };
 
 export const dodgeburnTool = {

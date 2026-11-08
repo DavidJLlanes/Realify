@@ -156,12 +156,18 @@ export async function recoverAfterCrash(){
         (n ? " Tu imagen se ha recuperado." : "") + " Prueba con un modelo más ligero.", "err");
 }
 
+const PROGRESO = new Set(["download", "stage", "tiles", "tokens"]);
+
 function ensureWorker(){
   if(worker) return worker;
   if(typeof Worker === "undefined") throw new Error("Este navegador no tiene Web Workers.");
   worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
   worker.onmessage = e => {
     const m = e.data || {};
+    ultimoAviso = Date.now();
+    /* El progreso sólo lo pintan las peticiones con aviso: una silenciosa (cada toque con SAM) o un mensaje que llega cuando ya no hay
+       ninguna dejaban la barra superior parada a medias. */
+    if(PROGRESO.has(m.type) && ![...pending.values()].some(p => !p.quiet)) return;
     if(m.type === "download"){
       const f = m.total ? m.loaded / m.total : 0;
       const msg = `Descargando modelo ${MODELS[m.model]?.label || ""}… ${mb(m.loaded)}` +
@@ -202,12 +208,43 @@ function ensureWorker(){
   return worker;
 }
 
-function call(msg, transfer){
+/* Un fallo fatal de WebAssembly («unreachable», «Aborted()») deja inservible TODO el motor del worker: sin esto, un solo fallo de la GPU hacía
+   que todos los modelos siguientes (caras, ojeras, ropa…) dieran «unreachable» hasta recargar la página. Se descarta el worker, se apunta el
+   modelo como «sólo CPU» y la siguiente llamada arranca un motor nuevo. */
+const FATAL = /unreachable|Aborted\(/i, GPU_OFF = "realify.gpuOff";
+const gpuOff = () => { try{ return JSON.parse(sessionStorage.getItem(GPU_OFF) || "[]"); }catch{ return []; } };
+const marcarSoloCpu = id => { try{ const l = new Set(gpuOff()); l.add(id); sessionStorage.setItem(GPU_OFF, JSON.stringify([...l])); }catch{} };
+
+function reiniciarMotor(id){
+  if(worker){ try{ worker.terminate(); }catch{} worker = null; }
+  for(const p of pending.values()) p.reject(new Error("el motor de IA se reinició"));
+  pending.clear();
+  if(id) marcarSoloCpu(id);
+}
+
+/* Vigilante: si una petición lleva más de SIN_NOTICIAS sin que el motor diga nada (ni progreso ni resultado) se da por colgada —antes la
+   barra «trabajando» podía durar horas—, se reinicia el motor y se avisa. */
+const SIN_NOTICIAS = 6 * 60e3;
+let ultimoAviso = Date.now();
+function vigilar(req, id){
+  const t = setInterval(() => {
+    if(!pending.has(req)){ clearInterval(t); return; }
+    if(Date.now() - ultimoAviso > SIN_NOTICIAS){ clearInterval(t); reiniciarMotor(id); }
+  }, 15000);
+}
+
+function call(msg, transfer, quiet = false){
   const w = ensureWorker();
-  const req = nextReq++;
+  const req = nextReq++, model = msg.model && gpuOff().includes(msg.id) ? { ...msg.model, cpu: true } : msg.model;
   return new Promise((resolve, reject) => {
-    pending.set(req, { resolve, reject });
-    w.postMessage({ ...msg, req }, transfer || []);
+    pending.set(req, { resolve, reject, quiet }); ultimoAviso = Date.now(); vigilar(req, msg.id);
+    w.postMessage({ ...msg, model, req }, transfer || []);
+  }).catch(err => {
+    if((FATAL.test(err.message || "") || /se reinició/.test(err.message || "")) && !err.cancelled){
+      reiniciarMotor(msg.id);
+      err.message = "el motor de IA falló o se quedó colgado y se ha reiniciado (probablemente la GPU). Vuelve a intentarlo: ahora usará la CPU para este modelo";
+    }
+    throw err;
   });
 }
 
@@ -221,7 +258,7 @@ export async function runModel(type, id, payload, transfer, opts = {}){
   // `opts.quiet`: llamadas rapidísimas y repetidas (cada toque con SAM):
   // sin aviso, progreso ni barra de estado.
   if(opts.quiet){
-    try{ return await call({ type, id, model, ...payload }, transfer); }
+    try{ return await call({ type, id, model, ...payload }, transfer, true); }
     catch(err){ if(/bad_alloc|out of memory|memory access out of bounds/i.test(err.message)) err.message = "no hay memoria suficiente en este dispositivo"; throw err; }
   }
   // `opts.noGuard`: pasadas 2ª y siguientes de una misma operación (la

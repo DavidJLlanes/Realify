@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-06T15:44:54.973Z",
+ "generated": "2026-11-08T20:23:35.853Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1446,
+     "readyMs": 1404,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137975,
-     "cssBytes": 177122,
-     "transferBytes": 887341,
-     "domContentLoaded": 1381,
-     "fcp": 1032
+     "jsBytes": 2016515,
+     "cssBytes": 178603,
+     "transferBytes": 845018,
+     "domContentLoaded": 1311,
+     "fcp": 1168
     },
     {
-     "readyMs": 1251,
+     "readyMs": 1288,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2137925,
-     "cssBytes": 177122,
-     "transferBytes": 887867,
-     "domContentLoaded": 1007,
-     "fcp": 448
+     "jsBytes": 2013640,
+     "cssBytes": 178603,
+     "transferBytes": 843934,
+     "domContentLoaded": 1211,
+     "fcp": 364
     },
     {
-     "readyMs": 1134,
+     "readyMs": 1279,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2138036,
-     "cssBytes": 177122,
-     "transferBytes": 887402,
-     "domContentLoaded": 1075,
-     "fcp": 360
+     "jsBytes": 2151776,
+     "cssBytes": 178603,
+     "transferBytes": 891390,
+     "domContentLoaded": 1201,
+     "fcp": 368
     }
    ],
-   "medianReadyMs": 1251,
-   "medianTransferBytes": 887402
+   "medianReadyMs": 1288,
+   "medianTransferBytes": 845018
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -484,6 +484,12 @@
     {
      "id": "dodgeburn",
      "name": "Dodge & Burn (gris 50%)",
+     "key": null,
+     "hasDown": true
+    },
+    {
+     "id": "sponge",
+     "name": "Esponja (desaturar / saturar)",
      "key": null,
      "hasDown": true
     },
@@ -2957,8 +2963,8 @@
    "menuHash": "1cd71df0bf1857a8"
   },
   "screens": {
-   "welcome": "014c88e799f55e7b",
-   "withImage": "04727d44490c2509"
+   "welcome": "b1b0a4cca9dfd3c9",
+   "withImage": "904bd78c863bfc03"
   },
   "opened": true,
   "afterOpen": {
@@ -3774,6 +3780,11 @@
    {
     "id": "dodgeburn",
     "current": "dodgeburn",
+    "newErrors": []
+   },
+   {
+    "id": "sponge",
+    "current": "sponge",
     "newErrors": []
    },
    {
@@ -4897,18 +4908,18 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1021,
+   "readyMs": 1030,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2138096,
-   "cssBytes": 177122,
-   "transferBytes": 886899,
-   "domContentLoaded": 948,
-   "fcp": 608
+   "jsBytes": 2151763,
+   "cssBytes": 178603,
+   "transferBytes": 891377,
+   "domContentLoaded": 946,
+   "fcp": 680
   },
   "screens": {
-   "welcome": "fe7b93e343389925",
+   "welcome": "fc7ea9784f376e33",
    "withImage": "91216a462b558bfe",
    "drawer": "53b3b078245a5530"
   },
