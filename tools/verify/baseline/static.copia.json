@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-09T06:58:59.890Z",
+ "generated": "2026-11-09T07:18:05.655Z",
  "root": "/home/claude/realify",
- "jsFiles": 1158,
- "jsLines": 111304,
+ "jsFiles": 1164,
+ "jsLines": 111378,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -1114,7 +1114,8 @@
   ],
   "js/core/util/html.js": [
    "escAttr",
-   "escText"
+   "escText",
+   "escapeHtml"
   ],
   "js/core/util/math.js": [
    "bell",
@@ -1848,6 +1849,10 @@
    "syncXformFields",
    "transformTool"
   ],
+  "js/editor/tools/defs/dab.js": [
+   "spacedSteps",
+   "stampGradient"
+  ],
   "js/editor/tools/defs/fill-gradient.js": [
    "fillTool",
    "gradientTool"
@@ -1882,6 +1887,14 @@
    "spacedSteps",
    "spongeTool",
    "stampGradient"
+  ],
+  "js/editor/tools/defs/retoque.js": [
+   "addDodgeBurnLayer",
+   "dodgeburnTool",
+   "exposeTool",
+   "historyBrushTool",
+   "smudgeTool",
+   "spongeTool"
   ],
   "js/editor/tools/defs/retouch.js": [
    "cloneTool",
@@ -2007,6 +2020,15 @@
    "perspStraighten",
    "perspSync",
    "perspUp"
+  ],
+  "js/editor/tools/reparar.js": [
+   "cloneStamp",
+   "healSpot"
+  ],
+  "js/editor/tools/retoque.js": [
+   "dodgeBurn",
+   "makeSmudge",
+   "sponge"
   ],
   "js/editor/tools/rulers.js": [
    "addGuide",
@@ -4554,6 +4576,10 @@
   "js/ui/landscape.js": [
    "initLandscapeNotice"
   ],
+  "js/ui/layer-row-events.js": [
+   "wireContextMenus",
+   "wireDragDrop"
+  ],
   "js/ui/layers-reorder.js": [
    "initReorder"
   ],
@@ -4622,6 +4648,11 @@
   "js/ui/optionsbar.js": [
    "renderOptions"
   ],
+  "js/ui/panels-historial.js": [
+   "renderHistory",
+   "renderInfo",
+   "renderSnapshots"
+  ],
   "js/ui/panels.js": [
    "getSelectedLayerIds",
    "initPanels",
@@ -4630,7 +4661,6 @@
    "renderHistory",
    "renderInfo",
    "renderLayers",
-   "renderSnapshots",
    "toggleSheet"
   ],
   "js/ui/properties.js": [
@@ -5548,15 +5578,15 @@
   ]
  },
  "dirEdges": {
-  "js/editor -> js/core": 265,
+  "js/editor -> js/core": 270,
   "plugins -> js/core": 113,
   "js/features -> js/core": 112,
   "js/app -> js/editor": 97,
   "plugins -> js/features": 72,
   "js/io -> js/core": 66,
   "js/features -> js/ai": 63,
+  "js/ui -> js/core": 63,
   "js/features -> js/editor": 57,
-  "js/ui -> js/core": 55,
   "js/app -> js/core": 49,
   "js/ui -> js/features": 48,
   "js/filters -> js/core": 46,
@@ -5566,7 +5596,7 @@
   "js/filters -> js/editor": 39,
   "js/app -> js/filters": 37,
   "js/features -> plugins": 37,
-  "js/ui -> js/editor": 35,
+  "js/ui -> js/editor": 36,
   "js/app -> js/features": 34,
   "js/editor -> js/ui": 31,
   "plugins -> js/editor": 30,

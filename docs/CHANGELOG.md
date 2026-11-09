@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 329) · Orden del código
+- Sin cambios de comportamiento. Divididos los archivos que pasaban del tope de 400 líneas: `js/editor/tools/paint.js` (509 → 158; nuevos `retoque.js` y `reparar.js`), `js/editor/tools/defs/paint.js` (574 → 199; nuevos `defs/retoque.js` y `defs/dab.js`) y `js/ui/panels.js` (1044 → 864; nuevos `panels-historial.js` y `layer-row-events.js`). Sin ciclos de importación; `escapeHtml` pasa a `js/core/util/html.js`.
+- Pendiente: `renderLayers` sigue siendo una función de unas 400 líneas dentro de `panels.js`.
+
 ### 2.1.0 (compilación 328) · Auditoría de errores
 - **Moiré y bandas**: la búsqueda de picos del espectro reservaba memoria por cada frecuencia de cada bloque; ahora usa un vector fijo (≈3 veces más rápido a resolución real: 6 Mpx pasan de 170 s a 55 s en el equipo de pruebas). Límite de trabajo en móvil: 2400 px.
 - Auditoría: 58 de 60 pruebas de `tests/ia` pasan; las dos restantes (`cuerpo/editor`, `reales/funciones`) agotan el tiempo en este entorno porque necesitan modelos fp16/remotos con WebGPU. Instantáneas de menú y cajón (`tests/ia/baseline`) actualizadas con Pincel inteligente y Borrado ligero.

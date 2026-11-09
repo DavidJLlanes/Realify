@@ -12,19 +12,16 @@ import { list as historyList, jumpTo, canUndo, canRedo } from "../core/history.j
 import { record } from "../core/history.js";
 import { getMaskTarget, setMaskTarget, clearMaskTarget, addMask,
          toggleMask, maskAlphaAsSelectionMask,
-         getIsolateView, setIsolateView, toggleIsolateView, removeMask,
-         copyMask, moveMask, linkMask } from "../editor/layers/masks.js";
+         getIsolateView, setIsolateView, toggleIsolateView } from "../editor/layers/masks.js";
 import { isAdjustLayer, adjustTypeName, openAdjustPanel } from "../editor/layers/adjustlayers.js";
 import { isFillLayer, isShapeLayer, fillKindName, SHAPE_KIND_NAME } from "../editor/layers/layercontent.js";
 import { isBlendIfActive } from "../editor/layers/blendif.js";
 import { hasSelection, commitSelection } from "../editor/selection/selection.js";
-import { confirmDlg, promptDlg } from "./kit/dialog.js";
-import { listSnapshots, getBrushSourceId, setBrushSource, restoreSnapshot,
-         renameSnapshot, removeSnapshot } from "../core/snapshots.js";
-import { openContextMenu } from "./menu.js";
+import { promptDlg } from "./kit/dialog.js";
+import { renderSnapshots, renderHistory, renderInfo } from "./panels-historial.js";
+export { renderHistory, renderInfo };
 import { haptic, isMobile } from "../core/device.js";
 import { filterOf, filterAmount } from "../editor/layers/filterlayer.js";
-import { listTabs, activeTab, copyLayerToTab } from "../editor/documents.js";
 import { knownFilter, filterLiveCapable, openFilterEditor } from "../editor/layers/filterregistry.js";
 import { setFilterAmount, amountMode } from "../editor/layers/filteramount.js";
 import { toggleFilterEntry, setFilterEntryAmount, removeFilterEntry, moveFilterEntry } from "../editor/layers/filterchain.js";
@@ -33,6 +30,8 @@ import { toggleClip, toggleCollapsed } from "../editor/layers/groups.js";
 import { hasEnabledStyle, openLayerStyles } from "../editor/layers/layerstyles.js";
 import { initProperties } from "./properties.js";
 import { initReorder } from "./layers-reorder.js";
+import { wireDragDrop, wireContextMenus } from "./layer-row-events.js";
+import { escapeHtml } from "../core/util/html.js";
 import { fitAbove, fitInRect, view } from "../core/view.js";
 
 /* ── selección múltiple de capas ─────────────────────────────────
@@ -621,116 +620,8 @@ export function renderLayers(){
     // (ui/docbar.js) copia la capa entera a ese otro documento — el
     // mismo gesto de «arrastrar a otra ventana» de cualquier editor,
     // adaptado a pestañas porque aquí no hay ventanas de verdad.
-    el.draggable = true;
-    el.addEventListener("dragstart", e => {
-      const maskThumb = e.target.closest("[data-mask]");
-      if(maskThumb && l.mask){
-        e.dataTransfer.effectAllowed = "copy";
-        e.dataTransfer.setData("application/x-mask-source", JSON.stringify({
-          layerId: l.id,
-          hasMask: !!l.mask
-        }));
-        return;
-      }
-      if(e.target.closest("button, input, [data-add-mask]")){ e.preventDefault(); return; }
-      // Copiar a otra pestaña sólo sabe llevarse el lienzo propio de
-      // la capa; un grupo no tiene ninguno (su contenido vive en sus
-      // miembros), así que por ahora ese gesto queda fuera para no
-      // crear en la otra pestaña una capa vacía sin avisar.
-      if(isGroup){ e.preventDefault(); return; }
-      e.dataTransfer.effectAllowed = "copy";
-      e.dataTransfer.setData("application/x-realify-layer", String(l.id));
-    });
-
-    el.addEventListener("dragover", e => {
-      const maskThumb = e.target.closest("[data-mask]");
-      if(!maskThumb) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = e.ctrlKey ? "copy" : e.altKey ? "move" : "link";
-      maskThumb.classList.add("drag-over");
-    });
-
-    el.addEventListener("dragleave", e => {
-      const maskThumb = e.target.closest("[data-mask]");
-      if(!maskThumb) return;
-      maskThumb.classList.remove("drag-over");
-    });
-
-    el.addEventListener("drop", e => {
-      const maskThumb = e.target.closest("[data-mask]");
-      if(!maskThumb) return;
-      e.preventDefault();
-      maskThumb.classList.remove("drag-over");
-      const data = JSON.parse(e.dataTransfer.getData("application/x-mask-source") || "{}");
-      if(!data.layerId) return;
-      const srcLayer = doc.layers.find(ly => ly.id === data.layerId);
-      if(!srcLayer || !srcLayer.mask || srcLayer === l) return;
-      if(e.ctrlKey){ copyMask(srcLayer, l); }
-      else if(e.altKey){ moveMask(srcLayer, l); }
-      else { linkMask(srcLayer, l); }
-      renderLayers();
-      emit("doc:change");
-    });
-
-    /* Menú de la máscara: clic derecho en el escritorio, y en el móvil
-       (sin Alt ni clic derecho) un segundo toque sobre la máscara ya
-       elegida. */
-    const maskMenu = (x, y) => {
-        setActive(l.id);
-        openContextMenu([
-          { label: getIsolateView() === l.id ? "Volver a la vista normal" : "Ver y pintar sólo la máscara",
-            onClick: () => {
-              const on = toggleIsolateView(l.id); renderLayers();
-              if(on) toast("Máscara a la vista: pinta en negro para ocultar y en blanco para mostrar");
-            } },
-          ...(getMaskTarget() === l.id ? [{ label: "Pintar la imagen (no la máscara)",
-            onClick: () => { setMaskTarget(null); if(getIsolateView() !== null) setIsolateView(null); renderLayers(); } }] : []),
-          { label: l.maskEnabled ? "Deshabilitar máscara de capa" : "Habilitar máscara de capa",
-            onClick: () => toggleMask(l) },
-          { sep: true },
-          { label: "Aplicar máscara de capa", onClick: async () => {
-              if(await confirmDlg("Aplicar máscara", "La máscara se funde con la capa y desaparece como objeto aparte. No se puede deshacer con un cambio posterior.", "Aplicar")){
-                setMaskTarget(null);
-                removeMask(l, true);
-              }
-            } },
-          { label: "Eliminar máscara de capa", onClick: async () => {
-              if(await confirmDlg("Eliminar máscara", "Se descarta la máscara y la capa vuelve a verse entera.", "Eliminar")){
-                setMaskTarget(null);
-                removeMask(l, false);
-              }
-            } }
-        ], x, y);
-    };
-    el.addEventListener("contextmenu", e => {
-      if(e.target.closest("[data-mask]")){
-        e.preventDefault();
-        maskMenu(e.clientX, e.clientY);
-        return;
-      }
-      // En cualquier otro punto de la fila: copiar esta capa a otro
-      // documento abierto, si hay alguno. El mismo destino que
-      // arrastrarla hasta su pestaña (ver más arriba), para quien
-      // prefiera un menú a un gesto de arrastre. Los grupos quedan
-      // fuera por el mismo motivo que en el arrastre.
-      const tabs = listTabs();
-      const actions = [{ label:"Renombrar capa…", onClick: async () => {
-        const name = await promptDlg("Renombrar capa", "Nombre", l.name);
-        if(name === null) return;
-        const before = l.name, after = name.trim().slice(0, 80) || before;
-        if(after === before) return;
-        l.name = after;
-        record("Renombrar capa", () => { l.name = before; emit("doc:structure"); }, () => { l.name = after; emit("doc:structure"); });
-        emit("doc:structure");
-      }}];
-      if(!isGroup && tabs.length > 1){
-        actions.push({ sep:true }, ...tabs.filter(t => t !== activeTab())
-          .map(t => ({ label:`Copiar capa a «${t.title}»`, onClick:() => copyLayerToTab(l, t.tabId) })));
-      }
-      e.preventDefault();
-      setActive(l.id);
-      openContextMenu(actions, e.clientX, e.clientY);
-    });
+    wireDragDrop(el, l, isGroup, renderLayers);
+    const maskMenu = wireContextMenus(el, l, isGroup, renderLayers);
     el.querySelector(".name")?.addEventListener("dblclick", async e => {
       e.preventDefault(); e.stopPropagation();
       setActive(l.id);
@@ -886,9 +777,6 @@ export function renderLayers(){
   syncLayerControls();
 }
 
-function escapeHtml(s){
-  return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
-}
 
 const opacityEl = document.getElementById("layerOpacity");
 const opacityVal = document.getElementById("layerOpacityVal");
@@ -952,77 +840,6 @@ function syncLayerControls(){
    la memoria como sí hace el historial normal bajo presión —ver
    core/snapshots.js—. El círculo de la izquierda marca cuál es el
    origen del Pincel de historial. */
-const snapshotEl = document.getElementById("snapshotList");
-
-export function renderSnapshots(){
-  const list = listSnapshots();
-  const sourceId = getBrushSourceId();
-  snapshotEl.innerHTML = "";
-  for(const s of list){
-    const row = document.createElement("div");
-    row.className = "snap-row";
-    row.innerHTML = `
-      <button type="button" class="snap-src${s.id === sourceId ? " on" : ""}"
-        title="${s.id === sourceId ? "Origen del pincel de historial" : "Usar como origen del pincel de historial"}"
-        aria-label="Origen del pincel de historial">●</button>
-      <button type="button" class="snap-name" title="Clic: volver a esta instantánea · Doble clic: renombrar">
-        ${escapeHtml(s.name)}</button>
-      <button type="button" class="snap-remove icon" title="Eliminar instantánea" aria-label="Eliminar instantánea">✕</button>`;
-    row.querySelector(".snap-src").addEventListener("click", () => { setBrushSource(s.id); });
-    row.querySelector(".snap-name").addEventListener("click", () => { restoreSnapshot(s.id); });
-    row.querySelector(".snap-name").addEventListener("dblclick", async e => {
-      e.stopPropagation();
-      const name = await promptDlg("Renombrar instantánea", "Nombre", s.name);
-      if(name) renameSnapshot(s.id, name);
-    });
-    row.querySelector(".snap-remove").addEventListener("click", async () => {
-      if(await confirmDlg("Eliminar instantánea", `Se borra «${s.name}». No afecta al historial de deshacer.`, "Eliminar")){
-        removeSnapshot(s.id);
-      }
-    });
-    snapshotEl.appendChild(row);
-  }
-}
-
-/* ── panel de historial ── */
-const historyEl = document.getElementById("historyList");
-
-export function renderHistory(){
-  const h = historyList();
-  historyEl.innerHTML = "";
-  const mk = (label, i, cls) => {
-    const b = document.createElement("button");
-    b.className = "hitem " + cls;
-    b.innerHTML = `<span class="n">${i}</span><span>${escapeHtml(label)}</span>`;
-    b.addEventListener("click", () => jumpTo(i));
-    return b;
-  };
-  h.past.forEach((e, i) =>
-    historyEl.appendChild(mk(e.label, i, i === h.past.length - 1 ? "now" : "")));
-  h.future.slice().reverse().forEach((e, i) =>
-    historyEl.appendChild(mk(e.label, h.past.length + i, "future")));
-  if(!h.past.length && !h.future.length){
-    historyEl.innerHTML = '<p class="hint" style="margin:0">Sin cambios todavía.</p>';
-  }
-  historyEl.scrollTop = historyEl.scrollHeight;
-}
-
-/* ── información ── */
-const infoBody = document.getElementById("infoBody");
-export function renderInfo(){
-  if(!doc.open){ infoBody.textContent = "Sin documento."; return; }
-  const l = activeLayer();
-  const mp = (doc.w * doc.h / 1e6).toFixed(1);
-  const mem = (doc.layers.length * doc.w * doc.h * 4 / 1048576).toFixed(0);
-  infoBody.innerHTML =
-    `<div class="field"><label>Documento</label><span class="mono">${doc.w} × ${doc.h}</span></div>
-     <div class="field"><label>Megapíxeles</label><span class="mono">${mp} MP</span></div>
-     <div class="field"><label>Capas</label><span class="mono">${doc.layers.length}</span></div>
-     <div class="field"><label>Memoria</label><span class="mono">~${mem} MB</span></div>
-     ${l ? `<div class="field"><label>Activa</label><span>${escapeHtml(l.name)}</span></div>` : ""}
-     ${doc.source ? `<div class="field"><label>Origen</label><span class="mono">${doc.source.w} × ${doc.source.h}</span></div>` : ""}`;
-}
-
 on("doc:structure", () => {
   // Si alguna capa marcada ha desaparecido (se borró, se combinó…),
   // que no se quede un id fantasma en la selección múltiple.
