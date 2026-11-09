@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 328) · Auditoría de errores
+- **Moiré y bandas**: la búsqueda de picos del espectro reservaba memoria por cada frecuencia de cada bloque; ahora usa un vector fijo (≈3 veces más rápido a resolución real: 6 Mpx pasan de 170 s a 55 s en el equipo de pruebas). Límite de trabajo en móvil: 2400 px.
+- Auditoría: 58 de 60 pruebas de `tests/ia` pasan; las dos restantes (`cuerpo/editor`, `reales/funciones`) agotan el tiempo en este entorno porque necesitan modelos fp16/remotos con WebGPU. Instantáneas de menú y cajón (`tests/ia/baseline`) actualizadas con Pincel inteligente y Borrado ligero.
+
 ### 2.1.0 (compilación 327) · Arreglos de la lista de errores del 8 nov
 - **Capas**: se pueden reordenar. Botones ↑ / ↓ en el panel Capas (también en la barra del móvil a pantalla completa) y un asa «⠿» en cada fila para arrastrar con ratón o dedo; un arrastre es un solo paso de historial (`js/ui/layers-reorder.js`, `moveLayerOrGroup(id, pasos)`).
 - **Motor de IA**: un fallo fatal de WebAssembly («unreachable») ya no deja inservibles todos los modelos hasta recargar (Ojeras, Restaurar caras, Ropa…): se reinicia el motor y el modelo pasa a CPU. Un vigilante reinicia el motor si lleva 6 minutos sin decir nada (Borrado ligero «trabajando» durante horas) y la barra de progreso superior ya no se queda a medias.

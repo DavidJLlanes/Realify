@@ -63,6 +63,10 @@
   {
    "id": "analizar",
    "texto": "Analizar"
+  },
+  {
+   "id": "video",
+   "texto": "Vídeo"
   }
  ],
  "contenido": {
@@ -260,6 +264,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Pincel inteligente",
+    "corona": true,
+    "auto": false
+   },
+   {
     "seccion": "Borrar y rellenar"
    },
    {
@@ -275,6 +284,11 @@
    {
     "etiqueta": "Expandir con IA",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrado ligero",
+    "corona": true,
     "auto": false
    },
    {
@@ -301,6 +315,122 @@
     "auto": false
    },
    {
+    "etiqueta": "Arrugas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ojeras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Brillos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Textura",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Imperfecciones",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Luz",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ojos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Labios y cejas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Dientes",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cabello",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pelos sueltos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reflejos gafas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Forma",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Cuerpo"
+   },
+   {
+    "etiqueta": "Cuerpo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Silueta",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Postura",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Definición",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Piel cuerpo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Ropa y tejidos"
+   },
+   {
+    "etiqueta": "Planchar ropa",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Arrugas telas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color ropa",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Textura tela",
+    "corona": true,
+    "auto": false
+   },
+   {
     "seccion": "Escena y cielo"
    },
    {
@@ -311,6 +441,36 @@
    {
     "etiqueta": "Photo Lens",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mejorar cielo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar neblina IA",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Realzar tipo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blancos zonas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recuperar luces",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unificar luz",
+    "corona": true,
     "auto": false
    },
    {
@@ -338,6 +498,16 @@
    },
    {
     "etiqueta": "Foto 3D",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Aberración distancia",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Luz relieve",
     "corona": true,
     "auto": false
    },
@@ -370,6 +540,21 @@
     "auto": false
    },
    {
+    "etiqueta": "Quitar desenfoque",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Polvo y motas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Moiré y bandas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "seccion": "Encuadre y composición"
    },
    {
@@ -379,6 +564,60 @@
    },
    {
     "etiqueta": "Recorte de retrato",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto zona libre",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Color y estilos"
+   },
+   {
+    "etiqueta": "Estilo de referencia",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Packs de cámara",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mis estilos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Lote y biblioteca"
+   },
+   {
+    "etiqueta": "Selección rápida",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Buscar fotos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Etiquetas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto alternativo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "seccion": "Asistente"
+   },
+   {
+    "etiqueta": "Asistente",
     "corona": true,
     "auto": false
    },
@@ -419,6 +658,21 @@
     "etiqueta": "Limpiar metadatos",
     "corona": false,
     "auto": false
+   },
+   {
+    "etiqueta": "Zonas lisas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Manos y dientes",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Informe de realismo",
+    "corona": true,
+    "auto": false
    }
   ],
   "todos": [
@@ -431,6 +685,11 @@
     "etiqueta": "Auto Premium",
     "corona": true,
     "auto": true
+   },
+   {
+    "etiqueta": "Aberración distancia",
+    "corona": true,
+    "auto": false
    },
    {
     "etiqueta": "Acciones",
@@ -508,8 +767,23 @@
     "auto": false
    },
    {
+    "etiqueta": "Arrugas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Arrugas telas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Artísticos",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Asistente",
+    "corona": true,
     "auto": false
    },
    {
@@ -525,6 +799,16 @@
    {
     "etiqueta": "Blanco y negro",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Blancos zonas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrado ligero",
+    "corona": true,
     "auto": false
    },
    {
@@ -550,6 +834,21 @@
    {
     "etiqueta": "Brillo y contraste",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Brillos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Buscar fotos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cabello",
+    "corona": true,
     "auto": false
    },
    {
@@ -605,6 +904,11 @@
    {
     "etiqueta": "Color por rangos",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color ropa",
+    "corona": true,
     "auto": false
    },
    {
@@ -708,6 +1012,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Cuerpo",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Curvas",
     "corona": false,
     "auto": false
@@ -725,6 +1034,11 @@
    {
     "etiqueta": "D&B: ver gris",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Definición",
+    "corona": true,
     "auto": false
    },
    {
@@ -775,6 +1089,11 @@
    {
     "etiqueta": "Detalle",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Dientes",
+    "corona": true,
     "auto": false
    },
    {
@@ -834,6 +1153,11 @@
    },
    {
     "etiqueta": "Editar texto",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Editor de vídeo",
     "corona": false,
     "auto": false
    },
@@ -908,8 +1232,18 @@
     "auto": false
    },
    {
+    "etiqueta": "Esponja",
+    "corona": false,
+    "auto": false
+   },
+   {
     "etiqueta": "Estilizar",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilo de referencia",
+    "corona": true,
     "auto": false
    },
    {
@@ -920,6 +1254,11 @@
    {
     "etiqueta": "Estilos de capa",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Etiquetas",
+    "corona": true,
     "auto": false
    },
    {
@@ -950,6 +1289,11 @@
    {
     "etiqueta": "Filtro Vintage",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Forma",
+    "corona": true,
     "auto": false
    },
    {
@@ -1038,8 +1382,23 @@
     "auto": false
    },
    {
+    "etiqueta": "Imperfecciones",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Importar vídeo",
+    "corona": false,
+    "auto": false
+   },
+   {
     "etiqueta": "Informar de un error",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Informe de realismo",
+    "corona": true,
     "auto": false
    },
    {
@@ -1068,6 +1427,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Labios y cejas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Lazo",
     "corona": false,
     "auto": false
@@ -1093,13 +1457,28 @@
     "auto": false
    },
    {
+    "etiqueta": "Luz",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Luz por profundidad",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Luz relieve",
     "corona": true,
     "auto": false
    },
    {
     "etiqueta": "Mano",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Manos y dientes",
+    "corona": true,
     "auto": false
    },
    {
@@ -1163,6 +1542,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Mejorar cielo",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Metadatos EXIF",
     "corona": false,
     "auto": false
@@ -1170,6 +1554,16 @@
    {
     "etiqueta": "Mezclador de canales",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Mis estilos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Moiré y bandas",
+    "corona": true,
     "auto": false
    },
    {
@@ -1233,6 +1627,16 @@
     "auto": false
    },
    {
+    "etiqueta": "Ojeras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ojos",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Ojos rojos",
     "corona": true,
     "auto": false
@@ -1240,6 +1644,11 @@
    {
     "etiqueta": "Otros desenfoques",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Packs de cámara",
+    "corona": true,
     "auto": false
    },
    {
@@ -1263,6 +1672,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Pelos sueltos",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Perspectiva",
     "corona": false,
     "auto": false
@@ -1270,6 +1684,11 @@
    {
     "etiqueta": "Photo Lens",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Piel cuerpo",
+    "corona": true,
     "auto": false
    },
    {
@@ -1298,6 +1717,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Pincel inteligente",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Pincel simétrico",
     "corona": false,
     "auto": false
@@ -1313,6 +1737,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Planchar ropa",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Plausibilidad",
     "corona": false,
     "auto": false
@@ -1323,8 +1752,18 @@
     "auto": false
    },
    {
+    "etiqueta": "Polvo y motas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Posterizar",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Postura",
+    "corona": true,
     "auto": false
    },
    {
@@ -1343,6 +1782,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Quitar desenfoque",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Quitar JPEG con IA",
     "corona": false,
     "auto": false
@@ -1350,6 +1794,11 @@
    {
     "etiqueta": "Quitar neblina",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar neblina IA",
+    "corona": true,
     "auto": false
    },
    {
@@ -1383,6 +1832,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Realzar tipo",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Recortar",
     "corona": false,
     "auto": false
@@ -1408,6 +1862,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Recuperar luces",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Reducir ruido",
     "corona": false,
     "auto": false
@@ -1430,6 +1889,11 @@
    {
     "etiqueta": "Refinar borde de máscara",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reflejos gafas",
+    "corona": true,
     "auto": false
    },
    {
@@ -1508,6 +1972,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Selección rápida",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Seleccionar cielo",
     "corona": false,
     "auto": false
@@ -1539,6 +2008,11 @@
    },
    {
     "etiqueta": "Separar planos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Silueta",
     "corona": true,
     "auto": false
    },
@@ -1585,6 +2059,26 @@
    {
     "etiqueta": "Texto",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto alternativo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto zona libre",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Textura",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Textura tela",
+    "corona": true,
     "auto": false
    },
    {
@@ -1643,6 +2137,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Unificar luz",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Unir fotos",
     "corona": false,
     "auto": false
@@ -1675,6 +2174,11 @@
    {
     "etiqueta": "Voltear vertical",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Zonas lisas",
+    "corona": true,
     "auto": false
    },
    {
@@ -1712,6 +2216,11 @@
    {
     "etiqueta": "Aplicar edición a otras fotos",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Asistente",
+    "corona": true,
     "auto": false
    },
    {
@@ -1830,6 +2339,16 @@
     "auto": false
    },
    {
+    "etiqueta": "Mejorar cielo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Moiré y bandas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Nitidez inteligente",
     "corona": false,
     "auto": false
@@ -1855,8 +2374,33 @@
     "auto": false
    },
    {
+    "etiqueta": "Polvo y motas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar desenfoque",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Quitar neblina",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar neblina IA",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Realzar tipo",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Recuperar luces",
+    "corona": true,
     "auto": false
    },
    {
@@ -1987,6 +2531,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Moiré y bandas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Perspectiva",
     "corona": false,
     "auto": false
@@ -1994,6 +2543,16 @@
    {
     "etiqueta": "Pincel corrector",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Polvo y motas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Quitar desenfoque",
+    "corona": true,
     "auto": false
    },
    {
@@ -2069,6 +2628,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Blancos zonas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Color por canales",
     "corona": false,
     "auto": false
@@ -2111,6 +2675,11 @@
    {
     "etiqueta": "Equilibrio de color",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Estilo de referencia",
+    "corona": true,
     "auto": false
    },
    {
@@ -2159,6 +2728,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Realzar tipo",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Reemplazar color",
     "corona": false,
     "auto": false
@@ -2191,6 +2765,11 @@
    {
     "etiqueta": "Umbral",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Unificar luz",
+    "corona": true,
     "auto": false
    },
    {
@@ -2326,6 +2905,16 @@
     "auto": false
    },
    {
+    "etiqueta": "Mis estilos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Packs de cámara",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Posterizar",
     "corona": false,
     "auto": false
@@ -2343,6 +2932,11 @@
    {
     "etiqueta": "Tabla de color",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto zona libre",
+    "corona": true,
     "auto": false
    },
    {
@@ -2435,6 +3029,11 @@
   ],
   "efectos": [
    {
+    "etiqueta": "Aberración distancia",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Añadir ruido",
     "corona": false,
     "auto": false
@@ -2515,6 +3114,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Luz relieve",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Movimiento",
     "corona": false,
     "auto": false
@@ -2558,12 +3162,52 @@
     "etiqueta": "Texturas",
     "corona": false,
     "auto": false
+   },
+   {
+    "etiqueta": "Zonas lisas",
+    "corona": true,
+    "auto": false
    }
   ],
   "retoque": [
    {
+    "etiqueta": "Arrugas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Arrugas telas",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Borrado ligero",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Brillos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cabello",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Clonar",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Color ropa",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Cuerpo",
+    "corona": true,
     "auto": false
    },
    {
@@ -2572,8 +3216,18 @@
     "auto": false
    },
    {
+    "etiqueta": "Definición",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Deformación libre",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Dientes",
+    "corona": true,
     "auto": false
    },
    {
@@ -2587,8 +3241,28 @@
     "auto": false
    },
    {
+    "etiqueta": "Esponja",
+    "corona": false,
+    "auto": false
+   },
+   {
     "etiqueta": "Exponer",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Forma",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Imperfecciones",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Labios y cejas",
+    "corona": true,
     "auto": false
    },
    {
@@ -2597,13 +3271,38 @@
     "auto": false
    },
    {
+    "etiqueta": "Luz",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Mover por contenido",
     "corona": false,
     "auto": false
    },
    {
+    "etiqueta": "Ojeras",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Ojos",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Parche",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pelos sueltos",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Piel cuerpo",
+    "corona": true,
     "auto": false
    },
    {
@@ -2617,8 +3316,23 @@
     "auto": false
    },
    {
+    "etiqueta": "Planchar ropa",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Postura",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Quitamanchas",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Reflejos gafas",
+    "corona": true,
     "auto": false
    },
    {
@@ -2642,8 +3356,23 @@
     "auto": false
    },
    {
+    "etiqueta": "Silueta",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Superficie",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Textura",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Textura tela",
+    "corona": true,
     "auto": false
    }
   ],
@@ -2685,6 +3414,11 @@
    },
    {
     "etiqueta": "Partes",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Pincel inteligente",
     "corona": true,
     "auto": false
    },
@@ -2747,6 +3481,11 @@
    },
    {
     "etiqueta": "Emborronar",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Esponja",
     "corona": false,
     "auto": false
    },
@@ -3192,6 +3931,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Buscar fotos",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Comparar",
     "corona": false,
     "auto": false
@@ -3217,6 +3961,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Etiquetas",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Histograma",
     "corona": false,
     "auto": false
@@ -3224,6 +3973,11 @@
    {
     "etiqueta": "Informar de un error",
     "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Informe de realismo",
+    "corona": true,
     "auto": false
    },
    {
@@ -3237,6 +3991,11 @@
     "auto": false
    },
    {
+    "etiqueta": "Manos y dientes",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Metadatos EXIF",
     "corona": false,
     "auto": false
@@ -3247,7 +4006,29 @@
     "auto": false
    },
    {
+    "etiqueta": "Selección rápida",
+    "corona": true,
+    "auto": false
+   },
+   {
+    "etiqueta": "Texto alternativo",
+    "corona": true,
+    "auto": false
+   },
+   {
     "etiqueta": "Zoom",
+    "corona": false,
+    "auto": false
+   }
+  ],
+  "video": [
+   {
+    "etiqueta": "Editor de vídeo",
+    "corona": false,
+    "auto": false
+   },
+   {
+    "etiqueta": "Importar vídeo",
     "corona": false,
     "auto": false
    }

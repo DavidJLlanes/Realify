@@ -11,7 +11,7 @@ export function ejecutar(){
   return ejecutarEscena({
     panel: panel(), nombre: "Moiré y bandas",
     datos: null,
-    lado: () => (matchMedia("(max-width:900px)").matches ? 3200 : 6000),   // el moiré vive en el detalle fino: a escala reducida se pierde
+    lado: () => (matchMedia("(max-width:900px)").matches ? 2400 : 6000),   // el moiré vive en el detalle fino: a escala reducida se pierde
     motor: (p, ctx, v) => { quitarMoire(p, v); }
   });
 }

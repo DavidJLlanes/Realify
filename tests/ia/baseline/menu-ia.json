@@ -52,6 +52,12 @@
      "label": "Seleccionar partes Premium 👑…",
      "premium": true,
      "help": "Elige una parte de la persona —pelo, cara, piel, ropa, brazos, piernas, zapatos…— y la IA (SegFormer + pose) la selecciona o la deja como máscara de la capa. Reconoce varias personas. Todo en tu equipo."
+    },
+    {
+     "cmd": "ai.smartBrush",
+     "label": "Pincel inteligente con IA Premium 👑…",
+     "premium": true,
+     "help": "Pinta sobre un objeto y la selección se ajusta a sus bordes (MobileSAM). Puedes añadir o quitar; el resultado es la selección activa."
     }
    ]
   },
@@ -75,6 +81,12 @@
      "label": "Expandir con IA…",
      "premium": false,
      "help": "Agranda el lienzo (a un formato o con márgenes) y la IA (LaMa) rellena los bordes nuevos. El resultado se abre en una pestaña nueva."
+    },
+    {
+     "cmd": "ai.quickErase",
+     "label": "Borrado ligero con IA Premium 👑…",
+     "premium": true,
+     "help": "Pinta sobre lo que sobra y se rellena en una capa nueva; el original queda intacto. Pensado para el móvil."
     }
    ]
   },
@@ -107,6 +119,148 @@
      "label": "Ojos rojos Premium 👑",
      "premium": true,
      "help": "Encuentra los ojos y les quita el rojo del flash sin tocar el reflejo. Capa nueva."
+    },
+    {
+     "cmd": "ai.skinWrinkles",
+     "label": "Arrugas Premium 👑…",
+     "premium": true,
+     "help": "Atenúa las arrugas de la frente, el entrecejo, las patas de gallo, los surcos y el cuello sin borrar la textura de la piel: detecta cada surco con un filtro de crestas y reinyecta los poros. En el editor de cara, capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.darkCircles",
+     "label": "Ojeras y bolsas Premium 👑…",
+     "premium": true,
+     "help": "Iguala la luz y el tono de la zona bajo los ojos con el de la mejilla, sin borrar la textura de la piel. En el editor de cara, capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.skinShine",
+     "label": "Brillos de la piel Premium 👑…",
+     "premium": true,
+     "help": "Detecta las zonas brillantes de la piel (frente, nariz, mejillas) y las atenúa sin apagar el reflejo de los ojos. En el editor de cara, capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.skinTexture",
+     "label": "Textura de piel Premium 👑…",
+     "premium": true,
+     "help": "Añade poros y grano fino sólo donde la piel es demasiado lisa (típico de las imágenes de IA); la piel que ya tiene textura no cambia. En el editor de cara, capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.skinEven",
+     "label": "Imperfecciones y tono Premium 👑…",
+     "premium": true,
+     "help": "Rellena granos y manchas pequeñas con la piel de alrededor y uniforma las rojeces por zonas, sin tocar la luz ni la textura. En el editor de cara, capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.faceRelight",
+     "label": "Luz en la cara Premium 👑…",
+     "premium": true,
+     "help": "Cambia la luz de la cara: dirección, altura, intensidad y suavidad, sobre la forma real de la cara (profundidad + elipsoide), en luz lineal y respetando el color de la piel. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.eyes",
+     "label": "Ojos Premium 👑…",
+     "premium": true,
+     "help": "Da luz y detalle al iris sin quemar el reflejo, cambia el color del iris sin teñir la pupila y aclara el blanco del ojo. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.lipsBrows",
+     "label": "Labios y cejas Premium 👑…",
+     "premium": true,
+     "help": "Labios: más o menos color y definición. Cejas: oscurecer, dar color y rellenar los huecos. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.teeth",
+     "label": "Dientes Premium 👑…",
+     "premium": true,
+     "help": "Blanquea los dientes por zonas, conservando el brillo: no toca encías, lengua ni labios. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.hair",
+     "label": "Cabello Premium 👑…",
+     "premium": true,
+     "help": "Cambia el color del pelo (tono y saturación en OKLab, conservando sombras y mechones), su luz y su brillo, y le da volumen suave. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.flyawayHair",
+     "label": "Pelos sueltos Premium 👑…",
+     "premium": true,
+     "help": "Quita los pelos sueltos que cruzan el fondo junto a la cabeza: los detecta como líneas finas y los rellena con el fondo. No toca el peinado. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.glassesGlare",
+     "label": "Reflejos en gafas Premium 👑…",
+     "premium": true,
+     "help": "Atenúa los brillos y reflejos de los cristales de las gafas, sin tocar los ojos ni la montura. Capa nueva con «mezcla»."
+    },
+    {
+     "cmd": "ai.faceShape",
+     "label": "Forma de la cara Premium 👑…",
+     "premium": true,
+     "help": "Retoca la forma de la cara con cambios pequeños y naturales: mandíbula, mentón, anchura, nariz, tamaño de los ojos y grosor de los labios, deformando sin pliegues a partir de los 478 puntos de la cara. El perfil infantil usa un rango reducido. Capa nueva con «mezcla»."
+    }
+   ]
+  },
+  {
+   "label": "Cuerpo",
+   "hijos": [
+    {
+     "cmd": "ai.bodyEditor",
+     "label": "Editor de cuerpo Premium 👑…",
+     "premium": true,
+     "help": "Abre el editor de cuerpo: silueta, proporciones, cabeza y cuello, torso, brazos, piernas, postura, definición y piel, con zoom en la persona. Eliges el perfil (hombre, mujer, niño o niña) y cada persona va a su propia capa."
+    },
+    {
+     "cmd": "ai.bodyShape",
+     "label": "Silueta y proporciones Premium 👑…",
+     "premium": true,
+     "help": "Cambia la silueta y las proporciones: delgado o ancho, altura, piernas y torso, hombros, cintura, caderas, brazos y piernas. Deforma sin pliegues, protege el fondo lejano y deja cada persona en su capa."
+    },
+    {
+     "cmd": "ai.bodyPosture",
+     "label": "Postura Premium 👑…",
+     "premium": true,
+     "help": "Endereza la postura: erguir la espalda, cuello adelantado y hombros caídos. Cambios pequeños y naturales, con el perfil de la persona."
+    },
+    {
+     "cmd": "ai.bodyTone",
+     "label": "Definición y tono Premium 👑…",
+     "premium": true,
+     "help": "Realza la definición del cuerpo adulto: relieve de luz y sombra y musculatura por zonas, sin generar piel. No existe para el perfil infantil."
+    },
+    {
+     "cmd": "ai.bodySkin",
+     "label": "Piel del cuerpo Premium 👑…",
+     "premium": true,
+     "help": "Piel del cuerpo: suavizar, uniformar el color y bronceado (adultos); el perfil infantil solo tiene «uniformar»."
+    }
+   ]
+  },
+  {
+   "label": "Ropa y tejidos",
+   "hijos": [
+    {
+     "cmd": "ai.clothesWrinkles",
+     "label": "Planchar arrugas de ropa Premium 👑…",
+     "premium": true,
+     "help": "Plancha las arrugas de la ropa: aplana el sombreado de los pliegues y conserva la trama del tejido, las rayas y los estampados."
+    },
+    {
+     "cmd": "ai.fabricWrinkles",
+     "label": "Arrugas de telas y fondos Premium 👑…",
+     "premium": true,
+     "help": "Plancha las arrugas de sábanas, cortinas, manteles o fondos de tela: tocas la tela y se alisa sin perder su trama."
+    },
+    {
+     "cmd": "ai.recolorClothes",
+     "label": "Cambiar color de prendas Premium 👑…",
+     "premium": true,
+     "help": "Cambia el color de una prenda en OKLab conservando sus sombras, brillos y pliegues; las prendas blancas, grises o negras se tiñen con el tinte."
+    },
+    {
+     "cmd": "ai.fabricTexture",
+     "label": "Textura de tejido Premium 👑…",
+     "premium": true,
+     "help": "Realza, apaga o devuelve la trama del tejido y rellena las zonas que quedaron demasiado lisas tras planchar o recolorear."
     }
    ]
   },
@@ -127,6 +281,42 @@
      "label": "Adaptive Photo Lens…",
      "premium": false,
      "help": "Reconoce el tipo de foto con un modelo local y aplica el revelado que le va"
+    },
+    {
+     "cmd": "ai.skyEnhance",
+     "label": "Mejorar cielo Premium 👑…",
+     "premium": true,
+     "help": "Realza el cielo (contraste y saturación), rellena de azul los cielos apagados conservando las nubes y ajusta la luz del primer plano."
+    },
+    {
+     "cmd": "ai.dehaze",
+     "label": "Quitar neblina con IA Premium 👑…",
+     "premium": true,
+     "help": "Quita la neblina usando la distancia de cada punto (mapa de profundidad) además del canal oscuro, sin halos en los bordes."
+    },
+    {
+     "cmd": "ai.categoryBoost",
+     "label": "Realzar por tipo Premium 👑…",
+     "premium": true,
+     "help": "Realza por tipo de cosa —agua, follaje, cielo, edificios o piel— con la receta de cada una: saturación y detalle sólo donde toca."
+    },
+    {
+     "cmd": "ai.zonedWhiteBalance",
+     "label": "Balance de blancos por zonas Premium 👑…",
+     "premium": true,
+     "help": "Estima el iluminante de cada zona de la foto y lo corrige por separado: sirve con luz mezclada (ventana fría y lámpara cálida)."
+    },
+    {
+     "cmd": "ai.highlightRecovery",
+     "label": "Recuperar luces Premium 👑…",
+     "premium": true,
+     "help": "Reconstruye los canales quemados: toma el color de los vecinos sanos y comprime el exceso con un hombro suave."
+    },
+    {
+     "cmd": "ai.harmonize",
+     "label": "Unificar iluminación Premium 👑…",
+     "premium": true,
+     "help": "Acerca el color y la luz del sujeto a los del fondo que lo rodea, para que parezca hecho en la misma escena."
     }
    ]
   },
@@ -162,6 +352,18 @@
      "label": "Foto 3D Premium 👑…",
      "premium": true,
      "help": "Anima la foto con paralaje (lo cercano se mueve más que lo lejano) y la guarda como GIF."
+    },
+    {
+     "cmd": "ai.depthChroma",
+     "label": "Aberración por distancia Premium 👑…",
+     "premium": true,
+     "help": "Aberración cromática que crece con la distancia, como un objetivo que se resiente en lo lejano."
+    },
+    {
+     "cmd": "ai.depthRelight",
+     "label": "Luz direccional con relieve Premium 👑…",
+     "premium": true,
+     "help": "Luz direccional con relieve: saca las normales del mapa de profundidad y ilumina la escena desde donde elijas."
     }
    ]
   },
@@ -197,6 +399,24 @@
      "label": "Colorear con IA…",
      "premium": false,
      "help": "Da color a fotos en blanco y negro (SpongeColor, Colorizer, DDColor) manteniendo la nitidez original. Crea una capa nueva."
+    },
+    {
+     "cmd": "ai.deblur",
+     "label": "Quitar desenfoque Premium 👑…",
+     "premium": true,
+     "help": "Quita el desenfoque de movimiento o de enfoque con un núcleo medido en la propia foto (o puesto a mano) y frena los halos."
+    },
+    {
+     "cmd": "ai.dustSpots",
+     "label": "Polvo y motas del sensor Premium 👑…",
+     "premium": true,
+     "help": "Detecta las motas del sensor (manchas pequeñas y oscuras sobre zonas lisas) y las rellena con el color de su alrededor, sin tocar la textura."
+    },
+    {
+     "cmd": "ai.moire",
+     "label": "Moiré y bandas Premium 👑…",
+     "premium": true,
+     "help": "Quita el moiré y las bandas periódicas buscando picos en el espectro de cada bloque y atenuándolos; el color se limpia más fuerte."
     }
    ]
   },
@@ -214,6 +434,78 @@
      "label": "Recorte de retrato Premium 👑",
      "premium": true,
      "help": "Abre Recortar con el marco encuadrado en la cara (ojos en el tercio superior, cabeza y hombros)."
+    },
+    {
+     "cmd": "ai.textPlacement",
+     "label": "Texto en zona libre con IA Premium 👑…",
+     "premium": true,
+     "help": "Busca la zona de la foto que menos molesta (sin sujeto, caras ni texturas) y escribe ahí tu texto o marca de agua, en claro u oscuro según el fondo, en una capa nueva."
+    }
+   ]
+  },
+  {
+   "label": "Color y estilos",
+   "hijos": [
+    {
+     "cmd": "ai.styleFromReference",
+     "label": "Estilo desde una foto de referencia Premium 👑…",
+     "premium": true,
+     "help": "Elige una foto de referencia y lleva el color y el tono de tu foto hacia los suyos, por zonas (cielo, personas, resto) y en OKLab. También puede sugerir ajustes (exposición, contraste, calidez, saturación)."
+    },
+    {
+     "cmd": "ai.cameraPacks",
+     "label": "Packs de cámara Premium 👑…",
+     "premium": true,
+     "help": "Elige un estilo de película analógica, de móvil o de réflex/óptica y se aplica como capa de filtro reeditable (con el motor de Cámaras). Al ser una capa de filtro, «Aplicar esta edición a otras fotos» la copia a un lote."
+    },
+    {
+     "cmd": "ai.myStyles",
+     "label": "Mis estilos Premium 👑…",
+     "premium": true,
+     "help": "Guarda el color y el tono de una foto de referencia como estilo, aplícalo a esta foto o a todas las abiertas, y pásalo a otra persona o ordenador como archivo."
+    }
+   ]
+  },
+  {
+   "sep": true
+  },
+  {
+   "label": "Lote y biblioteca",
+   "hijos": [
+    {
+     "cmd": "ai.culling",
+     "label": "Selección rápida Premium 👑…",
+     "premium": true,
+     "help": "Carga varias fotos y elige las mejores: puntúa nitidez, ojos y composición, agrupa duplicados y te deja comparar y descartar."
+    },
+    {
+     "cmd": "ai.searchPhotos",
+     "label": "Buscar fotos Premium 👑…",
+     "premium": true,
+     "help": "Indexa tus fotos en este dispositivo y búscalas con una frase («perro en la playa», «de noche», «retrato en blanco y negro»). Nada sale de tu equipo."
+    },
+    {
+     "cmd": "ai.autoTags",
+     "label": "Etiquetas y nombre Premium 👑…",
+     "premium": true,
+     "help": "La IA describe la foto con etiquetas en español (tipo, objetos, colores) y propone un nombre de archivo con una plantilla: {fecha}, {etiqueta}, {color}, {n}…"
+    },
+    {
+     "cmd": "ai.altText",
+     "label": "Texto alternativo Premium 👑…",
+     "premium": true,
+     "help": "Escribe en español una descripción de la foto para lectores de pantalla (corta, de hasta 125 caracteres, o larga). Se copia al portapapeles."
+    }
+   ]
+  },
+  {
+   "label": "Asistente",
+   "hijos": [
+    {
+     "cmd": "ai.assistant",
+     "label": "Asistente de edición Premium 👑…",
+     "premium": true,
+     "help": "Escribe lo que quieres («más cálida y con grano», «quita la neblina y mejora el cielo»), mira el plan y aplícalo. Todo va en capas que puedes retocar o deshacer."
     }
    ]
   },
@@ -264,6 +556,24 @@
      "label": "Limpiar metadatos de un archivo…",
      "premium": false,
      "help": ""
+    },
+    {
+     "cmd": "ai.smoothZones",
+     "label": "Zonas demasiado lisas con IA Premium 👑…",
+     "premium": true,
+     "help": "Detecta las zonas sin textura creíble (cielos, pieles y fondos de imágenes generadas) y añade grano de sensor solo ahí. También puede mostrártelas marcadas en rojo."
+    },
+    {
+     "cmd": "ai.aiArtifacts",
+     "label": "Manos y dientes sospechosos Premium 👑…",
+     "premium": true,
+     "help": "Revisa las manos (proporciones, dedos, articulaciones) y los dientes (separaciones) de las personas de la foto y te avisa de lo que parece generado. Solo avisa: no corrige nada."
+    },
+    {
+     "cmd": "ai.photoReport",
+     "label": "Informe de realismo Premium 👑…",
+     "premium": true,
+     "help": "Mide nitidez, ruido, rango dinámico, zonas lisas, metadatos y la puntuación de Plausibilidad. Se puede guardar en PDF o JSON."
     }
    ]
   }
