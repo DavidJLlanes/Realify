@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T10:12:57.338Z",
+ "generated": "2026-11-17T10:35:29.174Z",
  "root": "/home/claude/realify",
- "jsFiles": 1198,
- "jsLines": 112650,
+ "jsFiles": 1204,
+ "jsLines": 113054,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -603,6 +603,7 @@
    "registrarSW"
   ],
   "basic/js/app/render.js": [
+   "geometria",
    "iniciarRender",
    "medirAutoActual",
    "renderFinal",
@@ -610,6 +611,7 @@
   ],
   "basic/js/app/session.js": [
    "cambiar",
+   "cambiarRecorte",
    "cerrar",
    "cerrarPaso",
    "deshacer",
@@ -623,6 +625,9 @@
    "leer",
    "poner",
    "suscribir"
+  ],
+  "basic/js/app/transformar.js": [
+   "transformar"
   ],
   "basic/js/engine/auto.js": [
    "medirAuto"
@@ -639,8 +644,15 @@
    "pasoNitidez",
    "pasoRuido"
   ],
+  "basic/js/engine/geometria.js": [
+   "RATIOS",
+   "calcularGeo",
+   "dentroDelQuad"
+  ],
   "basic/js/engine/neutra.js": [
-   "esNeutra"
+   "RECORTE0",
+   "esNeutra",
+   "esNeutraRecorte"
   ],
   "basic/js/engine/pipeline.js": [
    "aplicarReceta",
@@ -662,6 +674,16 @@
   ],
   "basic/js/tabs/adjust/params.js": [
    "AJUSTES"
+  ],
+  "basic/js/tabs/crop/overlay.js": [
+   "montarSobre"
+  ],
+  "basic/js/tabs/crop/panel.js": [
+   "montarRecortar"
+  ],
+  "basic/js/tabs/crop/params.js": [
+   "PROPORCIONES",
+   "REGLAS"
   ],
   "basic/js/tabs/index.js": [
    "PESTANAS"
@@ -5750,10 +5772,10 @@
   "js/features -> js/filters": 7,
   "js/ai -> js/editor": 6,
   "js/exif -> js/core": 6,
+  "basic -> js/editor": 5,
   "js/ai -> js/core": 5,
   "js/filters -> js/ai": 5,
   "plugins -> js/cv": 5,
-  "basic -> js/editor": 4,
   "js/editor -> plugins": 4,
   "js/filters -> js/exif": 4,
   "js/main.js -> js/io": 4,

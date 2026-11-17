@@ -2,21 +2,21 @@
    REALIFY BASIC · REGLA
    Deslizador tipo regla (como el de Fotos): una marca fija en el centro y las divisiones se mueven al arrastrar. El valor se lee
    encima. Doble toque lo devuelve a su valor por defecto. También funciona con la rueda y con las flechas del teclado.
-   Entradas: crearRegla({ min, max, valor, def, alCambiar(v), alSoltar() }). Salidas: { el, poner(valor, min, max, def) }.
+   Entradas: crearRegla({ min, max, valor, def, formato(v), alCambiar(v), alSoltar() }). Salidas: { el, poner(valor, min, max, def, formato) }.
    Límites: valores enteros; 4 px por unidad; un clic de vibración al cruzar el cero (si el dispositivo la tiene).
    ═══════════════════════════════════════════════════════════════ */
 import { h } from "./dom.js";
 
 const PX = 4;
 
-export function crearRegla({ min = -100, max = 100, valor = 0, def = 0, alCambiar = () => {}, alSoltar = () => {} } = {}) {
+export function crearRegla({ min = -100, max = 100, valor = 0, def = 0, formato = null, alCambiar = () => {}, alSoltar = () => {} } = {}) {
   const cifra = h("div", { class: "regla-valor" });
   const marcas = h("div", { class: "regla-marcas" });
   const el = h("div", { class: "regla", role: "slider", tabindex: 0 }, cifra, h("div", { class: "regla-ventana" }, marcas), h("div", { class: "regla-centro" }));
   let v = valor, inicio = null, ultimo = 0;
 
   const pintar = () => {
-    cifra.textContent = v > 0 && min < 0 ? "+" + v : String(v);
+    cifra.textContent = formato ? formato(v) : v > 0 && min < 0 ? "+" + v : String(v);
     marcas.style.transform = `translateX(${-(v - min) * PX}px)`;
     el.setAttribute("aria-valuenow", v); el.setAttribute("aria-valuemin", min); el.setAttribute("aria-valuemax", max);
   };
@@ -48,5 +48,5 @@ export function crearRegla({ min = -100, max = 100, valor = 0, def = 0, alCambia
   });
 
   dibujarMarcas(); pintar();
-  return { el, poner(nuevo, mn = min, mx = max, df = def) { min = mn; max = mx; def = df; dibujarMarcas(); v = Math.max(min, Math.min(max, nuevo)); pintar(); } };
+  return { el, poner(nuevo, mn = min, mx = max, df = def, fm = formato) { min = mn; max = mx; def = df; formato = fm; dibujarMarcas(); v = Math.max(min, Math.min(max, nuevo)); pintar(); } };
 }

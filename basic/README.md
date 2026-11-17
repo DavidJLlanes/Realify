@@ -17,7 +17,7 @@ basic/
    ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · files · device · pwa
    ├─ engine/  pipeline (etapas y caché) · color · tono · detalle · vineta · auto · neutra      (sin DOM)
    ├─ ui/      viewport · gestos · topbar · tabbar · panel · ruler · strip · menu · bienvenida · aviso · atajos · icons · dom
-   └─ tabs/    index.js (tabla de pestañas) · adjust/{params,panel}.js   (Estilos y Recortar llegan en F4 y F3)
+   └─ tabs/    index.js (tabla de pestañas) · adjust/{params,panel}.js · crop/{params,panel,overlay}.js   (Estilos llega en F4)
 ```
 
 ## Normas

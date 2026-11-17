@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 333) · Realify Basic, fase 3
+- **Realify Basic · Recortar**: marco con asas en las esquinas y los lados y cuadrícula de tercios (se mueve y se redimensiona arrastrando, sigue el zoom y nunca sale de la foto). Fila con Girar 90°, Voltear, Proporción (libre, original, 1:1, 4:3, 3:2, 16:9, 3:4, 2:3, 9:16) y reglas de Enderezar (±45°, con recorte automático sin huecos), Vertical y Horizontal (perspectiva).
+- La receta incorpora el recorte (`recorte`); deshacer y rehacer lo recuerdan, y la copia guardada aplica la geometría en una sola pasada desde el original a resolución completa.
+- El visor reserva sitio para que el marco no quede bajo las barras de cristal en la pestaña Recortar.
+- Prueba nueva `tests/basic/recortar.mjs` (geometría, píxeles, interfaz y resultado final; móvil y escritorio).
+
 ### 2.1.0 (compilación 332) · Realify Basic, fase 2
 - **Realify Basic · Ajustar**: Auto y 15 ajustes con regla tipo Fotos (Exposición, Brillantez, Luces altas, Sombras, Contraste, Brillo, Punto negro, Saturación, Intensidad, Temperatura, Tinte, Nitidez, Definición, Reducir ruido y Viñeta). Cada ajuste muestra un anillo con su valor; doble toque en la regla lo pone a 0.
 - Siempre Premium, sin interruptor: color en luz lineal y OKLab con mapeo de gama y tramado, luces/sombras y contraste con el motor Premium de Realify, nitidez con protección de bordes y halos, viñeta con tramado. «Auto» usa el diagnóstico de la Mejora automática Premium y lo reparte en los deslizadores.

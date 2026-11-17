@@ -2,21 +2,22 @@
    REALIFY BASIC · GESTOS DEL VISOR
    Zoom y desplazamiento de la foto: pellizco y arrastre con el dedo, rueda y arrastre con el ratón, doble toque o doble clic
    para acercar y volver. Un toque suelto avisa con alTocar (muestra u oculta las barras).
-   Entradas: crearGestos(zona, elemento, { alTocar }). Salidas: { ajustar(ancho, alto), encuadrar() }.
+   Entradas: crearGestos(zona, elemento, { alTocar }). Salidas: { ajustar(ancho, alto), reservar(arriba, abajo) (zona libre para mandos superpuestos), encuadrar(), aLogico(evento) → [x, y] en píxeles de la foto }.
+   Deja en el elemento la variable CSS --inv (1 / zoom) para que los mandos superpuestos mantengan su tamaño en pantalla.
    Límites: no pinta la foto (eso es ui/viewport.js); el zoom llega a 8 veces el tamaño ajustado.
    ═══════════════════════════════════════════════════════════════ */
 const MAX_ZOOM = 8;
 
 export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
-  let w = 0, h = 0, s = 1, x = 0, y = 0, s0 = 1, ultimoToque = { t: 0, x: 0, y: 0 };
+  let w = 0, h = 0, ra = 0, rb = 0, s = 1, x = 0, y = 0, s0 = 1, ultimoToque = { t: 0, x: 0, y: 0 };
   const dedos = new Map();
   let inicio = null;
 
-  const aplicar = () => { el.style.transform = `translate(${x}px, ${y}px) scale(${s})`; };
+  const aplicar = () => { el.style.transform = `translate(${x}px, ${y}px) scale(${s})`; el.style.setProperty("--inv", 1 / s); };
   function limitar() {
-    const W = zona.clientWidth, H = zona.clientHeight, aw = w * s, ah = h * s;
+    const W = zona.clientWidth, H = zona.clientHeight - ra - rb, aw = w * s, ah = h * s;
     x = aw <= W ? (W - aw) / 2 : Math.min(0, Math.max(W - aw, x));
-    y = ah <= H ? (H - ah) / 2 : Math.min(0, Math.max(H - ah, y));
+    y = ah <= H ? (H - ah) / 2 + ra : Math.min(ra, Math.max(H + ra - ah, y));
   }
   function zoomEn(px, py, nuevo) {
     nuevo = Math.min(s0 * MAX_ZOOM, Math.max(s0, nuevo));
@@ -24,13 +25,13 @@ export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
   }
   function encuadrar() {
     if (!w) return;
-    s0 = s = Math.min(zona.clientWidth / w, zona.clientHeight / h); x = y = 0; limitar(); aplicar();
+    s0 = s = Math.min(zona.clientWidth / w, (zona.clientHeight - ra - rb) / h); x = y = 0; limitar(); aplicar();
   }
   const punto = e => { const r = zona.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   const medio = () => { const p = [...dedos.values()]; return [(p[0][0] + p[1][0]) / 2, (p[0][1] + p[1][1]) / 2, Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1])]; };
 
   zona.addEventListener("pointerdown", e => {
-    if (!w || e.target.closest(".barra, .menu, .bienvenida")) return;
+    if (!w || e.target.closest(".barra, .menu, .bienvenida, .asa")) return;
     zona.setPointerCapture(e.pointerId); dedos.set(e.pointerId, punto(e));
     inicio = { t: performance.now(), mov: 0, n: dedos.size, ref: dedos.size === 2 ? medio() : null };
   });
@@ -58,5 +59,5 @@ export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
   zona.addEventListener("wheel", e => { if (!w) return; e.preventDefault(); const [px, py] = punto(e); zoomEn(px, py, s * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0015))); }, { passive: false });
   addEventListener("resize", encuadrar);
 
-  return { ajustar(ancho, alto) { w = ancho; h = alto; encuadrar(); }, encuadrar };
+  return { reservar(arriba, abajo) { ra = arriba; rb = abajo; encuadrar(); }, ajustar(ancho, alto) { w = ancho; h = alto; encuadrar(); }, encuadrar, aLogico(e) { const [px, py] = punto(e); return [(px - x) / s, (py - y) / s]; } };
 }

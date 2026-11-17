@@ -57,6 +57,7 @@ for (const tipo of ["movil", "escritorio"]) {
   await page.keyboard.press("Escape");
   exige(!(await vis(".menu")), tipo + ": el menú no se cierra con Escape");
 
+  await page.click('.pestana[data-id="ajustar"]'); await page.waitForTimeout(500);   // en Recortar, tocar el marco mueve el recorte (no oculta barras)
   /* zoom con rueda y toque para ocultar barras */
   const t0 = await page.evaluate(() => document.querySelector(".foto").style.transform);
   await page.mouse.move(cv.W / 2, cv.H / 2); await page.mouse.wheel(0, -400); await page.waitForTimeout(150);

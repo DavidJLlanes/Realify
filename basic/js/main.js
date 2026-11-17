@@ -23,14 +23,14 @@ const guardar = async () => { if (await guardarCopia()) avisar("Copia guardada")
 
 iniciarDispositivo();
 iniciarRender();
-montarVisor(escenario);
+const visor = montarVisor(escenario);
 montarBienvenida(escenario, { alAbrir: pedirArchivo });
 montarBarraSuperior(escenario, { alCerrar: cerrar, alGuardar: guardar, acciones: [
   { texto: "Abrir otra foto", icono: "abrir", alTocar: pedirArchivo },
   { texto: "Guardar copia", icono: "guardar", alTocar: guardar },
   { texto: "Volver al original", icono: "original", ver: e => e.sucio, alTocar: volverAlOriginal },
 ] });
-montarPanel(escenario);
+montarPanel(escenario, visor);
 montarPestanas(escenario);
 montarAtajos({ abrir: pedirArchivo, guardar });
 escucharEntradas(document.body);

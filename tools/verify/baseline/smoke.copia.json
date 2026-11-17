@@ -1,24 +1,24 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T10:13:00.234Z",
+ "generated": "2026-11-17T10:35:32.123Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1388,
+     "readyMs": 1967,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
      "jsBytes": 2152074,
      "cssBytes": 178603,
      "transferBytes": 890461,
-     "domContentLoaded": 1299,
-     "fcp": 940
+     "domContentLoaded": 1871,
+     "fcp": 1204
     },
     {
-     "readyMs": 1248,
+     "readyMs": 1342,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
@@ -26,21 +26,21 @@
      "cssBytes": 178603,
      "transferBytes": 890461,
      "domContentLoaded": 1163,
-     "fcp": 340
+     "fcp": 440
     },
     {
-     "readyMs": 1169,
+     "readyMs": 1571,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2152074,
+     "jsBytes": 2152016,
      "cssBytes": 178603,
-     "transferBytes": 890461,
-     "domContentLoaded": 1033,
-     "fcp": 360
+     "transferBytes": 891510,
+     "domContentLoaded": 1483,
+     "fcp": 432
     }
    ],
-   "medianReadyMs": 1248,
+   "medianReadyMs": 1571,
    "medianTransferBytes": 890461
   },
   "vendorAtStart": {
@@ -2963,8 +2963,8 @@
    "menuHash": "1cd71df0bf1857a8"
   },
   "screens": {
-   "welcome": "b1b0a4cca9dfd3c9",
-   "withImage": "904bd78c863bfc03"
+   "welcome": "fc0210eaacf9de73",
+   "withImage": "7dc952579104f567"
   },
   "opened": true,
   "afterOpen": {
@@ -4908,15 +4908,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1534,
+   "readyMs": 1201,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2152074,
+   "jsBytes": 2152041,
    "cssBytes": 178603,
-   "transferBytes": 890461,
-   "domContentLoaded": 1422,
-   "fcp": 600
+   "transferBytes": 890984,
+   "domContentLoaded": 1122,
+   "fcp": 688
   },
   "screens": {
    "welcome": "fe7b93e343389925",
