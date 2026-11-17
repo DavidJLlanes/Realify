@@ -5,11 +5,12 @@
    devuelve hasta cerrar la app (queda una franja negra abajo o las barras se cortan). Aquí se detecta, se «cura» forzando que iOS
    vuelva a medir (ocultar y mostrar la página en el mismo fotograma) y, si aun así sigue encogida, se usa el último alto bueno
    (guardado entre sesiones) o el de la pantalla.
-   Lo normal (página bajo la barra de estado, en vertical) es usar la pantalla entera: screen.height, sin fiarse de innerHeight.
+   Basic usa la barra de estado NEGRA opaca (index.html): con la translúcida, iOS 26 sólo pinta la web hasta «pantalla − barra de
+   estado» y deja abajo una franja que ningún CSS puede pintar (WebKit 301108). Con la negra la web va de bajo la barra hasta el borde.
    Entradas: vigilarAlto(). Salidas: textoAlto() (diagnóstico) · la variable CSS --alto en <html> (shell.css) y un evento resize cuando cambia (el visor reencuadra).
    Límites: sólo actúa con navigator.standalone (iPhone/iPad instalado); en el resto la página usa su alto natural (100 %).
    ═══════════════════════════════════════════════════════════════ */
-const GUARDA = "realify-basic-alto:", HOLGURA = 80;     // la barra de estado más alta mide 62 px: menos que esto es «encogida»
+const GUARDA = "realify-basic-alto:", HOLGURA = 80;     // sana = pantalla − barra de estado (≤ 62 px); menos que esto es «encogida»
 
 const vertical = () => (screen.orientation?.type ? screen.orientation.type.startsWith("portrait") : innerHeight >= innerWidth);
 /* iOS no gira screen.width/height: en vertical la pantalla mide screen.height de alto y en horizontal screen.width. */
@@ -49,16 +50,15 @@ const escribiendo = () => document.activeElement?.matches?.("input, textarea, [c
 
 function medir() {
   if (escribiendo()) return;                            // con el teclado abierto no se toca nada (ocultar el cuerpo lo cerraría)
-  /* Lo normal en Realify Basic: la página se dibuja bajo la barra de estado, así que ocupa la pantalla ENTERA, diga lo que diga
-     innerHeight (iOS 26 la da más corta: le resta la barra de estado o el teclado y deja una franja negra abajo). */
-  if (vertical() && bajoBarra()) { diag.modo = "pantalla"; return poner(pantalla()); }
+  /* Instalada con la barra translúcida antigua (antes de la 352): iOS 26 sólo pinta hasta innerHeight (pantalla − barra de estado,
+     fallo de WebKit 301108) y lo de debajo no se ve; se usa lo visible para que nada quede tapado. Hay que volver a añadirla. */
+  if (vertical() && bajoBarra()) { diag.modo = "translúcida: reinstalar"; return poner(innerHeight); }
   let h = innerHeight;
   if (!sano(h)) { curar(); h = innerHeight; }
   diag.modo = sano(h) ? "medido" : "guardado";
   if (sano(h)) { guardar(h); return poner(h); }
-  // Sigue encogida: el último alto bueno de esta pantalla; si no lo hay y la página se dibuja bajo la barra de estado (lo normal en
-  // Realify Basic), la pantalla entera; si no, lo medido (más vale una franja que unas herramientas cortadas).
-  poner(leer() || (bajoBarra() ? pantalla() : h));
+  // Sigue encogida: el último alto bueno de esta pantalla; si no lo hay, lo medido (más vale una franja que unas herramientas cortadas).
+  poner(leer() || h);
 }
 
 export function vigilarAlto() {

@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 352) · Basic: barra de estado negra (la web llega al borde de abajo en iOS 26)
+- **Causa real de la franja negra / herramientas tapadas en el iPhone**: fallo de iOS 26 (WebKit 301108). Con `apple-mobile-web-app-status-bar-style` = `black-translucent` y `viewport-fit=cover`, iOS sólo pinta la web hasta «pantalla − barra de estado» (894 de 956 px en el iPhone de David) y lo de debajo queda tapado por una franja que ningún CSS puede pintar (la captura con la 351 lo confirma: la página medía 956 px y se cortaba a 894). Basic pasa a la barra **negra opaca** como Realify Pro: la web empieza bajo la barra y llega hasta el borde inferior. **Hay que borrar el icono de Basic y volver a añadirlo** (iOS lee el estilo sólo al instalar) y emparejar otra vez con Realify Pro.
+- `basic/js/app/alto.js`: con una instalación antigua (translúcida) usa lo visible (`innerHeight`) para que nada quede tapado y el pie del menú dice «translúcida: reinstalar»; ya no usa `screen.height`.
+
 ### 2.1.0 (compilación 351) · Basic: pantalla entera en el iPhone sin fiarse de innerHeight · diagnóstico en el menú
 - **Basic en el iPhone instalado usa la pantalla entera (`screen.height`)** cuando la página se dibuja bajo la barra de estado (lo normal, en vertical). La captura con la 350 mostraba la barra de abajo terminando a ~894 px de 956: iOS 26 da un `innerHeight` al que le resta la barra de estado (62 px), y la 350 lo daba por bueno. En horizontal o sin barra translúcida sigue la medida con cura de la 350.
 - **Diagnóstico al pie del menú «···»**: compilación cargada, pantalla, alto usado y cómo se decidió (`pantalla`, `medido`, `guardado`) e `innerHeight`. Así una captura dice si el móvil ya tiene la última versión y qué mide.
