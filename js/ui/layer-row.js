@@ -100,8 +100,7 @@ export function rowHtml(l, s){
     : `<button type="button" class="thumb add-mask" data-add-mask="1"
         title="Añadir máscara de ${maskLabel}${isGroup ? "" : " — Alt+clic: máscara negra u ocultar selección"}"
         aria-label="Añadir máscara de ${maskLabel}">+</button>`;
-  return
-    `<button class="eye" title="Mostrar u ocultar" aria-label="Mostrar u ocultar capa">
+  return (`<button class="eye" title="Mostrar u ocultar" aria-label="Mostrar u ocultar capa">
        ${l.visible
          ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>'
          : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 17A10 10 0 0 1 12 19C5 19 1 12 1 12a18 18 0 0 1 5-5m4-2h1c7 0 11 7 11 7a18 18 0 0 1-2 3M1 1l22 22"/></svg>'}
@@ -156,7 +155,7 @@ export function rowHtml(l, s){
            <button type="button" class="fxc-up icon" title="Subir en la cadena" ${fi === 0 ? "disabled" : ""}>↑</button>
            <button type="button" class="fxc-down icon" title="Bajar en la cadena" ${fi === l.filters.length - 1 ? "disabled" : ""}>↓</button>
            <button type="button" class="fxc-remove icon" title="Quitar del encadenado">✕</button>
-         </div>`).join("")}</div>` : ""}`;
+         </div>`).join("")}</div>` : ""}`);
 }
 
 /** Deslizador «filtro/mezcla» y filas de la cadena de filtros (si la fila los lleva). */

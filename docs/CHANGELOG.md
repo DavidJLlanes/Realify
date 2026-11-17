@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 347) · Emparejar a mano y limpieza
+- **Emparejar a mano** (iPhone con las apps instaladas): Basic, menú ··· → «Emparejar con Realify»; Realify, Archivo → «Emparejar con Realify Basic…» (también en el cajón del móvil, sólo activo en el iPhone instalado). Una app enseña un código y la otra lo escribe; sirve aunque las dos apps no salgan por la misma red o si una perdió la clave.
+- **Panel de capas**: `renderLayers` (380 líneas dentro de `js/ui/panels.js`, que tenía 861) se divide en `layer-row.js` (estado y HTML de cada fila, deslizadores de filtro), `layer-row-click.js` (clics) y `layer-controls.js` (opacidad y modo de fusión); `panels.js` queda en 389. El HTML de la lista es idéntico al anterior (comprobado con capas de todos los tipos) y pasan `tests/combinar-filtro.mjs` y `tests/ia/capas/reordenar.mjs`.
+- `package.json`: la versión de `acorn` llevaba pegada por error una lista de pruebas (podía romper `npm install`); esas pruebas vuelven a `test:ia`. `VERSION` al día.
+- Basic: guardar a resolución completa por franjas en varios trabajadores **se descarta**: el contraste automático usa la luminosidad media de toda la foto y los radios de definición, luces y nitidez dependen del tamaño total, así que por franjas el resultado cambiaría.
+
 ### 2.1.0 (compilación 346) · Paso automático de fotos entre las dos apps del iPhone
 - **Sin pegar**: en el iPhone con las apps instaladas, «Abrir en Realify» / «Abrir en Realify Basic» envía la foto **cifrada** (AES-GCM, en el móvil) a un buzón de paso en realify.es y la otra app la **recoge sola** al abrirse o volver a primer plano. Se retira el sistema de copiar y pegar de la 345 (botón y entrada «Pegar foto» de Basic).
 - **Emparejar una vez**: la primera vez, la app que envía enseña un código de 6 cifras y la otra lo pide al abrirse; desde entonces el paso es automático en los dos sentidos.
