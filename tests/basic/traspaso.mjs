@@ -62,6 +62,10 @@ exige(reg.a, "menú Archivo de Realify: faltan las entradas de Basic");
 const cajon = (await real.evaluate(async () => (await (await fetch("/js/ui/tooldrawer.js")).text()).includes("file.toBasic")));
 exige(cajon, "cajón del móvil: falta «Abrir en Realify Basic»");
 
+/* ── La foto recibida de Basic se puede cerrar (va en su propia pestaña) ── */
+const cierra = await real.evaluate(async () => { const T = await import("/js/editor/documents.js"); const ok = await T.closeActiveTab({ confirm: false }); const D = await import("/js/core/doc.js"); return { ok, abierto: D.doc.open }; });
+exige(cierra.ok && !cierra.abierto, "Basic → Realify: la foto recibida no se puede cerrar " + JSON.stringify(cierra));
+
 if (errs.length) fallos.push("errores de página: " + errs.join(" | "));
 await cerrar();
 console.log(fallos.length ? "FALLO\n  - " + fallos.join("\n  - ") : "OK");

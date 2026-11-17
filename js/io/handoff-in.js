@@ -12,10 +12,11 @@ import { canjearCodigo, crearCodigo, enviarRelevo, escucharRelevo, usaRelevo } f
 import { doc } from "../core/doc.js";
 import { toast, progress } from "../core/toast.js";
 import { dialog } from "../ui/kit/dialog.js";
-import { openFile } from "./open.js";
+import { openFileInNewTab } from "./open.js";
 
 const AVISO = "Abre Realify Basic desde su icono de inicio";
-const abrirRecibida = t => openFile(new File([t.blob], `${t.nombre || "foto"}${t.blob.type === "image/jpeg" ? ".jpg" : ".png"}`, { type: t.blob.type || "image/png" }))
+/* En una pestaña nueva, como «Abrir imagen»: así se puede cerrar (Cerrar trabaja sobre la pestaña activa) y no pisa lo que hubiera abierto. */
+const abrirRecibida = t => openFileInNewTab(new File([t.blob], `${t.nombre || "foto"}${t.blob.type === "image/jpeg" ? ".jpg" : ".png"}`, { type: t.blob.type || "image/png" }))
   .then(() => toast("Foto recibida de Realify Basic", "ok"));
 
 /* Diálogos del emparejamiento (sólo iPhone con las apps instaladas, una vez). */
