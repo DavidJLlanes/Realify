@@ -19,12 +19,12 @@ export async function initHandoff() {
   else if (r.pedida) toast("No llegó la foto. Guarda una copia en Basic y ábrela aquí.", "err");
 }
 
-export async function sendToBasic() {
-  if (!doc.open) { toast("No hay documento abierto"); return; }
+export async function sendToBasic(ventana) {
+  if (!doc.open) { toast("No hay documento abierto"); ventana?.close?.(); return; }
   const { renderExport } = await import("./export/export.js?v=82");
   const blob = await renderExport({ w: doc.w, h: doc.h, type: "image/png" });
-  const r = await traspasar("basic", { blob, nombre: doc.name || "realify" });
+  const r = await traspasar("basic", { blob, nombre: doc.name || "realify" }, ventana);
   if (r === "enviada") toast("Foto enviada a Realify Basic: cambia a esa ventana", "ok");
 }
 
-export const openBasic = () => abrirApp("basic");
+export const openBasic = ventana => abrirApp("basic", ventana);

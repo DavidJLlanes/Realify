@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 343) · Arreglo del botón de Realify Basic
+- **Botón «Realify Basic» de la pantalla inicial**: no respondía al toque (esa pantalla deja pasar los toques al lienzo salvo en sus botones y el nuevo no lo tenía). Arreglado.
+- **iOS y ventanas nuevas**: «Cambiar a …» y «Abrir en …» (en Realify y en Basic) reservan la ventana en el propio toque, antes de calcular la foto, porque iOS bloquea las ventanas que se abren después de un cálculo; si no se puede abrir una ventana, se navega en la misma. `tests/basic/traspaso.mjs` ahora también pulsa el botón de la pantalla inicial.
+
 ### 2.1.0 (compilación 342) · Acceso a Realify Basic
 - **Pantalla «Sin documento abierto»**: nuevo botón destacado «Realify Basic» (cristal translúcido sobre degradado cálido, como la app) que abre la app sencilla de fotos; distinto del resto de botones.
 

@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T11:47:58.682Z",
+ "generated": "2026-11-17T12:01:03.876Z",
  "root": "/home/claude/realify",
  "jsFiles": 1218,
- "jsLines": 113587,
+ "jsLines": 113602,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -1193,6 +1193,7 @@
    "abrirApp",
    "escucharTraspaso",
    "recibirAlArrancar",
+   "reservarVentana",
    "tomarTraspaso",
    "traspasar"
   ],
@@ -5791,7 +5792,7 @@
   "js/features -> js/ai": 63,
   "js/ui -> js/core": 63,
   "js/features -> js/editor": 57,
-  "js/app -> js/core": 49,
+  "js/app -> js/core": 50,
   "js/ui -> js/features": 48,
   "js/filters -> js/core": 47,
   "js/features -> js/ui": 42,

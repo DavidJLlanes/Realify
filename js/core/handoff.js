@@ -2,8 +2,8 @@
    NÚCLEO · TRASPASO ENTRE REALIFY Y REALIFY BASIC
    Pasar una foto (ya con la edición aplicada) de una app a la otra, y abrir la otra app. Las dos viven en el mismo origen, así que
    comparten IndexedDB y BroadcastChannel; no hay servidor. La foto se deja en un almacén de un solo hueco y la app que la recibe la toma.
-   Si la otra app ya está abierta se lo avisa por el canal y espera su confirmación; si no, abre una pestaña nueva con ?recibir=1.
-   Entradas: traspasar(destino, { blob, nombre }) · abrirApp(destino) · tomarTraspaso() · escucharTraspaso(app, alRecibir).
+   Si la otra app ya está abierta se lo avisa por el canal y espera su confirmación; si no, abre una ventana nueva con ?recibir=1.
+   Entradas: reservarVentana(destino) (síncrona, dentro del toque) · traspasar(destino, { blob, nombre }, ventana) · abrirApp(destino) · tomarTraspaso() · escucharTraspaso(app, alRecibir).
    Salidas: "enviada" (la otra app ya abierta la importó) · "abierta" (se abrió una pestaña) · { blob, nombre, de } al tomar.
    Límites: la foto caduca a los 10 min. Cada app instalada en iOS tiene su propio almacenamiento: si no comparten, la foto no llega
    (quien recibe lo avisa) y queda la vía «Guardar copia» y abrirla desde Fotos.
@@ -48,13 +48,19 @@ export async function recibirAlArrancar() {
   return { pedida: true, traspaso: await tomarTraspaso() };
 }
 
-const abrir = (destino, query = "") => { window.open(APPS[destino] + query, "realify-" + destino); };
+/* iOS (y los bloqueadores de ventanas) sólo dejan abrir una ventana dentro del propio toque: por eso la ventana se RESERVA al instante,
+   antes de calcular nada (reservarVentana, síncrona), y luego se le pone la dirección. Si ya había una ventana con ese nombre, se reutiliza. */
+export function reservarVentana(destino) {
+  try { return window.open("", "realify-" + destino); } catch { return null; }
+}
+const esBlanca = w => { try { return w.location.href === "about:blank"; } catch { return false; } };
+const llevar = (w, destino, query = "") => { if (w) { if (esBlanca(w)) w.location.href = APPS[destino] + query; } else location.href = APPS[destino] + query; };
 
-/** Sólo cambiar de app (sin foto). */
-export function abrirApp(destino) { abrir(destino); }
+/** Sólo cambiar de app (sin foto). `ventana` = la reservada en el toque. */
+export function abrirApp(destino, ventana = reservarVentana(destino)) { llevar(ventana, destino); }
 
-/** Deja la foto y abre la otra app (o se la entrega si ya estaba abierta). */
-export async function traspasar(destino, { blob, nombre }) {
+/** Deja la foto y abre la otra app (o se la entrega si ya estaba abierta). `ventana` = reservarVentana(destino), pedida en el toque. */
+export async function traspasar(destino, { blob, nombre }, ventana) {
   await operar("readwrite", s => s.put({ blob, nombre, de: de(destino), t: Date.now() }, CLAVE));
   const canal = new BroadcastChannel(BD);
   const lista = await new Promise(ok => {
@@ -63,7 +69,7 @@ export async function traspasar(destino, { blob, nombre }) {
     canal.postMessage({ t: "foto", para: destino });
   });
   canal.close();
-  if (lista) return "enviada";
-  abrir(destino, "?recibir=1");
+  if (lista) { if (ventana && esBlanca(ventana)) ventana.close(); return "enviada"; }
+  llevar(ventana, destino, "?recibir=1");
   return "abierta";
 }

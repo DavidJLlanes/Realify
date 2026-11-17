@@ -18,6 +18,15 @@ const abrirBasic = async () => { const b = await ctx.newPage(); b.on("pageerror"
 const fotoBasic = b => b.evaluate(async () => { const S = await import("/basic/js/app/session.js"); const o = S.original(); return o && { w: o.width, h: o.height }; });
 const docReal = p => p.evaluate(async () => { const D = await import("/js/core/doc.js"); return D.doc.open ? { w: D.doc.w, h: D.doc.h } : null; });
 
+/* ── Botón «Realify Basic» de la pantalla inicial de Realify: abre Basic ── */
+{
+  const esperar = ctx.waitForEvent("page", { timeout: 8000 }).catch(() => null);
+  await real.locator(".basic-cta").click();
+  const p = await esperar;
+  exige(!!p, "el botón «Realify Basic» de la pantalla inicial no abre ninguna ventana");
+  if (p) { await p.waitForTimeout(1500); exige(/\/basic\/$/.test(p.url()), "el botón abre otra dirección: " + p.url()); await p.close(); }
+}
+
 /* ── Basic → Realify (las dos abiertas) ── */
 let basic = await abrirBasic();
 await basic.setInputFiles("input[type=file]", FOTO); await basic.waitForTimeout(1500);
@@ -32,7 +41,7 @@ const d1 = await docReal(real);
 exige(d1 && d1.w === f0.w && d1.h === f0.h, "Basic → Realify: el documento no llegó con el tamaño de la foto " + JSON.stringify([f0, d1]));
 
 /* ── Realify → Basic (las dos abiertas) ── */
-await real.evaluate(async () => (await import("/js/io/handoff-in.js")).sendToBasic());
+await real.evaluate(async () => (await import("/js/core/commands.js")).run("file.toBasic"));
 await basic.waitForTimeout(4000);
 const f1 = await fotoBasic(basic);
 exige(f1 && f1.w === f0.w, "Realify → Basic: Basic no recibió la foto " + JSON.stringify(f1));
@@ -40,7 +49,7 @@ exige(f1 && f1.w === f0.w, "Realify → Basic: Basic no recibió la foto " + JSO
 /* ── Con la otra app cerrada: se abre una pestaña nueva ── */
 await basic.close();
 const nueva = ctx.waitForEvent("page", { timeout: 8000 }).catch(() => null);
-await real.evaluate(async () => (await import("/js/io/handoff-in.js")).sendToBasic());
+await real.evaluate(async () => (await import("/js/core/commands.js")).run("file.toBasic"));
 const pop = await nueva;
 exige(!!pop, "con Basic cerrada no se abrió una pestaña nueva");
 if (pop) { await pop.waitForTimeout(5000); const f2 = await fotoBasic(pop); exige(f2 && f2.w === f0.w, "pestaña nueva de Basic sin la foto " + JSON.stringify(f2)); exige(!pop.url().includes("recibir"), "la query ?recibir no se limpia"); }

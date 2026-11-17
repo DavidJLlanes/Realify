@@ -9,11 +9,10 @@ import { abrirArchivo } from "./files.js";
 import { renderFinal } from "./render.js";
 import { leer } from "./store.js";
 
-const traspaso = () => import("../../../js/core/handoff.js");
+import { abrirApp, escucharTraspaso, recibirAlArrancar, reservarVentana, traspasar } from "../../../js/core/handoff.js";
 const abrirRecibida = async t => { await abrirArchivo(new File([t.blob], `${t.nombre || "foto"}.png`, { type: "image/png" })); };
 
 export async function iniciarTraspaso(avisar) {
-  const { escucharTraspaso, recibirAlArrancar } = await traspaso();
   escucharTraspaso("basic", async t => { await abrirRecibida(t); avisar("Foto recibida de Realify"); });
   const r = await recibirAlArrancar();
   if (r.traspaso) { await abrirRecibida(r.traspaso); avisar("Foto recibida de Realify"); }
@@ -21,11 +20,11 @@ export async function iniciarTraspaso(avisar) {
 }
 
 export async function enviarARealify(avisar) {
-  const info = leer().foto;
-  if (!info) return;
+  const info = leer().foto, ventana = reservarVentana("realify");      // dentro del toque: iOS no deja abrir ventanas después
+  if (!info) { ventana?.close(); return; }
   const l = await renderFinal(), blob = await new Promise(r => l.toBlob(r, "image/png"));
-  const r = await (await traspaso()).traspasar("realify", { blob, nombre: info.nombre });
+  const r = await traspasar("realify", { blob, nombre: info.nombre }, ventana);
   if (r === "enviada") avisar("Foto enviada: cambia a la ventana de Realify");
 }
 
-export const irARealify = async () => (await traspaso()).abrirApp("realify");
+export const irARealify = () => abrirApp("realify");
