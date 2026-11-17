@@ -96,3 +96,9 @@ html[data-dispositivo="escritorio"] .panel { max-width: 640px; }
 .chip[aria-selected="true"] { color: var(--texto); background: rgba(255, 255, 255, .26); border-color: rgba(255, 255, 255, .5); }
 .ajuste.accion .disco { color: var(--texto); }
 .ajuste.accion.activo .disco { color: var(--acento); }
+
+/* ── Estilos: miniaturas cuadradas ─────────────────────────────── */
+.ajuste.estilo { width: 84px; }
+.mini { display: block; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; background: var(--cristal); border: 2px solid transparent; }
+.mini canvas { display: block; width: 100%; height: 100%; }
+.ajuste.estilo[aria-selected="true"] .mini { border-color: var(--acento); }

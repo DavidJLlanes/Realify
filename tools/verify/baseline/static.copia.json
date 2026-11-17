@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T10:35:29.174Z",
+ "generated": "2026-11-17T10:47:54.946Z",
  "root": "/home/claude/realify",
- "jsFiles": 1204,
- "jsLines": 113054,
+ "jsFiles": 1211,
+ "jsLines": 113259,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -611,6 +611,7 @@
   ],
   "basic/js/app/session.js": [
    "cambiar",
+   "cambiarEstilo",
    "cambiarRecorte",
    "cerrar",
    "cerrarPaso",
@@ -644,18 +645,25 @@
    "pasoNitidez",
    "pasoRuido"
   ],
+  "basic/js/engine/estilo.js": [
+   "cargarEstilos",
+   "pasoEstilo"
+  ],
   "basic/js/engine/geometria.js": [
    "RATIOS",
    "calcularGeo",
    "dentroDelQuad"
   ],
   "basic/js/engine/neutra.js": [
+   "ESTILO0",
    "RECORTE0",
    "esNeutra",
+   "esNeutraEstilo",
    "esNeutraRecorte"
   ],
   "basic/js/engine/pipeline.js": [
    "aplicarReceta",
+   "cargarEstilos",
    "crearCadena",
    "esNeutra"
   ],
@@ -687,6 +695,12 @@
   ],
   "basic/js/tabs/index.js": [
    "PESTANAS"
+  ],
+  "basic/js/tabs/looks/panel.js": [
+   "montarEstilos"
+  ],
+  "basic/js/tabs/looks/thumbs.js": [
+   "crearMiniaturas"
   ],
   "basic/js/ui/atajos.js": [
    "montarAtajos"
@@ -1261,6 +1275,10 @@
   ],
   "js/core/util/canvas.js": [
    "readPixels"
+  ],
+  "js/core/util/color.js": [
+   "hslToRgb",
+   "rgbToHsl"
   ],
   "js/core/util/html.js": [
    "escAttr",
@@ -4106,6 +4124,14 @@
    "sharpenMargin",
    "sharpenRGBA"
   ],
+  "js/filters/looks/catalog-ampliado.js": [
+   "AMPLIADO"
+  ],
+  "js/filters/looks/catalog.js": [
+   "LOOKS",
+   "LOOK_CATS",
+   "applyLook"
+  ],
   "js/filters/looks/looks.js": [
    "LOOKS",
    "LOOK_CATS",
@@ -5729,7 +5755,7 @@
   ]
  },
  "dirEdges": {
-  "js/editor -> js/core": 270,
+  "js/editor -> js/core": 272,
   "plugins -> js/core": 113,
   "js/features -> js/core": 112,
   "js/app -> js/editor": 97,
@@ -5740,11 +5766,11 @@
   "js/features -> js/editor": 57,
   "js/app -> js/core": 49,
   "js/ui -> js/features": 48,
-  "js/filters -> js/core": 46,
+  "js/filters -> js/core": 47,
   "js/features -> js/ui": 42,
   "plugins -> js/ui": 40,
   "js/editor -> js/filters": 39,
-  "js/filters -> js/editor": 39,
+  "js/filters -> js/editor": 38,
   "js/app -> js/filters": 37,
   "js/features -> plugins": 37,
   "js/ui -> js/editor": 36,
@@ -5781,6 +5807,7 @@
   "js/main.js -> js/io": 4,
   "js/pwa.js -> js/core": 4,
   "plugins -> js/filters": 4,
+  "basic -> js/filters": 3,
   "js/ai -> js/io": 3,
   "js/app -> js/ai": 3,
   "js/app -> js/analysis": 3,
@@ -5790,7 +5817,6 @@
   "js/filters -> js/analysis": 3,
   "js/pwa.js -> js/ui": 3,
   "plugins -> js/lens": 3,
-  "basic -> js/filters": 2,
   "js/analysis -> js/core": 2,
   "js/app -> js/exif": 2,
   "js/app -> js/pwa.js": 2,

@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 334) · Realify Basic, fase 4
+- **Realify Basic · Estilos**: una sola fila deslizante con «Original» y los más de 150 estilos prediseñados de Realify («Filtros → Estilos»), sin categorías, cada uno con su miniatura (hecha con tu propia foto) y su nombre. Al elegir uno aparece la regla de **intensidad** (0–100 %, 100 por defecto). Sin «Mis estilos», estilo por referencia ni packs de cámara.
+- El estilo es la primera etapa de la cadena: los ajustes de Ajustar trabajan encima de él. Va en la receta (`estilo`), con deshacer/rehacer, y la copia guardada lo aplica a resolución completa.
+- Refactor sin cambios de comportamiento: el catálogo de estilos y `applyLook` salen de `filters/looks/looks.js` a `catalog.js` y `catalog-ampliado.js` (sin DOM), y la conversión RGB↔HSL a `core/util/color.js`, para poder usarlos sin cargar la interfaz.
+- Prueba nueva `tests/basic/estilos.mjs` (motor, miniaturas, intensidad, historial y resultado final; móvil y escritorio).
+
 ### 2.1.0 (compilación 333) · Realify Basic, fase 3
 - **Realify Basic · Recortar**: marco con asas en las esquinas y los lados y cuadrícula de tercios (se mueve y se redimensiona arrastrando, sigue el zoom y nunca sale de la foto). Fila con Girar 90°, Voltear, Proporción (libre, original, 1:1, 4:3, 3:2, 16:9, 3:4, 2:3, 9:16) y reglas de Enderezar (±45°, con recorte automático sin huecos), Vertical y Horizontal (perspectiva).
 - La receta incorpora el recorte (`recorte`); deshacer y rehacer lo recuerdan, y la copia guardada aplica la geometría en una sola pasada desde el original a resolución completa.

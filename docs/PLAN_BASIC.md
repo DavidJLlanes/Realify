@@ -46,7 +46,7 @@ Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados)
 - [x] **F1** (v331) Interfaz: visor a pantalla completa, barras de cristal, pestañas, abrir y guardar, deshacer/rehacer.
 - [x] **F2** (v332) Pestaña Ajustar (15 ajustes + Auto) con vista previa ligera y render Premium final. Edición no destructiva: original + receta.
 - [x] **F3** (v333) Pestaña Recortar: marco con asas, giro 90°, voltear, enderezar, perspectiva y proporciones; la receta guarda `recorte`.
-- [ ] **F4** Pestaña Estilos (fila horizontal, miniaturas, intensidad).
+- [x] **F4** (v334) Pestaña Estilos: fila horizontal con los ~170 `LOOKS` (miniatura + nombre) e intensidad; el estilo es la primera etapa de la receta.
 - [ ] **F5** Traspaso: botones en las dos apps.
 - [ ] **F6** Escritorio (proporciones), pulido, guía, CHANGELOG, pruebas en móvil y escritorio.
 

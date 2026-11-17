@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T10:35:32.123Z",
+ "generated": "2026-11-17T10:47:59.436Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1967,
+     "readyMs": 1842,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2152074,
+     "jsBytes": 2151887,
      "cssBytes": 178603,
-     "transferBytes": 890461,
-     "domContentLoaded": 1871,
-     "fcp": 1204
+     "transferBytes": 890301,
+     "domContentLoaded": 1735,
+     "fcp": 1424
     },
     {
-     "readyMs": 1342,
+     "readyMs": 1289,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2152074,
+     "jsBytes": 2151887,
      "cssBytes": 178603,
-     "transferBytes": 890461,
-     "domContentLoaded": 1163,
-     "fcp": 440
+     "transferBytes": 890301,
+     "domContentLoaded": 1197,
+     "fcp": 348
     },
     {
-     "readyMs": 1571,
+     "readyMs": 1208,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2152016,
+     "jsBytes": 2151878,
      "cssBytes": 178603,
-     "transferBytes": 891510,
-     "domContentLoaded": 1483,
-     "fcp": 432
+     "transferBytes": 890842,
+     "domContentLoaded": 1012,
+     "fcp": 484
     }
    ],
-   "medianReadyMs": 1571,
-   "medianTransferBytes": 890461
+   "medianReadyMs": 1289,
+   "medianTransferBytes": 890301
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -2963,8 +2963,8 @@
    "menuHash": "1cd71df0bf1857a8"
   },
   "screens": {
-   "welcome": "fc0210eaacf9de73",
-   "withImage": "7dc952579104f567"
+   "welcome": "b1b0a4cca9dfd3c9",
+   "withImage": "904bd78c863bfc03"
   },
   "opened": true,
   "afterOpen": {
@@ -4908,15 +4908,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1201,
+   "readyMs": 1155,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2152041,
+   "jsBytes": 1987656,
    "cssBytes": 178603,
-   "transferBytes": 890984,
-   "domContentLoaded": 1122,
-   "fcp": 688
+   "transferBytes": 833483,
+   "domContentLoaded": 1073,
+   "fcp": 536
   },
   "screens": {
    "welcome": "fe7b93e343389925",

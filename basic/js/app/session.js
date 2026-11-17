@@ -4,18 +4,18 @@
    sólo recetas (unos pocos bytes cada una), así que deshacer es instantáneo y no hay pérdida de calidad por reaplicar.
    Un gesto (arrastrar un deslizador o un asa de recorte) cambia la receta en vivo con cambiar()/cambiarRecorte() y se cierra con
    cerrarPaso(): un solo paso de historial.
-   Entradas: iniciar(lienzo, info) · cambiar(ajustes) · cambiarRecorte(parche) · cerrarPaso() · deshacer() · rehacer() · volverAlOriginal() · cerrar().
+   Entradas: iniciar(lienzo, info) · cambiar(ajustes) · cambiarRecorte(parche) · cambiarEstilo(parche) · cerrarPaso() · deshacer() · rehacer() · volverAlOriginal() · cerrar().
    Salidas: original() · receta() y el estado de app/store.js (foto, version, puedeDeshacer, puedeRehacer, sucio).
-   Límites: hasta 200 pasos de historial; la receta lleva `ajustes` y `recorte` (el estilo llega en F4).
+   Límites: hasta 200 pasos de historial; la receta lleva `ajustes`, `recorte` y `estilo` ({ n: posición en LOOKS o −1, k: intensidad 0–100 }).
    ═══════════════════════════════════════════════════════════════ */
-import { RECORTE0, esNeutra } from "../engine/neutra.js";
+import { ESTILO0, RECORTE0, esNeutra } from "../engine/neutra.js";
 import { poner } from "./store.js";
 
 const MAX_PASOS = 200;
 let base = null, datos = null, vivo = nueva(), hist = [], i = -1, version = 0, abierto = false;
 
-function nueva() { return { ajustes: {}, recorte: { ...RECORTE0 } }; }
-const clon = r => ({ ajustes: { ...r.ajustes }, recorte: { ...r.recorte, rect: r.recorte.rect && { ...r.recorte.rect } } });
+function nueva() { return { ajustes: {}, recorte: { ...RECORTE0 }, estilo: { ...ESTILO0 } }; }
+const clon = r => ({ ajustes: { ...r.ajustes }, recorte: { ...r.recorte, rect: r.recorte.rect && { ...r.recorte.rect } }, estilo: { ...r.estilo } });
 const igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 export const original = () => base;
@@ -33,6 +33,8 @@ export function iniciar(lienzo, info) { base = lienzo; datos = info; vivo = nuev
 
 export function cambiar(ajustes) { vivo = { ...vivo, ajustes: { ...vivo.ajustes, ...ajustes } }; abierto = true; avisar(); }
 export function cambiarRecorte(parche) { vivo = { ...vivo, recorte: { ...vivo.recorte, ...parche } }; abierto = true; avisar(); }
+
+export function cambiarEstilo(parche) { vivo = { ...vivo, estilo: { ...vivo.estilo, ...parche } }; abierto = true; avisar(); }
 
 export function cerrarPaso() {
   if (!abierto) return;

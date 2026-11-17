@@ -60,7 +60,9 @@ async function pintar() {
   if (!original()) return;
   const dims = tamano();
   if (esNeutra(receta()) && !enRecorte()) { poner({ vistaV: leer().vistaV + 1, dims }); return; }
-  const { crearCadena } = await cargarMotor(), img = prepararBase();
+  const { crearCadena, cargarEstilos } = await cargarMotor();
+  if (receta().estilo.n >= 0) await cargarEstilos();
+  const img = prepararBase();
   cadena ||= crearCadena(img);
   if (lienzoVista.width !== img.width) { lienzoVista.width = img.width; lienzoVista.height = img.height; }
   lienzoVista.getContext("2d").putImageData(cadena.render(receta(), { rapido: true }), 0, 0);
@@ -78,7 +80,8 @@ export async function renderFinal() {
   poner({ procesando: true });
   await new Promise(t => setTimeout(t, 40));                 // deja pintar el aviso antes de bloquear
   try {
-    const { aplicarReceta } = await cargarMotor();
+    const { aplicarReceta, cargarEstilos } = await cargarMotor();
+    if (r.estilo.n >= 0) await cargarEstilos();
     const lienzo = esNeutraRecorte(r.recorte) ? o : transformar(o, geometria(), { recortar: true, anchoOriginal: o.width, perspectiva: conPerspectiva(r.recorte) });
     const img = aplicarReceta(lienzo.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height), r, { rapido: false });
     const c = nuevoLienzo(lienzo.width, lienzo.height); c.getContext("2d").putImageData(img, 0, 0);
