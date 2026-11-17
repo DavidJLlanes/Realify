@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════════════
+   REALIFY BASIC · MANDOS
+   Aspecto de los mandos de cristal: píldoras, botones con icono, barra de pestañas, menú, pantalla de inicio y aviso.
+   Entradas: tokens.css. Salidas: clases .pildora, .boton-icono, .pestana, .menu, .bienvenida, .aviso.
+   Límites: sin colores sueltos (todo sale de tokens.css); la colocación está en shell.css.
+   ═══════════════════════════════════════════════════════════════ */
+.pildora { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px;
+  background: var(--cristal); border: 1px solid var(--cristal-borde); border-radius: var(--radio-pildora);
+  -webkit-backdrop-filter: var(--desenfoque); backdrop-filter: var(--desenfoque); box-shadow: 0 2px 14px rgba(0, 0, 0, .25); }
+.pildora.texto { padding: 0 18px; font-weight: 650; }
+.pildora.fuerte { color: var(--texto); }
+.pildora.grande { min-height: 48px; padding: 0 26px; font-size: 17px; }
+.pildora.grupo { padding: 0 6px; }
+.pildora:disabled, .boton-icono:disabled { opacity: .38; cursor: default; }
+button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+.boton-icono { width: 44px; height: 40px; display: inline-grid; place-items: center; }
+.boton-icono svg { width: 22px; height: 22px; }
+
+.pestanas { padding: 4px 6px; gap: 2px; }
+.pestana { display: grid; justify-items: center; gap: 2px; min-width: 76px; padding: 6px 10px; border-radius: 22px;
+  color: var(--texto-suave); font-size: 12px; font-weight: 600; position: relative; }
+.pestana svg { width: 24px; height: 24px; }
+.pestana[aria-selected="true"] { color: var(--texto); }
+.pestana[aria-selected="true"]::before { content: ""; position: absolute; top: -9px; left: 50%; margin-left: -5px;
+  border: 5px solid transparent; border-top-color: var(--acento); border-bottom: 0; }
+
+.ancla-menu { position: relative; }
+.menu { position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; padding: 6px; z-index: 5;
+  background: var(--cristal); border: 1px solid var(--cristal-borde); border-radius: 18px;
+  -webkit-backdrop-filter: var(--desenfoque); backdrop-filter: var(--desenfoque); box-shadow: 0 8px 28px rgba(0, 0, 0, .35); }
+.menu-op { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 12px; text-align: left; }
+.menu-op:hover { background: rgba(255, 255, 255, .1); }
+.menu-op svg { width: 20px; height: 20px; }
+
+.bienvenida { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; }
+.bienvenida img { border-radius: 20px; }
+.bienvenida h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: .01em; }
+.bienvenida p { margin: 0; color: var(--texto-suave); font-size: 14px; }
+
+.aviso { position: fixed; left: 50%; bottom: calc(var(--seguro-abajo) + 96px); z-index: 9; transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+  padding: 10px 18px; border-radius: var(--radio-pildora); background: var(--cristal); border: 1px solid var(--cristal-borde);
+  -webkit-backdrop-filter: var(--desenfoque); backdrop-filter: var(--desenfoque); font-size: 14px; font-weight: 600; transition: opacity .2s, transform .2s; }
+.aviso.visible { opacity: 1; transform: translate(-50%, 0); }

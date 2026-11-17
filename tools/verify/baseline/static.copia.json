@@ -1,14 +1,19 @@
 {
- "generated": "2026-11-17T09:35:20.044Z",
+ "generated": "2026-11-17T09:46:08.688Z",
  "root": "/home/claude/realify",
- "jsFiles": 1168,
- "jsLines": 111477,
+ "jsFiles": 1184,
+ "jsLines": 112012,
  "brokenRefs": [],
  "softMissing": [
   {
    "file": "basic/sw.js",
    "spec": "./css/shell.css",
    "target": "css/shell.css"
+  },
+  {
+   "file": "basic/sw.js",
+   "spec": "./css/controls.css",
+   "target": "css/controls.css"
   },
   {
    "file": "js/ui/menu/ia/manifests.js",
@@ -584,8 +589,66 @@
   "xform.box"
  ],
  "exportsByFile": {
+  "basic/js/app/device.js": [
+   "esEscritorio",
+   "iniciarDispositivo"
+  ],
+  "basic/js/app/files.js": [
+   "abrirArchivo",
+   "escucharEntradas",
+   "guardarCopia",
+   "pedirArchivo"
+  ],
   "basic/js/app/pwa.js": [
    "registrarSW"
+  ],
+  "basic/js/app/session.js": [
+   "actual",
+   "cerrar",
+   "confirmar",
+   "deshacer",
+   "iniciar",
+   "original",
+   "rehacer",
+   "volverAlOriginal"
+  ],
+  "basic/js/app/store.js": [
+   "leer",
+   "poner",
+   "suscribir"
+  ],
+  "basic/js/tabs/index.js": [
+   "PESTANAS"
+  ],
+  "basic/js/ui/atajos.js": [
+   "montarAtajos"
+  ],
+  "basic/js/ui/aviso.js": [
+   "avisar"
+  ],
+  "basic/js/ui/bienvenida.js": [
+   "montarBienvenida"
+  ],
+  "basic/js/ui/dom.js": [
+   "h"
+  ],
+  "basic/js/ui/gestos.js": [
+   "crearGestos"
+  ],
+  "basic/js/ui/icons.js": [
+   "icono"
+  ],
+  "basic/js/ui/menu.js": [
+   "crearMenu"
+  ],
+  "basic/js/ui/tabbar.js": [
+   "montarPestanas"
+  ],
+  "basic/js/ui/topbar.js": [
+   "montarBarraSuperior"
+  ],
+  "basic/js/ui/viewport.js": [
+   "montarVisor"
   ],
   "js/ai/clip.js": [
    "embedImage",
@@ -5661,6 +5724,8 @@
   "js/ui -> js/io": 2,
   "tools -> js/ui": 2,
   "tools -> tests": 2,
+  "basic -> js/io": 1,
+  "basic -> js/ui": 1,
   "js/ai -> js/ui": 1,
   "js/analysis -> js/exif": 1,
   "js/analysis -> js/editor": 1,

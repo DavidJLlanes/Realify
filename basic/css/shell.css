@@ -1,11 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════
    REALIFY BASIC · ESQUELETO
    Página a pantalla completa, sin márgenes ni ventanas: la foto ocupa todo y los mandos flotan encima.
-   Entradas: tokens.css. Salidas: reglas de html, body y #stage.
-   Límites: en F0 sólo está el contenedor vacío; barras y visor llegan en F1.
+   Entradas: tokens.css. Salidas: reglas de html, body, #stage, la foto y la colocación de las barras.
+   Límites: el aspecto de cada mando está en controls.css. Móvil y escritorio comparten reglas; escritorio sólo estrecha las barras.
    ═══════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--texto); overflow: hidden;
-  font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-#stage { position: fixed; inset: 0; display: grid; place-items: center; }
-.vacio { margin: 0; color: var(--texto-suave); letter-spacing: .04em; }
+html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--texto); overflow: hidden; overscroll-behavior: none;
+  font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+[hidden] { display: none !important; }
+
+#stage { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
+.foto { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.foto canvas { display: block; width: 100%; height: 100%; }
+
+/* Barras: flotan sobre la foto, respetan las zonas seguras y se ocultan con un toque en la foto. */
+.barra { position: absolute; left: 0; right: 0; z-index: 2; margin-inline: auto; width: 100%; padding-inline: 12px;
+  transition: opacity .22s ease, transform .22s ease; }
+.barra-sup { top: 0; padding-top: calc(var(--seguro-arriba) + 10px); display: grid; gap: 10px; }
+.barra-inf { bottom: 0; padding-bottom: calc(var(--seguro-abajo) + 12px); display: flex; justify-content: center; }
+.fila { display: flex; justify-content: space-between; align-items: center; }
+html.sin-foto .barra { display: none; }
+html.barras-ocultas .barra-sup { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+html.barras-ocultas .barra-inf { opacity: 0; transform: translateY(10px); pointer-events: none; }
+
+/* Escritorio: las mismas barras, más estrechas y centradas (la foto sigue ocupando toda la ventana). */
+html[data-dispositivo="escritorio"] .barra { max-width: 640px; }
+html[data-dispositivo="escritorio"] .barra-inf { max-width: 460px; }

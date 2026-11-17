@@ -43,7 +43,7 @@ Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados)
 
 ## 5. Fases
 - [x] **F0** (v330) Esqueleto instalable y vacío: carpeta, manifiesto, service worker, comprobaciones (`layers.mjs`, `tests/basic/`).
-- [ ] **F1** Interfaz: visor a pantalla completa, barras de cristal, pestañas, abrir y guardar, deshacer/rehacer.
+- [x] **F1** (v331) Interfaz: visor a pantalla completa, barras de cristal, pestañas, abrir y guardar, deshacer/rehacer.
 - [ ] **F2** Pestaña Ajustar (16 ajustes + Auto) con vista previa ligera y render Premium final.
 - [ ] **F3** Pestaña Recortar.
 - [ ] **F4** Pestaña Estilos (fila horizontal, miniaturas, intensidad).

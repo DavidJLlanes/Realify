@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-08T20:23:35.853Z",
+ "generated": "2026-11-17T09:48:23.185Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1404,
+     "readyMs": 1447,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2016515,
+     "jsBytes": 2152067,
      "cssBytes": 178603,
-     "transferBytes": 845018,
-     "domContentLoaded": 1311,
-     "fcp": 1168
+     "transferBytes": 890463,
+     "domContentLoaded": 1377,
+     "fcp": 1220
     },
     {
-     "readyMs": 1288,
+     "readyMs": 1239,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2013640,
+     "jsBytes": 1986667,
      "cssBytes": 178603,
-     "transferBytes": 843934,
-     "domContentLoaded": 1211,
-     "fcp": 364
+     "transferBytes": 834197,
+     "domContentLoaded": 1166,
+     "fcp": 416
     },
     {
-     "readyMs": 1279,
+     "readyMs": 1208,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2151776,
+     "jsBytes": 1986667,
      "cssBytes": 178603,
-     "transferBytes": 891390,
-     "domContentLoaded": 1201,
-     "fcp": 368
+     "transferBytes": 834197,
+     "domContentLoaded": 1131,
+     "fcp": 316
     }
    ],
-   "medianReadyMs": 1288,
-   "medianTransferBytes": 845018
+   "medianReadyMs": 1239,
+   "medianTransferBytes": 834197
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -4908,18 +4908,18 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1030,
+   "readyMs": 1133,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2151763,
+   "jsBytes": 2152067,
    "cssBytes": 178603,
-   "transferBytes": 891377,
-   "domContentLoaded": 946,
-   "fcp": 680
+   "transferBytes": 890463,
+   "domContentLoaded": 1055,
+   "fcp": 436
   },
   "screens": {
-   "welcome": "fc7ea9784f376e33",
+   "welcome": "fe7b93e343389925",
    "withImage": "91216a462b558bfe",
    "drawer": "53b3b078245a5530"
   },

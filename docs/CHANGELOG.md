@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 331) · Realify Basic, fase 1
+- **Realify Basic**: interfaz base. Foto a pantalla completa y sin marcos, con barras de cristal translúcido encima: Cancelar y OK arriba, deshacer/rehacer y menú «···» (abrir otra foto, guardar copia, volver al original), y las pestañas Ajustar · Estilos · Recortar abajo (todavía sin contenido). Un toque en la foto oculta las barras; zoom con pellizco, rueda o doble toque y desplazamiento con el dedo o el ratón.
+- Abre cualquier formato que Realify ya sabe abrir (HEIC, TIFF, RAW, PSD, JXL…) con el selector, arrastrando o pegando; guarda una copia con la hoja de compartir del móvil o descargándola. Historial de hasta 12 pasos con el original siempre disponible.
+- Escritorio: las mismas barras, estrechas y centradas. Atajos Ctrl/⌘+Z, Mayús+Z, O y S.
+- Prueba nueva `tests/basic/interfaz.mjs` (móvil y escritorio, incluido pellizco real con dos dedos).
+
 ### 2.1.0 (compilación 330) · Realify Basic, fase 0
 - **Realify Basic** (`realify.es/basic/`): esqueleto instalable y vacío de la nueva app de edición básica de fotos (manifiesto propio con `id` y alcance `/basic/`, service worker propio, página y estilos base). Plan por fases en `docs/PLAN_BASIC.md`. Aún no edita nada: las pestañas llegan en las fases siguientes.
 - El service worker de Realify sólo borra sus propias cachés (`realify-v*`), para no tocar las de Basic (y al revés).
