@@ -16,4 +16,5 @@ export const REGLAS = [
 export const PROPORCIONES = [
   { id: "libre", texto: "Libre" }, { id: "orig", texto: "Original" }, { id: "1:1", texto: "1:1" }, { id: "4:3", texto: "4:3" },
   { id: "3:2", texto: "3:2" }, { id: "16:9", texto: "16:9" }, { id: "3:4", texto: "3:4" }, { id: "2:3", texto: "2:3" }, { id: "9:16", texto: "9:16" },
+  { id: "ig-post", texto: "Post Instagram" }, { id: "ig-historia", texto: "Historia Instagram" },
 ];

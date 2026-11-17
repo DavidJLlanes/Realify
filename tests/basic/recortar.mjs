@@ -36,7 +36,7 @@ const m = await page.evaluate(async () => {
   const gV = calcularGeo(R({ persV: 50 }), 400, 300);
   r.persp = dentroDelQuad(gV.rect, gV.quad) && gV.rect.w < 400;
   r.rectDado = (() => { const g = calcularGeo(R({ rect: { x0: .25, y0: .25, x1: .75, y1: .75 } }), 400, 300); return Math.abs(g.rect.w - 200) < 0.1 && Math.abs(g.rect.h - 150) < 0.1; })();
-  r.ratios = Object.keys(RATIOS).length === 7;
+  r.ratios = Object.keys(RATIOS).length === 9;
   /* píxeles: izquierda roja, derecha azul */
   const f = Object.assign(document.createElement("canvas"), { width: 40, height: 20 }), x = f.getContext("2d");
   x.fillStyle = "#f00"; x.fillRect(0, 0, 20, 20); x.fillStyle = "#00f"; x.fillRect(20, 0, 20, 20);
@@ -72,7 +72,7 @@ for (const tipo of ["escritorio", "movil"]) {
   exige((await rec()).volteoH === true, tipo + ": voltear");
   /* proporción */
   await pg.locator(".ajuste.accion:has-text('Proporción')").click(); await pg.waitForTimeout(300);
-  exige(await pg.locator(".chip").count() === 9, tipo + ": debe haber 9 proporciones");
+  exige(await pg.locator(".chip").count() === 11, tipo + ": debe haber 11 proporciones");
   await pg.locator('.chip[data-id="1:1"]').click(); await pg.waitForTimeout(700);
   const d2 = await dims(); exige(d2 && Math.abs(d2.w - d2.h) <= 1, tipo + ": 1:1 no es cuadrado " + JSON.stringify(d2));
   await pg.locator(".ajuste.accion:has-text('Atrás')").click(); await pg.waitForTimeout(300);

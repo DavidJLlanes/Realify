@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 336) · Realify Basic
+- **Recortar**: nuevas proporciones «Post Instagram» (4:5) y «Historia Instagram» (9:16).
+
 ### 2.1.0 (compilación 335) · Realify Basic, fase 5
 - **Traspaso entre Realify y Realify Basic**, en las dos apps. «Abrir en Realify» / «Abrir en Realify Basic» lleva la foto **con la edición aplicada** (PNG sin pérdida, resolución completa) a la otra app, y «Cambiar a Realify» / «Cambiar a Realify Basic» sólo abre la otra app. En Basic: menú «···». En Realify: menú Archivo y cajón «Herramientas» del móvil (con icono).
 - Funciona sin servidor: la foto se deja en un almacén de IndexedDB compartido (mismo origen) y la otra app la toma. Si ya estaba abierta, se la entrega por BroadcastChannel y confirma; si no, se abre una pestaña nueva (`?recibir=1`). La foto caduca a los 10 minutos. Si la foto no llega (p. ej. dos apps instaladas en iOS con almacenamiento separado), la app lo avisa y queda «Guardar copia».

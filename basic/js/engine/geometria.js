@@ -8,7 +8,7 @@
    rect: {x,y,w,h} en píxeles del marco, salida: {w,h} } · dentroDelQuad(rect, quad) · RATIOS.
    Límites: sin DOM; las unidades son píxeles de la foto original (el visor las escala).
    ═══════════════════════════════════════════════════════════════ */
-export const RATIOS = { "1:1": 1, "4:3": 4 / 3, "3:2": 3 / 2, "16:9": 16 / 9, "3:4": 3 / 4, "2:3": 2 / 3, "9:16": 9 / 16 };
+export const RATIOS = { "1:1": 1, "4:3": 4 / 3, "3:2": 3 / 2, "16:9": 16 / 9, "3:4": 3 / 4, "2:3": 2 / 3, "9:16": 9 / 16, "ig-post": 4 / 5, "ig-historia": 9 / 16 };
 const PERSPECTIVA_MAX = 0.35, rad = g => g * Math.PI / 180;
 
 function esquinas(r, W, H) {
