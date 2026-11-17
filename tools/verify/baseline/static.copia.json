@@ -1,16 +1,9 @@
 {
- "generated": "2026-11-17T12:51:47.127Z",
+ "generated": "2026-11-17T13:23:14.699Z",
  "root": "/home/claude/realify",
- "jsFiles": 1221,
- "jsLines": 113971,
- "brokenRefs": [
-  {
-   "file": "js/core/relevo.js",
-   "spec": "../../api/traspaso/",
-   "kind": "url",
-   "target": "api/traspaso"
-  }
- ],
+ "jsFiles": 1224,
+ "jsLines": 114149,
+ "brokenRefs": [],
  "softMissing": [
   {
    "file": "basic/sw.js",
@@ -281,6 +274,7 @@
   "file.openProject",
   "file.openRecent",
   "file.openStack",
+  "file.pairBasic",
   "file.pasteImage",
   "file.revert",
   "file.saveProject",
@@ -643,6 +637,7 @@
    "transformar"
   ],
   "basic/js/app/traspaso.js": [
+   "emparejar",
    "enviarARealify",
    "iniciarTraspaso",
    "irARealify"
@@ -730,6 +725,7 @@
    "montarBienvenida"
   ],
   "basic/js/ui/codigo.js": [
+   "elegirEmparejar",
    "ensenarCodigo",
    "pedirCodigo"
   ],
@@ -1271,6 +1267,8 @@
    "watchPWAUpdates"
   ],
   "js/core/relevo.js": [
+   "canjearCodigo",
+   "crearCodigo",
    "enviarRelevo",
    "escucharRelevo",
    "usaRelevo"
@@ -4451,6 +4449,7 @@
   "js/io/handoff-in.js": [
    "initHandoff",
    "openBasic",
+   "pairBasic",
    "sendToBasic"
   ],
   "js/io/meta/batchmeta.js": [
@@ -4797,9 +4796,22 @@
   "js/ui/landscape.js": [
    "initLandscapeNotice"
   ],
+  "js/ui/layer-controls.js": [
+   "syncLayerControls",
+   "wireLayerControls"
+  ],
+  "js/ui/layer-row-click.js": [
+   "wireRowClick"
+  ],
   "js/ui/layer-row-events.js": [
    "wireContextMenus",
    "wireDragDrop"
+  ],
+  "js/ui/layer-row.js": [
+   "layerDepthsAndHidden",
+   "rowHtml",
+   "rowState",
+   "wireFxControls"
   ],
   "js/ui/layers-reorder.js": [
    "initReorder"
@@ -5805,19 +5817,19 @@
   "js/app -> js/editor": 97,
   "plugins -> js/features": 72,
   "js/io -> js/core": 70,
+  "js/ui -> js/core": 70,
   "js/features -> js/ai": 63,
-  "js/ui -> js/core": 63,
   "js/features -> js/editor": 57,
   "js/app -> js/core": 50,
   "js/ui -> js/features": 48,
   "js/filters -> js/core": 47,
   "js/features -> js/ui": 42,
+  "js/ui -> js/editor": 42,
   "plugins -> js/ui": 40,
   "js/editor -> js/filters": 39,
   "js/filters -> js/editor": 38,
   "js/app -> js/filters": 37,
   "js/features -> plugins": 37,
-  "js/ui -> js/editor": 36,
   "js/app -> js/features": 34,
   "js/editor -> js/ui": 31,
   "plugins -> js/editor": 30,
@@ -5829,7 +5841,7 @@
   "js/features -> js/io": 19,
   "js/main.js -> js/app": 19,
   "js/io -> js/editor": 18,
-  "js/app -> js/io": 13,
+  "js/app -> js/io": 14,
   "js/main.js -> js/ui": 13,
   "js/filters -> js/ui": 12,
   "plugins -> js/ai": 12,
@@ -5851,6 +5863,7 @@
   "js/filters -> js/exif": 4,
   "js/pwa.js -> js/core": 4,
   "plugins -> js/filters": 4,
+  "basic -> js/core": 3,
   "basic -> js/filters": 3,
   "js/ai -> js/io": 3,
   "js/app -> js/ai": 3,
@@ -5861,7 +5874,6 @@
   "js/filters -> js/analysis": 3,
   "js/pwa.js -> js/ui": 3,
   "plugins -> js/lens": 3,
-  "basic -> js/core": 2,
   "js/analysis -> js/core": 2,
   "js/app -> js/exif": 2,
   "js/app -> js/pwa.js": 2,
