@@ -9,7 +9,7 @@ import { abrirArchivo } from "./files.js";
 import { renderFinal } from "./render.js";
 import { leer } from "./store.js";
 
-import { abrirApp, escucharTraspaso, recibirAlArrancar, reservarVentana, traspasar } from "../../../js/core/handoff.js";
+import { abrirApp, copiarFoto, dejarFoto, escucharTraspaso, recibirAlArrancar, reservarVentana, traspasar, usaPortapapeles } from "../../../js/core/handoff.js";
 const abrirRecibida = async t => { await abrirArchivo(new File([t.blob], `${t.nombre || "foto"}.png`, { type: "image/png" })); };
 
 export async function iniciarTraspaso(avisar) {
@@ -19,13 +19,24 @@ export async function iniciarTraspaso(avisar) {
   else if (r.pedida) avisar("No llegó la foto. Guarda una copia en Realify y ábrela aquí.");
 }
 
+const aPNG = async () => { const l = await renderFinal(); return new Promise(r => l.toBlob(r, "image/png")); };
+
+/* iPhone con las apps instaladas: sin ventanas nuevas. La foto se copia al portapapeles (dentro del toque) y se deja en el almacén; en
+   Realify se recibe sola si comparten almacenamiento, y si no, con «Pegar imagen». */
+async function porPortapapeles(info, avisar) {
+  const blob = aPNG(), copiada = copiarFoto(blob);
+  await dejarFoto("realify", { blob: await blob, nombre: info.nombre });
+  avisar(await copiada ? "Foto copiada. Abre Realify desde su icono: si no aparece sola, pulsa «Pegar imagen»" : "No se pudo copiar. Guarda una copia y ábrela en Realify");
+}
+
 export async function enviarARealify(avisar) {
-  const info = leer().foto, ventana = reservarVentana("realify");      // dentro del toque: iOS no deja abrir ventanas después
+  const info = leer().foto;
+  if (info && usaPortapapeles()) return porPortapapeles(info, avisar);
+  const ventana = reservarVentana("realify");      // dentro del toque: iOS no deja abrir ventanas después
   if (!info) { ventana?.close(); return; }
-  const l = await renderFinal(), blob = await new Promise(r => l.toBlob(r, "image/png"));
+  const blob = await aPNG();
   const r = await traspasar("realify", { blob, nombre: info.nombre }, ventana);
   if (r === "enviada") avisar("Foto enviada: cambia a la ventana de Realify");
-  else if (r === "manual") avisar("Foto lista. Abre Realify desde su icono de inicio para recibirla");
 }
 
 export const irARealify = avisar => { if (abrirApp("realify") === "manual") avisar("Abre Realify desde su icono de inicio"); };

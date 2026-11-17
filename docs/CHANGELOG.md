@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 345) · La foto llega de verdad entre las dos apps del iPhone
+- **Causa**: en el iPhone las dos apps instaladas no comparten almacenamiento, así que la foto guardada por una no la veía la otra.
+- **Ahora**: con las apps instaladas, «Abrir en Realify» / «Abrir en Realify Basic» copia la foto (PNG) al portapapeles dentro del propio toque y además la deja en el almacén compartido (por si el sistema sí lo comparte). Al abrir la otra app desde su icono, la foto aparece sola si hubo almacén compartido; si no, se pulsa **Pegar foto** (Basic: inicio y menú ···) o **Pegar imagen** (Realify).
+- Basic: nuevo botón y entrada de menú «Pegar foto». Escritorio y Android no cambian (ventana reservada + almacén + canal).
+- `tests/basic/traspaso.mjs` comprueba que en el iPhone simulado se pide copiar un PNG al portapapeles.
+
 ### 2.1.0 (compilación 344) · Cambio suave y cada icono abre su app
 - **Cada icono abre su versión**: en el iPhone con las apps instaladas, Realify ya no navega su propia ventana hacia Basic (iOS reanuda la última página, así que el icono de Realify acababa abriendo Basic). Ahora, en ese caso, la foto se deja guardada, se avisa «Abre Realify Basic desde su icono de inicio» y la otra app la toma sola al abrirse o volver a primer plano (también al revés). La foto lleva destinatario (`para`), así que una app nunca se lleva la que es para la otra.
 - **Cambio suave** (escritorio y Android): la ventana reservada nace ya del color de fondo de la app de destino (nunca blanca), la app que llega aparece con un fundido y, si hay que navegar en la misma ventana, la actual se desvanece antes (respeta «reducir movimiento»).

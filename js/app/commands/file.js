@@ -9,6 +9,7 @@ import { promptOpenProject, openRecentProject, saveProject } from "../../io/proj
 import { exportDialog, quickPng } from "../../io/export/export.js?v=82";
 import { doc } from "../../core/doc.js";
 import { reservarVentana } from "../../core/handoff.js";
+import { openBasic, sendToBasic } from "../../io/handoff-in.js";
 import { closeActiveTab, closeAllTabs } from "../../editor/documents.js";
 import { needsDoc, newDialog, photoTool } from "./helpers.js";
 
@@ -23,8 +24,8 @@ registerAll({
   "file.saveProject": { run: saveProject, enabled: needsDoc },
   "file.new":       () => newDialog(),
   /* Realify Basic (basic/): la foto con su edición aplicada, o sólo cambiar de app */
-  "file.toBasic":   { run: () => { const w = reservarVentana("basic"); return import("../../io/handoff-in.js").then(m => m.sendToBasic(w)); }, enabled: needsDoc },   // la ventana se reserva en el toque (iOS)
-  "file.openBasic": () => { const w = reservarVentana("basic"); return import("../../io/handoff-in.js").then(m => m.openBasic(w)); },
+  "file.toBasic":   { run: () => sendToBasic(reservarVentana("basic")), enabled: needsDoc },   // la ventana se reserva en el toque (iOS)
+  "file.openBasic": () => openBasic(reservarVentana("basic")),
   "file.export":    { run: exportDialog, enabled: needsDoc },
   "file.exportAs":  { run: async () => (await import("../../io/export/professional-export.js")).professionalExport(), enabled: needsDoc },
   "file.exportPng": { run: quickPng, enabled: needsDoc },

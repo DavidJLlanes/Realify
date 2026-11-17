@@ -5,12 +5,13 @@
    Entradas: crearAcciones({ guardar, avisar }). Salidas: la lista para ui/topbar.js.
    Límites: sólo declara; el trabajo está en app/files.js, app/session.js y app/traspaso.js.
    ═══════════════════════════════════════════════════════════════ */
-import { pedirArchivo } from "./files.js";
+import { pedirArchivo, pegarFoto } from "./files.js";
 import { volverAlOriginal } from "./session.js";
 import { enviarARealify, irARealify } from "./traspaso.js";
 
 export const crearAcciones = ({ guardar, avisar }) => [
   { texto: "Abrir otra foto", icono: "abrir", alTocar: pedirArchivo },
+  { texto: "Pegar foto", icono: "pegar", alTocar: pegarFoto },
   { texto: "Guardar copia", icono: "guardar", alTocar: guardar },
   { texto: "Volver al original", icono: "original", ver: e => e.sucio, alTocar: volverAlOriginal },
   { texto: "Abrir en Realify", icono: "enviar", ver: e => !!e.foto, alTocar: () => enviarARealify(avisar) },

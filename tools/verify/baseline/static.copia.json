@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T12:01:03.876Z",
+ "generated": "2026-11-17T12:25:47.365Z",
  "root": "/home/claude/realify",
  "jsFiles": 1218,
- "jsLines": 113602,
+ "jsLines": 113697,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -602,7 +602,8 @@
    "abrirArchivo",
    "escucharEntradas",
    "guardarCopia",
-   "pedirArchivo"
+   "pedirArchivo",
+   "pegarFoto"
   ],
   "basic/js/app/pwa.js": [
    "registrarSW"
@@ -1191,11 +1192,14 @@
   "js/core/handoff.js": [
    "APPS",
    "abrirApp",
+   "copiarFoto",
+   "dejarFoto",
    "escucharTraspaso",
    "recibirAlArrancar",
    "reservarVentana",
    "tomarTraspaso",
-   "traspasar"
+   "traspasar",
+   "usaPortapapeles"
   ],
   "js/core/hisrc.js": [
    "adoptHi",
@@ -5813,8 +5817,8 @@
   "js/features -> js/io": 19,
   "js/main.js -> js/app": 19,
   "js/io -> js/editor": 18,
-  "js/app -> js/io": 13,
   "js/main.js -> js/ui": 13,
+  "js/app -> js/io": 12,
   "js/filters -> js/ui": 12,
   "plugins -> js/ai": 12,
   "js/features -> js/cv": 11,
