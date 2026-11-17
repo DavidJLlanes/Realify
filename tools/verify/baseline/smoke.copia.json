@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T11:53:58.272Z",
+ "generated": "2026-11-17T12:25:48.975Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 2366,
+     "readyMs": 1843,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2155447,
-     "cssBytes": 179900,
-     "transferBytes": 892112,
-     "domContentLoaded": 2297,
-     "fcp": 1712
+     "jsBytes": 2164503,
+     "cssBytes": 180310,
+     "transferBytes": 895728,
+     "domContentLoaded": 1752,
+     "fcp": null
     },
     {
-     "readyMs": 1242,
+     "readyMs": 1113,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2155470,
-     "cssBytes": 179900,
-     "transferBytes": 892123,
-     "domContentLoaded": 1143,
-     "fcp": 644
+     "jsBytes": 2164602,
+     "cssBytes": 180310,
+     "transferBytes": 895778,
+     "domContentLoaded": 1001,
+     "fcp": null
     },
     {
-     "readyMs": 1291,
+     "readyMs": 1533,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2155461,
-     "cssBytes": 179900,
-     "transferBytes": 892664,
-     "domContentLoaded": 1224,
-     "fcp": 504
+     "jsBytes": 2164602,
+     "cssBytes": 180310,
+     "transferBytes": 895778,
+     "domContentLoaded": 1404,
+     "fcp": null
     }
    ],
-   "medianReadyMs": 1291,
-   "medianTransferBytes": 892123
+   "medianReadyMs": 1533,
+   "medianTransferBytes": 895778
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -4922,15 +4922,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1227,
+   "readyMs": 1158,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2155470,
-   "cssBytes": 179900,
-   "transferBytes": 892123,
-   "domContentLoaded": 1134,
-   "fcp": 664
+   "jsBytes": 2164555,
+   "cssBytes": 180310,
+   "transferBytes": 896308,
+   "domContentLoaded": 1084,
+   "fcp": null
   },
   "screens": {
    "welcome": "7fc138759d92135a",
