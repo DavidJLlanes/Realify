@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T13:23:16.568Z",
+ "generated": "2026-11-17T13:33:00.082Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 3772,
+     "readyMs": 2270,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2163998,
+     "jsBytes": 2163980,
      "cssBytes": 180310,
-     "transferBytes": 896314,
-     "domContentLoaded": 3574,
+     "transferBytes": 896292,
+     "domContentLoaded": 2129,
      "fcp": null
     },
     {
-     "readyMs": 1567,
+     "readyMs": 1588,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2163998,
+     "jsBytes": 2163980,
      "cssBytes": 180310,
-     "transferBytes": 896314,
-     "domContentLoaded": 1458,
+     "transferBytes": 896292,
+     "domContentLoaded": 1503,
      "fcp": null
     },
     {
-     "readyMs": 1536,
+     "readyMs": 1598,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 1995993,
+     "jsBytes": 2163980,
      "cssBytes": 180310,
-     "transferBytes": 837880,
-     "domContentLoaded": 1392,
-     "fcp": 612
+     "transferBytes": 896292,
+     "domContentLoaded": 1506,
+     "fcp": null
     }
    ],
-   "medianReadyMs": 1567,
-   "medianTransferBytes": 896314
+   "medianReadyMs": 1598,
+   "medianTransferBytes": 896292
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -4929,20 +4929,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 3635,
+   "readyMs": 1564,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2164006,
+   "jsBytes": 2163980,
    "cssBytes": 180310,
-   "transferBytes": 896316,
-   "domContentLoaded": 3337,
-   "fcp": 3488
+   "transferBytes": 896292,
+   "domContentLoaded": 1489,
+   "fcp": null
   },
   "screens": {
    "welcome": "7fc138759d92135a",
    "withImage": "91216a462b558bfe",
-   "drawer": "2898ca98f29c0ccb"
+   "drawer": "53b3b078245a5530"
   },
   "opened": true,
   "drawer": true,
