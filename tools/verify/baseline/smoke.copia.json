@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T12:51:53.906Z",
+ "generated": "2026-11-17T13:23:16.568Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 2021,
+     "readyMs": 3772,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 1994185,
+     "jsBytes": 2163998,
      "cssBytes": 180310,
-     "transferBytes": 837513,
-     "domContentLoaded": 1913,
+     "transferBytes": 896314,
+     "domContentLoaded": 3574,
      "fcp": null
     },
     {
-     "readyMs": 1658,
+     "readyMs": 1567,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2162141,
+     "jsBytes": 2163998,
      "cssBytes": 180310,
-     "transferBytes": 894932,
-     "domContentLoaded": 1536,
+     "transferBytes": 896314,
+     "domContentLoaded": 1458,
      "fcp": null
     },
     {
-     "readyMs": 1306,
+     "readyMs": 1536,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2162141,
+     "jsBytes": 1995993,
      "cssBytes": 180310,
-     "transferBytes": 894932,
-     "domContentLoaded": 1212,
-     "fcp": null
+     "transferBytes": 837880,
+     "domContentLoaded": 1392,
+     "fcp": 612
     }
    ],
-   "medianReadyMs": 1658,
-   "medianTransferBytes": 894932
+   "medianReadyMs": 1567,
+   "medianTransferBytes": 896314
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -209,6 +209,7 @@
     "file.openProject",
     "file.openRecent",
     "file.openStack",
+    "file.pairBasic",
     "file.pasteImage",
     "file.revert",
     "file.saveProject",
@@ -625,6 +626,12 @@
        "ic": "arrow-right-left",
        "label": "Cambiar a Realify Basic",
        "help": "Abre Realify Basic en otra ventana, sin llevar ninguna foto."
+      },
+      {
+       "cmd": "file.pairBasic",
+       "ic": "link",
+       "label": "Emparejar con Realify Basic…",
+       "help": "Sólo en el iPhone con las apps instaladas: empareja Realify y Realify Basic con un código para que las fotos pasen solas."
       },
       {
        "cmd": "file.socialPost",
@@ -2974,7 +2981,7 @@
      ]
     }
    ],
-   "menuHash": "549e65d2b58a69ad"
+   "menuHash": "120a5f8d41e91c5e"
   },
   "screens": {
    "welcome": "09d45b77c9e01b97",
@@ -4922,20 +4929,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1300,
+   "readyMs": 3635,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2162058,
+   "jsBytes": 2164006,
    "cssBytes": 180310,
-   "transferBytes": 894893,
-   "domContentLoaded": 1168,
-   "fcp": 1236
+   "transferBytes": 896316,
+   "domContentLoaded": 3337,
+   "fcp": 3488
   },
   "screens": {
    "welcome": "7fc138759d92135a",
    "withImage": "91216a462b558bfe",
-   "drawer": "53b3b078245a5530"
+   "drawer": "2898ca98f29c0ccb"
   },
   "opened": true,
   "drawer": true,

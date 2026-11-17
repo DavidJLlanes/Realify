@@ -11,6 +11,7 @@ await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(); const errs = [];
 page.on("pageerror", e => errs.push(e.message));
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
+await page.evaluate(async () => (await import("/js/core/vendor.js")).ensureVendor("agpsd"));   // ag-psd se carga bajo demanda (como en la app)
 const res = await page.evaluate(async () => {
   const D = await import("/js/core/doc.js"), F = await import("/js/io/formats/professional-formats.js");
   D.newDoc(200, 120, { name:"t" });

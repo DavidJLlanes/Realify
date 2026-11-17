@@ -11,6 +11,7 @@ const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.u
 await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(), errs = []; page.on("pageerror", e => errs.push(e.message)); page.on("console", m => { if(/project|16 bits/.test(m.text())) console.log("consola:", m.text().slice(0, 200)); });
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
+await page.evaluate(async () => (await import("/js/core/vendor.js")).ensureVendor("agpsd"));   // ag-psd se carga bajo demanda (como en la app)
 const b64 = fs.readFileSync("/tmp/sc/out/p16.psd").toString("base64"), b64b = fs.readFileSync("/tmp/sc/out/p16.psb").toString("base64");
 const res = await page.evaluate(async ({ b64, b64b }) => { try{ return await (async () => {
   const D = await import("/js/core/doc.js"), C = await import("/js/io/formats/compatibility.js"), H = await import("/js/core/hisrc.js"), F = await import("/js/io/formats/professional-formats.js");

@@ -11,6 +11,7 @@ const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.u
   if(!fs.existsSync(f) || fs.statSync(f).isDirectory()){ r.writeHead(404); r.end(); return; } r.writeHead(200, { "Content-Type": T[path.extname(f)] || "application/octet-stream" }); fs.createReadStream(f).pipe(r); });
 await new Promise(r => srv.listen(0, "127.0.0.1", r));
 const b = await chromium.launch(), page = await b.newPage(); page.setDefaultTimeout(0); const errs = []; page.on("pageerror", e => errs.push(e.message));
+await page.addInitScript(() => { try { localStorage.setItem("realify.depth", "small"); } catch {} });   // modelo incluido en la web (sin descargas), como tests/ia/lib/navegador.mjs
 await page.goto(`http://127.0.0.1:${srv.address().port}/`); await page.waitForTimeout(1500);
 // El aviso de descarga del modelo (50 MB, desde este mismo servidor) se acepta solo
 await page.evaluate(() => setInterval(() => { const bt = [...document.querySelectorAll("button")].find(x => x.textContent.trim() === "Descargar"); if(bt) bt.click(); }, 400));

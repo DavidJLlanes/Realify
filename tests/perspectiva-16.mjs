@@ -1,7 +1,7 @@
 /* Prueba de perspectiva con 16 bits (v252): una capa cuyo origen sólo cubre un rectángulo del lienzo (recortado o desplazado). Los motores de
    coma flotante (editor/render/floatadjust.js y floatfilter.js) deben calcular en 16 bits dentro del rectángulo y en 8 bits fuera, devolver el rectángulo,
    y el resultado debe ser coherente: el lienzo es el redondeo de los 16 bits dentro, y el cálculo de 8 bits fuera. Además, el guardado de proyecto
-   debe conservar el rectángulo. Uso: node tests/hi-parcial.mjs */
+   debe conservar el rectángulo. Uso: node tests/perspectiva-16.mjs */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let chromium; for(const s of ["playwright", "/opt/node22/lib/node_modules/playwright/index.mjs"]){ try{ ({ chromium } = await import(s)); break; }catch{} }
@@ -20,7 +20,7 @@ const res = await page.evaluate(async () => {
   L.ctx.putImageData(img, 0, 0);
   const o = {}; const lay = () => D.doc.layers.find(z => z.id === L.id);
   PT.perspBegin(); PT.persp.base = [[40, 0], [W - 40, 0], [W, Hh], [0, Hh]]; PT.perspRecompute();
-  o.ok = PT.perspApply(); const l1 = lay(); const hs = l1.hiSrc;
+  o.ok = await PT.perspApply(); const l1 = lay(); const hs = l1.hiSrc;
   o.hi = !!hs && hs.w === W && hs.h === Hh;
   if(hs){
     const px = l1.ctx.getImageData(0, 0, W, Hh).data; let bad = 0, n = 0, trans = 0;
