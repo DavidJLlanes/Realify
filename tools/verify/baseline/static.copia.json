@@ -1,9 +1,16 @@
 {
- "generated": "2026-11-17T12:25:47.365Z",
+ "generated": "2026-11-17T12:51:47.127Z",
  "root": "/home/claude/realify",
- "jsFiles": 1218,
- "jsLines": 113697,
- "brokenRefs": [],
+ "jsFiles": 1221,
+ "jsLines": 113971,
+ "brokenRefs": [
+  {
+   "file": "js/core/relevo.js",
+   "spec": "../../api/traspaso/",
+   "kind": "url",
+   "target": "api/traspaso"
+  }
+ ],
  "softMissing": [
   {
    "file": "basic/sw.js",
@@ -602,8 +609,7 @@
    "abrirArchivo",
    "escucharEntradas",
    "guardarCopia",
-   "pedirArchivo",
-   "pegarFoto"
+   "pedirArchivo"
   ],
   "basic/js/app/pwa.js": [
    "registrarSW"
@@ -722,6 +728,10 @@
   ],
   "basic/js/ui/bienvenida.js": [
    "montarBienvenida"
+  ],
+  "basic/js/ui/codigo.js": [
+   "ensenarCodigo",
+   "pedirCodigo"
   ],
   "basic/js/ui/dom.js": [
    "h"
@@ -1192,14 +1202,11 @@
   "js/core/handoff.js": [
    "APPS",
    "abrirApp",
-   "copiarFoto",
-   "dejarFoto",
    "escucharTraspaso",
    "recibirAlArrancar",
    "reservarVentana",
    "tomarTraspaso",
-   "traspasar",
-   "usaPortapapeles"
+   "traspasar"
   ],
   "js/core/hisrc.js": [
    "adoptHi",
@@ -1262,6 +1269,11 @@
    "updateInfo",
    "updateLog",
    "watchPWAUpdates"
+  ],
+  "js/core/relevo.js": [
+   "enviarRelevo",
+   "escucharRelevo",
+   "usaRelevo"
   ],
   "js/core/search.js": [
    "fold",
@@ -5792,7 +5804,7 @@
   "js/features -> js/core": 112,
   "js/app -> js/editor": 97,
   "plugins -> js/features": 72,
-  "js/io -> js/core": 69,
+  "js/io -> js/core": 70,
   "js/features -> js/ai": 63,
   "js/ui -> js/core": 63,
   "js/features -> js/editor": 57,
@@ -5817,14 +5829,14 @@
   "js/features -> js/io": 19,
   "js/main.js -> js/app": 19,
   "js/io -> js/editor": 18,
+  "js/app -> js/io": 13,
   "js/main.js -> js/ui": 13,
-  "js/app -> js/io": 12,
   "js/filters -> js/ui": 12,
   "plugins -> js/ai": 12,
   "js/features -> js/cv": 11,
   "js/main.js -> js/core": 11,
+  "js/io -> js/ui": 10,
   "js/editor -> js/features": 9,
-  "js/io -> js/ui": 9,
   "js/io -> js/vendor": 9,
   "js/io -> js/exif": 8,
   "js/features -> js/filters": 7,
@@ -5849,6 +5861,7 @@
   "js/filters -> js/analysis": 3,
   "js/pwa.js -> js/ui": 3,
   "plugins -> js/lens": 3,
+  "basic -> js/core": 2,
   "js/analysis -> js/core": 2,
   "js/app -> js/exif": 2,
   "js/app -> js/pwa.js": 2,
@@ -5864,7 +5877,6 @@
   "tools -> js/ui": 2,
   "tools -> tests": 2,
   "basic -> js/io": 1,
-  "basic -> js/core": 1,
   "basic -> js/features": 1,
   "basic -> js/ui": 1,
   "js/ai -> js/ui": 1,

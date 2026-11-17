@@ -8,7 +8,7 @@
    Límites: servidor en server/traspaso/ (en memoria; la foto se borra al entregarla o a los 15 min). Sin interfaz: cada app pone la
    suya para enseñar y pedir el código. El emparejamiento vive en el localStorage de cada app.
    ═══════════════════════════════════════════════════════════════ */
-const API = new URL("../../api/traspaso/", import.meta.url).href;
+const API = location.origin + "/api/traspaso/";      // las dos apps viven en la raíz del mismo dominio
 const GUARDA = "realify-relevo:", CODIGO_VIVE = 25 * 60e3;
 
 /** ¿Hace falta el relevo? Sólo con la app instalada en el iPhone (en el resto las dos apps comparten almacenamiento). */
