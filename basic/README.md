@@ -5,7 +5,7 @@ completa y los mandos de cristal encima). Vive en `realify.es/basic/` y comparte
 píxeles con Realify. Plan y decisiones: [`docs/PLAN_BASIC.md`](../docs/PLAN_BASIC.md).
 
 ## Estado
-F0 (esqueleto), F1 (interfaz base) y F2 (pestaña Ajustar: 15 ajustes + Auto, edición no destructiva con motor Premium).
+Completo (F0–F6): esqueleto instalable, interfaz de cristal, Ajustar (15 ajustes + Auto), Recortar (giro, voltear, enderezar, perspectiva, proporciones), Estilos (≈ 170 `LOOKS` con intensidad) y traspaso con Realify. Edición no destructiva con motor Premium; el resultado final se calcula en un trabajador. Guía: tema «Realify Basic».
 
 ## Estructura
 ```
@@ -14,8 +14,8 @@ basic/
 ├─ css/   tokens.css · shell.css (colocación) · controls.css (aspecto de los mandos)
 └─ js/
    ├─ main.js                         arranque: sólo conecta piezas
-   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js) · device · pwa
-   ├─ engine/  pipeline (etapas y caché) · color · tono · detalle · vineta · auto · neutra      (sin DOM)
+   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · transformar (geometría) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js) · device · pwa
+   ├─ engine/  pipeline (etapas y caché) · color · tono · detalle · vineta · estilo · geometria · auto · neutra · worker      (sin DOM)
    ├─ ui/      viewport · gestos · topbar · tabbar · panel · ruler · strip · menu · bienvenida · aviso · atajos · icons · dom
    └─ tabs/    index.js (tabla de pestañas) · adjust/{params,panel}.js · crop/{params,panel,overlay}.js · looks/{panel,thumbs}.js
 ```
@@ -27,3 +27,6 @@ basic/
   el `?v=` de `basic/index.html`.
 - **Service worker**: el de Basic (alcance `/basic/`) sólo borra cachés `realify-basic-*`, y el de Realify sólo `realify-v*`.
 - Siempre calidad Premium, sin interruptor. Archivos ≤ 250 líneas, banner `═` en español, sin código duplicado.
+
+## Pruebas
+`npm run test:basic` (esqueleto, interfaz, ajustar, recortar, estilos, traspaso; móvil y escritorio) y `npm run verify`.

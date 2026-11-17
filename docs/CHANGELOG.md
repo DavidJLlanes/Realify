@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 340) · Realify Basic
+- **La página no se mueve ni se acerca nunca**: al desplazar o hacer zoom en la foto, la interfaz (barras, reglas y filas) se quedaba arrastrada o se agrandaba con el pellizco. Ahora la página está fija (`position: fixed`, `touch-action: none`), se cortan los gestos de pellizco de iOS y el arrastre fuera de las filas deslizantes; sólo se mueven la foto y las filas.
+
+### 2.1.0 (compilación 339) · Realify Basic, fase 6 (cierre)
+- **Guía**: nuevo tema «Realify Basic (la app sencilla)» (qué es, las tres pestañas, cómo pasar la foto de una app a otra y atajos).
+- README de Basic al día (estructura, estado y pruebas). Realify Basic queda completo: Ajustar, Estilos, Recortar, traspaso con Realify, instalable, móvil y escritorio, siempre Premium.
+
 ### 2.1.0 (compilación 338) · Realify Basic
 - **Punto negro** (Ajustar): al subirlo mucho ya no aparecen motas azules en las zonas oscuras. Antes se restaba canal a canal y en un fondo oscuro de tono azulado sólo sobrevivía el canal azul; ahora se resta a la luminancia y los tres canales se escalan juntos (el tono no cambia). Prueba de regresión en `tests/basic/ajustar.mjs`.
 

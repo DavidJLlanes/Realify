@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T11:02:44.883Z",
+ "generated": "2026-11-17T11:30:51.729Z",
  "root": "/home/claude/realify",
- "jsFiles": 1216,
- "jsLines": 113483,
+ "jsFiles": 1218,
+ "jsLines": 113562,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -4656,6 +4656,9 @@
   ],
   "js/ui/help/topics/atajos.js": [
    "atajosTopic"
+  ],
+  "js/ui/help/topics/basic.js": [
+   "basicTopic"
   ],
   "js/ui/help/topics/capas.js": [
    "capasTopic"

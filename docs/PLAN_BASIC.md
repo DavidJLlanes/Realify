@@ -48,7 +48,7 @@ Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados)
 - [x] **F3** (v333) Pestaña Recortar: marco con asas, giro 90°, voltear, enderezar, perspectiva y proporciones; la receta guarda `recorte`.
 - [x] **F4** (v334) Pestaña Estilos: fila horizontal con los ~170 `LOOKS` (miniatura + nombre) e intensidad; el estilo es la primera etapa de la receta.
 - [x] **F5** (v335) Traspaso: botones en las dos apps (menú «···» de Basic; menú Archivo y cajón de Realify), con `js/core/handoff.js`.
-- [ ] **F6** Escritorio (proporciones), pulido, guía, CHANGELOG, pruebas en móvil y escritorio.
+- [x] **F6** (v339) Cierre: guía (tema «Realify Basic»), README, CHANGELOG, resultado final en trabajador, pruebas en móvil y escritorio.
 
 ## 6. Por medir antes de F2/F4
 - Cuántos estilos hay en `LOOKS` y el coste de generar sus miniaturas sobre la foto del usuario.
