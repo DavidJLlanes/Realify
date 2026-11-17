@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T10:47:59.436Z",
+ "generated": "2026-11-17T11:07:47.098Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 1842,
+     "readyMs": 1666,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2151887,
+     "jsBytes": 2153169,
      "cssBytes": 178603,
-     "transferBytes": 890301,
-     "domContentLoaded": 1735,
-     "fcp": 1424
+     "transferBytes": 890721,
+     "domContentLoaded": 1457,
+     "fcp": 1028
     },
     {
-     "readyMs": 1289,
+     "readyMs": 1329,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2151887,
+     "jsBytes": 2153151,
      "cssBytes": 178603,
-     "transferBytes": 890301,
-     "domContentLoaded": 1197,
-     "fcp": 348
+     "transferBytes": 890708,
+     "domContentLoaded": 1075,
+     "fcp": 552
     },
     {
-     "readyMs": 1208,
+     "readyMs": 1451,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2151878,
+     "jsBytes": 2153151,
      "cssBytes": 178603,
-     "transferBytes": 890842,
-     "domContentLoaded": 1012,
-     "fcp": 484
+     "transferBytes": 890708,
+     "domContentLoaded": 1379,
+     "fcp": 260
     }
    ],
-   "medianReadyMs": 1289,
-   "medianTransferBytes": 890301
+   "medianReadyMs": 1451,
+   "medianTransferBytes": 890708
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -204,6 +204,7 @@
     "file.exportPng",
     "file.new",
     "file.open",
+    "file.openBasic",
     "file.openFiles",
     "file.openProject",
     "file.openRecent",
@@ -214,6 +215,7 @@
     "file.socialPost",
     "file.socialPreview",
     "file.startBatch",
+    "file.toBasic",
     "filter.adaptiveWideAngle",
     "filter.advancedSharpen",
     "filter.aiDejpeg",
@@ -611,6 +613,18 @@
       {
        "cmd": "file.new",
        "label": "Documento nuevo…"
+      },
+      {
+       "cmd": "file.toBasic",
+       "ic": "send",
+       "label": "Abrir en Realify Basic…",
+       "help": "Envía la foto, con la edición aplicada, a Realify Basic (la app sencilla de fotos) y la abre allí."
+      },
+      {
+       "cmd": "file.openBasic",
+       "ic": "arrow-right-left",
+       "label": "Cambiar a Realify Basic",
+       "help": "Abre Realify Basic en otra ventana, sin llevar ninguna foto."
       },
       {
        "cmd": "file.socialPost",
@@ -2960,7 +2974,7 @@
      ]
     }
    ],
-   "menuHash": "1cd71df0bf1857a8"
+   "menuHash": "549e65d2b58a69ad"
   },
   "screens": {
    "welcome": "b1b0a4cca9dfd3c9",
@@ -4908,15 +4922,15 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1155,
+   "readyMs": 1042,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 1987656,
+   "jsBytes": 2153113,
    "cssBytes": 178603,
-   "transferBytes": 833483,
-   "domContentLoaded": 1073,
-   "fcp": 536
+   "transferBytes": 891233,
+   "domContentLoaded": 982,
+   "fcp": 416
   },
   "screens": {
    "welcome": "fe7b93e343389925",
