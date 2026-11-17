@@ -5,7 +5,8 @@
    Salidas: la foto queda en app/session.js. Los formatos que sabe abrir son los de Realify (HEIC, TIFF, RAW, PSD, JXL…).
    Límites: iOS no admite lienzos de más de 16 Mpx, así que una foto mayor se reduce a ese tamaño al abrirla.
    ═══════════════════════════════════════════════════════════════ */
-import { actual, iniciar } from "./session.js";
+import { renderFinal } from "./render.js";
+import { iniciar } from "./session.js";
 import { leer } from "./store.js";
 
 const MAX_PIXELES = 16e6;
@@ -45,8 +46,9 @@ export function escucharEntradas(zona) {
 }
 
 export async function guardarCopia() {
-  const l = actual(), info = leer().foto;
-  if (!l) return false;
+  const info = leer().foto;
+  if (!info) return false;
+  const l = await renderFinal();
   const png = info.tipo === "image/png", ext = png ? "png" : "jpg";
   const blob = await new Promise(r => l.toBlob(r, info.tipo, .95));
   const archivo = new File([blob], `${info.nombre}-basic.${ext}`, { type: info.tipo });

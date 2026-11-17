@@ -37,11 +37,10 @@ for (const tipo of ["movil", "escritorio"]) {
   exige(await page.getAttribute('.pestana[data-id="recortar"]', "aria-selected") === "true", tipo + ": la pestaña no se selecciona");
   exige(await page.locator(".barra-sup button:has-text('OK')").isDisabled(), tipo + ": OK debe estar apagado sin cambios");
 
-  /* historial: se simula un resultado de pestaña */
+  /* historial: un gesto de ajuste cierra un paso */
   await page.evaluate(async () => {
     const S = await import("/basic/js/app/session.js");
-    const o = S.original(), c = document.createElement("canvas"); c.width = o.width; c.height = o.height;
-    const x = c.getContext("2d"); x.drawImage(o, 0, 0); x.fillStyle = "#f00"; x.fillRect(0, 0, 40, 40); S.confirmar(c);
+    S.cambiar({ exposicion: 30 }); S.cerrarPaso();
   });
   await page.waitForTimeout(200);
   exige(!(await page.locator(".barra-sup button:has-text('OK')").isDisabled()), tipo + ": OK debe activarse con cambios");

@@ -9,6 +9,14 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 332) · Realify Basic, fase 2
+- **Realify Basic · Ajustar**: Auto y 15 ajustes con regla tipo Fotos (Exposición, Brillantez, Luces altas, Sombras, Contraste, Brillo, Punto negro, Saturación, Intensidad, Temperatura, Tinte, Nitidez, Definición, Reducir ruido y Viñeta). Cada ajuste muestra un anillo con su valor; doble toque en la regla lo pone a 0.
+- Siempre Premium, sin interruptor: color en luz lineal y OKLab con mapeo de gama y tramado, luces/sombras y contraste con el motor Premium de Realify, nitidez con protección de bordes y halos, viñeta con tramado. «Auto» usa el diagnóstico de la Mejora automática Premium y lo reparte en los deslizadores.
+- Edición **no destructiva**: la foto original no se toca; deshacer y rehacer guardan sólo los valores (hasta 200 pasos) y la copia guardada se calcula siempre desde el original a resolución completa.
+- Vista previa por etapas con caché (al mover un deslizador sólo se recalcula esa etapa y las siguientes).
+- Prueba nueva `tests/basic/ajustar.mjs` (dirección de cada ajuste, equivalencia vista previa/final, regla, historial, Auto; móvil y escritorio).
+- `guidedBase` (filtro guiado de Detalle y estructura) pasa a exportarse para reutilizarlo.
+
 ### 2.1.0 (compilación 331) · Realify Basic, fase 1
 - **Realify Basic**: interfaz base. Foto a pantalla completa y sin marcos, con barras de cristal translúcido encima: Cancelar y OK arriba, deshacer/rehacer y menú «···» (abrir otra foto, guardar copia, volver al original), y las pestañas Ajustar · Estilos · Recortar abajo (todavía sin contenido). Un toque en la foto oculta las barras; zoom con pellizco, rueda o doble toque y desplazamiento con el dedo o el ratón.
 - Abre cualquier formato que Realify ya sabe abrir (HEIC, TIFF, RAW, PSD, JXL…) con el selector, arrastrando o pegando; guarda una copia con la hoja de compartir del móvil o descargándola. Historial de hasta 12 pasos con el original siempre disponible.

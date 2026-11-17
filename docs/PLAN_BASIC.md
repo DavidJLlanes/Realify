@@ -44,7 +44,7 @@ Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados)
 ## 5. Fases
 - [x] **F0** (v330) Esqueleto instalable y vacío: carpeta, manifiesto, service worker, comprobaciones (`layers.mjs`, `tests/basic/`).
 - [x] **F1** (v331) Interfaz: visor a pantalla completa, barras de cristal, pestañas, abrir y guardar, deshacer/rehacer.
-- [ ] **F2** Pestaña Ajustar (16 ajustes + Auto) con vista previa ligera y render Premium final.
+- [x] **F2** (v332) Pestaña Ajustar (15 ajustes + Auto) con vista previa ligera y render Premium final. Edición no destructiva: original + receta.
 - [ ] **F3** Pestaña Recortar.
 - [ ] **F4** Pestaña Estilos (fila horizontal, miniaturas, intensidad).
 - [ ] **F5** Traspaso: botones en las dos apps.
@@ -53,3 +53,11 @@ Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados)
 ## 6. Por medir antes de F2/F4
 - Cuántos estilos hay en `LOOKS` y el coste de generar sus miniaturas sobre la foto del usuario.
 - Que el motor Premium de los ajustes admite vista previa ligera sin cambiar el resultado final.
+
+## 7. Notas de F2
+- **Receta**: `{ ajustes: { id: valor } }` sobre el original; el historial guarda recetas, no fotos. F3 (recorte) y F4 (estilo) añaden sus claves a la misma receta.
+- **Motores reutilizados de Realify** (sin copiarlos): `applyColorMap` (color en luz lineal y OKLab, mapeo de gama, tramado), `applyBCPremium`,
+  `applyShadowsHighlightsPremium`, `sharpenRGBA`, `guidedBase`, `denoisePixels` y `measurePremium` (Auto). Nuevo y propio de Basic: la viñeta con tramado.
+- **Vista previa**: ≤ 1600 px (1200 en móvil), por etapas con caché; el final se calcula desde el original a resolución completa al guardar
+  (en una foto de 12 Mpx tarda del orden de 10 s con todos los ajustes y bloquea la página: mejorar en F6, por trozos o en un worker).
+- **Pendiente de medir en móvil real**: tiempos de la vista previa con varios ajustes activos.

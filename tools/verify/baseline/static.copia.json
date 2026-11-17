@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T09:46:08.688Z",
+ "generated": "2026-11-17T10:12:57.338Z",
  "root": "/home/claude/realify",
- "jsFiles": 1184,
- "jsLines": 112012,
+ "jsFiles": 1198,
+ "jsLines": 112650,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -602,13 +602,20 @@
   "basic/js/app/pwa.js": [
    "registrarSW"
   ],
+  "basic/js/app/render.js": [
+   "iniciarRender",
+   "medirAutoActual",
+   "renderFinal",
+   "vista"
+  ],
   "basic/js/app/session.js": [
-   "actual",
+   "cambiar",
    "cerrar",
-   "confirmar",
+   "cerrarPaso",
    "deshacer",
    "iniciar",
    "original",
+   "receta",
    "rehacer",
    "volverAlOriginal"
   ],
@@ -617,6 +624,45 @@
    "poner",
    "suscribir"
   ],
+  "basic/js/engine/auto.js": [
+   "medirAuto"
+  ],
+  "basic/js/engine/color.js": [
+   "hayColor",
+   "pasoColor"
+  ],
+  "basic/js/engine/detalle.js": [
+   "hayDefinicion",
+   "hayNitidez",
+   "hayRuido",
+   "pasoDefinicion",
+   "pasoNitidez",
+   "pasoRuido"
+  ],
+  "basic/js/engine/neutra.js": [
+   "esNeutra"
+  ],
+  "basic/js/engine/pipeline.js": [
+   "aplicarReceta",
+   "crearCadena",
+   "esNeutra"
+  ],
+  "basic/js/engine/tono.js": [
+   "hayContraste",
+   "hayLuces",
+   "pasoContraste",
+   "pasoLuces"
+  ],
+  "basic/js/engine/vineta.js": [
+   "hayVineta",
+   "pasoVineta"
+  ],
+  "basic/js/tabs/adjust/panel.js": [
+   "montarAjustar"
+  ],
+  "basic/js/tabs/adjust/params.js": [
+   "AJUSTES"
+  ],
   "basic/js/tabs/index.js": [
    "PESTANAS"
   ],
@@ -624,7 +670,8 @@
    "montarAtajos"
   ],
   "basic/js/ui/aviso.js": [
-   "avisar"
+   "avisar",
+   "ocultarAviso"
   ],
   "basic/js/ui/bienvenida.js": [
    "montarBienvenida"
@@ -640,6 +687,15 @@
   ],
   "basic/js/ui/menu.js": [
    "crearMenu"
+  ],
+  "basic/js/ui/panel.js": [
+   "montarPanel"
+  ],
+  "basic/js/ui/ruler.js": [
+   "crearRegla"
+  ],
+  "basic/js/ui/strip.js": [
+   "crearFila"
   ],
   "basic/js/ui/tabbar.js": [
    "montarPestanas"
@@ -3969,7 +4025,8 @@
    "surfaceBlur"
   ],
   "js/filters/library/basic/clarity.js": [
-   "clarity"
+   "clarity",
+   "guidedBase"
   ],
   "js/filters/library/basic/common.js": [
    "FILTER_PREVIEW_LIMIT",
@@ -5696,6 +5753,7 @@
   "js/ai -> js/core": 5,
   "js/filters -> js/ai": 5,
   "plugins -> js/cv": 5,
+  "basic -> js/editor": 4,
   "js/editor -> plugins": 4,
   "js/filters -> js/exif": 4,
   "js/main.js -> js/io": 4,
@@ -5710,6 +5768,7 @@
   "js/filters -> js/analysis": 3,
   "js/pwa.js -> js/ui": 3,
   "plugins -> js/lens": 3,
+  "basic -> js/filters": 2,
   "js/analysis -> js/core": 2,
   "js/app -> js/exif": 2,
   "js/app -> js/pwa.js": 2,
@@ -5725,6 +5784,7 @@
   "tools -> js/ui": 2,
   "tools -> tests": 2,
   "basic -> js/io": 1,
+  "basic -> js/features": 1,
   "basic -> js/ui": 1,
   "js/ai -> js/ui": 1,
   "js/analysis -> js/exif": 1,

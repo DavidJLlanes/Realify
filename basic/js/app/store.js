@@ -1,18 +1,20 @@
 /* ═══════════════════════════════════════════════════════════════
    REALIFY BASIC · ESTADO
-   Un único objeto de estado de la interfaz y la forma de avisar de que cambió. La sesión (app/session.js) y la interfaz
-   (ui/) se hablan sólo a través de él.
+   Un único objeto de estado de la interfaz y la forma de avisar de que cambió. La sesión (app/session.js), el pintado
+   (app/render.js) y la interfaz (ui/, tabs/) se hablan sólo a través de él.
    Entradas: poner(parche). Salidas: leer() → estado · suscribir(fn) → función para darse de baja.
-   Límites: sólo guarda datos sencillos; los píxeles viven en app/session.js, no aquí.
+   Límites: sólo guarda datos sencillos; los píxeles viven en app/session.js y app/render.js, no aquí.
    ═══════════════════════════════════════════════════════════════ */
 const estado = {
   foto: null,            // { nombre, tipo, ancho, alto } mientras haya una foto abierta
-  version: 0,            // sube cada vez que cambia la imagen actual (la vista la repinta)
+  version: 0,            // sube con cada cambio de la receta o de la foto
+  vistaV: 0,             // sube cada vez que se repinta la vista previa
   puedeDeshacer: false,
   puedeRehacer: false,
-  sucio: false,          // hay cambios sin guardar
+  sucio: false,          // la receta no es neutra (hay cambios sin guardar)
   pestana: "ajustar",
   barras: true,          // false = barras ocultas para ver la foto sola
+  procesando: false,     // hay un cálculo largo en marcha (guardar a resolución completa)
 };
 const oyentes = new Set();
 

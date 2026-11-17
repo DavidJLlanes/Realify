@@ -1,37 +1,50 @@
 /* ═══════════════════════════════════════════════════════════════
    REALIFY BASIC · SESIÓN DE EDICIÓN
-   Guarda la foto abierta y su historial (deshacer y rehacer). Cada paso es un lienzo completo e inmutable; el 0 es siempre
-   el original. Las pestañas guardan su resultado con confirmar(lienzo).
-   Entradas: iniciar(lienzo, datos) · confirmar(lienzo) · deshacer() · rehacer() · volverAlOriginal() · cerrar().
-   Salidas: actual() · original() y el estado de app/store.js (foto, version, puedeDeshacer, puedeRehacer, sucio).
-   Límites: máximo 12 pasos (se descarta el más antiguo después del original).
+   Edición no destructiva: la foto original (nunca se toca) más una «receta» con los valores de cada ajuste. El historial guarda
+   sólo recetas (unos pocos bytes cada una), así que deshacer es instantáneo y no hay pérdida de calidad por reaplicar.
+   Un gesto (arrastrar un deslizador) cambia la receta en vivo con cambiar() y se cierra con cerrarPaso(): un solo paso de historial.
+   Entradas: iniciar(lienzo, info) · cambiar(ajustes) · cerrarPaso() · deshacer() · rehacer() · volverAlOriginal() · cerrar().
+   Salidas: original() · receta() y el estado de app/store.js (foto, version, puedeDeshacer, puedeRehacer, sucio).
+   Límites: hasta 200 pasos de historial; la receta sólo lleva `ajustes` por ahora (recorte y estilo llegan en F3 y F4).
    ═══════════════════════════════════════════════════════════════ */
+import { esNeutra } from "../engine/neutra.js";
 import { poner } from "./store.js";
 
-const MAX_PASOS = 12;
-let pila = [], i = -1, datos = null, version = 0;
+const MAX_PASOS = 200;
+let base = null, datos = null, vivo = nueva(), hist = [], i = -1, version = 0, abierto = false;
 
-export const actual = () => pila[i] || null;
-export const original = () => pila[0] || null;
+function nueva() { return { ajustes: {} }; }
+const clon = r => ({ ajustes: { ...r.ajustes } });
+const igual = (a, b) => JSON.stringify(a.ajustes) === JSON.stringify(b.ajustes);
+
+export const original = () => base;
+export const receta = () => vivo;
 
 function avisar() {
-  const l = actual();
   poner({
-    foto: l ? { ...datos, ancho: l.width, alto: l.height } : null,
-    version: ++version,
-    puedeDeshacer: i > 0, puedeRehacer: i >= 0 && i < pila.length - 1, sucio: i > 0,
+    foto: base ? { ...datos, ancho: base.width, alto: base.height } : null,
+    version: ++version, sucio: !esNeutra(vivo),
+    puedeDeshacer: i > 0 || (abierto && !igual(vivo, hist[i])), puedeRehacer: i >= 0 && i < hist.length - 1,
   });
 }
 
-export function iniciar(lienzo, info) { pila = [lienzo]; i = 0; datos = info; avisar(); poner({ barras: true }); }
+export function iniciar(lienzo, info) { base = lienzo; datos = info; vivo = nueva(); hist = [clon(vivo)]; i = 0; abierto = false; avisar(); poner({ barras: true }); }
 
-export function confirmar(lienzo) {
-  pila = pila.slice(0, i + 1); pila.push(lienzo);
-  if (pila.length > MAX_PASOS) pila.splice(1, 1);
-  i = pila.length - 1; avisar();
+export function cambiar(ajustes) { vivo = { ajustes: { ...vivo.ajustes, ...ajustes } }; abierto = true; avisar(); }
+
+export function cerrarPaso() {
+  if (!abierto) return;
+  abierto = false;
+  if (!igual(vivo, hist[i])) {
+    hist = hist.slice(0, i + 1); hist.push(clon(vivo));
+    if (hist.length > MAX_PASOS) hist.shift();
+    i = hist.length - 1;
+  }
+  avisar();
 }
 
-export function deshacer() { if (i > 0) { i--; avisar(); } }
-export function rehacer() { if (i < pila.length - 1) { i++; avisar(); } }
-export function volverAlOriginal() { if (i > 0) { confirmar(original()); } }
-export function cerrar() { pila = []; i = -1; datos = null; avisar(); }
+function ir(n) { abierto = false; i = n; vivo = clon(hist[i]); avisar(); }
+export function deshacer() { if (abierto && !igual(vivo, hist[i])) ir(i); else if (i > 0) ir(i - 1); }
+export function rehacer() { if (i < hist.length - 1) ir(i + 1); }
+export function volverAlOriginal() { if (!esNeutra(vivo)) { cambiar(Object.fromEntries(Object.keys(vivo.ajustes).map(k => [k, 0]))); cerrarPaso(); } }
+export function cerrar() { base = null; datos = null; vivo = nueva(); hist = []; i = -1; abierto = false; avisar(); }

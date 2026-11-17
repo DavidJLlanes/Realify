@@ -16,7 +16,7 @@ import { runFilter, previewProxy } from "./common.js";
    silueta oscura aparecía como diferencia enorme y se amplificaba en
    un halo blanco (o, en negativo, en una niebla oscura), que es el
    defecto que tenía la versión anterior de «Detalle y estructura». */
-function guidedBase(L, w, h, r, eps){
+export function guidedBase(L, w, h, r, eps){
   const n = w * h, LL = new Float32Array(n);
   for(let i = 0; i < n; i++) LL[i] = L[i] * L[i];
   const mean = boxBlurFloat(L, w, h, r), corr = boxBlurFloat(LL, w, h, r);
