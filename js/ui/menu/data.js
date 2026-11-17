@@ -20,6 +20,8 @@ export const MENUS = [
       help:"Envía la foto, con la edición aplicada, a Realify Basic (la app sencilla de fotos) y la abre allí." },
     { cmd:"file.openBasic", ic:"arrow-right-left", label:"Cambiar a Realify Basic",
       help:"Abre Realify Basic en otra ventana, sin llevar ninguna foto." },
+    { cmd:"file.pairBasic", ic:"link", label:"Emparejar con Realify Basic…",
+      help:"Sólo en el iPhone con las apps instaladas: empareja Realify y Realify Basic con un código para que las fotos pasen solas." },
     { cmd:"file.socialPost", label:"Collage / History / Post…",
       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
       help:"Collages, publicaciones e historias para redes: 40 diseños de collage, formatos de Instagram, TikTok, Facebook, X, YouTube, LinkedIn, Pinterest y más, proporciones verticales y horizontales, y la pantalla de los móviles más conocidos. Crea el resultado en una pestaña nueva." },

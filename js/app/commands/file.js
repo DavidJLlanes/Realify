@@ -25,6 +25,7 @@ registerAll({
   /* Realify Basic (basic/): la foto con su edición aplicada, o sólo cambiar de app */
   "file.toBasic":   { run: () => { const w = reservarVentana("basic"); return import("../../io/handoff-in.js").then(m => m.sendToBasic(w)); }, enabled: needsDoc },   // la ventana se reserva en el toque (iOS)
   "file.openBasic": () => { const w = reservarVentana("basic"); return import("../../io/handoff-in.js").then(m => m.openBasic(w)); },
+  "file.pairBasic": { run: () => import("../../io/handoff-in.js").then(m => m.pairBasic()), enabled: () => navigator.standalone === true },   // sólo iPhone instalado
   "file.export":    { run: exportDialog, enabled: needsDoc },
   "file.exportAs":  { run: async () => (await import("../../io/export/professional-export.js")).professionalExport(), enabled: needsDoc },
   "file.exportPng": { run: quickPng, enabled: needsDoc },

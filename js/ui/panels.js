@@ -4,34 +4,24 @@
    toda la columna se convierte en una hoja que sube desde abajo y se
    arrastra con el dedo, incluido el gesto de cerrarla tirando hacia
    abajo: es el patrón que ya conoce cualquiera que use el móvil.
+   La lista de capas se pinta aquí (renderLayers); el contenido de cada fila está en layer-row.js, sus clics en
+   layer-row-click.js, sus gestos de arrastre y menús en layer-row-events.js y la opacidad y el modo de fusión en layer-controls.js.
    ═══════════════════════════════════════════════════════════════ */
 
 import { on, emit } from "../core/bus.js";
-import { doc, activeLayer, layerThumb, setActive, moveLayer } from "../core/doc.js";
-import { list as historyList, jumpTo, canUndo, canRedo } from "../core/history.js";
-import { record } from "../core/history.js";
-import { getMaskTarget, setMaskTarget, clearMaskTarget, addMask,
-         toggleMask, maskAlphaAsSelectionMask,
-         getIsolateView, setIsolateView, toggleIsolateView } from "../editor/layers/masks.js";
-import { isAdjustLayer, adjustTypeName, openAdjustPanel } from "../editor/layers/adjustlayers.js";
-import { isFillLayer, isShapeLayer, fillKindName, SHAPE_KIND_NAME } from "../editor/layers/layercontent.js";
-import { isBlendIfActive } from "../editor/layers/blendif.js";
-import { hasSelection, commitSelection } from "../editor/selection/selection.js";
-import { promptDlg } from "./kit/dialog.js";
+import { doc } from "../core/doc.js";
+import { canUndo, canRedo } from "../core/history.js";
+import { getMaskTarget, clearMaskTarget, getIsolateView, setIsolateView, toggleIsolateView } from "../editor/layers/masks.js";
 import { renderSnapshots, renderHistory, renderInfo } from "./panels-historial.js";
 export { renderHistory, renderInfo };
 import { haptic, isMobile } from "../core/device.js";
-import { filterOf, filterAmount } from "../editor/layers/filterlayer.js";
-import { knownFilter, filterLiveCapable, openFilterEditor } from "../editor/layers/filterregistry.js";
-import { setFilterAmount, amountMode } from "../editor/layers/filteramount.js";
-import { toggleFilterEntry, setFilterEntryAmount, removeFilterEntry, moveFilterEntry } from "../editor/layers/filterchain.js";
-import { toast } from "../core/toast.js";
-import { toggleClip, toggleCollapsed } from "../editor/layers/groups.js";
-import { hasEnabledStyle, openLayerStyles } from "../editor/layers/layerstyles.js";
+import { toggleCollapsed } from "../editor/layers/groups.js";
 import { initProperties } from "./properties.js";
 import { initReorder } from "./layers-reorder.js";
 import { wireDragDrop, wireContextMenus } from "./layer-row-events.js";
-import { escapeHtml } from "../core/util/html.js";
+import { rowState, rowHtml, wireFxControls, layerDepthsAndHidden } from "./layer-row.js";
+import { wireRowClick } from "./layer-row-click.js";
+import { wireLayerControls, syncLayerControls } from "./layer-controls.js";
 import { fitAbove, fitInRect, view } from "../core/view.js";
 
 /* ── selección múltiple de capas ─────────────────────────────────
@@ -324,77 +314,6 @@ function setFullscreen(open){
 const layerList = document.getElementById("layerList");
 initReorder(layerList);
 
-/* Profundidad de anidamiento de cada capa (0 = nivel superior) y qué
-   ids quedan ocultos en el panel porque alguno de sus grupos
-   ancestros está plegado. Plegar no afecta al lienzo, sólo a esta
-   lista: la capa sigue componiéndose con normalidad. */
-function layerDepthsAndHidden(){
-  const byId = new Map(doc.layers.map(l => [l.id, l]));
-  const depth = new Map();
-  const depthOf = l => {
-    if(depth.has(l.id)) return depth.get(l.id);
-    // `byId.get` puede no encontrar nada si `groupId` apunta a una capa
-    // que ya no existe: se trata como nivel superior en vez de romper.
-    const parent = l.groupId != null ? byId.get(l.groupId) : null;
-    const d = parent ? 1 + depthOf(parent) : 0;
-    depth.set(l.id, d);
-    return d;
-  };
-  for(const l of doc.layers) depthOf(l);
-  const hidden = new Set();
-  for(const l of doc.layers){
-    let p = l.groupId;
-    while(p != null){
-      const g = byId.get(p);
-      if(!g) break;
-      if(g.collapsed){ hidden.add(l.id); break; }
-      p = g.groupId;
-    }
-  }
-  return { depth, hidden };
-}
-
-/* Los `<input type=range>` dentro de una fila de capa viven bajo un
-   contenedor arrastrable. En algunos navegadores el arrastre HTML de la fila
-   gana al control nativo; en iOS, además, el gesto puede interpretarse como
-   desplazamiento de la hoja. Controlamos el gesto directamente con Pointer
-   Events: una sola ruta para ratón, lápiz y dedo, con captura hasta soltar.
-   El evento `input` nativo se conserva para teclado y lectores de pantalla. */
-function wireLayerRangeDrag(range, { start, preview, commit }){
-  let pointerId = null;
-  const setFromPointer = event => {
-    const box = range.getBoundingClientRect();
-    if(box.width <= 0) return;
-    const min = Number(range.min || 0), max = Number(range.max || 100);
-    const step = Number(range.step || 1) || 1;
-    const ratio = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
-    const value = Math.round((min + (max - min) * ratio) / step) * step;
-    range.value = String(Math.max(min, Math.min(max, value)));
-    preview(+range.value);
-  };
-  const finish = event => {
-    if(event.pointerId !== pointerId) return;
-    setFromPointer(event);
-    if(range.hasPointerCapture?.(pointerId)) range.releasePointerCapture(pointerId);
-    pointerId = null;
-    commit();
-  };
-  range.addEventListener("pointerdown", event => {
-    if(event.button !== 0 && event.pointerType !== "touch") return;
-    event.preventDefault();
-    event.stopPropagation();
-    pointerId = event.pointerId;
-    start();
-    range.focus({ preventScroll:true });
-    range.setPointerCapture?.(pointerId);
-    setFromPointer(event);
-  });
-  range.addEventListener("pointermove", event => {
-    if(event.pointerId === pointerId) setFromPointer(event);
-  });
-  range.addEventListener("pointerup", finish);
-  range.addEventListener("pointercancel", finish);
-}
 
 export function renderLayers(){
   if(!doc.open){ layerList.innerHTML = ""; clearMaskTarget(); return; }
@@ -413,96 +332,9 @@ export function renderLayers(){
                    (isGroup ? " layer-group" : "");
     el.dataset.id = l.id;
     el.style.marginLeft = (depth.get(l.id) || 0) * 20 + "px";
-    const maskOn = l.mask && getMaskTarget() === l.id;
-    // Foco en la imagen: la capa está activa y no hay foco de pintura
-    // puesto en su máscara. El equivalente a los corchetes blancos de
-    // Photoshop alrededor de la miniatura que se está editando.
-    const imgOn = l.id === doc.activeId && getMaskTarget() !== l.id;
     if(multiSelect.has(l.id)) el.classList.add("multi");
-    const fxEntry = filterOf(l);
-    const fxChained = (l.filters?.length || 0) > 1;
-    // El diálogo completo (con todos sus deslizadores propios) sólo
-    // sabe recalcular su vista previa a partir de la capa de debajo,
-    // así que sólo tiene sentido reabrirlo cuando la capa lleva UN
-    // filtro — con más de uno encadenado, el ajuste fino se hace con
-    // el interruptor y el porcentaje de cada fila (ver `.fxchain`
-    // más abajo), no reabriendo ningún panel.
-    const fxEditable = !!(fxEntry && knownFilter(fxEntry.id) && i > 0 && l.type !== "text" && !isAdjustLayer(l) && !isGroup && !fxChained);
-    /* Efectos que no se pueden recalcular (herramientas de IA, efectos
-       de Fotografía): también llevan porcentaje, como mezcla con la
-       capa de debajo, siempre que sea del mismo tamaño. */
-    const fxBase = fxEntry && !fxEditable && !fxChained && i > 0 ? doc.layers[i - 1] : null;
-    const fxMixOnly = !!(fxBase && l.type !== "text" && !isAdjustLayer(l) && !isGroup && fxBase.canvas && l.canvas &&
-      fxBase.canvas.width === l.canvas.width && fxBase.canvas.height === l.canvas.height);
-    const fxSlider = fxEditable || fxMixOnly;
-    const fxAmt = fxSlider ? filterAmount(l) : 100;
-    const fxMode = fxMixOnly ? "mix" : fxEditable ? amountMode(l) : "scale";
-    const styled = hasEnabledStyle(l.styles);
-    const maskLabel = isGroup ? "grupo" : "capa";
-    const maskHtml = l.mask
-      ? `<div class="thumb mask-thumb${maskOn ? " on" : ""}${l.maskEnabled ? "" : " off"}"
-          title="Máscara de ${maskLabel} — clic: pintarla (negro oculta, blanco muestra) · doble clic: propiedades · Mayús+clic: activar o desactivar · Ctrl+clic: cargar como selección · Alt+clic: ver y pintar sólo la máscara · clic derecho: más opciones"
-          data-mask="1">⬚</div>`
-      : `<button type="button" class="thumb add-mask" data-add-mask="1"
-          title="Añadir máscara de ${maskLabel}${isGroup ? "" : " — Alt+clic: máscara negra u ocultar selección"}"
-          aria-label="Añadir máscara de ${maskLabel}">+</button>`;
-    el.innerHTML =
-      `<button class="eye" title="Mostrar u ocultar" aria-label="Mostrar u ocultar capa">
-         ${l.visible
-           ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>'
-           : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 17A10 10 0 0 1 12 19C5 19 1 12 1 12a18 18 0 0 1 5-5m4-2h1c7 0 11 7 11 7a18 18 0 0 1-2 3M1 1l22 22"/></svg>'}
-       </button>
-       ${isGroup ? `<button type="button" class="caret${l.collapsed ? "" : " open"}" data-caret="1"
-              title="${l.collapsed ? "Desplegar grupo" : "Plegar grupo"}"
-              aria-label="Plegar o desplegar grupo">›</button>` : ""}
-       ${isGroup
-          ? `<div class="thumb group-thumb${imgOn ? " on" : ""}" data-img="1" title="Grupo de capas">▤</div>`
-          : isAdjustLayer(l)
-          ? `<div class="thumb adjust-thumb${imgOn ? " on" : ""}" data-img="1" title="Capa de ajuste">◐</div>`
-          : `<div class="thumb${imgOn ? " on" : ""}" data-img="1" style="background-image:url(${layerThumb(l)})"></div>`}
-       ${maskHtml}
-       <span class="grip" data-grip="1" title="Arrastrar para cambiar el orden" aria-label="Arrastrar para reordenar">⠿</span>
-       <div class="meta">
-         <div class="name">${escapeHtml(l.name)}</div>
-         <div class="sub">${Math.round(l.opacity * 100)}%${l.filters.length ? " · " + l.filters.length + " filtro" + (l.filters.length > 1 ? "s" : "") : ""}</div>
-       </div>
-       ${l.type === "text" ? '<span class="fx" title="Capa de texto">T</span>' : ""}
-       ${isAdjustLayer(l) ? `<button type="button" class="fx editable" data-open-fx="adjust"
-           title="${escapeHtml(adjustTypeName(l.adjustType))} — abrir sus mandos">adj</button>` : ""}
-       ${isFillLayer(l) ? `<span class="fx" title="Capa de relleno: ${escapeHtml(fillKindName(l.fill?.kind))}">rel</span>` : ""}
-       ${isShapeLayer(l) ? `<span class="fx" title="Capa de forma: ${escapeHtml(SHAPE_KIND_NAME[l.shape?.kind] || "")}, editable con la herramienta Formas (U)">forma</span>` : ""}
-       ${l.smart ? '<span class="fx smart-badge" title="Objeto inteligente: Transformación libre remuestrea siempre desde el original guardado, sin perder nitidez">obj</span>' : ""}
-       ${l.dodgeBurn ? '<span class="fx" title="Capa gris de Dodge &amp; Burn — la herramienta sigue pintando aquí mientras esté activa">D&amp;B</span>' : ""}
-       ${l.clipped ? '<span class="fx clip-badge" title="Recortada a la capa de abajo — Alt+clic en la miniatura para quitarlo">⌐</span>' : ""}
-       ${isBlendIfActive(l.blendIf) ? '<span class="fx" title="Fusionar si activo: parte de esta capa (o de lo que tiene debajo) queda oculta por brillo, sin ninguna máscara pintada">FSi</span>' : ""}
-       ${styled ? `<span class="fx style-badge editable" title="Estilos de capa activos — doble clic: editar">✦</span>` : ""}
-       ${l.filters.length ? (fxEditable
-           ? `<button type="button" class="fx editable" data-open-fx="filter" title="${escapeHtml(
-               l.filters.map(f => f.name || f.id).join(" · "))} — abrir el panel del filtro">fx</button>`
-           : `<span class="fx" title="${escapeHtml(l.filters.map(f => f.name || f.id).join(" · "))}${
-               fxChained ? " — " + l.filters.length + " filtros encadenados" : ""}">fx${
-               fxChained ? "·" + l.filters.length : ""}</span>`) : ""}
-       ${fxSlider ? `<div class="fxrow" title="${fxMixOnly
-           ? "Aplicación del efecto: mezcla el resultado con el original de la capa de debajo (100 % = el efecto entero, 0 % = el original), sin volver a calcularlo"
-           : fxMode === "mix"
-           ? "Aplicación del filtro: este filtro no tiene mandos de intensidad, así que el porcentaje mezcla el resultado con el original"
-           : "Aplicación del filtro: vuelve a calcularlo con sus valores escalados a este porcentaje (no es la opacidad)"}">
-           <span class="fxlab">${fxMode === "mix" ? "mezcla" : "filtro"}</span>
-           <input type="range" class="fxamt" min="0" max="100" step="1" value="${fxAmt}" aria-label="Porcentaje de aplicación del filtro">
-           <span class="mono fxval">${fxAmt}%</span>
-         </div>` : ""}
-       ${fxChained ? `<div class="fxchain">${l.filters.map((f, fi) => `
-           <div class="fxchain-row" data-idx="${fi}">
-             <input type="checkbox" class="fxc-on" ${f.enabled === false ? "" : "checked"}
-               aria-label="Activar o desactivar ${escapeHtml(f.name || f.id)}">
-             <span class="fxc-name" title="${escapeHtml(f.name || f.id)}">${escapeHtml(f.name || f.id)}</span>
-             <input type="range" class="fxc-amt" min="0" max="100" step="1" value="${f.amount ?? 100}"
-               aria-label="Porcentaje de ${escapeHtml(f.name || f.id)}">
-             <span class="mono fxc-val">${f.amount ?? 100}%</span>
-             <button type="button" class="fxc-up icon" title="Subir en la cadena" ${fi === 0 ? "disabled" : ""}>↑</button>
-             <button type="button" class="fxc-down icon" title="Bajar en la cadena" ${fi === l.filters.length - 1 ? "disabled" : ""}>↓</button>
-             <button type="button" class="fxc-remove icon" title="Quitar del encadenado">✕</button>
-           </div>`).join("")}</div>` : ""}`;
+    const s = rowState(l, i), { fxEntry } = s;
+    el.innerHTML = rowHtml(l, s);
 
     if(isGroup){
       el.querySelector("[data-caret]").addEventListener("click", e => {
@@ -511,108 +343,8 @@ export function renderLayers(){
       });
     }
 
-    if(fxSlider){
-      const row = el.querySelector(".fxrow");
-      const range = row.querySelector(".fxamt");
-      const val = row.querySelector(".fxval");
-      // Ni el clic ni el arrastre sobre el deslizador deben seleccionar
-      // la fila (que la vuelve a pintar y mata el gesto a medias).
-      ["pointerdown", "click", "dblclick", "mousedown", "touchstart"].forEach(ev =>
-        row.addEventListener(ev, e => e.stopPropagation(), { passive: ev === "touchstart" }));
-      /* Toda la fila es `draggable="true"` (para reordenar/copiar la
-         capa arrastrándola) y eso compite con el arrastre NATIVO del
-         propio círculo del deslizador: aunque el `dragstart` de la
-         fila ya evita empezar un arrastre de capa cuando el objetivo
-         es un <input> (más abajo), el navegador sigue de fondo
-         evaluando si el gesto ES un arrastre de elemento durante los
-         primeros píxeles de movimiento, y esa evaluación le roba
-         seguimiento fino al círculo justo al empezar a mover el ratón
-         —se nota como que "no responde bien" al arrastrar—. Puesto
-         explícitamente en `false`, el navegador ni se plantea la duda:
-         el gesto es, desde el primer píxel, el propio del <input>. */
-      row.draggable = false;
-      let startAmt = fxAmt, committed = null;
-      const preview = amount => {
-        val.textContent = amount + "%";
-        setFilterAmount(l, amount, { preview: true });
-      };
-      const commit = () => {
-        const amount = +range.value;
-        if(committed === amount || (amount === filterAmount(l) && amount === startAmt)) return;
-        committed = amount;
-        setFilterAmount(l, amount, { preview: false });
-      };
-      wireLayerRangeDrag(range, {
-        start: () => { startAmt = filterAmount(l); committed = null; }, preview, commit
-      });
-      range.addEventListener("input", () => {
-        preview(+range.value);
-      });
-      range.addEventListener("change", commit);
-      // Doble clic en el deslizador: vuelve al 100 %
-      range.addEventListener("dblclick", () => { range.value = 100; val.textContent = "100%"; setFilterAmount(l, 100); });
-    }
+    wireFxControls(el, l, s);
 
-    if(fxChained){
-      const chain = el.querySelector(".fxchain");
-      // Igual que en `.fxrow`: nada de lo que pasa dentro de la
-      // cadena debe seleccionar la fila entera ni repintar el panel a
-      // medio gesto, y tampoco debe competir con el arrastre nativo
-      // de sus propios deslizadores (ver el comentario de `.fxrow`).
-      ["pointerdown", "click", "dblclick", "mousedown", "touchstart"].forEach(ev =>
-        chain.addEventListener(ev, e => e.stopPropagation(), { passive: ev === "touchstart" }));
-      chain.draggable = false;
-
-      chain.querySelectorAll(".fxchain-row").forEach(row => {
-        const idx = +row.dataset.idx;
-        const onBox = row.querySelector(".fxc-on");
-        const range = row.querySelector(".fxc-amt");
-        const val = row.querySelector(".fxc-val");
-
-        onBox.addEventListener("change", () => toggleFilterEntry(l, idx));
-
-        let startAmt = +range.value, committed = null;
-        const preview = amount => {
-          val.textContent = amount + "%";
-          setFilterEntryAmount(l, idx, amount, { preview: true });
-        };
-        const commit = () => {
-          const amount = +range.value;
-          if(committed === amount || amount === startAmt) return;
-          committed = amount;
-          setFilterEntryAmount(l, idx, amount, { preview: false });
-        };
-        wireLayerRangeDrag(range, {
-          start: () => { startAmt = l.filters[idx]?.amount ?? 100; committed = null; }, preview, commit
-        });
-        range.addEventListener("input", () => {
-          preview(+range.value);
-        });
-        range.addEventListener("change", commit);
-        range.addEventListener("dblclick", () => {
-          range.value = 100; val.textContent = "100%";
-          setFilterEntryAmount(l, idx, 100);
-        });
-
-        row.querySelector(".fxc-up").addEventListener("click", () => moveFilterEntry(l, idx, -1));
-        row.querySelector(".fxc-down").addEventListener("click", () => moveFilterEntry(l, idx, 1));
-        row.querySelector(".fxc-remove").addEventListener("click", () => removeFilterEntry(l, idx));
-      });
-    }
-
-    el.addEventListener("dblclick", e => {
-      if(e.target.closest("[data-mask]")){ setActive(l.id); revealProperties(); return; }
-      if(e.target.closest(".style-badge")){
-        setActive(l.id);
-        openLayerStyles(l);
-        return;
-      }
-      // «fx» y «adj» ya no están aquí: abren su panel con un solo clic
-      // desde el manejador de `click` (ver más abajo).
-      if(isAdjustLayer(l) && !e.target.closest(".eye") && !e.target.closest("[data-open-fx]")){
-        setActive(l.id); revealProperties();
-      }
-    });
     // Toda la fila se puede arrastrar, con dos payloads distintos
     // según de dónde se agarre: desde la miniatura de máscara, copiar
     // o mover esa máscara a otra capa (abajo); desde cualquier otro
@@ -622,217 +354,14 @@ export function renderLayers(){
     // adaptado a pestañas porque aquí no hay ventanas de verdad.
     wireDragDrop(el, l, isGroup, renderLayers);
     const maskMenu = wireContextMenus(el, l, isGroup, renderLayers);
-    el.querySelector(".name")?.addEventListener("dblclick", async e => {
-      e.preventDefault(); e.stopPropagation();
-      setActive(l.id);
-      const name = await promptDlg("Renombrar capa", "Nombre", l.name);
-      if(name === null) return;
-      const before = l.name, after = name.trim().slice(0, 80) || before;
-      if(after === before) return;
-      l.name = after;
-      record("Renombrar capa", () => { l.name = before; emit("doc:structure"); }, () => { l.name = after; emit("doc:structure"); });
-      emit("doc:structure");
-    });
-    el.addEventListener("click", e => {
-      if(layerSelectMode && !e.target.closest("button, input, [data-mask], [data-add-mask], [data-open-fx]")){
-        const selected = new Set(multiSelect);
-        selected.has(l.id) ? selected.delete(l.id) : selected.add(l.id);
-        setMultiSelect(selected);
-        setActive(l.id);
-        renderLayers();
-        return;
-      }
-      /* Insignia «fx» / «adj»: abre el panel del propio efecto con UN
-         clic —o un toque en móvil—, que es lo que se espera de un
-         botón que lleva escrito el nombre del filtro. Antes pedía
-         doble clic y, encima, sólo desplazaba el panel de Propiedades
-         a la vista sin abrir nada del filtro. */
-      const fxBtn = e.target.closest("[data-open-fx]");
-      if(fxBtn){
-        e.stopPropagation();
-        setActive(l.id);
-        /* Móvil y escritorio piden cosas distintas aquí.
-
-           En ESCRITORIO, los filtros con editor en vivo (Brillo y
-           contraste, Niveles, Curvas…) y las capas de ajuste ya tienen
-           sus mandos a la vista en el panel de Propiedades, al lado —
-           ver ui/properties.js—: abrir encima un diálogo con los
-           mismos deslizadores era la «ventana duplicada» que sobraba.
-           Basta con llevar el foco a ese panel.
-
-           En MÓVIL no hay «al lado»: Propiedades y Capas son la misma
-           hoja, que además tapa la foto. Aquí lo útil es cerrar la
-           hoja y abrir el panel del efecto, que sube como una hoja
-           corta dejando la foto a la vista mientras se ajusta. Sin la
-           hoja de capas delante ya no hay nada duplicado. */
-        // Móvil: el editor del efecto se abre ENCIMA de Capas, sin cerrarla.
-        const mob = isMobile();
-        if(fxBtn.dataset.openFx === "adjust"){
-          if(mob) openAdjustPanel(l); else revealProperties();
-        } else if(!fxEntry || (filterLiveCapable(fxEntry.id) && !mob)){
-          revealProperties();
-        } else {
-          openFilterEditor(l, fxEntry);
-        }
-        return;
-      }
-      if(e.target.closest(".eye")){
-        const was = l.visible;
-        l.visible = !was;
-        record(was ? "Ocultar capa" : "Mostrar capa",
-               () => { l.visible = was;  emit("doc:structure"); emit("doc:change"); },
-               () => { l.visible = !was; emit("doc:structure"); emit("doc:change"); });
-        emit("doc:structure"); emit("doc:change");
-        return;
-      }
-      if(e.target.closest("[data-mask]")){
-        setActive(l.id);
-        if(e.shiftKey){
-          // Mayús+clic: activar/desactivar sin entrar a pintarla,
-          // igual que tachar la miniatura en Photoshop.
-          toggleMask(l);
-        } else if(e.ctrlKey || e.metaKey){
-          // Ctrl/Cmd+clic: las zonas blancas de la máscara pasan a ser
-          // la selección activa, tal cual el canal alfa que ya guardan.
-          const alpha = maskAlphaAsSelectionMask(l.mask, doc.w, doc.h);
-          commitSelection(alpha, "new");
-        } else if(e.altKey){
-          // Alt+clic: el lienzo enseña sólo la máscara en gris, y se
-          // pinta sobre ella, hasta que se repite el gesto.
-          const on = toggleIsolateView(l.id);
-          toast(on ? "Máscara a la vista: pinta en negro para ocultar y en blanco para mostrar · Alt+clic de nuevo para volver" : "Vista normal");
-        } else if(isMobile() && getMaskTarget() === l.id){
-          // Móvil: segundo toque sobre la máscara ya elegida → su menú
-          // (ver sólo la máscara, volver a la imagen, aplicar…).
-          const r = e.target.closest("[data-mask]").getBoundingClientRect();
-          // Tras este mismo clic (el «clic fuera» del menú lo cerraría)
-          setTimeout(() => maskMenu(r.left, r.bottom), 0);
-          return;
-        } else {
-          // Un segundo clic sobre la misma máscara vuelve a pintar la
-          // capa; es el mismo gesto que alternar entre las dos
-          // miniaturas en cualquier editor con capas.
-          setMaskTarget(getMaskTarget() === l.id ? null : l.id);
-          if(getMaskTarget() === null && getIsolateView() === l.id) setIsolateView(null);
-        }
-        renderLayers();
-        return;
-      }
-      if(e.target.closest("[data-add-mask]")){
-        // Máscara blanca (revela todo) o desde la selección; con Alt,
-        // la variante opuesta de Photoshop —negra, u ocultar la
-        // selección en vez de descubrirla—. Añadirla deja el destino
-        // de pintura puesto para poder empezar a pintarla ya mismo.
-        setActive(l.id);
-        addMask(l, hasSelection(), e.altKey);
-        setMaskTarget(l.id);
-        renderLayers();
-        return;
-      }
-      if(e.target.closest("[data-img]") && e.altKey && !isAdjustLayer(l)){
-        // Alt+clic en la miniatura: «recortar a la capa de abajo», el
-        // mismo gesto que Photoshop entre dos filas de capas —aquí,
-        // más fácil de acertar, directamente sobre la miniatura—.
-        setActive(l.id);
-        const now = toggleClip(l.id);
-        toast(now ? "Recortada a la capa de abajo" : "Recorte quitado");
-        renderLayers();
-        return;
-      }
-      if(e.target.closest("[data-img]") && !e.ctrlKey && !e.metaKey && !e.shiftKey){
-        // Clic en la miniatura de la imagen: el foco vuelve a ella
-        // aunque la máscara de esta misma capa lo tuviera puesto (y se
-        // sale de la vista de sólo la máscara).
-        setActive(l.id);
-        setMaskTarget(null);
-        if(getIsolateView() !== null) setIsolateView(null);
-        renderLayers();
-        return;
-      }
-      if(e.ctrlKey || e.metaKey){
-        const s = new Set(multiSelect);
-        s.has(l.id) ? s.delete(l.id) : s.add(l.id);
-        setMultiSelect(s);
-        setActive(l.id);
-        renderLayers();
-        return;
-      }
-      if(e.shiftKey && multiSelect.size){
-        // Rango contiguo entre la última marcada y ésta, en el orden
-        // en que aparecen en el panel (de arriba abajo).
-        const ids = doc.layers.map(x => x.id).slice().reverse();
-        const last = [...multiSelect][multiSelect.size - 1];
-        const a = ids.indexOf(last), b = ids.indexOf(l.id);
-        const [lo, hi] = a < b ? [a, b] : [b, a];
-        setMultiSelect(ids.slice(lo, hi + 1));
-        setActive(l.id);
-        renderLayers();
-        return;
-      }
-      setMultiSelect([l.id]);
-      setActive(l.id);
-    });
+    wireRowClick(el, l, { fxEntry, maskMenu, render: renderLayers, reveal: revealProperties,
+      multi: () => multiSelect, setMulti: setMultiSelect, selectMode: () => layerSelectMode });
     layerList.appendChild(el);
   }
   syncLayerControls();
 }
 
 
-const opacityEl = document.getElementById("layerOpacity");
-const opacityVal = document.getElementById("layerOpacityVal");
-const blendEl = document.getElementById("layerBlend");
-
-function wireLayerControls(){
-  let before = null;
-  opacityEl.addEventListener("pointerdown", () => {
-    const l = activeLayer(); before = l ? l.opacity : null;
-  });
-  opacityEl.addEventListener("input", () => {
-    const l = activeLayer();
-    if(!l) return;
-    // Con el teclado (flechas, Inicio/Fin) no hay `pointerdown`: sin
-    // esto `before` seguía a null y el cambio no llegaba al historial.
-    if(before === null) before = l.opacity;
-    l.opacity = +opacityEl.value / 100;
-    opacityVal.textContent = opacityEl.value + "%";
-    emit("doc:change");
-  });
-  const commitOpacity = () => {
-    const l = activeLayer();
-    if(!l || before === null) return;
-    const from = before, to = l.opacity;
-    before = null;
-    if(Math.abs(from - to) < 1e-6) return;
-    record("Opacidad",
-      () => { l.opacity = from; emit("doc:structure"); emit("doc:change"); },
-      () => { l.opacity = to;   emit("doc:structure"); emit("doc:change"); });
-    emit("doc:structure");
-  };
-  opacityEl.addEventListener("pointerup", commitOpacity);
-  opacityEl.addEventListener("change", commitOpacity);
-  opacityEl.addEventListener("blur", commitOpacity);
-
-  blendEl.addEventListener("change", () => {
-    const l = activeLayer();
-    if(!l) return;
-    const from = l.blend, to = blendEl.value;
-    l.blend = to;
-    record("Modo de fusión",
-      () => { l.blend = from; syncLayerControls(); emit("doc:change"); },
-      () => { l.blend = to;   syncLayerControls(); emit("doc:change"); });
-    emit("doc:change");
-  });
-}
-
-function syncLayerControls(){
-  const l = activeLayer();
-  const on = !!l;
-  opacityEl.disabled = blendEl.disabled = !on;
-  if(!on) return;
-  opacityEl.value = Math.round(l.opacity * 100);
-  opacityVal.textContent = opacityEl.value + "%";
-  blendEl.value = l.blend;
-}
 
 /* ── instantáneas ──
    Encima del historial paso a paso, en el mismo panel: copias

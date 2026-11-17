@@ -271,6 +271,7 @@ const ITEMS = [
   { cmd:"file.contactSheet", label:"Hoja de contactos", ic:"contact-sheet", cat:"estilo creativo" },
   { cmd:"file.toBasic",     label:"Abrir en Realify Basic", ic:"send",             cat:"creativo" },
   { cmd:"file.openBasic",   label:"Cambiar a Realify Basic", ic:"arrow-right-left", cat:"creativo" },
+  { cmd:"file.pairBasic",   label:"Emparejar con Basic",     ic:"link",             cat:"creativo" },
   { cmd:"file.exportPdf",   label:"Exportar PDF",     ic:"file-pdf",    cat:"estilo" },
   { cmd:"file.exportGif",   label:"GIF animado",      ic:"film",        cat:"estilo efectos creativo" },
   { cmd:"actions.open",     label:"Acciones",         ic:"clapperboard", cat:"mejorar estilo" },

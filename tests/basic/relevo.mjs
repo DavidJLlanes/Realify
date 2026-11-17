@@ -103,6 +103,32 @@ await despertar(R.p); await R.p.waitForTimeout(5000);
 const d3 = await docReal(R.p);
 exige(d3 && d3.w === 300 && d3.h === 200, "3ª: Realify no recibió la foto sola " + JSON.stringify(d3));
 
+/* ── 4. Emparejar a mano desde los menús (Realify perdió la clave): Basic enseña el código y Realify lo escribe ── */
+await R.p.evaluate(() => localStorage.removeItem("realify-relevo:realify"));
+await B.p.getByLabel("Más opciones").click();
+const opsB = await B.p.locator(".menu-op").allTextContents();
+exige(opsB.includes("Emparejar con Realify"), "4ª: falta «Emparejar con Realify» en el menú de Basic " + opsB.join("|"));
+await B.p.locator(".menu-op:has-text('Emparejar con Realify')").click();
+await B.p.locator(".hoja-codigo button:has-text('Enseñar código')").click();
+await B.p.locator(".hoja-codigo .codigo-grande").waitFor({ timeout: 8000 }).catch(() => {});
+const cod2 = (await B.p.locator(".hoja-codigo .codigo-grande").textContent().catch(() => "")).replace(/\D/g, "");
+exige(/^\d{6}$/.test(cod2), "4ª: Basic no enseña código desde el menú");
+await B.p.locator(".hoja-codigo button").click();
+const habil = await R.p.evaluate(async () => (await import("/js/core/commands.js")).enabled("file.pairBasic"));
+exige(habil, "4ª: «Emparejar con Realify Basic» no está activo en el iPhone instalado");
+R.p.evaluate(async () => (await import("/js/core/commands.js")).run("file.pairBasic"));
+await R.p.locator(".modal-foot button:has-text('Escribir código')").click({ timeout: 8000 }).catch(() => fallos.push("4ª: Realify no ofrece «Escribir código»"));
+await R.p.locator(".modal input[inputmode=numeric]").fill(cod2).catch(() => {});
+await R.p.locator(".modal-foot button.primary").click().catch(() => {});
+await R.p.waitForTimeout(1500);
+exige(await R.p.evaluate(() => !!localStorage.getItem("realify-relevo:realify")), "4ª: Realify no guardó la clave al escribir el código");
+await nuevoDoc(50, 40);
+await B.p.evaluate(async () => (await import("/basic/js/app/traspaso.js")).enviarARealify(() => {}));
+await B.p.waitForTimeout(3000);
+await despertar(R.p); await R.p.waitForTimeout(5000);
+const d4 = await docReal(R.p);
+exige(d4 && d4.w === 300, "4ª: tras emparejar a mano, la foto no llegó a Realify " + JSON.stringify(d4));
+
 if (errs.length) fallos.push("errores de página: " + errs.join(" | "));
 await B.ctx.close(); await R.ctx.close(); await cerrar(); py.kill();
 console.log(fallos.length ? "FALLO\n  - " + fallos.join("\n  - ") : "OK");

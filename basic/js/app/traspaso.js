@@ -4,16 +4,16 @@
    que Realify le manda con «Abrir en Realify Basic», tanto si Basic se abrió para ello como si ya estaba abierta.
    En el iPhone con las apps instaladas (cada una con su almacenamiento) la foto viaja cifrada por realify.es y llega sola; la primera
    vez se emparejan las dos apps con un código de 6 cifras.
-   Entradas: iniciarTraspaso(avisar) · enviarARealify(avisar) · irARealify(avisar). Salidas: la foto recibida queda en app/session.js.
+   Entradas: iniciarTraspaso(avisar) · enviarARealify(avisar) · irARealify(avisar) · emparejar(avisar) (a mano, desde el menú). Salidas: la foto recibida queda en app/session.js.
    Límites: la mecánica es js/core/handoff.js (mismo almacenamiento) y js/core/relevo.js (servidor); aquí sólo sesión y avisos.
    ═══════════════════════════════════════════════════════════════ */
 import { abrirArchivo } from "./files.js";
 import { renderFinal } from "./render.js";
 import { leer } from "./store.js";
-import { ensenarCodigo, pedirCodigo } from "../ui/codigo.js";
+import { elegirEmparejar, ensenarCodigo, pedirCodigo } from "../ui/codigo.js";
 
 import { abrirApp, escucharTraspaso, recibirAlArrancar, reservarVentana, traspasar } from "../../../js/core/handoff.js";
-import { enviarRelevo, escucharRelevo, usaRelevo } from "../../../js/core/relevo.js";
+import { canjearCodigo, crearCodigo, enviarRelevo, escucharRelevo, usaRelevo } from "../../../js/core/relevo.js";
 
 const OTRA = { realify: "Realify" };
 const extension = t => (t?.blob?.type === "image/jpeg" ? ".jpg" : ".png");
@@ -55,3 +55,21 @@ export async function enviarARealify(avisar) {
 }
 
 export const irARealify = avisar => { if (abrirApp("realify") === "manual") avisar("Abre Realify desde su icono de inicio"); };
+
+/** Emparejar a mano (menú «···», iPhone instalado): enseñar un código nuevo o escribir el que enseña Realify. */
+export async function emparejar(avisar) {
+  const modo = await elegirEmparejar("Realify");
+  try {
+    if (modo === "ensenar") ensenarCodigo(await crearCodigo("basic", "realify"), "Realify");
+    else if (modo === "escribir") {
+      for (let i = 0, error = ""; i < 3; i++) {
+        const texto = await pedirCodigo("Realify", error, { titulo: "Emparejar con Realify" });
+        if (!texto) return;
+        const r = await canjearCodigo("basic", texto);
+        if (r === "ok") { avisar("Emparejada con Realify"); return; }
+        if (r === "limite") { avisar("Demasiados intentos: prueba dentro de un rato"); return; }
+        error = "Ese código no vale. Revísalo en Realify.";
+      }
+    }
+  } catch (e) { avisar(e.message || "No se pudo emparejar"); }
+}

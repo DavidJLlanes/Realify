@@ -3,7 +3,8 @@
    En el iPhone cada app web instalada tiene su propio almacenamiento, así que Realify y Realify Basic no pueden dejarse la foto en el
    móvil. Las dos se emparejan UNA vez (una clave aleatoria que viaja bajo un código de 6 cifras que la persona escribe) y desde
    entonces la foto va cifrada (AES-GCM, en el dispositivo) al buzón de la otra app en realify.es, que la recoge sola al abrirse.
-   Entradas: usaRelevo() · enviarRelevo(app, destino, { blob, nombre }, { alProgreso }) · escucharRelevo(app, { pedirCodigo, alRecibir }).
+   Entradas: usaRelevo() · enviarRelevo(app, destino, { blob, nombre }, { alProgreso }) · escucharRelevo(app, { pedirCodigo, alRecibir }) ·
+   crearCodigo(app, destino) y canjearCodigo(app, texto) (emparejar a mano desde el menú).
    Salidas: enviarRelevo → { codigo } si aún falta emparejar (enseñarlo) o {} si ya está · alRecibir({ blob, nombre }).
    Límites: servidor en server/traspaso/ (en memoria; la foto se borra al entregarla o a los 15 min). Sin interfaz: cada app pone la
    suya para enseñar y pedir el código. El emparejamiento vive en el localStorage de cada app.
@@ -68,12 +69,30 @@ export async function enviarRelevo(app, destino, foto, { alProgreso } = {}) {
   if (!par) { par = { clave: b64(crypto.getRandomValues(new Uint8Array(48))), codigo: null, t: Date.now() }; guardarPar(app, par); }
   await subir("buzon/" + await buzon(par, destino), await cifrar(par, foto), alProgreso);
   if (!("codigo" in par)) return {};                              // ya emparejadas
-  if (!par.codigo) {
-    const r = await enviarJSON("par", { clave: par.clave, de: app, para: destino });
-    if (!r.ok) throw new Error(r.status === 429 ? "Demasiados intentos: prueba dentro de un rato" : "No se pudo preparar el emparejamiento");
-    par = { clave: par.clave, codigo: (await r.json()).codigo, t: Date.now() }; guardarPar(app, par);
-  }
-  return { codigo: par.codigo };
+  return { codigo: par.codigo || await nuevoCodigo(app, destino, par) };
+}
+
+/* Deja la clave en el servidor bajo un código nuevo de 6 cifras (la pareja queda pendiente hasta que la otra app lo canjee). */
+async function nuevoCodigo(app, destino, par) {
+  const r = await enviarJSON("par", { clave: par.clave, de: app, para: destino }).catch(() => null);
+  if (!r?.ok) throw new Error(r?.status === 429 ? "Demasiados intentos: prueba dentro de un rato" : "No se pudo preparar el emparejamiento");
+  const codigo = (await r.json()).codigo;
+  guardarPar(app, { clave: par.clave, codigo, t: Date.now() });
+  return codigo;
+}
+
+/** Emparejar a mano (menú): esta app enseña un código nuevo, aunque ya estuviera emparejada (sirve si la otra perdió la clave). */
+export async function crearCodigo(app, destino) {
+  const par = leerPar(app) || { clave: b64(crypto.getRandomValues(new Uint8Array(48))) };
+  return nuevoCodigo(app, destino, par);
+}
+
+/** Emparejar a mano (menú): esta app canjea el código que enseña la otra. Devuelve "ok" · "mal" (no vale) · "limite" (demasiados). */
+export async function canjearCodigo(app, texto) {
+  const codigo = String(texto || "").replace(/\D/g, "");
+  const c = await enviarJSON("par/canjear", { codigo, para: app }).catch(() => null);
+  if (c?.ok) { guardarPar(app, { clave: (await c.json()).clave }); return "ok"; }
+  return c?.status === 429 ? "limite" : "mal";
 }
 
 /* La otra app nos está esperando: se pide el código (hasta 3 intentos) y, si vale, esta app guarda la clave. */
@@ -84,12 +103,12 @@ async function emparejarSiEsperan(app, pedirCodigo) {
   if (r?.status !== 200) return false;
   const { de } = await r.json();
   for (let i = 0, error = ""; i < 3; i++) {
-    const codigo = (await pedirCodigo(de, error))?.replace(/\D/g, "");
-    if (!codigo) { descartado = Date.now(); return false; }
-    const c = await enviarJSON("par/canjear", { codigo, para: app }).catch(() => null);
-    if (c?.ok) { guardarPar(app, { clave: (await c.json()).clave }); return true; }
-    error = c?.status === 429 ? "Demasiados intentos. Prueba dentro de un rato." : "Ese código no vale. Revísalo en la otra app.";
-    if (c?.status === 429) { descartado = Date.now(); return false; }
+    const texto = await pedirCodigo(de, error);
+    if (!texto) { descartado = Date.now(); return false; }
+    const r = await canjearCodigo(app, texto);
+    if (r === "ok") return true;
+    if (r === "limite") { descartado = Date.now(); return false; }
+    error = "Ese código no vale. Revísalo en la otra app.";
   }
   descartado = Date.now();
   return false;

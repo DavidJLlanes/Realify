@@ -4,11 +4,11 @@
    (?recibir=1) como si ya estaba abierto (aviso por BroadcastChannel). También envía el documento actual a Basic.
    En el iPhone con las apps instaladas (cada una con su almacenamiento) la foto viaja cifrada por realify.es y llega sola; la primera
    vez se emparejan las dos apps con un código de 6 cifras.
-   Entradas: initHandoff() (al arrancar) · sendToBasic(ventana) · openBasic(ventana). Salidas: abre el documento / la otra app.
+   Entradas: initHandoff() (al arrancar) · sendToBasic(ventana) · openBasic(ventana) · pairBasic() (emparejar a mano, menú). Salidas: abre el documento / la otra app.
    Límites: el envío es el documento aplanado a su tamaño completo, en PNG (sin pérdida; por el servidor, JPEG 95 % si pasa de 15 MB).
    ═══════════════════════════════════════════════════════════════ */
 import { abrirApp, escucharTraspaso, recibirAlArrancar, traspasar } from "../core/handoff.js";
-import { enviarRelevo, escucharRelevo, usaRelevo } from "../core/relevo.js";
+import { canjearCodigo, crearCodigo, enviarRelevo, escucharRelevo, usaRelevo } from "../core/relevo.js";
 import { doc } from "../core/doc.js";
 import { toast, progress } from "../core/toast.js";
 import { dialog } from "../ui/kit/dialog.js";
@@ -23,14 +23,14 @@ const codigoGrande = c => `<p style="margin:0 0 12px">Abre Realify Basic desde s
   <div style="font-size:38px;font-weight:800;letter-spacing:.08em;text-align:center;font-variant-numeric:tabular-nums">${c.slice(0, 3)} ${c.slice(3)}</div>`;
 const ensenarCodigo = c => dialog({ title: "Emparejar con Realify Basic", body: codigoGrande(c), buttons: [{ label: "Entendido", primary: true, value: true }] });
 
-function pedirCodigo(_de, error) {
+function pedirCodigo(_de, error, titulo = "Realify Basic quiere pasarte una foto") {
   const caja = document.createElement("div");
   caja.innerHTML = `<p class="hint" style="margin:0 0 10px">Escribe el código que ves en Realify Basic. Solo hace falta una vez.</p>
     ${error ? `<p style="margin:0 0 10px;color:var(--warn,#f5c542)">${error}</p>` : ""}
     <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000 000" aria-label="Código"
       style="width:100%;font-size:28px;font-weight:700;letter-spacing:.12em;text-align:center">`;
   const campo = caja.querySelector("input");
-  return dialog({ title: "Realify Basic quiere pasarte una foto", body: caja, buttons: [
+  return dialog({ title: titulo, body: caja, buttons: [
     { label: "Ahora no", value: null }, { label: "Emparejar", primary: true, value: "ok" }] }).then(v => (v === "ok" ? campo.value : null));
 }
 
@@ -65,3 +65,22 @@ export async function sendToBasic(ventana) {
 }
 
 export const openBasic = ventana => { if (abrirApp("basic", ventana) === "manual") toast(AVISO); };
+
+/** Emparejar a mano (Archivo › Emparejar con Realify Basic…, sólo iPhone instalado): enseñar un código o escribir el de Basic. */
+export async function pairBasic() {
+  const modo = await dialog({ title: "Emparejar con Realify Basic",
+    body: `<p class="hint" style="margin:0">Para que las fotos pasen solas entre las dos apps. Una enseña un código y la otra lo escribe.</p>`,
+    buttons: [{ label: "Escribir código", value: "escribir" }, { label: "Enseñar código", primary: true, value: "ensenar" }] });
+  try {
+    if (modo === "ensenar") return void ensenarCodigo(await crearCodigo("realify", "basic"));
+    if (modo !== "escribir") return;
+    for (let i = 0, error = ""; i < 3; i++) {
+      const texto = await pedirCodigo("basic", error, "Emparejar con Realify Basic");
+      if (!texto) return;
+      const r = await canjearCodigo("realify", texto);
+      if (r === "ok") return void toast("Emparejada con Realify Basic", "ok");
+      if (r === "limite") return void toast("Demasiados intentos: prueba dentro de un rato", "err");
+      error = "Ese código no vale. Revísalo en Realify Basic.";
+    }
+  } catch (e) { toast(e.message || "No se pudo emparejar", "err"); }
+}
