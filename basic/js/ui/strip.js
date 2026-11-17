@@ -2,10 +2,16 @@
    REALIFY BASIC · FILA DESLIZABLE
    Fila horizontal de botones con desplazamiento (los ajustes de Ajustar, los estilos de Estilos). Se desplaza con el dedo, con el
    ratón (arrastrando) y con la rueda; el elemento elegido se centra solo.
-   Entradas: crearFila(clase). Salidas: { el, centrar(boton) }.
+   Entradas: crearFila(clase). Salidas: { el, centrar(boton) } y alDobleToque(boton, fn).
    Límites: sólo contiene y desplaza; qué lleva cada botón lo decide quien la usa.
    ═══════════════════════════════════════════════════════════════ */
 import { h } from "./dom.js";
+
+/** Doble toque o doble clic en un botón: llama a alDoble (el primer toque sigue haciendo lo suyo). Funciona igual con ratón y con el dedo. */
+export function alDobleToque(boton, alDoble, ms = 320) {
+  let t = 0;
+  boton.addEventListener("click", () => { const ahora = performance.now(); if (ahora - t < ms) { t = 0; alDoble(); } else t = ahora; });
+}
 
 export function crearFila(clase = "") {
   const el = h("div", { class: "fila-desliza " + clase, role: "listbox" });

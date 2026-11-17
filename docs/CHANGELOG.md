@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 341) · Realify Basic
+- **Doble toque o doble clic en un ajuste lo pone a cero**: en Ajustar (cada ajuste) y en Recortar (Enderezar, Vertical y Horizontal). El primer toque sigue eligiéndolo.
+
 ### 2.1.0 (compilación 340) · Realify Basic
 - **La página no se mueve ni se acerca nunca**: al desplazar o hacer zoom en la foto, la interfaz (barras, reglas y filas) se quedaba arrastrada o se agrandaba con el pellizco. Ahora la página está fija (`position: fixed`, `touch-action: none`), se cortan los gestos de pellizco de iOS y el arrastre fuera de las filas deslizantes; sólo se mueven la foto y las filas.
 

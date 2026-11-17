@@ -3,6 +3,7 @@
    Fila con «Auto» y los 15 ajustes (cada uno con un anillo que muestra su valor) y, debajo, la regla del ajuste elegido. Arrastrar la
    regla cambia la receta en vivo; al soltar se cierra un paso de historial.
    Entradas: montarAjustar(contenedor). Salidas: { desmontar() }.
+   Doble toque en un ajuste lo pone a 0.
    Límites: la interfaz no calcula píxeles: sólo escribe valores en la sesión (app/session.js) y el motor los aplica.
    ═══════════════════════════════════════════════════════════════ */
 import { cambiar, cerrarPaso, receta } from "../../app/session.js";
@@ -11,7 +12,7 @@ import { suscribir } from "../../app/store.js";
 import { h } from "../../ui/dom.js";
 import { icono } from "../../ui/icons.js";
 import { crearRegla } from "../../ui/ruler.js";
-import { crearFila } from "../../ui/strip.js";
+import { alDobleToque, crearFila } from "../../ui/strip.js";
 import { AJUSTES } from "./params.js";
 
 const anillo = (v, min, max) => {
@@ -28,6 +29,7 @@ export function montarAjustar(contenedor) {
     h("span", { class: "disco" }, icono("wand-sparkles")), h("span", { class: "nombre" }, "Auto"));
   const botones = AJUSTES.map(a => h("button", { class: "ajuste", role: "option", "data-id": a.id, onclick: () => elegir(a) },
     h("span", { class: "disco" }, icono(a.icono)), h("span", { class: "nombre" }, a.texto)));
+  botones.forEach((b, i) => alDobleToque(b, () => { cambiar({ [AJUSTES[i].id]: 0 }); cerrarPaso(); }));   // doble toque en el ajuste: a cero
   fila.el.append(auto, ...botones);
 
   function elegir(a) { elegido = a; sincronizar(); fila.centrar(botones[AJUSTES.indexOf(a)]); }

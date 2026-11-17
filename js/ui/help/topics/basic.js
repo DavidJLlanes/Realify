@@ -16,7 +16,7 @@ export const basicTopic = { id:"basic", title:"Realify Basic (la app sencilla)",
           doble toque hacen zoom.</li>
         <li><b>Ajustar.</b> <b>Auto</b> y 15 ajustes con una regla: Exposición, Brillantez, Luces altas, Sombras, Contraste, Brillo,
           Punto negro, Saturación, Intensidad, Temperatura, Tinte, Nitidez, Definición, Reducir ruido y Viñeta. El anillo de cada
-          ajuste muestra su valor; doble toque en la regla lo pone a 0.</li>
+          ajuste muestra su valor; doble toque o doble clic en el ajuste, o en la regla, lo pone a 0.</li>
         <li><b>Estilos.</b> Los más de 150 estilos prediseñados de Realify en una fila deslizante, con su miniatura (hecha con tu foto) y
           su nombre. Al elegir uno aparece la <b>intensidad</b>. Los ajustes de Ajustar trabajan encima del estilo.</li>
         <li><b>Recortar.</b> Arrastra el marco por sus asas; <b>Girar</b> 90°, <b>Voltear</b>, <b>Proporción</b> (libre, original, 1:1,

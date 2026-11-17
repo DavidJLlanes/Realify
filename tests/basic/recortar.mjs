@@ -82,6 +82,9 @@ for (const tipo of ["escritorio", "movil"]) {
   await pg.waitForTimeout(900);
   exige(Math.abs((await rec()).angulo) > 1, tipo + ": la regla no escribe el ángulo " + JSON.stringify(await rec()));
   const d3 = await dims(); exige(d3 && d3.fw > d3.w, tipo + ": con ángulo el marco debe ser mayor que el recorte");
+  await pg.locator('.ajuste:has-text("Enderezar")').dblclick(); await pg.waitForTimeout(500);
+  exige(!(await rec()).angulo, tipo + ": doble toque en Enderezar no lo pone a 0 " + JSON.stringify(await rec()));
+  await pg.getByLabel("Deshacer").click(); await pg.waitForTimeout(400);
   /* arrastrar el marco: reducirlo desde la esquina */
   const asa = pg.locator('.asa.esquina[data-dx="1"][data-dy="1"]'), b = await asa.boundingBox();
   await pg.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await pg.mouse.down();

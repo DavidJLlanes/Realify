@@ -121,6 +121,10 @@ for (const tipo of ["escritorio", "movil"]) {
   exige(Math.abs((await media()) - m0) < 0.5, tipo + ": tras deshacer la foto no es la original");
   await pg.getByLabel("Rehacer").click(); await pg.waitForTimeout(700);
   exige((await rec()).exposicion === 40 && pasos === 40, tipo + ": rehacer");
+  /* doble toque en el ajuste lo pone a 0 */
+  await pg.locator('.ajuste[data-id="exposicion"]').dblclick(); await pg.waitForTimeout(500);
+  exige(!(await rec()).exposicion, tipo + ": doble toque en el ajuste no lo pone a 0 " + JSON.stringify(await rec()));
+  await pg.getByLabel("Deshacer").click(); await pg.waitForTimeout(300);
   /* Auto */
   await pg.getByLabel("Deshacer").click(); await pg.waitForTimeout(300);
   await pg.locator(".ajuste.auto").click(); await pg.waitForTimeout(1500);

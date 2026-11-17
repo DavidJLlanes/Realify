@@ -10,7 +10,7 @@ import { suscribir } from "../../app/store.js";
 import { h } from "../../ui/dom.js";
 import { icono } from "../../ui/icons.js";
 import { crearRegla } from "../../ui/ruler.js";
-import { crearFila } from "../../ui/strip.js";
+import { alDobleToque, crearFila } from "../../ui/strip.js";
 import { montarSobre } from "./overlay.js";
 import { PROPORCIONES, REGLAS } from "./params.js";
 
@@ -22,6 +22,7 @@ export function montarRecortar(contenedor, visor) {
   const regla = crearRegla({ alSoltar: cerrarPaso, alCambiar: v => cambiarRecorte({ [elegida.clave]: v / elegida.escala, rect: null }) });
   const boton = (texto, ic, alTocar, extra = "") => h("button", { class: "ajuste " + extra, role: "option", onclick: alTocar }, h("span", { class: "disco" }, icono(ic)), h("span", { class: "nombre" }, texto));
   const reglas = REGLAS.map(r => boton(r.texto, r.icono, () => { elegida = r; sincronizar(); fila.centrar(reglas[REGLAS.indexOf(r)]); }));
+  reglas.forEach((b, i) => alDobleToque(b, () => paso({ [REGLAS[i].clave]: 0 })));   // doble toque en la regla: a cero
   const acciones = [
     boton("Girar", "girar", () => paso({ giro: ((receta().recorte.giro || 0) + 90) % 360 }), "accion"),
     boton("Voltear", "voltear", () => paso({ volteoH: !receta().recorte.volteoH }), "accion"),
