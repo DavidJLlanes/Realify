@@ -1,10 +1,12 @@
 /* Prueba de «Alineación precisa 👑» en la Fusión HDR (v251): tres exposiciones de una foto hechas «a pulso» (giro y escala distintos y medio píxel de desplazamiento).
    Se carga el horquillado en la ventana HDR, se mira la nitidez del resultado con la alineación de siempre (desplazamientos) y tras activar la precisa (OpenCV:
    homografías ORB+ECC aplicadas en el worker): la fusión debe salir claramente más nítida y el aviso confirmar las fotos alineadas.
-   Uso: node tests/hdr-preciso.mjs <foto.jpg> */
+   Uso: node tests/hdr-preciso.mjs [foto.jpg] */
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const foto = process.argv[2]; if(!foto){ console.log("Uso: node tests/hdr-preciso.mjs <foto.jpg>"); process.exit(2); }
+/* La foto debe tener tonos medios con detalle: en una muy clara la toma más expuesta sale casi toda quemada, la fusión apenas la usa y la nitidez
+   no puede subir aunque se alinee bien. Por defecto, la tormenta de assets/skies. */
+const foto = process.argv[2] || path.join(ROOT, "assets/skies/tormenta-rayos.jpg");
 let chromium; for(const s of ["playwright", "/opt/node22/lib/node_modules/playwright/index.mjs"]){ try{ ({ chromium } = await import(s)); break; }catch{} }
 const T = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".wasm": "application/wasm" };
 const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.url, "http://x").pathname); if(p === "/__foto.jpg"){ r.writeHead(200, { "Content-Type": "image/jpeg" }); fs.createReadStream(foto).pipe(r); return; }

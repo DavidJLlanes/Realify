@@ -48,12 +48,15 @@ const LOW_CONTRAST_STD = 22;
  * Foto en gris (reducida a `side` px). Con `boost`, si tiene poco contraste se suaviza (3×3, contra el ruido) y se estira el rango entre
  * los percentiles 1 y 99 a 0-255: ORB no encuentra esquinas cuando todas las diferencias están por debajo de su umbral. Una foto normal no se toca.
  */
-function grayMat(cv, canvas, side, boost = false){
+function grayMat(cv, canvas, side, boost = false, igualar = false){
   const s = Math.min(1, side / Math.max(canvas.width, canvas.height)), w = Math.max(8, Math.round(canvas.width * s)), h = Math.max(8, Math.round(canvas.height * s));
   const c = document.createElement("canvas"); c.width = w; c.height = h;
   const x = c.getContext("2d", { willReadFrequently: true }); x.imageSmoothingQuality = "high"; x.drawImage(canvas, 0, 0, w, h);
   const rgba = cv.matFromImageData(x.getImageData(0, 0, w, h)), g = new cv.Mat();
   cv.cvtColor(rgba, g, cv.COLOR_RGBA2GRAY); rgba.delete();
+  /* Horquillado de exposiciones (HDR): cada toma tiene otro brillo y la más clara viene medio quemada. Ecualizar el histograma de
+     las dos fotos que se comparan las acerca (mismo reparto de grises) y ORB y ECC encuentran las mismas esquinas en las dos. */
+  if(igualar){ cv.equalizeHist(g, g); return { g, s: w / canvas.width }; }
   if(boost){
     const hist = new Float64Array(256), d = g.data, n = d.length;
     let sum = 0, sum2 = 0;
@@ -214,15 +217,15 @@ function warpSmall(cv, g, H, w, h){
  * @param opts.flow corregir además el movimiento fino con flujo óptico
  * `align(canvas)` → { H, inliers, cc, flow?, ok } — H a resolución completa
  */
-export function createAligner(cv, refCanvas, { flow = false } = {}){
+export function createAligner(cv, refCanvas, { flow = false, igualar = false } = {}){
   const W0 = refCanvas.width, H0 = refCanvas.height;
-  const refF = grayMat(cv, refCanvas, SIDE.feat), refE = grayMat(cv, refCanvas, SIDE.ecc), refL = flow ? grayMat(cv, refCanvas, SIDE.flow) : null;
+  const refF = grayMat(cv, refCanvas, SIDE.feat, false, igualar), refE = grayMat(cv, refCanvas, SIDE.ecc, false, igualar), refL = flow ? grayMat(cv, refCanvas, SIDE.flow) : null;
   const ID = () => [1, 0, 0, 0, 1, 0, 0, 0, 1], S = s => [s, 0, 0, 0, s, 0, 0, 0, 1], Sinv = s => [1 / s, 0, 0, 0, 1 / s, 0, 0, 0, 1];
   return {
     identity: () => ({ H: ID(), inliers: Infinity, cc: 1, ok: true }),
     async align(c){
       if(c.width !== W0 || c.height !== H0) return { H: ID(), inliers: 0, cc: 0, ok: false, why: "tamaño distinto" };
-      const imgF = grayMat(cv, c, SIDE.feat), imgE = grayMat(cv, c, SIDE.ecc);
+      const imgF = grayMat(cv, c, SIDE.feat, false, igualar), imgE = grayMat(cv, c, SIDE.ecc, false, igualar);
       let H = ID(), inliers = 0, ok = true, cc = 0;
       try{
         const fh = featureHomography(cv, refF.g, imgF.g);

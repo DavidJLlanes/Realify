@@ -307,7 +307,7 @@ export function openHdrEditor({ openDocs = null, onAccept, onHeavy = null, onClo
         for(const i of list){
           sh.setBusy(`Alineando con precisión · ${Hs.filter(Boolean).length} de ${cvs.length}`);
           await new Promise(res => setTimeout(res, 0));
-          const al = createAligner(lib.cv, cvs[prev]);
+          const al = createAligner(lib.cv, cvs[prev], { igualar: true });   // tomas con distinto brillo: se igualan antes de buscar puntos
           try{
             const a = await al.align(cvs[i]);
             if(!a.ok || !Hs[prev]){ prev = i; continue; }
