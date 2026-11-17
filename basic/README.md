@@ -14,11 +14,16 @@ basic/
 ├─ css/   tokens.css · shell.css (colocación) · controls.css (aspecto de los mandos)
 └─ js/
    ├─ main.js                         arranque: sólo conecta piezas
-   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · transformar (geometría) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js y, en el iPhone instalado, relevo por el servidor en js/core/relevo.js + server/traspaso/) · device · pwa
+   ├─ app/     alto (alto visible en el iPhone instalado) · store · session (original + receta + historial) · render (vista previa y final) · transformar (geometría) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js y, en el iPhone instalado, relevo por el servidor en js/core/relevo.js + server/traspaso/) · device · pwa
    ├─ engine/  pipeline (etapas y caché) · color · tono · detalle · vineta · estilo · geometria · auto · neutra · worker      (sin DOM)
    ├─ ui/      viewport · gestos · topbar · tabbar · panel · ruler · strip · menu · bienvenida · aviso · codigo (emparejar en el iPhone) · atajos · icons · dom
    └─ tabs/    index.js (tabla de pestañas) · adjust/{params,panel}.js · crop/{params,panel,overlay}.js · looks/{panel,thumbs}.js
 ```
+
+## iPhone instalado
+- **Barra de estado negra** (`apple-mobile-web-app-status-bar-style = black`): con la translúcida, iOS 26 sólo pinta la web hasta «pantalla − barra de estado» y deja abajo una franja que ningún CSS puede pintar (WebKit 301108). iOS lee el estilo sólo al añadir la app a la pantalla de inicio: tras cambiarlo hay que borrar el icono y volver a añadirlo.
+- `app/alto.js` mide el alto visible, lo corrige si iOS lo encoge tras usar el teclado y deja un diagnóstico al pie del menú «···» (compilación, pantalla, alto).
+- El panel de mandos se apoya sobre la barra de pestañas con `--pie` (`ui/tabbar.js`); la foto se mueve libremente con cualquier zoom (`ui/gestos.js`).
 
 ## Normas
 - **Capas**: `basic/` está por encima de todo `js/` y `plugins/`; puede importarlos, pero nada de `js/` ni de `plugins/`
@@ -29,4 +34,4 @@ basic/
 - Siempre calidad Premium, sin interruptor. Archivos ≤ 250 líneas, banner `═` en español, sin código duplicado.
 
 ## Pruebas
-`npm run test:basic` (esqueleto, interfaz, ajustar, recortar, estilos, traspaso, relevo; móvil y escritorio) y `npm run verify`.
+`npm run test:basic` (esqueleto, alto, interfaz, ajustar, recortar, estilos, traspaso, relevo; móvil y escritorio) y `npm run verify`.

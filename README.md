@@ -65,10 +65,15 @@ filtros, revelado RAW, más de 70 funciones de IA, edición de vídeo— ocurre 
 vídeos no se suben a ningún servidor**. Se instala como app (PWA) y funciona sin conexión; los modelos de IA se descargan la
 primera vez que se usan, avisando antes de su tamaño, y se guardan en el dispositivo.
 
+La única excepción es el **paso de fotos entre Realify Basic y Realify en el iPhone con las dos apps instaladas** (iOS no deja que
+compartan almacenamiento): la foto viaja cifrada en el dispositivo, se guarda en `realify.es` un máximo de 15 minutos y se borra al
+entregarla. Solo se guarda cifrada: la clave se crea en el dispositivo y, al emparejar una única vez, pasa por el servidor unos minutos
+(se borra al canjear el código de 6 cifras); después las fotos ya no la necesitan. En el resto de dispositivos no se envía nada.
+
 Su sello propio es la **simulación de cámara**: la cadena de sensor de Realify (ruido, óptica, croma, compresión) y 150
 cámaras de todas las épocas, para que una imagen —también una generada con IA— se vea como hecha con una cámara real.
 
-La versión pública está en **[realify.es](https://realify.es)**. Este documento describe la versión **2.0.0** (ver la
+La versión pública está en **[realify.es](https://realify.es)**. Este documento describe la versión **2.1.0** (ver la
 [lista de cambios](./docs/CHANGELOG.md)).
 
 ## Características destacadas
@@ -125,6 +130,12 @@ para más de 29 formatos de redes sociales.
 ### 📱 Escritorio y móvil
 Menús clásicos en escritorio; en móvil, un cajón de herramientas pensado para
 el pulgar. Instalable y disponible sin conexión.
+
+### 🪟 Realify Basic
+App aparte, instalable y mucho más simple: la foto a pantalla completa y los
+mandos de cristal encima. Ajustar, Estilos y Recortar, con motor Premium y zoom
+libre. Pasa las fotos a Realify y de vuelta, también en el iPhone.
+[Más información](basic/README.md)
 
 </td>
 </tr>
@@ -189,6 +200,7 @@ Resumen de las últimas versiones. El detalle completo está en el
 
 | Versión | Novedad |
 |---|---|
+| **2.1.0** · compilaciones 345-355 | **Realify Basic**, una app aparte y mínima para editar fotos (`realify.es/basic/`): Ajustar (15 ajustes + Auto), Estilos y Recortar, con la foto a pantalla completa y mandos de cristal. **Paso de fotos entre Basic y Realify** también en el iPhone con las dos apps instaladas, por un relevo cifrado en `realify.es` (emparejado una sola vez con un código de 6 cifras). En Basic: **viñeta más intensa**, **nitidez más marcada** (detalle fino y contornos), **zoom hacia atrás** y mover la foto a cualquier zoom, recorte que desliza por los bordes, mandos pegados a la barra de pestañas (más foto a la vista) y pantalla completa real en iOS 26 (barra de estado negra). La foto recibida de Basic se abre en su pestaña y se puede cerrar; auditoría de errores sin fallos graves. |
 | **2.1.0** | **Siete modelos de IA nuevos**: dictado por voz (Whisper) y asistente con Qwen en el Asistente, búsqueda de fotos con CLIP, descripción con Florence-2, profundidad Base, relleno ligero MI-GAN y quitar desenfoque con NAFNet. Además, el color del pelo ya no se corta en línea recta. |
 | **2.0.0** | **Editor completo con IA local**: cierre del plan con fotos y vídeo, 48 funciones de IA nuevas, asistente, biblioteca y editor de vídeo; documentación, guía y registro de modelos al día. |
 | **1.13.0** | **Editor de vídeo 👑**: menú Vídeo, línea de tiempo, efectos (sensor, color, cámaras, fondo con IA, estabilizar), sonido y presets de exportación. |
@@ -321,6 +333,7 @@ js/
     (raíz)              Abrir imágenes y proyectos
   lens/                 Corrección de lente (Lensfun y perfiles propios)
   vendor/               Librerías de terceros (ver js/vendor/ATTRIBUTIONS.md)
+basic/                  Realify Basic: app aparte (index.html, sw.js y manifiesto propios) que reutiliza el motor de `js/` (ver basic/README.md)
 plugins/                Herramientas a pantalla completa, cada una con su código, estilos y recursos
   raw/                  Revelador RAW (LibRaw-Wasm)
   vintage/              Filtro Vintage
@@ -348,6 +361,7 @@ server/                 Servicios y configuración del VPS (no se sirve):
   nginx/                  plantilla de nginx (cabeceras, caché y carpetas ocultas)
   informe/                receptor de informes de error
   panorama/               servicio de panorámicas (FastAPI + OpenCV)
+  traspaso/               relevo cifrado de fotos entre Basic y Realify en el iPhone instalado (Python, sin dependencias; solo en memoria)
 tests/                  Pruebas automáticas (ver la sección 18); tests/plugins/ las de cada plugin
 tools/                  Herramientas de desarrollo: conversor de acciones .atn, base de datos de lentes, verificación
                         (verify/), modelos (models/), vídeo (video/: medidor de WebCodecs y de rendimiento) y docs (docs/)
@@ -410,6 +424,8 @@ node tests/plugins/frames/test-marcos.mjs                    # regresión de los
   escritorio), `tests/ia/menu-ia.mjs` y `tests/ia/cajon-basicos-auto.mjs` (los menús salen de los manifiestos; Básicos y
   Automáticos no se tocan) y `tests/video/` (`npm run test:video`: proyecto, línea de tiempo, medios, render, editor, efectos,
   audio y menú del editor de vídeo).
+- **Realify Basic** (`npm run test:basic`): esqueleto, alto de pantalla en iPhone instalado, interfaz (zoom y movimiento de la foto), ajustar,
+  recortar, estilos, traspaso y relevo de fotos con el servicio real; móvil y escritorio.
 - Algunos scripts `*_check.py` validan los archivos generados con bibliotecas de referencia (por ejemplo,
   c2pa-python o pillow-heif).
 
@@ -424,6 +440,9 @@ Es un sitio estático: basta con servir los archivos con cualquier servidor web.
   bloqueo de archivos internos está en
   [`server/nginx/nginx-realify.conf.example`](./server/nginx/nginx-realify.conf.example).
 - **Apache**: el `.htaccess` hace lo mismo (nginx lo ignora).
+- **Relevo de fotos de Basic** (solo para el iPhone con las apps instaladas): un servicio pequeño en Python (`server/traspaso/`, systemd +
+  un `location` de nginx; ver su README). Guarda en memoria fotos ya cifradas en el dispositivo durante 15 minutos como máximo y las borra
+  al entregarlas; sin él, Basic y Realify siguen funcionando, sólo que sin ese paso automático en iOS.
 - Hace falta **HTTPS** para el service worker y la instalación como app.
 - Al cambiar archivos de la app, sincroniza el número de `VERSION`, `version.json`,
   `package.json` y `package-lock.json`, la constante de `sw.js` y los `?v=` de
