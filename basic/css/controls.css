@@ -45,7 +45,7 @@ button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 .aviso.visible { opacity: 1; transform: translate(-50%, 0); }
 
 /* ── Panel de pestaña (sobre la barra de pestañas) ─────────────── */
-.panel { bottom: calc(var(--seguro-abajo) + 12px + 74px + 8px); display: grid; gap: 6px; }
+.panel { bottom: calc(var(--pie, 96px) + 4px); display: grid; gap: 6px; }       /* apoyado justo encima de la barra de pestañas (--pie, ui/tabbar.js) */
 html[data-dispositivo="escritorio"] .panel { max-width: 640px; }
 
 .regla { position: relative; display: grid; justify-items: center; gap: 2px; padding: 4px 0 6px; outline: none; touch-action: none; cursor: ew-resize;
