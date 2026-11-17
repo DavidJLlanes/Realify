@@ -6,7 +6,9 @@
    ═══════════════════════════════════════════════════════════════ */
 import { iniciarDispositivo } from "./app/device.js";
 import { escucharEntradas, guardarCopia, pedirArchivo } from "./app/files.js";
-import { cerrar, volverAlOriginal } from "./app/session.js";
+import { crearAcciones } from "./app/acciones.js";
+import { cerrar } from "./app/session.js";
+import { iniciarTraspaso } from "./app/traspaso.js";
 import { registrarSW } from "./app/pwa.js";
 import { iniciarRender } from "./app/render.js";
 import { avisar, ocultarAviso } from "./ui/aviso.js";
@@ -25,11 +27,7 @@ iniciarDispositivo();
 iniciarRender();
 const visor = montarVisor(escenario);
 montarBienvenida(escenario, { alAbrir: pedirArchivo });
-montarBarraSuperior(escenario, { alCerrar: cerrar, alGuardar: guardar, acciones: [
-  { texto: "Abrir otra foto", icono: "abrir", alTocar: pedirArchivo },
-  { texto: "Guardar copia", icono: "guardar", alTocar: guardar },
-  { texto: "Volver al original", icono: "original", ver: e => e.sucio, alTocar: volverAlOriginal },
-] });
+montarBarraSuperior(escenario, { alCerrar: cerrar, alGuardar: guardar, acciones: crearAcciones({ guardar, avisar }) });
 montarPanel(escenario, visor);
 montarPestanas(escenario);
 montarAtajos({ abrir: pedirArchivo, guardar });
@@ -38,3 +36,4 @@ suscribir(e => (e.procesando ? avisar("Procesando a resolución completa…", { 
 addEventListener("basic:error", e => avisar("No se pudo abrir la foto: " + e.detail));
 poner({ pestana: "ajustar" });
 registrarSW();
+iniciarTraspaso(avisar);

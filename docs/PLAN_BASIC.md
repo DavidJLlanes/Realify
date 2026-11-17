@@ -47,7 +47,7 @@ Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados)
 - [x] **F2** (v332) Pestaña Ajustar (15 ajustes + Auto) con vista previa ligera y render Premium final. Edición no destructiva: original + receta.
 - [x] **F3** (v333) Pestaña Recortar: marco con asas, giro 90°, voltear, enderezar, perspectiva y proporciones; la receta guarda `recorte`.
 - [x] **F4** (v334) Pestaña Estilos: fila horizontal con los ~170 `LOOKS` (miniatura + nombre) e intensidad; el estilo es la primera etapa de la receta.
-- [ ] **F5** Traspaso: botones en las dos apps.
+- [x] **F5** (v335) Traspaso: botones en las dos apps (menú «···» de Basic; menú Archivo y cajón de Realify), con `js/core/handoff.js`.
 - [ ] **F6** Escritorio (proporciones), pulido, guía, CHANGELOG, pruebas en móvil y escritorio.
 
 ## 6. Por medir antes de F2/F4

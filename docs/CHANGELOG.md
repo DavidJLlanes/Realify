@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 335) · Realify Basic, fase 5
+- **Traspaso entre Realify y Realify Basic**, en las dos apps. «Abrir en Realify» / «Abrir en Realify Basic» lleva la foto **con la edición aplicada** (PNG sin pérdida, resolución completa) a la otra app, y «Cambiar a Realify» / «Cambiar a Realify Basic» sólo abre la otra app. En Basic: menú «···». En Realify: menú Archivo y cajón «Herramientas» del móvil (con icono).
+- Funciona sin servidor: la foto se deja en un almacén de IndexedDB compartido (mismo origen) y la otra app la toma. Si ya estaba abierta, se la entrega por BroadcastChannel y confirma; si no, se abre una pestaña nueva (`?recibir=1`). La foto caduca a los 10 minutos. Si la foto no llega (p. ej. dos apps instaladas en iOS con almacenamiento separado), la app lo avisa y queda «Guardar copia».
+- Nuevo `js/core/handoff.js` (mecánica común), `js/io/handoff-in.js` (Realify) y `basic/js/app/{traspaso,acciones}.js` (Basic).
+- Prueba nueva `tests/basic/traspaso.mjs` (Basic→Realify, Realify→Basic, app cerrada y entradas de menú).
+
 ### 2.1.0 (compilación 334) · Realify Basic, fase 4
 - **Realify Basic · Estilos**: una sola fila deslizante con «Original» y los más de 150 estilos prediseñados de Realify («Filtros → Estilos»), sin categorías, cada uno con su miniatura (hecha con tu propia foto) y su nombre. Al elegir uno aparece la regla de **intensidad** (0–100 %, 100 por defecto). Sin «Mis estilos», estilo por referencia ni packs de cámara.
 - El estilo es la primera etapa de la cadena: los ajustes de Ajustar trabajan encima de él. Va en la receta (`estilo`), con deshacer/rehacer, y la copia guardada lo aplica a resolución completa.

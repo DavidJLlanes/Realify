@@ -19,7 +19,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .barra { position: absolute; left: 0; right: 0; z-index: 2; margin-inline: auto; width: 100%; padding-inline: 12px;
   transition: opacity .22s ease, transform .22s ease; }
 .barra-sup { top: 0; padding-top: calc(var(--seguro-arriba) + 10px); display: grid; gap: 10px; }
-.barra-inf { bottom: 0; padding-bottom: calc(var(--seguro-abajo) + 12px); display: flex; justify-content: center; }
+.barra-inf { bottom: 0; padding-bottom: calc(var(--seguro-abajo) * .55 + 8px); display: flex; justify-content: center; }
 .fila { display: flex; justify-content: space-between; align-items: center; }
 html.sin-foto .barra { display: none; }
 html.barras-ocultas .barra-sup { opacity: 0; transform: translateY(-10px); pointer-events: none; }

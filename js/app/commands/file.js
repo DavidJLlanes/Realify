@@ -21,6 +21,9 @@ registerAll({
   "file.openRecent": () => openRecentProject(),
   "file.saveProject": { run: saveProject, enabled: needsDoc },
   "file.new":       () => newDialog(),
+  /* Realify Basic (basic/): la foto con su edición aplicada, o sólo cambiar de app */
+  "file.toBasic":   { run: async () => (await import("../../io/handoff-in.js")).sendToBasic(), enabled: needsDoc },
+  "file.openBasic": () => import("../../io/handoff-in.js").then(m => m.openBasic()),
   "file.export":    { run: exportDialog, enabled: needsDoc },
   "file.exportAs":  { run: async () => (await import("../../io/export/professional-export.js")).professionalExport(), enabled: needsDoc },
   "file.exportPng": { run: quickPng, enabled: needsDoc },

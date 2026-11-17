@@ -92,6 +92,8 @@ import("./ui/histogrampanel.js").then(m => m.initHistogramPanel());
 
 initOpen();
 
+import("./io/handoff-in.js").then(m => m.initHandoff());   // foto que llega de Realify Basic (core/handoff.js)
+
 initDocbar();
 
 initProjects();

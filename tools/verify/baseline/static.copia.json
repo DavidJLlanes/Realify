@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T10:47:54.946Z",
+ "generated": "2026-11-17T11:02:44.883Z",
  "root": "/home/claude/realify",
- "jsFiles": 1211,
- "jsLines": 113259,
+ "jsFiles": 1216,
+ "jsLines": 113483,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -269,6 +269,7 @@
   "file.exportPng",
   "file.new",
   "file.open",
+  "file.openBasic",
   "file.openFiles",
   "file.openProject",
   "file.openRecent",
@@ -279,6 +280,7 @@
   "file.socialPost",
   "file.socialPreview",
   "file.startBatch",
+  "file.toBasic",
   "fill.patternImg",
   "filter.adaptiveWideAngle",
   "filter.advancedSharpen",
@@ -589,6 +591,9 @@
   "xform.box"
  ],
  "exportsByFile": {
+  "basic/js/app/acciones.js": [
+   "crearAcciones"
+  ],
   "basic/js/app/device.js": [
    "esEscritorio",
    "iniciarDispositivo"
@@ -629,6 +634,11 @@
   ],
   "basic/js/app/transformar.js": [
    "transformar"
+  ],
+  "basic/js/app/traspaso.js": [
+   "enviarARealify",
+   "iniciarTraspaso",
+   "irARealify"
   ],
   "basic/js/engine/auto.js": [
    "medirAuto"
@@ -1176,6 +1186,14 @@
    "removeLayer",
    "resizeDoc",
    "setActive"
+  ],
+  "js/core/handoff.js": [
+   "APPS",
+   "abrirApp",
+   "escucharTraspaso",
+   "recibirAlArrancar",
+   "tomarTraspaso",
+   "traspasar"
   ],
   "js/core/hisrc.js": [
    "adoptHi",
@@ -4412,6 +4430,11 @@
    "crc32",
    "dosStamp"
   ],
+  "js/io/handoff-in.js": [
+   "initHandoff",
+   "openBasic",
+   "sendToBasic"
+  ],
   "js/io/meta/batchmeta.js": [
    "embedForBatch",
    "sharedFields"
@@ -5760,7 +5783,7 @@
   "js/features -> js/core": 112,
   "js/app -> js/editor": 97,
   "plugins -> js/features": 72,
-  "js/io -> js/core": 66,
+  "js/io -> js/core": 69,
   "js/features -> js/ai": 63,
   "js/ui -> js/core": 63,
   "js/features -> js/editor": 57,
@@ -5785,10 +5808,10 @@
   "js/features -> js/io": 19,
   "js/main.js -> js/app": 19,
   "js/io -> js/editor": 18,
+  "js/app -> js/io": 13,
   "js/main.js -> js/ui": 13,
   "js/filters -> js/ui": 12,
   "plugins -> js/ai": 12,
-  "js/app -> js/io": 11,
   "js/features -> js/cv": 11,
   "js/main.js -> js/core": 11,
   "js/editor -> js/features": 9,
@@ -5801,10 +5824,10 @@
   "basic -> js/editor": 5,
   "js/ai -> js/core": 5,
   "js/filters -> js/ai": 5,
+  "js/main.js -> js/io": 5,
   "plugins -> js/cv": 5,
   "js/editor -> plugins": 4,
   "js/filters -> js/exif": 4,
-  "js/main.js -> js/io": 4,
   "js/pwa.js -> js/core": 4,
   "plugins -> js/filters": 4,
   "basic -> js/filters": 3,
@@ -5832,6 +5855,7 @@
   "tools -> js/ui": 2,
   "tools -> tests": 2,
   "basic -> js/io": 1,
+  "basic -> js/core": 1,
   "basic -> js/features": 1,
   "basic -> js/ui": 1,
   "js/ai -> js/ui": 1,

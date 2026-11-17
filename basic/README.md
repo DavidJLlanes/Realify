@@ -14,7 +14,7 @@ basic/
 ├─ css/   tokens.css · shell.css (colocación) · controls.css (aspecto de los mandos)
 └─ js/
    ├─ main.js                         arranque: sólo conecta piezas
-   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · files · device · pwa
+   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js) · device · pwa
    ├─ engine/  pipeline (etapas y caché) · color · tono · detalle · vineta · auto · neutra      (sin DOM)
    ├─ ui/      viewport · gestos · topbar · tabbar · panel · ruler · strip · menu · bienvenida · aviso · atajos · icons · dom
    └─ tabs/    index.js (tabla de pestañas) · adjust/{params,panel}.js · crop/{params,panel,overlay}.js · looks/{panel,thumbs}.js
