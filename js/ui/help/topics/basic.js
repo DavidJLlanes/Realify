@@ -25,8 +25,9 @@ export const basicTopic = { id:"basic", title:"Realify Basic (la app sencilla)",
           desde el original a resolución completa.</li>
         <li id="basic-traspaso"><b>Pasar la foto de una app a otra.</b> En Realify: <b>Archivo → Abrir en Realify Basic…</b> (y en el cajón
           «Herramientas» del móvil). En Basic: menú <b>···</b> → <b>Abrir en Realify</b>. La foto llega con la edición aplicada, como PNG sin
-          pérdida. <b>Cambiar a Realify / Cambiar a Realify Basic</b> solo abre la otra app. Si no llega (por ejemplo, con las dos
-          apps instaladas en un iPhone, que pueden no compartir almacenamiento), guarda una copia y ábrela en la otra.</li>
+          pérdida. <b>Cambiar a Realify / Cambiar a Realify Basic</b> solo abre la otra app. En el iPhone, con las dos apps
+          instaladas, no se puede abrir una app desde la otra: la foto queda guardada, aparece el aviso y la otra app la recibe sola cuando la
+          abres desde su icono. Si no llega, guarda una copia y ábrela en la otra.</li>
         <li><b>Atajos (escritorio).</b> <b>Ctrl/⌘+Z</b> deshace, <b>Mayús+Z</b> rehace, <b>O</b> abre y <b>S</b> guarda.</li>
       </ul>`
 };

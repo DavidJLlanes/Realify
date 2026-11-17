@@ -30,3 +30,9 @@ html.barras-ocultas .barra-inf { opacity: 0; transform: translateY(10px); pointe
 /* Escritorio: las mismas barras, más estrechas y centradas (la foto sigue ocupando toda la ventana). */
 html[data-dispositivo="escritorio"] .barra { max-width: 640px; }
 html[data-dispositivo="escritorio"] .barra-inf { max-width: 460px; }
+
+/* Cambio suave entre Realify y Realify Basic (js/core/handoff.js): la app que llega aparece con un fundido y la que se va se desvanece. */
+@keyframes entrada{from{opacity:0}to{opacity:1}}
+body{animation:entrada .32s ease-out both}
+html.saliendo body{opacity:0;transition:opacity .2s ease-in}
+@media (prefers-reduced-motion:reduce){body{animation:none}html.saliendo body{transition:none}}

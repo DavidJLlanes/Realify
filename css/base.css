@@ -283,3 +283,9 @@ hr{border:0;border-top:1px solid var(--line-soft);margin:11px 0}
 @media(max-width:900px){
   .sky-tools label{flex-basis:100%}
 }
+
+/* Cambio suave entre Realify y Realify Basic (js/core/handoff.js): la app que llega aparece con un fundido y la que se va se desvanece. */
+@keyframes entrada{from{opacity:0}to{opacity:1}}
+body{animation:entrada .32s ease-out both}
+html.saliendo body{opacity:0;transition:opacity .2s ease-in}
+@media (prefers-reduced-motion:reduce){body{animation:none}html.saliendo body{transition:none}}

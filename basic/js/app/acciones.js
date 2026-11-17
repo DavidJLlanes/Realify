@@ -14,5 +14,5 @@ export const crearAcciones = ({ guardar, avisar }) => [
   { texto: "Guardar copia", icono: "guardar", alTocar: guardar },
   { texto: "Volver al original", icono: "original", ver: e => e.sucio, alTocar: volverAlOriginal },
   { texto: "Abrir en Realify", icono: "enviar", ver: e => !!e.foto, alTocar: () => enviarARealify(avisar) },
-  { texto: "Cambiar a Realify", icono: "cambiar", alTocar: irARealify },
+  { texto: "Cambiar a Realify", icono: "cambiar", alTocar: () => irARealify(avisar) },
 ];

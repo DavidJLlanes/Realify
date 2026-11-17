@@ -14,7 +14,7 @@ const abrirRecibida = async t => { await abrirArchivo(new File([t.blob], `${t.no
 
 export async function iniciarTraspaso(avisar) {
   escucharTraspaso("basic", async t => { await abrirRecibida(t); avisar("Foto recibida de Realify"); });
-  const r = await recibirAlArrancar();
+  const r = await recibirAlArrancar("basic");
   if (r.traspaso) { await abrirRecibida(r.traspaso); avisar("Foto recibida de Realify"); }
   else if (r.pedida) avisar("No llegó la foto. Guarda una copia en Realify y ábrela aquí.");
 }
@@ -25,6 +25,7 @@ export async function enviarARealify(avisar) {
   const l = await renderFinal(), blob = await new Promise(r => l.toBlob(r, "image/png"));
   const r = await traspasar("realify", { blob, nombre: info.nombre }, ventana);
   if (r === "enviada") avisar("Foto enviada: cambia a la ventana de Realify");
+  else if (r === "manual") avisar("Foto lista. Abre Realify desde su icono de inicio para recibirla");
 }
 
-export const irARealify = () => abrirApp("realify");
+export const irARealify = avisar => { if (abrirApp("realify") === "manual") avisar("Abre Realify desde su icono de inicio"); };
