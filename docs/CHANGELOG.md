@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 338) · Realify Basic
+- **Punto negro** (Ajustar): al subirlo mucho ya no aparecen motas azules en las zonas oscuras. Antes se restaba canal a canal y en un fondo oscuro de tono azulado sólo sobrevivía el canal azul; ahora se resta a la luminancia y los tres canales se escalan juntos (el tono no cambia). Prueba de regresión en `tests/basic/ajustar.mjs`.
+
 ### 2.1.0 (compilación 337) · Realify Basic
 - **Móvil (app instalada en iOS)**: el escenario usa el alto real de la pantalla (`100vh` en modo instalado) para que no quede un hueco negro bajo las barras ni se corten las herramientas; menos margen bajo la barra de pestañas.
 - **Guardar y enviar a Realify**: el cálculo a resolución completa se hace en un trabajador (`basic/js/engine/worker.js`), así que la página ya no se congela; el resultado es idéntico al del hilo principal (comprobado píxel a píxel) y, si no hay trabajador, se calcula como antes.

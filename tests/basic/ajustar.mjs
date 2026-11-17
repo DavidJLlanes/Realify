@@ -50,6 +50,7 @@ const m = await page.evaluate(async () => {
   r.contraste = [med(con({ contraste: 50 }), claro) - med(o, claro), med(con({ contraste: 50 }), oscuro) - med(o, oscuro)];
   r.brillo = med(con({ brillo: 40 }), todo) - med(o, todo);
   r.negro = med(con({ negro: 60 }), oscuro) - med(o, oscuro);
+  const az = new ImageData(1, 1); az.data.set([10, 10, 30, 255]); aplicarReceta(az, { ajustes: { negro: 100 } }); r.negroAzul = Math.max(...az.data.slice(0, 3)) - Math.min(...az.data.slice(0, 3));   // sin motas azules
   r.satMas = crom(con({ saturacion: 50 })) - crom(o);
   const gris = con({ saturacion: -100 }); let maxDif = 0; for (let i = 0; i < gris.data.length; i += 4) maxDif = Math.max(maxDif, Math.abs(gris.data[i] - gris.data[i + 1]), Math.abs(gris.data[i + 1] - gris.data[i + 2]));
   r.satGris = maxDif;
@@ -79,6 +80,7 @@ exige(m.brillantez[0] > 2 && m.brillantez[1] < 1, "brillantez: abre sombras y co
 exige(m.contraste[0] > 0 && m.contraste[1] < 0, "contraste: separa claros y oscuros " + m.contraste);
 exige(m.brillo > 5, "brillo: +40 debe aclarar " + m.brillo);
 exige(m.negro < -1, "punto negro: +60 debe oscurecer las sombras " + m.negro);
+exige(m.negroAzul <= 3, "punto negro: una zona oscura azulada no debe quedar en azul puro " + m.negroAzul);
 exige(m.satMas > 3, "saturación: +50 debe subir el croma " + m.satMas);
 exige(m.satGris <= 3, "saturación: −100 debe dejar grises " + m.satGris);
 exige(m.intensidad > 0.5, "intensidad: +60 debe subir el croma " + m.intensidad);

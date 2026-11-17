@@ -15,26 +15,28 @@ const CLAVES = ["exposicion", "negro", "saturacion", "intensidad", "temperatura"
 
 const aLineal = v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
 
-/* Tabla de 256 entradas: valor codificado → luz lineal, ya con el punto negro (sube) o el levantamiento de negros (baja). */
+/* Tabla (1 entrada por unidad de 0 a 319): valor codificado → luz lineal. Con el punto negro bajado (negros levantados) la tabla ya lo
+   incluye, canal a canal. Con el punto negro SUBIDO no se resta canal a canal (en una zona oscura de tono azulado quedaría sólo el canal
+   azul y salen motas azules): se resta a la luminancia y los tres canales se escalan juntos, así el tono no cambia. */
 function tablaNegro(v) {
-  const t = new Float32Array(256), sube = v > 0 ? v / 100 * NEGRO_MAX : 0, levanta = v < 0 ? -v / 100 * LEVANTA_MAX : 0;
-  for (let i = 0; i < 256; i++) {
-    const x = sube ? Math.max(0, (i - sube) / (255 - sube)) * 255 : levanta ? levanta + i * (255 - levanta) / 255 : i;
-    t[i] = aLineal(x / 255);
-  }
+  const t = new Float32Array(320), levanta = v < 0 ? -v / 100 * LEVANTA_MAX : 0;
+  for (let i = 0; i < 320; i++) t[i] = aLineal((levanta ? levanta + i * (255 - levanta) / 255 : i) / 255);
   return t;
 }
+const lin = (T, x) => { const i = x | 0, f = x - i; return i >= 319 ? T[319] : T[i] + (T[i + 1] - T[i]) * f; };
 
 export const hayColor = a => CLAVES.some(k => a[k]);
 
 export function pasoColor(data, a, { rapido = false } = {}) {
   if (!hayColor(a)) return;
-  const T = tablaNegro(a.negro || 0);
+  const T = tablaNegro(a.negro || 0), sube = a.negro > 0 ? a.negro / 100 * NEGRO_MAX : 0, ancho = 255 - sube;
   const g = wbGains({ temp: (a.temperatura || 0) * WB_ESCALA, tint: (a.tinte || 0) * WB_ESCALA });
   const mul = 2 ** ((a.exposicion || 0) / 100 * EV_MAX), gr = g.r * mul, gg = g.g * mul, gb = g.b * mul;
   const sat = 1 + (a.saturacion || 0) / 100, vib = (a.intensidad || 0) / 100 * VIB_MAX, lab = [0, 0, 0];
   applyColorMap(data, (R, G, B, rgb) => {
-    const r = T[R] * gr, gv = T[G] * gg, b = T[B] * gb;
+    let kn = 1;
+    if (sube) { const Ye = 0.2126 * R + 0.7152 * G + 0.0722 * B; kn = Ye > 0 ? Math.max(0, (Ye - sube) / ancho * 255) / Ye : 0; }
+    const r = lin(T, Math.min(319, R * kn)) * gr, gv = lin(T, Math.min(319, G * kn)) * gg, b = lin(T, Math.min(319, B * kn)) * gb;
     if (sat === 1 && !vib) { rgb[0] = r; rgb[1] = gv; rgb[2] = b; }
     else {
       toLab(Math.max(0, r), Math.max(0, gv), Math.max(0, b), lab);
