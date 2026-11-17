@@ -1,6 +1,6 @@
 # Plan: Realify Basic (`/basic/`)
 
-Estado: **borrador a aprobar por el titular**. No se programa nada hasta su visto bueno.
+Estado: aprobado por el titular (17 nov 2026); en marcha por fases.
 
 ## 1. Qué es
 App instalable aparte, «Realify Basic», sólo para fotos, con edición básica y una interfaz limpia y transparente
@@ -42,7 +42,7 @@ Almacén compartido en IndexedDB (mismo origen) + `BroadcastChannel` para avisar
 Sin servidor. Un solo formato: imagen en su estado actual (píxeles ya editados) y nombre.
 
 ## 5. Fases
-- [ ] **F0** Esqueleto instalable y vacío: carpeta, manifiesto, service worker, comprobaciones (`layers.mjs`, `tests/basic/`).
+- [x] **F0** (v330) Esqueleto instalable y vacío: carpeta, manifiesto, service worker, comprobaciones (`layers.mjs`, `tests/basic/`).
 - [ ] **F1** Interfaz: visor a pantalla completa, barras de cristal, pestañas, abrir y guardar, deshacer/rehacer.
 - [ ] **F2** Pestaña Ajustar (16 ajustes + Auto) con vista previa ligera y render Premium final.
 - [ ] **F3** Pestaña Recortar.

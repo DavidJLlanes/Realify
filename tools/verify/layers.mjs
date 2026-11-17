@@ -7,6 +7,7 @@
      3 · interfaz    js/ui/**                        menús, paneles, barras (lo que no es kit)
      4 · plugins     plugins/**                      herramientas a pantalla completa
      5 · app         js/main.js, js/pwa.js, js/boot-guard.js, js/app/**
+     6 · Basic       basic/**                        app aparte «Realify Basic»: usa todo lo anterior; nada de js/ ni plugins/ la importa
    Los import() dinámicos hacia arriba no cuentan como infracción (son carga diferida: un punto de entrada que se abre
    al usarlo, como un plugin), pero se listan aparte para tenerlos a la vista.
    Código de salida: 0 = sin infracciones; 1 = hay imports estáticos hacia arriba. */
@@ -18,10 +19,11 @@ import { walk, rel, stripQuery } from "./lib/scan.mjs";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(process.argv[2] || path.join(here, "..", ".."));
 
-const NAMES = ["núcleo", "kit", "edición", "interfaz", "plugins", "app"];
+const NAMES = ["núcleo", "kit", "edición", "interfaz", "plugins", "app", "Basic"];
 const EDITING = new Set(["editor", "filters", "features", "io", "ai", "analysis", "exif", "lens", "cv"]);
 function layerOf(p) {
   if (p.startsWith("plugins/")) return 4;
+  if (p.startsWith("basic/")) return 6;
   if (!p.startsWith("js/")) return -1;
   const parts = p.split("/");
   if (parts.length === 2) return 5;               // js/main.js, js/pwa.js, js/boot-guard.js

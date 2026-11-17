@@ -12,6 +12,7 @@ La versión pública de Realify vive en cuatro sitios que deben coincidir:
 - `index.html`
   - `js/boot-guard.js?v=NNN`
   - `js/main.js?v=NNN`
+- `basic/sw.js` → `const VERSION = "realify-basic-vNNN"` y `basic/index.html` → `js/main.js?v=NNN` (Realify Basic usa el mismo contador)
 
 ## Regla de publicación
 

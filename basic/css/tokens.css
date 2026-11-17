@@ -1,0 +1,18 @@
+/* ═══════════════════════════════════════════════════════════════
+   REALIFY BASIC · TOKENS
+   Colores, cristal y radios de toda la interfaz de Basic. Nada más define colores sueltos.
+   Entradas: ninguna. Salidas: variables CSS en :root.
+   Límites: tema oscuro único (la foto manda; el cristal es translúcido sobre ella).
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --fondo: #000;
+  --texto: #fff;
+  --texto-suave: rgba(255, 255, 255, .62);
+  --acento: #f5c542;
+  --cristal: rgba(40, 44, 48, .46);
+  --cristal-borde: rgba(255, 255, 255, .14);
+  --desenfoque: blur(22px) saturate(160%);
+  --radio-pildora: 999px;
+  --seguro-arriba: env(safe-area-inset-top, 0px);
+  --seguro-abajo: env(safe-area-inset-bottom, 0px);
+}

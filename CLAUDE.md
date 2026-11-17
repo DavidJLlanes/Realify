@@ -14,6 +14,8 @@ en realify.es. **El despliegue lo hace el titular a mano con `git` en el VPS**: 
   `index.html`. En cada versión se suben los dos (el contador siempre; la pública según el cambio) y se
   actualizan `docs/CHANGELOG.md`, la guía (`js/ui/help/guide.js`) y los README afectados.
 - Ante la duda, preguntar.
+- **Realify Basic** (`basic/`, app aparte en `realify.es/basic/`): sigue `docs/PLAN_BASIC.md`. Usa el MISMO contador de compilación: al
+  subirlo se cambian también `basic/sw.js` y el `?v=` de `basic/index.html`. Siempre Premium, sin interruptor.
 - **Plan vigente**: ampliar Realify a editor completo con IA local sigue `docs/PLAN_EDITOR_IA_LOCAL.md` (fases 0 a 16).
   Leerlo al empezar, hacer la fase que toque y marcar `[x]` con la versión al terminar cada tarea. Normas de ese trabajo:
   sección «Plan: editor completo con IA local», más abajo.

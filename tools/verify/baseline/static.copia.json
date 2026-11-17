@@ -1,10 +1,15 @@
 {
- "generated": "2026-11-09T07:18:05.655Z",
+ "generated": "2026-11-17T09:35:20.044Z",
  "root": "/home/claude/realify",
- "jsFiles": 1164,
- "jsLines": 111378,
+ "jsFiles": 1168,
+ "jsLines": 111477,
  "brokenRefs": [],
  "softMissing": [
+  {
+   "file": "basic/sw.js",
+   "spec": "./css/shell.css",
+   "target": "css/shell.css"
+  },
   {
    "file": "js/ui/menu/ia/manifests.js",
    "spec": "js/features/<familia>/<función>/manifest.js",
@@ -533,6 +538,7 @@
   "state.color",
   "state.cropRect",
   "state.s",
+  "sw.js",
   "t.content",
   "t.masks",
   "t.points",
@@ -578,6 +584,9 @@
   "xform.box"
  ],
  "exportsByFile": {
+  "basic/js/app/pwa.js": [
+   "registrarSW"
+  ],
   "js/ai/clip.js": [
    "embedImage",
    "embedText",

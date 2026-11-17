@@ -1,0 +1,11 @@
+/* ═══════════════════════════════════════════════════════════════
+   REALIFY BASIC · ESQUELETO
+   Página a pantalla completa, sin márgenes ni ventanas: la foto ocupa todo y los mandos flotan encima.
+   Entradas: tokens.css. Salidas: reglas de html, body y #stage.
+   Límites: en F0 sólo está el contenedor vacío; barras y visor llegan en F1.
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--texto); overflow: hidden;
+  font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+#stage { position: fixed; inset: 0; display: grid; place-items: center; }
+.vacio { margin: 0; color: var(--texto-suave); letter-spacing: .04em; }

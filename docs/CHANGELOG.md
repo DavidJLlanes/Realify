@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 330) · Realify Basic, fase 0
+- **Realify Basic** (`realify.es/basic/`): esqueleto instalable y vacío de la nueva app de edición básica de fotos (manifiesto propio con `id` y alcance `/basic/`, service worker propio, página y estilos base). Plan por fases en `docs/PLAN_BASIC.md`. Aún no edita nada: las pestañas llegan en las fases siguientes.
+- El service worker de Realify sólo borra sus propias cachés (`realify-v*`), para no tocar las de Basic (y al revés).
+- `tools/verify/layers.mjs` y `lint-refs.mjs` conocen `basic/` (capa superior); prueba nueva `tests/basic/esqueleto.mjs` (`npm run test:basic`).
+
 ### 2.1.0 (compilación 329) · Orden del código
 - Sin cambios de comportamiento. Divididos los archivos que pasaban del tope de 400 líneas: `js/editor/tools/paint.js` (509 → 158; nuevos `retoque.js` y `reparar.js`), `js/editor/tools/defs/paint.js` (574 → 199; nuevos `defs/retoque.js` y `defs/dab.js`) y `js/ui/panels.js` (1044 → 864; nuevos `panels-historial.js` y `layer-row-events.js`). Sin ciclos de importación; `escapeHtml` pasa a `js/core/util/html.js`.
 - Pendiente: `renderLayers` sigue siendo una función de unas 400 líneas dentro de `panels.js`.

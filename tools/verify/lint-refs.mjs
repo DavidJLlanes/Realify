@@ -34,7 +34,7 @@ const eslint = new ESLint({
 });
 
 /* js/ y los plugins (en la versión de partida estaban en la raíz con otros nombres) */
-const dirs = ["js", "plugins", "camaras", "comparar", "cortar", "formas", "frames", "hdr", "hojacontactos", "lote", "lut", "memes", "panorama", "raw", "socialmediapost", "stickers", "unir", "vintagefilter"].filter(d => fs.existsSync(path.join(root, d)));
+const dirs = ["js", "plugins", "basic", "camaras", "comparar", "cortar", "formas", "frames", "hdr", "hojacontactos", "lote", "lut", "memes", "panorama", "raw", "socialmediapost", "stickers", "unir", "vintagefilter"].filter(d => fs.existsSync(path.join(root, d)));
 const results = await eslint.lintFiles(dirs.map(d => `${d}/**/*.{js,mjs}`).concat([]).map(g => g));
 const found = [];
 for (const r of results) {
