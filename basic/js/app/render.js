@@ -7,7 +7,7 @@
    desde el original. Los motores de píxeles se cargan al primer ajuste (import dinámico).
    Entradas: iniciarRender() · vista() · geometria() · renderFinal() · medirAutoActual().
    Salidas: lienzos, la geometría vigente y, en app/store.js, `vistaV` y `dims`.
-   Límites: el cálculo final bloquea la página unos segundos en fotos grandes (se avisa con `procesando`).
+   Límites: el cálculo final va a un trabajador (engine/worker.js) y la página sigue viva (se avisa con `procesando`); si no hay trabajador, se calcula en el hilo principal.
    ═══════════════════════════════════════════════════════════════ */
 import { calcularGeo } from "../engine/geometria.js";
 import { esNeutra, esNeutraRecorte } from "../engine/neutra.js";
@@ -74,6 +74,19 @@ export function iniciarRender() {
   suscribir(e => { const k = e.version + "|" + e.pestana; if (k === visto) return; visto = k; if (!pendiente) { pendiente = true; requestAnimationFrame(pintar); } });
 }
 
+/* El cálculo pesado va a un trabajador (engine/worker.js) para no congelar la página; si no se puede crear o falla, se hace aquí. */
+function enSegundoPlano(img, receta) {
+  return new Promise(ok => {
+    let w;
+    try { w = new Worker(new URL("../engine/worker.js", import.meta.url), { type: "module" }); } catch { ok(null); return; }
+    const fin = r => { w.terminate(); ok(r); };
+    w.onmessage = e => fin(e.data.error ? null : e.data.img);
+    w.onerror = () => fin(null);
+    const copia = new ImageData(new Uint8ClampedArray(img.data), img.width, img.height);
+    w.postMessage({ img: copia, receta }, [copia.data.buffer]);
+  });
+}
+
 export async function renderFinal() {
   const o = original(), r = receta();
   if (esNeutra(r)) return o;
@@ -83,7 +96,8 @@ export async function renderFinal() {
     const { aplicarReceta, cargarEstilos } = await cargarMotor();
     if (r.estilo.n >= 0) await cargarEstilos();
     const lienzo = esNeutraRecorte(r.recorte) ? o : transformar(o, geometria(), { recortar: true, anchoOriginal: o.width, perspectiva: conPerspectiva(r.recorte) });
-    const img = aplicarReceta(lienzo.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height), r, { rapido: false });
+    const datos = lienzo.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height);
+    const img = await enSegundoPlano(datos, r) || aplicarReceta(datos, r, { rapido: false });
     const c = nuevoLienzo(lienzo.width, lienzo.height); c.getContext("2d").putImageData(img, 0, 0);
     return c;
   } finally { poner({ procesando: false }); }

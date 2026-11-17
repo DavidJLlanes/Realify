@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 337) · Realify Basic
+- **Móvil (app instalada en iOS)**: el escenario usa el alto real de la pantalla (`100vh` en modo instalado) para que no quede un hueco negro bajo las barras ni se corten las herramientas; menos margen bajo la barra de pestañas.
+- **Guardar y enviar a Realify**: el cálculo a resolución completa se hace en un trabajador (`basic/js/engine/worker.js`), así que la página ya no se congela; el resultado es idéntico al del hilo principal (comprobado píxel a píxel) y, si no hay trabajador, se calcula como antes.
+
 ### 2.1.0 (compilación 336) · Realify Basic
 - **Recortar**: nuevas proporciones «Post Instagram» (4:5) y «Historia Instagram» (9:16).
 
