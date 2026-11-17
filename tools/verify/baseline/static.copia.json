@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-17T11:30:51.729Z",
+ "generated": "2026-11-17T11:47:58.682Z",
  "root": "/home/claude/realify",
  "jsFiles": 1218,
- "jsLines": 113562,
+ "jsLines": 113587,
  "brokenRefs": [],
  "softMissing": [
   {
@@ -741,6 +741,7 @@
    "crearRegla"
   ],
   "basic/js/ui/strip.js": [
+   "alDobleToque",
    "crearFila"
   ],
   "basic/js/ui/tabbar.js": [
