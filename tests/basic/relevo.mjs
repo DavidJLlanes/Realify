@@ -107,7 +107,7 @@ exige(d3 && d3.w === 300 && d3.h === 200, "3ª: Realify no recibió la foto sola
 await R.p.evaluate(() => localStorage.removeItem("realify-relevo:realify"));
 await B.p.getByLabel("Más opciones").click();
 const opsB = await B.p.locator(".menu-op").allTextContents();
-exige(opsB.includes("Emparejar con Realify"), "4ª: falta «Emparejar con Realify» en el menú de Basic " + opsB.join("|"));
+exige(opsB.includes("Emparejar con Realify Pro"), "4ª: falta «Emparejar con Realify» en el menú de Basic " + opsB.join("|"));
 await B.p.locator(".menu-op:has-text('Emparejar con Realify')").click();
 await B.p.locator(".hoja-codigo button:has-text('Enseñar código')").click();
 await B.p.locator(".hoja-codigo .codigo-grande").waitFor({ timeout: 8000 }).catch(() => {});

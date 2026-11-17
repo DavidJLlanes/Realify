@@ -34,7 +34,7 @@ const f0 = await fotoBasic(basic);
 await basic.evaluate(async () => (await import("/basic/js/app/session.js")).cambiar({ exposicion: 20 }));
 await basic.getByLabel("Más opciones").click();
 const ops = await basic.locator(".menu-op").allTextContents();
-exige(ops.includes("Abrir en Realify") && ops.includes("Cambiar a Realify"), "menú de Basic: faltan las entradas de traspaso " + ops.join("|"));
+exige(ops.includes("Abrir en Realify Pro") && ops.includes("Cambiar a Realify Pro"), "menú de Basic: faltan las entradas de traspaso " + ops.join("|"));
 await basic.locator(".menu-op:has-text('Abrir en Realify')").click();
 await real.waitForTimeout(6000);
 const d1 = await docReal(real);

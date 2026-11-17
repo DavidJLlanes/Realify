@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 349) · Basic: viñeta más intensa, recorte que desliza, «Realify Pro»
+- **Viñeta de Basic más intensa**: el efecto empieza antes (25 % del radio, antes 40 %), con 100 las esquinas quedan casi negras (antes sólo a ~42 % de brillo) y la fuerza crece más deprisa que el mando (con 50 ya se nota claro). Viñeta negativa (aclarar) algo más fuerte. Mismo tramado sin bandas.
+- **Recorte de Basic**: el cuadro pegado a un borde de la foto ahora se desliza en diagonal (antes, si una de las direcciones chocaba, no se movía nada). Prueba nueva en `tests/basic/recortar.mjs`.
+- **Basic se llama «Realify Pro» en sus menús y avisos** (Abrir en Realify Pro, Cambiar a Realify Pro, Emparejar con Realify Pro); pruebas y guía al día.
+- **Basic en el iPhone instalado**: la altura se mide de `innerHeight` (`--alto`) para que las herramientas de abajo no queden cortadas.
+
 ### 2.1.0 (compilación 348) · HDR: alineación precisa con tomas claras · pruebas antiguas al día
 - **Fusión HDR, alineación precisa 👑**: antes de buscar puntos (ORB) y afinar (ECC) se iguala el histograma de las dos tomas que se comparan (`createAligner(…, { igualar: true })`, sólo desde HDR). La toma más expuesta de un horquillado, medio quemada, ya se alinea: con fotos claras pasa de 1 de 2 a 2 de 2 tomas alineadas; con la de tormenta la fusión sale algo más nítida (387,2 frente a 386,5). Apilar y el resto de usos del alineador no cambian (`tests/apilar.mjs` OK).
 - **Diagnóstico de las pruebas que no se pasaban**: `float-ajustes` (24 ajustes), `matte`, `restaurar-caras` y `depth-viva` OK. Estaban desfasadas y se corrigen: `perspectiva-16` (`perspApply()` es asíncrona), las cuatro de PSD (`psd`, `psd-extras`, `psd16-capas`, `psd16-abrir`: ag-psd se carga bajo demanda y no lo cargaban), `depth-viva` (pedía el modelo grande a Hugging Face; ahora el incluido en la web) y `hdr-preciso` (con una foto clara no puede mejorar la nitidez; por defecto usa la tormenta de `assets/skies`). Quedan sin poder probarse aquí: `textoparte` (necesita una foto real de una persona; con el retrato dibujado de las pruebas el modelo de partes no ve ojos ni labios) y `clipseg` (necesita su modelo de 273 MB de Hugging Face).

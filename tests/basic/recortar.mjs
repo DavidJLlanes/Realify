@@ -92,6 +92,10 @@ for (const tipo of ["escritorio", "movil"]) {
   const info = await pg.evaluate(([x,y])=>[document.elementFromPoint(x,y)?.className, innerWidth, innerHeight],[b.x+b.width/2,b.y+b.height/2]);
   const rr = (await rec()).rect; exige(rr && rr.x1 - rr.x0 < 1, tipo + ": arrastrar la esquina no cambia el recorte " + JSON.stringify([rr, b, info]));
   const d4 = await dims(); exige(d4 && d4.w < d3.w, tipo + ": el recorte no se ha reducido " + JSON.stringify([d3, d4]));
+  /* mover el marco pegado a un borde: un arrastre en diagonal debe deslizar por el borde, no quedarse quieto */
+  { const m = await pg.locator(".recorte-sobre .marco").boundingBox(), y0 = (await rec()).rect.y0, cx = m.x + m.width / 2, cy = m.y + m.height / 2;
+    await pg.mouse.move(cx, cy); await pg.mouse.down(); await pg.mouse.move(cx - 80, cy + 40, { steps: 8 }); await pg.mouse.up(); await pg.waitForTimeout(600);
+    const q = (await rec()).rect; exige(q.y0 > y0 + 0.01, tipo + ": el marco pegado al borde no se desliza en diagonal " + JSON.stringify([y0, q])); }
   if (salida) await pg.screenshot({ path: path.join(salida, `recortar-${tipo}.png`) });
   /* final */
   await pg.getByRole("tab", { name: "Ajustar" }).click(); await pg.waitForTimeout(900);

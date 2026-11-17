@@ -55,13 +55,20 @@ function aspecto(g) {
   return RATIOS[p];
 }
 
-/* Se acerca el movimiento a lo máximo que cabe dentro del cuadrilátero (bisección sobre la fracción del arrastre). */
+/* El movimiento se acerca a lo máximo que cabe dentro del cuadrilátero y DESLIZA por los bordes: primero se busca hasta dónde llega en
+   horizontal y, desde ahí, hasta dónde en vertical (si no, con el cuadro pegado a un borde un arrastre en diagonal no se movía nada). */
 function mover(a, dx, dy) {
-  const en = t => ({ ...a.r0, x: a.r0.x + dx * t, y: a.r0.y + dy * t });
-  if (dentroDelQuad(en(1), a.g.quad)) return en(1);
-  let lo = 0, hi = 1;
-  for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (dentroDelQuad(en(m), a.g.quad)) lo = m; else hi = m; }
-  return en(lo);
+  const en = (x, y) => ({ ...a.r0, x: a.r0.x + x, y: a.r0.y + y });
+  if (dentroDelQuad(en(dx, dy), a.g.quad)) return en(dx, dy);
+  const tope = (f, base) => {                          // mayor fracción t de la distancia pedida que cabe, con `base` ya fijado
+    if (dentroDelQuad(f(1), a.g.quad)) return 1;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (dentroDelQuad(f(m), a.g.quad)) lo = m; else hi = m; }
+    return lo;
+  };
+  const tx = tope(t => en(dx * t, 0)), x = dx * tx;
+  const ty = tope(t => en(x, dy * t));
+  return en(x, dy * ty);
 }
 
 function cambiarTamano(a, ddx, ddy) {

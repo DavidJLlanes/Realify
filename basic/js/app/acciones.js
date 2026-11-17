@@ -14,7 +14,7 @@ export const crearAcciones = ({ guardar, avisar }) => [
   { texto: "Abrir otra foto", icono: "abrir", alTocar: pedirArchivo },
   { texto: "Guardar copia", icono: "guardar", alTocar: guardar },
   { texto: "Volver al original", icono: "original", ver: e => e.sucio, alTocar: volverAlOriginal },
-  { texto: "Abrir en Realify", icono: "enviar", ver: e => !!e.foto, alTocar: () => enviarARealify(avisar) },
-  { texto: "Cambiar a Realify", icono: "cambiar", alTocar: () => irARealify(avisar) },
-  { texto: "Emparejar con Realify", icono: "enlazar", ver: () => usaRelevo(), alTocar: () => emparejar(avisar) },   // sólo iPhone instalado
+  { texto: "Abrir en Realify Pro", icono: "enviar", ver: e => !!e.foto, alTocar: () => enviarARealify(avisar) },
+  { texto: "Cambiar a Realify Pro", icono: "cambiar", alTocar: () => irARealify(avisar) },
+  { texto: "Emparejar con Realify Pro", icono: "enlazar", ver: () => usaRelevo(), alTocar: () => emparejar(avisar) },   // sólo iPhone instalado
 ];
