@@ -5,7 +5,8 @@
    devuelve hasta cerrar la app (queda una franja negra abajo o las barras se cortan). Aquí se detecta, se «cura» forzando que iOS
    vuelva a medir (ocultar y mostrar la página en el mismo fotograma) y, si aun así sigue encogida, se usa el último alto bueno
    (guardado entre sesiones) o el de la pantalla.
-   Entradas: vigilarAlto(). Salidas: la variable CSS --alto en <html> (shell.css) y un evento resize cuando cambia (el visor reencuadra).
+   Lo normal (página bajo la barra de estado, en vertical) es usar la pantalla entera: screen.height, sin fiarse de innerHeight.
+   Entradas: vigilarAlto(). Salidas: textoAlto() (diagnóstico) · la variable CSS --alto en <html> (shell.css) y un evento resize cuando cambia (el visor reencuadra).
    Límites: sólo actúa con navigator.standalone (iPhone/iPad instalado); en el resto la página usa su alto natural (100 %).
    ═══════════════════════════════════════════════════════════════ */
 const GUARDA = "realify-basic-alto:", HOLGURA = 80;     // la barra de estado más alta mide 62 px: menos que esto es «encogida»
@@ -34,6 +35,9 @@ function bajoBarra() {
 }
 
 let actual = "";
+/** Para el diagnóstico del menú «···»: cómo se decidió el alto. */
+export const diag = { modo: "natural" };
+export const textoAlto = () => `${Math.round(screen.width)}×${Math.round(screen.height)} · alto ${actual || "100 %"} (${diag.modo}) · innerHeight ${innerHeight}`;
 function poner(px) {
   const v = Math.round(px) + "px";
   if (v === actual) return;
@@ -45,8 +49,12 @@ const escribiendo = () => document.activeElement?.matches?.("input, textarea, [c
 
 function medir() {
   if (escribiendo()) return;                            // con el teclado abierto no se toca nada (ocultar el cuerpo lo cerraría)
+  /* Lo normal en Realify Basic: la página se dibuja bajo la barra de estado, así que ocupa la pantalla ENTERA, diga lo que diga
+     innerHeight (iOS 26 la da más corta: le resta la barra de estado o el teclado y deja una franja negra abajo). */
+  if (vertical() && bajoBarra()) { diag.modo = "pantalla"; return poner(pantalla()); }
   let h = innerHeight;
   if (!sano(h)) { curar(); h = innerHeight; }
+  diag.modo = sano(h) ? "medido" : "guardado";
   if (sano(h)) { guardar(h); return poner(h); }
   // Sigue encogida: el último alto bueno de esta pantalla; si no lo hay y la página se dibuja bajo la barra de estado (lo normal en
   // Realify Basic), la pantalla entera; si no, lo medido (más vale una franja que unas herramientas cortadas).

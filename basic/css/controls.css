@@ -32,6 +32,7 @@ button:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 .menu-op { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 12px; text-align: left; }
 .menu-op:hover { background: rgba(255, 255, 255, .1); }
 .menu-op svg { width: 20px; height: 20px; }
+.menu-pie { padding: 8px 14px 4px; font-size: 11px; line-height: 1.35; opacity: .55; user-select: text; -webkit-user-select: text; }
 
 .bienvenida { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; }
 .bienvenida img { border-radius: 20px; }

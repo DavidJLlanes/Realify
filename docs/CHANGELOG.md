@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 351) · Basic: pantalla entera en el iPhone sin fiarse de innerHeight · diagnóstico en el menú
+- **Basic en el iPhone instalado usa la pantalla entera (`screen.height`)** cuando la página se dibuja bajo la barra de estado (lo normal, en vertical). La captura con la 350 mostraba la barra de abajo terminando a ~894 px de 956: iOS 26 da un `innerHeight` al que le resta la barra de estado (62 px), y la 350 lo daba por bueno. En horizontal o sin barra translúcida sigue la medida con cura de la 350.
+- **Diagnóstico al pie del menú «···»**: compilación cargada, pantalla, alto usado y cómo se decidió (`pantalla`, `medido`, `guardado`) e `innerHeight`. Así una captura dice si el móvil ya tiene la última versión y qué mide.
+
 ### 2.1.0 (compilación 350) · Basic: pantalla completa siempre en el iPhone · zoom inverso
 - **Basic ocupa toda la pantalla en el iPhone instalado, también después de usar el teclado**: iOS encoge la página la primera vez que sale el teclado (p. ej. al escribir el código de emparejar) y no la devuelve hasta cerrar la app: quedaba una franja negra abajo (con `innerHeight`, 349) o las herramientas cortadas (con `100vh`, antes). Nuevo `basic/js/app/alto.js`: detecta la página encogida, obliga a iOS a medir de nuevo (ocultar y mostrar el cuerpo en el mismo fotograma) y, si sigue encogida, usa el último alto bueno guardado o la pantalla entera. Vuelve a mirar al girar, al volver a la app y al cerrar el teclado. Fuera del iPhone instalado no cambia nada. Prueba nueva `tests/basic/alto.mjs`.
 - **Zoom inverso en Basic**: con el pellizco o la rueda se puede alejar la foto hasta un cuarto del tamaño ajustado (queda centrada); el doble toque la vuelve a ajustar. Comprobado en `tests/basic/interfaz.mjs` (móvil y escritorio) y con el recorte.
