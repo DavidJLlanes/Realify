@@ -79,6 +79,11 @@ for (const tipo of ["movil", "escritorio"]) {
   exige(Math.abs(tb[0] - ta[0] - 70) < 2 && Math.abs(tb[1] - ta[1] - 50) < 2, tipo + ": arrastrar no mueve la foto acercada " + [ta, tb]);
   await page.mouse.dblclick(cv.W / 2, cv.H / 2); await page.waitForTimeout(300);
   exige(await page.evaluate(() => document.querySelector(".foto").style.transform) === t0, tipo + ": doble toque no vuelve a la foto ajustada y centrada");
+  /* un toque con un pequeño temblor (< 8 px) no debe desplazar la foto */
+  { const a = await page.evaluate(() => document.querySelector(".foto").style.transform);
+    await page.mouse.move(cv.W / 2, cv.H / 2); await page.mouse.down(); await page.mouse.move(cv.W / 2 + 3, cv.H / 2 + 2); await page.mouse.up(); await page.waitForTimeout(500);
+    exige(await page.evaluate(() => document.querySelector(".foto").style.transform) === a, tipo + ": un toque con temblor desplaza la foto");
+    await page.mouse.click(cv.W / 2, cv.H / 2); await page.waitForTimeout(500); }
   await page.waitForTimeout(400);
   await page.mouse.click(cv.W / 2, cv.H / 2); await page.waitForTimeout(600);
   exige(await page.evaluate(() => document.documentElement.classList.contains("barras-ocultas")), tipo + ": un toque no oculta las barras");

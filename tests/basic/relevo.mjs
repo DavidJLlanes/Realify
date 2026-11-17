@@ -51,6 +51,8 @@ const fotoBasic = b => b.evaluate(async () => { const S = await import("/basic/j
 const docReal = p => p.evaluate(async () => { const D = await import("/js/core/doc.js"); return D.doc.open ? { w: D.doc.w, h: D.doc.h } : null; });
 const avisos = async p => (await p.locator(".aviso, #toast, #stMsg").allTextContents().catch(() => [])).join(" | ");
 const despertar = p => p.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+/* Espera hasta que se cumpla algo (con red lenta o la máquina cargada, una espera fija se queda corta). */
+const esperar = async (f, ms = 20000) => { for (const t0 = Date.now(); Date.now() - t0 < ms;) { const v = await f(); if (v) return v; await new Promise(r => setTimeout(r, 300)); } return null; };
 
 const B = await app("basic/"), R = await app("");
 
@@ -125,7 +127,7 @@ exige(await R.p.evaluate(() => !!localStorage.getItem("realify-relevo:realify"))
 await nuevoDoc(50, 40);
 await B.p.evaluate(async () => (await import("/basic/js/app/traspaso.js")).enviarARealify(() => {}));
 await B.p.waitForTimeout(3000);
-await despertar(R.p); await R.p.waitForTimeout(5000);
+await despertar(R.p); await esperar(async () => { await despertar(R.p); const d = await docReal(R.p); return d && d.w === 300 ? d : null; }).catch(() => null);
 const d4 = await docReal(R.p);
 exige(d4 && d4.w === 300, "4ª: tras emparejar a mano, la foto no llegó a Realify " + JSON.stringify(d4));
 

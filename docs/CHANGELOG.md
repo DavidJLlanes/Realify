@@ -9,6 +9,12 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 355) · Auditoría de errores
+- **Basic, gestos**: un toque con un pequeño temblor (< 8 px) ya no desplaza la foto (zona muerta; el movimiento acumulado se aplica al superarla). Prueba nueva en `tests/basic/interfaz.mjs`.
+- **Basic, viñeta 3,6 veces más rápida** en la foto final (12 MP: 2,5 s → 0,7 s): la ganancia se tabula en lugar de elevar a una potencia en cada píxel y se evita `Math.hypot`. Resultado idéntico (diferencia máxima de 1 nivel).
+- **Prueba `relevo.mjs` más robusta**: espera a que llegue la foto en lugar de una pausa fija (falló una vez en una ejecución completa con la máquina cargada).
+- **Auditoría**: sin errores de consola ni de página en Realify y Basic (móvil y escritorio); análisis estático sin variables sin definir (PDFLib es una librería global cargada bajo demanda); humo 55/55 diálogos, 0 errores; aislamiento del vídeo OK; 13/13 pruebas de vídeo; pruebas de IA OK salvo `cuerpo/editor` (ya fallaba en la compilación 344 en este entorno sin GPU: el hombro no sigue al dedo y el editor no se cierra al aplicar; pendiente de probar con una foto real y GPU).
+
 ### 2.1.0 (compilación 354) · Basic: mandos pegados a la barra de pestañas (más foto a la vista)
 - **La regla y la fila de ajustes bajan hasta apoyarse justo encima de la barra Ajustar · Estilos · Recortar** (hueco de 4 px; antes ~40 px perdidos). `ui/tabbar.js` mide la barra y deja su alto en `--pie`; el panel se coloca con `bottom: calc(var(--pie) + 4px)`. Vale para las tres pestañas y para móvil y escritorio, y se adapta solo a cualquier móvil (con o sin zona segura inferior). Se gana ~40 px de foto visible.
 

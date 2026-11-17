@@ -15,14 +15,17 @@ export function pasoVineta(data, w, h, a) {
   const v = (a.vineta || 0) / 100;
   if (!v) return;
   const cx = (w - 1) / 2, cy = (h - 1) / 2, fuerza = Math.abs(v) ** 0.8, oscuro = v > 0;
+  /* La ganancia sólo depende de k (0..1): se tabula (4096 pasos, imperceptible) en vez de elevar a GAMMA en cada píxel. */
+  const N = 4096, tabla = new Float32Array(N + 1);
+  for (let i = 0; i <= N; i++) tabla[i] = oscuro ? (1 - OSCURO * i / N * fuerza) ** GAMMA : i / N * fuerza * CLARO;
   for (let y = 0, px = 0; y < h; y++) {
-    const dy = (y - cy) / cy;
+    const dy = (y - cy) / cy, dy2 = dy * dy;
     for (let x = 0; x < w; x++, px++) {
-      const r = Math.hypot((x - cx) / cx, dy) / Math.SQRT2;          // 0 en el centro, 1 en las esquinas
+      const dx = (x - cx) / cx, r = Math.sqrt(dx * dx + dy2) / Math.SQRT2;          // 0 en el centro, 1 en las esquinas
       if (r <= INICIO) continue;
-      const k = suave(Math.min(1, (r - INICIO) / (1 - INICIO))) * fuerza, i = px * 4, d = tramado(px) * 0.5;
-      if (oscuro) { const m = (1 - OSCURO * k) ** GAMMA; for (let c = 0; c < 3; c++) data[i + c] = Math.round(data[i + c] * m + d); }
-      else for (let c = 0; c < 3; c++) data[i + c] = Math.round(data[i + c] + (255 - data[i + c]) * k * CLARO + d);
+      const g = tabla[Math.round(suave(Math.min(1, (r - INICIO) / (1 - INICIO))) * N)], i = px * 4, d = tramado(px) * 0.5;
+      if (oscuro) for (let c = 0; c < 3; c++) data[i + c] = Math.round(data[i + c] * g + d);
+      else for (let c = 0; c < 3; c++) data[i + c] = Math.round(data[i + c] + (255 - data[i + c]) * g + d);
     }
   }
 }

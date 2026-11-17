@@ -38,7 +38,7 @@ export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
   zona.addEventListener("pointerdown", e => {
     if (!w || e.target.closest(".barra, .menu, .bienvenida, .asa")) return;
     zona.setPointerCapture(e.pointerId); dedos.set(e.pointerId, punto(e));
-    inicio = { t: performance.now(), mov: 0, n: dedos.size, ref: dedos.size === 2 ? medio() : null };
+    inicio = { t: performance.now(), mov: 0, pend: [0, 0], n: dedos.size, ref: dedos.size === 2 ? medio() : null };
   });
   zona.addEventListener("pointermove", e => {
     if (!dedos.has(e.pointerId)) return;
@@ -47,7 +47,10 @@ export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
     if (dedos.size === 2) {
       const [cx, cy, d] = medio(), [rx, ry, rd] = inicio.ref;
       x += cx - rx; y += cy - ry; zoomEn(cx, cy, s * (d / rd)); inicio.ref = [cx, cy, d];
-    } else { x += px - ax; y += py - ay; limitar(); aplicar(); }          // arrastrar con un dedo o el ratón: mover la foto
+    } else {                                                              // arrastrar con un dedo o el ratón: mover la foto
+      inicio.pend[0] += px - ax; inicio.pend[1] += py - ay;
+      if (inicio.mov >= 8) { x += inicio.pend[0]; y += inicio.pend[1]; inicio.pend = [0, 0]; limitar(); aplicar(); }   // zona muerta: un toque no la desplaza
+    }
   });
   const soltar = e => {
     if (!dedos.delete(e.pointerId) || !inicio) return;
