@@ -32,6 +32,9 @@
     # ── Informe de errores (Ayuda › Informar de un error…) ─────────
     # Ver server/informe/README.md y server/informe/nginx.conf.example
     # (location = /api/informe con limit_req y proxy a 127.0.0.1:8766).
+    # ── Relevo de fotos Realify ↔ Basic en el iPhone ───────────────
+    # Ver server/traspaso/README.md y server/traspaso/nginx.conf.example
+    # (location ^~ /api/traspaso/ con limit_req y proxy a 127.0.0.1:8767).
 
     # ── Nunca públicos ──────────────────────────────────────────────
     location ^~ /log/    { return 404; }

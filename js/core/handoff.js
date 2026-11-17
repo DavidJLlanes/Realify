@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
    NÚCLEO · TRASPASO ENTRE REALIFY Y REALIFY BASIC
    Pasar una foto (ya con la edición aplicada) de una app a la otra, y abrir la otra app. Las dos viven en el mismo origen, así que
-   comparten IndexedDB y BroadcastChannel; no hay servidor. La foto se deja en un almacén de un solo hueco y la app que la recibe la toma.
+   comparten IndexedDB y BroadcastChannel (sin servidor). La foto se deja en un almacén de un solo hueco y la app que la recibe la toma.
    Si la otra app ya está abierta se lo avisa por el canal y espera su confirmación; si no, abre una ventana nueva con ?recibir=1.
-   Entradas: copiarFoto(promesaBlob) · dejarFoto(destino, datos) · usaPortapapeles() · reservarVentana(destino) (síncrona, dentro del toque) · traspasar(destino, { blob, nombre }, ventana) · abrirApp(destino) · tomarTraspaso(para) · escucharTraspaso(app, alRecibir) · recibirAlArrancar(app).
+   Entradas: reservarVentana(destino) (síncrona, dentro del toque) · traspasar(destino, { blob, nombre }, ventana) · abrirApp(destino) · tomarTraspaso(para) · escucharTraspaso(app, alRecibir) · recibirAlArrancar(app).
    Salidas: "enviada" (la otra app ya abierta la importó) · "abierta" (se abrió una ventana) · "manual" (iPhone con la app instalada: hay que abrir la otra desde su icono) · { blob, nombre, de, para } al tomar.
-   Límites: la foto caduca a los 10 min. Cada app instalada en iOS tiene su propio almacenamiento: si no comparten, la foto no llega
-   (quien recibe lo avisa) y queda la vía «Guardar copia» y abrirla desde Fotos.
+   Límites: la foto caduca a los 10 min. En el iPhone con las apps instaladas cada una tiene su propio almacenamiento: allí la foto
+   viaja por el servidor (js/core/relevo.js) y esto sólo se usa para el resto (escritorio, Android, navegador).
    ═══════════════════════════════════════════════════════════════ */
 const BD = "realify-traspaso", ALMACEN = "fotos", CLAVE = "ultima", CADUCA = 10 * 60e3;
 export const APPS = { realify: new URL("../../", import.meta.url).href, basic: new URL("../../basic/", import.meta.url).href };
@@ -81,17 +81,6 @@ const llevar = (w, destino, query = "") => {
   if (!w) mismaVentana(destino, url); else if (esBlanca(w)) w.location.replace(url);
   return "abierta";
 };
-
-/** iPhone con las apps instaladas: cada una puede tener su propio almacenamiento, así que además de dejar la foto se copia al portapapeles. */
-export const usaPortapapeles = iosInstalada;
-
-/** Copia una foto (promesa de un Blob PNG) al portapapeles. Debe llamarse DENTRO del toque, antes de calcular la foto: Safari espera a la promesa. */
-export async function copiarFoto(promesaBlob) {
-  try { await navigator.clipboard.write([new ClipboardItem({ "image/png": promesaBlob })]); return true; } catch { return false; }
-}
-
-/** Sólo deja la foto en el almacén compartido (sin abrir ni avisar a nadie): la otra app la toma al abrirse o volver a primer plano. */
-export const dejarFoto = (destino, { blob, nombre }) => operar("readwrite", s => s.put({ blob, nombre, de: de(destino), para: destino, t: Date.now() }, CLAVE));
 
 /** Sólo cambiar de app (sin foto). `ventana` = la reservada en el toque. */
 export function abrirApp(destino, ventana = reservarVentana(destino)) { return llevar(ventana, destino); }

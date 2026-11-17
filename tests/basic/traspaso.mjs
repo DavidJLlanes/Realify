@@ -54,25 +54,7 @@ const pop = await nueva;
 exige(!!pop, "con Basic cerrada no se abrió una pestaña nueva");
 if (pop) { await pop.waitForTimeout(5000); const f2 = await fotoBasic(pop); exige(f2 && f2.w === f0.w, "pestaña nueva de Basic sin la foto " + JSON.stringify(f2)); exige(!pop.url().includes("recibir"), "la query ?recibir no se limpia"); await pop.close(); }
 
-/* ── iPhone con la app instalada (navigator.standalone): no se navega nunca la ventana; la foto espera y la otra app la toma al abrirse ── */
-{
-  const ios = await ctx.newPage();
-  await ios.addInitScript(() => Object.defineProperty(navigator, "standalone", { value: true }));
-  await ios.addInitScript(() => { window.__clip = []; window.ClipboardItem = class { constructor(o) { this.o = o; } }; Object.defineProperty(navigator, "clipboard", { value: { write: async items => { for (const it of items) for (const k of Object.keys(it.o || {})) { const v = await it.o[k]; window.__clip.push({ tipo: k, size: v.size }); } }, read: async () => [] }, configurable: true }); });
-  await ios.goto(base); await ios.waitForTimeout(1500);
-  await ios.evaluate(async () => { const D = await import("/js/core/doc.js"); D.newDoc(300, 200, { name: "ios" }); const l = D.addLayer({ name: "Fondo" }); l.ctx.fillStyle = "#2a7"; l.ctx.fillRect(0, 0, 300, 200); });
-  let abierta = false; const alAbrir = () => { abierta = true; }; ctx.on("page", alAbrir);
-  const url0 = ios.url();
-  await ios.evaluate(async () => (await import("/js/core/commands.js")).run("file.toBasic")); await ios.waitForTimeout(2500);
-  ctx.off("page", alAbrir);
-  exige(!abierta && ios.url() === url0, "iOS instalada: Realify no debe abrir ni navegar hacia Basic (url " + ios.url() + ")");
-  const clip = await ios.evaluate(() => window.__clip); exige(clip.length === 1 && clip[0].tipo === "image/png" && clip[0].size > 100, "iOS instalada: la foto no se copió al portapapeles como PNG " + JSON.stringify(clip));
-  exige(/Foto copiada|icono de inicio/.test(await ios.locator("#stMsg").textContent().catch(() => "") + await ios.locator("#toast").textContent().catch(() => "")), "iOS instalada: falta el aviso de abrir Basic desde su icono");
-  const b2 = await abrirBasic(); await b2.waitForTimeout(3000);
-  const f3 = await fotoBasic(b2); exige(f3 && f3.w === 300, "iOS instalada: Basic no tomó la foto pendiente al abrirse " + JSON.stringify(f3));
-  const aun = await b2.evaluate(async () => (await import("/js/core/handoff.js")).tomarTraspaso("realify")); exige(aun === null, "la foto para Basic no debe quedar para Realify");
-  await b2.close(); await ios.close();
-}
+/* El iPhone con las apps instaladas (cada una con su almacenamiento) va aparte: tests/basic/relevo.mjs. */
 
 /* ── Entradas en Realify ── */
 const reg = await real.evaluate(async () => { const C = await import("/js/core/commands.js"); const m = await import("/js/ui/menu/data.js"); const a = m.MENUS.find(x => x.label === "Archivo").items.map(i => i.cmd); return { a: a.includes("file.toBasic") && a.includes("file.openBasic"), run: typeof (C.commands?.["file.toBasic"] ?? C.getCommand?.("file.toBasic") ?? true) }; });

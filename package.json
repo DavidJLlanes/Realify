@@ -18,7 +18,7 @@
     "check:docs": "node tools/verify/docs-links.mjs",
     "check:aislamiento": "node tools/verify/aislamiento.mjs",
     "check:size": "node tools/verify/file-size.mjs",
-    "test:basic": "node tests/basic/esqueleto.mjs && node tests/basic/interfaz.mjs && node tests/basic/ajustar.mjs && node tests/basic/recortar.mjs && node tests/basic/estilos.mjs && node tests/basic/traspaso.mjs",
+    "test:basic": "node tests/basic/esqueleto.mjs && node tests/basic/interfaz.mjs && node tests/basic/ajustar.mjs && node tests/basic/recortar.mjs && node tests/basic/estilos.mjs && node tests/basic/traspaso.mjs && node tests/basic/relevo.mjs",
     "test:exif": "node tests/exif-coherente.mjs",
     "test:unmark": "node tests/unmark/banco.mjs --umbral",
     "test:video": "node tests/video/proyecto.mjs && node tests/video/timeline.mjs && node tests/video/registro.mjs && node tests/video/medios.mjs && node tests/video/render.mjs && node tests/video/editor.mjs && node tests/video/inicio.mjs && node tests/video/color-gl.mjs && node tests/video/guardado.mjs && node tests/video/efectos.mjs && node tests/video/ia-estabilizacion.mjs && node tests/video/audio.mjs && node tests/video/menu.mjs",

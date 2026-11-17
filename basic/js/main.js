@@ -5,7 +5,7 @@
    Límites: ≤ 40 líneas; aquí no se calcula ni se pinta nada.
    ═══════════════════════════════════════════════════════════════ */
 import { iniciarDispositivo } from "./app/device.js";
-import { escucharEntradas, guardarCopia, pedirArchivo, pegarFoto } from "./app/files.js";
+import { escucharEntradas, guardarCopia, pedirArchivo } from "./app/files.js";
 import { crearAcciones } from "./app/acciones.js";
 import { cerrar } from "./app/session.js";
 import { iniciarTraspaso } from "./app/traspaso.js";
@@ -26,7 +26,7 @@ const guardar = async () => { if (await guardarCopia()) avisar("Copia guardada")
 iniciarDispositivo();
 iniciarRender();
 const visor = montarVisor(escenario);
-montarBienvenida(escenario, { alAbrir: pedirArchivo, alPegar: pegarFoto });
+montarBienvenida(escenario, { alAbrir: pedirArchivo });
 montarBarraSuperior(escenario, { alCerrar: cerrar, alGuardar: guardar, acciones: crearAcciones({ guardar, avisar }) });
 montarPanel(escenario, visor);
 montarPestanas(escenario);

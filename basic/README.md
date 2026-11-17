@@ -14,9 +14,9 @@ basic/
 ├─ css/   tokens.css · shell.css (colocación) · controls.css (aspecto de los mandos)
 └─ js/
    ├─ main.js                         arranque: sólo conecta piezas
-   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · transformar (geometría) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js) · device · pwa
+   ├─ app/     store · session (original + receta + historial) · render (vista previa y final) · transformar (geometría) · files · acciones (menú) · traspaso (a Realify; mecánica en js/core/handoff.js y, en el iPhone instalado, relevo por el servidor en js/core/relevo.js + server/traspaso/) · device · pwa
    ├─ engine/  pipeline (etapas y caché) · color · tono · detalle · vineta · estilo · geometria · auto · neutra · worker      (sin DOM)
-   ├─ ui/      viewport · gestos · topbar · tabbar · panel · ruler · strip · menu · bienvenida · aviso · atajos · icons · dom
+   ├─ ui/      viewport · gestos · topbar · tabbar · panel · ruler · strip · menu · bienvenida · aviso · codigo (emparejar en el iPhone) · atajos · icons · dom
    └─ tabs/    index.js (tabla de pestañas) · adjust/{params,panel}.js · crop/{params,panel,overlay}.js · looks/{panel,thumbs}.js
 ```
 
@@ -29,4 +29,4 @@ basic/
 - Siempre calidad Premium, sin interruptor. Archivos ≤ 250 líneas, banner `═` en español, sin código duplicado.
 
 ## Pruebas
-`npm run test:basic` (esqueleto, interfaz, ajustar, recortar, estilos, traspaso; móvil y escritorio) y `npm run verify`.
+`npm run test:basic` (esqueleto, interfaz, ajustar, recortar, estilos, traspaso, relevo; móvil y escritorio) y `npm run verify`.

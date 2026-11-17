@@ -9,6 +9,13 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 346) · Paso automático de fotos entre las dos apps del iPhone
+- **Sin pegar**: en el iPhone con las apps instaladas, «Abrir en Realify» / «Abrir en Realify Basic» envía la foto **cifrada** (AES-GCM, en el móvil) a un buzón de paso en realify.es y la otra app la **recoge sola** al abrirse o volver a primer plano. Se retira el sistema de copiar y pegar de la 345 (botón y entrada «Pegar foto» de Basic).
+- **Emparejar una vez**: la primera vez, la app que envía enseña un código de 6 cifras y la otra lo pide al abrirse; desde entonces el paso es automático en los dos sentidos.
+- **Servidor** `server/traspaso/` (Python, sólo biblioteca estándar, como el de informes): todo en memoria, la foto se borra al entregarla o a los 15 min; topes de tamaño (40 MB), memoria y peticiones por IP; sin registros. Por el servidor viaja en PNG si cabe en 15 MB y, si no, en JPEG al 95 %.
+- Los service workers de las dos apps no guardan nunca respuestas de `/api/`.
+- Prueba nueva `tests/basic/relevo.mjs` (dos contextos de navegador aislados, como el iPhone, con el servicio real). Escritorio y Android no cambian.
+
 ### 2.1.0 (compilación 345) · La foto llega de verdad entre las dos apps del iPhone
 - **Causa**: en el iPhone las dos apps instaladas no comparten almacenamiento, así que la foto guardada por una no la veía la otra.
 - **Ahora**: con las apps instaladas, «Abrir en Realify» / «Abrir en Realify Basic» copia la foto (PNG) al portapapeles dentro del propio toque y además la deja en el almacén compartido (por si el sistema sí lo comparte). Al abrir la otra app desde su icono, la foto aparece sola si hubo almacén compartido; si no, se pulsa **Pegar foto** (Basic: inicio y menú ···) o **Pegar imagen** (Realify).

@@ -26,8 +26,9 @@ export const basicTopic = { id:"basic", title:"Realify Basic (la app sencilla)",
         <li id="basic-traspaso"><b>Pasar la foto de una app a otra.</b> En Realify: <b>Archivo → Abrir en Realify Basic…</b> (y en el cajón
           «Herramientas» del móvil). En Basic: menú <b>···</b> → <b>Abrir en Realify</b>. La foto llega con la edición aplicada, como PNG sin
           pérdida. <b>Cambiar a Realify / Cambiar a Realify Basic</b> solo abre la otra app. En el iPhone, con las dos apps
-          instaladas, no se puede abrir una app desde la otra: la foto se copia al portapapeles y queda guardada: abre la otra app desde su icono y, si la foto no aparece sola,
-          pulsa <b>Pegar foto</b> (Basic: pantalla inicial o menú <b>···</b>) o <b>Pegar imagen</b> (Realify) y acepta el pegado de iOS.</li>
+          instaladas, no se puede abrir una app desde la otra: cada una tiene su propio almacenamiento, así que la foto viaja cifrada por realify.es y llega sola al abrir la otra
+          app desde su icono (espera a que termine «Enviando la foto…»). La primera vez la app que envía enseña un código de 6 cifras y la
+          otra lo pide: se escribe una vez y quedan emparejadas. La foto se borra del servidor al entregarla.</li>
         <li><b>Atajos (escritorio).</b> <b>Ctrl/⌘+Z</b> deshace, <b>Mayús+Z</b> rehace, <b>O</b> abre y <b>S</b> guarda.</li>
       </ul>`
 };

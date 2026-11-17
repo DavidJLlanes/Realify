@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
    REALIFY BASIC · ARCHIVOS
    Abrir una foto (selector, arrastrar y soltar o pegar) y guardar una copia (hoja de compartir del móvil o descarga).
-   Entradas: pedirArchivo() · pegarFoto() · abrirArchivo(file) · guardarCopia() · escucharEntradas(elemento).
+   Entradas: pedirArchivo() · abrirArchivo(file) · guardarCopia() · escucharEntradas(elemento).
    Salidas: la foto queda en app/session.js. Los formatos que sabe abrir son los de Realify (HEIC, TIFF, RAW, PSD, JXL…).
    Límites: iOS no admite lienzos de más de 16 Mpx, así que una foto mayor se reduce a ese tamaño al abrirla.
    ═══════════════════════════════════════════════════════════════ */
@@ -34,18 +34,6 @@ function crearEntrada() {
   entrada.addEventListener("change", () => { const f = entrada.files[0]; entrada.value = ""; if (f) abrirArchivo(f).catch(error); });
   document.body.append(entrada);
   return entrada;
-}
-
-/** Pega la foto del portapapeles (la que copió Realify con «Abrir en Realify Basic»). Debe llamarse en un toque: iOS pide confirmar el pegado. */
-export async function pegarFoto() {
-  if (!navigator.clipboard?.read) { error(new Error("Este navegador no deja leer el portapapeles")); return; }
-  try {
-    for (const item of await navigator.clipboard.read()) {
-      const tipo = item.types.find(t => t.startsWith("image/"));
-      if (tipo) return await abrirArchivo(new File([await item.getType(tipo)], "portapapeles.png", { type: tipo }));
-    }
-    error(new Error("El portapapeles no tiene ninguna foto"));
-  } catch (e) { error(e); }
 }
 
 export function pedirArchivo() { crearEntrada().click(); }

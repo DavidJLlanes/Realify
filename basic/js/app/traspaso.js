@@ -1,37 +1,52 @@
 /* ═══════════════════════════════════════════════════════════════
    REALIFY BASIC · TRASPASO A REALIFY
-   Envía la foto editada (resultado final a resolución completa, PNG sin pérdida) a Realify y la abre allí, o sólo cambia de app. También
-   recibe la foto que Realify le manda con «Abrir en Realify Basic», tanto si Basic se abrió para ello como si ya estaba abierta.
-   Entradas: iniciarTraspaso(avisar) · enviarARealify(avisar) · irARealify(). Salidas: la foto recibida queda en app/session.js.
-   Límites: la mecánica (almacén compartido y canal) es js/core/handoff.js; aquí sólo se conecta con la sesión y los avisos.
+   Envía la foto editada (resultado final a resolución completa) a Realify y la abre allí, o sólo cambia de app. También recibe la foto
+   que Realify le manda con «Abrir en Realify Basic», tanto si Basic se abrió para ello como si ya estaba abierta.
+   En el iPhone con las apps instaladas (cada una con su almacenamiento) la foto viaja cifrada por realify.es y llega sola; la primera
+   vez se emparejan las dos apps con un código de 6 cifras.
+   Entradas: iniciarTraspaso(avisar) · enviarARealify(avisar) · irARealify(avisar). Salidas: la foto recibida queda en app/session.js.
+   Límites: la mecánica es js/core/handoff.js (mismo almacenamiento) y js/core/relevo.js (servidor); aquí sólo sesión y avisos.
    ═══════════════════════════════════════════════════════════════ */
 import { abrirArchivo } from "./files.js";
 import { renderFinal } from "./render.js";
 import { leer } from "./store.js";
+import { ensenarCodigo, pedirCodigo } from "../ui/codigo.js";
 
-import { abrirApp, copiarFoto, dejarFoto, escucharTraspaso, recibirAlArrancar, reservarVentana, traspasar, usaPortapapeles } from "../../../js/core/handoff.js";
-const abrirRecibida = async t => { await abrirArchivo(new File([t.blob], `${t.nombre || "foto"}.png`, { type: "image/png" })); };
+import { abrirApp, escucharTraspaso, recibirAlArrancar, reservarVentana, traspasar } from "../../../js/core/handoff.js";
+import { enviarRelevo, escucharRelevo, usaRelevo } from "../../../js/core/relevo.js";
+
+const OTRA = { realify: "Realify" };
+const extension = t => (t?.blob?.type === "image/jpeg" ? ".jpg" : ".png");
+const abrirRecibida = async t => { await abrirArchivo(new File([t.blob], `${t.nombre || "foto"}${extension(t)}`, { type: t.blob.type || "image/png" })); };
 
 export async function iniciarTraspaso(avisar) {
-  escucharTraspaso("basic", async t => { await abrirRecibida(t); avisar("Foto recibida de Realify"); });
+  const recibida = async t => { await abrirRecibida(t); avisar("Foto recibida de Realify"); };
+  escucharTraspaso("basic", recibida);
+  escucharRelevo("basic", { pedirCodigo: de => pedirCodigo(OTRA[de] || "Realify"), alRecibir: recibida });
   const r = await recibirAlArrancar("basic");
-  if (r.traspaso) { await abrirRecibida(r.traspaso); avisar("Foto recibida de Realify"); }
+  if (r.traspaso) await recibida(r.traspaso);
   else if (r.pedida) avisar("No llegó la foto. Guarda una copia en Realify y ábrela aquí.");
 }
 
-const aPNG = async () => { const l = await renderFinal(); return new Promise(r => l.toBlob(r, "image/png")); };
+const aBlob = (lienzo, tipo, q) => new Promise(r => lienzo.toBlob(r, tipo, q));
+const aPNG = async () => aBlob(await renderFinal(), "image/png");
 
-/* iPhone con las apps instaladas: sin ventanas nuevas. La foto se copia al portapapeles (dentro del toque) y se deja en el almacén; en
-   Realify se recibe sola si comparten almacenamiento, y si no, con «Pegar imagen». */
-async function porPortapapeles(info, avisar) {
-  const blob = aPNG(), copiada = copiarFoto(blob);
-  await dejarFoto("realify", { blob: await blob, nombre: info.nombre });
-  avisar(await copiada ? "Foto copiada. Abre Realify desde su icono: si no aparece sola, pulsa «Pegar imagen»" : "No se pudo copiar. Guarda una copia y ábrela en Realify");
+/* Por el servidor: PNG sin pérdida si cabe en 15 MB; si no, JPEG al 95 % (viaja ida y vuelta por la red del móvil). */
+async function porRelevo(info, avisar) {
+  avisar("Preparando la foto…", { fijo: true });
+  const lienzo = await renderFinal();
+  let blob = await aBlob(lienzo, "image/png");
+  if (blob.size > 15 * 1024 * 1024) blob = await aBlob(lienzo, "image/jpeg", 0.95);
+  try {
+    const r = await enviarRelevo("basic", "realify", { blob, nombre: info.nombre }, { alProgreso: p => avisar(`Enviando la foto… ${Math.round(p * 100)} %`, { fijo: true }) });
+    if (r.codigo) { avisar("Foto lista"); ensenarCodigo(r.codigo, "Realify"); }
+    else avisar("Foto enviada: abre Realify desde su icono");
+  } catch (e) { avisar(e.message || "No se pudo enviar la foto"); }
 }
 
 export async function enviarARealify(avisar) {
   const info = leer().foto;
-  if (info && usaPortapapeles()) return porPortapapeles(info, avisar);
+  if (info && usaRelevo()) return porRelevo(info, avisar);
   const ventana = reservarVentana("realify");      // dentro del toque: iOS no deja abrir ventanas después
   if (!info) { ventana?.close(); return; }
   const blob = await aPNG();

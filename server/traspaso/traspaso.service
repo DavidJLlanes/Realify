@@ -1,0 +1,22 @@
+[Unit]
+Description=Relevo de fotos entre Realify y Realify Basic (/api/traspaso)
+After=network.target
+
+[Service]
+User=traspaso
+Group=traspaso
+Environment=TRASPASO_PORT=8767
+Environment=TRASPASO_MAX_MB=40
+Environment=TRASPASO_TOTAL_MB=600
+ExecStart=/usr/bin/python3 /opt/traspaso/traspaso.py
+Restart=on-failure
+RestartSec=5
+# Todo en memoria: sin escritura en disco
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+MemoryMax=900M
+
+[Install]
+WantedBy=multi-user.target

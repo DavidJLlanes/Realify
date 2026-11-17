@@ -2,38 +2,65 @@
    E/S · TRASPASO DESDE REALIFY BASIC
    Recibe la foto que Realify Basic deja con «Abrir en Realify» y la abre como un documento nuevo, tanto si Realify se abrió para ello
    (?recibir=1) como si ya estaba abierto (aviso por BroadcastChannel). También envía el documento actual a Basic.
-   Entradas: initHandoff() (al arrancar) · sendToBasic() · openBasic(). Salidas: abre el documento / la otra app.
-   Límites: el envío es el documento aplanado a su tamaño completo, en PNG (sin pérdida).
+   En el iPhone con las apps instaladas (cada una con su almacenamiento) la foto viaja cifrada por realify.es y llega sola; la primera
+   vez se emparejan las dos apps con un código de 6 cifras.
+   Entradas: initHandoff() (al arrancar) · sendToBasic(ventana) · openBasic(ventana). Salidas: abre el documento / la otra app.
+   Límites: el envío es el documento aplanado a su tamaño completo, en PNG (sin pérdida; por el servidor, JPEG 95 % si pasa de 15 MB).
    ═══════════════════════════════════════════════════════════════ */
-import { abrirApp, copiarFoto, dejarFoto, escucharTraspaso, recibirAlArrancar, traspasar, usaPortapapeles } from "../core/handoff.js";
+import { abrirApp, escucharTraspaso, recibirAlArrancar, traspasar } from "../core/handoff.js";
+import { enviarRelevo, escucharRelevo, usaRelevo } from "../core/relevo.js";
 import { doc } from "../core/doc.js";
-import { toast } from "../core/toast.js";
+import { toast, progress } from "../core/toast.js";
+import { dialog } from "../ui/kit/dialog.js";
 import { openFile } from "./open.js";
 
 const AVISO = "Abre Realify Basic desde su icono de inicio";
-const abrirRecibida = t => openFile(new File([t.blob], `${t.nombre || "foto"}.png`, { type: "image/png" })).then(() => toast("Foto recibida de Realify Basic", "ok"));
+const abrirRecibida = t => openFile(new File([t.blob], `${t.nombre || "foto"}${t.blob.type === "image/jpeg" ? ".jpg" : ".png"}`, { type: t.blob.type || "image/png" }))
+  .then(() => toast("Foto recibida de Realify Basic", "ok"));
+
+/* Diálogos del emparejamiento (sólo iPhone con las apps instaladas, una vez). */
+const codigoGrande = c => `<p style="margin:0 0 12px">Abre Realify Basic desde su icono y escribe este código. Solo hace falta una vez: después las fotos pasan solas.</p>
+  <div style="font-size:38px;font-weight:800;letter-spacing:.08em;text-align:center;font-variant-numeric:tabular-nums">${c.slice(0, 3)} ${c.slice(3)}</div>`;
+const ensenarCodigo = c => dialog({ title: "Emparejar con Realify Basic", body: codigoGrande(c), buttons: [{ label: "Entendido", primary: true, value: true }] });
+
+function pedirCodigo(_de, error) {
+  const caja = document.createElement("div");
+  caja.innerHTML = `<p class="hint" style="margin:0 0 10px">Escribe el código que ves en Realify Basic. Solo hace falta una vez.</p>
+    ${error ? `<p style="margin:0 0 10px;color:var(--warn,#f5c542)">${error}</p>` : ""}
+    <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000 000" aria-label="Código"
+      style="width:100%;font-size:28px;font-weight:700;letter-spacing:.12em;text-align:center">`;
+  const campo = caja.querySelector("input");
+  return dialog({ title: "Realify Basic quiere pasarte una foto", body: caja, buttons: [
+    { label: "Ahora no", value: null }, { label: "Emparejar", primary: true, value: "ok" }] }).then(v => (v === "ok" ? campo.value : null));
+}
 
 export async function initHandoff() {
   escucharTraspaso("realify", abrirRecibida);
+  escucharRelevo("realify", { pedirCodigo, alRecibir: abrirRecibida });
   const r = await recibirAlArrancar("realify");
   if (r.traspaso) abrirRecibida(r.traspaso);
   else if (r.pedida) toast("No llegó la foto. Guarda una copia en Basic y ábrela aquí.", "err");
 }
 
-const aPNG = async () => (await import("./export/export.js?v=82")).renderExport({ w: doc.w, h: doc.h, type: "image/png" });
+const exportar = async tipo => (await import("./export/export.js?v=82")).renderExport({ w: doc.w, h: doc.h, type: tipo, quality: 0.95 });
 
-/* iPhone con las apps instaladas: sin ventanas nuevas. Se copia al portapapeles (dentro del toque) y se deja en el almacén; Basic la recibe
-   sola si comparten almacenamiento y, si no, con su botón «Pegar foto». */
-async function porPortapapeles() {
-  const blob = aPNG(), copiada = copiarFoto(blob);
-  await dejarFoto("basic", { blob: await blob, nombre: doc.name || "realify" });
-  toast(await copiada ? "Foto copiada. Abre Realify Basic desde su icono: si no aparece sola, pulsa «Pegar foto»" : "No se pudo copiar. Exporta la foto y ábrela en Realify Basic", "ok");
+/* Por el servidor: hay que esperar a que termine la subida antes de cambiar de app (iOS duerme la que se queda atrás). */
+async function porRelevo() {
+  toast("Preparando la foto…");
+  let blob = await exportar("image/png");
+  if (blob.size > 15 * 1024 * 1024) blob = await exportar("image/jpeg");
+  try {
+    const r = await enviarRelevo("realify", "basic", { blob, nombre: doc.name || "realify" }, { alProgreso: p => { progress(p); toast(`Enviando la foto… ${Math.round(p * 100)} %`); } });
+    progress(null);
+    if (r.codigo) ensenarCodigo(r.codigo);
+    else toast("Foto enviada: abre Realify Basic desde su icono", "ok");
+  } catch (e) { progress(null); toast(e.message || "No se pudo enviar la foto", "err"); }
 }
 
 export async function sendToBasic(ventana) {
   if (!doc.open) { toast("No hay documento abierto"); ventana?.close?.(); return; }
-  if (usaPortapapeles()) return porPortapapeles();
-  const r = await traspasar("basic", { blob: await aPNG(), nombre: doc.name || "realify" }, ventana);
+  if (usaRelevo()) return porRelevo();
+  const r = await traspasar("basic", { blob: await exportar("image/png"), nombre: doc.name || "realify" }, ventana);
   if (r === "enviada") toast("Foto enviada a Realify Basic: cambia a esa ventana", "ok");
 }
 

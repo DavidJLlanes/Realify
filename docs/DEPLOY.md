@@ -74,6 +74,9 @@ En **Settings › Secrets and variables › Actions**:
    ```bash
    curl -I https://realify.es/.git/config
    ```
+5. **Servicios opcionales** (cada uno con su README): informes de error (`server/informe/`) y el relevo de fotos entre
+   Realify y Realify Basic en el iPhone ([`server/traspaso/`](../server/traspaso/README.md)); sin este último, en el iPhone
+   con las apps instaladas «Abrir en …» avisa de que no hay conexión con el servidor.
 
 ## Desplegar a mano
 

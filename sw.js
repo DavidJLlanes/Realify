@@ -16,7 +16,7 @@
    sigue haciendo falta para que `activate` limpie la caché de la
    versión anterior. */
 
-const VERSION = "realify-v345";
+const VERSION = "realify-v346";
 const SHELL = [
   "./",
   "./index.html",
@@ -57,6 +57,7 @@ self.addEventListener("fetch", e => {
   if(req.method !== "GET") return;
   const url = new URL(req.url);
   if(url.origin !== self.location.origin) return;   // las fuentes de Google, etc., tal cual
+  if(url.pathname.startsWith("/api/")) return;        // relevo de fotos e informes: siempre a la red, nunca a la caché
   // El detector necesita la versión de la red. No guardar cada consulta con
   // marca de tiempo ni devolver un manifiesto antiguo cuando no hay conexión.
   if(url.pathname===new URL("./version.json",self.location.href).pathname){

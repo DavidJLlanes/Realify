@@ -1,0 +1,21 @@
+# Relevo de fotos entre Realify y Realify Basic. Dos trozos:
+#
+# 1) En el contexto `http { … }` (p. ej. /etc/nginx/conf.d/realify-traspaso.conf):
+limit_req_zone $binary_remote_addr zone=traspaso:10m rate=2r/s;     # la app mira su buzón cada 3 s durante 30 s al abrirse
+
+# 2) DENTRO del bloque `server { … }` de realify.es (443), ANTES de `location ^~ /api/ { return 404; }`:
+location ^~ /api/traspaso/ {
+    limit_except GET PUT POST { deny all; }
+    limit_req          zone=traspaso burst=40 nodelay;
+    limit_req_status   429;
+    client_max_body_size 40m;
+    proxy_pass         http://127.0.0.1:8767;
+    proxy_http_version 1.1;
+    proxy_set_header   X-Real-IP $remote_addr;
+    proxy_set_header   Connection "";
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
+    proxy_request_buffering on;
+    proxy_buffering    off;
+    access_log         off;              # ni IPs ni rutas de buzón en el registro
+}

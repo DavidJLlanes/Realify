@@ -102,3 +102,17 @@ html[data-dispositivo="escritorio"] .panel { max-width: 640px; }
 .mini { display: block; width: 72px; height: 72px; border-radius: 14px; overflow: hidden; background: var(--cristal); border: 2px solid transparent; }
 .mini canvas { display: block; width: 100%; height: 100%; }
 .ajuste.estilo[aria-selected="true"] .mini { border-color: var(--acento); }
+
+/* ── Ventanita del código de emparejamiento (arriba: el teclado nunca la tapa) ── */
+.hoja-codigo { position: fixed; z-index: 20; left: 50%; top: calc(var(--seguro-arriba) + 64px); transform: translateX(-50%);
+  width: min(360px, calc(100vw - 32px)); display: grid; gap: 12px; padding: 18px; text-align: center;
+  background: var(--cristal); border: 1px solid var(--cristal-borde); border-radius: 22px;
+  -webkit-backdrop-filter: var(--desenfoque); backdrop-filter: var(--desenfoque); box-shadow: 0 10px 36px rgba(0, 0, 0, .45); }
+.hoja-codigo h2 { margin: 0; font-size: 18px; }
+.hoja-codigo p { margin: 0; color: var(--texto-suave); font-size: 14px; }
+.hoja-codigo .hoja-error { color: var(--acento); }
+.codigo-grande { font-size: 38px; font-weight: 800; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.campo-codigo { font: inherit; font-size: 28px; font-weight: 700; letter-spacing: .12em; text-align: center; color: var(--texto); padding: 10px;
+  background: rgba(255, 255, 255, .08); border: 1px solid var(--cristal-borde); border-radius: 14px; outline: none; user-select: text; -webkit-user-select: text; }
+.campo-codigo:focus { border-color: var(--acento); }
+.hoja-botones { display: flex; justify-content: center; gap: 10px; }
