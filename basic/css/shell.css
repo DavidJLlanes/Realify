@@ -11,9 +11,9 @@ html, body { margin: 0; height: 100%; position: fixed; inset: 0; width: 100%; to
 button { font: inherit; touch-action: manipulation; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 [hidden] { display: none !important; }
 
-/* App instalada (iOS): ni `100%` ni `100vh` valen siempre. Con la barra de estado translúcida `100%` se queda corto (hueco bajo las barras) y
-   con la barra opaca `100vh` se pasa (las herramientas quedan cortadas por abajo). --alto es el alto visible medido (innerHeight, app/device.js). */
-@media (display-mode: standalone) { html, body, #stage { height: var(--alto, 100%); } }
+/* App instalada en el iPhone: --alto lo pone app/alto.js (el alto real de la pantalla, aunque iOS encoja la página tras usar el
+   teclado). Sin él, el alto natural de la página. */
+html, body, #stage { height: var(--alto, 100%); }
 #stage { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
 .foto { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
 .foto canvas { display: block; width: 100%; height: 100%; }

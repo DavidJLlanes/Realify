@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 350) · Basic: pantalla completa siempre en el iPhone · zoom inverso
+- **Basic ocupa toda la pantalla en el iPhone instalado, también después de usar el teclado**: iOS encoge la página la primera vez que sale el teclado (p. ej. al escribir el código de emparejar) y no la devuelve hasta cerrar la app: quedaba una franja negra abajo (con `innerHeight`, 349) o las herramientas cortadas (con `100vh`, antes). Nuevo `basic/js/app/alto.js`: detecta la página encogida, obliga a iOS a medir de nuevo (ocultar y mostrar el cuerpo en el mismo fotograma) y, si sigue encogida, usa el último alto bueno guardado o la pantalla entera. Vuelve a mirar al girar, al volver a la app y al cerrar el teclado. Fuera del iPhone instalado no cambia nada. Prueba nueva `tests/basic/alto.mjs`.
+- **Zoom inverso en Basic**: con el pellizco o la rueda se puede alejar la foto hasta un cuarto del tamaño ajustado (queda centrada); el doble toque la vuelve a ajustar. Comprobado en `tests/basic/interfaz.mjs` (móvil y escritorio) y con el recorte.
+
 ### 2.1.0 (compilación 349) · Basic: viñeta más intensa, recorte que desliza, «Realify Pro»
 - **Viñeta de Basic más intensa**: el efecto empieza antes (25 % del radio, antes 40 %), con 100 las esquinas quedan casi negras (antes sólo a ~42 % de brillo) y la fuerza crece más deprisa que el mando (con 50 ya se nota claro). Viñeta negativa (aclarar) algo más fuerte. Mismo tramado sin bandas.
 - **Recorte de Basic**: el cuadro pegado a un borde de la foto ahora se desliza en diagonal (antes, si una de las direcciones chocaba, no se movía nada). Prueba nueva en `tests/basic/recortar.mjs`.

@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
    REALIFY BASIC · GESTOS DEL VISOR
    Zoom y desplazamiento de la foto: pellizco y arrastre con el dedo, rueda y arrastre con el ratón, doble toque o doble clic
-   para acercar y volver. Un toque suelto avisa con alTocar (muestra u oculta las barras).
+   para acercar y volver (si está alejada, el doble toque la vuelve a ajustar). Se puede alejar por debajo del ajuste. Un toque suelto avisa con alTocar (muestra u oculta las barras).
    Entradas: crearGestos(zona, elemento, { alTocar }). Salidas: { ajustar(ancho, alto), reservar(arriba, abajo) (zona libre para mandos superpuestos), encuadrar(), aLogico(evento) → [x, y] en píxeles de la foto }.
    Deja en el elemento la variable CSS --inv (1 / zoom) para que los mandos superpuestos mantengan su tamaño en pantalla.
-   Límites: no pinta la foto (eso es ui/viewport.js); el zoom llega a 8 veces el tamaño ajustado.
+   Límites: no pinta la foto (eso es ui/viewport.js); el zoom va de 0,25 a 8 veces el tamaño ajustado.
    ═══════════════════════════════════════════════════════════════ */
-const MAX_ZOOM = 8;
+const MAX_ZOOM = 8, MIN_ZOOM = 0.25;              // alejar hasta un cuarto del tamaño ajustado (la foto queda centrada)
 
 export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
   let w = 0, h = 0, ra = 0, rb = 0, s = 1, x = 0, y = 0, s0 = 1, ultimoToque = { t: 0, x: 0, y: 0 };
@@ -20,7 +20,7 @@ export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
     y = ah <= H ? (H - ah) / 2 + ra : Math.min(ra, Math.max(H + ra - ah, y));
   }
   function zoomEn(px, py, nuevo) {
-    nuevo = Math.min(s0 * MAX_ZOOM, Math.max(s0, nuevo));
+    nuevo = Math.min(s0 * MAX_ZOOM, Math.max(s0 * MIN_ZOOM, nuevo));
     x = px - (px - x) * (nuevo / s); y = py - (py - y) * (nuevo / s); s = nuevo; limitar(); aplicar();
   }
   function encuadrar() {
@@ -50,7 +50,7 @@ export function crearGestos(zona, el, { alTocar = () => {} } = {}) {
     if (inicio.n === 1 && inicio.mov < 8 && performance.now() - inicio.t < 350) {
       const doble = performance.now() - ultimoToque.t < 300 && Math.hypot(px - ultimoToque.x, py - ultimoToque.y) < 30;
       ultimoToque = { t: doble ? 0 : performance.now(), x: px, y: py };
-      if (doble) zoomEn(px, py, s > s0 * 1.05 ? s0 : s0 * 2.5); else setTimeout(() => { if (ultimoToque.t) alTocar(); }, 300);
+      if (doble) zoomEn(px, py, Math.abs(s / s0 - 1) > 0.05 ? s0 : s0 * 2.5); else setTimeout(() => { if (ultimoToque.t) alTocar(); }, 300);
     }
     if (!dedos.size) inicio = null;
   };

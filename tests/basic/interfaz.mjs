@@ -62,6 +62,14 @@ for (const tipo of ["movil", "escritorio"]) {
   const t0 = await page.evaluate(() => document.querySelector(".foto").style.transform);
   await page.mouse.move(cv.W / 2, cv.H / 2); await page.mouse.wheel(0, -400); await page.waitForTimeout(150);
   exige(await page.evaluate(() => document.querySelector(".foto").style.transform) !== t0, tipo + ": la rueda no hace zoom");
+  /* zoom inverso: alejar por debajo del tamaño ajustado (la foto queda centrada y más pequeña) */
+  const escala = t => +(/scale\(([\d.e-]+)\)/.exec(t) || [])[1];
+  for (let k = 0; k < 6; k++) { await page.mouse.wheel(0, 500); await page.waitForTimeout(60); }
+  const tz = await page.evaluate(() => document.querySelector(".foto").style.transform);
+  exige(escala(tz) < escala(t0) * 0.6, tipo + ": no se puede alejar por debajo del ajuste " + [t0, tz]);
+  await page.mouse.dblclick(cv.W / 2, cv.H / 2); await page.waitForTimeout(300);
+  exige(Math.abs(escala(await page.evaluate(() => document.querySelector(".foto").style.transform)) / escala(t0) - 1) < 0.01, tipo + ": doble toque no vuelve al ajuste tras alejar");
+  await page.waitForTimeout(400);
   await page.mouse.click(cv.W / 2, cv.H / 2); await page.waitForTimeout(600);
   exige(await page.evaluate(() => document.documentElement.classList.contains("barras-ocultas")), tipo + ": un toque no oculta las barras");
   await page.mouse.click(cv.W / 2, cv.H / 2); await page.waitForTimeout(600);
