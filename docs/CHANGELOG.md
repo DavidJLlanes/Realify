@@ -9,6 +9,9 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 342) · Acceso a Realify Basic
+- **Pantalla «Sin documento abierto»**: nuevo botón destacado «Realify Basic» (cristal translúcido sobre degradado cálido, como la app) que abre la app sencilla de fotos; distinto del resto de botones.
+
 ### 2.1.0 (compilación 341) · Realify Basic
 - **Doble toque o doble clic en un ajuste lo pone a cero**: en Ajustar (cada ajuste) y en Recortar (Enderezar, Vertical y Horizontal). El primer toque sigue eligiéndolo.
 
