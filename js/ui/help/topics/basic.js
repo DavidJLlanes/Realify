@@ -13,7 +13,7 @@ export const basicTopic = { id:"basic", title:"Realify Basic (la app sencilla)",
       <ul>
         <li><b>Abrir.</b> Elige una foto (también HEIC, TIFF, RAW, PSD…), arrástrala a la ventana o pégala. <b>Cancelar</b> la cierra y
           <b>OK</b> guarda una copia (en el móvil, con la hoja de compartir). Un toque en la foto oculta las barras; pellizco, rueda o
-          doble toque hacen zoom (también para alejar por debajo del tamaño de la pantalla; el doble toque la vuelve a ajustar).</li>
+          doble toque hacen zoom (también para alejar por debajo del tamaño de la pantalla); arrastrando se mueve la foto a cualquier zoom para ver detalles y el doble toque la vuelve a ajustar y centrar.</li>
         <li><b>Ajustar.</b> <b>Auto</b> y 15 ajustes con una regla: Exposición, Brillantez, Luces altas, Sombras, Contraste, Brillo,
           Punto negro, Saturación, Intensidad, Temperatura, Tinte, Nitidez, Definición, Reducir ruido y Viñeta. El anillo de cada
           ajuste muestra su valor; doble toque o doble clic en el ajuste, o en la regla, lo pone a 0.</li>

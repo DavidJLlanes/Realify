@@ -5,7 +5,7 @@
    El contador de compilación es EL MISMO que el de Realify (se sube en las dos a la vez).
    Límites: sólo borra cachés propias («realify-basic-…»); las de Realify no se tocan.
    ═══════════════════════════════════════════════════════════════ */
-const VERSION = "realify-basic-v352";
+const VERSION = "realify-basic-v353";
 const PREFIJO = "realify-basic-";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./css/tokens.css", "./css/shell.css", "./css/controls.css",
   "./js/main.js?v=" + VERSION.match(/v(\d+)/)[1]];

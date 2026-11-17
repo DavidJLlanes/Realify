@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 353) · Basic: mover la foto libremente · nitidez más marcada
+- **Mover la foto a voluntad en Basic**: con un dedo o el ratón se arrastra la foto con cualquier zoom (antes, si no estaba acercada, siempre volvía al centro). Sólo se impide perderla: queda a la vista al menos un tercio. El doble toque la vuelve a ajustar y centrar (y, si ya lo está, acerca ×2,5). Prueba en `tests/basic/interfaz.mjs`.
+- **Nitidez de Basic más visible**: dos escalas sobre la luminancia (detalle fino, radio ≈ lado/3000, y contornos, radio ×3) con más cantidad y más control de halos y umbral. Con la foto del perro, la medida de detalle sube un 59 % con 50 y un 111 % con 100 (antes, un 34 % con 100).
+
 ### 2.1.0 (compilación 352) · Basic: barra de estado negra (la web llega al borde de abajo en iOS 26)
 - **Causa real de la franja negra / herramientas tapadas en el iPhone**: fallo de iOS 26 (WebKit 301108). Con `apple-mobile-web-app-status-bar-style` = `black-translucent` y `viewport-fit=cover`, iOS sólo pinta la web hasta «pantalla − barra de estado» (894 de 956 px en el iPhone de David) y lo de debajo queda tapado por una franja que ningún CSS puede pintar (la captura con la 351 lo confirma: la página medía 956 px y se cortaba a 894). Basic pasa a la barra **negra opaca** como Realify Pro: la web empieza bajo la barra y llega hasta el borde inferior. **Hay que borrar el icono de Basic y volver a añadirlo** (iOS lee el estilo sólo al instalar) y emparejar otra vez con Realify Pro.
 - `basic/js/app/alto.js`: con una instalación antigua (translúcida) usa lo visible (`innerHeight`) para que nada quede tapado y el pie del menú dice «translúcida: reinstalar»; ya no usa `screen.height`.

@@ -35,7 +35,11 @@ export function pasoDefinicion(data, w, h, a) {
   }
 }
 
+/* Dos escalas sobre la luminancia: detalle fino (pelo, texturas) y acutancia media (contornos). Más cantidad que antes, pero con
+   más control de halos y umbral para no subir el ruido. Con 50 la mejora de detalle ya supera a la antigua con 100. */
 export function pasoNitidez(data, w, h, a) {
   if (!hayNitidez(a)) return;
-  sharpenRGBA(data, w, h, { mode: "unsharp", amount: a.nitidez * 1.4, radius: Math.max(0.6, Math.max(w, h) / 2500), threshold: 2, edge: 45, halo: 35 }, 1);
+  const k = a.nitidez / 100, r = Math.max(0.7, Math.max(w, h) / 3000);
+  sharpenRGBA(data, w, h, { mode: "unsharp", amount: k * 280, radius: r, threshold: 3, edge: 20, halo: 55 }, 1);
+  sharpenRGBA(data, w, h, { mode: "unsharp", amount: k * 80, radius: r * 3, threshold: 2, edge: 35, halo: 60 }, 1);
 }

@@ -70,6 +70,16 @@ for (const tipo of ["movil", "escritorio"]) {
   await page.mouse.dblclick(cv.W / 2, cv.H / 2); await page.waitForTimeout(300);
   exige(Math.abs(escala(await page.evaluate(() => document.querySelector(".foto").style.transform)) / escala(t0) - 1) < 0.01, tipo + ": doble toque no vuelve al ajuste tras alejar");
   await page.waitForTimeout(400);
+  /* mover la foto a voluntad: acercar, arrastrar (la foto se desplaza con el dedo) y doble toque para volver centrada */
+  const mov = t => (/translate\(([-\d.e]+)px, ([-\d.e]+)px\)/.exec(t) || []).slice(1).map(Number);
+  await page.mouse.move(cv.W / 2, cv.H / 2); await page.mouse.wheel(0, -500); await page.waitForTimeout(150);
+  const ta = mov(await page.evaluate(() => document.querySelector(".foto").style.transform));
+  await page.mouse.move(cv.W / 2, cv.H / 2); await page.mouse.down(); await page.mouse.move(cv.W / 2 + 70, cv.H / 2 + 50, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(200);
+  const tb = mov(await page.evaluate(() => document.querySelector(".foto").style.transform));
+  exige(Math.abs(tb[0] - ta[0] - 70) < 2 && Math.abs(tb[1] - ta[1] - 50) < 2, tipo + ": arrastrar no mueve la foto acercada " + [ta, tb]);
+  await page.mouse.dblclick(cv.W / 2, cv.H / 2); await page.waitForTimeout(300);
+  exige(await page.evaluate(() => document.querySelector(".foto").style.transform) === t0, tipo + ": doble toque no vuelve a la foto ajustada y centrada");
+  await page.waitForTimeout(400);
   await page.mouse.click(cv.W / 2, cv.H / 2); await page.waitForTimeout(600);
   exige(await page.evaluate(() => document.documentElement.classList.contains("barras-ocultas")), tipo + ": un toque no oculta las barras");
   await page.mouse.click(cv.W / 2, cv.H / 2); await page.waitForTimeout(600);
