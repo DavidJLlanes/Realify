@@ -62,7 +62,7 @@ const BASE = `http://127.0.0.1:${server.address().port}/`;
 
 const MAE_MAX = 3;          // diferencia media admitida (0-255) frente al cálculo completo
 /* GPU por software para los filtros WebGL2 en equipos sin GPU (Cámaras, Vintage…); sin Chromium propio se usa Edge. */
-const LAUNCH = { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] };
+const LAUNCH = { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"], ...(process.env.CHROME_EXE ? { executablePath: process.env.CHROME_EXE } : {}) };
 const browser = await chromium.launch(LAUNCH).catch(() => chromium.launch({ ...LAUNCH, channel: "msedge" }));
 let failed = false;
 
@@ -89,6 +89,7 @@ for(const cmd of cmds) for(const mobile of [false, true]){
   const mode = mobile ? "móvil" : "escritorio";
   const ctx = await browser.newContext(mobile ? { viewport:{ width:390, height:844 }, isMobile:true, hasTouch:true } : { viewport:{ width:1280, height:800 } });
   const page = await ctx.newPage();
+  if(process.env.PREMIUM) await page.addInitScript(() => { try{ for(const k of ["vignette","sharpen","clarity","exposure","vibrance"]) localStorage.setItem("realify.premium." + k, "1"); }catch{} });
   const errs = [];
   page.on("pageerror", e => errs.push(e.message));
   page.on("dialog", d => d.dismiss().catch(() => {}));

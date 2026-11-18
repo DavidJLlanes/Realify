@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 356) · Viñeteado Premium 👑 con el motor de Basic (sin código duplicado)
+- **Viñeteado (Pro)**: nuevo interruptor Premium 👑 que usa el motor de píxeles de Basic: caída suave, luz lineal y tramado (sin anillo ni bandas en cielos y degradados). Apagado, queda exactamente igual que antes.
+- **Motor compartido** `js/filters/library/basic/vignette-engine.js` (sin DOM); `basic/js/engine/vineta.js` ya sólo traduce el mando de Basic a sus parámetros. Resultado de Basic idéntico (diferencia 0 frente al anterior).
+- Pruebas: `tests/calidad-herramienta.mjs` admite `CHROME_EXE` y `PREMIUM=1` (comprueba el modo Premium).
+
 ### 2.1.0 (compilación 355) · Auditoría de errores
 - **Basic, gestos**: un toque con un pequeño temblor (< 8 px) ya no desplaza la foto (zona muerta; el movimiento acumulado se aplica al superarla). Prueba nueva en `tests/basic/interfaz.mjs`.
 - **Basic, viñeta 3,6 veces más rápida** en la foto final (12 MP: 2,5 s → 0,7 s): la ganancia se tabula en lugar de elevar a una potencia en cada píxel y se evita `Math.hypot`. Resultado idéntico (diferencia máxima de 1 nivel).

@@ -6,6 +6,8 @@
 import { slider } from "../../../editor/adjust/adjust.js";
 import { hexToRgb } from "../../../editor/tools/paint.js";
 import { runFilter } from "./common.js";
+import { vineteaPixeles } from "./vignette-engine.js";
+import { premiumPref, premiumSwitch } from "../../../ui/kit/premium.js";
 
 /* ── viñeteado ──────────────────────────────────────────────────
    Un velo que crece del centro al borde y se mezcla con la foto:
@@ -37,7 +39,7 @@ export function vignetteRamp(p){
 }
 
 export function vignette(opts = {}){
-  const p = { kind: "black", color: "#3a2a18", amount: 45, size: 40, feather: 70, opacity: 100, roundness: 100, ...opts.init };
+  const p = { kind: "black", color: "#3a2a18", amount: 45, size: 40, feather: 70, opacity: 100, roundness: 100, premium: opts.init ? !!opts.init.premium : premiumPref.get("vignette"), ...opts.init };
 
   return runFilter({
     title: "Viñeteado",
@@ -59,6 +61,8 @@ export function vignette(opts = {}){
       box.appendChild(slider("Pluma", 0, 100, p.feather, v => { p.feather = v; preview(); }, "%"));
       box.appendChild(slider("Redondez", 0, 100, p.roundness, v => { p.roundness = v; preview(); }, "%"));
       box.appendChild(slider("Opacidad", 0, 100, p.opacity, v => { p.opacity = v; preview(); }, "%"));
+
+      box.prepend(premiumSwitch({ checked: p.premium, title: "Viñeteado Premium: luz lineal, caída suave y tramado (sin anillo ni bandas en cielos y degradados)", onChange: on => { p.premium = on; premiumPref.set("vignette", on); preview(); } }));
 
       box.querySelector("#vgKind").addEventListener("click", e => {
         const b = e.target.closest("[data-k]");
@@ -91,6 +95,14 @@ export function vignette(opts = {}){
       const sx = ax * rmax, sy = ay * rmax;       // semiejes (px) donde el radio vale 1
 
       const [r0, r1] = vignetteRamp(p);
+
+      /* Premium: mismo motor que Realify Basic (vignette-engine.js), por píxel: luz lineal y tramado. */
+      if(p.premium){
+        const img = x.getImageData(0, 0, w, h);
+        vineteaPixeles(img.data, w, h, { modo: p.kind === "black" ? "oscuro" : "lineal", alfa: strength, color: col, inicio: r0, fin: r1, redondez: t });
+        x.putImageData(img, 0, 0);
+        return;
+      }
       const rgb = `${col[0]},${col[1]},${col[2]}`;
       const g = x.createRadialGradient(0, 0, 0, 0, 0, 1);
       g.addColorStop(0, `rgba(${rgb},0)`);

@@ -66,7 +66,7 @@ export const filtrosTopic = { id:"filtros", title:"Filtros (menú Filtro)",
           centro, en negro, blanco o un color libre. «Cantidad» es lo que se cierra en las
           esquinas; «Zona clara», hasta dónde no se toca nada; «Pluma», lo suave de la
           transición (más pluma = más suave, sin anillo visible); «Opacidad» rebaja todo el
-          efecto. «Redondez» controla la forma: al 100 % es un círculo; bajarla lo ajusta
+          efecto. Con el interruptor <b>Premium 👑</b> se calcula por píxel en luz lineal y con tramado (mismo motor que Realify Basic). «Redondez» controla la forma: al 100 % es un círculo; bajarla lo ajusta
           a la proporción del lienzo —útil en panorámicas y retratos muy verticales—. No
           pinta sobre las zonas transparentes de la capa.</li>
         <li><b>Textura › Desplazamiento / mínimo / máximo…</b> Desplaza la imagen con
