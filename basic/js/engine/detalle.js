@@ -30,6 +30,5 @@ export function pasoDefinicion(data, w, h, a) {
 export function pasoNitidez(data, w, h, a) {
   if (!hayNitidez(a)) return;
   const k = a.nitidez / 100, r = Math.max(0.7, Math.max(w, h) / 3000);
-  sharpenRGBA(data, w, h, { mode: "unsharp", amount: k * 280, radius: r, threshold: 3, edge: 20, halo: 55 }, 1);
-  sharpenRGBA(data, w, h, { mode: "unsharp", amount: k * 80, radius: r * 3, threshold: 2, edge: 35, halo: 60 }, 1);
+  sharpenRGBA(data, w, h, { mode: "dual", amount: k * 280, radius: r, threshold: 3 }, 1);     // receta de dos escalas compartida con el enfoque Premium de Pro
 }

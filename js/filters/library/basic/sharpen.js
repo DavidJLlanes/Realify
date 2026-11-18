@@ -13,14 +13,14 @@ let premiumSharpenWorker = null, premiumSharpenSeq = 0;
 const premiumSharpenJobs = new Map();
 
 function sharpenPremium(data, w, h, p, scale=1){
-  if(typeof Worker === "undefined") return import("../sharpen-engine.js").then(({sharpenRGBA}) => sharpenRGBA(data, w, h, { mode:"unsharp", amount:p.amount, radius:p.radius, threshold:p.threshold, edge:45, halo:35 }, scale));
+  if(typeof Worker === "undefined") return import("../sharpen-engine.js").then(({sharpenRGBA}) => sharpenRGBA(data, w, h, { mode:"dual", amount:p.amount, radius:p.radius, threshold:p.threshold }, scale));
   if(!premiumSharpenWorker){
     premiumSharpenWorker = new Worker(new URL("../sharpen-worker.js", import.meta.url), { type:"module" });
     premiumSharpenWorker.onmessage = e => { const job=premiumSharpenJobs.get(e.data.id); if(!job) return; premiumSharpenJobs.delete(e.data.id); e.data.error ? job.reject(new Error(e.data.error)) : job.resolve(new Uint8ClampedArray(e.data.data)); };
     premiumSharpenWorker.onerror = () => { for(const job of premiumSharpenJobs.values()) job.reject(new Error("No se pudo ejecutar el enfoque Premium")); premiumSharpenJobs.clear(); premiumSharpenWorker?.terminate(); premiumSharpenWorker=null; };
   }
   const id=++premiumSharpenSeq, copy=data.slice();
-  return new Promise((resolve,reject)=>{ premiumSharpenJobs.set(id,{resolve,reject}); premiumSharpenWorker.postMessage({ id, data:copy.buffer, w, h, scale, p:{mode:"unsharp",amount:p.amount,radius:p.radius,threshold:p.threshold,edge:45,halo:35} },[copy.buffer]); });
+  return new Promise((resolve,reject)=>{ premiumSharpenJobs.set(id,{resolve,reject}); premiumSharpenWorker.postMessage({ id, data:copy.buffer, w, h, scale, p:{mode:"dual",amount:p.amount,radius:p.radius,threshold:p.threshold} },[copy.buffer]); });
 }
 
 /* El filtro nativo `blur()` de Canvas 2D trata todo lo que hay MÁS

@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 358) · Enfoque Premium 👑 de Pro con la receta de dos escalas de Basic
+- **Enfocar (Pro), con Premium encendido**: ahora usa la receta de dos escalas de Basic (detalle fino + acutancia media, con protección de bordes y de halos y umbral). Apagado, queda exactamente igual que antes.
+- **Receta compartida** en `js/filters/library/sharpen-engine.js` (`sharpenDosEscalas`, modo `"dual"`); `pasoNitidez` de Basic la llama en vez de repetirla. Resultado de Basic idéntico (diferencia 0).
+
 ### 2.1.0 (compilación 357) · Claridad y Definición con un solo motor
 - **Motor compartido** `js/filters/library/basic/clarity-engine.js` (sin DOM): filtro guiado, dos franjas y peso de medios tonos. «Detalle y estructura» (Pro) y «Definición» (Basic) lo usan; se elimina la copia del bucle en Basic. `guidedBase` sigue exportándose desde `clarity.js`.
 - Resultados idénticos a los anteriores en Pro y en Basic (diferencia 0). No se añade interruptor Premium: el algoritmo de Pro ya era el mismo que el de Basic, así que no habría nada que mejorar.

@@ -143,6 +143,7 @@ export function sharpenMargin(p, scale = 1){
  * scale: factor de la copia reducida de la vista previa (1 = tamaño real).
  */
 export function sharpenRGBA(data, w, h, p, scale = 1){
+  if(p.mode === "dual") return sharpenDosEscalas(data, w, h, p, scale);
   const n = w * h, Y = new Float32Array(n);
   for(let i = 0, j = 0; i < n; i++, j += 4) Y[i] = 0.299 * data[j] + 0.587 * data[j + 1] + 0.114 * data[j + 2];
   const r = Math.max(0.1, p.radius * scale);
@@ -204,4 +205,13 @@ export function sharpenRGBA(data, w, h, p, scale = 1){
     }
   }
   return data;
+}
+
+/* Receta de dos escalas, COMPARTIDA por el enfoque Premium 👑 de Pro y la «Nitidez» de Basic: detalle fino (radio r, cantidad completa)
+   más acutancia media (radio 3r, 80/280 de la cantidad), ambos con protección de bordes y de halos y con umbral para no subir el
+   ruido. p: { amount (%), radius (px), threshold (0–40, por defecto 3) }. */
+function sharpenDosEscalas(data, w, h, p, scale = 1){
+  const th = p.threshold ?? 3;
+  sharpenRGBA(data, w, h, { mode: "unsharp", amount: p.amount, radius: p.radius, threshold: th, edge: 20, halo: 55 }, scale);
+  sharpenRGBA(data, w, h, { mode: "unsharp", amount: p.amount * 80 / 280, radius: p.radius * 3, threshold: Math.min(2, th), edge: 35, halo: 60 }, scale);
 }

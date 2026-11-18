@@ -20,7 +20,7 @@ export const filtrosTopic = { id:"filtros", title:"Filtros (menú Filtro)",
           puedes acercar y mover la imagen —rueda del ratón o pellizco con dos dedos sobre
           el lienzo— para juzgar de cerca un enfoque, un ruido o un borde, sin que el efecto
           se cancele ni se pierdan sus valores.</li>
-        <li><b>Desenfoque gaussiano / Enfocar / Enfoque selectivo.</b> Suavizar,
+        <li><b>Desenfoque gaussiano / Enfocar / Enfoque selectivo.</b> Con el interruptor <b>Premium 👑</b>, Enfocar usa dos escalas (detalle fino y contornos) con protección de bordes y halos, como la Nitidez de Realify Basic. Suavizar,
           endurecer o endurecer sólo el detalle fino sin tocar las zonas planas. Con una imagen de 16 bits, también Desenfoque de superficie, Reducción de ruido por canal, Nitidez inteligente y Desenfoque de lente se calculan sobre los 16 bits.</li>
         <li><b>Máscara de enfoque / estabilizador.</b> Tres métodos sobre la luminancia
           (sin bordes de color): <b>máscara de enfoque</b>, <b>deconvolución de foco</b> para
