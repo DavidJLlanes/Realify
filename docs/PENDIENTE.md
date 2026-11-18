@@ -12,6 +12,14 @@ Leyenda: `[ ]` pendiente · `[~]` en curso · `[x]` hecho.
 ## Resumen de lo pendiente (actualizado en la v260, 6 oct 2026)
 Las fases 1 a 20 están hechas o evaluadas; lo que sigue son los restos de cada una (el detalle está en su fase).
 
+**Calidad de edición (18 nov 2026, esperan la orden del titular)**
+- [ ] **Color Display P3**: por fases. 1) Basic: lienzos `display-p3` donde el navegador lo permita, leer y conservar el perfil ICC al importar (HEIC/JPEG de iPhone), matrices de luz lineal y OKLab en P3 y exportar con perfil o convertir a sRGB. 2) Pro: sólo lo que ya usa los motores Premium compartidos. 3) Opcional: aviso de colores fuera de gama. Riesgos: perfiles ausentes o rotos, mezcla P3/sRGB entre capas, exportar a destinos que no leen el perfil. Pruebas con una foto sRGB, una P3 de iPhone, una sin perfil y una Adobe RGB; el resultado visual hay que mirarlo en un iPhone. Primero una pasada de sólo lectura para medir cuánto código asume sRGB.
+- [ ] Vista previa de Basic mayor o adaptativa a la memoria del dispositivo.
+- [ ] Reducir ruido antes que el resto de pasos en Basic (hoy va después del color y las luces).
+- [ ] Validar el modo Auto de Basic con fotos reales.
+- [ ] Revisar y depurar los looks (estilos) de Basic.
+- [ ] Botón de comparar con el original (mantener pulsado) en Basic.
+
 **Depende del titular**
 - [x] Receptor de informes de error instalado en el VPS (fase 18, 5 oct 2026): servicio `informe` activo, nginx con
       `/api/informe` (snippet `realify-informe.conf` y `limit_req`) y prueba pública `{"ok": true}`; los informes llegan a
