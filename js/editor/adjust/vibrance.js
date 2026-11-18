@@ -13,17 +13,23 @@
 import { runAdjust, slider, pickerGroup } from "./adjust.js";
 import { rgbToHsl, hslToRgb } from "./adjustments.js";
 import { clamp01, bell } from "../../core/util/math.js";
+import { doc } from "../../core/doc.js";
+import { isMobile } from "../../core/device.js";
+import { premiumSwitch, premiumPref } from "../../ui/kit/premium.js";
+import { vibrancePremium } from "./vibrance-engine.js";
 
 
 export function vibrance(opts = {}){
-  const p = { vibrance: 0, saturation: 0, ...opts.init };
+  const p = { vibrance: 0, saturation: 0, premium: opts.init ? false : premiumPref.get("vibrance"), ...opts.init };
 
   return runAdjust({
     title: "Vibrance",
     asLayer: true, filterId: "vibrance", filterParams: p,
-    float: true,
+    float: () => !p.premium,
     previewLimit: 6e5,
-    compute(data){
+    compute(data, w, h){
+      // Premium 👑: saturación y vibrance en OKLab (motor compartido con Realify Basic), luz lineal, mapeo de gama y tramado.
+      if(p.premium){ vibrancePremium(data, p, { fast: w * h < doc.w * doc.h * 0.98 }); return; }
       const vib = p.vibrance / 100, sat = p.saturation / 100;
       if(!vib && !sat) return;
       for(let i = 0; i < data.length; i += 4){
@@ -40,6 +46,10 @@ export function vibrance(opts = {}){
     },
     buildBody({ preview }){
       const box = document.createElement("div");
+      const sw = premiumSwitch({ checked: p.premium, title: "Vibrance de alta calidad: OKLab, luz lineal, protección de la piel, mapeo de gama y tramado (función Premium)",
+        onChange: on => { p.premium = on; premiumPref.set("vibrance", on); preview(); } });
+      sw.classList.add("adj-premium");
+      if(isMobile()){ sw.classList.add("ps-docked"); box.footStart = sw; } else box.appendChild(sw);
       box.appendChild(pickerGroup([
         { label: "Vibrance", node: slider("Vibrance", -100, 100, p.vibrance, v => { p.vibrance = v; preview(); }) },
         { label: "Saturación", node: slider("Saturación", -100, 100, p.saturation, v => { p.saturation = v; preview(); }) }

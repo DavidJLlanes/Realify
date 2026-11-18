@@ -7,10 +7,11 @@
    Salidas: nada (modifica data). rapido = tabla de 33³ colores para la vista previa; sin rapido, exacto color a color.
    Límites: sin DOM. ±2 EV de exposición, hasta 40/255 de punto negro, ±24 % de temperatura y tinte en los extremos.
    ═══════════════════════════════════════════════════════════════ */
-import { applyColorMap, toLab, toRgb } from "../../../js/editor/adjust/premiumcolor.js";
+import { applyColorMap } from "../../../js/editor/adjust/premiumcolor.js";
+import { saturaOKLab } from "../../../js/editor/adjust/vibrance-engine.js";
 import { wbGains } from "../../../js/editor/adjust/adjustments/white-balance.js";
 
-const EV_MAX = 2, NEGRO_MAX = 40, LEVANTA_MAX = 30, WB_ESCALA = 0.6, CROMA_REF = 0.18, VIB_MAX = 0.45;
+const EV_MAX = 2, NEGRO_MAX = 40, LEVANTA_MAX = 30, WB_ESCALA = 0.6, VIB_MAX = 0.45;
 const CLAVES = ["exposicion", "negro", "saturacion", "intensidad", "temperatura", "tinte"];
 
 const aLineal = v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
@@ -39,12 +40,7 @@ export function pasoColor(data, a, { rapido = false } = {}) {
     const r = lin(T, Math.min(319, R * kn)) * gr, gv = lin(T, Math.min(319, G * kn)) * gg, b = lin(T, Math.min(319, B * kn)) * gb;
     if (sat === 1 && !vib) { rgb[0] = r; rgb[1] = gv; rgb[2] = b; }
     else {
-      toLab(Math.max(0, r), Math.max(0, gv), Math.max(0, b), lab);
-      const C = Math.hypot(lab[1], lab[2]), hue = Math.atan2(lab[2], lab[1]) * 180 / Math.PI;
-      const piel = hue > 20 && hue < 80 && C > 0.03 && C < 0.16 ? 0.5 : 1;     // la piel se protege
-      const peso = vib > 0 ? Math.max(0, 1 - C / CROMA_REF) : 0.5 + 0.5 * Math.min(1, C / CROMA_REF);
-      const k = sat * (1 + vib * peso * piel);
-      toRgb(lab[0], lab[1] * k, lab[2] * k, rgb);
+      saturaOKLab(r, gv, b, sat, vib, lab, rgb);               // saturación y vibrance: motor compartido con Vibrance Premium de Pro
     }
     const Y = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
     return Y < 0 ? 0 : Y > 1 ? 1 : Y;

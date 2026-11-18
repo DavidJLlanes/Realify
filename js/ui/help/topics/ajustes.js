@@ -83,7 +83,7 @@ export const ajustesTopic = { id:"ajustes", title:"Ajustes (menú Ajustes)",
           girar el tono conserva la luminosidad de cada color, la saturación 0 da un gris de
           la misma luminosidad, los colores que se salen de la gama pierden croma en vez de
           torcerse y el resultado lleva tramado para que no aparezcan bandas.</li>
-        <li><b>Vibrance.</b> Sube la saturación de los colores apagados más que la de
+        <li><b>Vibrance.</b> Con el interruptor <b>Premium 👑</b> trabaja en OKLab y luz lineal, con mapeo de gama y tramado (como Realify Basic). Sube la saturación de los colores apagados más que la de
           los que ya son vivos —y protege un poco los tonos de piel—, distinto de la
           saturación llana de Tono y saturación.</li>
         <li><b>Color avanzado (submenú).</b>

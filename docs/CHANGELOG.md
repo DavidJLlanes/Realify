@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 359) · Vibrance Premium 👑 con el color de Basic
+- **Vibrance (Pro)**: nuevo interruptor Premium 👑: saturación y vibrance en OKLab, luz lineal, protección de la piel, mapeo de gama y tramado (en móvil, en la barra de Aplicar). Apagado, queda exactamente igual que antes.
+- **Motor compartido** `js/editor/adjust/vibrance-engine.js`; el paso de color de Basic lo usa en vez de repetir el cálculo (resultado idéntico, diferencia 0).
+- **Exposición (Pro)** no cambia: ya trabajaba en luz lineal, igual que Basic, así que no hay nada que añadir.
+
 ### 2.1.0 (compilación 358) · Enfoque Premium 👑 de Pro con la receta de dos escalas de Basic
 - **Enfocar (Pro), con Premium encendido**: ahora usa la receta de dos escalas de Basic (detalle fino + acutancia media, con protección de bordes y de halos y umbral). Apagado, queda exactamente igual que antes.
 - **Receta compartida** en `js/filters/library/sharpen-engine.js` (`sharpenDosEscalas`, modo `"dual"`); `pasoNitidez` de Basic la llama en vez de repetirla. Resultado de Basic idéntico (diferencia 0).
