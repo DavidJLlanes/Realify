@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 357) · Claridad y Definición con un solo motor
+- **Motor compartido** `js/filters/library/basic/clarity-engine.js` (sin DOM): filtro guiado, dos franjas y peso de medios tonos. «Detalle y estructura» (Pro) y «Definición» (Basic) lo usan; se elimina la copia del bucle en Basic. `guidedBase` sigue exportándose desde `clarity.js`.
+- Resultados idénticos a los anteriores en Pro y en Basic (diferencia 0). No se añade interruptor Premium: el algoritmo de Pro ya era el mismo que el de Basic, así que no habría nada que mejorar.
+
 ### 2.1.0 (compilación 356) · Viñeteado Premium 👑 con el motor de Basic (sin código duplicado)
 - **Viñeteado (Pro)**: nuevo interruptor Premium 👑 que usa el motor de píxeles de Basic: caída suave, luz lineal y tramado (sin anillo ni bandas en cielos y degradados). Apagado, queda exactamente igual que antes.
 - **Motor compartido** `js/filters/library/basic/vignette-engine.js` (sin DOM); `basic/js/engine/vineta.js` ya sólo traduce el mando de Basic a sus parámetros. Resultado de Basic idéntico (diferencia 0 frente al anterior).
