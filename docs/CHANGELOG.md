@@ -9,6 +9,8 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+- **Pruebas** (tras la 359): `tests/ia/cuerpo/editor.mjs` ya no da FALLO sin foto real de persona: avisa y sólo comprueba panel, perfiles y errores de página; con `REALIFY_FOTO` hace la prueba completa (mover articulaciones, aplicar, capa transparente).
+
 ### 2.1.0 (compilación 359) · Vibrance Premium 👑 con el color de Basic
 - **Vibrance (Pro)**: nuevo interruptor Premium 👑: saturación y vibrance en OKLab, luz lineal, protección de la piel, mapeo de gama y tramado (en móvil, en la barra de Aplicar). Apagado, queda exactamente igual que antes.
 - **Motor compartido** `js/editor/adjust/vibrance-engine.js`; el paso de color de Basic lo usa en vez de repetir el cálculo (resultado idéntico, diferencia 0).

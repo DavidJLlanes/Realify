@@ -2,7 +2,7 @@
    PRUEBA · editor de cuerpo con los modelos reales (navegador, móvil y escritorio)
    Abre «Silueta y proporciones» sobre una foto de una persona, mueve un mando, aplica y comprueba la capa «Cuerpo · retoque» (con alfa:
    transparente donde no cambia), que el editor se cierra y que el perfil infantil no ofrece pecho, caderas ni glúteos. Foto: REALIFY_FOTO
-   (las fotos de personas NO se suben al repositorio); sin ella sólo se comprueba que no hay errores.
+   (las fotos de personas NO se suben al repositorio); sin ella se avisa y sólo se comprueba el panel, los perfiles y que no hay errores.
    Uso: [REALIFY_FOTO=foto.png] node tests/ia/cuerpo/editor.mjs
    ═══════════════════════════════════════════════════════════════ */
 import fs from "node:fs";
@@ -44,6 +44,14 @@ async function probar(tipo){
     for (const palabra of ["Pecho", "Caderas", "Glúteos", "Musculatura", "Bronceado"]) ok(!txt.includes(palabra), `infantil: aparece «${palabra}»`);
     await m.page.click(".ai-editor button[data-perfil=\"mujer\"]:visible"); await m.page.waitForTimeout(300);
     const adulto = await leer(); ok(adulto.includes("Pecho") && adulto.includes("Caderas"), "adulto: faltan Pecho o Caderas (el infantil se probaría en vacío)");
+  }
+
+  /* Sin foto real el retrato sintético no es una persona de verdad (la pose detectada es inventada): mover una articulación y aplicar
+     no son fiables. Se avisa y se omiten, en vez de dar FALLO por algo que no es un error. Con REALIFY_FOTO son obligatorios. */
+  if (!real) {
+    console.log(`AVISO · ${tipo}: sin REALIFY_FOTO se omiten mover articulaciones y aplicar (sólo se comprueban panel, perfiles y errores de página).`);
+    ok(m.errs.length === 0, `${tipo}: errores de página: ` + m.errs.join("; "));
+    await m.cerrar(); return;
   }
 
   /* F6.3: con «Ver y mover las articulaciones» se arrastra un hombro y el punto se queda donde se suelta */
