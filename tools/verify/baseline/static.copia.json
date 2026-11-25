@@ -609,8 +609,10 @@
    "registrarSW"
   ],
   "basic/js/app/render.js": [
+   "errorMotor",
    "geometria",
    "iniciarRender",
+   "liberar",
    "medirAutoActual",
    "renderFinal",
    "vista"
@@ -4098,10 +4100,6 @@
    "stylize",
    "surfaceBlur"
   ],
-  "js/filters/library/basic/clarity.js": [
-   "clarity",
-   "guidedBase"
-  ],
   "js/filters/library/basic/common.js": [
    "FILTER_PREVIEW_LIMIT",
    "previewProxy",
@@ -5808,6 +5806,10 @@
   ],
   "tools/build-lensdb.mjs": [
    "compact"
+  ],
+  "js/filters/library/basic/local-contrast.js": [
+   "clarity",
+   "guidedBase"
   ]
  },
  "dirEdges": {

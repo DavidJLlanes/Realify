@@ -40,7 +40,8 @@ PAR_TTL, CANJE_TTL = 30 * 60, 24 * 3600
 APPS = {"realify", "basic"}
 ID_RE = re.compile(r"^[0-9a-f]{32}$")
 COD_RE = re.compile(r"^[0-9]{6}$")
-LIMITES = {"subir": (60, 3600), "par": (10, 3600), "fallo": (10, 3600)}   # acciones por IP: (máximo, ventana en s)
+LIMITES = {"subir": (60, 3600), "par": (10, 3600), "fallo": (10, 3600),   # acciones por IP: (máximo, ventana en s)
+           "fallo_total": (300, 3600)}   # códigos fallidos de TODAS las IP juntas: frena probar códigos desde muchas direcciones
 
 buzones = {}      # id → (bytes, t)
 pares = {}        # codigo → {"clave", "de", "para", "ip", "t"}
@@ -83,6 +84,7 @@ def pasado(accion, ip, ahora, sumar=True):
 class Relevo(BaseHTTPRequestHandler):
     server_version = "realify-traspaso"
     sys_version = ""
+    timeout = 60                        # una conexión lenta o colgada no retiene un hilo para siempre
 
     def log_message(self, *a):          # sin registros: ni IPs ni contenido
         pass
@@ -120,7 +122,10 @@ class Relevo(BaseHTTPRequestHandler):
             self.wfile.write(datos)
 
     def leer(self, maximo):
-        n = int(self.headers.get("Content-Length") or 0)
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+        except ValueError:              # cabecera no numérica: 400, no una excepción en el hilo
+            return None
         if n <= 0 or n > maximo:
             return None
         return self.rfile.read(n)
@@ -169,7 +174,8 @@ class Relevo(BaseHTTPRequestHandler):
                 return self.responder(429, {"error": "demasiados envíos"})
         datos = self.leer(MAX_FOTO)
         if not datos or len(datos) < 32:
-            return self.responder(413 if datos is None and int(self.headers.get("Content-Length") or 0) > MAX_FOTO else 400, {"error": "tamaño"})
+            largo = self.headers.get("Content-Length") or "0"
+            return self.responder(413 if datos is None and largo.isdigit() and int(largo) > MAX_FOTO else 400, {"error": "tamaño"})
         with cerrojo:
             buzones[r[7:]] = (datos, ahora)
             limpiar(ahora)
@@ -203,12 +209,13 @@ class Relevo(BaseHTTPRequestHandler):
         if r == "/par/canjear":
             codigo, para = str(d.get("codigo", "")), d.get("para")
             with cerrojo:
-                if pasado("fallo", ip, ahora, sumar=False):
+                if pasado("fallo", ip, ahora, sumar=False) or pasado("fallo_total", "*", ahora, sumar=False):
                     return self.responder(429, {"error": "demasiados intentos"})
                 limpiar(ahora)
                 p = pares.get(codigo) if COD_RE.match(codigo) else None
                 if not p or p["para"] != para:
                     pasado("fallo", ip, ahora)
+                    pasado("fallo_total", "*", ahora)
                     return self.responder(404, {"error": "código no válido"})
                 pares.pop(codigo, None)
                 canjeados[codigo] = ahora

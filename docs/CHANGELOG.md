@@ -9,6 +9,8 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+- **Auditoría de seguridad y errores (tras la 364)**: relevo de fotos (`server/traspaso/traspaso.py`) más robusto: tope global de códigos fallidos (300/h entre todas las IP, contra probar códigos desde muchas direcciones), `Content-Length` no numérico → 400 en vez de excepción, y 60 s de tiempo máximo por conexión. `npm run verify` vuelve a pasar (línea base al día con `errorMotor`, `liberar` y el renombrado a `local-contrast.js`).
+
 ### 2.1.0 (compilación 364) · Basic: la interfaz se corría a un lado en el iPhone
 - Al elegir el último ajuste de la fila (p. ej. Viñeta), `scrollIntoView` intentaba centrarlo y, como la fila no podía moverse más, desplazaba también los contenedores de fuera (aunque tengan `overflow: hidden`): toda la pantalla quedaba corrida a la izquierda.
 - Las filas de ajustes, estilos y recorte ahora se centran moviendo sólo la propia fila; y si algo desplaza la interfaz, vuelve a su sitio al momento (salvo con el teclado abierto).
