@@ -20,6 +20,11 @@ let motor = null, reducida = null, reducidaDe = null, base = null, claveBase = "
 
 const cargarMotor = () => (motor ||= import("../engine/pipeline.js"));
 const nuevoLienzo = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
+/* iOS limita la memoria TOTAL de los lienzos y no la devuelve hasta que el recolector pasa: si se agota, los lienzos nuevos no tienen
+   contexto (getContext da null) y se ven negros. Un lienzo que ya no se usa se deja a 0×0 para devolver su memoria al momento. */
+export const liberar = c => { if (c && c !== original()) { c.width = 0; c.height = 0; } };
+/** Contexto 2D o un error claro (sin memoria de lienzos en iOS getContext devuelve null). */
+const ctx2d = (c, op) => { const x = c.getContext("2d", op); if (!x) throw new Error(`sin memoria para un lienzo de ${c.width}×${c.height} (iOS)`); return x; };
 const enRecorte = () => !!leer().foto && leer().pestana === "recortar";
 const conPerspectiva = r => !!(r.persV || r.persH);
 
@@ -30,7 +35,8 @@ function prepararReducida() {
   const o = original();
   if (reducidaDe === o) return reducida;
   const k = Math.min(1, LADO_VISTA / Math.max(o.width, o.height)), w = Math.max(1, Math.round(o.width * k)), h = Math.max(1, Math.round(o.height * k));
-  reducida = nuevoLienzo(w, h); const x = reducida.getContext("2d");
+  liberar(reducida);
+  reducida = nuevoLienzo(w, h); const x = ctx2d(reducida);
   x.imageSmoothingQuality = "high"; x.drawImage(o, 0, 0, w, h);
   reducidaDe = o; claveBase = ""; return reducida;
 }
@@ -42,8 +48,10 @@ function prepararBase() {
   const { rect, ...geom } = r, clave = JSON.stringify([geom, recortar ? rect : 0, recortar, o.width]);
   if (clave === claveBase && base) return base;
   const lienzo = esNeutraRecorte(r) ? src : transformar(src, geometria(), { recortar, anchoOriginal: o.width, perspectiva: conPerspectiva(r) });
-  base = lienzo.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height);
-  claveBase = clave; cadena = null; lienzoVista = nuevoLienzo(base.width, base.height);
+  base = ctx2d(lienzo, { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height);
+  if (lienzo !== src) liberar(lienzo);
+  claveBase = clave; cadena = null;
+  if (!lienzoVista) lienzoVista = nuevoLienzo(base.width, base.height);   // se reutiliza (pintar ajusta el tamaño): no se acumulan lienzos
   return base;
 }
 
@@ -66,8 +74,8 @@ async function pintar() {
     if (receta().estilo.n >= 0) await cargarEstilos();
     img = prepararBase();
     cadena ||= crearCadena(img);
-    if (lienzoVista.width !== img.width) { lienzoVista.width = img.width; lienzoVista.height = img.height; }
-    lienzoVista.getContext("2d").putImageData(cadena.render(receta(), { rapido: true }), 0, 0);
+    if (lienzoVista.width !== img.width || lienzoVista.height !== img.height) { lienzoVista.width = img.width; lienzoVista.height = img.height; }
+    ctx2d(lienzoVista).putImageData(cadena.render(receta(), { rapido: true }), 0, 0);
     ultimoError = "";
   } catch (e) {
     /* Si el motor falla (p. ej. un módulo que no carga en este navegador) nunca se deja la pantalla en negro: se enseña la foto sin
@@ -75,7 +83,8 @@ async function pintar() {
     ultimoError = String(e?.stack || e).split("\n").slice(0, 3).join(" ⏎ ").slice(0, 300);
     console.error("Basic · motor:", e);
     motor = null; cadena = null;
-    if (img && lienzoVista) { if (lienzoVista.width !== img.width) { lienzoVista.width = img.width; lienzoVista.height = img.height; } lienzoVista.getContext("2d").putImageData(img, 0, 0); }
+    /* Sin lienzo utilizable se enseña el original (vista() lo devuelve si no hay lienzoVista); el siguiente cambio lo reintenta. */
+    liberar(lienzoVista); lienzoVista = null; base = null; claveBase = "";
   }
   poner({ vistaV: leer().vistaV + 1, dims });
 }
@@ -110,9 +119,10 @@ export async function renderFinal() {
     const { aplicarReceta, cargarEstilos } = await cargarMotor();
     if (r.estilo.n >= 0) await cargarEstilos();
     const lienzo = esNeutraRecorte(r.recorte) ? o : transformar(o, geometria(), { recortar: true, anchoOriginal: o.width, perspectiva: conPerspectiva(r.recorte) });
-    const datos = lienzo.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height);
+    const datos = ctx2d(lienzo, { willReadFrequently: true }).getImageData(0, 0, lienzo.width, lienzo.height);
+    if (lienzo !== o) liberar(lienzo);
     const img = await enSegundoPlano(datos, r) || aplicarReceta(datos, r, { rapido: false });
-    const c = nuevoLienzo(lienzo.width, lienzo.height); c.getContext("2d").putImageData(img, 0, 0);
+    const c = nuevoLienzo(img.width, img.height); ctx2d(c).putImageData(img, 0, 0);
     return c;
   } finally { poner({ procesando: false }); }
 }
@@ -121,3 +131,4 @@ export async function medirAutoActual() {
   const [{ medirAuto }] = await Promise.all([import("../engine/auto.js")]);
   return medirAuto(prepararBase());
 }
+

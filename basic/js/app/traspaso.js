@@ -8,7 +8,7 @@
    Límites: la mecánica es js/core/handoff.js (mismo almacenamiento) y js/core/relevo.js (servidor); aquí sólo sesión y avisos.
    ═══════════════════════════════════════════════════════════════ */
 import { abrirArchivo } from "./files.js";
-import { renderFinal } from "./render.js";
+import { liberar, renderFinal } from "./render.js";
 import { leer } from "./store.js";
 import { elegirEmparejar, ensenarCodigo, pedirCodigo } from "../ui/codigo.js";
 
@@ -29,7 +29,7 @@ export async function iniciarTraspaso(avisar) {
 }
 
 const aBlob = (lienzo, tipo, q) => new Promise(r => lienzo.toBlob(r, tipo, q));
-const aPNG = async () => aBlob(await renderFinal(), "image/png");
+const aPNG = async () => { const l = await renderFinal(), b = await aBlob(l, "image/png"); liberar(l); return b; };
 
 /* Por el servidor: PNG sin pérdida si cabe en 15 MB; si no, JPEG al 95 % (viaja ida y vuelta por la red del móvil). */
 async function porRelevo(info, avisar) {
@@ -37,6 +37,7 @@ async function porRelevo(info, avisar) {
   const lienzo = await renderFinal();
   let blob = await aBlob(lienzo, "image/png");
   if (blob.size > 15 * 1024 * 1024) blob = await aBlob(lienzo, "image/jpeg", 0.95);
+  liberar(lienzo);
   try {
     const r = await enviarRelevo("basic", "realify", { blob, nombre: info.nombre }, { alProgreso: p => avisar(`Enviando la foto… ${Math.round(p * 100)} %`, { fijo: true }) });
     if (r.codigo) { avisar("Foto lista"); ensenarCodigo(r.codigo, "Realify Pro"); }

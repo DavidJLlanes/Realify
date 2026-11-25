@@ -29,7 +29,10 @@ function avisar() {
   });
 }
 
-export function iniciar(lienzo, info) { base = lienzo; datos = info; vivo = nueva(); hist = [clon(vivo)]; i = 0; abierto = false; avisar(); poner({ barras: true }); }
+/* iOS no devuelve la memoria de un lienzo hasta que lo recoge el recolector: la foto anterior se deja a 0×0 al cambiar de foto. */
+const soltar = nueva => { if (base && base !== nueva && base.width !== undefined) { base.width = 0; base.height = 0; } };
+
+export function iniciar(lienzo, info) { soltar(lienzo); base = lienzo; datos = info; vivo = nueva(); hist = [clon(vivo)]; i = 0; abierto = false; avisar(); poner({ barras: true }); }
 
 export function cambiar(ajustes) { vivo = { ...vivo, ajustes: { ...vivo.ajustes, ...ajustes } }; abierto = true; avisar(); }
 export function cambiarRecorte(parche) { vivo = { ...vivo, recorte: { ...vivo.recorte, ...parche } }; abierto = true; avisar(); }
@@ -51,4 +54,4 @@ function ir(n) { abierto = false; i = n; vivo = clon(hist[i]); avisar(); }
 export function deshacer() { if (abierto && !igual(vivo, hist[i])) ir(i); else if (i > 0) ir(i - 1); }
 export function rehacer() { if (i < hist.length - 1) ir(i + 1); }
 export function volverAlOriginal() { if (!esNeutra(vivo)) { vivo = nueva(); abierto = true; cerrarPaso(); } }
-export function cerrar() { base = null; datos = null; vivo = nueva(); hist = []; i = -1; abierto = false; avisar(); }
+export function cerrar() { soltar(null); base = null; datos = null; vivo = nueva(); hist = []; i = -1; abierto = false; avisar(); }

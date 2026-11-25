@@ -9,6 +9,11 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 361) · Basic: pantalla en negro en el iPhone (memoria de lienzos)
+- iOS limita la memoria total de los lienzos y la devuelve tarde: al agotarse, los lienzos nuevos no tienen contexto y la vista previa sale negra. Basic creaba un lienzo nuevo en cada cambio de recorte, de foto o al guardar y no los soltaba.
+- Ahora los lienzos que ya no se usan se dejan a 0×0 al momento (vista previa reutilizada, intermedios del recorte, foto anterior, resultado tras guardar o enviar).
+- Si aun así falta memoria, se ve la foto sin ajustar (no negro), el pie del menú «···» dice «sin memoria para un lienzo…» y se reintenta en el siguiente cambio.
+
 ### 2.1.0 (compilación 360) · Basic: nunca pantalla en negro si falla el motor
 - Si el motor de la vista previa falla (p. ej. un módulo que no carga en ese navegador), la vista ya no queda en negro: se muestra la foto sin ajustar, se vuelve a intentar en el siguiente cambio y el error aparece en el pie del menú «···» («ERROR: …»).
 - Causa del negro: la vista se recreaba en blanco antes de calcular y, si el cálculo lanzaba una excepción, se quedaba así.

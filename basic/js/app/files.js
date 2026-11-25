@@ -5,7 +5,7 @@
    Salidas: la foto queda en app/session.js. Los formatos que sabe abrir son los de Realify (HEIC, TIFF, RAW, PSD, JXL…).
    Límites: iOS no admite lienzos de más de 16 Mpx, así que una foto mayor se reduce a ese tamaño al abrirla.
    ═══════════════════════════════════════════════════════════════ */
-import { renderFinal } from "./render.js";
+import { liberar, renderFinal } from "./render.js";
 import { iniciar } from "./session.js";
 import { leer } from "./store.js";
 
@@ -18,7 +18,7 @@ function aLienzo(fuente) {
   const c = document.createElement("canvas");
   c.width = Math.max(1, Math.round(fuente.width * k)); c.height = Math.max(1, Math.round(fuente.height * k));
   c.getContext("2d").drawImage(fuente, 0, 0, c.width, c.height);
-  fuente.close?.();
+  if (fuente.close) fuente.close(); else if (fuente instanceof HTMLCanvasElement && fuente !== c) { fuente.width = 0; fuente.height = 0; }   // devuelve su memoria (iOS)
   return c;
 }
 
@@ -51,6 +51,7 @@ export async function guardarCopia() {
   const l = await renderFinal();
   const png = info.tipo === "image/png", ext = png ? "png" : "jpg";
   const blob = await new Promise(r => l.toBlob(r, info.tipo, .95));
+  liberar(l);                                              // el resultado a tamaño completo ya no hace falta (memoria de iOS)
   const archivo = new File([blob], `${info.nombre}-basic.${ext}`, { type: info.tipo });
   if (navigator.canShare?.({ files: [archivo] })) { try { await navigator.share({ files: [archivo] }); return true; } catch (e) { if (e.name === "AbortError") return false; } }
   const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(archivo), download: archivo.name });
