@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 362) · Basic: diagnóstico del módulo que no carga
+- Si el motor no carga («Importing a module script failed» en Safari), Basic recorre los imports y añade al pie del menú «···» el archivo que falla (estado HTTP, tipo de contenido o error de red).
+- Service worker de Basic: sin red ya no devuelve la página de inicio en lugar de un módulo JS (Safari lo daba por roto y no lo reintentaba); sólo a las navegaciones.
+
 ### 2.1.0 (compilación 361) · Basic: pantalla en negro en el iPhone (memoria de lienzos)
 - iOS limita la memoria total de los lienzos y la devuelve tarde: al agotarse, los lienzos nuevos no tienen contexto y la vista previa sale negra. Basic creaba un lienzo nuevo en cada cambio de recorte, de foto o al guardar y no los soltaba.
 - Ahora los lienzos que ya no se usan se dejan a 0×0 al momento (vista previa reutilizada, intermedios del recorte, foto anterior, resultado tras guardar o enviar).

@@ -5,7 +5,7 @@
    El contador de compilación es EL MISMO que el de Realify (se sube en las dos a la vez).
    Límites: sólo borra cachés propias («realify-basic-…»); las de Realify no se tocan.
    ═══════════════════════════════════════════════════════════════ */
-const VERSION = "realify-basic-v361";
+const VERSION = "realify-basic-v362";
 const PREFIJO = "realify-basic-";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./css/tokens.css", "./css/shell.css", "./css/controls.css",
   "./js/main.js?v=" + VERSION.match(/v(\d+)/)[1]];
@@ -29,6 +29,8 @@ self.addEventListener("fetch", e => {
   e.respondWith(
     fetch(req.mode === "navigate" ? req.url : req, { cache: "no-cache" })
       .then(r => { if (r.ok) { const copia = r.clone(); caches.open(VERSION).then(c => c.put(req, copia)); } return r; })
-      .catch(() => caches.match(req, { ignoreSearch: false }).then(r => r || caches.match("./index.html")))
+      /* Sin red: lo guardado; la página de inicio SÓLO para una navegación (devolverla en lugar de un módulo JS hace que Safari
+         lo dé por roto: «Importing a module script failed»). */
+      .catch(() => caches.match(req, { ignoreSearch: false }).then(r => r || (req.mode === "navigate" ? caches.match("./index.html") : Response.error())))
   );
 });

@@ -16,7 +16,7 @@ import { leer, poner, suscribir } from "./store.js";
 import { transformar } from "./transformar.js";
 
 const LADO_VISTA = matchMedia("(max-width: 900px)").matches ? 1200 : 1600;
-let motor = null, reducida = null, reducidaDe = null, base = null, claveBase = "", cadena = null, lienzoVista = null, pendiente = false, ultimoError = "";
+let motor = null, reducida = null, reducidaDe = null, base = null, claveBase = "", cadena = null, lienzoVista = null, pendiente = false, ultimoError = "", buscando = false;
 
 const cargarMotor = () => (motor ||= import("../engine/pipeline.js"));
 const nuevoLienzo = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
@@ -82,6 +82,12 @@ async function pintar() {
        ajustar y el error queda en el pie del menú «···» para poder diagnosticarlo. Se vuelve a intentar en el siguiente cambio. */
     ultimoError = String(e?.stack || e).split("\n").slice(0, 3).join(" ⏎ ").slice(0, 300);
     console.error("Basic · motor:", e);
+    /* El mensaje de Safari no dice qué archivo falló: se busca y se añade al diagnóstico del menú. */
+    if (/module/i.test(String(e)) && !buscando) {
+      buscando = true;
+      import("./diagnostico.js").then(d => d.buscarModuloRoto(new URL("../engine/pipeline.js", import.meta.url).href))
+        .then(t => { ultimoError += " · " + t; }, x => { ultimoError += " · diagnóstico: " + x; }).finally(() => { buscando = false; });
+    }
     motor = null; cadena = null;
     /* Sin lienzo utilizable se enseña el original (vista() lo devuelve si no hay lienzoVista); el siguiente cambio lo reintenta. */
     liberar(lienzoVista); lienzoVista = null; base = null; claveBase = "";
