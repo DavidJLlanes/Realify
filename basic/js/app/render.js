@@ -16,7 +16,7 @@ import { leer, poner, suscribir } from "./store.js";
 import { transformar } from "./transformar.js";
 
 const LADO_VISTA = matchMedia("(max-width: 900px)").matches ? 1200 : 1600;
-let motor = null, reducida = null, reducidaDe = null, base = null, claveBase = "", cadena = null, lienzoVista = null, pendiente = false;
+let motor = null, reducida = null, reducidaDe = null, base = null, claveBase = "", cadena = null, lienzoVista = null, pendiente = false, ultimoError = "";
 
 const cargarMotor = () => (motor ||= import("../engine/pipeline.js"));
 const nuevoLienzo = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
@@ -60,14 +60,28 @@ async function pintar() {
   if (!original()) return;
   const dims = tamano();
   if (esNeutra(receta()) && !enRecorte()) { poner({ vistaV: leer().vistaV + 1, dims }); return; }
-  const { crearCadena, cargarEstilos } = await cargarMotor();
-  if (receta().estilo.n >= 0) await cargarEstilos();
-  const img = prepararBase();
-  cadena ||= crearCadena(img);
-  if (lienzoVista.width !== img.width) { lienzoVista.width = img.width; lienzoVista.height = img.height; }
-  lienzoVista.getContext("2d").putImageData(cadena.render(receta(), { rapido: true }), 0, 0);
+  let img = null;
+  try {
+    const { crearCadena, cargarEstilos } = await cargarMotor();
+    if (receta().estilo.n >= 0) await cargarEstilos();
+    img = prepararBase();
+    cadena ||= crearCadena(img);
+    if (lienzoVista.width !== img.width) { lienzoVista.width = img.width; lienzoVista.height = img.height; }
+    lienzoVista.getContext("2d").putImageData(cadena.render(receta(), { rapido: true }), 0, 0);
+    ultimoError = "";
+  } catch (e) {
+    /* Si el motor falla (p. ej. un módulo que no carga en este navegador) nunca se deja la pantalla en negro: se enseña la foto sin
+       ajustar y el error queda en el pie del menú «···» para poder diagnosticarlo. Se vuelve a intentar en el siguiente cambio. */
+    ultimoError = String(e?.stack || e).split("\n").slice(0, 3).join(" ⏎ ").slice(0, 300);
+    console.error("Basic · motor:", e);
+    motor = null; cadena = null;
+    if (img && lienzoVista) { if (lienzoVista.width !== img.width) { lienzoVista.width = img.width; lienzoVista.height = img.height; } lienzoVista.getContext("2d").putImageData(img, 0, 0); }
+  }
   poner({ vistaV: leer().vistaV + 1, dims });
 }
+
+/** Último error del motor de la vista previa ("" si todo va bien), para el pie del menú «···». */
+export const errorMotor = () => ultimoError;
 
 export function iniciarRender() {
   let visto = "";

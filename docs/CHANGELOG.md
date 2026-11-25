@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 360) · Basic: nunca pantalla en negro si falla el motor
+- Si el motor de la vista previa falla (p. ej. un módulo que no carga en ese navegador), la vista ya no queda en negro: se muestra la foto sin ajustar, se vuelve a intentar en el siguiente cambio y el error aparece en el pie del menú «···» («ERROR: …»).
+- Causa del negro: la vista se recreaba en blanco antes de calcular y, si el cálculo lanzaba una excepción, se quedaba así.
+
 - **Pruebas** (tras la 359): `tests/ia/cuerpo/editor.mjs` ya no da FALLO sin foto real de persona: avisa y sólo comprueba panel, perfiles y errores de página; con `REALIFY_FOTO` hace la prueba completa (mover articulaciones, aplicar, capa transparente).
 
 ### 2.1.0 (compilación 359) · Vibrance Premium 👑 con el color de Basic

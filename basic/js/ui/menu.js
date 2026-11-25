@@ -6,6 +6,7 @@
    Salidas: { cerrar() }. Límites: se cierra al tocar fuera, con Escape o al elegir una opción.
    ═══════════════════════════════════════════════════════════════ */
 import { textoAlto } from "../app/alto.js";
+import { errorMotor } from "../app/render.js";
 import { leer } from "../app/store.js";
 import { h } from "./dom.js";
 import { icono } from "./icons.js";
@@ -21,7 +22,7 @@ export function crearMenu(ancla, acciones) {
   function abrir() {
     menu.replaceChildren(...acciones.filter(a => !a.ver || a.ver(leer())).map(a =>
       h("button", { class: "menu-op", role: "menuitem", onclick: () => { cerrar(); a.alTocar(); } }, icono(a.icono), h("span", {}, a.texto))),
-      h("div", { class: "menu-pie" }, `Compilación ${compilacion()} · ${textoAlto()}`));
+      h("div", { class: "menu-pie" }, `Compilación ${compilacion()} · ${textoAlto()}` + (errorMotor() ? ` · ERROR: ${errorMotor()}` : "")));
     menu.hidden = false; ancla.setAttribute("aria-expanded", "true");
   }
   ancla.addEventListener("click", e => { e.stopPropagation(); menu.hidden ? abrir() : cerrar(); });
