@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 364) · Basic: la interfaz se corría a un lado en el iPhone
+- Al elegir el último ajuste de la fila (p. ej. Viñeta), `scrollIntoView` intentaba centrarlo y, como la fila no podía moverse más, desplazaba también los contenedores de fuera (aunque tengan `overflow: hidden`): toda la pantalla quedaba corrida a la izquierda.
+- Las filas de ajustes, estilos y recorte ahora se centran moviendo sólo la propia fila; y si algo desplaza la interfaz, vuelve a su sitio al momento (salvo con el teclado abierto).
+
 ### 2.1.0 (compilación 363) · Basic: los ajustes no hacían efecto en el iPhone (bloqueador de rastreo)
 - Causa: el iPhone (protección de rastreo de Safari, Relay privado o un bloqueador de contenido) bloqueaba `clarity-engine.js` porque su nombre coincide con el de Microsoft Clarity, un rastreador; el motor de ajustes no cargaba. El diagnóstico de la 362 lo señaló («red: Load failed» aunque el servidor lo sirve con 200).
 - Renombrados `clarity-engine.js` → `local-contrast-engine.js` y `clarity.js` → `local-contrast.js` (también afectaba a «Detalle y estructura» de Pro). Sin cambios de código.

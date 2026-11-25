@@ -21,6 +21,11 @@ import { montarVisor } from "./ui/viewport.js";
 import { poner, suscribir } from "./app/store.js";
 
 const escenario = document.getElementById("stage");
+/* La interfaz nunca se desplaza: overflow: hidden no impide que el navegador mueva un contenedor por código (p. ej. al enfocar o
+   centrar algo), y en el iPhone toda la pantalla quedaba corrida a un lado. Si pasa, se devuelve a su sitio. */
+const escribiendo = () => document.activeElement?.matches?.("input, textarea");    // con el teclado, iOS sí debe poder mover la página
+for (const el of [escenario, document.documentElement, document.body]) el.addEventListener("scroll", () => { if ((el.scrollLeft || el.scrollTop) && !escribiendo()) el.scrollTo(0, 0); }, { passive: true });
+addEventListener("scroll", () => { if ((scrollX || scrollY) && !escribiendo()) scrollTo(0, 0); }, { passive: true });
 const guardar = async () => { if (await guardarCopia()) avisar("Copia guardada"); };
 
 iniciarDispositivo();

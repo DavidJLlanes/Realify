@@ -44,7 +44,7 @@ export async function montarEstilos(contenedor) {
   }
   contenedor.append(regla.el, fila.el);
   sincronizar(); requestAnimationFrame(pintar);
-  if (receta().estilo.n >= 0) setTimeout(() => botones[receta().estilo.n + 1].scrollIntoView({ inline: "center", block: "nearest" }), 0);
+  if (receta().estilo.n >= 0) setTimeout(() => { fila.centrar(botones[receta().estilo.n + 1], false); }, 0);
   const baja = suscribir(sincronizar);
   return { desmontar() { vivo = false; baja(); contenedor.replaceChildren(); } };
 }

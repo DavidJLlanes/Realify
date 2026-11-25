@@ -20,5 +20,14 @@ export function crearFila(clase = "") {
   el.addEventListener("pointermove", e => { if (!a) return; a.mov = Math.max(a.mov, Math.abs(e.clientX - a.x)); if (a.mov > 5) el.scrollLeft = a.s - (e.clientX - a.x); });
   addEventListener("pointerup", () => { if (a && a.mov > 5) el.addEventListener("click", e => e.stopPropagation(), { capture: true, once: true }); a = null; });
   el.addEventListener("wheel", e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { el.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-  return { el, centrar: b => b?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" }) };
+  return { el, centrar: (b, suave = true) => centrarEn(el, b, suave) };
+}
+
+/* Centra el botón desplazando SÓLO la fila. scrollIntoView no vale: cuando la fila ya no puede moverse más (el último elemento)
+   desplaza también los contenedores de fuera —aunque tengan overflow: hidden— y en el iPhone toda la interfaz se iba a un lado. */
+function centrarEn(fila, b, suave = true) {
+  if (!fila || !b) return;
+  const f = fila.getBoundingClientRect(), r = b.getBoundingClientRect();
+  const izq = Math.max(0, Math.min(fila.scrollWidth - fila.clientWidth, fila.scrollLeft + (r.left - f.left) - (f.width - r.width) / 2));
+  fila.scrollTo({ left: izq, behavior: suave ? "smooth" : "auto" });
 }
