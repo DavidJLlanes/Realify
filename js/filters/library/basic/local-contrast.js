@@ -1,13 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════
-   basic · clarity
+   basic · local-contrast (Detalle y estructura)
    Parte de js/filters/library/basic.js, que conserva la API y reexporta lo de aquí.
    ═══════════════════════════════════════════════════════════════ */
 
 import { slider } from "../../../editor/adjust/adjust.js";
 import { runFilter, previewProxy } from "./common.js";
-import { claridadPixeles } from "./clarity-engine.js";
+import { claridadPixeles } from "./local-contrast-engine.js";
 
-export { guidedBase } from "./clarity-engine.js";
+export { guidedBase } from "./local-contrast-engine.js";
 
 /* ── detalle y estructura ─────────────────────────────────────────
    Contraste local en dos franjas, sólo sobre la luminancia (el color

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   basic · clarity-engine (motor de píxeles, sin DOM)
+   basic · local-contrast-engine (motor de píxeles, sin DOM)
    Contraste local sobre la luminancia, COMPARTIDO por «Detalle y estructura» de Realify Pro y la «Definición» de Realify Basic.
    Filtro guiado (He et al.) como base que respeta los bordes (sin halos ni niebla), dos franjas (estructura ancha y detalle fino)
    y peso de medios tonos (no quema luces ni empasta sombras). Los radios salen del lado corto de la imagen.

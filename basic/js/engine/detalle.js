@@ -6,7 +6,7 @@
    Entradas: pasoRuido / pasoDefinicion / pasoNitidez(data, w, h, ajustes). Salidas: nada (modifica data).
    Límites: sin DOM. Nitidez y ruido van de 0 a 100; definición de −100 (suaviza) a 100.
    ═══════════════════════════════════════════════════════════════ */
-import { claridadPixeles } from "../../../js/filters/library/basic/clarity-engine.js";
+import { claridadPixeles } from "../../../js/filters/library/basic/local-contrast-engine.js";
 import { sharpenRGBA } from "../../../js/filters/library/sharpen-engine.js";
 import { denoisePixels } from "../../../js/features/photo-tools.js";
 

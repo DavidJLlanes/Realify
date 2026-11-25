@@ -9,6 +9,10 @@ que las entradas se agrupan por fecha.
 
 ## [Sin publicar]
 
+### 2.1.0 (compilación 363) · Basic: los ajustes no hacían efecto en el iPhone (bloqueador de rastreo)
+- Causa: el iPhone (protección de rastreo de Safari, Relay privado o un bloqueador de contenido) bloqueaba `clarity-engine.js` porque su nombre coincide con el de Microsoft Clarity, un rastreador; el motor de ajustes no cargaba. El diagnóstico de la 362 lo señaló («red: Load failed» aunque el servidor lo sirve con 200).
+- Renombrados `clarity-engine.js` → `local-contrast-engine.js` y `clarity.js` → `local-contrast.js` (también afectaba a «Detalle y estructura» de Pro). Sin cambios de código.
+
 ### 2.1.0 (compilación 362) · Basic: diagnóstico del módulo que no carga
 - Si el motor no carga («Importing a module script failed» en Safari), Basic recorre los imports y añade al pie del menú «···» el archivo que falla (estado HTTP, tipo de contenido o error de red).
 - Service worker de Basic: sin red ya no devuelve la página de inicio en lugar de un módulo JS (Safari lo daba por roto y no lo reintentaba); sólo a las navegaciones.

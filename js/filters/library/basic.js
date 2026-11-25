@@ -23,7 +23,7 @@ import "../../ui/kit/premium.js";
 import { runFilter } from "./basic/common.js";
 export { runFilter, FILTER_PREVIEW_LIMIT } from "./basic/common.js";
 export { blurred, blur, sharpen } from "./basic/sharpen.js";
-export { clarity } from "./basic/clarity.js";
+export { clarity } from "./basic/local-contrast.js";
 export { vignetteRamp, vignette } from "./basic/vignette.js";
 export { noise } from "./basic/noise.js";
 
