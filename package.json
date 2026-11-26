@@ -9,7 +9,8 @@
   },
   "scripts": {
     "serve": "node tools/serve.mjs",
-    "verify": "npm run check:layers && npm run check:aislamiento && npm run check:refs && npm run check:static && npm run check:docs && npm run check:size && npm run check:smoke",
+    "verify": "npm run check:versiones && npm run check:layers && npm run check:aislamiento && npm run check:refs && npm run check:static && npm run check:docs && npm run check:size && npm run check:smoke",
+    "check:versiones": "node tools/verify/versiones.mjs",
     "check:layers": "node tools/verify/layers.mjs",
     "check:refs": "node tools/verify/lint-refs.mjs . tools/verify/baseline/lint.actual.json --vs tools/verify/baseline/lint.copia.json",
     "check:static": "node tools/verify/static-check.mjs . tools/verify/baseline/static.actual.json && node tools/verify/compare.mjs static tools/verify/baseline/static.copia.json tools/verify/baseline/static.actual.json tools/verify/moves.phase1.json,tools/verify/moves.phase2.json",

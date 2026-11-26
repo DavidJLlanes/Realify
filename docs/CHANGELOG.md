@@ -17,6 +17,7 @@ que las entradas se agrupan por fecha.
 - **Licuar · Congelar / Descongelar**: se pintan en rojo las zonas que no deben deformarse (ni con el pincel ni al conservar volumen); «Descongelar todo». La máscara sobrevive a deshacer y a cambiar de capa y volver.
 - **Teclado numérico en el móvil**: los campos de números enteros no negativos piden `inputmode="numeric"` (stepper.js); los que admiten negativos o decimales conservan el teclado normal, porque el numérico del iPhone no tiene «−» ni coma.
 - Prueba: `tests/archivo/novedades-photopea.mjs` (móvil y escritorio).
+- **Arreglo**: en `index.html` el `main.js?v=` se quedó en 364 (sólo se cambió el primer `?v=` del archivo), así que el aviso «Hay una versión nueva» no se iba al pulsar Actualizar. Corregido y añadida `tools/verify/versiones.mjs` (`npm run check:versiones`, primera comprobación de `verify`) para que no vuelva a pasar.
 
 ### 2.1.0 (compilación 364) · Basic: la interfaz se corría a un lado en el iPhone
 - Al elegir el último ajuste de la fila (p. ej. Viñeta), `scrollIntoView` intentaba centrarlo y, como la fila no podía moverse más, desplazaba también los contenedores de fuera (aunque tengan `overflow: hidden`): toda la pantalla quedaba corrida a la izquierda.
