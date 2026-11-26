@@ -82,7 +82,7 @@ export function applyDab(grid, mode, cx, cy, radius, amount){
       const dx = px - cx, dy = py - cy;
       const dist = Math.hypot(dx, dy);
       if(dist >= radius) continue;
-      const w = falloff(dist / radius);
+      const w = falloff(dist / radius) * (grid.freeze ? 1 - grid.freeze[k >> 1] : 1);   // lo congelado no se mueve
       if(w <= 0) continue;
 
       if(mode === "push"){
@@ -127,8 +127,9 @@ export function relaxGrid(grid, amount){
       const nl = at(i-1,j), nr = at(i+1,j), nu = at(i,j-1), nd = at(i,j+1);
       const avgX = (disp[nl]   + disp[nr]   + disp[nu]   + disp[nd])   / 4;
       const avgY = (disp[nl+1] + disp[nr+1] + disp[nu+1] + disp[nd+1]) / 4;
-      cur[k]     = rest[k]     + disp[k]     * (1 - amount) + avgX * amount;
-      cur[k + 1] = rest[k + 1] + disp[k + 1] * (1 - amount) + avgY * amount;
+      const a = grid.freeze ? amount * (1 - grid.freeze[k >> 1]) : amount;      // lo congelado tampoco se arrastra al relajar
+      cur[k]     = rest[k]     + disp[k]     * (1 - a) + avgX * a;
+      cur[k + 1] = rest[k + 1] + disp[k + 1] * (1 - a) + avgY * a;
     }
   }
 }
@@ -214,4 +215,37 @@ export function renderLiquify(ctx, sourceImage, grid, outW, outH, scale = 1){
       drawTriAffine(ctx, sourceImage, [s00,s11,s01], [d00,d11,d01]);
     }
   }
+}
+
+/* ── congelar ───────────────────────────────────────────────────
+   Una máscara de 0 a 1 por punto de la rejilla (`grid.freeze`): 1 = ese punto no se mueve ni con el pincel ni al conservar
+   volumen. Se pinta con el mismo pincel (en la posición ACTUAL de cada punto, que es donde la persona lo ve); `amount` > 0
+   congela y < 0 descongela, con la misma caída suave del borde. */
+export function paintFreeze(grid, from, to, radius, amount){
+  if(radius <= 0) return;
+  grid.freeze ||= new Float32Array(grid.cur.length / 2);
+  const { cur, freeze } = grid, dist = Math.hypot(to.x - from.x, to.y - from.y);
+  const n = Math.max(1, Math.ceil(dist / Math.max(1, radius * 0.25)));
+  for(let s = 0; s <= n; s++){
+    const cx = from.x + (to.x - from.x) * s / n, cy = from.y + (to.y - from.y) * s / n;
+    for(let p = 0; p < freeze.length; p++){
+      const d = Math.hypot(cur[p * 2] - cx, cur[p * 2 + 1] - cy);
+      if(d >= radius) continue;
+      freeze[p] = Math.max(0, Math.min(1, freeze[p] + amount * falloff(d / radius)));
+    }
+  }
+}
+
+/** Superposición roja (como en Photoshop) sobre las zonas congeladas: un disco suave por punto, del tamaño de una celda. */
+export function drawFreeze(ctx, grid){
+  if(!grid.freeze) return;
+  const r = Math.max(grid.w / grid.cols, grid.h / grid.rows) * 0.62, { cur, freeze } = grid;
+  ctx.save();
+  for(let p = 0; p < freeze.length; p++){
+    if(freeze[p] <= 0.02) continue;
+    const x = cur[p * 2], y = cur[p * 2 + 1], g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(230,40,60,${0.42 * freeze[p]})`); g.addColorStop(1, "rgba(230,40,60,0)");
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  ctx.restore();
 }

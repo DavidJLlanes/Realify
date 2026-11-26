@@ -11,6 +11,13 @@ que las entradas se agrupan por fecha.
 
 - **Auditoría de seguridad y errores (tras la 364)**: relevo de fotos (`server/traspaso/traspaso.py`) más robusto: tope global de códigos fallidos (300/h entre todas las IP, contra probar códigos desde muchas direcciones), `Content-Length` no numérico → 400 en vez de excepción, y 60 s de tiempo máximo por conexión. `npm run verify` vuelve a pasar (línea base al día con `errorMotor`, `liberar` y el renombrado a `local-contrast.js`).
 
+### 2.2.0 (compilación 365) · Ideas de las peticiones de Photopea
+- **Guardar (Ctrl+S) sobre el mismo archivo** (Chrome/Edge de ordenador): «Abrir imagen» usa el selector del sistema con permiso de escritura y Guardar escribe la edición encima del JPEG, PNG o WebP abierto, con sus metadatos (EXIF/XMP/IPTC del original, leídos antes de la primera escritura). La primera vez pide confirmación. Sin ese permiso (móvil, Safari, Firefox u otros formatos) Ctrl+S guarda el proyecto, como antes. `js/io/save-in-place.js`.
+- **Nuevo desde el portapapeles** (Archivo y cajón): la imagen copiada se abre en una pestaña nueva con su tamaño aunque haya otra foto abierta.
+- **Licuar · Congelar / Descongelar**: se pintan en rojo las zonas que no deben deformarse (ni con el pincel ni al conservar volumen); «Descongelar todo». La máscara sobrevive a deshacer y a cambiar de capa y volver.
+- **Teclado numérico en el móvil**: los campos de números enteros no negativos piden `inputmode="numeric"` (stepper.js); los que admiten negativos o decimales conservan el teclado normal, porque el numérico del iPhone no tiene «−» ni coma.
+- Prueba: `tests/archivo/novedades-photopea.mjs` (móvil y escritorio).
+
 ### 2.1.0 (compilación 364) · Basic: la interfaz se corría a un lado en el iPhone
 - Al elegir el último ajuste de la fila (p. ej. Viñeta), `scrollIntoView` intentaba centrarlo y, como la fila no podía moverse más, desplazaba también los contenedores de fuera (aunque tengan `overflow: hidden`): toda la pantalla quedaba corrida a la izquierda.
 - Las filas de ajustes, estilos y recorte ahora se centran moviendo sólo la propia fila; y si algo desplaza la interfaz, vuelve a su sitio al momento (salvo con el teclado abierto).

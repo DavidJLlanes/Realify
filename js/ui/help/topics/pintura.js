@@ -68,7 +68,9 @@ export const pinturaTopic = { id:"pintura", title:"Pintura y retoque",
           dedo sobre pintura fresca. Para suavizar transiciones, no para limpiar manchas.</li>
         <li id="tool-liquify"><b>Licuar (Q).</b> Empuja, frunce, hincha o remolinea una zona con un
           pincel; «conservar volumen» evita que lo empujado adelgace demasiado.
-          «Restablecer» devuelve la capa a como estaba antes de licuar nada.</li>
+          «Restablecer» devuelve la capa a como estaba antes de licuar nada.
+          <b>Congelar</b> (❄) pinta en rojo las zonas que no deben moverse (una cara, un fondo con líneas rectas) y
+          <b>Descongelar</b> (☀) las borra; «Descongelar todo» las quita de golpe.</li>
         <li id="tool-historyBrush"><b>Pincel de historial</b> (Ctrl+Mayús+H, o menú Editar). Pinta píxeles de
           una instantánea (ver «Instantáneas») sobre la capa activa, con el
           mismo halo suave de dureza que cualquier otro pincel: para traer de vuelta

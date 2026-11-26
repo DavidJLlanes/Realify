@@ -46,7 +46,7 @@ import { selectRectTool, selectEllipseTool, selectLassoTool, selectWandTool, pen
 import { current, registerTools } from "./tool-current.js";
 export { state, setCursorPos } from "./defs/shared.js";
 export { spacedSteps, addDodgeBurnLayer } from "./defs/paint.js";
-export { moveKeep, clampMove, centerActiveLayerContent, resetLiquify } from "./defs/move-liquify.js";
+export { moveKeep, clampMove, centerActiveLayerContent, resetLiquify, thawLiquify } from "./defs/move-liquify.js";
 export { invalidateCompareBaseline, setCompareBaseline } from "./defs/navigation.js";
 export { applyCrop } from "./defs/crop-transform.js";
 export { pushTextStyle, pullTextStyle } from "./defs/text.js";

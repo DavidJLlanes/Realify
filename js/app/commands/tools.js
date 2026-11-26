@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { registerAll } from "../../core/commands.js";
-import { resetLiquify, current, centerCompare, applyCrop, cancelPendingTool, applyPerspective, resetPerspective, autoPerspGuides, clearPerspGuides, fillPerspFrame, applyTransform, resetTransform, flipTransform, rotateTransform, setTool, state as toolState, reflowCrop, addDodgeBurnLayer } from "../../editor/tools/tools.js";
+import { resetLiquify, thawLiquify, current, centerCompare, applyCrop, cancelPendingTool, applyPerspective, resetPerspective, autoPerspGuides, clearPerspGuides, fillPerspFrame, applyTransform, resetTransform, flipTransform, rotateTransform, setTool, state as toolState, reflowCrop, addDodgeBurnLayer } from "../../editor/tools/tools.js";
 import { doc, activeLayer } from "../../core/doc.js";
 import { xformCanStart } from "../../editor/tools/transformtool.js";
 import { penFinishOpen, penToSelection, penHasPath, penToMask, penUndoPoint } from "../../editor/selection/pentool.js";
@@ -14,6 +14,7 @@ import { needsDoc } from "./helpers.js";
 
 registerAll({
   "liquify.reset": { run: resetLiquify, enabled: () => doc.open && current.id === "liquify" },
+  "liquify.thawAll": { run: thawLiquify, enabled: () => doc.open && current.id === "liquify" },
   "compare.center": { run: centerCompare, enabled: () => doc.open && current.id === "compare" },
   "crop.apply":  { run: applyCrop, enabled: () => doc.open && current.id === "crop" },
   "crop.cancel": { run: cancelPendingTool, enabled: () => current.id === "crop" },

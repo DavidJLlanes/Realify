@@ -15,7 +15,7 @@ import { view } from "../../../core/view.js";
 import { emit, on } from "../../../core/bus.js";
 import { boundsOf } from "../../selection/selection.js";
 import { moveContentAware } from "../contentmove.js";
-import { makeGrid, renderLiquify, applyStroke, relaxGrid, isIdentityGrid, resetGrid } from "../liquify.js";
+import { makeGrid, renderLiquify, applyStroke, relaxGrid, isIdentityGrid, resetGrid, paintFreeze, drawFreeze } from "../liquify.js";
 import { COARSE } from "../../../core/device.js";
 import { svg, requirePaintable, drawSnapLines, state, cursorPos } from "./shared.js";
 import { current, setTool } from "../tool-current.js";
@@ -270,12 +270,15 @@ export const liquifyTool = {
         ["push","↝","Empujar: arrastra en la dirección del gesto"],
         ["pinch","◐","Fruncir: encoge hacia el centro del pincel"],
         ["bloat","◑","Hinchar: expande desde el centro del pincel"],
-        ["twirl","⟲","Remolino: gira alrededor del centro del pincel"]
+        ["twirl","⟲","Remolino: gira alrededor del centro del pincel"],
+        ["freeze","❄","Congelar: pinta (en rojo) las zonas que no deben deformarse"],
+        ["thaw","☀","Descongelar: borra lo congelado"]
       ]},
       {type:"range", key:"liqSize", label:"Tamaño", min:10, max:600, unit:"px"},
       {type:"range", key:"liqStrength", label:"Fuerza", min:1, max:100, unit:"%"},
       {type:"range", key:"liqVolume", label:"Conservar volumen", min:0, max:100, unit:"%"},
-      {type:"button", label:"Restablecer", cmd:"liquify.reset"}
+      {type:"button", label:"Restablecer", cmd:"liquify.reset"},
+      {type:"button", label:"Descongelar todo", cmd:"liquify.thawAll"}
     ],
     activate(){ setOverlay(drawLiquifyCursor); },
     deactivate(){ setOverlay(null); liqSessionEnd(); },
@@ -283,11 +286,13 @@ export const liquifyTool = {
       const l = requirePaintable();
       if(!l) return;
       liqSessionBegin(l);
+      if(congelando()){ this._freeze = p; liqFreezeStroke(p, p); return; }   // congelar no toca píxeles ni el historial
       this._backup = liqGridSnapshot();
       this._last = p;
       beginPixels("Licuar", l);
     },
     move(p, e){
+      if(this._freeze){ liqFreezeStroke(this._freeze, p); this._freeze = p; return; }
       if(!this._last) return;
       const l = activeLayer();
       liqSessionStroke(l, this._last, p);   // barato: en todos los eventos, sin perder ninguno
@@ -302,6 +307,7 @@ export const liquifyTool = {
       });
     },
     up(){
+      if(this._freeze){ this._freeze = null; return; }
       if(!this._last) return;
       this._last = null; this._backup = null;
       const l = activeLayer();
@@ -317,6 +323,7 @@ export const liquifyTool = {
       scheduleCompose();
     },
     cancel(){
+      this._freeze = null;
       if(!this._last) return;
       this._last = null;
       liqSessionRestore(activeLayer(), this._backup);
@@ -577,7 +584,25 @@ function liqSessionBegin(layer){
       preview.width = proxy.width; preview.height = proxy.height;
     }
   }
+  // Lo congelado sobrevive a que la sesión se rehaga (deshacer, otra capa y volver): se guarda por capa y tamaño.
+  if(liqFreeze && liqFreeze.layerId === layer.id && liqFreeze.w === doc.w && liqFreeze.h === doc.h) grid.freeze = liqFreeze.data;
   liqSession = { layerId: layer.id, original, grid, proxy, proxyScale, preview };
+}
+
+/* ── congelar (Licuar) ─────────────────────────────────────────── */
+let liqFreeze = null;        // { layerId, w, h, data } · la máscara de congelado de la última capa licuada
+const congelando = () => state.liqMode === "freeze" || state.liqMode === "thaw";
+function liqFreezeStroke(from, to){
+  if(!liqSession) return;
+  const g = liqSession.grid;
+  paintFreeze(g, from, to, Math.max(1, state.liqSize / 2), (state.liqMode === "freeze" ? 1 : -1) * Math.max(0.05, state.liqStrength / 100));
+  liqFreeze = { layerId: liqSession.layerId, w: doc.w, h: doc.h, data: g.freeze };
+  scheduleOverlay();
+}
+export function thawLiquify(){
+  if(liqSession?.grid.freeze) liqSession.grid.freeze.fill(0);
+  liqFreeze = null;
+  scheduleOverlay();
 }
 
 function liqGridSnapshot(){
@@ -647,6 +672,7 @@ export function resetLiquify(){
 }
 
 function drawLiquifyCursor(ctx){
+  if(liqSession && liqSession.layerId === activeLayer()?.id) drawFreeze(ctx, liqSession.grid);
   if(!cursorPos) return;
   const r = state.liqSize / 2;
   ctx.strokeStyle = "rgba(255,255,255,.85)";

@@ -13,7 +13,7 @@ bind("mod+o", "file.open");
 
 bind("mod+n", "file.new");
 
-bind("mod+s", "file.saveProject");
+bind("mod+s", "file.save");                  // sobre el archivo abierto si se puede; si no, guarda el proyecto
 
 bind("mod+alt+s", "file.export");
 

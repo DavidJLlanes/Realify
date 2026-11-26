@@ -1,47 +1,47 @@
 {
  "label": "actual",
  "root": "/home/claude/realify",
- "generated": "2026-11-17T13:33:00.082Z",
+ "generated": "2026-11-26T16:57:52.481Z",
  "desktop": {
   "loadErrors": [],
   "perf": {
    "runs": [
     {
-     "readyMs": 2270,
+     "readyMs": 3608,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2163980,
+     "jsBytes": 2180300,
      "cssBytes": 180310,
-     "transferBytes": 896292,
-     "domContentLoaded": 2129,
+     "transferBytes": 902214,
+     "domContentLoaded": 1629,
      "fcp": null
     },
     {
-     "readyMs": 1588,
+     "readyMs": 2079,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2163980,
+     "jsBytes": 2180300,
      "cssBytes": 180310,
-     "transferBytes": 896292,
-     "domContentLoaded": 1503,
+     "transferBytes": 902214,
+     "domContentLoaded": 761,
      "fcp": null
     },
     {
-     "readyMs": 1598,
+     "readyMs": 2031,
      "requests": 250,
      "jsRequests": 237,
      "cssRequests": 12,
-     "jsBytes": 2163980,
+     "jsBytes": 2180111,
      "cssBytes": 180310,
-     "transferBytes": 896292,
-     "domContentLoaded": 1506,
-     "fcp": null
+     "transferBytes": 902111,
+     "domContentLoaded": 1056,
+     "fcp": 528
     }
    ],
-   "medianReadyMs": 1598,
-   "medianTransferBytes": 896292
+   "medianReadyMs": 2079,
+   "medianTransferBytes": 902214
   },
   "vendorAtStart": {
    "heic2any": "undefined",
@@ -203,6 +203,7 @@
     "file.exportPdf",
     "file.exportPng",
     "file.new",
+    "file.newFromClipboard",
     "file.open",
     "file.openBasic",
     "file.openFiles",
@@ -212,6 +213,7 @@
     "file.pairBasic",
     "file.pasteImage",
     "file.revert",
+    "file.save",
     "file.saveProject",
     "file.socialPost",
     "file.socialPreview",
@@ -356,6 +358,7 @@
     "layer.up",
     "layer.watermark",
     "liquify.reset",
+    "liquify.thawAll",
     "pen.cancel",
     "pen.close",
     "pen.start",
@@ -608,12 +611,24 @@
        "help": "Abre el editor de vídeo y te deja elegir uno o varios vídeos. También puedes arrastrar un vídeo a la ventana."
       },
       {
+       "cmd": "file.save",
+       "ic": "save",
+       "label": "Guardar",
+       "help": "En Chrome y Edge de ordenador, con una foto JPEG, PNG o WebP abierta desde «Abrir imagen»: guarda la edición encima del mismo archivo, con sus metadatos (la primera vez pide confirmación). En el resto de casos guarda el proyecto."
+      },
+      {
        "cmd": "file.saveProject",
        "label": "Guardar proyecto…"
       },
       {
        "cmd": "file.new",
        "label": "Documento nuevo…"
+      },
+      {
+       "cmd": "file.newFromClipboard",
+       "ic": "clipboard-paste",
+       "label": "Nuevo desde el portapapeles",
+       "help": "Abre la imagen copiada (una captura, una imagen copiada de la web…) como documento nuevo en su propia pestaña, con su mismo tamaño."
       },
       {
        "cmd": "file.toBasic",
@@ -2981,11 +2996,11 @@
      ]
     }
    ],
-   "menuHash": "120a5f8d41e91c5e"
+   "menuHash": "67e4512cce03fe77"
   },
   "screens": {
-   "welcome": "09d45b77c9e01b97",
-   "withImage": "904bd78c863bfc03"
+   "welcome": "09c76b4acb4b9aca",
+   "withImage": "bc0c34b0f3e6706c"
   },
   "opened": true,
   "afterOpen": {
@@ -4929,20 +4944,20 @@
  "mobile": {
   "loadErrors": [],
   "perf": {
-   "readyMs": 1564,
+   "readyMs": 2446,
    "requests": 250,
    "jsRequests": 237,
    "cssRequests": 12,
-   "jsBytes": 2163980,
+   "jsBytes": 2180300,
    "cssBytes": 180310,
-   "transferBytes": 896292,
-   "domContentLoaded": 1489,
+   "transferBytes": 902214,
+   "domContentLoaded": 995,
    "fcp": null
   },
   "screens": {
-   "welcome": "7fc138759d92135a",
-   "withImage": "91216a462b558bfe",
-   "drawer": "53b3b078245a5530"
+   "welcome": "22ada4f08d4a35bc",
+   "withImage": "457bad4f68c2990a",
+   "drawer": "6ce95a3c4c40024e"
   },
   "opened": true,
   "drawer": true,

@@ -34,6 +34,11 @@ export const archivoTopic = { id:"archivo", title:"Archivo y documentos",
           guarda antes de actualizar la app) y al <b>autoguardado periódico</b>.</li>
         <li><b>Documento nuevo… / Collage / History / Post…</b> Un lienzo vacío a medida, o una
           composición para redes creada en su propia pestaña (ver su tema).</li>
+        <li id="file-clipboard-new"><b>Nuevo desde el portapapeles.</b> La imagen copiada (una captura, una imagen de la web…)
+          se abre como documento nuevo, en su pestaña y con su tamaño, aunque ya tengas otra foto abierta.</li>
+        <li id="file-save"><b>Guardar (Ctrl+S).</b> En Chrome y Edge de ordenador, una foto JPEG, PNG o WebP abierta con
+          «Abrir imagen» se guarda encima del mismo archivo, con sus metadatos y sin descargar otra copia. La primera vez pide
+          confirmación: el original se sustituye. En el móvil, en Safari y Firefox, o con otros formatos, Guardar guarda el proyecto.</li>
         <li id="file-alpha"><b>Transparencia al guardar.</b> Lo que se guarda en un formato sin capas
           (JPEG, PNG, WebP, AVIF, TIFF, PDF, GIF) es el <b>acoplado de las capas visibles</b>: lo que ves. Si
           hay zonas transparentes, PNG, WebP, AVIF, TIFF y GIF las <b>conservan</b> (casilla «Conservar la

@@ -2068,7 +2068,8 @@
    "liquifyTool",
    "moveKeep",
    "moveTool",
-   "resetLiquify"
+   "resetLiquify",
+   "thawLiquify"
   ],
   "js/editor/tools/defs/navigation.js": [
    "cmpActive",
@@ -2161,8 +2162,10 @@
   "js/editor/tools/liquify.js": [
    "applyDab",
    "applyStroke",
+   "drawFreeze",
    "isIdentityGrid",
    "makeGrid",
+   "paintFreeze",
    "relaxGrid",
    "renderLiquify",
    "resetGrid"
@@ -2315,6 +2318,7 @@
    "spacedSteps",
    "state",
    "swapColors",
+   "thawLiquify",
    "toolChosen"
   ],
   "js/editor/tools/transformtool/common.js": [

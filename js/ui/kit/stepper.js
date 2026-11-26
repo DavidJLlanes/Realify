@@ -11,6 +11,7 @@
    Se aplica de dos formas: explícita (`stepper(input)`, la barra de
    opciones) y automática (un MutationObserver envuelve cualquier
    campo numérico que aparezca en un diálogo). `data-nostep` lo evita.
+   Además pide el teclado numérico del móvil en los campos enteros no negativos (teclado()).
    ═══════════════════════════════════════════════════════════════ */
 
 const decimals = step => {
@@ -71,8 +72,18 @@ function makeBtn(sign, input){
   return b;
 }
 
+/* Teclado del móvil: en los campos de números enteros y no negativos se pide el teclado NUMÉRICO (inputmode="numeric").
+   Sólo ahí: el numérico del iPhone no tiene signo menos ni coma, así que los campos con negativos (coordenadas, núcleos) o con
+   decimales (mm, f/) se quedan con el teclado normal de números. Si el campo ya trae su inputmode, se respeta. */
+function teclado(input){
+  if(input.hasAttribute("inputmode")) return;
+  const min = parseFloat(input.min), step = input.step === "" ? 1 : parseFloat(input.step);
+  if(Number.isFinite(min) && min >= 0 && (input.step === "any" ? false : Number.isInteger(step))) input.setAttribute("inputmode", "numeric");
+}
+
 /** Envuelve `input` en un stepper y devuelve el envoltorio. */
 export function stepper(input){
+  teclado(input);
   if(input.closest?.(".stepper")) return input.parentElement;
   const wrap = document.createElement("div");
   wrap.className = "stepper";
@@ -95,8 +106,9 @@ export function stepper(input){
 }
 
 export function upgradeSteppers(root = document){
-  root.querySelectorAll?.('input[type="number"]:not([data-nostep])').forEach(inp => {
-    if(!inp.closest(".stepper")) stepper(inp);
+  root.querySelectorAll?.('input[type="number"]').forEach(inp => {
+    teclado(inp);
+    if(!inp.dataset.nostep && !inp.closest(".stepper")) stepper(inp);
   });
 }
 
@@ -104,7 +116,7 @@ const mo = new MutationObserver(muts => {
   for(const m of muts){
     for(const n of m.addedNodes){
       if(n.nodeType !== 1) continue;
-      if(n.matches?.('input[type="number"]') && !n.dataset.nostep && !n.closest(".stepper")) stepper(n);
+      if(n.matches?.('input[type="number"]')){ teclado(n); if(!n.dataset.nostep && !n.closest(".stepper")) stepper(n); }
       else upgradeSteppers(n);
     }
   }

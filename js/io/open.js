@@ -10,6 +10,7 @@ import { confirmDlg } from "../ui/kit/dialog.js";
 import { openAsNewTab, refreshActiveTabMeta } from "../editor/documents.js";
 import { compatibleFile, decodeCompatible, openPsd, svgCanvas } from "./formats/compatibility.js";
 import { isRawFile } from "./raw-formats.js";
+import { abrirConPermiso } from "./save-in-place.js";
 import { docSizeLimit, galleryAccept } from "../core/device.js";
 
 const picker = document.getElementById("filePicker");
@@ -285,7 +286,15 @@ export function initOpen(){
 /** Vídeo soltado en la ventana: va al editor de vídeo (lo recoge js/app/commands/video.js con el evento «realify:abrir-video»). */
 const esVideo = f => /^video\//.test(f.type) || /\.(mp4|mov|webm|mkv|m4v)$/i.test(f.name);
 
-export function promptOpen(){ picker.click(); }
+/* En Chrome y Edge de escritorio se abre con el selector del sistema que da permiso para volver a escribir el archivo
+   (Archivo › Guardar sobre él, save-in-place.js); en el resto, el selector de siempre. */
+export async function promptOpen(){
+  let files = null;
+  try{ files = await abrirConPermiso(picker.accept); }catch(err){ console.warn("[abrir]", err); files = null; }
+  if(files === null) return picker.click();
+  const ok = files.filter(compatibleFile);
+  if(ok.length) ok.length > 1 ? openFilesInNewTabs(ok) : openFileInNewTab(ok[0]);
+}
 /** RAW, PSD, TIFF y SVG: desde el explorador de archivos (en Android no
     salen en la galería). */
 /** Editar en lote: se abre el selector directamente, sin esperar a cargar
@@ -311,9 +320,11 @@ export function promptCamera(){ document.getElementById("cameraPicker")?.click()
 
 export function promptLoadStack(){ document.getElementById("filePickerStack")?.click(); }
 
-export async function promptPasteImage(){
+/** Pegar la imagen del portapapeles: con documento abierto como capa nueva; sin él (o con `nuevo`) en un documento nuevo, en su
+    propia pestaña y con el tamaño de la imagen («Nuevo desde el portapapeles»). */
+export async function promptPasteImage({ nuevo = false } = {}){
   if(!navigator.clipboard?.read){
-    toast("Usa Ctrl+V o ⌘V para pegar una imagen en este navegador");
+    toast(nuevo ? "Este navegador no deja leer el portapapeles desde el menú: cierra las fotos abiertas y usa Ctrl+V o ⌘V" : "Usa Ctrl+V o ⌘V para pegar una imagen en este navegador");
     return;
   }
   try{
@@ -323,7 +334,7 @@ export async function promptPasteImage(){
       if(!type) continue;
       const blob = await item.getType(type);
       const file = new File([blob], "portapapeles.png", { type });
-      return doc.open ? placeAsLayer(file) : openFileInNewTab(file);
+      return doc.open && !nuevo ? placeAsLayer(file) : openFileInNewTab(file);
     }
     toast("El portapapeles no contiene una imagen");
   }catch(err){

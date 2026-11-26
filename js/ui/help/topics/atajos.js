@@ -22,7 +22,7 @@ export const atajosTopic = { id:"atajos", title:"Atajos de teclado",
         <li><kbd>Ctrl+Z</kbd> deshacer · <kbd>Ctrl+Mayús+Z</kbd> o <kbd>Ctrl+Y</kbd> rehacer</li>
         <li><kbd>Ctrl+Mayús+D</kbd> Dodge &amp; Burn · <kbd>Ctrl+Mayús+H</kbd> Pincel de historial</li>
         <li><kbd>Ctrl+O</kbd> abrir · <kbd>Ctrl+N</kbd> documento nuevo</li>
-        <li><kbd>Ctrl+S</kbd> guardar proyecto · <kbd>Ctrl+Alt+S</kbd> exportar ·
+        <li><kbd>Ctrl+S</kbd> guardar (sobre el archivo abierto en Chrome/Edge de ordenador; si no, el proyecto) · <kbd>Ctrl+Alt+S</kbd> exportar ·
           <kbd>Ctrl+Mayús+S</kbd> exportar PNG rápido</li>
         <li><kbd>Ctrl+C</kbd> / <kbd>Ctrl+X</kbd> / <kbd>Ctrl+V</kbd> copiar, cortar, pegar</li>
         <li><kbd>Ctrl+R</kbd> tamaño de imagen</li>
